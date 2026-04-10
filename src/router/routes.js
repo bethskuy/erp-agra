@@ -133,7 +133,19 @@ const routes = [
     ],
   },
 
-  // 4. ERROR 404 (SELALU PALING BAWAH)
+  // 4. MODUL ABSENSI (KP KAMU)
+  {
+    path: '/absensi',
+    component: () => import('layouts/MainLayout.vue'), // Menggunakan Layout Utama agar menu tetap ada
+    children: [
+      {
+        path: 'dashboard',
+        component: () => import('pages/absensi/DashboardPage.vue'),
+      },
+    ],
+  },
+
+  // 5. ERROR 404 (SELALU PALING BAWAH)
   {
     path: '/:catchAll(.*)*',
     component: () => import('pages/ErrorNotFound.vue'),
