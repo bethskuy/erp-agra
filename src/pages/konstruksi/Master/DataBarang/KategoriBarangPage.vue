@@ -2,9 +2,9 @@
   <q-page class="bg-grey-2 q-pa-md">
     <div class="row items-center q-mb-md">
       <div class="col">
-        <div class="text-h5 text-weight-bold text-primary text-uppercase">Kategori Inventori</div>
+        <div class="text-h5 text-weight-bold text-primary text-uppercase">Kategori Barang</div>
         <div class="text-caption text-grey-7">
-          Kelola pemetaan akun dan pelacakan stok per kategori.
+          Master data untuk pengelompokan barang dan material konstruksi.
         </div>
       </div>
       <div class="col-auto">
@@ -14,16 +14,23 @@
           icon="add"
           label="Tambah Kategori"
           no-caps
-          class="rounded-borders"
+          class="btn-radius"
           @click="openAddDialog"
         />
       </div>
     </div>
 
     <q-card flat bordered class="rounded-borders shadow-1">
-      <q-table :rows="rows" :columns="columns" row-key="id" flat :filter="filter">
+      <q-table
+        :rows="rows"
+        :columns="columns"
+        row-key="id"
+        flat
+        :filter="filter"
+        :loading="loading"
+      >
         <template v-slot:top-right>
-          <q-input outlined dense debounce="300" v-model="filter" placeholder="Cari...">
+          <q-input outlined dense debounce="300" v-model="filter" placeholder="Cari kategori...">
             <template v-slot:append><q-icon name="search" /></template>
           </q-input>
         </template>
@@ -51,186 +58,191 @@
       </q-table>
     </q-card>
 
-    <q-dialog v-model="showDialog" persistent transition-show="scale" transition-hide="scale">
-      <q-card style="width: 500px; max-width: 95vw; border-radius: 8px">
-        <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6 text-grey-8 text-weight-bold">Tambah Kategori Inventori</div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup class="text-grey-8" />
-        </q-card-section>
+    <q-dialog
+      v-model="showDialog"
+      persistent
+      maximized
+      transition-show="slide-up"
+      transition-hide="slide-down"
+    >
+      <q-card class="bg-white column no-wrap">
+        <q-toolbar class="bg-white text-grey-9 q-py-md bordered">
+          <q-toolbar-title class="text-weight-bold text-center">
+            {{ isEditMode ? 'Edit Kategori Barang' : 'Tambah Kategori Barang Baru' }}
+          </q-toolbar-title>
+          <q-btn flat round dense icon="close" v-close-popup />
+        </q-toolbar>
 
-        <q-separator class="q-my-md" />
-
-        <q-card-section class="q-pa-md q-gutter-y-md">
-          <div>
-            <div class="text-subtitle2 text-grey-9 q-mb-xs">Nama Kategori</div>
-            <q-input outlined dense v-model="form.nama" bg-color="white" />
-          </div>
-
-          <div>
-            <div class="text-subtitle2 text-grey-9 q-mb-xs">Perlu Pelacakan Stok ?</div>
-            <div class="q-gutter-sm">
-              <q-radio v-model="form.track_stok" :val="true" label="Ya" color="primary" />
-              <q-radio v-model="form.track_stok" :val="false" label="Tidak" color="primary" />
-            </div>
-          </div>
-
-          <div>
-            <div class="text-subtitle2 text-grey-9 q-mb-xs">Akun Persediaan</div>
-            <q-select
-              outlined
-              dense
-              v-model="form.akun_persediaan"
-              :options="['1-2001 Persediaan Material', '1-2002 Persediaan Alat']"
-              label="Pilih Coa"
-              bg-color="white"
-            />
-          </div>
-
-          <div>
-            <div class="text-subtitle2 text-grey-9 q-mb-xs">Akun COGS</div>
-            <q-select
-              outlined
-              dense
-              v-model="form.akun_cogs"
-              :options="['5-1001 HPP Material', '5-1002 HPP Jasa']"
-              label="Pilih Coa"
-              bg-color="white"
-            />
-          </div>
-
-          <div>
-            <div class="text-subtitle2 text-grey-9 q-mb-xs">Tipe :</div>
-            <div class="row q-col-gutter-sm">
-              <div class="col-6">
-                <q-checkbox
-                  v-model="form.tipe"
-                  val="Material"
-                  label="Material"
-                  color="orange"
-                  keep-color
+        <q-card-section class="col scroll q-pa-none">
+          <div class="row justify-center q-pt-xl q-px-md">
+            <div class="col-12 col-md-8 col-lg-6 q-gutter-y-lg">
+              <div>
+                <div class="label-req">
+                  Nama Kategori Barang <span class="text-negative">*</span>
+                </div>
+                <q-input
+                  outlined
+                  dense
+                  v-model="form.nama"
+                  placeholder="Contoh: Semen, Kayu, Besi, Perkakas..."
+                  bg-color="white"
+                  autofocus
                 />
               </div>
-              <div class="col-6">
-                <q-checkbox
-                  v-model="form.tipe"
-                  val="Jasa/Tukang"
-                  label="Jasa/Tukang"
-                  color="orange"
-                  keep-color
+
+              <div>
+                <div class="label-req">Keterangan / Deskripsi</div>
+                <q-input
+                  outlined
+                  dense
+                  v-model="form.keterangan"
+                  type="textarea"
+                  rows="6"
+                  placeholder="Berikan penjelasan singkat mengenai kategori barang ini..."
+                  bg-color="white"
                 />
               </div>
-              <div class="col-6">
-                <q-checkbox v-model="form.tipe" val="Alat" label="Alat" color="orange" keep-color />
+
+              <q-banner dense class="bg-blue-1 text-blue-9 rounded-borders q-pa-md">
+                <template v-slot:avatar>
+                  <q-icon name="info" color="blue-9" />
+                </template>
+                Kategori ini digunakan untuk mempermudah pencarian dan pengelompokan pada Data
+                Barang.
+              </q-banner>
+
+              <div class="row items-center justify-end q-gutter-x-md q-pt-lg q-pb-xl">
+                <q-btn
+                  flat
+                  label="Batal"
+                  color="grey-7"
+                  v-close-popup
+                  class="q-px-lg btn-radius"
+                  no-caps
+                />
+                <q-btn
+                  unelevated
+                  color="primary"
+                  label="Simpan Data"
+                  :loading="submitting"
+                  @click="simpanKategori"
+                  class="q-px-xl btn-radius text-weight-bold shadow-2"
+                  no-caps
+                />
               </div>
             </div>
           </div>
         </q-card-section>
-
-        <q-card-actions align="right" class="bg-white q-pa-md q-gutter-sm">
-          <q-btn
-            outline
-            label="Tutup"
-            color="negative"
-            v-close-popup
-            class="q-px-lg"
-            no-caps
-            style="border-radius: 6px"
-          />
-          <q-btn
-            unelevated
-            label="Simpan"
-            color="orange"
-            class="q-px-lg text-white"
-            @click="simpanKategori"
-            no-caps
-            style="border-radius: 6px"
-          />
-        </q-card-actions>
       </q-card>
     </q-dialog>
   </q-page>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
+import {
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  query,
+  orderBy,
+  serverTimestamp,
+} from 'firebase/firestore'
+import { db } from 'src/boot/firebase'
 
 const $q = useQuasar()
 const filter = ref('')
 const showDialog = ref(false)
 const isEditMode = ref(false)
+const loading = ref(false)
+const submitting = ref(false)
 
-const formDefault = {
-  id: null,
-  nama: '',
-  track_stok: true,
-  akun_persediaan: null,
-  akun_cogs: null,
-  tipe: [], // Array karena checkbox bisa pilih lebih dari satu
-}
-
+const formDefault = { nama: '', keterangan: '' }
 const form = ref({ ...formDefault })
+const rows = ref([])
 
 const columns = [
   { name: 'nama', align: 'left', label: 'NAMA KATEGORI', field: 'nama', sortable: true },
-  {
-    name: 'track',
-    align: 'center',
-    label: 'PELACAKAN STOK',
-    field: (row) => (row.track_stok ? 'Ya' : 'Tidak'),
-  },
-  { name: 'tipe', align: 'left', label: 'TIPE', field: (row) => row.tipe.join(', ') },
+  { name: 'keterangan', align: 'left', label: 'KETERANGAN', field: 'keterangan' },
   { name: 'aksi', align: 'center', label: 'AKSI', field: 'aksi' },
 ]
 
-const rows = ref([
-  {
-    id: 1,
-    nama: 'Material Alam',
-    track_stok: true,
-    akun_persediaan: '1-2001',
-    akun_cogs: '5-1001',
-    tipe: ['Material'],
-  },
-])
+// --- AMBIL DATA ---
+const fetchKategori = async () => {
+  if (!db) return
+  loading.value = true
+  try {
+    const q = query(collection(db, 'kategori_barang'), orderBy('nama', 'asc'))
+    const querySnapshot = await getDocs(q)
+    rows.value = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+  } catch (error) {
+    console.error(error)
+    $q.notify({ color: 'negative', message: 'Gagal sinkron data cloud' })
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(fetchKategori)
 
 const openAddDialog = () => {
   isEditMode.value = false
-  form.value = JSON.parse(JSON.stringify(formDefault))
+  form.value = { ...formDefault }
   showDialog.value = true
 }
 
-const openEditDialog = (row) => {
+const openEditDialog = (data) => {
   isEditMode.value = true
-  form.value = JSON.parse(JSON.stringify(row))
+  form.value = { ...data }
   showDialog.value = true
 }
 
-const simpanKategori = () => {
+const simpanKategori = async () => {
   if (!form.value.nama) {
-    $q.notify({ color: 'negative', message: 'Nama Kategori wajib diisi!' })
+    $q.notify({ color: 'negative', message: 'Nama harus diisi' })
     return
   }
-
-  if (isEditMode.value) {
-    const idx = rows.value.findIndex((r) => r.id === form.value.id)
-    rows.value[idx] = { ...form.value }
-    $q.notify({ color: 'positive', message: 'Kategori diperbarui' })
-  } else {
-    rows.value.unshift({ ...form.value, id: Date.now() })
-    $q.notify({ color: 'positive', message: 'Kategori berhasil disimpan' })
+  submitting.value = true
+  try {
+    if (isEditMode.value) {
+      await updateDoc(doc(db, 'kategori_barang', form.value.id), {
+        nama: form.value.nama,
+        keterangan: form.value.keterangan || '',
+        updatedAt: serverTimestamp(),
+      })
+    } else {
+      await addDoc(collection(db, 'kategori_barang'), {
+        nama: form.value.nama,
+        keterangan: form.value.keterangan || '',
+        createdAt: serverTimestamp(),
+      })
+    }
+    showDialog.value = false
+    fetchKategori()
+    $q.notify({ color: 'positive', message: 'Berhasil!' })
+  } catch (error) {
+    console.error(error)
+  } finally {
+    submitting.value = false
   }
-  showDialog.value = false
 }
 
 const hapusKategori = (data) => {
   $q.dialog({
     title: 'Hapus',
-    message: `Yakin ingin menghapus ${data.nama}?`,
+    message: `Hapus kategori ${data.nama}?`,
     cancel: true,
-  }).onOk(() => {
-    rows.value = rows.value.filter((r) => r.id !== data.id)
+  }).onOk(async () => {
+    try {
+      await deleteDoc(doc(db, 'kategori_barang', data.id))
+      fetchKategori()
+    } catch (e) {
+      console.error(e)
+    }
   })
 }
 </script>
@@ -239,9 +251,16 @@ const hapusKategori = (data) => {
 .rounded-borders {
   border-radius: 8px;
 }
-.text-subtitle2 {
+.label-req {
   font-size: 13px;
   font-weight: 600;
   color: #444;
+  margin-bottom: 6px;
+}
+.bordered {
+  border-bottom: 1px solid #ececec;
+}
+.btn-radius {
+  border-radius: 6px;
 }
 </style>

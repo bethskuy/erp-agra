@@ -4,7 +4,7 @@
       <div class="col">
         <div class="text-h5 text-weight-bold text-primary text-uppercase">Data Satuan</div>
         <div class="text-caption text-grey-7">
-          Kelola daftar satuan ukuran material dan jasa (Unit of Measurement).
+          Kelola daftar satuan ukuran material dan jasa (Unit of Measurement) di Cloud Firestore.
         </div>
       </div>
       <div class="col-auto">
@@ -14,14 +14,21 @@
           icon="add"
           label="Tambah Satuan"
           no-caps
-          class="rounded-borders"
+          class="btn-radius"
           @click="openAddDialog"
         />
       </div>
     </div>
 
     <q-card flat bordered class="rounded-borders shadow-1">
-      <q-table :rows="rows" :columns="columns" row-key="id" flat :filter="filter">
+      <q-table
+        :rows="rows"
+        :columns="columns"
+        row-key="id"
+        flat
+        :filter="filter"
+        :loading="loading"
+      >
         <template v-slot:top-right>
           <q-input outlined dense debounce="300" v-model="filter" placeholder="Cari satuan...">
             <template v-slot:append><q-icon name="search" /></template>
@@ -44,89 +51,142 @@
               color="negative"
               icon="delete"
               size="sm"
-              @click="hapusSatuan(props.row)"
+              @click="confirmHapus(props.row)"
             />
           </q-td>
         </template>
       </q-table>
     </q-card>
 
-    <q-dialog v-model="showDialog" persistent transition-show="scale" transition-hide="scale">
-      <q-card style="width: 400px; max-width: 95vw; border-radius: 8px">
-        <q-card-section class="row items-center q-pb-none text-grey-8">
-          <div class="text-h6 text-weight-bold">
-            {{ isEditMode ? 'Edit Satuan' : 'Tambah Satuan' }}
+    <q-dialog
+      v-model="showDialog"
+      persistent
+      maximized
+      transition-show="slide-up"
+      transition-hide="slide-down"
+    >
+      <q-card class="bg-white column no-wrap">
+        <q-toolbar class="bg-white text-grey-9 q-py-md bordered">
+          <q-toolbar-title class="text-weight-bold text-center">
+            {{ isEditMode ? 'Edit Satuan Ukuran' : 'Tambah Satuan Ukuran Baru' }}
+          </q-toolbar-title>
+          <q-btn flat round dense icon="close" v-close-popup />
+        </q-toolbar>
+
+        <q-card-section class="col scroll q-pa-none">
+          <div class="row justify-center q-pt-xl q-px-md">
+            <div class="col-12 col-md-8 col-lg-6 q-gutter-y-lg">
+              <div>
+                <div class="label-req">
+                  Simbol / Nama Satuan <span class="text-negative">*</span>
+                </div>
+                <q-input
+                  outlined
+                  dense
+                  v-model="form.nama"
+                  placeholder="Contoh: m3, Kg, Sack, Ls..."
+                  bg-color="white"
+                  autofocus
+                />
+              </div>
+
+              <div>
+                <div class="label-req">Keterangan Panjang</div>
+                <q-input
+                  outlined
+                  dense
+                  v-model="form.keterangan"
+                  placeholder="Contoh: Meter Kubik, Kilogram, Lump Sum..."
+                  bg-color="white"
+                />
+              </div>
+
+              <q-banner dense class="bg-blue-1 text-blue-9 rounded-borders q-pa-md">
+                <template v-slot:avatar>
+                  <q-icon name="info" color="blue-9" />
+                </template>
+                Satuan ini akan digunakan sebagai pilihan Unit (Uom) pada Master Barang dan AHSP.
+              </q-banner>
+
+              <div class="row items-center justify-end q-gutter-x-md q-pt-lg q-pb-xl">
+                <q-btn
+                  flat
+                  label="Batal"
+                  color="grey-7"
+                  v-close-popup
+                  class="q-px-lg btn-radius"
+                  no-caps
+                />
+                <q-btn
+                  unelevated
+                  color="primary"
+                  label="Simpan Data"
+                  :loading="submitting"
+                  @click="simpanKeFirestore"
+                  class="q-px-xl btn-radius text-weight-bold shadow-2"
+                  no-caps
+                />
+              </div>
+            </div>
           </div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
-
-        <q-separator class="q-my-md" />
-
-        <q-card-section class="q-pa-md q-gutter-y-md">
-          <div>
-            <div class="text-subtitle2 text-grey-9 q-mb-xs">Nama Satuan / Simbol</div>
-            <q-input
-              outlined
-              dense
-              v-model="form.nama"
-              placeholder="Contoh: m3, Kg, Sack, Ls"
-              bg-color="white"
-            />
-          </div>
-
-          <div>
-            <div class="text-subtitle2 text-grey-9 q-mb-xs">Keterangan Panjang</div>
-            <q-input
-              outlined
-              dense
-              v-model="form.keterangan"
-              placeholder="Contoh: Meter Kubik, Kilogram"
-              bg-color="white"
-            />
-          </div>
-        </q-card-section>
-
-        <q-card-actions align="right" class="bg-white q-pa-md q-gutter-sm">
-          <q-btn outline label="Tutup" color="negative" v-close-popup no-caps />
-          <q-btn
-            unelevated
-            label="Simpan"
-            color="orange"
-            class="text-white q-px-lg"
-            @click="simpanSatuan"
-            no-caps
-          />
-        </q-card-actions>
       </q-card>
     </q-dialog>
   </q-page>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
+import {
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  query,
+  orderBy,
+  serverTimestamp,
+} from 'firebase/firestore'
+import { db } from 'src/boot/firebase'
 
 const $q = useQuasar()
 const filter = ref('')
 const showDialog = ref(false)
 const isEditMode = ref(false)
+const loading = ref(false)
+const submitting = ref(false)
 
 const formDefault = { id: null, nama: '', keterangan: '' }
 const form = ref({ ...formDefault })
+const rows = ref([])
 
 const columns = [
   { name: 'nama', align: 'left', label: 'SIMBOL / SATUAN', field: 'nama', sortable: true },
-  { name: 'keterangan', align: 'left', label: 'KETERANGAN', field: 'keterangan' },
+  { name: 'keterangan', align: 'left', label: 'KETERANGAN', field: 'keterangan', sortable: true },
   { name: 'aksi', align: 'center', label: 'AKSI', field: 'aksi' },
 ]
 
-const rows = ref([
-  { id: 1, nama: 'm3', keterangan: 'Meter Kubik' },
-  { id: 2, nama: 'Kg', keterangan: 'Kilogram' },
-  { id: 3, nama: 'Sack', keterangan: 'Kantong / Karung' },
-  { id: 4, nama: 'Ls', keterangan: 'Lump Sum' },
-])
+// --- AMBIL DATA ---
+const loadData = async () => {
+  loading.value = true
+  try {
+    const q = query(collection(db, 'master_satuan'), orderBy('nama', 'asc'))
+    const snapshot = await getDocs(q)
+    rows.value = snapshot.docs.map((docSnap) => ({
+      id: docSnap.id,
+      ...docSnap.data(),
+    }))
+  } catch (error) {
+    console.error('Fetch Error:', error)
+    $q.notify({ color: 'negative', message: 'Gagal muat data cloud' })
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(loadData)
 
 const openAddDialog = () => {
   isEditMode.value = false
@@ -136,34 +196,63 @@ const openAddDialog = () => {
 
 const openEditDialog = (row) => {
   isEditMode.value = true
-  form.value = JSON.parse(JSON.stringify(row))
+  form.value = { ...row }
   showDialog.value = true
 }
 
-const simpanSatuan = () => {
+// --- SIMPAN ---
+const simpanKeFirestore = async () => {
   if (!form.value.nama) {
     $q.notify({ color: 'negative', message: 'Nama Satuan wajib diisi!' })
     return
   }
 
-  if (isEditMode.value) {
-    const idx = rows.value.findIndex((r) => r.id === form.value.id)
-    rows.value[idx] = { ...form.value }
-    $q.notify({ color: 'positive', message: 'Satuan diperbarui' })
-  } else {
-    rows.value.unshift({ ...form.value, id: Date.now() })
-    $q.notify({ color: 'positive', message: 'Satuan berhasil ditambah' })
+  submitting.value = true
+  try {
+    if (isEditMode.value) {
+      const docRef = doc(db, 'master_satuan', form.value.id)
+      const updateData = {
+        nama: form.value.nama,
+        keterangan: form.value.keterangan,
+        updatedAt: serverTimestamp(),
+      }
+      await updateDoc(docRef, updateData)
+      $q.notify({ color: 'positive', message: 'Satuan diperbarui' })
+    } else {
+      await addDoc(collection(db, 'master_satuan'), {
+        nama: form.value.nama,
+        keterangan: form.value.keterangan,
+        createdAt: serverTimestamp(),
+      })
+      $q.notify({ color: 'positive', message: 'Satuan disimpan ke cloud' })
+    }
+    showDialog.value = false
+    loadData()
+  } catch (error) {
+    console.error('Save Error:', error)
+    $q.notify({ color: 'negative', message: 'Gagal simpan ke cloud' })
+  } finally {
+    submitting.value = false
   }
-  showDialog.value = false
 }
 
-const hapusSatuan = (data) => {
+// --- HAPUS ---
+const confirmHapus = (row) => {
   $q.dialog({
-    title: 'Hapus',
-    message: `Yakin hapus satuan ${data.nama}?`,
+    title: 'Konfirmasi Hapus',
+    message: `Hapus satuan <b>${row.nama}</b> dari database?`,
+    html: true,
     cancel: true,
-  }).onOk(() => {
-    rows.value = rows.value.filter((r) => r.id !== data.id)
+    ok: { label: 'Hapus', color: 'negative', unelevated: true },
+  }).onOk(async () => {
+    try {
+      await deleteDoc(doc(db, 'master_satuan', row.id))
+      $q.notify({ color: 'positive', message: 'Data berhasil dihapus' })
+      loadData()
+    } catch (error) {
+      console.error('Delete Error:', error)
+      $q.notify({ color: 'negative', message: 'Gagal menghapus data' })
+    }
   })
 }
 </script>
@@ -172,9 +261,16 @@ const hapusSatuan = (data) => {
 .rounded-borders {
   border-radius: 8px;
 }
-.text-subtitle2 {
+.label-req {
   font-size: 13px;
   font-weight: 600;
   color: #444;
+  margin-bottom: 6px;
+}
+.bordered {
+  border-bottom: 1px solid #ececec;
+}
+.btn-radius {
+  border-radius: 6px;
 }
 </style>

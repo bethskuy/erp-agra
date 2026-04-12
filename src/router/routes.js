@@ -34,16 +34,13 @@ const routes = [
       },
       {
         path: 'master/konsumen',
-        component: () => import('pages/konstruksi/Master/DataKonsumen/KonsumenPage.vue'),
+        component: () => import('pages/konstruksi/Master/DataProyek/DataKonsumen/KonsumenPage.vue'),
       },
       {
         path: 'master/supplier',
         component: () => import('pages/konstruksi/Master/DataSupplier/MasterSupplierPage.vue'),
       },
-      {
-        path: 'master/subkon',
-        component: () => import('pages/konstruksi/Master/DataSubkon/MasterSubkonPage.vue'),
-      },
+
       {
         path: 'master/pekerjaan',
         component: () => import('pages/konstruksi/Master/DataPekerjaan/MasterPekerjaanPage.vue'),

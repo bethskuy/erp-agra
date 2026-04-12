@@ -3,9 +3,7 @@
     <div class="row items-center q-mb-md">
       <div class="col">
         <div class="text-h5 text-weight-bold text-primary text-uppercase">Kategori Proyek</div>
-        <div class="text-caption text-grey-7">
-          Kelola master data jenis atau kategori proyek konstruksi.
-        </div>
+        <div class="text-caption text-grey-7">Master Data - Cloud Firestore</div>
       </div>
       <div class="col-auto">
         <q-btn
@@ -14,32 +12,37 @@
           icon="add"
           label="Tambah Kategori"
           no-caps
-          class="rounded-borders"
+          class="btn-radius"
           @click="openAddDialog"
         />
       </div>
     </div>
 
     <q-card flat bordered class="rounded-borders shadow-1">
-      <q-table :rows="rows" :columns="columns" row-key="id" flat :filter="filter" class="no-shadow">
+      <q-table
+        :rows="rows"
+        :columns="columns"
+        row-key="id"
+        flat
+        :filter="filter"
+        :loading="loading"
+      >
         <template v-slot:top-right>
-          <q-input
-            outlined
-            dense
-            debounce="300"
-            v-model="filter"
-            placeholder="Cari kategori..."
-            bg-color="white"
-          >
+          <q-input outlined dense debounce="300" v-model="filter" placeholder="Cari...">
             <template v-slot:append><q-icon name="search" /></template>
           </q-input>
         </template>
 
         <template v-slot:body-cell-aksi="props">
           <q-td :props="props" class="q-gutter-xs text-center">
-            <q-btn flat round color="blue" icon="edit" size="sm" @click="openEditDialog(props.row)">
-              <q-tooltip>Edit Kategori</q-tooltip>
-            </q-btn>
+            <q-btn
+              flat
+              round
+              color="blue"
+              icon="edit"
+              size="sm"
+              @click="openEditDialog(props.row)"
+            />
             <q-btn
               flat
               round
@@ -47,74 +50,115 @@
               icon="delete"
               size="sm"
               @click="hapusKategori(props.row)"
-            >
-              <q-tooltip>Hapus Kategori</q-tooltip>
-            </q-btn>
+            />
           </q-td>
         </template>
       </q-table>
     </q-card>
 
-    <q-dialog v-model="showDialog" persistent transition-show="scale" transition-hide="scale">
-      <q-card style="min-width: 400px; border-radius: 12px">
-        <q-card-section class="bg-primary text-white row items-center">
-          <div class="text-h6">{{ isEditMode ? 'Edit Kategori' : 'Tambah Kategori' }}</div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
-        </q-card-section>
+    <q-dialog
+      v-model="showDialog"
+      persistent
+      maximized
+      transition-show="slide-up"
+      transition-hide="slide-down"
+    >
+      <q-card class="bg-white column no-wrap">
+        <q-toolbar class="bg-white text-grey-9 q-py-md bordered">
+          <q-toolbar-title class="text-weight-bold text-center">
+            {{ isEditMode ? 'Edit Kategori' : 'Tambah Kategori Baru' }}
+          </q-toolbar-title>
+          <q-btn flat round dense icon="close" v-close-popup />
+        </q-toolbar>
 
-        <q-card-section class="q-pa-md q-gutter-y-sm">
-          <div>
-            <div class="text-subtitle2 q-mb-xs">Nama Kategori</div>
-            <q-input
-              outlined
-              dense
-              v-model="form.nama"
-              placeholder="Contoh: Perumahan, Ruko, Infrastruktur"
-              bg-color="white"
-              autofocus
-            />
-          </div>
-          <div>
-            <div class="text-subtitle2 q-mb-xs">Keterangan</div>
-            <q-input
-              outlined
-              dense
-              v-model="form.keterangan"
-              type="textarea"
-              rows="3"
-              bg-color="white"
-              placeholder="Penjelasan singkat kategori..."
-            />
+        <q-card-section class="col scroll q-pa-none">
+          <div class="row justify-center q-pt-xl q-px-md">
+            <div class="col-12 col-md-8 col-lg-6 q-gutter-y-lg">
+              <div>
+                <div class="label-req">Nama Kategori <span class="text-negative">*</span></div>
+                <q-input
+                  outlined
+                  dense
+                  v-model="form.nama"
+                  placeholder="Contoh: Infrastruktur, Perumahan, Sipil..."
+                  bg-color="white"
+                  autofocus
+                />
+              </div>
+
+              <div>
+                <div class="label-req">Keterangan / Deskripsi</div>
+                <q-input
+                  outlined
+                  dense
+                  v-model="form.keterangan"
+                  type="textarea"
+                  rows="6"
+                  placeholder="Berikan penjelasan singkat mengenai kategori ini..."
+                  bg-color="white"
+                />
+              </div>
+
+              <q-banner dense class="bg-blue-1 text-blue-9 rounded-borders q-pa-md">
+                <template v-slot:avatar>
+                  <q-icon name="info" color="blue-9" />
+                </template>
+                Kategori ini akan muncul sebagai pilihan saat membuat "Data Proyek" baru.
+              </q-banner>
+
+              <div class="row items-center justify-end q-gutter-x-md q-pt-lg q-pb-xl">
+                <q-btn
+                  flat
+                  label="Batal"
+                  color="grey-7"
+                  v-close-popup
+                  class="q-px-lg btn-radius"
+                  no-caps
+                />
+                <q-btn
+                  unelevated
+                  color="primary"
+                  label="Simpan Data"
+                  :loading="submitting"
+                  @click="simpanKategori"
+                  class="q-px-xl btn-radius text-weight-bold shadow-2"
+                  no-caps
+                />
+              </div>
+            </div>
           </div>
         </q-card-section>
-
-        <q-card-actions align="right" class="q-pa-md bg-grey-1">
-          <q-btn flat label="Batal" color="grey-7" v-close-popup no-caps />
-          <q-btn
-            unelevated
-            :label="isEditMode ? 'Simpan Perubahan' : 'Simpan Kategori'"
-            color="primary"
-            no-caps
-            @click="simpanKategori"
-          />
-        </q-card-actions>
       </q-card>
     </q-dialog>
   </q-page>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
+import {
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  query,
+  orderBy,
+  serverTimestamp,
+} from 'firebase/firestore'
+import { db } from 'src/boot/firebase'
 
 const $q = useQuasar()
 const filter = ref('')
 const showDialog = ref(false)
 const isEditMode = ref(false)
+const loading = ref(false)
+const submitting = ref(false)
 
-const formDefault = { id: null, nama: '', keterangan: '' }
+const formDefault = { nama: '', keterangan: '' }
 const form = ref({ ...formDefault })
+const rows = ref([])
 
 const columns = [
   { name: 'nama', align: 'left', label: 'NAMA KATEGORI', field: 'nama', sortable: true },
@@ -122,14 +166,21 @@ const columns = [
   { name: 'aksi', align: 'center', label: 'AKSI', field: 'aksi' },
 ]
 
-// Data Dummy
-const rows = ref([
-  { id: 1, nama: 'Perumahan', keterangan: 'Kategori untuk proyek residensial / cluster' },
-  { id: 2, nama: 'Ruko', keterangan: 'Kategori untuk bangunan komersial rumah toko' },
-  { id: 3, nama: 'Gedung', keterangan: 'Kategori untuk proyek high-rise atau perkantoran' },
-])
+const fetchKategori = async () => {
+  if (!db) return
+  loading.value = true
+  try {
+    const q = query(collection(db, 'kategori_proyek'), orderBy('nama', 'asc'))
+    const querySnapshot = await getDocs(q)
+    rows.value = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+  } catch (error) {
+    console.error(error)
+  } finally {
+    loading.value = false
+  }
+}
 
-// --- LOGIKA ---
+onMounted(fetchKategori)
 
 const openAddDialog = () => {
   isEditMode.value = false
@@ -143,35 +194,49 @@ const openEditDialog = (data) => {
   showDialog.value = true
 }
 
-const hapusKategori = (data) => {
-  $q.dialog({
-    title: 'Konfirmasi Hapus',
-    message: `Apakah Anda yakin ingin menghapus kategori "${data.nama}"?`,
-    cancel: true,
-    persistent: true,
-  }).onOk(() => {
-    rows.value = rows.value.filter((r) => r.id !== data.id)
-    $q.notify({ color: 'positive', message: 'Kategori berhasil dihapus', icon: 'delete' })
-  })
-}
-
-const simpanKategori = () => {
+const simpanKategori = async () => {
   if (!form.value.nama) {
-    $q.notify({ color: 'negative', message: 'Nama Kategori tidak boleh kosong!' })
+    $q.notify({ color: 'negative', message: 'Nama harus diisi' })
     return
   }
-
-  if (isEditMode.value) {
-    const index = rows.value.findIndex((r) => r.id === form.value.id)
-    if (index !== -1) {
-      rows.value[index] = { ...form.value }
+  submitting.value = true
+  try {
+    if (isEditMode.value) {
+      await updateDoc(doc(db, 'kategori_proyek', form.value.id), {
+        nama: form.value.nama,
+        keterangan: form.value.keterangan || '',
+        updatedAt: serverTimestamp(),
+      })
+    } else {
+      await addDoc(collection(db, 'kategori_proyek'), {
+        nama: form.value.nama,
+        keterangan: form.value.keterangan || '',
+        createdAt: serverTimestamp(),
+      })
     }
-    $q.notify({ color: 'blue', message: 'Kategori diperbarui', icon: 'edit' })
-  } else {
-    rows.value.unshift({ ...form.value, id: Date.now() })
-    $q.notify({ color: 'positive', message: 'Kategori baru ditambahkan', icon: 'check' })
+    showDialog.value = false
+    fetchKategori()
+    $q.notify({ color: 'positive', message: 'Berhasil!' })
+  } catch (error) {
+    console.error(error)
+  } finally {
+    submitting.value = false
   }
-  showDialog.value = false
+}
+
+const hapusKategori = (data) => {
+  $q.dialog({
+    title: 'Hapus',
+    message: `Hapus kategori ${data.nama}?`,
+    cancel: true,
+  }).onOk(async () => {
+    try {
+      await deleteDoc(doc(db, 'kategori_proyek', data.id))
+      fetchKategori()
+    } catch (e) {
+      console.error(e)
+    }
+  })
 }
 </script>
 
@@ -179,9 +244,16 @@ const simpanKategori = () => {
 .rounded-borders {
   border-radius: 8px;
 }
-.text-subtitle2 {
+.label-req {
   font-size: 13px;
-  color: #444;
   font-weight: 600;
+  color: #444;
+  margin-bottom: 6px;
+}
+.bordered {
+  border-bottom: 1px solid #ececec;
+}
+.btn-radius {
+  border-radius: 6px;
 }
 </style>

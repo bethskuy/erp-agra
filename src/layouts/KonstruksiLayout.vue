@@ -91,20 +91,10 @@
                 /></q-item-section>
                 <q-item-section>Data Supplier</q-item-section>
               </q-item>
+
               <q-item
-                clickable
-                v-ripple
-                to="/konstruksi/master/subkon"
-                :inset-level="0.2"
-                active-class="text-primary bg-blue-1"
-              >
-                <q-item-section avatar side
-                  ><q-icon name="circle" size="6px" color="grey-4"
-                /></q-item-section>
-                <q-item-section>Data Subkon</q-item-section>
-              </q-item>
-              <q-item
-                clickable
+                disable
+                label="Disabled"
                 v-ripple
                 to="/konstruksi/master/pekerjaan"
                 :inset-level="0.2"
@@ -113,10 +103,11 @@
                 <q-item-section avatar side
                   ><q-icon name="circle" size="6px" color="grey-4"
                 /></q-item-section>
-                <q-item-section>Data Pekerjaan</q-item-section>
+                <q-item-section disable label="Disabled">Data Pekerjaan</q-item-section>
               </q-item>
               <q-item
-                clickable
+                disable
+                label="Disabled"
                 v-ripple
                 to="/konstruksi/master/ahsp"
                 :inset-level="0.2"
@@ -161,7 +152,7 @@
                 clickable
                 v-ripple
                 to="/konstruksi/master/satuan"
-                :inset-level="0.2"
+                class="q-pl-xl"
                 active-class="text-primary bg-blue-1"
               >
                 <q-item-section avatar side

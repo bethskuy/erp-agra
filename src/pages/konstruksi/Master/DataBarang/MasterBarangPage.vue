@@ -3,9 +3,7 @@
     <div class="row items-center q-mb-md">
       <div class="col">
         <div class="text-h5 text-weight-bold text-primary text-uppercase">Data Barang</div>
-        <div class="text-caption text-grey-7">
-          Kelola daftar material, alat, dan inventaris proyek.
-        </div>
+        <div class="text-caption text-grey-7">Kelola material, alat, dan inventaris proyek.</div>
       </div>
       <div class="col-auto">
         <q-btn
@@ -14,20 +12,26 @@
           icon="add"
           label="Tambah Barang"
           no-caps
-          class="rounded-borders"
+          class="btn-radius"
           @click="openAddDialog"
         />
       </div>
     </div>
 
     <q-card flat bordered class="rounded-borders shadow-1">
-      <q-table :rows="rows" :columns="columns" row-key="id" flat :filter="filter">
+      <q-table
+        :rows="rows"
+        :columns="columns"
+        row-key="id"
+        flat
+        :filter="filter"
+        :loading="loading"
+      >
         <template v-slot:top-right>
           <q-input outlined dense debounce="300" v-model="filter" placeholder="Cari barang...">
             <template v-slot:append><q-icon name="search" /></template>
           </q-input>
         </template>
-
         <template v-slot:body-cell-aksi="props">
           <q-td :props="props" class="q-gutter-xs text-center">
             <q-btn
@@ -51,120 +55,184 @@
       </q-table>
     </q-card>
 
-    <q-dialog v-model="showDialog" persistent transition-show="scale" transition-hide="scale">
-      <q-card style="width: 500px; max-width: 95vw; border-radius: 8px">
-        <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6 text-grey-8 text-weight-bold">Tambah Barang</div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup class="text-grey-8" />
+    <q-dialog
+      v-model="showDialog"
+      persistent
+      maximized
+      transition-show="slide-up"
+      transition-hide="slide-down"
+    >
+      <q-card class="bg-white column no-wrap">
+        <q-toolbar class="bg-white text-grey-9 q-py-md bordered">
+          <q-toolbar-title class="text-weight-bold text-center">
+            {{ isEditMode ? 'Edit Data Barang' : 'Tambah Barang Baru' }}
+          </q-toolbar-title>
+          <q-btn flat round dense icon="close" v-close-popup />
+        </q-toolbar>
+
+        <q-card-section class="col scroll q-pa-none">
+          <div class="row justify-center q-pt-xl q-px-md">
+            <div class="col-12 col-md-8 col-lg-6 q-gutter-y-lg">
+              <div class="row q-col-gutter-md">
+                <div class="col-12 col-sm-6">
+                  <div class="label-req">Kode Barang</div>
+                  <q-input
+                    outlined
+                    dense
+                    v-model="form.kode"
+                    placeholder="Auto generate"
+                    bg-color="white"
+                    :readonly="isEditMode"
+                  />
+                </div>
+                <div class="col-12 col-sm-6">
+                  <div class="label-req">Merk</div>
+                  <q-input
+                    outlined
+                    dense
+                    v-model="form.merk"
+                    placeholder="Contoh: Holcim, Toyota"
+                    bg-color="white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div class="label-req">Nama Barang <span class="text-negative">*</span></div>
+                <q-input
+                  outlined
+                  dense
+                  v-model="form.nama"
+                  placeholder="Masukkan nama lengkap barang..."
+                  bg-color="white"
+                  autofocus
+                />
+              </div>
+
+              <div class="row q-col-gutter-md">
+                <div class="col-12 col-sm-6">
+                  <div class="label-req">Satuan (Unit)</div>
+                  <q-select
+                    outlined
+                    dense
+                    v-model="form.unit"
+                    :options="optionsSatuan"
+                    label="Pilih Satuan"
+                    bg-color="white"
+                  >
+                    <template v-slot:after>
+                      <q-btn
+                        round
+                        dense
+                        flat
+                        color="primary"
+                        icon="add_circle"
+                        @click="quickAddSatuan"
+                      >
+                        <q-tooltip>Tambah Satuan Baru</q-tooltip>
+                      </q-btn>
+                    </template>
+                  </q-select>
+                </div>
+
+                <div class="col-12 col-sm-6">
+                  <div class="label-req">Kategori Barang</div>
+                  <q-select
+                    outlined
+                    dense
+                    v-model="form.kategori"
+                    :options="optionsKategori"
+                    label="Pilih Kategori"
+                    bg-color="white"
+                  >
+                    <template v-slot:after>
+                      <q-btn
+                        round
+                        dense
+                        flat
+                        color="primary"
+                        icon="add_circle"
+                        @click="quickAddKategori"
+                      >
+                        <q-tooltip>Tambah Kategori Baru</q-tooltip>
+                      </q-btn>
+                    </template>
+                  </q-select>
+                </div>
+              </div>
+
+              <div>
+                <div class="label-req">Estimasi Harga Beli (Rp)</div>
+                <q-input
+                  outlined
+                  dense
+                  v-model.number="form.harga_beli"
+                  type="number"
+                  bg-color="white"
+                  prefix="Rp"
+                />
+              </div>
+
+              <q-banner dense class="bg-blue-1 text-blue-9 rounded-borders q-pa-md">
+                <template v-slot:avatar><q-icon name="info" color="blue-9" /></template>
+                Data ini akan otomatis muncul di tabel Satuan dan Kategori Barang.
+              </q-banner>
+
+              <div class="row items-center justify-end q-gutter-x-md q-pt-lg q-pb-xl">
+                <q-btn
+                  flat
+                  label="Batal"
+                  color="grey-7"
+                  v-close-popup
+                  class="q-px-lg btn-radius"
+                  no-caps
+                />
+                <q-btn
+                  unelevated
+                  color="primary"
+                  label="Simpan Data"
+                  :loading="submitting"
+                  @click="simpanBarang"
+                  class="q-px-xl btn-radius text-weight-bold shadow-2"
+                  no-caps
+                />
+              </div>
+            </div>
+          </div>
         </q-card-section>
-
-        <q-separator class="q-my-md" />
-
-        <q-card-section class="q-pa-md q-gutter-y-md">
-          <div>
-            <div class="text-subtitle2 text-grey-9 q-mb-xs">Kode Barang</div>
-            <q-input
-              outlined
-              dense
-              v-model="form.kode"
-              placeholder="kode akan digenerate otomatis"
-              bg-color="white"
-              class="placeholder-italic"
-            />
-          </div>
-
-          <div>
-            <div class="text-subtitle2 text-grey-9 q-mb-xs">Nama Barang</div>
-            <q-input outlined dense v-model="form.nama" bg-color="white" />
-          </div>
-
-          <div>
-            <div class="text-subtitle2 text-grey-9 q-mb-xs">Unit</div>
-            <q-select
-              outlined
-              dense
-              v-model="form.unit"
-              :options="['Sack', 'm3', 'Kg', 'Batang', 'Pcs', 'Lot']"
-              label="Pilih Satuan"
-              bg-color="white"
-            />
-          </div>
-
-          <div>
-            <div class="text-subtitle2 text-grey-9 q-mb-xs">Harga Beli</div>
-            <q-input
-              outlined
-              dense
-              v-model.number="form.harga_beli"
-              type="number"
-              bg-color="white"
-            />
-          </div>
-
-          <div>
-            <div class="text-subtitle2 text-grey-9 q-mb-xs">Kategori</div>
-            <q-select
-              outlined
-              dense
-              v-model="form.kategori"
-              :options="['Beton', 'Material Alam', 'Besi', 'Alat Bantu']"
-              label="Pilih Kategori"
-              bg-color="white"
-            />
-          </div>
-
-          <div>
-            <div class="text-subtitle2 text-grey-9 q-mb-xs">Merk</div>
-            <q-input outlined dense v-model="form.merk" bg-color="white" />
-          </div>
-        </q-card-section>
-
-        <q-card-actions align="right" class="bg-white q-pa-md q-gutter-sm">
-          <q-btn
-            unelevated
-            label="Tutup"
-            color="negative"
-            v-close-popup
-            class="q-px-lg"
-            no-caps
-            style="border-radius: 6px"
-          />
-          <q-btn
-            unelevated
-            label="Simpan"
-            color="positive"
-            class="q-px-lg"
-            @click="simpanBarang"
-            no-caps
-            style="border-radius: 6px"
-          />
-        </q-card-actions>
       </q-card>
     </q-dialog>
   </q-page>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
+import {
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  query,
+  orderBy,
+  serverTimestamp,
+} from 'firebase/firestore'
+import { db } from 'src/boot/firebase'
 
 const $q = useQuasar()
 const filter = ref('')
 const showDialog = ref(false)
 const isEditMode = ref(false)
+const loading = ref(false)
+const submitting = ref(false)
 
-const formDefault = {
-  id: null,
-  kode: '',
-  nama: '',
-  unit: null,
-  harga_beli: 0,
-  kategori: null,
-  merk: '',
-}
-
+const formDefault = { kode: '', nama: '', unit: null, harga_beli: 0, kategori: null, merk: '' }
 const form = ref({ ...formDefault })
+const rows = ref([])
+const optionsSatuan = ref([])
+const optionsKategori = ref([])
 
 const columns = [
   { name: 'kode', align: 'left', label: 'KODE', field: 'kode', sortable: true },
@@ -175,80 +243,162 @@ const columns = [
     align: 'right',
     label: 'HARGA BELI',
     field: 'harga_beli',
-    format: (val) => `Rp ${val.toLocaleString()}`,
+    format: (val) => `Rp ${Number(val).toLocaleString()}`,
   },
   { name: 'kategori', align: 'left', label: 'KATEGORI', field: 'kategori' },
-  { name: 'merk', align: 'left', label: 'MERK', field: 'merk' },
   { name: 'aksi', align: 'center', label: 'AKSI', field: 'aksi' },
 ]
 
-const rows = ref([
-  {
-    id: 1,
-    kode: 'BRG-001',
-    nama: 'Semen Tiga Roda',
-    unit: 'Sack',
-    harga_beli: 65000,
-    kategori: 'Beton',
-    merk: 'Indocement',
-  },
-])
+// --- 1. FETCH DATA REFERENSI ---
+const fetchReferences = async () => {
+  try {
+    const snapSatuan = await getDocs(query(collection(db, 'master_satuan'), orderBy('nama', 'asc')))
+    optionsSatuan.value = snapSatuan.docs.map((d) => d.data().nama)
+
+    const snapKategori = await getDocs(
+      query(collection(db, 'kategori_barang'), orderBy('nama', 'asc')),
+    )
+    optionsKategori.value = snapKategori.docs.map((d) => d.data().nama)
+  } catch (error) {
+    console.error('Fetch Refs Error:', error)
+  }
+}
+
+// --- 2. QUICK ADD SATUAN (Nglink ke tabel Satuan) ---
+const quickAddSatuan = () => {
+  $q.dialog({
+    title: 'Tambah Satuan Baru',
+    message: 'Masukkan nama/simbol satuan (Contoh: Kg, m3, Pcs)',
+    prompt: { vModel: '', type: 'text' },
+    cancel: true,
+    persistent: true,
+  }).onOk(async (data) => {
+    if (!data) return
+    try {
+      await addDoc(collection(db, 'master_satuan'), {
+        nama: data,
+        keterangan: '-',
+        createdAt: serverTimestamp(),
+      })
+      await fetchReferences() // Refresh list dropdown
+      form.value.unit = data // Set otomatis ke inputan
+      $q.notify({ color: 'positive', message: `Satuan ${data} ditambahkan` })
+      // eslint-disable-next-line no-unused-vars
+    } catch (e) {
+      $q.notify({ color: 'negative', message: 'Gagal tambah satuan' })
+    }
+  })
+}
+
+// --- 3. QUICK ADD KATEGORI (Nglink ke tabel Kategori) ---
+const quickAddKategori = () => {
+  $q.dialog({
+    title: 'Tambah Kategori Baru',
+    message: 'Masukkan nama kategori barang',
+    prompt: { vModel: '', type: 'text' },
+    cancel: true,
+    persistent: true,
+  }).onOk(async (data) => {
+    if (!data) return
+    try {
+      await addDoc(collection(db, 'kategori_barang'), {
+        nama: data,
+        keterangan: '-',
+        createdAt: serverTimestamp(),
+      })
+      await fetchReferences() // Refresh list dropdown
+      form.value.kategori = data // Set otomatis ke inputan
+      $q.notify({ color: 'positive', message: `Kategori ${data} ditambahkan` })
+      // eslint-disable-next-line no-unused-vars
+    } catch (e) {
+      $q.notify({ color: 'negative', message: 'Gagal tambah kategori' })
+    }
+  })
+}
+
+// --- 4. CRUD BARANG ---
+const fetchBarang = async () => {
+  loading.value = true
+  try {
+    const q = query(collection(db, 'master_barang'), orderBy('nama', 'asc'))
+    const snap = await getDocs(q)
+    rows.value = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+  } catch (err) {
+    console.error(err)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchBarang()
+  fetchReferences()
+})
 
 const openAddDialog = () => {
   isEditMode.value = false
-  form.value = JSON.parse(JSON.stringify(formDefault))
+  form.value = { ...formDefault }
   showDialog.value = true
 }
-
-const openEditDialog = (row) => {
+const openEditDialog = (data) => {
   isEditMode.value = true
-  form.value = JSON.parse(JSON.stringify(row))
+  form.value = { ...data }
   showDialog.value = true
 }
 
-const simpanBarang = () => {
+const simpanBarang = async () => {
   if (!form.value.nama) {
-    $q.notify({ color: 'negative', message: 'Nama Barang wajib diisi!' })
+    $q.notify({ color: 'negative', message: 'Nama harus diisi' })
     return
   }
-
-  if (isEditMode.value) {
-    const idx = rows.value.findIndex((r) => r.id === form.value.id)
-    rows.value[idx] = { ...form.value }
-    $q.notify({ color: 'positive', message: 'Data barang diperbarui' })
-  } else {
-    // Simulasi Generate Kode Otomatis jika kosong
-    if (!form.value.kode) form.value.kode = 'BRG-' + Math.floor(Math.random() * 1000)
-    rows.value.unshift({ ...form.value, id: Date.now() })
-    $q.notify({ color: 'positive', message: 'Barang baru ditambahkan' })
+  submitting.value = true
+  try {
+    const payload = { ...form.value, updatedAt: serverTimestamp() }
+    if (isEditMode.value) {
+      const docRef = doc(db, 'master_barang', form.value.id)
+      delete payload.id
+      await updateDoc(docRef, payload)
+    } else {
+      if (!payload.kode) payload.kode = 'BRG-' + Date.now().toString().slice(-6)
+      payload.createdAt = serverTimestamp()
+      await addDoc(collection(db, 'master_barang'), payload)
+    }
+    showDialog.value = false
+    fetchBarang()
+    $q.notify({ color: 'positive', message: 'Berhasil!' })
+  } catch (e) {
+    console.error(e)
+  } finally {
+    submitting.value = false
   }
-  showDialog.value = false
 }
 
 const hapusBarang = (data) => {
-  $q.dialog({
-    title: 'Hapus',
-    message: `Yakin ingin menghapus ${data.nama}?`,
-    cancel: true,
-  }).onOk(() => {
-    rows.value = rows.value.filter((r) => r.id !== data.id)
+  $q.dialog({ title: 'Hapus', message: `Hapus ${data.nama}?`, cancel: true }).onOk(async () => {
+    try {
+      await deleteDoc(doc(db, 'master_barang', data.id))
+      fetchBarang()
+    } catch (e) {
+      console.error(e)
+    }
   })
 }
 </script>
-
-<style>
-.placeholder-italic .q-placeholder::placeholder {
-  font-style: italic;
-  color: #9e9e9e;
-}
-</style>
 
 <style scoped>
 .rounded-borders {
   border-radius: 8px;
 }
-.text-subtitle2 {
+.label-req {
   font-size: 13px;
   font-weight: 600;
+  color: #444;
+  margin-bottom: 6px;
+}
+.bordered {
+  border-bottom: 1px solid #ececec;
+}
+.btn-radius {
+  border-radius: 6px;
 }
 </style>

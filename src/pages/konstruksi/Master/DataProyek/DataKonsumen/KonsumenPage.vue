@@ -2,9 +2,9 @@
   <q-page class="bg-grey-2 q-pa-md">
     <div class="row items-center q-mb-md">
       <div class="col">
-        <div class="text-h5 text-weight-bold text-primary text-uppercase">Data Supplier</div>
+        <div class="text-h5 text-weight-bold text-primary text-uppercase">Data Konsumen</div>
         <div class="text-caption text-grey-7">
-          Daftar vendor dan database rekening pemasok (Cloud Firestore).
+          Kelola database pelanggan dan dokumen legalitas (Cloud Firestore).
         </div>
       </div>
       <div class="col-auto">
@@ -12,7 +12,7 @@
           unelevated
           color="primary"
           icon="add"
-          label="Tambah Supplier"
+          label="Tambah Konsumen"
           no-caps
           class="btn-radius"
           @click="openAddDialog"
@@ -20,7 +20,7 @@
       </div>
     </div>
 
-    <q-card flat bordered class="rounded-borders shadow-1">
+    <q-card flat bordered class="rounded-borders shadow-1 text-grey-9">
       <q-table
         :rows="rows"
         :columns="columns"
@@ -30,7 +30,7 @@
         :loading="loading"
       >
         <template v-slot:top-right>
-          <q-input outlined dense debounce="300" v-model="filter" placeholder="Cari supplier...">
+          <q-input outlined dense debounce="300" v-model="filter" placeholder="Cari konsumen...">
             <template v-slot:append><q-icon name="search" /></template>
           </q-input>
         </template>
@@ -51,7 +51,7 @@
               color="negative"
               icon="delete"
               size="sm"
-              @click="hapusSupplier(props.row)"
+              @click="confirmHapus(props.row)"
             />
           </q-td>
         </template>
@@ -68,7 +68,7 @@
       <q-card class="bg-white column no-wrap">
         <q-toolbar class="bg-white text-grey-9 q-py-md bordered">
           <q-toolbar-title class="text-weight-bold text-center">
-            {{ isEditMode ? 'Edit Data Supplier' : 'Tambah Supplier Baru' }}
+            {{ isEditMode ? 'Edit Data Konsumen' : 'Tambah Konsumen Baru' }}
           </q-toolbar-title>
           <q-btn flat round dense icon="close" v-close-popup />
         </q-toolbar>
@@ -79,135 +79,70 @@
               <div class="row q-col-gutter-xl">
                 <div class="col-12 col-md-6 q-gutter-y-lg">
                   <div>
-                    <div class="text-overline text-primary q-mb-sm">Informasi Dasar</div>
+                    <div class="text-overline text-primary q-mb-sm">Informasi Umum</div>
                     <div class="row q-col-gutter-sm">
                       <div class="col-12">
                         <div class="label-req">
-                          Nama Supplier <span class="text-negative">*</span>
+                          Nama Konsumen <span class="text-negative">*</span>
                         </div>
                         <q-input
                           outlined
                           dense
                           v-model="form.nama"
-                          placeholder="Nama Perusahaan/Toko"
+                          placeholder="PT. XXXXX"
                           bg-color="white"
                         />
                       </div>
                       <div class="col-12 col-sm-6">
-                        <div class="label-req">Email Supplier</div>
+                        <div class="label-req">Email <span class="text-negative">*</span></div>
                         <q-input
                           outlined
                           dense
                           v-model="form.email"
-                          type="email"
-                          placeholder="email@vendor.com"
+                          placeholder="email@domain.com"
                           bg-color="white"
                         />
                       </div>
                       <div class="col-12 col-sm-6">
-                        <div class="label-req">No. HP Supplier</div>
+                        <div class="label-req">No. HP</div>
                         <q-input
                           outlined
                           dense
-                          v-model="form.hp"
-                          placeholder="08xxxx"
+                          v-model="form.kontak"
+                          placeholder="08xxxxxxxx"
                           bg-color="white"
                         />
                       </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div class="text-overline text-primary q-mb-sm q-mt-md">
-                      Informasi Pembayaran
-                    </div>
-                    <div class="row q-col-gutter-sm">
                       <div class="col-12">
-                        <div class="label-req">No. Rekening Bank</div>
+                        <div class="label-req">No. NPWP</div>
                         <q-input
                           outlined
                           dense
-                          v-model="form.no_rek"
-                          placeholder="Nomor Rekening..."
+                          v-model="form.npwp"
+                          placeholder="00.000.000.0-000.000"
                           bg-color="white"
                         />
                       </div>
                       <div class="col-12 col-sm-6">
-                        <div class="label-req">Bank</div>
-                        <q-input
-                          outlined
-                          dense
-                          v-model="form.bank_name"
-                          placeholder="BCA, Mandiri, dll"
-                          bg-color="white"
-                        />
-                      </div>
-                      <div class="col-12 col-sm-6">
-                        <div class="label-req">Atas Nama</div>
-                        <q-input
-                          outlined
-                          dense
-                          v-model="form.an_rekening"
-                          placeholder="Nama Pemilik Rekening"
-                          bg-color="white"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="col-12 col-md-6 q-gutter-y-lg">
-                  <div>
-                    <div class="text-overline text-primary q-mb-sm">Penanggung Jawab (PIC)</div>
-                    <div class="row q-col-gutter-sm">
-                      <div class="col-12 col-sm-6">
-                        <div class="label-req">Nama PIC</div>
-                        <q-input outlined dense v-model="form.pic_name" bg-color="white" />
-                      </div>
-                      <div class="col-12 col-sm-6">
-                        <div class="label-req">No. Telp PIC</div>
-                        <q-input outlined dense v-model="form.pic_phone" bg-color="white" />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div class="text-overline text-primary q-mb-sm q-mt-md">Lokasi & Alamat</div>
-                    <div class="row q-col-gutter-sm">
-                      <div class="col-12">
                         <div class="label-req">Provinsi</div>
                         <q-select
                           outlined
                           dense
                           v-model="form.provinsi"
-                          :options="[
-                            'DKI Jakarta',
-                            'Jawa Barat',
-                            'Banten',
-                            'Jawa Tengah',
-                            'Jawa Timur',
-                          ]"
+                          :options="['DKI Jakarta', 'Jawa Barat', 'Banten']"
                           label="- Pilih -"
                           bg-color="white"
                         />
                       </div>
-                      <div class="col-12">
-                        <div class="label-req">Kota / Kabupaten</div>
+                      <div class="col-12 col-sm-6">
+                        <div class="label-req">Kota</div>
                         <q-input
                           outlined
                           dense
                           v-model="form.kota"
-                          placeholder="Contoh: Jakarta Selatan"
+                          placeholder="Nama Kota"
                           bg-color="white"
                         />
-                      </div>
-                      <div class="col-6">
-                        <div class="label-req">Kecamatan</div>
-                        <q-input outlined dense v-model="form.kecamatan" bg-color="white" />
-                      </div>
-                      <div class="col-6">
-                        <div class="label-req">Kelurahan</div>
-                        <q-input outlined dense v-model="form.kelurahan" bg-color="white" />
                       </div>
                       <div class="col-12">
                         <div class="label-req">Alamat Lengkap</div>
@@ -216,10 +151,74 @@
                           dense
                           v-model="form.alamat"
                           type="textarea"
-                          rows="3"
+                          rows="2"
                           bg-color="white"
                         />
                       </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="text-overline text-primary q-mb-sm q-mt-md">Penanggung Jawab</div>
+                    <div class="row q-col-gutter-sm">
+                      <div class="col-12 col-sm-6">
+                        <div class="label-req">Nama PIC</div>
+                        <q-input outlined dense v-model="form.pj_nama" bg-color="white" />
+                      </div>
+                      <div class="col-12 col-sm-6">
+                        <div class="label-req">Email PIC</div>
+                        <q-input outlined dense v-model="form.pj_email" bg-color="white" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="col-12 col-md-6 q-gutter-y-lg">
+                  <div>
+                    <div class="text-overline text-primary q-mb-sm">Informasi Perbankan</div>
+                    <div class="row q-col-gutter-sm">
+                      <div class="col-12">
+                        <div class="label-req">No. Rekening</div>
+                        <q-input
+                          outlined
+                          dense
+                          v-model="form.bank_norek"
+                          placeholder="Nomor Rekening..."
+                          bg-color="white"
+                        />
+                      </div>
+                      <div class="col-12 col-sm-6">
+                        <div class="label-req">Nama Bank</div>
+                        <q-input
+                          outlined
+                          dense
+                          v-model="form.bank_nama"
+                          placeholder="BCA, Mandiri, dll"
+                          bg-color="white"
+                        />
+                      </div>
+                      <div class="col-12 col-sm-6">
+                        <div class="label-req">Atas Nama</div>
+                        <q-input outlined dense v-model="form.bank_atasnama" bg-color="white" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="text-overline text-primary q-mb-sm q-mt-md">
+                      Legalitas & Dokumen
+                    </div>
+                    <div class="q-gutter-y-md">
+                      <q-file outlined dense v-model="file_npwp" label="Upload NPWP">
+                        <template v-slot:prepend><q-icon name="attach_file" /></template>
+                      </q-file>
+                      <q-file outlined dense v-model="file_k3" label="Upload Dokumen K3">
+                        <template v-slot:prepend><q-icon name="attach_file" /></template>
+                      </q-file>
+                      <q-banner dense class="bg-blue-1 text-blue-9 rounded-borders q-pa-md">
+                        <template v-slot:avatar><q-icon name="info" /></template>
+                        File disimpan secara lokal (Integrasi Firebase Storage segera).
+                      </q-banner>
                     </div>
                   </div>
 
@@ -234,11 +233,11 @@
                     />
                     <q-btn
                       unelevated
-                      label="Simpan Data"
                       color="primary"
+                      label="Simpan Data"
+                      :loading="loading"
+                      @click="simpanKeFirestore"
                       class="q-px-xl btn-radius text-weight-bold shadow-2"
-                      :loading="submitting"
-                      @click="simpanSupplier"
                       no-caps
                     />
                   </div>
@@ -257,8 +256,8 @@ import { ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import {
   collection,
-  getDocs,
   addDoc,
+  getDocs,
   updateDoc,
   deleteDoc,
   doc,
@@ -273,104 +272,115 @@ const filter = ref('')
 const showDialog = ref(false)
 const isEditMode = ref(false)
 const loading = ref(false)
-const submitting = ref(false)
+
+// File states
+const file_npwp = ref(null)
+const file_k3 = ref(null)
 
 const formDefault = {
   nama: '',
   email: '',
-  hp: '',
-  no_rek: '',
-  bank_name: '',
-  an_rekening: '',
-  pic_name: '',
-  pic_phone: '',
+  kontak: '',
+  npwp: '',
   provinsi: null,
   kota: '',
-  kecamatan: '',
-  kelurahan: '',
   alamat: '',
+  pj_nama: '',
+  pj_email: '',
+  pj_hp: '',
+  pj_npwp: '',
+  bank_norek: '',
+  bank_nama: '',
+  bank_atasnama: '',
+  bank_cabang: '',
+  bank_info: '',
 }
 
 const form = ref({ ...formDefault })
 const rows = ref([])
 
 const columns = [
-  { name: 'nama', align: 'left', label: 'NAMA SUPPLIER', field: 'nama', sortable: true },
-  { name: 'hp', align: 'left', label: 'NO. HP', field: 'hp' },
-  { name: 'bank', align: 'left', label: 'BANK', field: 'bank_name' },
-  { name: 'pic', align: 'left', label: 'PIC', field: 'pic_name' },
+  { name: 'nama', align: 'left', label: 'NAMA KONSUMEN', field: 'nama', sortable: true },
+  { name: 'email', align: 'left', label: 'EMAIL', field: 'email', sortable: true },
+  { name: 'kontak', align: 'left', label: 'KONTAK', field: 'kontak' },
   { name: 'aksi', align: 'center', label: 'AKSI', field: 'aksi' },
 ]
 
-const fetchSuppliers = async () => {
+const loadData = async () => {
   loading.value = true
   try {
-    const q = query(collection(db, 'suppliers'), orderBy('nama', 'asc'))
-    const querySnapshot = await getDocs(q)
-    rows.value = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+    const q = query(collection(db, 'konsumen'), orderBy('nama', 'asc'))
+    const snapshot = await getDocs(q)
+    rows.value = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
   } catch (error) {
-    console.error(error)
+    console.error('Fetch Error:', error)
     $q.notify({ color: 'negative', message: 'Gagal muat data cloud' })
   } finally {
     loading.value = false
   }
 }
 
-onMounted(fetchSuppliers)
+onMounted(loadData)
 
 const openAddDialog = () => {
   isEditMode.value = false
   form.value = { ...formDefault }
+  file_npwp.value = null
+  file_k3.value = null
   showDialog.value = true
 }
 
-const openEditDialog = (data) => {
+const openEditDialog = (row) => {
   isEditMode.value = true
-  form.value = { ...data }
+  form.value = { ...row }
   showDialog.value = true
 }
 
-const simpanSupplier = async () => {
-  if (!form.value.nama) {
-    $q.notify({ color: 'negative', message: 'Nama Supplier wajib diisi!' })
+const simpanKeFirestore = async () => {
+  if (!form.value.nama || !form.value.email) {
+    $q.notify({ color: 'negative', message: 'Nama dan Email wajib diisi!' })
     return
   }
-  submitting.value = true
+
+  loading.value = true
   try {
     if (isEditMode.value) {
-      const docRef = doc(db, 'suppliers', form.value.id)
-      const dataUpdate = { ...form.value, updatedAt: serverTimestamp() }
-      delete dataUpdate.id
-      await updateDoc(docRef, dataUpdate)
-      $q.notify({ color: 'positive', message: 'Data Supplier diperbarui' })
+      const docRef = doc(db, 'konsumen', form.value.id)
+      const updateData = { ...form.value, updatedAt: serverTimestamp() }
+      delete updateData.id
+      await updateDoc(docRef, updateData)
+      $q.notify({ color: 'positive', message: 'Data diperbarui' })
     } else {
-      await addDoc(collection(db, 'suppliers'), { ...form.value, createdAt: serverTimestamp() })
-      $q.notify({ color: 'positive', message: 'Supplier baru disimpan' })
+      await addDoc(collection(db, 'konsumen'), {
+        ...form.value,
+        createdAt: serverTimestamp(),
+      })
+      $q.notify({ color: 'positive', message: 'Data disimpan ke cloud' })
     }
     showDialog.value = false
-    fetchSuppliers()
+    loadData()
   } catch (error) {
-    console.error(error)
-    $q.notify({ color: 'negative', message: 'Gagal simpan data' })
+    console.error('Save Error:', error)
+    $q.notify({ color: 'negative', message: 'Gagal simpan' })
   } finally {
-    submitting.value = false
+    loading.value = false
   }
 }
 
-const hapusSupplier = (data) => {
+const confirmHapus = (row) => {
   $q.dialog({
     title: 'Hapus Data',
-    message: `Hapus <b>${data.nama}</b> dari database?`,
+    message: `Hapus <b>${row.nama}</b> dari database?`,
     html: true,
     cancel: true,
     ok: { label: 'Hapus', color: 'negative', unelevated: true },
   }).onOk(async () => {
     try {
-      await deleteDoc(doc(db, 'suppliers', data.id))
-      $q.notify({ color: 'positive', message: 'Data dihapus' })
-      fetchSuppliers()
-      // eslint-disable-next-line no-unused-vars
+      await deleteDoc(doc(db, 'konsumen', row.id))
+      $q.notify({ color: 'positive', message: 'Terhapus' })
+      loadData()
     } catch (error) {
+      console.error('Delete Error:', error)
       $q.notify({ color: 'negative', message: 'Gagal hapus' })
     }
   })
