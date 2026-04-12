@@ -267,19 +267,6 @@
                   <q-item-section>SPK Mandor / Pekerja</q-item-section>
                 </q-item>
               </q-expansion-item>
-
-              <q-item
-                clickable
-                v-ripple
-                to="/konstruksi/proyek/permintaan-material"
-                :inset-level="0.2"
-                active-class="text-primary bg-blue-1"
-              >
-                <q-item-section avatar side
-                  ><q-icon name="circle" size="6px" color="grey-4"
-                /></q-item-section>
-                <q-item-section>Permintaan Pembelian Material</q-item-section>
-              </q-item>
             </q-list>
           </q-expansion-item>
 

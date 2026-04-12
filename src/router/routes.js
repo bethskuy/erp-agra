@@ -91,18 +91,6 @@ const routes = [
         component: () => import('pages/konstruksi/Proyek/Pelaksanaan/SpkMandor/SpkMandorPage.vue'),
       },
 
-      // PROYEK - KONTRAK, SPK & MATERIAL
-      {
-        path: 'proyek/kontrak',
-        component: () => import('pages/konstruksi/Proyek/Kontrak/KontrakPage.vue'),
-      },
-
-      {
-        path: 'proyek/permintaan-material',
-        component: () =>
-          import('pages/konstruksi/Proyek/PermintaanMaterial/PermintaanMaterialPage.vue'),
-      },
-
       // MODUL GUDANG
       {
         path: 'gudang/stok-opname',
