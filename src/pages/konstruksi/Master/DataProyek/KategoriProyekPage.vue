@@ -1,9 +1,11 @@
 <template>
-  <q-page class="bg-grey-2 q-pa-md">
+  <q-page class="bg-grey-2 q-pa-md font-pro">
     <div class="row items-center q-mb-md">
       <div class="col">
         <div class="text-h5 text-weight-bold text-primary text-uppercase">Kategori Proyek</div>
-        <div class="text-caption text-grey-7">Master Data - Cloud Firestore</div>
+        <div class="text-caption text-grey-7">
+          Master Data - Kelola pengelompokan jenis proyek PT AGRA.
+        </div>
       </div>
       <div class="col-auto">
         <q-btn
@@ -11,8 +13,7 @@
           color="primary"
           icon="add"
           label="Tambah Kategori"
-          no-caps
-          class="btn-radius"
+          class="btn-radius shadow-2"
           @click="openAddDialog"
         />
       </div>
@@ -26,15 +27,17 @@
         flat
         :filter="filter"
         :loading="loading"
+        class="customer-table"
+        @row-click="onRowClick"
       >
         <template v-slot:top-right>
-          <q-input outlined dense debounce="300" v-model="filter" placeholder="Cari...">
+          <q-input outlined dense debounce="300" v-model="filter" placeholder="Cari kategori...">
             <template v-slot:append><q-icon name="search" /></template>
           </q-input>
         </template>
 
         <template v-slot:body-cell-aksi="props">
-          <q-td :props="props" class="q-gutter-xs text-center">
+          <q-td :props="props" class="q-gutter-xs text-center" @click.stop>
             <q-btn
               flat
               round
@@ -57,22 +60,74 @@
     </q-card>
 
     <q-dialog
-      v-model="showDialog"
-      persistent
+      v-model="showDetail"
       maximized
       transition-show="slide-up"
       transition-hide="slide-down"
     >
-      <q-card class="bg-white column no-wrap">
-        <q-toolbar class="bg-white text-grey-9 q-py-md bordered">
-          <q-toolbar-title class="text-weight-bold text-center">
-            {{ isEditMode ? 'Edit Kategori' : 'Tambah Kategori Baru' }}
-          </q-toolbar-title>
-          <q-btn flat round dense icon="close" v-close-popup />
+      <q-card class="bg-grey-2 column no-wrap">
+        <q-toolbar class="bg-primary text-white q-py-md">
+          <q-btn flat round dense icon="arrow_back" v-close-popup />
+          <q-toolbar-title class="text-center uppercase text-bold"
+            >Detail Kategori Proyek</q-toolbar-title
+          >
+          <q-btn flat label="Tutup" v-close-popup />
         </q-toolbar>
 
-        <q-card-section class="col scroll q-pa-none">
-          <div class="row justify-center q-pt-xl q-px-md">
+        <q-card-section class="col scroll q-pa-xl">
+          <div class="row justify-center" v-if="currentCategory">
+            <div class="col-12 col-md-8 col-lg-6">
+              <q-card
+                flat
+                bordered
+                class="q-pa-xl q-mb-md bg-white shadow-1 text-center rounded-borders"
+              >
+                <q-avatar
+                  size="100px"
+                  color="blue-1"
+                  text-color="primary"
+                  icon="category"
+                  class="q-mb-md"
+                />
+                <div class="text-h3 text-weight-bolder text-primary uppercase q-mb-sm">
+                  {{ currentCategory.nama }}
+                </div>
+                <div class="text-grey-7 italic">ID: {{ currentCategory.id }}</div>
+              </q-card>
+
+              <q-card flat bordered class="bg-white q-pa-lg rounded-borders shadow-1">
+                <div class="text-bold text-primary q-mb-md uppercase">Deskripsi Kategori</div>
+                <q-separator q-mb-md />
+                <div class="bg-grey-1 q-pa-lg rounded-borders bordered" style="min-height: 200px">
+                  <div
+                    class="text-body1 text-grey-9"
+                    style="white-space: pre-wrap; line-height: 1.6"
+                  >
+                    {{
+                      currentCategory.keterangan ||
+                      'Tidak ada deskripsi tambahan untuk kategori ini.'
+                    }}
+                  </div>
+                </div>
+              </q-card>
+            </div>
+          </div>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+
+    <q-dialog v-model="showDialog" persistent maximized transition-show="slide-up">
+      <q-card class="bg-grey-1 column no-wrap">
+        <q-toolbar class="bg-white text-grey-9 q-py-md bordered-bottom">
+          <q-btn flat round dense icon="close" v-close-popup />
+          <q-toolbar-title class="text-weight-bold text-center uppercase">
+            {{ isEditMode ? 'Edit Kategori' : 'Tambah Kategori Baru' }}
+          </q-toolbar-title>
+          <div style="width: 48px"></div>
+        </q-toolbar>
+
+        <q-card-section class="col scroll q-pa-xl">
+          <div class="row justify-center">
             <div class="col-12 col-md-8 col-lg-6 q-gutter-y-lg">
               <div>
                 <div class="label-req">Nama Kategori <span class="text-negative">*</span></div>
@@ -80,7 +135,7 @@
                   outlined
                   dense
                   v-model="form.nama"
-                  placeholder="Contoh: Infrastruktur, Perumahan, Sipil..."
+                  placeholder="Contoh: Infrastruktur, Sipil, dll"
                   bg-color="white"
                   autofocus
                 />
@@ -94,35 +149,20 @@
                   v-model="form.keterangan"
                   type="textarea"
                   rows="6"
-                  placeholder="Berikan penjelasan singkat mengenai kategori ini..."
+                  placeholder="Berikan deskripsi kategori..."
                   bg-color="white"
                 />
               </div>
 
-              <q-banner dense class="bg-blue-1 text-blue-9 rounded-borders q-pa-md">
-                <template v-slot:avatar>
-                  <q-icon name="info" color="blue-9" />
-                </template>
-                Kategori ini akan muncul sebagai pilihan saat membuat "Data Proyek" baru.
-              </q-banner>
-
-              <div class="row items-center justify-end q-gutter-x-md q-pt-lg q-pb-xl">
-                <q-btn
-                  flat
-                  label="Batal"
-                  color="grey-7"
-                  v-close-popup
-                  class="q-px-lg btn-radius"
-                  no-caps
-                />
+              <div class="row items-center justify-end q-gutter-x-md q-pt-lg">
+                <q-btn flat label="Batal" color="grey-7" v-close-popup class="btn-radius q-px-lg" />
                 <q-btn
                   unelevated
                   color="primary"
-                  label="Simpan Data"
+                  label="Simpan Kategori"
                   :loading="submitting"
                   @click="simpanKategori"
-                  class="q-px-xl btn-radius text-weight-bold shadow-2"
-                  no-caps
+                  class="btn-radius q-px-xl shadow-2"
                 />
               </div>
             </div>
@@ -136,6 +176,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
+import { db } from 'src/boot/firebase'
 import {
   collection,
   getDocs,
@@ -147,14 +188,15 @@ import {
   orderBy,
   serverTimestamp,
 } from 'firebase/firestore'
-import { db } from 'src/boot/firebase'
 
 const $q = useQuasar()
 const filter = ref('')
-const showDialog = ref(false)
-const isEditMode = ref(false)
 const loading = ref(false)
 const submitting = ref(false)
+const showDialog = ref(false)
+const showDetail = ref(false)
+const isEditMode = ref(false)
+const currentCategory = ref(null)
 
 const formDefault = { nama: '', keterangan: '' }
 const form = ref({ ...formDefault })
@@ -162,19 +204,29 @@ const rows = ref([])
 
 const columns = [
   { name: 'nama', align: 'left', label: 'NAMA KATEGORI', field: 'nama', sortable: true },
-  { name: 'keterangan', align: 'left', label: 'KETERANGAN', field: 'keterangan' },
+  {
+    name: 'keterangan',
+    align: 'left',
+    label: 'KETERANGAN',
+    field: 'keterangan',
+    format: (val) => (val ? (val.length > 50 ? val.substring(0, 50) + '...' : val) : '-'),
+  },
   { name: 'aksi', align: 'center', label: 'AKSI', field: 'aksi' },
 ]
 
+const onRowClick = (evt, row) => {
+  currentCategory.value = row
+  showDetail.value = true
+}
+
 const fetchKategori = async () => {
-  if (!db) return
   loading.value = true
   try {
     const q = query(collection(db, 'kategori_proyek'), orderBy('nama', 'asc'))
-    const querySnapshot = await getDocs(q)
-    rows.value = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-  } catch (error) {
-    console.error(error)
+    const snap = await getDocs(q)
+    rows.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+  } catch (e) {
+    console.error(e)
   } finally {
     loading.value = false
   }
@@ -187,7 +239,6 @@ const openAddDialog = () => {
   form.value = { ...formDefault }
   showDialog.value = true
 }
-
 const openEditDialog = (data) => {
   isEditMode.value = true
   form.value = { ...data }
@@ -195,30 +246,25 @@ const openEditDialog = (data) => {
 }
 
 const simpanKategori = async () => {
-  if (!form.value.nama) {
-    $q.notify({ color: 'negative', message: 'Nama harus diisi' })
-    return
-  }
+  if (!form.value.nama) return
   submitting.value = true
   try {
+    const payload = {
+      nama: form.value.nama,
+      keterangan: form.value.keterangan || '',
+      updatedAt: serverTimestamp(),
+    }
     if (isEditMode.value) {
-      await updateDoc(doc(db, 'kategori_proyek', form.value.id), {
-        nama: form.value.nama,
-        keterangan: form.value.keterangan || '',
-        updatedAt: serverTimestamp(),
-      })
+      await updateDoc(doc(db, 'kategori_proyek', form.value.id), payload)
     } else {
-      await addDoc(collection(db, 'kategori_proyek'), {
-        nama: form.value.nama,
-        keterangan: form.value.keterangan || '',
-        createdAt: serverTimestamp(),
-      })
+      payload.createdAt = serverTimestamp()
+      await addDoc(collection(db, 'kategori_proyek'), payload)
     }
     showDialog.value = false
     fetchKategori()
-    $q.notify({ color: 'positive', message: 'Berhasil!' })
-  } catch (error) {
-    console.error(error)
+    $q.notify({ color: 'positive', message: 'Kategori Berhasil Disimpan' })
+  } catch (e) {
+    console.error(e)
   } finally {
     submitting.value = false
   }
@@ -229,31 +275,35 @@ const hapusKategori = (data) => {
     title: 'Hapus',
     message: `Hapus kategori ${data.nama}?`,
     cancel: true,
+    ok: { color: 'negative' },
   }).onOk(async () => {
-    try {
-      await deleteDoc(doc(db, 'kategori_proyek', data.id))
-      fetchKategori()
-    } catch (e) {
-      console.error(e)
-    }
+    await deleteDoc(doc(db, 'kategori_proyek', data.id))
+    fetchKategori()
   })
 }
 </script>
 
 <style scoped>
-.rounded-borders {
-  border-radius: 8px;
-}
 .label-req {
-  font-size: 13px;
-  font-weight: 600;
-  color: #444;
+  font-size: 11px;
+  font-weight: 700;
+  color: #555;
   margin-bottom: 6px;
-}
-.bordered {
-  border-bottom: 1px solid #ececec;
+  text-transform: uppercase;
 }
 .btn-radius {
-  border-radius: 6px;
+  border-radius: 8px;
+}
+.rounded-borders {
+  border-radius: 12px;
+}
+.bordered-bottom {
+  border-bottom: 1px solid #eee;
+}
+.customer-table :deep(tbody tr) {
+  cursor: pointer;
+}
+.customer-table :deep(tbody tr:hover) {
+  background-color: #f0f4f8 !important;
 }
 </style>

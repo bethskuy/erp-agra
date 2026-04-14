@@ -2,17 +2,17 @@
   <q-page class="bg-grey-2 q-pa-md font-pro">
     <div class="row items-center q-mb-md">
       <div class="col">
-        <div class="text-h5 text-weight-bold text-primary text-uppercase">Database Supplier</div>
+        <div class="text-h5 text-weight-bold text-primary text-uppercase">Database Customer</div>
         <div class="text-caption text-grey-7">
-          Kelola vendor dan pemasok PT AGRA dengan sistem dokumen dinamis.
+          Kelola data klien dengan sistem dokumen dinamis (Hybrid Storage).
         </div>
       </div>
       <div class="col-auto">
         <q-btn
           unelevated
           color="primary"
-          icon="add_business"
-          label="Tambah Supplier"
+          icon="person_add"
+          label="Tambah Customer"
           class="btn-radius shadow-2"
           @click="openAddDialog"
         />
@@ -31,7 +31,7 @@
         @row-click="onRowClick"
       >
         <template v-slot:top-right>
-          <q-input outlined dense debounce="300" v-model="filter" placeholder="Cari supplier...">
+          <q-input outlined dense debounce="300" v-model="filter" placeholder="Cari data...">
             <template v-slot:append><q-icon name="search" /></template>
           </q-input>
         </template>
@@ -63,7 +63,7 @@
         <q-toolbar class="bg-white text-grey-9 q-py-md bordered-bottom">
           <q-btn flat round dense icon="close" v-close-popup />
           <q-toolbar-title class="text-weight-bold text-center uppercase">
-            {{ isEditMode ? 'Update Data Supplier' : 'Tambah Supplier Baru' }}
+            {{ isEditMode ? 'Update Data Customer' : 'Tambah Konsumen Baru' }}
           </q-toolbar-title>
           <div style="width: 48px"></div>
         </q-toolbar>
@@ -78,7 +78,7 @@
                   </div>
                   <div class="row q-col-gutter-sm q-mb-lg">
                     <div class="col-12">
-                      <div class="label-form">Nama Supplier *</div>
+                      <div class="label-form">Nama Konsumen *</div>
                       <q-input
                         outlined
                         dense
@@ -92,7 +92,7 @@
                       <q-input outlined dense v-model="form.email" bg-color="white" />
                     </div>
                     <div class="col-12 col-md-6">
-                      <div class="label-form">No. Telepon</div>
+                      <div class="label-form">No. HP</div>
                       <q-input outlined dense v-model="form.kontak" bg-color="white" />
                     </div>
                     <div class="col-12">
@@ -104,6 +104,26 @@
                         mask="##.###.###.#-###.###"
                         bg-color="white"
                       />
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <div class="label-form">Provinsi</div>
+                      <q-select
+                        outlined
+                        dense
+                        v-model="form.provinsi"
+                        :options="[
+                          'DKI Jakarta',
+                          'Jawa Barat',
+                          'Banten',
+                          'Jawa Tengah',
+                          'Jawa Timur',
+                        ]"
+                        bg-color="white"
+                      />
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <div class="label-form">Kota</div>
+                      <q-input outlined dense v-model="form.kota" bg-color="white" />
                     </div>
                     <div class="col-12">
                       <div class="label-form">Alamat Lengkap</div>
@@ -118,7 +138,7 @@
                     </div>
                   </div>
                   <div class="text-subtitle2 text-primary text-bold q-mb-sm uppercase">
-                    Kontak Person (PIC)
+                    Penanggung Jawab
                   </div>
                   <div class="row q-col-gutter-sm">
                     <div class="col-12 col-md-6">
@@ -126,15 +146,15 @@
                       <q-input outlined dense v-model="form.pic_nama" bg-color="white" />
                     </div>
                     <div class="col-12 col-md-6">
-                      <div class="label-form">Kontak PIC</div>
-                      <q-input outlined dense v-model="form.pic_kontak" bg-color="white" />
+                      <div class="label-form">Email PIC</div>
+                      <q-input outlined dense v-model="form.pic_email" bg-color="white" />
                     </div>
                   </div>
                 </div>
 
                 <div class="col-12 col-md-6">
                   <div class="text-subtitle2 text-primary text-bold q-mb-sm uppercase">
-                    Informasi Pembayaran
+                    Informasi Perbankan
                   </div>
                   <div class="row q-col-gutter-sm q-mb-lg">
                     <div class="col-12">
@@ -152,12 +172,12 @@
                   </div>
 
                   <div class="text-subtitle2 text-primary text-bold q-mb-sm uppercase">
-                    Berkas & Dokumen Legalitas
+                    Berkas & Dokumen Terlampir
                   </div>
                   <q-card flat bordered class="bg-white q-pa-md rounded-borders">
                     <div class="row items-center justify-between q-mb-md">
                       <div class="text-caption text-grey-7 italic">
-                        Tambahkan NPWP, SIUP, atau dokumen vendor lainnya.
+                        Tambahkan NPWP, K3, atau berkas lainnya di sini.
                       </div>
                       <q-btn
                         round
@@ -218,10 +238,10 @@
                     <q-btn
                       unelevated
                       color="primary"
-                      label="SIMPAN DATA SUPPLIER"
+                      label="SIMPAN DATA CUSTOMER"
                       :loading="submitting"
                       class="btn-radius q-px-xl shadow-2"
-                      @click="simpanSupplier"
+                      @click="simpanCustomer"
                     />
                   </div>
                 </div>
@@ -233,11 +253,11 @@
     </q-dialog>
 
     <q-dialog v-model="showDetail" maximized transition-show="slide-up">
-      <q-card class="bg-grey-2 column no-wrap" v-if="currentSupplier">
+      <q-card class="bg-grey-2 column no-wrap" v-if="currentCustomer">
         <q-toolbar class="bg-primary text-white q-py-md">
           <q-btn flat round dense icon="arrow_back" v-close-popup />
           <q-toolbar-title class="text-center uppercase text-bold"
-            >Profil Lengkap Supplier</q-toolbar-title
+            >Profil Lengkap Customer</q-toolbar-title
           >
         </q-toolbar>
 
@@ -246,50 +266,60 @@
             <div class="col-12 col-md-10 col-lg-8">
               <q-card flat bordered class="q-pa-lg q-mb-md bg-white shadow-1 text-center">
                 <div class="text-h3 text-weight-bolder text-primary uppercase q-mb-xs">
-                  {{ currentSupplier.nama }}
+                  {{ currentCustomer.nama }}
                 </div>
                 <div class="text-grey-7 text-subtitle1">
-                  {{ currentSupplier.email }} | {{ currentSupplier.kontak }}
+                  {{ currentCustomer.email }} | {{ currentCustomer.kontak }}
                 </div>
               </q-card>
 
               <div class="row q-col-gutter-md q-mb-md">
                 <div class="col-12 col-md-6">
-                  <q-card flat bordered class="bg-white full-height q-pa-md text-uppercase">
-                    <div class="text-bold text-primary q-mb-sm">Identitas Vendor</div>
+                  <q-card flat bordered class="bg-white full-height q-pa-md">
+                    <div class="text-bold text-primary q-mb-sm uppercase">Identitas & Alamat</div>
                     <q-separator q-mb-md />
-                    <div class="q-gutter-y-sm font-13">
+                    <div class="q-gutter-y-sm">
                       <div class="row">
                         <div class="col-4 text-grey-7">NPWP</div>
-                        <div class="col-8 text-weight-bold">{{ currentSupplier.npwp || '-' }}</div>
+                        <div class="col-8 text-weight-bold">{{ currentCustomer.npwp || '-' }}</div>
                       </div>
                       <div class="row">
                         <div class="col-4 text-grey-7">Alamat</div>
-                        <div class="col-8">{{ currentSupplier.alamat || '-' }}</div>
+                        <div class="col-8">{{ currentCustomer.alamat || '-' }}</div>
+                      </div>
+                      <div class="row">
+                        <div class="col-4 text-grey-7">Kota</div>
+                        <div class="col-8">
+                          {{ currentCustomer.kota || '-' }}, {{ currentCustomer.provinsi || '-' }}
+                        </div>
                       </div>
                     </div>
                   </q-card>
                 </div>
                 <div class="col-12 col-md-6">
-                  <q-card flat bordered class="bg-white full-height q-pa-md text-uppercase">
-                    <div class="text-bold text-primary q-mb-sm">PIC & Pembayaran</div>
+                  <q-card flat bordered class="bg-white full-height q-pa-md">
+                    <div class="text-bold text-primary q-mb-sm uppercase">PIC & Bank</div>
                     <q-separator q-mb-md />
-                    <div class="q-gutter-y-sm font-13">
+                    <div class="q-gutter-y-sm">
                       <div class="row">
                         <div class="col-4 text-grey-7">Nama PIC</div>
                         <div class="col-8 text-weight-bold">
-                          {{ currentSupplier.pic_nama || '-' }}
+                          {{ currentCustomer.pic_nama || '-' }}
                         </div>
                       </div>
                       <div class="row">
+                        <div class="col-4 text-grey-7">Email PIC</div>
+                        <div class="col-8">{{ currentCustomer.pic_email || '-' }}</div>
+                      </div>
+                      <div class="row">
                         <div class="col-4 text-grey-7">Bank</div>
-                        <div class="col-8">{{ currentSupplier.rek_bank || '-' }}</div>
+                        <div class="col-8">{{ currentCustomer.rek_bank || '-' }}</div>
                       </div>
                       <div class="row">
                         <div class="col-4 text-grey-7">Rekening</div>
                         <div class="col-8">
-                          {{ currentSupplier.rek_nomor || '-' }} (an.
-                          {{ currentSupplier.rek_nama || '-' }})
+                          {{ currentCustomer.rek_nomor || '-' }} (an.
+                          {{ currentCustomer.rek_nama || '-' }})
                         </div>
                       </div>
                     </div>
@@ -299,12 +329,12 @@
 
               <q-card flat bordered class="bg-white shadow-1">
                 <q-card-section class="text-bold uppercase text-primary"
-                  >Berkas Supplier Terlampir</q-card-section
+                  >Berkas Dokumen Terlampir</q-card-section
                 >
                 <q-separator />
                 <q-list separator>
                   <q-expansion-item
-                    v-for="(docItem, i) in currentSupplier.additional_docs"
+                    v-for="(docItem, i) in currentCustomer.additional_docs"
                     :key="i"
                     icon="folder"
                     :label="docItem.label"
@@ -318,12 +348,12 @@
                   </q-expansion-item>
                   <q-item
                     v-if="
-                      !currentSupplier.additional_docs ||
-                      currentSupplier.additional_docs.length === 0
+                      !currentCustomer.additional_docs ||
+                      currentCustomer.additional_docs.length === 0
                     "
                   >
                     <q-item-section class="text-center text-grey-6 italic q-pa-md"
-                      >Belum ada berkas terlampir.</q-item-section
+                      >Belum ada dokumen yang diunggah.</q-item-section
                     >
                   </q-item>
                 </q-list>
@@ -361,7 +391,7 @@ const showDialog = ref(false)
 const showDetail = ref(false)
 const isEditMode = ref(false)
 const filter = ref('')
-const currentSupplier = ref(null)
+const currentCustomer = ref(null)
 
 const formDefault = {
   id: null,
@@ -369,9 +399,11 @@ const formDefault = {
   email: '',
   kontak: '',
   npwp: '',
+  provinsi: null,
+  kota: '',
   alamat: '',
   pic_nama: '',
-  pic_kontak: '',
+  pic_email: '',
   rek_nomor: '',
   rek_bank: '',
   rek_nama: '',
@@ -380,13 +412,12 @@ const formDefault = {
 const form = ref({ ...formDefault })
 
 const columns = [
-  { name: 'nama', align: 'left', label: 'SUPPLIER', field: 'nama', sortable: true },
+  { name: 'nama', align: 'left', label: 'NAMA CUSTOMER', field: 'nama', sortable: true },
   { name: 'email', align: 'left', label: 'EMAIL', field: 'email' },
-  { name: 'pic_nama', align: 'left', label: 'PIC', field: 'pic_nama' },
   { name: 'aksi', align: 'center', label: 'AKSI', field: 'aksi' },
 ]
 
-// HYBRID UPLOAD LOGIC
+// LOGIC HYBRID STORAGE
 const processHybridUpload = async (file, pathName) => {
   if (!file) return null
   if (file.size <= 512000) {
@@ -396,7 +427,7 @@ const processHybridUpload = async (file, pathName) => {
       reader.onload = () => resolve(reader.result)
     })
   } else {
-    const sRef = storageRef(storage, `suppliers/${Date.now()}_${pathName}`)
+    const sRef = storageRef(storage, `customers/${Date.now()}_${pathName}`)
     const snap = await uploadBytes(sRef, file)
     return await getDownloadURL(snap.ref)
   }
@@ -406,7 +437,7 @@ const addDocRow = () =>
   form.value.additional_docs.push({ label: '', url: '', base64: '', fileObj: null })
 const removeDocRow = (i) => form.value.additional_docs.splice(i, 1)
 
-const simpanSupplier = async () => {
+const simpanCustomer = async () => {
   if (!form.value.nama) return
   submitting.value = true
   try {
@@ -428,14 +459,14 @@ const simpanSupplier = async () => {
     const docId = payload.id
     delete payload.id
     if (isEditMode.value) {
-      await updateDoc(doc(db, 'suppliers', docId), payload)
+      await updateDoc(doc(db, 'customer', docId), payload)
     } else {
       payload.createdAt = serverTimestamp()
-      await addDoc(collection(db, 'suppliers'), payload)
+      await addDoc(collection(db, 'customer'), payload)
     }
     showDialog.value = false
     fetchData()
-    $q.notify({ type: 'positive', message: 'Data Supplier Berhasil Disimpan!' })
+    $q.notify({ type: 'positive', message: 'Data Berhasil Disimpan!' })
   } catch (e) {
     console.error(e)
     $q.notify({ color: 'negative', message: 'Gagal Simpan!' })
@@ -446,13 +477,13 @@ const simpanSupplier = async () => {
 
 const fetchData = async () => {
   loading.value = true
-  const snap = await getDocs(query(collection(db, 'suppliers'), orderBy('createdAt', 'desc')))
+  const snap = await getDocs(query(collection(db, 'customer'), orderBy('createdAt', 'desc')))
   rows.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
   loading.value = false
 }
 
 const onRowClick = (e, row) => {
-  currentSupplier.value = row
+  currentCustomer.value = row
   showDetail.value = true
 }
 const openAddDialog = () => {
@@ -472,7 +503,7 @@ const confirmHapus = (r) => {
     cancel: true,
     ok: { color: 'negative' },
   }).onOk(async () => {
-    await deleteDoc(doc(db, 'suppliers', r.id))
+    await deleteDoc(doc(db, 'customer', r.id))
     fetchData()
   })
 }
@@ -482,11 +513,10 @@ onMounted(fetchData)
 
 <style scoped>
 .label-form {
-  font-size: 11px;
-  font-weight: 700;
-  color: #555;
-  margin-bottom: 2px;
-  text-uppercase: true;
+  font-size: 12px;
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 4px;
 }
 .btn-radius {
   border-radius: 8px;
@@ -499,10 +529,6 @@ onMounted(fetchData)
   transition: 0.2s;
 }
 .customer-table :deep(tbody tr:hover) {
-  background-color: #fff9f2 !important;
-}
-.font-13 {
-  font-size: 13px;
-  line-height: 1.6;
+  background-color: #f0f4f8 !important;
 }
 </style>

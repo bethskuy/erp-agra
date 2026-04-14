@@ -34,90 +34,40 @@
             icon="grid_view"
             label="DATA MASTER"
             header-class="text-weight-bold text-primary"
+            default-opened
           >
             <q-list class="q-pl-sm">
               <q-expansion-item
-                label="Data Proyek"
+                label="Data Rekanan"
                 header-class="text-grey-8"
                 :header-inset-level="0.1"
               >
                 <q-item
                   clickable
                   v-ripple
-                  to="/konstruksi/master/proyek-data"
+                  to="/konstruksi/marketing/customer"
                   class="q-pl-xl"
                   active-class="text-primary bg-blue-1"
                 >
                   <q-item-section avatar side
                     ><q-icon name="circle" size="6px" color="grey-4"
                   /></q-item-section>
-                  <q-item-section>Data Proyek</q-item-section>
+                  <q-item-section>Customer</q-item-section>
                 </q-item>
                 <q-item
                   clickable
                   v-ripple
-                  to="/konstruksi/master/proyek-kategori"
+                  to="/konstruksi/master/supplier"
                   class="q-pl-xl"
                   active-class="text-primary bg-blue-1"
                 >
                   <q-item-section avatar side
                     ><q-icon name="circle" size="6px" color="grey-4"
                   /></q-item-section>
-                  <q-item-section>Kategori Proyek</q-item-section>
-                </q-item>
-
-                <q-item
-                  clickable
-                  v-ripple
-                  to="/konstruksi/master/konsumen"
-                  class="q-pl-xl"
-                  active-class="text-primary bg-blue-1"
-                >
-                  <q-item-section avatar side
-                    ><q-icon name="circle" size="6px" color="grey-4"
-                  /></q-item-section>
-                  <q-item-section>Data Konsumen</q-item-section>
+                  <q-item-section>Data Supplier</q-item-section>
                 </q-item>
               </q-expansion-item>
-              <q-item
-                clickable
-                v-ripple
-                to="/konstruksi/master/supplier"
-                :inset-level="0.2"
-                active-class="text-primary bg-blue-1"
-              >
-                <q-item-section avatar side
-                  ><q-icon name="circle" size="6px" color="grey-4"
-                /></q-item-section>
-                <q-item-section>Data Supplier</q-item-section>
-              </q-item>
 
-              <q-item
-                disable
-                label="Disabled"
-                v-ripple
-                to="/konstruksi/master/pekerjaan"
-                :inset-level="0.2"
-                active-class="text-primary bg-blue-1"
-              >
-                <q-item-section avatar side
-                  ><q-icon name="circle" size="6px" color="grey-4"
-                /></q-item-section>
-                <q-item-section disable label="Disabled">Data Pekerjaan</q-item-section>
-              </q-item>
-              <q-item
-                disable
-                label="Disabled"
-                v-ripple
-                to="/konstruksi/master/ahsp"
-                :inset-level="0.2"
-                active-class="text-primary bg-blue-1"
-              >
-                <q-item-section avatar side
-                  ><q-icon name="circle" size="6px" color="grey-4"
-                /></q-item-section>
-                <q-item-section>Data AHSP</q-item-section>
-              </q-item>
               <q-expansion-item
                 label="Data Barang"
                 header-class="text-grey-8"
@@ -147,19 +97,19 @@
                   /></q-item-section>
                   <q-item-section>Kategori Barang</q-item-section>
                 </q-item>
+                <q-item
+                  clickable
+                  v-ripple
+                  to="/konstruksi/master/satuan"
+                  class="q-pl-xl"
+                  active-class="text-primary bg-blue-1"
+                >
+                  <q-item-section avatar side
+                    ><q-icon name="circle" size="6px" color="grey-4"
+                  /></q-item-section>
+                  <q-item-section>Data Satuan</q-item-section>
+                </q-item>
               </q-expansion-item>
-              <q-item
-                clickable
-                v-ripple
-                to="/konstruksi/master/satuan"
-                class="q-pl-xl"
-                active-class="text-primary bg-blue-1"
-              >
-                <q-item-section avatar side
-                  ><q-icon name="circle" size="6px" color="grey-4"
-                /></q-item-section>
-                <q-item-section>Data Satuan</q-item-section>
-              </q-item>
             </q-list>
           </q-expansion-item>
 
@@ -169,20 +119,9 @@
             icon="campaign"
             label="MARKETING"
             header-class="text-weight-bold text-grey-8"
+            default-opened
           >
             <q-list class="q-pl-sm">
-              <q-item
-                clickable
-                v-ripple
-                to="/konstruksi/marketing/prospek"
-                :inset-level="0.4"
-                active-class="text-primary bg-blue-1"
-              >
-                <q-item-section avatar side
-                  ><q-icon name="circle" size="6px" color="grey-4"
-                /></q-item-section>
-                <q-item-section>Prospek</q-item-section>
-              </q-item>
               <q-item
                 clickable
                 v-ripple
@@ -194,6 +133,28 @@
                   ><q-icon name="circle" size="6px" color="grey-4"
                 /></q-item-section>
                 <q-item-section>Penawaran</q-item-section>
+              </q-item>
+              <q-item
+                clickable
+                v-ripple
+                to="/konstruksi/marketing/approval-penawaran"
+                :inset-level="0.4"
+                active-class="text-primary bg-blue-1"
+              >
+                <q-item-section avatar side
+                  ><q-icon name="circle" size="6px" color="grey-4"
+                /></q-item-section>
+                <q-item-section>Approval Penawaran</q-item-section>
+                <q-item-section side v-if="pendingApprovalCount > 0">
+                  <q-badge
+                    color="orange-9"
+                    text-color="white"
+                    floating
+                    class="text-weight-bold shadow-2"
+                  >
+                    {{ pendingApprovalCount }}
+                  </q-badge>
+                </q-item-section>
               </q-item>
             </q-list>
           </q-expansion-item>
@@ -207,7 +168,7 @@
             default-opened
           >
             <q-expansion-item
-              label="PERENCANAAN"
+              label="DATA PROYEK"
               header-class="text-grey-7"
               :header-inset-level="0.1"
               default-opened
@@ -215,26 +176,26 @@
               <q-item
                 clickable
                 v-ripple
-                to="/konstruksi/perencanaan/boq"
+                to="/konstruksi/master/proyek-data"
                 class="q-pl-xl"
                 active-class="text-primary bg-blue-1"
               >
                 <q-item-section avatar side
                   ><q-icon name="circle" size="6px" color="grey-4"
                 /></q-item-section>
-                <q-item-section>BOQ Proyek</q-item-section>
+                <q-item-section>Data Proyek</q-item-section>
               </q-item>
               <q-item
                 clickable
                 v-ripple
-                to="/konstruksi/perencanaan/rab"
+                to="/konstruksi/master/proyek-kategori"
                 class="q-pl-xl"
                 active-class="text-primary bg-blue-1"
               >
                 <q-item-section avatar side
                   ><q-icon name="circle" size="6px" color="grey-4"
                 /></q-item-section>
-                <q-item-section>RAB</q-item-section>
+                <q-item-section>Kategori Proyek</q-item-section>
               </q-item>
             </q-expansion-item>
 
@@ -342,10 +303,6 @@
                 /></q-item-section>
                 <q-item-section>Pesanan Pembelian (PO)</q-item-section>
               </q-item>
-
-              <q-separator q-my-sm inset />
-
-              <q-separator q-my-sm inset />
               <div style="height: 60px"></div>
             </q-list>
           </q-expansion-item>
@@ -360,8 +317,31 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { db } from 'src/boot/firebase'
+import { collection, query, where, onSnapshot } from 'firebase/firestore'
+
 const leftDrawerOpen = ref(false)
+const pendingApprovalCount = ref(0)
+let unsubscribe = null
+
+onMounted(() => {
+  const q = query(collection(db, 'penawaran'), where('status', '==', 'Pending'))
+
+  unsubscribe = onSnapshot(
+    q,
+    (snapshot) => {
+      pendingApprovalCount.value = snapshot.size
+    },
+    (error) => {
+      console.error('Error listening to approvals:', error)
+    },
+  )
+})
+
+onUnmounted(() => {
+  if (unsubscribe) unsubscribe()
+})
 </script>
 
 <style scoped>
