@@ -48,9 +48,10 @@ export default defineConfig(async (/* ctx */) => {
       ],
     },
 
+    // BAGIAN INI SUDAH DIUPDATE UNTUK NGROK
     devServer: {
       open: true,
-      allowedHosts: 'all',
+      allowedHosts: 'all', // Mengizinkan semua host termasuk Ngrok
     },
 
     framework: {
