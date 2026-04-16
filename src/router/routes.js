@@ -105,14 +105,15 @@ const routes = [
     ],
   },
 
-  // 4. MODUL ABSENSI
+  // MODUL ABSENSI
   {
     path: '/absensi',
-    component: () => import('layouts/MainLayout.vue'),
+    component: () => import('layouts/AbsensiLayout.vue'),
     meta: { requiresAuth: true },
     children: [
       {
         path: 'dashboard',
+        name: 'absensi-dashboard',
         component: () => import('pages/absensi/DashboardPage.vue'),
       },
     ],
