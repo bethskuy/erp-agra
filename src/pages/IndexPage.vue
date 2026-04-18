@@ -111,6 +111,16 @@ const apps = ref([
     path: '/absensi/dashboard',
     draft: false,
   },
+  // DATA MODUL UPDATE: Tambahkan objek ini ke dalam array apps
+  {
+    id: 6,
+    name: 'Manufacture',
+    icon: 'factory',
+    color: 'teal-10',
+    bgColor: 'teal-1',
+    path: '/manufaktur/dashboard',
+    draft: false,
+  },
   {
     id: 3,
     name: 'Modul Aset',

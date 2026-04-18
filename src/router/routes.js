@@ -117,6 +117,19 @@ const routes = [
       },
     ],
   },
+  // modul manufaktur
+  {
+    path: '/manufaktur',
+    component: () => import('layouts/ManufakturLayout.vue'),
+    meta: { requiresAuth: true },
+    children: [
+      {
+        path: 'dashboard',
+        name: 'manufaktur-dashboard',
+        component: () => import('pages/manufaktur/DashboardPage.vue'),
+      },
+    ],
+  },
   { path: '/:catchAll(.*)*', component: () => import('pages/ErrorNotFound.vue') },
 ]
 
