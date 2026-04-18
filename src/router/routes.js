@@ -69,12 +69,27 @@ const routes = [
         component: () => import('pages/konstruksi/Proyek/Pelaksanaan/SpkMandor/SpkMandorPage.vue'),
       },
 
-      // MODUL GUDANG (DISEDERHANAKAN)
+      // MODUL GUDANG
       {
         path: 'gudang',
         component: () => import('pages/konstruksi/Gudang/GudangPage.vue'),
       },
-
+      {
+        path: 'gudang/transaksi',
+        component: () => import('pages/konstruksi/Gudang/RiwayatTransaksiPage.vue'),
+      },
+      {
+        path: '/konstruksi/gudang/opname/:id',
+        component: () => import('pages/konstruksi/Gudang/OpnamePage.vue'),
+      },
+      {
+        path: '/konstruksi/gudang/masuk/:id',
+        component: () => import('pages/konstruksi/Gudang/BarangMasukPage.vue'),
+      },
+      {
+        path: '/konstruksi/gudang/keluar/:id',
+        component: () => import('pages/konstruksi/Gudang/BarangKeluarPage.vue'),
+      },
       // PEMBELIAN
       {
         path: 'pembelian/pesanan',
@@ -83,7 +98,7 @@ const routes = [
       },
     ],
   },
-
+  // 4. MODUL ABSENSI
   {
     path: '/absensi',
     component: () => import('layouts/AbsensiLayout.vue'),
