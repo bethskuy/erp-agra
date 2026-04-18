@@ -23,7 +23,6 @@ const routes = [
         path: 'dashboard',
         component: () => import('pages/konstruksi/Dashboard/DashboardPage.vue'),
       },
-      // MASTER
       {
         path: 'marketing/customer',
         component: () => import('pages/konstruksi/Master/Customer/CustomerPage.vue'),
@@ -44,8 +43,6 @@ const routes = [
         path: 'master/satuan',
         component: () => import('pages/konstruksi/Master/DataSatuan/MasterSatuanPage.vue'),
       },
-
-      // MARKETING
       {
         path: 'marketing/penawaran',
         component: () => import('pages/konstruksi/Marketing/Penawaran/PenawaranPage.vue'),
@@ -54,8 +51,6 @@ const routes = [
         path: 'marketing/approval-penawaran',
         component: () => import('pages/konstruksi/Marketing/ApprovalPenawaranPage.vue'),
       },
-
-      // PROYEK
       {
         path: 'master/proyek-data',
         component: () => import('pages/konstruksi/Master/DataProyek/MasterProyekPage.vue'),
@@ -68,29 +63,23 @@ const routes = [
         path: 'pelaksanaan/spk-mandor',
         component: () => import('pages/konstruksi/Proyek/Pelaksanaan/SpkMandor/SpkMandorPage.vue'),
       },
-
-      // MODUL GUDANG
-      {
-        path: 'gudang',
-        component: () => import('pages/konstruksi/Gudang/GudangPage.vue'),
-      },
+      { path: 'gudang', component: () => import('pages/konstruksi/Gudang/GudangPage.vue') },
       {
         path: 'gudang/transaksi',
         component: () => import('pages/konstruksi/Gudang/RiwayatTransaksiPage.vue'),
       },
       {
-        path: '/konstruksi/gudang/opname/:id',
+        path: 'gudang/opname/:id',
         component: () => import('pages/konstruksi/Gudang/OpnamePage.vue'),
       },
       {
-        path: '/konstruksi/gudang/masuk/:id',
+        path: 'gudang/masuk/:id',
         component: () => import('pages/konstruksi/Gudang/BarangMasukPage.vue'),
       },
       {
-        path: '/konstruksi/gudang/keluar/:id',
+        path: 'gudang/keluar/:id',
         component: () => import('pages/konstruksi/Gudang/BarangKeluarPage.vue'),
       },
-      // PEMBELIAN
       {
         path: 'pembelian/pesanan',
         component: () =>
@@ -98,6 +87,7 @@ const routes = [
       },
     ],
   },
+
   // 4. MODUL ABSENSI
   {
     path: '/absensi',
@@ -109,7 +99,6 @@ const routes = [
         name: 'absensi-dashboard',
         component: () => import('pages/absensi/DashboardPage.vue'),
       },
-      // ROUTE RIWAYAT ABSENSI
       {
         path: 'riwayat',
         name: 'absensi-riwayat',
@@ -117,7 +106,8 @@ const routes = [
       },
     ],
   },
-  // modul manufaktur
+
+  // 5. MODUL MANUFAKTUR
   {
     path: '/manufaktur',
     component: () => import('layouts/ManufakturLayout.vue'),
@@ -130,6 +120,33 @@ const routes = [
       },
     ],
   },
+
+  // 6. MODUL MANAGEMENT KARYAWAN & HAK AKSES
+  {
+    path: '/management-karyawan',
+    component: () => import('layouts/ManagementKaryawanLayout.vue'),
+    meta: { requiresAuth: true },
+    children: [
+      {
+        path: 'dashboard',
+        name: 'management-karyawan-dashboard',
+        component: () => import('pages/managementkaryawan/DashboardPage.vue'),
+      },
+      {
+        path: 'karyawan',
+        name: 'management-karyawan-data',
+        component: () => import('pages/managementkaryawan/datakaryawan/KaryawanPage.vue'),
+      },
+      {
+        // Rute ini disesuaikan agar cocok dengan 'to="/management/akses/:modul"' di layout
+        // Kita gunakan path absolut agar langsung terbaca dari root
+        path: '/management/akses/:modul',
+        name: 'management-hak-akses',
+        component: () => import('pages/managementkaryawan/HakAksesPage.vue'),
+      },
+    ],
+  },
+
   { path: '/:catchAll(.*)*', component: () => import('pages/ErrorNotFound.vue') },
 ]
 
