@@ -1,5 +1,5 @@
 const routes = [
-  // 1. LANDING PAGE (PILIH MODUL)
+  // 1. LANDING PAGE
   {
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
@@ -7,27 +7,24 @@ const routes = [
     children: [{ path: '', component: () => import('pages/IndexPage.vue') }],
   },
 
-  // 2. AUTHENTICATION (LOGIN)
+  // 2. AUTHENTICATION
   {
     path: '/login',
     component: () => import('pages/auth/LoginPage.vue'),
   },
 
-  // 3. MODUL KONSTRUKSI (UTAMA)
+  // 3. MODUL KONSTRUKSI
   {
     path: '/konstruksi',
     component: () => import('layouts/KonstruksiLayout.vue'),
     meta: { requiresAuth: true },
     children: [
-      // Dashboard Konstruksi
       {
         path: 'dashboard',
         component: () => import('pages/konstruksi/Dashboard/DashboardPage.vue'),
       },
-
-      // DATA MASTER (RESTRUKTURISASI REKANAN)
+      // MASTER
       {
-        // Path disesuaikan agar menu Customer di Layout mengarah ke sini
         path: 'marketing/customer',
         component: () => import('pages/konstruksi/Master/Customer/CustomerPage.vue'),
       },
@@ -35,7 +32,6 @@ const routes = [
         path: 'master/supplier',
         component: () => import('pages/konstruksi/Master/DataSupplier/MasterSupplierPage.vue'),
       },
-
       {
         path: 'master/barang-list',
         component: () => import('pages/konstruksi/Master/DataBarang/MasterBarangPage.vue'),
@@ -59,7 +55,7 @@ const routes = [
         component: () => import('pages/konstruksi/Marketing/ApprovalPenawaranPage.vue'),
       },
 
-      // MODUL PROYEK (PINDAHAN DARI MASTER)
+      // PROYEK
       {
         path: 'master/proyek-data',
         component: () => import('pages/konstruksi/Master/DataProyek/MasterProyekPage.vue'),
@@ -68,35 +64,18 @@ const routes = [
         path: 'master/proyek-kategori',
         component: () => import('pages/konstruksi/Master/DataProyek/KategoriProyekPage.vue'),
       },
-
-      // PROYEK - PELAKSANAAN
       {
         path: 'pelaksanaan/spk-mandor',
         component: () => import('pages/konstruksi/Proyek/Pelaksanaan/SpkMandor/SpkMandorPage.vue'),
       },
 
-      // MODUL GUDANG
+      // MODUL GUDANG (DISEDERHANAKAN)
       {
-        path: 'gudang/stok-opname',
-        component: () => import('pages/konstruksi/Gudang/StokOpname/StokOpnamePage.vue'),
-      },
-      {
-        path: 'gudang/penerimaan',
-        component: () =>
-          import('pages/konstruksi/Gudang/PenerimaanBarang/PenerimaanBarangPage.vue'),
-      },
-      {
-        path: 'gudang/pengeluaran-material',
-        component: () =>
-          import('pages/konstruksi/Gudang/PengeluaranMaterial/PengeluaranBarangPage.vue'),
-      },
-      {
-        path: 'gudang/pengeluaran-lain',
-        component: () =>
-          import('pages/konstruksi/Gudang/PengeluaranBarangLain/PengeluaranBarangLainPage.vue'),
+        path: 'gudang',
+        component: () => import('pages/konstruksi/Gudang/GudangPage.vue'),
       },
 
-      // MODUL PEMBELIAN
+      // PEMBELIAN
       {
         path: 'pembelian/pesanan',
         component: () =>
@@ -105,7 +84,6 @@ const routes = [
     ],
   },
 
-  // MODUL ABSENSI
   {
     path: '/absensi',
     component: () => import('layouts/AbsensiLayout.vue'),
@@ -118,12 +96,7 @@ const routes = [
       },
     ],
   },
-
-  // 5. ERROR 404
-  {
-    path: '/:catchAll(.*)*',
-    component: () => import('pages/ErrorNotFound.vue'),
-  },
+  { path: '/:catchAll(.*)*', component: () => import('pages/ErrorNotFound.vue') },
 ]
 
 export default routes

@@ -198,7 +198,6 @@
                 <q-item-section>Kategori Proyek</q-item-section>
               </q-item>
             </q-expansion-item>
-
             <q-list class="q-pl-sm">
               <q-expansion-item
                 label="PELAKSANAAN"
@@ -224,63 +223,10 @@
 
           <q-separator q-my-sm inset />
 
-          <q-expansion-item
-            icon="inventory_2"
-            label="GUDANG"
-            header-class="text-weight-bold text-grey-8"
-            default-opened
-          >
-            <q-list class="q-pl-sm">
-              <q-item
-                clickable
-                v-ripple
-                to="/konstruksi/gudang/stok-opname"
-                :inset-level="0.2"
-                active-class="text-primary bg-blue-1"
-              >
-                <q-item-section avatar side
-                  ><q-icon name="circle" size="6px" color="grey-4"
-                /></q-item-section>
-                <q-item-section>Stok Opname</q-item-section>
-              </q-item>
-              <q-item
-                clickable
-                v-ripple
-                to="/konstruksi/gudang/penerimaan"
-                :inset-level="0.2"
-                active-class="text-primary bg-blue-1"
-              >
-                <q-item-section avatar side
-                  ><q-icon name="circle" size="6px" color="grey-4"
-                /></q-item-section>
-                <q-item-section>Penerimaan Barang</q-item-section>
-              </q-item>
-              <q-item
-                clickable
-                v-ripple
-                to="/konstruksi/gudang/pengeluaran-material"
-                :inset-level="0.2"
-                active-class="text-primary bg-blue-1"
-              >
-                <q-item-section avatar side
-                  ><q-icon name="circle" size="6px" color="grey-4"
-                /></q-item-section>
-                <q-item-section>Pengeluaran Material</q-item-section>
-              </q-item>
-              <q-item
-                clickable
-                v-ripple
-                to="/konstruksi/gudang/pengeluaran-lain"
-                :inset-level="0.2"
-                active-class="text-primary bg-blue-1"
-              >
-                <q-item-section avatar side
-                  ><q-icon name="circle" size="6px" color="grey-4"
-                /></q-item-section>
-                <q-item-section>Pengeluaran Barang Lainnya</q-item-section>
-              </q-item>
-            </q-list>
-          </q-expansion-item>
+          <q-item clickable v-ripple to="/konstruksi/gudang" active-class="bg-blue-1 text-primary">
+            <q-item-section avatar><q-icon name="inventory_2" /></q-item-section>
+            <q-item-section class="text-weight-bold">GUDANG</q-item-section>
+          </q-item>
 
           <q-separator q-my-sm inset />
 
@@ -321,36 +267,19 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { db } from 'src/boot/firebase'
 import { collection, query, where, onSnapshot } from 'firebase/firestore'
 
+// Deklarasi variabel yang sebelumnya menyebabkan error
 const leftDrawerOpen = ref(false)
 const pendingApprovalCount = ref(0)
 let unsubscribe = null
 
 onMounted(() => {
   const q = query(collection(db, 'penawaran'), where('status', '==', 'Pending'))
-
-  unsubscribe = onSnapshot(
-    q,
-    (snapshot) => {
-      pendingApprovalCount.value = snapshot.size
-    },
-    (error) => {
-      console.error('Error listening to approvals:', error)
-    },
-  )
+  unsubscribe = onSnapshot(q, (snapshot) => {
+    pendingApprovalCount.value = snapshot.size
+  })
 })
 
 onUnmounted(() => {
   if (unsubscribe) unsubscribe()
 })
 </script>
-
-<style scoped>
-.q-item:hover {
-  background-color: #f0f7ff;
-  color: var(--q-primary);
-}
-.q-item.q-router-link--active {
-  background-color: #e3f2fd;
-  font-weight: bold;
-}
-</style>
