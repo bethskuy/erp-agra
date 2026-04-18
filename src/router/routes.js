@@ -94,6 +94,12 @@ const routes = [
         name: 'absensi-dashboard',
         component: () => import('pages/absensi/DashboardPage.vue'),
       },
+      // ROUTE RIWAYAT ABSENSI
+      {
+        path: 'riwayat',
+        name: 'absensi-riwayat',
+        component: () => import('pages/absensi/RiwayatPage.vue'),
+      },
     ],
   },
   { path: '/:catchAll(.*)*', component: () => import('pages/ErrorNotFound.vue') },

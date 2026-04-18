@@ -1,29 +1,31 @@
 <template>
-  <q-page class="bg-grey-2 q-pa-md">
-    <div class="row q-col-gutter-md">
+  <q-page class="bg-grey-2 q-pa-sm">
+    <div class="row q-col-gutter-sm justify-center items-stretch">
       <div class="col-12 col-md-5">
-        <q-card class="dashboard-card text-white shadow-5">
-          <q-card-section>
-            <div class="text-h6 text-weight-light">Selamat Datang,</div>
-            <div class="text-h5 text-weight-bold">Karyawan PT Agra</div>
-            <div class="text-subtitle2 q-mt-sm opacity-70">Sukatani First Mile Hub</div>
+        <q-card class="dashboard-card text-white shadow-3 full-height">
+          <q-card-section class="q-pa-md">
+            <div class="text-subtitle2 text-weight-light">Selamat Datang,</div>
+            <div class="text-h6 text-weight-bold">Karyawan PT Agra</div>
+            <div class="text-caption q-mt-xs opacity-70">
+              <q-icon name="place" size="xs" /> {{ placeName || 'Mencari Lokasi...' }}
+            </div>
           </q-card-section>
 
-          <q-card-section class="text-center q-py-lg">
+          <q-card-section class="text-center q-py-sm">
             <div class="text-h2 text-weight-bolder">{{ currentTime }}</div>
-            <div class="text-h6 opacity-80">{{ currentDate }}</div>
+            <div class="text-caption opacity-80 text-uppercase">{{ currentDate }}</div>
           </q-card-section>
 
-          <q-card-section>
+          <q-card-section class="q-pa-md">
             <div
-              class="row items-center justify-between bg-white-transparent q-pa-sm rounded-borders"
+              class="row items-center justify-between bg-white-transparent q-pa-xs q-px-md rounded-borders"
             >
-              <div class="text-caption">Status Hari Ini:</div>
+              <div class="text-caption text-weight-medium">Status Absensi:</div>
               <q-badge
                 color="white"
                 text-color="primary"
                 :label="statusAbsen"
-                class="text-weight-bold"
+                class="text-weight-bold text-caption"
               />
             </div>
           </q-card-section>
@@ -31,74 +33,75 @@
       </div>
 
       <div class="col-12 col-md-7">
-        <q-card flat bordered class="rounded-borders full-height">
-          <q-card-section class="text-grey-8 text-weight-bold">
-            <q-icon name="location_on" color="red" size="sm" />
-            Lokasi Anda:
-            <span class="text-primary" v-if="userCoords">
-              {{ placeName }}
-              <q-tooltip class="bg-black">
-                Akurasi: {{ accuracyInfo }}m | {{ userCoords.lat.toFixed(6) }},
-                {{ userCoords.lng.toFixed(6) }}
-              </q-tooltip>
-            </span>
-            <span class="text-grey-6" v-else>Mencari sinyal GPS akurat...</span>
+        <q-card flat bordered class="rounded-borders full-height column">
+          <q-card-section class="col q-pa-sm">
+            <div class="row items-center no-wrap text-grey-9 q-mb-xs">
+              <q-icon name="location_on" color="red" size="xs" />
+              <div class="text-caption text-weight-bold q-ml-xs truncate">
+                {{ placeName }}
+              </div>
+            </div>
+            <div
+              id="map"
+              class="shadow-1 rounded-borders"
+              style="height: 145px; width: 100%; z-index: 1"
+            ></div>
           </q-card-section>
 
-          <q-separator />
+          <q-separator inset />
 
-          <q-card-section class="row items-center justify-around q-py-xl">
+          <q-card-section class="row items-center justify-around q-py-lg">
             <div class="text-center">
               <q-btn
                 round
-                size="35px"
+                size="28px"
                 color="positive"
                 icon="login"
-                class="shadow-3"
+                class="shadow-2"
                 @click="absenMasuk"
-                :disable="statusAbsen !== 'Belum Absen'"
+                :disable="false"
               />
-              <div class="q-mt-md text-weight-bold text-grey-9 text-uppercase">Absen Masuk</div>
+              <div class="q-mt-xs text-caption text-weight-bold text-grey-7">MASUK</div>
             </div>
 
             <div class="text-center">
               <q-btn
                 round
-                size="35px"
+                size="28px"
                 color="negative"
                 icon="logout"
-                class="shadow-3"
+                class="shadow-2"
                 @click="absenPulang"
-                :disable="statusAbsen !== 'Sudah Absen Masuk'"
+                :disable="false"
               />
-              <div class="q-mt-md text-weight-bold text-grey-9 text-uppercase">Absen Pulang</div>
+              <div class="q-mt-xs text-caption text-weight-bold text-grey-7">PULANG</div>
             </div>
           </q-card-section>
         </q-card>
       </div>
 
-      <div class="col-12">
-        <div class="text-h6 text-grey-8 q-mb-sm">Riwayat Minggu Ini</div>
+      <div class="col-12 col-md-12 q-mt-sm">
+        <div class="text-subtitle2 text-grey-8 q-mb-xs q-ml-xs">Riwayat Terakhir</div>
         <q-list bordered separator class="bg-white rounded-borders shadow-1">
           <q-item v-if="riwayatAbsen.length === 0" class="text-center q-pa-md text-grey-6 italic"
             >Belum ada data...</q-item
           >
-          <q-item v-for="item in riwayatAbsen" :key="item.id" clickable v-ripple>
+          <q-item v-for="item in riwayatAbsen" :key="item.id" dense class="q-py-sm">
             <q-item-section avatar>
-              <q-avatar color="blue-1" text-color="blue" icon="event_available" />
+              <q-avatar size="32px" color="blue-1" text-color="blue" icon="event_available" />
             </q-item-section>
             <q-item-section>
-              <q-item-label class="text-weight-bold">{{ item.tanggal }}</q-item-label>
-              <q-item-label caption>
-                Masuk: {{ formatWaktu(item.waktu_masuk) }} | Pulang:
-                {{ formatWaktu(item.waktu_pulang) }}
-              </q-item-label>
-              <q-item-label caption class="text-orange-9" v-if="item.nama_tempat">
-                <q-icon name="explore" size="xs" /> Lokasi: {{ item.nama_tempat }}
+              <q-item-label class="text-caption text-weight-bold">{{ item.tanggal }}</q-item-label>
+              <q-item-label caption class="truncate text-orange-9" style="max-width: 200px">
+                {{ item.nama_tempat }}
               </q-item-label>
             </q-item-section>
             <q-item-section side>
+              <div class="text-caption text-weight-bold text-grey-9 q-mb-xs">
+                {{ formatWaktu(item.waktu_masuk) }} - {{ formatWaktu(item.waktu_pulang) }}
+              </div>
               <q-badge
+                dense
                 outline
                 :color="item.status === 'Selesai' ? 'positive' : 'orange'"
                 :label="item.status"
@@ -112,7 +115,7 @@
 </template>
 
 <script>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { db } from 'src/boot/firebase'
 import {
   collection,
@@ -126,6 +129,8 @@ import {
   onSnapshot,
 } from 'firebase/firestore'
 import { useQuasar } from 'quasar'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 
 export default {
   setup() {
@@ -139,12 +144,9 @@ export default {
     const placeName = ref('Mencari lokasi...')
     const accuracyInfo = ref(0)
 
-    // Opsi GPS Akurasi Tinggi
-    const gpsOptions = {
-      enableHighAccuracy: true,
-      timeout: 15000,
-      maximumAge: 0,
-    }
+    let map = null,
+      marker = null
+    const gpsOptions = { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
 
     const updateTime = () => {
       const now = new Date()
@@ -164,19 +166,27 @@ export default {
     const formatWaktu = (ts) =>
       ts ? ts.toDate().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '--:--'
 
+    const initMap = (lat, lng) => {
+      if (map) {
+        map.setView([lat, lng], 15)
+        marker.setLatLng([lat, lng])
+        return
+      }
+      map = L.map('map', { zoomControl: false }).setView([lat, lng], 15)
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map)
+      marker = L.marker([lat, lng]).addTo(map)
+    }
+
     const getPlaceName = async (lat, lng) => {
       try {
         const res = await fetch(
           `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`,
         )
         const data = await res.json()
-        // Prioritas menampilkan nama jalan/perumahan
         placeName.value =
           data.address.residential ||
           data.address.road ||
-          data.address.neighbourhood ||
           data.address.village ||
-          data.address.suburb ||
           'Lokasi Terdeteksi'
         // eslint-disable-next-line no-unused-vars
       } catch (e) {
@@ -187,10 +197,12 @@ export default {
     const getRealLocation = () => {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
-          (pos) => {
+          async (pos) => {
             userCoords.value = { lat: pos.coords.latitude, lng: pos.coords.longitude }
             accuracyInfo.value = pos.coords.accuracy.toFixed(0)
             getPlaceName(pos.coords.latitude, pos.coords.longitude)
+            await nextTick()
+            initMap(pos.coords.latitude, pos.coords.longitude)
           },
           (err) => {
             console.error(err)
@@ -201,23 +213,10 @@ export default {
     }
 
     const absenMasuk = async () => {
-      $q.loading.show({ message: 'Mengunci GPS Akurasi Tinggi...' })
-
+      $q.loading.show({ message: 'Mengunci GPS...' })
       navigator.geolocation.getCurrentPosition(
         async (pos) => {
           try {
-            // Cari nama tempat terbaru sebelum simpan
-            const res = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`,
-            )
-            const data = await res.json()
-            const finalPlace =
-              data.address.residential ||
-              data.address.road ||
-              data.address.neighbourhood ||
-              data.address.village ||
-              'Lokasi Terdeteksi'
-
             const todayStr = new Date().toLocaleDateString('id-ID', {
               weekday: 'long',
               day: 'numeric',
@@ -230,61 +229,67 @@ export default {
               waktu_pulang: null,
               tanggal: todayStr,
               status: 'Hadir',
-              nama_tempat: finalPlace,
+              nama_tempat: placeName.value,
               koordinat_masuk: { lat: pos.coords.latitude, lng: pos.coords.longitude },
             })
-            $q.notify({ color: 'positive', message: 'Berhasil! Lokasi Terkunci.', icon: 'check' })
-            // eslint-disable-next-line no-unused-vars
+            $q.notify({
+              color: 'positive',
+              message: 'Berhasil Absen!',
+              icon: 'check',
+              position: 'top',
+            })
           } catch (e) {
-            $q.notify({ color: 'negative', message: 'Database Error' })
+            console.error(e)
           } finally {
             $q.loading.hide()
           }
         },
-        // eslint-disable-next-line no-unused-vars
-        (err) => {
-          $q.loading.hide()
-          $q.notify({ color: 'negative', message: 'GPS Error: Pastikan Izin Diberikan' })
-        },
+        null,
         gpsOptions,
       )
     }
 
     const absenPulang = async () => {
-      if (!documentId.value) return
-      $q.loading.show({ message: 'Update Jam Pulang...' })
+      const rec = riwayatAbsen.value.find((a) => a.status === 'Hadir')
+      const id = documentId.value || (rec ? rec.id : null)
+      if (!id) return $q.notify({ color: 'warning', message: 'Tidak ada data aktif.' })
+      $q.loading.show()
       try {
-        await updateDoc(doc(db, 'absensi', documentId.value), {
+        await updateDoc(doc(db, 'absensi', id), {
           waktu_pulang: serverTimestamp(),
           status: 'Selesai',
         })
-        $q.notify({ color: 'negative', message: 'Hati-hati di jalan!', icon: 'logout' })
-        // eslint-disable-next-line no-unused-vars
+        $q.notify({
+          color: 'negative',
+          message: 'Berhasil Pulang!',
+          icon: 'logout',
+          position: 'top',
+        })
       } catch (e) {
-        $q.notify({ color: 'negative', message: 'Gagal' })
+        console.error(e)
       } finally {
         $q.loading.hide()
       }
     }
 
-    let timer, unsubscribe
+    let timerInterval
     onMounted(() => {
       updateTime()
       getRealLocation()
-      timer = setInterval(updateTime, 1000)
+      timerInterval = setInterval(updateTime, 1000)
       const q = query(collection(db, 'absensi'), orderBy('waktu_masuk', 'desc'), limit(5))
-      unsubscribe = onSnapshot(q, (snapshot) => {
-        riwayatAbsen.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-        const tStr = new Date().toLocaleDateString('id-ID', {
+      onSnapshot(q, (snap) => {
+        riwayatAbsen.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+        const t = new Date().toLocaleDateString('id-ID', {
           weekday: 'long',
           day: 'numeric',
           month: 'long',
           year: 'numeric',
         })
-        const hIni = riwayatAbsen.value.find((a) => a.tanggal === tStr)
-        if (hIni) {
-          documentId.value = hIni.id
-          statusAbsen.value = hIni.waktu_pulang ? 'Sudah Pulang' : 'Sudah Absen Masuk'
+        const h = riwayatAbsen.value.find((a) => a.tanggal === t)
+        if (h) {
+          documentId.value = h.id
+          statusAbsen.value = h.waktu_pulang ? 'Sudah Pulang' : 'Sudah Absen Masuk'
         } else {
           statusAbsen.value = 'Belum Absen'
           documentId.value = null
@@ -293,8 +298,7 @@ export default {
     })
 
     onUnmounted(() => {
-      clearInterval(timer)
-      if (unsubscribe) unsubscribe()
+      if (timerInterval) clearInterval(timerInterval)
     })
 
     return {
@@ -316,12 +320,20 @@ export default {
 <style scoped>
 .dashboard-card {
   background: linear-gradient(135deg, #1976d2 0%, #2196f3 100%);
-  border-radius: 20px;
+  border-radius: 15px;
 }
 .bg-white-transparent {
   background: rgba(255, 255, 255, 0.2);
 }
 .rounded-borders {
-  border-radius: 15px;
+  border-radius: 12px;
+}
+.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.full-height {
+  height: 100%;
 }
 </style>
