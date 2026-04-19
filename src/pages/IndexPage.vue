@@ -39,70 +39,78 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { db } from 'src/boot/firebase'
+import { collection, onSnapshot, getDocs, writeBatch, doc } from 'firebase/firestore'
 import { useAuthStore } from 'src/stores/auth'
 
 const authStore = useAuthStore()
+const apps = ref([])
 
-const apps = ref([
-  {
-    id: 1,
-    name: 'Konstruksi',
-    icon: 'engineering',
-    color: 'blue-10',
-    bgColor: 'blue-1',
-    path: '/konstruksi/dashboard',
-    aksesKey: 'konstruksi',
-  },
-  {
-    id: 2,
-    name: 'Absensi',
-    icon: 'badge',
-    color: 'green-10',
-    bgColor: 'green-1',
-    path: '/absensi/dashboard',
-    aksesKey: 'absensi',
-  },
-  {
-    id: 7,
-    name: 'Manufacture',
-    icon: 'factory',
-    color: 'teal-10',
-    bgColor: 'teal-1',
-    path: '/manufaktur/dashboard',
-    aksesKey: 'manufaktur',
-  },
-  {
-    id: 3,
-    name: 'Modul Aset',
-    icon: 'inventory',
-    color: 'orange-10',
-    bgColor: 'orange-1',
-    path: '#',
-    aksesKey: 'aset',
-  },
-  {
-    id: 6,
-    name: 'Management Karyawan',
-    icon: 'people',
-    color: 'purple-10',
-    bgColor: 'purple-1',
-    path: '/management-karyawan/dashboard',
-    aksesKey: 'admin',
-  },
-])
+// FUNGSI UNTUK AUTO-CREATE KOLEKSI 'modul' JIKA BELUM ADA
+const setupDefaultModuls = async () => {
+  const querySnapshot = await getDocs(collection(db, 'modul'))
+  if (querySnapshot.empty) {
+    const batch = writeBatch(db)
+    const defaultData = [
+      {
+        name: 'Konstruksi',
+        icon: 'engineering',
+        color: 'blue-10',
+        bgColor: 'blue-1',
+        path: '/konstruksi/dashboard',
+        aksesKey: 'konstruksi',
+      },
+      {
+        name: 'Absensi',
+        icon: 'badge',
+        color: 'green-10',
+        bgColor: 'green-1',
+        path: '/absensi/dashboard',
+        aksesKey: 'absensi',
+      },
+      {
+        name: 'Manufacture',
+        icon: 'factory',
+        color: 'teal-10',
+        bgColor: 'teal-1',
+        path: '/manufaktur/dashboard',
+        aksesKey: 'manufaktur',
+      },
+      {
+        name: 'Modul Aset',
+        icon: 'inventory',
+        color: 'orange-10',
+        bgColor: 'orange-1',
+        path: '#',
+        aksesKey: 'aset',
+      },
+      {
+        name: 'Management Karyawan',
+        icon: 'people',
+        color: 'purple-10',
+        bgColor: 'purple-1',
+        path: '/management-karyawan/dashboard',
+        aksesKey: 'admin',
+      },
+    ]
+    defaultData.forEach((m) => batch.set(doc(collection(db, 'modul')), m))
+    await batch.commit()
+  }
+}
+
+onMounted(async () => {
+  await setupDefaultModuls()
+  // Tarik data secara real-time
+  onSnapshot(collection(db, 'modul'), (snapshot) => {
+    apps.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+  })
+})
 
 const canShow = (app) => {
-  // 1. Cek apakah user sudah login
   if (!authStore.user) return false
-
-  // 2. Jika Super Admin, tampilkan semua
   if (authStore.user.role === 'Super Admin') return true
-
-  // 3. Jika Management Karyawan, hanya muncul untuk Admin
   if (app.aksesKey === 'admin') return authStore.user.role === 'Admin'
-
-  // 4. Cek akses berdasarkan array 'akses' dari Firestore
   return authStore.userAkses.includes(app.aksesKey)
 }
 </script>
