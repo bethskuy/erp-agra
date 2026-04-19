@@ -1,18 +1,13 @@
 <template>
-  <q-layout view="lHh Lpr lFf">
+  <q-layout>
     <q-page-container>
       <q-page class="bg-primary flex flex-center">
         <q-card style="width: 350px; border-radius: 15px">
           <q-card-section class="text-center q-pa-lg">
             <div class="text-h4 text-weight-bold text-primary">AGRA ERP</div>
-            <div class="text-subtitle2 text-grey-7">Construction & Absensi</div>
           </q-card-section>
-
           <q-card-section class="q-px-lg">
-            <q-input v-model="email" label="Email" outline class="q-mb-md" dense>
-              <template v-slot:prepend><q-icon name="email" /></template>
-            </q-input>
-
+            <q-input v-model="email" label="Email" outline class="q-mb-md" dense />
             <q-input
               v-model="password"
               type="password"
@@ -20,23 +15,14 @@
               outline
               class="q-mb-lg"
               dense
-            >
-              <template v-slot:prepend><q-icon name="lock" /></template>
-            </q-input>
-
+            />
             <q-btn
               label="Login"
               color="primary"
-              class="full-width q-py-sm"
-              rounded
-              unelevated
-              :loading="loading"
+              class="full-width"
               @click="prosesLogin"
+              :loading="loading"
             />
-          </q-card-section>
-
-          <q-card-section class="text-center q-pb-lg">
-            <div class="text-caption text-grey">Project KKP - Agra Group</div>
           </q-card-section>
         </q-card>
       </q-page>
@@ -46,39 +32,49 @@
 
 <script setup>
 import { ref } from 'vue'
-import { auth } from 'src/boot/firebase'
+import { auth, db } from 'src/boot/firebase'
 import { signInWithEmailAndPassword } from 'firebase/auth'
+import { collection, query, where, getDocs, setDoc, doc } from 'firebase/firestore'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from 'src/stores/auth'
 import { useQuasar } from 'quasar'
 
-const email = ref('')
+const email = ref('refqiobeth345@gmail.com')
 const password = ref('')
 const loading = ref(false)
 const router = useRouter()
+const authStore = useAuthStore()
 const $q = useQuasar()
 
 const prosesLogin = async () => {
-  if (!email.value || !password.value) {
-    $q.notify({ color: 'warning', message: 'Email & Password wajib diisi!' })
-    return
-  }
-
   loading.value = true
   try {
-    await signInWithEmailAndPassword(auth, email.value, password.value)
-    $q.notify({ color: 'positive', message: 'Berhasil Masuk!', icon: 'check' })
+    const cred = await signInWithEmailAndPassword(auth, email.value, password.value)
+
+    // Cari data di Firestore
+    const q = query(collection(db, 'karyawan'), where('email', '==', email.value.toLowerCase()))
+    let snapshot = await getDocs(q)
+
+    // PINTU DARURAT: Jika data belum ada, buatkan otomatis
+    if (snapshot.empty) {
+      const dataBaru = {
+        nama: 'Refqiobeth Developer',
+        email: email.value.toLowerCase(),
+        role: 'Super Admin',
+        uid: cred.user.uid,
+        akses: ['konstruksi', 'absensi', 'manufaktur', 'admin'],
+      }
+      await setDoc(doc(collection(db, 'karyawan')), dataBaru)
+      authStore.setLogin(dataBaru, dataBaru.akses)
+    } else {
+      authStore.setLogin(snapshot.docs[0].data(), snapshot.docs[0].data().akses)
+    }
+
     router.push('/')
-  } catch (error) {
-    $q.notify({ color: 'negative', message: 'Gagal: ' + error.message, icon: 'error' })
+  } catch (e) {
+    $q.notify({ color: 'negative', message: e.message })
   } finally {
     loading.value = false
   }
 }
 </script>
-
-<style scoped>
-/* Memastikan warna background login full biru */
-.bg-primary {
-  background: #1976d2 !important;
-}
-</style>

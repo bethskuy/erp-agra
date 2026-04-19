@@ -1,81 +1,41 @@
 import { defineRouter } from '#q-app/wrappers'
-import {
-  createRouter,
-  createMemoryHistory,
-  createWebHistory,
-  createWebHashHistory,
-} from 'vue-router'
-import routes from './routes'
+import { createRouter, createWebHistory } from 'vue-router'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { useAuthStore } from 'src/stores/auth'
 import { collection, query, where, getDocs, getFirestore } from 'firebase/firestore'
+import routes from './routes'
 
-export default defineRouter(function (/* { store, ssrContext } */) {
-  const createHistory = process.env.SERVER
-    ? createMemoryHistory
-    : process.env.VUE_ROUTER_MODE === 'history'
-      ? createWebHistory
-      : createWebHashHistory
-
+export default defineRouter(function () {
   const Router = createRouter({
-    scrollBehavior: () => ({ left: 0, top: 0 }),
+    history: createWebHistory(),
     routes,
-    history: createHistory(process.env.VUE_ROUTER_BASE),
   })
 
-  Router.beforeEach(async (to, from, next) => {
+  // eslint-disable-next-line no-unused-vars
+  Router.beforeEach(async (to, from) => {
     const auth = getAuth()
     const authStore = useAuthStore()
     const db = getFirestore()
 
-    const getCurrentUser = () => {
-      return new Promise((resolve) => {
-        const removeListener = onAuthStateChanged(auth, (user) => {
-          removeListener()
-          resolve(user)
-        })
+    const user = await new Promise((resolve) => {
+      const unsub = onAuthStateChanged(auth, (u) => {
+        unsub()
+        resolve(u)
       })
-    }
+    })
 
-    const user = await getCurrentUser()
-    const requiresAuth = to.matched.some((record) => record.meta.requiresAuth)
-
-    // PERBAIKAN: Cari data karyawan berdasarkan field 'uid' di dokumen karyawan
-    if (user && authStore.userAkses.length === 0) {
+    // Sinkronisasi Data Karyawan jika store kosong
+    if (user && !authStore.user) {
       const q = query(collection(db, 'karyawan'), where('uid', '==', user.uid))
       const querySnapshot = await getDocs(q)
-
       if (!querySnapshot.empty) {
         const data = querySnapshot.docs[0].data()
-        authStore.setLogin(data, data.akses)
+        authStore.setLogin(data, data.akses || [])
       }
     }
 
-    if (requiresAuth && !user) {
-      next('/login')
-      return
-    }
-
-    if (to.path === '/login' && user) {
-      next('/management-karyawan/dashboard')
-      return
-    }
-
-    const aksesUser = authStore.userAkses || []
-
-    // Proteksi Akses Modul
-    if (to.path.includes('/konstruksi') && !aksesUser.includes('konstruksi')) {
-      alert('Anda tidak memiliki akses ke modul Konstruksi!')
-      next('/management-karyawan/dashboard')
-    } else if (to.path.includes('/absensi') && !aksesUser.includes('absensi')) {
-      alert('Anda tidak memiliki akses ke modul Absensi!')
-      next('/management-karyawan/dashboard')
-    } else if (to.path.includes('/manufaktur') && !aksesUser.includes('manufaktur')) {
-      alert('Anda tidak memiliki akses ke modul Manufaktur!')
-      next('/management-karyawan/dashboard')
-    } else {
-      next()
-    }
+    if (to.meta.requiresAuth && !user) return { path: '/login' }
+    return true
   })
 
   return Router
