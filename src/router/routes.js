@@ -17,7 +17,7 @@ const routes = [
   {
     path: '/konstruksi',
     component: () => import('layouts/KonstruksiLayout.vue'),
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, modul: 'konstruksi' },
     children: [
       {
         path: 'dashboard',
@@ -92,7 +92,7 @@ const routes = [
   {
     path: '/absensi',
     component: () => import('layouts/AbsensiLayout.vue'),
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, modul: 'absensi' },
     children: [
       {
         path: 'dashboard',
@@ -111,7 +111,7 @@ const routes = [
   {
     path: '/manufaktur',
     component: () => import('layouts/ManufakturLayout.vue'),
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, modul: 'manufaktur' },
     children: [
       {
         path: 'dashboard',
@@ -154,8 +154,10 @@ const routes = [
         component: () => import('pages/managementkaryawan/datakaryawan/KaryawanPage.vue'),
       },
       {
-        // Rute ini disesuaikan agar cocok dengan 'to="/management/akses/:modul"' di layout
-        // Kita gunakan path absolut agar langsung terbaca dari root
+        path: 'master/jabatan',
+        component: () => import('pages/managementkaryawan/MasterJabatanPage.vue'),
+      },
+      {
         path: '/management/akses/:modul',
         name: 'management-hak-akses',
         component: () => import('pages/managementkaryawan/HakAksesPage.vue'),
