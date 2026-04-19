@@ -1,54 +1,110 @@
 <template>
   <q-page class="bg-blue-grey-1 q-pa-lg">
-    <div class="row items-center justify-between q-mb-lg">
-      <div>
-        <div class="text-h4 text-weight-bolder text-blue-grey-10">Database Karyawan</div>
-        <div class="text-grey-7">Kelola data personal dan sistem akses</div>
+    <template v-if="currentView === 'list'">
+      <div class="row items-center justify-between q-mb-lg">
+        <div>
+          <div class="text-h4 text-weight-bolder text-blue-grey-10">Database Karyawan</div>
+        </div>
+        <q-btn
+          color="primary"
+          label="Tambah Karyawan"
+          icon="add"
+          @click="openDialog"
+          unelevated
+          rounded
+          class="q-px-lg shadow-3"
+        />
       </div>
-      <q-btn
-        color="primary"
-        label="Tambah Karyawan"
-        icon="add"
-        @click="openDialog"
-        size="md"
-        unelevated
-        rounded
-        class="q-px-lg shadow-3"
-      />
-    </div>
 
-    <q-card flat bordered class="rounded-borders overflow-hidden shadow-2">
-      <q-table :rows="karyawanList" :columns="columns" row-key="id" flat />
-    </q-card>
+      <q-card flat bordered class="shadow-2">
+        <q-table :rows="karyawanList" :columns="columns" row-key="id" flat>
+          <template v-slot:body="props">
+            <q-tr @click="viewDetail(props.row)" class="cursor-pointer hover-bg">
+              <q-td v-for="col in props.cols" :key="col.name">
+                <template v-if="col.name === 'actions'">
+                  <q-btn
+                    flat
+                    round
+                    icon="edit"
+                    color="primary"
+                    @click.stop="editKaryawan(props.row)"
+                  />
+                  <q-btn
+                    flat
+                    round
+                    icon="delete"
+                    color="negative"
+                    @click.stop="deleteKaryawan(props.row.id)"
+                  />
+                </template>
+                <template v-else>{{ props.row[col.field] }}</template>
+              </q-td>
+            </q-tr>
+          </template>
+        </q-table>
+      </q-card>
+    </template>
 
-    <q-dialog
-      v-model="showDialog"
-      persistent
-      maximized
-      transition-show="slide-up"
-      transition-hide="slide-down"
-    >
+    <template v-else-if="currentView === 'detail'">
+      <q-btn flat icon="arrow_back" label="Kembali" @click="currentView = 'list'" class="q-mb-md" />
+      <div class="bg-white q-pa-xl rounded-borders shadow-2">
+        <div class="row q-col-gutter-xl">
+          <div class="col-12 col-md-3 text-center">
+            <q-avatar size="200px" class="shadow-4 q-mb-md"
+              ><img :src="selectedKaryawan.fotoUrl"
+            /></q-avatar>
+            <div class="text-h4 text-weight-bold">{{ selectedKaryawan.nama }}</div>
+            <div class="text-primary text-h6">{{ selectedKaryawan.jabatan }}</div>
+          </div>
+          <div class="col-12 col-md-9">
+            <div class="text-h5 q-mb-md">Informasi Lengkap</div>
+            <div class="row q-col-gutter-md">
+              <div class="col-12 col-sm-6"><strong>NIK:</strong> {{ selectedKaryawan.nik }}</div>
+              <div class="col-12 col-sm-6">
+                <strong>Email:</strong> {{ selectedKaryawan.email }}
+              </div>
+              <div class="col-12 col-sm-6">
+                <strong>Tgl Lahir:</strong> {{ selectedKaryawan.kotaLahir }},
+                {{ selectedKaryawan.tglLahir }}
+              </div>
+              <div class="col-12 col-sm-6">
+                <strong>Tgl Masuk:</strong> {{ selectedKaryawan.tglMasuk }}
+              </div>
+              <div class="col-12"><strong>Alamat:</strong> {{ selectedKaryawan.alamat }}</div>
+              <div class="col-12">
+                <strong>Hak Akses:</strong> {{ selectedKaryawan.akses?.join(', ') }}
+              </div>
+              <div class="col-12">
+                <strong>Dokumen:</strong>
+                <ul v-if="selectedKaryawan.docUrls?.length">
+                  <li v-for="doc in selectedKaryawan.docUrls" :key="doc.url">
+                    <a :href="doc.url" target="_blank">{{ doc.name }}</a>
+                  </li>
+                </ul>
+                <span v-else>Tidak ada dokumen</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <q-dialog v-model="showDialog" persistent maximized>
       <q-card class="bg-grey-1">
         <q-toolbar class="bg-white text-blue-grey-10 q-pa-md shadow-1">
-          <q-toolbar-title class="text-h6 text-weight-bold"
-            >Form Registrasi Karyawan</q-toolbar-title
-          >
-          <q-btn flat v-close-popup icon="close" round color="negative" />
+          <q-toolbar-title>{{ form.id ? 'Edit Karyawan' : 'Registrasi Karyawan' }}</q-toolbar-title>
+          <q-btn flat v-close-popup icon="close" round />
         </q-toolbar>
-
         <q-card-section class="q-pa-xl">
           <div class="row q-col-gutter-xl">
             <div class="col-12 col-md-6">
-              <div class="text-subtitle2 text-weight-bold q-mb-md text-primary flex items-center">
-                <q-icon name="person_outline" class="q-mr-sm" size="sm" /> DATA IDENTITAS
-              </div>
               <div class="row q-col-gutter-md bg-white q-pa-lg rounded-borders shadow-1">
                 <q-input
                   class="col-12"
                   outlined
                   rounded
                   v-model="form.nik"
-                  label="NIK (Auto)"
+                  label="NIK"
                   readonly
                   bg-color="grey-2"
                 />
@@ -88,13 +144,20 @@
                   stack-label
                   label="Tgl Masuk"
                 />
-                <q-input class="col-12" outlined rounded v-model="form.email" label="Email Login" />
+                <q-input
+                  class="col-12"
+                  outlined
+                  rounded
+                  v-model="form.email"
+                  label="Email Login"
+                  :readonly="!!form.id"
+                />
                 <q-input
                   class="col-12"
                   outlined
                   rounded
                   v-model="form.password"
-                  label="Password Login"
+                  label="Password (Isi jika ganti)"
                   type="password"
                 />
                 <q-input
@@ -103,40 +166,26 @@
                   rounded
                   v-model="form.alamat"
                   type="textarea"
-                  label="Alamat Lengkap"
+                  label="Alamat"
                   autogrow
                 />
               </div>
             </div>
-
             <div class="col-12 col-md-6">
-              <div class="text-subtitle2 text-weight-bold q-mb-md text-primary flex items-center">
-                <q-icon name="admin_panel_settings" class="q-mr-sm" size="sm" /> HAK AKSES & DOKUMEN
-              </div>
               <div class="bg-white q-pa-lg rounded-borders shadow-1">
-                <div class="text-weight-bold q-mb-sm text-grey-9">Pilih Modul Aktif:</div>
-                <div class="row q-col-gutter-sm q-mb-lg">
-                  <div v-for="mod in modulList" :key="mod.id" class="col-6">
-                    <q-checkbox
-                      v-model="form.akses"
-                      :val="mod.aksesKey"
-                      :label="mod.name"
-                      color="primary"
-                    />
-                  </div>
+                <div class="text-weight-bold q-mb-sm">Hak Akses:</div>
+                <div class="row q-mb-md">
+                  <q-checkbox
+                    v-for="mod in modulList"
+                    :key="mod.id"
+                    v-model="form.akses"
+                    :val="mod.aksesKey"
+                    :label="mod.name"
+                    class="col-6"
+                  />
                 </div>
-
-                <div class="text-weight-bold q-mb-sm text-grey-9">Foto Profil:</div>
-                <q-file
-                  outlined
-                  rounded
-                  v-model="fotoFile"
-                  label="Pilih Foto"
-                  accept="image/*"
-                  class="q-mb-md"
-                />
-
-                <div class="text-weight-bold q-mb-sm text-grey-9">Dokumen Pendukung:</div>
+                <q-file outlined rounded v-model="fotoFile" label="Foto Profil" class="q-mb-md" />
+                <div class="text-weight-bold q-mb-sm">Dokumen:</div>
                 <div
                   v-for="(item, index) in docList"
                   :key="index"
@@ -180,18 +229,19 @@
             </div>
           </div>
         </q-card-section>
-
         <q-card-actions align="right" class="q-pa-xl">
-          <q-btn label="Batal" flat v-close-popup size="lg" class="q-px-xl text-grey-8" />
+          <q-btn label="Batal" flat v-close-popup size="lg" />
           <q-btn
-            label="Simpan Data"
-            color="primary"
+            label="SIMPAN DATA"
             @click="saveKaryawan"
             size="lg"
             unelevated
             rounded
-            :loading="loading"
-            class="q-px-xl shadow-4"
+            class="text-white shadow-6"
+            style="
+              background: linear-gradient(135deg, #1976d2 0%, #0d47a1 100%);
+              padding: 12px 60px;
+            "
           />
         </q-card-actions>
       </q-card>
@@ -200,14 +250,16 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, onMounted } from 'vue'
 import { db, auth, storage } from 'src/boot/firebase'
-import { collection, addDoc, updateDoc, doc, onSnapshot } from 'firebase/firestore'
+import { collection, addDoc, updateDoc, doc, onSnapshot, deleteDoc } from 'firebase/firestore'
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
 import { useQuasar } from 'quasar'
 
 const $q = useQuasar()
+const currentView = ref('list')
+const selectedKaryawan = ref(null)
 const loading = ref(false)
 const showDialog = ref(false)
 const karyawanList = ref([])
@@ -215,6 +267,7 @@ const jabatanOptions = ref([])
 const modulList = ref([])
 const docList = ref([{ name: '', file: null }])
 const fotoFile = ref(null)
+
 const form = ref({
   id: null,
   nik: '',
@@ -229,70 +282,47 @@ const form = ref({
   akses: [],
 })
 
-let unsubKaryawan, unsubJabatan, unsubModul
-
-watch(
-  () => form.value.jabatan,
-  (newVal) => {
-    if (newVal === 'Super Admin') {
-      form.value.akses = modulList.value.map((m) => m.aksesKey)
-    } else if (!form.value.id) {
-      form.value.akses = []
-    }
-  },
-)
-
-const columns = [
-  { name: 'nik', label: 'NIK', field: 'nik', align: 'left' },
-  { name: 'nama', label: 'NAMA', field: 'nama', align: 'left' },
-  { name: 'jabatan', label: 'JABATAN', field: 'jabatan', align: 'left' },
-  { name: 'actions', label: 'AKSI', field: 'actions', align: 'center' },
-]
-
-const openDialog = () => {
-  form.value = {
-    id: null,
-    nik: 'KRY-' + Date.now().toString().slice(-6),
-    nama: '',
-    kotaLahir: '',
-    tglLahir: '',
-    tglMasuk: '',
-    alamat: '',
-    jabatan: '',
-    email: '',
-    password: '',
-    akses: [],
-  }
-  docList.value = [{ name: '', file: null }]
-  fotoFile.value = null
+const viewDetail = (data) => {
+  selectedKaryawan.value = data
+  currentView.value = 'detail'
+}
+const editKaryawan = (data) => {
+  form.value = { ...data, password: '' }
   showDialog.value = true
 }
 
 const saveKaryawan = async () => {
   loading.value = true
   try {
-    let fotoUrl = null
+    let fotoUrl = form.value.fotoUrl || null
     if (fotoFile.value) {
-      const fRef = storageRef(storage, 'karyawan/foto/' + Date.now() + fotoFile.value.name)
+      const fRef = storageRef(storage, 'karyawan/' + Date.now())
       await uploadBytes(fRef, fotoFile.value)
       fotoUrl = await getDownloadURL(fRef)
     }
 
     let docUrls = []
-    for (const item of docList.value) {
-      if (item.file) {
-        const sRef = storageRef(storage, 'karyawan/docs/' + Date.now() + item.file.name)
-        await uploadBytes(sRef, item.file)
-        docUrls.push({ name: item.name, url: await getDownloadURL(sRef) })
+    for (let d of docList.value) {
+      if (d.file) {
+        const sRef = storageRef(storage, 'docs/' + Date.now() + d.file.name)
+        await uploadBytes(sRef, d.file)
+        docUrls.push({ name: d.name, url: await getDownloadURL(sRef) })
+      } else if (d.url) {
+        docUrls.push(d)
       }
     }
 
-    const data = { ...form.value, fotoUrl, docUrls }
+    // PERBAIKAN LOGIKA: Jika ada ID, Update saja. Jangan buat user baru.
     if (form.value.id) {
-      await updateDoc(doc(db, 'karyawan', form.value.id), data)
+      await updateDoc(doc(db, 'karyawan', form.value.id), { ...form.value, fotoUrl, docUrls })
     } else {
       const cred = await createUserWithEmailAndPassword(auth, form.value.email, form.value.password)
-      await addDoc(collection(db, 'karyawan'), { ...data, uid: cred.user.uid })
+      await addDoc(collection(db, 'karyawan'), {
+        ...form.value,
+        fotoUrl,
+        docUrls,
+        uid: cred.user.uid,
+      })
     }
     $q.notify({ type: 'positive', message: 'Data Tersimpan!' })
     showDialog.value = false
@@ -304,11 +334,11 @@ const saveKaryawan = async () => {
 }
 
 onMounted(() => {
-  unsubKaryawan = onSnapshot(
+  onSnapshot(
     collection(db, 'karyawan'),
     (s) => (karyawanList.value = s.docs.map((d) => ({ id: d.id, ...d.data() }))),
   )
-  unsubJabatan = onSnapshot(
+  onSnapshot(
     collection(db, 'jabatan'),
     (s) =>
       (jabatanOptions.value = s.docs.map((d) => ({
@@ -316,15 +346,38 @@ onMounted(() => {
         value: d.data().namaJabatan,
       }))),
   )
-  unsubModul = onSnapshot(
+  onSnapshot(
     collection(db, 'modul'),
     (s) => (modulList.value = s.docs.map((d) => ({ id: d.id, ...d.data() }))),
   )
 })
 
-onUnmounted(() => {
-  if (unsubKaryawan) unsubKaryawan()
-  if (unsubJabatan) unsubJabatan()
-  if (unsubModul) unsubModul()
-})
+const columns = [
+  { name: 'nik', label: 'NIK', field: 'nik', align: 'left' },
+  { name: 'nama', label: 'NAMA', field: 'nama', align: 'left' },
+  { name: 'jabatan', label: 'JABATAN', field: 'jabatan', align: 'left' },
+  { name: 'actions', label: 'AKSI', field: 'id', align: 'center' },
+]
+const openDialog = () => {
+  form.value = {
+    id: null,
+    nik: 'KRY-' + Date.now().toString().slice(-6),
+    nama: '',
+    email: '',
+    password: '',
+    akses: [],
+  }
+  docList.value = [{ name: '', file: null }]
+  showDialog.value = true
+}
+const deleteKaryawan = async (id) => {
+  if (confirm('Hapus?')) await deleteDoc(doc(db, 'karyawan', id))
+}
 </script>
+
+<style scoped>
+.hover-bg:hover {
+  background-color: #f5f5f5;
+}
+</style>
+<!-- INI DAH BENER HANYA SAJA DETAILNYA NOOB -->
