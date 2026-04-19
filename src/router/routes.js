@@ -118,6 +118,22 @@ const routes = [
         name: 'manufaktur-dashboard',
         component: () => import('pages/manufaktur/DashboardPage.vue'),
       },
+      {
+        path: 'work-order',
+        name: 'work-order',
+        component: () => import('pages/manufaktur/Produksi/WorkOrderPage.vue'),
+      },
+
+      {
+        path: 'production-steps',
+        name: 'production-steps',
+        component: () => import('pages/manufaktur/produksi/ProductionStepsPage.vue'),
+      },
+      {
+        path: 'production-result',
+        name: 'production-result',
+        component: () => import('pages/manufaktur/produksi/ProductionResultPage.vue'),
+      },
     ],
   },
 

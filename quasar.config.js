@@ -1,21 +1,14 @@
 /* eslint-env node */
 
-// 1. Gunakan IMPORT, bukan require
 import { defineConfig } from '#q-app/wrappers'
 import 'dotenv/config'
 
-export default defineConfig(async (/* ctx */) => {
+export default defineConfig(async () => {
   return {
-    // app boot file (/src/boot)
     boot: ['axios', 'firebase'],
-
-    // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#css
     css: ['app.scss'],
-
-    // https://github.com/quasarframework/quasar/tree/dev/extras
     extras: ['roboto-font', 'material-icons'],
 
-    // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#build
     build: {
       target: {
         browser: ['es2022', 'edge89', 'firefox89', 'chrome89', 'safari15'],
@@ -24,7 +17,6 @@ export default defineConfig(async (/* ctx */) => {
 
       vueRouterMode: 'hash',
 
-      // 2. VARIABEL ENV TETAP DI SINI
       env: {
         FIREBASE_API_KEY: process.env.FIREBASE_API_KEY,
         FIREBASE_AUTH_DOMAIN: process.env.FIREBASE_AUTH_DOMAIN,
@@ -46,12 +38,23 @@ export default defineConfig(async (/* ctx */) => {
           { server: false },
         ],
       ],
+
+      // 🔥 FIX NGROK + VITE
+      vite: {
+        server: {
+          host: true,
+          allowedHosts: true, // ⬅️ ini fix utama
+          origin: 'http://localhost:9000', // ⬅️ tambahan biar gak ke-block
+        },
+      },
     },
 
-    // BAGIAN INI SUDAH DIUPDATE UNTUK NGROK
+    // 🔥 FIX DEV SERVER
     devServer: {
       open: true,
-      allowedHosts: 'all', // Mengizinkan semua host termasuk Ngrok
+      host: '0.0.0.0',
+      port: 9000,
+      allowedHosts: true, // ⬅️ ganti dari 'all'
     },
 
     framework: {
