@@ -22,15 +22,10 @@
           <q-item-section>Data Karyawan</q-item-section>
         </q-item>
 
-        <q-expansion-item icon="admin_panel_settings" label="Hak Akses Modul">
-          <q-item clickable v-ripple to="/management/akses/konstruksi" class="q-pl-xl">
-            <q-item-section>Konstruksi</q-item-section>
-          </q-item>
-          <q-item clickable v-ripple to="/management/akses/absensi" class="q-pl-xl">
-            <q-item-section>Absensi</q-item-section>
-          </q-item>
-          <q-item clickable v-ripple to="/management/akses/manufacture" class="q-pl-xl">
-            <q-item-section>Manufacture</q-item-section>
+        <q-expansion-item icon="folder_special" label="Master Data">
+          <q-item clickable v-ripple to="/management-karyawan/master/jabatan" class="q-pl-xl">
+            <q-item-section avatar><q-icon name="badge" /></q-item-section>
+            <q-item-section>Kategori Jabatan/Role</q-item-section>
           </q-item>
         </q-expansion-item>
       </q-list>
