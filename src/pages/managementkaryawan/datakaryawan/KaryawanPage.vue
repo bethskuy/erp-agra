@@ -17,27 +17,33 @@
       </div>
 
       <q-card flat bordered class="shadow-2">
-        <q-table :rows="karyawanList" :columns="columns" row-key="id" flat>
+        <q-table :rows="karyawanList" :columns="columns" row-key="id" flat binary-state-sort>
           <template v-slot:body="props">
-            <q-tr @click="viewDetail(props.row)" class="cursor-pointer hover-bg">
-              <q-td v-for="col in props.cols" :key="col.name">
-                <template v-if="col.name === 'actions'">
-                  <q-btn
-                    flat
-                    round
-                    icon="edit"
-                    color="primary"
-                    @click.stop="editKaryawan(props.row)"
-                  />
-                  <q-btn
-                    flat
-                    round
-                    icon="delete"
-                    color="negative"
-                    @click.stop="deleteKaryawan(props.row.id)"
-                  />
-                </template>
-                <template v-else>{{ props.row[col.field] }}</template>
+            <q-tr :props="props" class="hover-bg cursor-pointer" @click="viewDetail(props.row)">
+              <q-td key="nik" :props="props">{{ props.row.nik }}</q-td>
+              <q-td key="nama" :props="props">{{ props.row.nama }}</q-td>
+              <q-td key="jabatan" :props="props">
+                <q-badge color="blue-grey-7" outline>
+                  {{ props.row.jabatan }}
+                </q-badge>
+              </q-td>
+              <q-td key="actions" :props="props" auto-width>
+                <q-btn
+                  flat
+                  round
+                  color="primary"
+                  icon="edit"
+                  size="sm"
+                  @click.stop="editKaryawan(props.row)"
+                />
+                <q-btn
+                  flat
+                  round
+                  color="negative"
+                  icon="delete"
+                  size="sm"
+                  @click.stop="deleteKaryawan(props.row.id)"
+                />
               </q-td>
             </q-tr>
           </template>
@@ -46,46 +52,95 @@
     </template>
 
     <template v-else-if="currentView === 'detail'">
-      <q-btn flat icon="arrow_back" label="Kembali" @click="currentView = 'list'" class="q-mb-md" />
-      <div class="bg-white q-pa-xl rounded-borders shadow-2">
-        <div class="row q-col-gutter-xl">
-          <div class="col-12 col-md-3 text-center">
-            <q-avatar size="200px" class="shadow-4 q-mb-md"
-              ><img :src="selectedKaryawan.fotoUrl"
-            /></q-avatar>
-            <div class="text-h4 text-weight-bold">{{ selectedKaryawan.nama }}</div>
-            <div class="text-primary text-h6">{{ selectedKaryawan.jabatan }}</div>
-          </div>
-          <div class="col-12 col-md-9">
-            <div class="text-h5 q-mb-md">Informasi Lengkap</div>
-            <div class="row q-col-gutter-md">
-              <div class="col-12 col-sm-6"><strong>NIK:</strong> {{ selectedKaryawan.nik }}</div>
+      <q-btn
+        flat
+        icon="arrow_back"
+        label="Kembali"
+        @click="currentView = 'list'"
+        class="q-mb-md"
+        color="blue-grey-8"
+      />
+
+      <div class="row justify-center">
+        <q-card flat bordered style="width: 100%; max-width: 800px">
+          <q-card-section class="text-center q-pa-lg">
+            <q-avatar size="150px" class="shadow-4 q-mb-md">
+              <img :src="selectedKaryawan.fotoUrl || 'default-avatar.png'" />
+            </q-avatar>
+            <div class="text-h4 text-weight-bold text-blue-grey-10">
+              {{ selectedKaryawan.nama }}
+            </div>
+            <div class="text-primary text-subtitle1 text-weight-medium">
+              {{ selectedKaryawan.jabatan }}
+            </div>
+          </q-card-section>
+
+          <q-separator inset />
+
+          <q-card-section class="q-pa-lg">
+            <div class="text-h6 q-mb-md text-blue-grey-8">Informasi Lengkap</div>
+
+            <div class="row q-col-gutter-y-md">
               <div class="col-12 col-sm-6">
-                <strong>Email:</strong> {{ selectedKaryawan.email }}
+                <div class="text-caption text-grey-7">NIK</div>
+                <div class="text-body1">{{ selectedKaryawan.nik || '-' }}</div>
               </div>
               <div class="col-12 col-sm-6">
-                <strong>Tgl Lahir:</strong> {{ selectedKaryawan.kotaLahir }},
-                {{ selectedKaryawan.tglLahir }}
+                <div class="text-caption text-grey-7">Nomor HP</div>
+                <div class="text-body1">{{ selectedKaryawan.hp || '-' }}</div>
               </div>
               <div class="col-12 col-sm-6">
-                <strong>Tgl Masuk:</strong> {{ selectedKaryawan.tglMasuk }}
+                <div class="text-caption text-grey-7">Email</div>
+                <div class="text-body1">{{ selectedKaryawan.email || '-' }}</div>
               </div>
-              <div class="col-12"><strong>Alamat:</strong> {{ selectedKaryawan.alamat }}</div>
+              <div class="col-12 col-sm-6">
+                <div class="text-caption text-grey-7">Tempat, Tanggal Lahir</div>
+                <div class="text-body1">
+                  {{ selectedKaryawan.kotaLahir || '-' }}, {{ selectedKaryawan.tglLahir || '-' }}
+                </div>
+              </div>
+              <div class="col-12 col-sm-6">
+                <div class="text-caption text-grey-7">Tanggal Masuk</div>
+                <div class="text-body1">{{ selectedKaryawan.tglMasuk || '-' }}</div>
+              </div>
               <div class="col-12">
-                <strong>Hak Akses:</strong> {{ selectedKaryawan.akses?.join(', ') }}
+                <div class="text-caption text-grey-7">Alamat</div>
+                <div class="text-body1">{{ selectedKaryawan.alamat || '-' }}</div>
               </div>
               <div class="col-12">
-                <strong>Dokumen:</strong>
-                <ul v-if="selectedKaryawan.docUrls?.length">
-                  <li v-for="doc in selectedKaryawan.docUrls" :key="doc.url">
-                    <a :href="doc.url" target="_blank">{{ doc.name }}</a>
-                  </li>
-                </ul>
-                <span v-else>Tidak ada dokumen</span>
+                <div class="text-caption text-grey-7">Hak Akses</div>
+                <q-chip
+                  v-for="akses in selectedKaryawan.akses"
+                  :key="akses"
+                  color="blue-1"
+                  text-color="primary"
+                  dense
+                >
+                  {{ akses }}
+                </q-chip>
+                <span v-if="!selectedKaryawan.akses?.length" class="text-body1">-</span>
+              </div>
+              <div class="col-12">
+                <div class="text-caption text-grey-7 q-mb-sm">Dokumen</div>
+                <div v-if="selectedKaryawan.docUrls?.length">
+                  <q-btn
+                    v-for="doc in selectedKaryawan.docUrls"
+                    :key="doc.url"
+                    outline
+                    color="primary"
+                    icon="description"
+                    :label="doc.name"
+                    :href="doc.url"
+                    target="_blank"
+                    size="sm"
+                    class="q-mr-sm q-mb-sm"
+                  />
+                </div>
+                <div v-else class="text-body1">Tidak ada dokumen</div>
               </div>
             </div>
-          </div>
-        </div>
+          </q-card-section>
+        </q-card>
       </div>
     </template>
 
@@ -109,6 +164,7 @@
                   bg-color="grey-2"
                 />
                 <q-input class="col-12" outlined rounded v-model="form.nama" label="Nama Lengkap" />
+                <q-input class="col-12" outlined rounded v-model="form.hp" label="Nomor HP" />
                 <q-select
                   class="col-12"
                   outlined
@@ -353,10 +409,10 @@ onMounted(() => {
 })
 
 const columns = [
-  { name: 'nik', label: 'NIK', field: 'nik', align: 'left' },
-  { name: 'nama', label: 'NAMA', field: 'nama', align: 'left' },
+  { name: 'nik', label: 'NIK', field: 'nik', align: 'left', sortable: true },
+  { name: 'nama', label: 'NAMA', field: 'nama', align: 'left', sortable: true },
   { name: 'jabatan', label: 'JABATAN', field: 'jabatan', align: 'left' },
-  { name: 'actions', label: 'AKSI', field: 'id', align: 'center' },
+  { name: 'actions', label: 'AKSI', field: 'id', align: 'right' }, // Set ke right
 ]
 const openDialog = () => {
   form.value = {

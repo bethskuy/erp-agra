@@ -1,23 +1,44 @@
 <template>
-  <q-page class="bg-grey-1 q-pa-lg pt-md-xl">
-    <div class="container q-mx-auto">
-      <div class="row justify-center q-mb-lg">
-        <div class="col-12 text-center">
-          <h4 class="text-weight-bold text-blue-grey-9 q-my-none">
+  <q-page class="flex flex-center bg-grey-1 q-pa-xl">
+    <div class="full-width" style="max-width: 900px">
+      <div class="text-center q-mb-xl">
+        <q-img src="icons/logo-agra.png" style="width: 100px; height: 100px" class="q-mb-md" />
+        <div class="text-h6 text-weight-bold text-blue-grey-7 tracking-widest">
+          AGRA ABHINAYA PERKASA
+        </div>
+        <div class="q-mt-lg">
+          <div class="text-h4 text-weight-bolder text-blue-grey-10">
             Selamat Datang, {{ authStore.user?.nama || 'User' }}!
-          </h4>
-          <p class="text-grey-6">
+          </div>
+          <div class="text-subtitle1 text-grey-6 q-mt-sm">
             Anda login sebagai:
             <span class="text-primary text-weight-bold">{{ authStore.user?.role || 'Staff' }}</span>
-          </p>
+          </div>
         </div>
       </div>
 
-      <div class="row q-col-gutter-xl justify-center">
-        <div v-for="app in apps" :key="app.id" class="col-4 col-sm-3 col-md-2 flex justify-center">
+      <div class="row justify-center q-mb-xl">
+        <q-input
+          v-model="searchQuery"
+          outlined
+          rounded
+          placeholder="Cari modul aplikasi..."
+          class="full-width"
+          style="max-width: 500px"
+          bg-color="transparent"
+          dense
+        >
+          <template v-slot:prepend>
+            <q-icon name="search" color="grey-6" class="q-ml-sm" />
+          </template>
+        </q-input>
+      </div>
+
+      <div class="row q-col-gutter-xl justify-center q-mt-md">
+        <div v-for="app in filteredApps" :key="app.id" class="col-4 col-sm-3 col-md-2">
           <div
             v-if="canShow(app)"
-            class="app-wrapper cursor-pointer"
+            class="column items-center cursor-pointer transition-all hover-scale"
             @click="$router.push(app.path)"
           >
             <q-card
@@ -26,9 +47,9 @@
               class="app-card flex flex-center shadow-1"
               :class="`bg-${app.bgColor} text-${app.color}`"
             >
-              <q-icon :name="app.icon" size="44px" />
+              <q-icon :name="app.icon" size="48px" />
             </q-card>
-            <div class="app-label text-center q-mt-md text-weight-bold text-grey-9">
+            <div class="text-center q-mt-md text-weight-bold text-blue-grey-9">
               {{ app.name }}
             </div>
           </div>
@@ -39,15 +60,21 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { db } from 'src/boot/firebase'
 import { collection, onSnapshot, getDocs, writeBatch, doc } from 'firebase/firestore'
 import { useAuthStore } from 'src/stores/auth'
 
 const authStore = useAuthStore()
 const apps = ref([])
+const searchQuery = ref('')
 
-// FUNGSI UNTUK AUTO-CREATE KOLEKSI 'modul' JIKA BELUM ADA
+const filteredApps = computed(() => {
+  return apps.value.filter((app) =>
+    app.name.toLowerCase().includes(searchQuery.value.toLowerCase()),
+  )
+})
+
 const setupDefaultModuls = async () => {
   const querySnapshot = await getDocs(collection(db, 'modul'))
   if (querySnapshot.empty) {
@@ -101,7 +128,6 @@ const setupDefaultModuls = async () => {
 
 onMounted(async () => {
   await setupDefaultModuls()
-  // Tarik data secara real-time
   onSnapshot(collection(db, 'modul'), (snapshot) => {
     apps.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
   })
@@ -111,25 +137,28 @@ const canShow = (app) => {
   if (!authStore.user) return false
   if (authStore.user.role === 'Super Admin') return true
   if (app.aksesKey === 'admin') return authStore.user.role === 'Admin'
-  return authStore.userAkses.includes(app.aksesKey)
+  return authStore.userAkses?.includes(app.aksesKey) || false
 }
 </script>
 
 <style scoped>
-.app-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  transition: all 0.3s;
-  width: 130px;
-}
-.app-wrapper:hover {
-  transform: translateY(-5px);
-}
+/* Kartu diperbesar menjadi 110px */
 .app-card {
-  width: 100px;
-  height: 100px;
+  width: 110px;
+  height: 110px;
   border-radius: 28px !important;
   border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.hover-scale {
+  transition: transform 0.3s ease;
+}
+
+.hover-scale:hover {
+  transform: translateY(-8px);
+}
+
+.hover-scale:hover .app-card {
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
 }
 </style>
