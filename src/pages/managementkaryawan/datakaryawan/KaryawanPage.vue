@@ -42,7 +42,7 @@
                   color="negative"
                   icon="delete"
                   size="sm"
-                  @click.stop="deleteKaryawan(props.row.id)"
+                  @click.stop="deleteKaryawan(props.row)"
                 />
               </q-td>
             </q-tr>
@@ -79,7 +79,6 @@
 
           <q-card-section class="q-pa-lg">
             <div class="text-h6 q-mb-md text-blue-grey-8">Informasi Lengkap</div>
-
             <div class="row q-col-gutter-y-md">
               <div class="col-12 col-sm-6">
                 <div class="text-caption text-grey-7">NIK</div>
@@ -115,9 +114,8 @@
                   color="blue-1"
                   text-color="primary"
                   dense
+                  >{{ akses }}</q-chip
                 >
-                  {{ akses }}
-                </q-chip>
                 <span v-if="!selectedKaryawan.akses?.length" class="text-body1">-</span>
               </div>
               <div class="col-12">
@@ -356,7 +354,6 @@ const saveKaryawan = async () => {
       await uploadBytes(fRef, fotoFile.value)
       fotoUrl = await getDownloadURL(fRef)
     }
-
     let docUrls = []
     for (let d of docList.value) {
       if (d.file) {
@@ -367,8 +364,6 @@ const saveKaryawan = async () => {
         docUrls.push(d)
       }
     }
-
-    // PERBAIKAN LOGIKA: Jika ada ID, Update saja. Jangan buat user baru.
     if (form.value.id) {
       await updateDoc(doc(db, 'karyawan', form.value.id), { ...form.value, fotoUrl, docUrls })
     } else {
@@ -412,8 +407,9 @@ const columns = [
   { name: 'nik', label: 'NIK', field: 'nik', align: 'left', sortable: true },
   { name: 'nama', label: 'NAMA', field: 'nama', align: 'left', sortable: true },
   { name: 'jabatan', label: 'JABATAN', field: 'jabatan', align: 'left' },
-  { name: 'actions', label: 'AKSI', field: 'id', align: 'right' }, // Set ke right
+  { name: 'actions', label: 'AKSI', field: 'id', align: 'right' },
 ]
+
 const openDialog = () => {
   form.value = {
     id: null,
@@ -426,8 +422,22 @@ const openDialog = () => {
   docList.value = [{ name: '', file: null }]
   showDialog.value = true
 }
-const deleteKaryawan = async (id) => {
-  if (confirm('Hapus?')) await deleteDoc(doc(db, 'karyawan', id))
+
+const deleteKaryawan = (row) => {
+  if (!row || !row.id) return
+  $q.dialog({
+    title: 'Konfirmasi',
+    message: `Hapus data ${row.nama}?`,
+    cancel: true,
+    persistent: true,
+  }).onOk(async () => {
+    try {
+      await deleteDoc(doc(db, 'karyawan', row.id))
+      $q.notify({ type: 'positive', message: 'Data berhasil dihapus!' })
+    } catch (e) {
+      $q.notify({ type: 'negative', message: e.message })
+    }
+  })
 }
 </script>
 
@@ -436,4 +446,3 @@ const deleteKaryawan = async (id) => {
   background-color: #f5f5f5;
 }
 </style>
-<!-- INI DAH BENER HANYA SAJA DETAILNYA NOOB -->
