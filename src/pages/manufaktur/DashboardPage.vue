@@ -1,136 +1,148 @@
 <template>
   <q-page class="bg-grey-2 q-pa-lg">
-    <!-- HEADER -->
-    <div class="q-mb-lg">
-      <div class="text-h4 text-weight-bold text-teal-10">Dashboard Manufaktur</div>
-      <div class="text-subtitle2 text-grey-6">Monitoring produksi real-time</div>
+    <div class="row items-center justify-between q-mb-lg">
+      <div>
+        <div class="text-h4 text-weight-bold text-teal-10">Dashboard Manufaktur</div>
+        <div class="text-subtitle2 text-grey-6">Monitoring produksi & efisiensi real-time</div>
+      </div>
+      <q-btn flat round icon="refresh" color="teal-10" @click="fetchStats" />
     </div>
 
-    <!-- 🔥 CARDS -->
-    <div class="row q-col-gutter-lg q-mb-lg">
-      <div class="col-12 col-md-3">
-        <q-card class="card-modern bg-blue text-white">
+    <div class="row q-col-gutter-md q-mb-xl">
+      <div class="col-12 col-sm-6 col-md-3">
+        <q-card flat class="bg-blue-6 text-white rounded-borders shadow-sm">
           <q-card-section>
             <div class="text-subtitle2">Work Order</div>
-            <div class="text-h3 text-weight-bold">{{ totalWO }}</div>
+            <div class="text-h3 text-weight-bold">{{ stats.totalWO }}</div>
           </q-card-section>
         </q-card>
       </div>
 
-      <div class="col-12 col-md-3">
-        <q-card class="card-modern bg-orange text-white">
+      <div class="col-12 col-sm-6 col-md-3">
+        <q-card flat class="bg-orange-8 text-white rounded-borders shadow-sm">
           <q-card-section>
-            <div class="text-subtitle2">Production Result</div>
-            <div class="text-h3 text-weight-bold">{{ totalResult }}</div>
+            <div class="text-subtitle2">Sedang Proses</div>
+            <div class="text-h3 text-weight-bold">{{ stats.prosesWO }}</div>
           </q-card-section>
         </q-card>
       </div>
 
-      <div class="col-12 col-md-3">
-        <q-card class="card-modern bg-green text-white">
+      <div class="col-12 col-sm-6 col-md-3">
+        <q-card flat class="bg-green-7 text-white rounded-borders shadow-sm">
           <q-card-section>
             <div class="text-subtitle2">Rata-rata Progress</div>
-            <div class="text-h3 text-weight-bold">{{ avgProgress }}%</div>
+            <div class="text-h3 text-weight-bold">{{ stats.avgProgress }}%</div>
           </q-card-section>
         </q-card>
       </div>
 
-      <div class="col-12 col-md-3">
-        <q-card class="card-modern bg-teal text-white">
+      <div class="col-12 col-sm-6 col-md-3">
+        <q-card flat class="bg-teal-7 text-white rounded-borders shadow-sm">
           <q-card-section>
             <div class="text-subtitle2">Selesai</div>
-            <div class="text-h3 text-weight-bold">{{ selesai }}</div>
+            <div class="text-h3 text-weight-bold">{{ stats.selesaiWO }}</div>
           </q-card-section>
         </q-card>
       </div>
     </div>
 
-    <!-- 🔥 PROGRESS BAR -->
-    <q-card class="card-modern">
-      <q-card-section>
-        <div class="text-h6 q-mb-md">Status Produksi</div>
+    <q-card flat class="rounded-borders shadow-sm q-pa-lg">
+      <div class="text-h6 text-weight-bold q-mb-md">Status Produksi (Live)</div>
 
-        <div class="q-mb-md">
-          <div class="text-caption">Pending</div>
-          <q-linear-progress :value="pending / totalWO" color="grey" size="12px" rounded />
+      <div class="q-mb-md">
+        <div class="row justify-between">
+          <span>Pending (Antrean)</span>
+          <span class="text-weight-bold">{{ stats.pendingWO }} WO</span>
         </div>
+        <q-linear-progress
+          :value="stats.pendingWO / stats.totalWO || 0"
+          color="grey-6"
+          size="15px"
+          rounded
+          class="q-mt-xs"
+        />
+      </div>
 
-        <div class="q-mb-md">
-          <div class="text-caption">Proses</div>
-          <q-linear-progress :value="proses / totalWO" color="orange" size="12px" rounded />
+      <div class="q-mb-md">
+        <div class="row justify-between">
+          <span>Proses Produksi</span>
+          <span class="text-weight-bold">{{ stats.prosesWO }} WO</span>
         </div>
+        <q-linear-progress
+          :value="stats.prosesWO / stats.totalWO || 0"
+          color="orange"
+          size="15px"
+          rounded
+          class="q-mt-xs"
+        />
+      </div>
 
-        <div>
-          <div class="text-caption">Selesai</div>
-          <q-linear-progress :value="selesai / totalWO" color="green" size="12px" rounded />
+      <div class="q-mb-md">
+        <div class="row justify-between">
+          <span>Selesai / QC Pass</span>
+          <span class="text-weight-bold">{{ stats.selesaiWO }} WO</span>
         </div>
-      </q-card-section>
+        <q-linear-progress
+          :value="stats.selesaiWO / stats.totalWO || 0"
+          color="positive"
+          size="15px"
+          rounded
+          class="q-mt-xs"
+        />
+      </div>
     </q-card>
   </q-page>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
-
-// FIREBASE
 import { db } from 'src/boot/firebase'
 import { collection, getDocs } from 'firebase/firestore'
 
-// ================= STATE =================
-const totalWO = ref(0)
-const totalResult = ref(0)
-const avgProgress = ref(0)
+const stats = ref({
+  totalWO: 0,
+  prosesWO: 0,
+  pendingWO: 0,
+  selesaiWO: 0,
+  avgProgress: 0,
+})
 
-const pending = ref(0)
-const proses = ref(0)
-const selesai = ref(0)
+const fetchStats = async () => {
+  try {
+    const querySnapshot = await getDocs(collection(db, 'work_orders'))
+    const data = querySnapshot.docs.map((doc) => doc.data())
 
-// ================= LOAD DATA =================
-const loadData = async () => {
-  const woSnap = await getDocs(collection(db, 'work_orders'))
-  const resultSnap = await getDocs(collection(db, 'production_results'))
+    const total = data.length
+    const pending = data.filter((d) => d.status === 'Pending').length
+    const proses = data.filter((d) => d.status === 'Proses').length
+    const selesai = data.filter((d) => d.status === 'Selesai').length
 
-  totalWO.value = woSnap.size
-  totalResult.value = resultSnap.size
+    // Hitung rata-rata progress
+    const totalProgress = data.reduce((acc, curr) => acc + (curr.progress || 0), 0)
+    const avg = total > 0 ? Math.round(totalProgress / total) : 0
 
-  const results = resultSnap.docs.map((d) => d.data())
-
-  let totalProgress = 0
-
-  pending.value = 0
-  proses.value = 0
-  selesai.value = 0
-
-  woSnap.docs.forEach((doc) => {
-    const data = doc.data()
-
-    const totalHasil = results
-      .filter((r) => r.work_order_id === doc.id)
-      .reduce((sum, r) => sum + Number(r.jumlah_hasil || 0), 0)
-
-    let progress = 0
-    if (data.jumlah > 0) {
-      progress = Math.min(100, Math.round((totalHasil / data.jumlah) * 100))
+    stats.value = {
+      totalWO: total,
+      pendingWO: pending,
+      prosesWO: proses,
+      selesaiWO: selesai,
+      avgProgress: avg,
     }
-
-    totalProgress += progress
-
-    if (progress === 0) pending.value++
-    else if (progress < 100) proses.value++
-    else selesai.value++
-  })
-
-  avgProgress.value = totalWO.value ? Math.round(totalProgress / totalWO.value) : 0
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error)
+  }
 }
 
 onMounted(() => {
-  loadData()
+  fetchStats()
 })
 </script>
 
 <style scoped>
-.card-modern {
+.rounded-borders {
   border-radius: 16px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+.shadow-sm {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 </style>

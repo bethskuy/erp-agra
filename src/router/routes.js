@@ -135,6 +135,11 @@ const routes = [
         component: () => import('pages/manufaktur/Produksi/ProductionResultPage.vue'),
       },
       {
+        path: 'work-order',
+        name: 'work-order',
+        component: () => import('pages/manufaktur/Produksi/WorkOrderPage.vue'),
+      },
+      {
         path: 'work-order/:id',
         name: 'work-order-detail',
         component: () => import('pages/manufaktur/Produksi/WorkOrderDetailPage.vue'),

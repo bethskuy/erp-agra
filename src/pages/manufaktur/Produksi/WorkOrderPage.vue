@@ -1,19 +1,18 @@
 <template>
   <q-page class="bg-grey-2 q-pa-lg">
-    <!-- HEADER -->
     <div class="row items-center justify-between q-mb-lg">
       <div>
         <div class="text-h4 text-weight-bold text-teal-10">Work Order</div>
-        <div class="text-subtitle2 text-grey-6">Manajemen perintah produksi</div>
+        <div class="text-subtitle2 text-grey-6">
+          Manajemen perintah produksi & kontrol stok otomatis
+        </div>
       </div>
 
       <q-btn color="primary" icon="add" label="Tambah WO" @click="openTambah" />
     </div>
 
-    <!-- TABLE -->
     <q-card flat class="rounded-borders shadow-sm">
       <q-table :rows="rows" :columns="columns" row-key="id" flat bordered>
-        <!-- STATUS -->
         <template v-slot:body-cell-status="props">
           <q-td :props="props">
             <q-badge :color="getStatusColor(props.value)">
@@ -22,31 +21,34 @@
           </q-td>
         </template>
 
-        <!-- PROGRESS -->
         <template v-slot:body-cell-progress="props">
           <q-td :props="props">
-            <q-linear-progress :value="props.row.progress / 100" color="teal" size="10px" rounded />
-            <div class="text-caption q-mt-xs">{{ props.row.progress }}%</div>
+            <q-linear-progress :value="props.value / 100" color="teal" size="10px" rounded />
+            <div class="text-caption q-mt-xs">{{ props.value }}%</div>
           </q-td>
         </template>
 
-        <!-- ACTION -->
         <template v-slot:body-cell-actions="props">
-          <q-td>
-            <!-- 🔥 DETAIL -->
-            <q-btn dense flat icon="visibility" color="primary" @click="goDetail(props.row.id)" />
+          <q-td :props="props" class="q-gutter-xs">
+            <q-btn
+              v-if="props.row.status !== 'Selesai'"
+              dense
+              flat
+              icon="check_circle"
+              color="positive"
+              @click="confirmFinish(props.row)"
+            >
+              <q-tooltip>Selesaikan & Potong Stok</q-tooltip>
+            </q-btn>
 
-            <!-- EDIT -->
-            <q-btn dense flat icon="edit" color="warning" @click="editWO(props.row)" />
-
-            <!-- DELETE -->
+            <q-btn dense flat icon="visibility" color="primary" @click="goDetail(props.row)" />
+            <q-btn dense flat icon="edit" color="primary" @click="editWO(props.row)" />
             <q-btn dense flat icon="delete" color="negative" @click="hapusWO(props.row.id)" />
           </q-td>
         </template>
       </q-table>
     </q-card>
 
-    <!-- DIALOG -->
     <q-dialog v-model="dialog">
       <q-card style="min-width: 400px">
         <q-card-section>
@@ -55,11 +57,16 @@
           </div>
         </q-card-section>
 
-        <q-card-section>
-          <q-input v-model="form.kode" label="Kode WO" />
-          <q-input v-model="form.produk" label="Produk" />
-          <q-input v-model.number="form.jumlah" type="number" label="Jumlah Order" />
-          <q-input v-model="form.tanggal" type="date" label="Tanggal" />
+        <q-card-section class="q-gutter-sm">
+          <q-input outlined v-model="form.kode" label="Kode WO" />
+          <q-input
+            outlined
+            v-model="form.produk"
+            label="Nama Produk (Sama dengan Nama di BOM)"
+            placeholder="Contoh: Helm Full Face"
+          />
+          <q-input outlined v-model.number="form.jumlah" type="number" label="Jumlah Produksi" />
+          <q-input outlined v-model="form.tanggal" type="date" label="Tanggal" stack-label />
         </q-card-section>
 
         <q-card-actions align="right">
@@ -74,27 +81,36 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useQuasar } from 'quasar'
 
 // FIREBASE
 import { db } from 'src/boot/firebase'
-import { collection, getDocs, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore'
+import {
+  collection,
+  getDocs,
+  addDoc,
+  doc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
+  increment,
+} from 'firebase/firestore'
 
 const router = useRouter()
+const $q = useQuasar()
 
-// ================= TABLE =================
 const columns = [
-  { name: 'kode', label: 'Kode WO', field: 'kode' },
-  { name: 'produk', label: 'Produk', field: 'produk' },
-  { name: 'jumlah', label: 'Jumlah', field: 'jumlah' },
-  { name: 'tanggal', label: 'Tanggal', field: 'tanggal' },
-  { name: 'status', label: 'Status', field: 'status' },
-  { name: 'progress', label: 'Progress', field: 'progress' },
-  { name: 'actions', label: 'Aksi', field: 'actions' },
+  { name: 'kode', label: 'Kode WO', field: 'kode', align: 'left' },
+  { name: 'produk', label: 'Produk', field: 'produk', align: 'left' },
+  { name: 'jumlah', label: 'Jumlah', field: 'jumlah', align: 'center' },
+  { name: 'tanggal', label: 'Tanggal', field: 'tanggal', align: 'center' },
+  { name: 'status', label: 'Status', field: 'status', align: 'center' },
+  { name: 'progress', label: 'Progress', field: 'progress', align: 'center' },
+  { name: 'actions', label: 'Aksi', align: 'center' },
 ]
 
 const rows = ref([])
-
-// ================= STATE =================
 const dialog = ref(false)
 const isEdit = ref(false)
 const selectedId = ref(null)
@@ -106,47 +122,23 @@ const form = ref({
   tanggal: '',
 })
 
-// ================= GET DATA =================
+// MENGAMBIL DATA DARI FIREBASE
 const getData = async () => {
-  const woSnap = await getDocs(collection(db, 'work_orders'))
-  const resultSnap = await getDocs(collection(db, 'production_results'))
-
-  const results = resultSnap.docs.map((d) => d.data())
-
-  rows.value = woSnap.docs.map((docSnap) => {
-    const data = docSnap.data()
-
-    // 🔥 TOTAL HASIL PRODUKSI
-    const totalHasil = results
-      .filter((r) => r.work_order_id === docSnap.id)
-      .reduce((sum, r) => sum + Number(r.jumlah_hasil || 0), 0)
-
-    // 🔥 PROGRESS REAL ERP
-    let progress = 0
-    if (data.jumlah > 0) {
-      progress = Math.min(100, Math.round((totalHasil / data.jumlah) * 100))
-    }
-
-    // 🔥 STATUS AUTO
-    let status = 'Pending'
-    if (progress > 0) status = 'Proses'
-    if (progress >= 100) status = 'Selesai'
-
-    return {
-      id: docSnap.id,
-      ...data,
-      progress,
-      status,
-    }
-  })
+  try {
+    const snapshot = await getDocs(collection(db, 'work_orders'))
+    rows.value = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }))
+  } catch (error) {
+    console.error('Gagal mengambil data WO:', error)
+  }
 }
 
-// ================= NAVIGATE =================
-const goDetail = (id) => {
-  router.push(`/manufaktur/work-order/${id}`)
+const goDetail = (row) => {
+  router.push(`/manufaktur/work-order/${row.id}`)
 }
 
-// ================= CRUD =================
 const openTambah = () => {
   form.value = { kode: '', produk: '', jumlah: 0, tanggal: '' }
   isEdit.value = false
@@ -161,32 +153,112 @@ const editWO = (row) => {
 }
 
 const simpanWO = async () => {
-  if (isEdit.value) {
-    await updateDoc(doc(db, 'work_orders', selectedId.value), form.value)
-  } else {
-    await addDoc(collection(db, 'work_orders'), {
-      ...form.value,
-    })
+  try {
+    if (isEdit.value) {
+      await updateDoc(doc(db, 'work_orders', selectedId.value), { ...form.value })
+    } else {
+      await addDoc(collection(db, 'work_orders'), {
+        ...form.value,
+        status: 'Pending',
+        progress: 0,
+        createdAt: new Date(),
+      })
+    }
+    dialog.value = false
+    getData()
+    $q.notify({ color: 'positive', message: 'Data berhasil disimpan' })
+  } catch (error) {
+    console.error('Gagal simpan WO:', error)
+    $q.notify({ color: 'negative', message: 'Gagal menyimpan data' })
   }
+}
 
-  dialog.value = false
-  getData()
+// 🔥 LOGIKA INTI: PROSES SELESAI & POTONG STOK
+const confirmFinish = (row) => {
+  $q.dialog({
+    title: 'Selesaikan Produksi?',
+    message: `Aksi ini akan menandai WO selesai dan memotong stok material di inventori secara otomatis.`,
+    cancel: true,
+    persistent: true,
+  }).onOk(() => {
+    processFinishProduction(row)
+  })
+}
+
+const processFinishProduction = async (wo) => {
+  $q.loading.show({ message: 'Menghubungkan ke inventori...' })
+  try {
+    // 1. Cari resep di koleksi BOM berdasarkan nama produk
+    const bomRef = collection(db, 'boms')
+    const q = query(bomRef, where('productName', '==', wo.produk))
+    const bomSnap = await getDocs(q)
+
+    if (bomSnap.empty) {
+      $q.notify({
+        color: 'warning',
+        icon: 'warning',
+        message: 'BOM tidak ditemukan! Status diupdate tanpa potong stok.',
+      })
+    } else {
+      const bomData = bomSnap.docs[0].data()
+
+      // 2. Loop setiap bahan di resep dan kurangi stok di Master Material
+      for (const item of bomData.materials) {
+        const materialRef = doc(db, 'materials', item.materialId)
+        await updateDoc(materialRef, {
+          // Stok berkurang = -(jumlah produksi WO * kebutuhan bahan di BOM)
+          stok: increment(-(wo.jumlah * item.qty)),
+        })
+      }
+    }
+
+    // 3. Update status WO menjadi Selesai & Progress 100%
+    await updateDoc(doc(db, 'work_orders', wo.id), {
+      status: 'Selesai',
+      progress: 100,
+    })
+
+    $q.notify({
+      color: 'positive',
+      icon: 'done',
+      message: 'Produksi Selesai & Stok Berhasil Dipotong!',
+    })
+    getData()
+  } catch (error) {
+    console.error('Gagal proses selesai:', error)
+    $q.notify({ color: 'negative', message: 'Gagal memproses pemotongan stok' })
+  } finally {
+    $q.loading.hide()
+  }
 }
 
 const hapusWO = async (id) => {
-  await deleteDoc(doc(db, 'work_orders', id))
-  getData()
+  try {
+    await deleteDoc(doc(db, 'work_orders', id))
+    getData()
+    $q.notify({ color: 'positive', message: 'Work Order dihapus' })
+  } catch (error) {
+    console.error('Gagal hapus WO:', error)
+  }
 }
 
-// ================= COLOR =================
 const getStatusColor = (status) => {
   if (status === 'Pending') return 'grey'
   if (status === 'Proses') return 'orange'
   if (status === 'Selesai') return 'positive'
+  return 'blue'
 }
 
-// ================= LOAD =================
 onMounted(() => {
   getData()
 })
 </script>
+
+<style scoped>
+.rounded-borders {
+  border-radius: 12px;
+}
+.shadow-sm {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+</style>
