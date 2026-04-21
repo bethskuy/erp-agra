@@ -127,12 +127,29 @@ const routes = [
       {
         path: 'production-steps',
         name: 'production-steps',
-        component: () => import('pages/manufaktur/produksi/ProductionStepsPage.vue'),
+        component: () => import('pages/manufaktur/Produksi/ProductionStepsPage.vue'),
       },
       {
         path: 'production-result',
         name: 'production-result',
-        component: () => import('pages/manufaktur/produksi/ProductionResultPage.vue'),
+        component: () => import('pages/manufaktur/Produksi/ProductionResultPage.vue'),
+      },
+      {
+        path: 'work-order/:id',
+        name: 'work-order-detail',
+        component: () => import('pages/manufaktur/Produksi/WorkOrderDetailPage.vue'),
+      },
+
+      {
+        path: 'material',
+        name: 'material',
+        component: () => import('pages/manufaktur/master/MaterialPage.vue'),
+      },
+
+      {
+        path: 'bom',
+        name: 'bom',
+        component: () => import('pages/manufaktur/master/BOMPage.vue'),
       },
     ],
   },

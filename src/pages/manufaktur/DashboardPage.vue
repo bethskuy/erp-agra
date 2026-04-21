@@ -1,56 +1,136 @@
 <template>
   <q-page class="bg-grey-2 q-pa-lg">
-    <div class="row items-center justify-between q-mb-xl">
-      <div class="col-12 col-md-8">
-        <div class="text-h4 text-weight-bolder text-teal-10">Manufacture Overview</div>
-        <div class="text-subtitle1 text-grey-6">Monitoring lantai produksi dan operasional.</div>
-      </div>
+    <!-- HEADER -->
+    <div class="q-mb-lg">
+      <div class="text-h4 text-weight-bold text-teal-10">Dashboard Manufaktur</div>
+      <div class="text-subtitle2 text-grey-6">Monitoring produksi real-time</div>
     </div>
 
-    <div class="row q-col-gutter-lg q-mb-xl">
-      <div class="col-12 col-sm-6 col-md-3" v-for="stat in stats" :key="stat.title">
-        <q-card flat class="stat-card shadow-sm" :style="{ borderLeft: `6px solid ${stat.hex}` }">
-          <q-card-section class="row items-center no-wrap">
-            <div class="col">
-              <div class="text-caption text-grey-6 text-uppercase">{{ stat.title }}</div>
-              <div class="text-h4 text-weight-bold q-mt-sm">{{ stat.value }}</div>
-            </div>
-            <q-icon :name="stat.icon" size="30px" :color="stat.color" />
+    <!-- 🔥 CARDS -->
+    <div class="row q-col-gutter-lg q-mb-lg">
+      <div class="col-12 col-md-3">
+        <q-card class="card-modern bg-blue text-white">
+          <q-card-section>
+            <div class="text-subtitle2">Work Order</div>
+            <div class="text-h3 text-weight-bold">{{ totalWO }}</div>
+          </q-card-section>
+        </q-card>
+      </div>
+
+      <div class="col-12 col-md-3">
+        <q-card class="card-modern bg-orange text-white">
+          <q-card-section>
+            <div class="text-subtitle2">Production Result</div>
+            <div class="text-h3 text-weight-bold">{{ totalResult }}</div>
+          </q-card-section>
+        </q-card>
+      </div>
+
+      <div class="col-12 col-md-3">
+        <q-card class="card-modern bg-green text-white">
+          <q-card-section>
+            <div class="text-subtitle2">Rata-rata Progress</div>
+            <div class="text-h3 text-weight-bold">{{ avgProgress }}%</div>
+          </q-card-section>
+        </q-card>
+      </div>
+
+      <div class="col-12 col-md-3">
+        <q-card class="card-modern bg-teal text-white">
+          <q-card-section>
+            <div class="text-subtitle2">Selesai</div>
+            <div class="text-h3 text-weight-bold">{{ selesai }}</div>
           </q-card-section>
         </q-card>
       </div>
     </div>
+
+    <!-- 🔥 PROGRESS BAR -->
+    <q-card class="card-modern">
+      <q-card-section>
+        <div class="text-h6 q-mb-md">Status Produksi</div>
+
+        <div class="q-mb-md">
+          <div class="text-caption">Pending</div>
+          <q-linear-progress :value="pending / totalWO" color="grey" size="12px" rounded />
+        </div>
+
+        <div class="q-mb-md">
+          <div class="text-caption">Proses</div>
+          <q-linear-progress :value="proses / totalWO" color="orange" size="12px" rounded />
+        </div>
+
+        <div>
+          <div class="text-caption">Selesai</div>
+          <q-linear-progress :value="selesai / totalWO" color="green" size="12px" rounded />
+        </div>
+      </q-card-section>
+    </q-card>
   </q-page>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 
-const stats = ref([
-  { title: 'WO Berjalan', value: '8', icon: 'settings_suggest', color: 'teal-10', hex: '#00796b' },
-  {
-    title: 'Mesin Aktif',
-    value: '12/15',
-    icon: 'precision_manufacturing',
-    color: 'primary',
-    hex: '#1976d2',
-  },
-  { title: 'Defect Rate', value: '1.2%', icon: 'warning', color: 'negative', hex: '#c10015' },
-  {
-    title: 'Target Hari Ini',
-    value: '95%',
-    icon: 'track_changes',
-    color: 'orange',
-    hex: '#f2c037',
-  },
-])
+// FIREBASE
+import { db } from 'src/boot/firebase'
+import { collection, getDocs } from 'firebase/firestore'
+
+// ================= STATE =================
+const totalWO = ref(0)
+const totalResult = ref(0)
+const avgProgress = ref(0)
+
+const pending = ref(0)
+const proses = ref(0)
+const selesai = ref(0)
+
+// ================= LOAD DATA =================
+const loadData = async () => {
+  const woSnap = await getDocs(collection(db, 'work_orders'))
+  const resultSnap = await getDocs(collection(db, 'production_results'))
+
+  totalWO.value = woSnap.size
+  totalResult.value = resultSnap.size
+
+  const results = resultSnap.docs.map((d) => d.data())
+
+  let totalProgress = 0
+
+  pending.value = 0
+  proses.value = 0
+  selesai.value = 0
+
+  woSnap.docs.forEach((doc) => {
+    const data = doc.data()
+
+    const totalHasil = results
+      .filter((r) => r.work_order_id === doc.id)
+      .reduce((sum, r) => sum + Number(r.jumlah_hasil || 0), 0)
+
+    let progress = 0
+    if (data.jumlah > 0) {
+      progress = Math.min(100, Math.round((totalHasil / data.jumlah) * 100))
+    }
+
+    totalProgress += progress
+
+    if (progress === 0) pending.value++
+    else if (progress < 100) proses.value++
+    else selesai.value++
+  })
+
+  avgProgress.value = totalWO.value ? Math.round(totalProgress / totalWO.value) : 0
+}
+
+onMounted(() => {
+  loadData()
+})
 </script>
 
 <style scoped>
-.rounded-borders {
+.card-modern {
   border-radius: 16px;
-}
-.stat-card {
-  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 </style>
