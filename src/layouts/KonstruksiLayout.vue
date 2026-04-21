@@ -11,7 +11,9 @@
         </q-toolbar-title>
         <q-space />
         <q-btn flat round icon="apps" to="/" class="q-mr-sm" />
-        <q-avatar color="white" text-color="primary" class="text-weight-bold">A</q-avatar>
+        <q-avatar color="white" text-color="primary" class="text-weight-bold">
+          {{ userData?.nama?.charAt(0) || 'A' }}
+        </q-avatar>
       </q-toolbar>
     </q-header>
 
@@ -19,7 +21,9 @@
       <div class="column fit">
         <q-scroll-area class="col">
           <q-list padding class="text-grey-9 text-weight-medium">
+            <!-- DASHBOARD: Selalu tampil jika modul konstruksi aktif -->
             <q-item
+              v-if="isModulActive"
               clickable
               v-ripple
               to="/konstruksi/dashboard"
@@ -28,178 +32,218 @@
               <q-item-section avatar><q-icon name="dashboard" /></q-item-section>
               <q-item-section>DASHBOARD</q-item-section>
             </q-item>
-          </q-list>
 
-          <q-expansion-item
-            icon="grid_view"
-            label="DATA MASTER"
-            header-class="text-weight-bold text-primary"
-            default-opened
-          >
-            <q-list class="q-pl-sm">
-              <q-expansion-item
-                label="Data Rekanan"
-                header-class="text-grey-8"
-                :header-inset-level="0.1"
-              >
-                <q-item
-                  clickable
-                  v-ripple
-                  to="/konstruksi/marketing/customer"
-                  class="q-pl-xl"
-                  active-class="text-primary bg-blue-1"
-                >
-                  <q-item-section avatar side
-                    ><q-icon name="circle" size="6px" color="grey-4"
-                  /></q-item-section>
-                  <q-item-section>Customer</q-item-section>
-                </q-item>
-                <q-item
-                  clickable
-                  v-ripple
-                  to="/konstruksi/master/supplier"
-                  class="q-pl-xl"
-                  active-class="text-primary bg-blue-1"
-                >
-                  <q-item-section avatar side
-                    ><q-icon name="circle" size="6px" color="grey-4"
-                  /></q-item-section>
-                  <q-item-section>Data Supplier</q-item-section>
-                </q-item>
-              </q-expansion-item>
-
-              <q-expansion-item
-                label="Data Barang"
-                header-class="text-grey-8"
-                :header-inset-level="0.1"
-              >
-                <q-item
-                  clickable
-                  v-ripple
-                  to="/konstruksi/master/barang-list"
-                  class="q-pl-xl"
-                  active-class="text-primary bg-blue-1"
-                >
-                  <q-item-section avatar side
-                    ><q-icon name="circle" size="6px" color="grey-4"
-                  /></q-item-section>
-                  <q-item-section>List Barang</q-item-section>
-                </q-item>
-                <q-item
-                  clickable
-                  v-ripple
-                  to="/konstruksi/master/barang-kategori"
-                  class="q-pl-xl"
-                  active-class="text-primary bg-blue-1"
-                >
-                  <q-item-section avatar side
-                    ><q-icon name="circle" size="6px" color="grey-4"
-                  /></q-item-section>
-                  <q-item-section>Kategori Barang</q-item-section>
-                </q-item>
-                <q-item
-                  clickable
-                  v-ripple
-                  to="/konstruksi/master/satuan"
-                  class="q-pl-xl"
-                  active-class="text-primary bg-blue-1"
-                >
-                  <q-item-section avatar side
-                    ><q-icon name="circle" size="6px" color="grey-4"
-                  /></q-item-section>
-                  <q-item-section>Data Satuan</q-item-section>
-                </q-item>
-              </q-expansion-item>
-            </q-list>
-          </q-expansion-item>
-
-          <q-separator q-my-sm inset />
-
-          <q-expansion-item
-            icon="campaign"
-            label="MARKETING"
-            header-class="text-weight-bold text-grey-8"
-            default-opened
-          >
-            <q-list class="q-pl-sm">
-              <q-item
-                clickable
-                v-ripple
-                to="/konstruksi/marketing/penawaran"
-                :inset-level="0.4"
-                active-class="text-primary bg-blue-1"
-              >
-                <q-item-section avatar side
-                  ><q-icon name="circle" size="6px" color="grey-4"
-                /></q-item-section>
-                <q-item-section>Penawaran</q-item-section>
-              </q-item>
-              <q-item
-                clickable
-                v-ripple
-                to="/konstruksi/marketing/approval-penawaran"
-                :inset-level="0.4"
-                active-class="text-primary bg-blue-1"
-              >
-                <q-item-section avatar side
-                  ><q-icon name="circle" size="6px" color="grey-4"
-                /></q-item-section>
-                <q-item-section>Approval Penawaran</q-item-section>
-                <q-item-section side v-if="pendingApprovalCount > 0">
-                  <q-badge
-                    color="orange-9"
-                    text-color="white"
-                    floating
-                    class="text-weight-bold shadow-2"
-                  >
-                    {{ pendingApprovalCount }}
-                  </q-badge>
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-expansion-item>
-
-          <q-separator q-my-sm inset />
-
-          <q-expansion-item
-            icon="foundation"
-            label="PROYEK"
-            header-class="text-weight-bold text-grey-8"
-            default-opened
-          >
+            <!-- DATA MASTER -->
             <q-expansion-item
-              label="DATA PROYEK"
-              header-class="text-grey-7"
-              :header-inset-level="0.1"
+              v-if="
+                hasSectionAccess([
+                  'marketing/customer',
+                  'master/supplier',
+                  'master/barang-list',
+                  'master/barang-kategori',
+                  'master/satuan',
+                ])
+              "
+              icon="grid_view"
+              label="DATA MASTER"
+              header-class="text-weight-bold text-primary"
               default-opened
             >
-              <q-item
-                clickable
-                v-ripple
-                to="/konstruksi/master/proyek-data"
-                class="q-pl-xl"
-                active-class="text-primary bg-blue-1"
-              >
-                <q-item-section avatar side
-                  ><q-icon name="circle" size="6px" color="grey-4"
-                /></q-item-section>
-                <q-item-section>Data Proyek</q-item-section>
-              </q-item>
-              <q-item
-                clickable
-                v-ripple
-                to="/konstruksi/master/proyek-kategori"
-                class="q-pl-xl"
-                active-class="text-primary bg-blue-1"
-              >
-                <q-item-section avatar side
-                  ><q-icon name="circle" size="6px" color="grey-4"
-                /></q-item-section>
-                <q-item-section>Kategori Proyek</q-item-section>
-              </q-item>
+              <q-list class="q-pl-sm">
+                <!-- Data Rekanan -->
+                <q-expansion-item
+                  v-if="hasSectionAccess(['marketing/customer', 'master/supplier'])"
+                  label="Data Rekanan"
+                  header-class="text-grey-8"
+                  :header-inset-level="0.1"
+                >
+                  <q-item
+                    v-if="checkPermission('marketing/customer')"
+                    clickable
+                    v-ripple
+                    to="/konstruksi/marketing/customer"
+                    class="q-pl-xl"
+                    active-class="text-primary bg-blue-1"
+                  >
+                    <q-item-section avatar side
+                      ><q-icon name="circle" size="6px" color="grey-4"
+                    /></q-item-section>
+                    <q-item-section>Customer</q-item-section>
+                  </q-item>
+                  <q-item
+                    v-if="checkPermission('master/supplier')"
+                    clickable
+                    v-ripple
+                    to="/konstruksi/master/supplier"
+                    class="q-pl-xl"
+                    active-class="text-primary bg-blue-1"
+                  >
+                    <q-item-section avatar side
+                      ><q-icon name="circle" size="6px" color="grey-4"
+                    /></q-item-section>
+                    <q-item-section>Data Supplier</q-item-section>
+                  </q-item>
+                </q-expansion-item>
+
+                <!-- Data Barang -->
+                <q-expansion-item
+                  v-if="
+                    hasSectionAccess([
+                      'master/barang-list',
+                      'master/barang-kategori',
+                      'master/satuan',
+                    ])
+                  "
+                  label="Data Barang"
+                  header-class="text-grey-8"
+                  :header-inset-level="0.1"
+                >
+                  <q-item
+                    v-if="checkPermission('master/barang-list')"
+                    clickable
+                    v-ripple
+                    to="/konstruksi/master/barang-list"
+                    class="q-pl-xl"
+                    active-class="text-primary bg-blue-1"
+                  >
+                    <q-item-section avatar side
+                      ><q-icon name="circle" size="6px" color="grey-4"
+                    /></q-item-section>
+                    <q-item-section>List Barang</q-item-section>
+                  </q-item>
+                  <q-item
+                    v-if="checkPermission('master/barang-kategori')"
+                    clickable
+                    v-ripple
+                    to="/konstruksi/master/barang-kategori"
+                    class="q-pl-xl"
+                    active-class="text-primary bg-blue-1"
+                  >
+                    <q-item-section avatar side
+                      ><q-icon name="circle" size="6px" color="grey-4"
+                    /></q-item-section>
+                    <q-item-section>Kategori Barang</q-item-section>
+                  </q-item>
+                  <q-item
+                    v-if="checkPermission('master/satuan')"
+                    clickable
+                    v-ripple
+                    to="/konstruksi/master/satuan"
+                    class="q-pl-xl"
+                    active-class="text-primary bg-blue-1"
+                  >
+                    <q-item-section avatar side
+                      ><q-icon name="circle" size="6px" color="grey-4"
+                    /></q-item-section>
+                    <q-item-section>Data Satuan</q-item-section>
+                  </q-item>
+                </q-expansion-item>
+              </q-list>
             </q-expansion-item>
-            <q-list class="q-pl-sm">
+
+            <q-separator v-if="isModulActive" q-my-sm inset />
+
+            <!-- MARKETING -->
+            <q-expansion-item
+              v-if="hasSectionAccess(['marketing/penawaran', 'marketing/approval-penawaran'])"
+              icon="campaign"
+              label="MARKETING"
+              header-class="text-weight-bold text-grey-8"
+              default-opened
+            >
+              <q-list class="q-pl-sm">
+                <q-item
+                  v-if="checkPermission('marketing/penawaran')"
+                  clickable
+                  v-ripple
+                  to="/konstruksi/marketing/penawaran"
+                  :inset-level="0.4"
+                  active-class="text-primary bg-blue-1"
+                >
+                  <q-item-section avatar side
+                    ><q-icon name="circle" size="6px" color="grey-4"
+                  /></q-item-section>
+                  <q-item-section>Penawaran</q-item-section>
+                </q-item>
+                <q-item
+                  v-if="checkPermission('marketing/approval-penawaran')"
+                  clickable
+                  v-ripple
+                  to="/konstruksi/marketing/approval-penawaran"
+                  :inset-level="0.4"
+                  active-class="text-primary bg-blue-1"
+                >
+                  <q-item-section avatar side
+                    ><q-icon name="circle" size="6px" color="grey-4"
+                  /></q-item-section>
+                  <q-item-section>Approval Penawaran</q-item-section>
+                  <q-item-section side v-if="pendingApprovalCount > 0">
+                    <q-badge
+                      color="orange-9"
+                      text-color="white"
+                      floating
+                      class="text-weight-bold shadow-2"
+                    >
+                      {{ pendingApprovalCount }}
+                    </q-badge>
+                  </q-item-section>
+                </q-item>
+              </q-list>
+            </q-expansion-item>
+
+            <q-separator v-if="isModulActive" q-my-sm inset />
+
+            <!-- PROYEK -->
+            <q-expansion-item
+              v-if="
+                hasSectionAccess([
+                  'master/proyek-data',
+                  'master/proyek-kategori',
+                  'pelaksanaan/spk-mandor',
+                ])
+              "
+              icon="foundation"
+              label="PROYEK"
+              header-class="text-weight-bold text-grey-8"
+              default-opened
+            >
               <q-expansion-item
+                v-if="hasSectionAccess(['master/proyek-data', 'master/proyek-kategori'])"
+                label="DATA PROYEK"
+                header-class="text-grey-7"
+                :header-inset-level="0.1"
+                default-opened
+              >
+                <q-item
+                  v-if="checkPermission('master/proyek-data')"
+                  clickable
+                  v-ripple
+                  to="/konstruksi/master/proyek-data"
+                  class="q-pl-xl"
+                  active-class="text-primary bg-blue-1"
+                >
+                  <q-item-section avatar side
+                    ><q-icon name="circle" size="6px" color="grey-4"
+                  /></q-item-section>
+                  <q-item-section>Data Proyek</q-item-section>
+                </q-item>
+                <q-item
+                  v-if="checkPermission('master/proyek-kategori')"
+                  clickable
+                  v-ripple
+                  to="/konstruksi/master/proyek-kategori"
+                  class="q-pl-xl"
+                  active-class="text-primary bg-blue-1"
+                >
+                  <q-item-section avatar side
+                    ><q-icon name="circle" size="6px" color="grey-4"
+                  /></q-item-section>
+                  <q-item-section>Kategori Proyek</q-item-section>
+                </q-item>
+              </q-expansion-item>
+
+              <q-expansion-item
+                v-if="checkPermission('pelaksanaan/spk-mandor')"
                 label="PELAKSANAAN"
                 header-class="text-grey-7"
                 :header-inset-level="0.1"
@@ -218,40 +262,49 @@
                   <q-item-section>SPK Mandor / Pekerja</q-item-section>
                 </q-item>
               </q-expansion-item>
-            </q-list>
-          </q-expansion-item>
+            </q-expansion-item>
 
-          <q-separator q-my-sm inset />
+            <q-separator v-if="isModulActive" q-my-sm inset />
 
-          <q-item clickable v-ripple to="/konstruksi/gudang" active-class="bg-blue-1 text-primary">
-            <q-item-section avatar><q-icon name="inventory_2" /></q-item-section>
-            <q-item-section class="text-weight-bold">GUDANG</q-item-section>
-          </q-item>
+            <!-- GUDANG -->
+            <q-item
+              v-if="checkPermission('gudang')"
+              clickable
+              v-ripple
+              to="/konstruksi/gudang"
+              active-class="bg-blue-1 text-primary"
+            >
+              <q-item-section avatar><q-icon name="inventory_2" /></q-item-section>
+              <q-item-section class="text-weight-bold">GUDANG</q-item-section>
+            </q-item>
 
-          <q-separator q-my-sm inset />
+            <q-separator v-if="isModulActive" q-my-sm inset />
 
-          <q-expansion-item
-            icon="shopping_cart"
-            label="PEMBELIAN"
-            header-class="text-weight-bold text-grey-8"
-            default-opened
-          >
-            <q-list class="q-pl-sm">
-              <q-item
-                clickable
-                v-ripple
-                to="/konstruksi/pembelian/pesanan"
-                :inset-level="0.2"
-                active-class="text-primary bg-blue-1"
-              >
-                <q-item-section avatar side
-                  ><q-icon name="circle" size="6px" color="grey-4"
-                /></q-item-section>
-                <q-item-section>Pesanan Pembelian (PO)</q-item-section>
-              </q-item>
-              <div style="height: 60px"></div>
-            </q-list>
-          </q-expansion-item>
+            <!-- PEMBELIAN -->
+            <q-expansion-item
+              v-if="checkPermission('pembelian/pesanan')"
+              icon="shopping_cart"
+              label="PEMBELIAN"
+              header-class="text-weight-bold text-grey-8"
+              default-opened
+            >
+              <q-list class="q-pl-sm">
+                <q-item
+                  clickable
+                  v-ripple
+                  to="/konstruksi/pembelian/pesanan"
+                  :inset-level="0.2"
+                  active-class="text-primary bg-blue-1"
+                >
+                  <q-item-section avatar side
+                    ><q-icon name="circle" size="6px" color="grey-4"
+                  /></q-item-section>
+                  <q-item-section>Pesanan Pembelian (PO)</q-item-section>
+                </q-item>
+                <div style="height: 60px"></div>
+              </q-list>
+            </q-expansion-item>
+          </q-list>
         </q-scroll-area>
       </div>
     </q-drawer>
@@ -263,23 +316,88 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
-import { db } from 'src/boot/firebase'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+// eslint-disable-next-line no-unused-vars
+import { db, auth } from 'src/boot/firebase'
 import { collection, query, where, onSnapshot } from 'firebase/firestore'
+import { useAuthStore } from 'src/stores/auth'
 
-// Deklarasi variabel yang sebelumnya menyebabkan error
+const authStore = useAuthStore()
 const leftDrawerOpen = ref(false)
 const pendingApprovalCount = ref(0)
-let unsubscribe = null
+const userData = ref(null)
+let unsubscribeUser = null
+let unsubscribeApproval = null
+
+/**
+ * Pengecekan apakah modul Konstruksi aktif secara keseluruhan
+ */
+const isModulActive = computed(() => {
+  if (authStore.user?.role === 'Super Admin') return true
+  const moduleInfo = userData.value?.permissions_detail?.find((m) => m.id === 'konstruksi')
+  return moduleInfo?.isActive || false
+})
+
+/**
+ * Fungsi Inti: Mengecek izin 'lihat' untuk menu tertentu
+ * ID menu disesuaikan dengan generator di AksesPage.vue: '/konstruksi_' + path
+ */
+const checkPermission = (menuPath) => {
+  if (authStore.user?.role === 'Super Admin') return true
+  if (!userData.value?.permissions_detail) return false
+
+  const modulePerm = userData.value.permissions_detail.find((m) => m.id === 'konstruksi')
+  if (!modulePerm || !modulePerm.isActive) return false
+
+  // Format ID menu harus sama dengan yang disimpan AksesPage.vue
+  const targetId = `/konstruksi_${menuPath}`.replace(/\//g, '_')
+  const menu = modulePerm.menus.find((m) => m.id === targetId)
+
+  return menu ? menu.lihat : false
+}
+
+/**
+ * Pengecekan apakah sebuah kategori (expansion item) harus tampil
+ * Tampil jika minimal ada satu menu di dalamnya yang diizinkan
+ */
+const hasSectionAccess = (menuPaths) => {
+  if (authStore.user?.role === 'Super Admin') return true
+  return menuPaths.some((path) => checkPermission(path))
+}
 
 onMounted(() => {
-  const q = query(collection(db, 'penawaran'), where('status', '==', 'Pending'))
-  unsubscribe = onSnapshot(q, (snapshot) => {
+  // 1. Pantau Hak Akses User Real-time
+  const userEmail = authStore.user?.email
+  if (userEmail) {
+    const qUser = query(collection(db, 'karyawan'), where('email', '==', userEmail))
+    unsubscribeUser = onSnapshot(qUser, (snapshot) => {
+      if (!snapshot.empty) {
+        userData.value = snapshot.docs[0].data()
+      }
+    })
+  }
+
+  // 2. Pantau Pending Approval Count
+  const qApproval = query(collection(db, 'penawaran'), where('status', '==', 'Pending'))
+  unsubscribeApproval = onSnapshot(qApproval, (snapshot) => {
     pendingApprovalCount.value = snapshot.size
   })
 })
 
 onUnmounted(() => {
-  if (unsubscribe) unsubscribe()
+  if (unsubscribeUser) unsubscribeUser()
+  if (unsubscribeApproval) unsubscribeApproval()
 })
 </script>
+
+<style scoped>
+.text-primary {
+  color: var(--q-primary) !important;
+}
+.bg-blue-1 {
+  background-color: #e3f2fd !important;
+}
+.shadow-2 {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+</style>

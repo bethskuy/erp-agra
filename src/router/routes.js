@@ -171,13 +171,13 @@ const routes = [
         component: () => import('pages/managementkaryawan/datakaryawan/KaryawanPage.vue'),
       },
       {
-        path: 'master/jabatan',
-        component: () => import('pages/managementkaryawan/MasterJabatanPage.vue'),
+        path: 'akses',
+        component: () => import('pages/managementkaryawan/AksesPage.vue'),
+        name: 'hak-akses',
       },
       {
-        path: '/management/akses/:modul',
-        name: 'management-hak-akses',
-        component: () => import('pages/managementkaryawan/HakAksesPage.vue'),
+        path: 'master/jabatan',
+        component: () => import('pages/managementkaryawan/MasterJabatanPage.vue'),
       },
     ],
   },

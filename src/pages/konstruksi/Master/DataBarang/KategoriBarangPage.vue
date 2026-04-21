@@ -8,13 +8,15 @@
         </div>
       </div>
       <div class="col-auto">
+        <!-- Tombol Tambah: Hanya muncul jika punya izin 'buat' -->
         <q-btn
+          v-if="canAction('buat')"
           unelevated
           color="primary"
           icon="add"
           label="Tambah Kategori"
           no-caps
-          class="btn-radius"
+          class="btn-radius shadow-2"
           @click="openAddDialog"
         />
       </div>
@@ -35,9 +37,12 @@
           </q-input>
         </template>
 
+        <!-- KOLOM AKSI: Proteksi izin 'ubah' dan 'hapus' -->
         <template v-slot:body-cell-aksi="props">
           <q-td :props="props" class="q-gutter-xs text-center">
+            <!-- Tombol Edit: Muncul jika izin 'ubah' true -->
             <q-btn
+              v-if="canAction('ubah')"
               flat
               round
               color="blue"
@@ -45,7 +50,9 @@
               size="sm"
               @click="openEditDialog(props.row)"
             />
+            <!-- Tombol Delete: Muncul jika izin 'hapus' true -->
             <q-btn
+              v-if="canAction('hapus')"
               flat
               round
               color="negative"
@@ -53,11 +60,19 @@
               size="sm"
               @click="hapusKategori(props.row)"
             />
+            <!-- Tampilan jika tidak ada akses aksi sama sekali -->
+            <q-badge
+              v-if="!canAction('ubah') && !canAction('hapus')"
+              color="grey-3"
+              text-color="grey-7"
+              label="No Action"
+            />
           </q-td>
         </template>
       </q-table>
     </q-card>
 
+    <!-- Modal Form Tambah/Edit -->
     <q-dialog
       v-model="showDialog"
       persistent
@@ -139,7 +154,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useQuasar } from 'quasar'
 import {
   collection,
@@ -149,17 +164,23 @@ import {
   deleteDoc,
   doc,
   query,
+  where,
+  onSnapshot,
   orderBy,
   serverTimestamp,
 } from 'firebase/firestore'
 import { db } from 'src/boot/firebase'
+import { useAuthStore } from 'src/stores/auth'
 
 const $q = useQuasar()
+const authStore = useAuthStore()
 const filter = ref('')
 const showDialog = ref(false)
 const isEditMode = ref(false)
 const loading = ref(false)
 const submitting = ref(false)
+const userData = ref(null)
+let unsubscribeUser = null
 
 const formDefault = { nama: '', keterangan: '' }
 const form = ref({ ...formDefault })
@@ -170,6 +191,26 @@ const columns = [
   { name: 'keterangan', align: 'left', label: 'KETERANGAN', field: 'keterangan' },
   { name: 'aksi', align: 'center', label: 'AKSI', field: 'aksi' },
 ]
+
+/**
+ * LOGIKA SATPAM: Mengecek izin aksi granular (buat, ubah, hapus)
+ * ID Target untuk Kategori Barang: _konstruksi_master_barang-kategori
+ */
+const canAction = (actionType) => {
+  // Super Admin kebal aturan
+  if (authStore.user?.role === 'Super Admin') return true
+  if (!userData.value?.permissions_detail) return false
+
+  const modulePerm = userData.value.permissions_detail.find((m) => m.id === 'konstruksi')
+  if (!modulePerm || !modulePerm.isActive) return false
+
+  // ID Menu disesuaikan dengan generator rute: _konstruksi_master_barang-kategori
+  const targetId = '_konstruksi_master_barang-kategori'
+  const menu = modulePerm.menus.find((m) => m.id === targetId)
+
+  if (!menu) return false
+  return menu[actionType] || false
+}
 
 // --- AMBIL DATA ---
 const fetchKategori = async () => {
@@ -187,7 +228,25 @@ const fetchKategori = async () => {
   }
 }
 
-onMounted(fetchKategori)
+onMounted(() => {
+  // 1. Pantau Hak Akses User secara Real-time
+  const userEmail = authStore.user?.email
+  if (userEmail) {
+    const qUser = query(collection(db, 'karyawan'), where('email', '==', userEmail))
+    unsubscribeUser = onSnapshot(qUser, (snapshot) => {
+      if (!snapshot.empty) {
+        userData.value = snapshot.docs[0].data()
+      }
+    })
+  }
+
+  // 2. Tarik Data Kategori
+  fetchKategori()
+})
+
+onUnmounted(() => {
+  if (unsubscribeUser) unsubscribeUser()
+})
 
 const openAddDialog = () => {
   isEditMode.value = false
@@ -236,6 +295,7 @@ const hapusKategori = (data) => {
     title: 'Hapus',
     message: `Hapus kategori ${data.nama}?`,
     cancel: true,
+    ok: { color: 'negative' },
   }).onOk(async () => {
     try {
       await deleteDoc(doc(db, 'kategori_barang', data.id))

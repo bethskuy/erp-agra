@@ -59,7 +59,9 @@
         <template v-slot:body-cell-aksi="props">
           <q-td :props="props" class="q-gutter-xs text-center" @click.stop>
             <template v-if="props.row.status === 'Pending'">
+              <!-- Tombol Approve: Muncul jika punya izin 'approve' -->
               <q-btn
+                v-if="canAction('approve')"
                 unelevated
                 color="positive"
                 icon="check"
@@ -67,13 +69,22 @@
                 size="sm"
                 @click="handleApproval(props.row, 'Approved')"
               />
+              <!-- Tombol Reject: Muncul jika punya izin 'approve' ATAU 'ubah' -->
               <q-btn
+                v-if="canAction('approve') || canAction('ubah')"
                 outline
                 color="negative"
                 icon="close"
                 label="Reject"
                 size="sm"
                 @click="promptReject(props.row)"
+              />
+              <!-- Badge No Access: Hanya muncul jika dua-duanya (Ubah & Approve) tidak dicentang -->
+              <q-badge
+                v-if="!canAction('approve') && !canAction('ubah')"
+                color="grey-3"
+                text-color="grey-7"
+                label="No Approval Access"
               />
             </template>
             <q-badge
@@ -101,7 +112,9 @@
             <q-btn color="red-8" icon="picture_as_pdf" label="PDF" @click="exportToPDF" />
           </q-btn-group>
 
+          <!-- Dropdown Tanda Tangan: Sekarang bisa diakses jika punya izin 'approve' atau 'ubah' -->
           <q-btn-dropdown
+            v-if="canAction('approve') || canAction('ubah')"
             color="indigo-10"
             icon="draw"
             label="Tanda Tangan"
@@ -129,7 +142,9 @@
             </q-list>
           </q-btn-dropdown>
 
-          <template v-if="selectedData?.status === 'Pending'">
+          <template
+            v-if="selectedData?.status === 'Pending' && (canAction('approve') || canAction('ubah'))"
+          >
             <q-btn
               outline
               color="negative"
@@ -139,6 +154,7 @@
               class="q-mr-sm"
             />
             <q-btn
+              v-if="canAction('approve')"
               unelevated
               color="positive"
               label="Approve"
@@ -308,8 +324,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, watch } from 'vue'
-import { db } from 'src/boot/firebase'
+import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
+// eslint-disable-next-line no-unused-vars
+import { db, auth } from 'src/boot/firebase'
 import {
   collection,
   query,
@@ -318,13 +335,16 @@ import {
   doc,
   updateDoc,
   getDoc,
+  onSnapshot,
   serverTimestamp,
 } from 'firebase/firestore'
 import { useQuasar } from 'quasar'
+import { useAuthStore } from 'src/stores/auth'
 import SignaturePad from 'signature_pad'
 import html2pdf from 'html2pdf.js'
 
 const $q = useQuasar()
+const authStore = useAuthStore()
 const rows = ref([])
 const loading = ref(false)
 const filter = ref('')
@@ -334,6 +354,8 @@ const selectedData = ref(null)
 const tempFile = ref(null)
 const signatureCanvas = ref(null)
 const config = ref({ kopUrl: '' })
+const userData = ref(null)
+let unsubscribeUser = null
 let signaturePad = null
 
 const columns = [
@@ -343,6 +365,23 @@ const columns = [
   { name: 'status', align: 'center', label: 'STATUS', field: 'status', sortable: true },
   { name: 'aksi', align: 'center', label: 'ACTION', field: 'aksi' },
 ]
+
+/**
+ * LOGIKA SATPAM: Mengecek izin aksi granular (buat, ubah, hapus, approve)
+ */
+const canAction = (actionType) => {
+  if (authStore.user?.role === 'Super Admin') return true
+  if (!userData.value?.permissions_detail) return false
+
+  const modulePerm = userData.value.permissions_detail.find((m) => m.id === 'konstruksi')
+  if (!modulePerm || !modulePerm.isActive) return false
+
+  const targetId = '_konstruksi_marketing_approval-penawaran'
+  const menu = modulePerm.menus.find((m) => m.id === targetId)
+
+  if (!menu) return false
+  return menu[actionType] || false
+}
 
 const fetchApprovalData = async () => {
   loading.value = true
@@ -372,7 +411,6 @@ watch(showPad, async (val) => {
     canvas.height = canvas.offsetHeight * ratio
     canvas.getContext('2d').scale(ratio, ratio)
 
-    // PERUBAHAN: Warna pulpen diatur menjadi Hitam
     signaturePad = new SignaturePad(canvas, {
       backgroundColor: 'rgba(255, 255, 255, 0)',
       penColor: '#000000',
@@ -481,7 +519,23 @@ const exportToPDF = () => {
     })
 }
 
-onMounted(fetchApprovalData)
+onMounted(() => {
+  const userEmail = authStore.user?.email
+  if (userEmail) {
+    const qUser = query(collection(db, 'karyawan'), where('email', '==', userEmail))
+    unsubscribeUser = onSnapshot(qUser, (snapshot) => {
+      if (!snapshot.empty) {
+        userData.value = snapshot.docs[0].data()
+      }
+    })
+  }
+
+  fetchApprovalData()
+})
+
+onUnmounted(() => {
+  if (unsubscribeUser) unsubscribeUser()
+})
 </script>
 
 <style scoped>
@@ -598,15 +652,18 @@ onMounted(fetchApprovalData)
   .final-pro-table th {
     background-color: #0d47a1 !important;
     color: white !important;
+    print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
   .row-calculation {
     background-color: #e3f2fd !important;
+    print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
   .row-grand-total {
     background-color: #0d47a1 !important;
     color: white !important;
+    print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
 }

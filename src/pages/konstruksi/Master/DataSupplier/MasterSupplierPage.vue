@@ -8,7 +8,9 @@
         </div>
       </div>
       <div class="col-auto">
+        <!-- Tombol Tambah: Hanya muncul jika punya izin 'buat' -->
         <q-btn
+          v-if="canAction('buat')"
           unelevated
           color="primary"
           icon="add_business"
@@ -35,9 +37,13 @@
             <template v-slot:append><q-icon name="search" /></template>
           </q-input>
         </template>
+
+        <!-- KOLOM AKSI: Proteksi izin 'ubah' dan 'hapus' -->
         <template v-slot:body-cell-aksi="props">
           <q-td :props="props" class="q-gutter-xs text-center" @click.stop>
+            <!-- Tombol Edit: Muncul jika izin 'ubah' true -->
             <q-btn
+              v-if="canAction('ubah')"
               flat
               round
               color="blue"
@@ -45,7 +51,9 @@
               size="sm"
               @click="openEditDialog(props.row)"
             />
+            <!-- Tombol Delete: Muncul jika izin 'hapus' true -->
             <q-btn
+              v-if="canAction('hapus')"
               flat
               round
               color="negative"
@@ -53,11 +61,19 @@
               size="sm"
               @click="confirmHapus(props.row)"
             />
+            <!-- Tampilan jika tidak ada akses aksi -->
+            <q-badge
+              v-if="!canAction('ubah') && !canAction('hapus')"
+              color="grey-3"
+              text-color="grey-7"
+              label="No Action"
+            />
           </q-td>
         </template>
       </q-table>
     </q-card>
 
+    <!-- Dialog Form Tambah/Edit -->
     <q-dialog v-model="showDialog" persistent maximized transition-show="slide-up">
       <q-card class="bg-grey-1 column no-wrap">
         <q-toolbar class="bg-white text-grey-9 q-py-md bordered-bottom">
@@ -168,7 +184,6 @@
                         @click="addDocRow"
                       />
                     </div>
-
                     <div
                       v-for="(item, index) in form.additional_docs"
                       :key="index"
@@ -232,6 +247,7 @@
       </q-card>
     </q-dialog>
 
+    <!-- Modal Profil Lengkap -->
     <q-dialog v-model="showDetail" maximized transition-show="slide-up">
       <q-card class="bg-grey-2 column no-wrap" v-if="currentSupplier">
         <q-toolbar class="bg-primary text-white q-py-md">
@@ -337,7 +353,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { db, storage } from 'src/boot/firebase'
 import {
@@ -349,11 +365,15 @@ import {
   doc,
   query,
   orderBy,
+  where,
+  onSnapshot,
   serverTimestamp,
 } from 'firebase/firestore'
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
+import { useAuthStore } from 'src/stores/auth'
 
 const $q = useQuasar()
+const authStore = useAuthStore()
 const rows = ref([])
 const loading = ref(false)
 const submitting = ref(false)
@@ -362,6 +382,8 @@ const showDetail = ref(false)
 const isEditMode = ref(false)
 const filter = ref('')
 const currentSupplier = ref(null)
+const userData = ref(null)
+let unsubscribeUser = null
 
 const formDefault = {
   id: null,
@@ -385,6 +407,25 @@ const columns = [
   { name: 'pic_nama', align: 'left', label: 'PIC', field: 'pic_nama' },
   { name: 'aksi', align: 'center', label: 'AKSI', field: 'aksi' },
 ]
+
+/**
+ * LOGIKA SATPAM: Mengecek izin aksi granular (buat, ubah, hapus)
+ * ID Target: _konstruksi_master_supplier
+ */
+const canAction = (actionType) => {
+  if (authStore.user?.role === 'Super Admin') return true
+  if (!userData.value?.permissions_detail) return false
+
+  const modulePerm = userData.value.permissions_detail.find((m) => m.id === 'konstruksi')
+  if (!modulePerm || !modulePerm.isActive) return false
+
+  // ID Menu: _konstruksi_master_supplier (sesuai generator rute di AksesPage)
+  const targetId = '_konstruksi_master_supplier'
+  const menu = modulePerm.menus.find((m) => m.id === targetId)
+
+  if (!menu) return false
+  return menu[actionType] || false
+}
 
 // HYBRID UPLOAD LOGIC
 const processHybridUpload = async (file, pathName) => {
@@ -477,7 +518,25 @@ const confirmHapus = (r) => {
   })
 }
 
-onMounted(fetchData)
+onMounted(() => {
+  // 1. Pantau Hak Akses User secara Real-time
+  const userEmail = authStore.user?.email
+  if (userEmail) {
+    const qUser = query(collection(db, 'karyawan'), where('email', '==', userEmail))
+    unsubscribeUser = onSnapshot(qUser, (snapshot) => {
+      if (!snapshot.empty) {
+        userData.value = snapshot.docs[0].data()
+      }
+    })
+  }
+
+  // 2. Tarik Data Supplier
+  fetchData()
+})
+
+onUnmounted(() => {
+  if (unsubscribeUser) unsubscribeUser()
+})
 </script>
 
 <style scoped>
@@ -486,7 +545,7 @@ onMounted(fetchData)
   font-weight: 700;
   color: #555;
   margin-bottom: 2px;
-  text-uppercase: true;
+  text-transform: uppercase;
 }
 .btn-radius {
   border-radius: 8px;

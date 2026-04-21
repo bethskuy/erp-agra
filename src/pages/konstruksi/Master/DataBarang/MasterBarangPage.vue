@@ -6,13 +6,15 @@
         <div class="text-caption text-grey-7">Kelola material, alat, dan inventaris proyek.</div>
       </div>
       <div class="col-auto">
+        <!-- Tombol Tambah: Hanya muncul jika punya izin 'buat' -->
         <q-btn
+          v-if="canAction('buat')"
           unelevated
           color="primary"
           icon="add"
           label="Tambah Barang"
           no-caps
-          class="btn-radius"
+          class="btn-radius shadow-2"
           @click="openAddDialog"
         />
       </div>
@@ -32,9 +34,13 @@
             <template v-slot:append><q-icon name="search" /></template>
           </q-input>
         </template>
+
+        <!-- KOLOM AKSI: Proteksi izin 'ubah' dan 'hapus' -->
         <template v-slot:body-cell-aksi="props">
           <q-td :props="props" class="q-gutter-xs text-center">
+            <!-- Tombol Edit: Muncul jika izin 'ubah' true -->
             <q-btn
+              v-if="canAction('ubah')"
               flat
               round
               color="blue"
@@ -42,13 +48,22 @@
               size="sm"
               @click="openEditDialog(props.row)"
             />
+            <!-- Tombol Delete: Muncul jika izin 'hapus' true -->
             <q-btn
+              v-if="canAction('hapus')"
               flat
               round
               color="negative"
               icon="delete"
               size="sm"
               @click="hapusBarang(props.row)"
+            />
+            <!-- Tampilan jika tidak ada akses aksi sama sekali -->
+            <q-badge
+              v-if="!canAction('ubah') && !canAction('hapus')"
+              color="grey-3"
+              text-color="grey-7"
+              label="No Action"
             />
           </q-td>
         </template>
@@ -206,7 +221,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useQuasar } from 'quasar'
 import {
   collection,
@@ -216,17 +231,23 @@ import {
   deleteDoc,
   doc,
   query,
+  where,
+  onSnapshot,
   orderBy,
   serverTimestamp,
 } from 'firebase/firestore'
 import { db } from 'src/boot/firebase'
+import { useAuthStore } from 'src/stores/auth'
 
 const $q = useQuasar()
+const authStore = useAuthStore()
 const filter = ref('')
 const showDialog = ref(false)
 const isEditMode = ref(false)
 const loading = ref(false)
 const submitting = ref(false)
+const userData = ref(null)
+let unsubscribeUser = null
 
 const formDefault = { kode: '', nama: '', unit: null, harga_beli: 0, kategori: null, merk: '' }
 const form = ref({ ...formDefault })
@@ -249,6 +270,25 @@ const columns = [
   { name: 'aksi', align: 'center', label: 'AKSI', field: 'aksi' },
 ]
 
+/**
+ * LOGIKA SATPAM: Mengecek izin aksi granular (buat, ubah, hapus)
+ * ID Target untuk List Barang adalah _konstruksi_master_barang-list
+ */
+const canAction = (actionType) => {
+  if (authStore.user?.role === 'Super Admin') return true
+  if (!userData.value?.permissions_detail) return false
+
+  const modulePerm = userData.value.permissions_detail.find((m) => m.id === 'konstruksi')
+  if (!modulePerm || !modulePerm.isActive) return false
+
+  // ID Menu: _konstruksi_master_barang-list (sesuai generator rute di AksesPage)
+  const targetId = '_konstruksi_master_barang-list'
+  const menu = modulePerm.menus.find((m) => m.id === targetId)
+
+  if (!menu) return false
+  return menu[actionType] || false
+}
+
 // --- 1. FETCH DATA REFERENSI ---
 const fetchReferences = async () => {
   try {
@@ -264,7 +304,7 @@ const fetchReferences = async () => {
   }
 }
 
-// --- 2. QUICK ADD SATUAN (Nglink ke tabel Satuan) ---
+// --- 2. QUICK ADD SATUAN ---
 const quickAddSatuan = () => {
   $q.dialog({
     title: 'Tambah Satuan Baru',
@@ -280,8 +320,8 @@ const quickAddSatuan = () => {
         keterangan: '-',
         createdAt: serverTimestamp(),
       })
-      await fetchReferences() // Refresh list dropdown
-      form.value.unit = data // Set otomatis ke inputan
+      await fetchReferences()
+      form.value.unit = data
       $q.notify({ color: 'positive', message: `Satuan ${data} ditambahkan` })
       // eslint-disable-next-line no-unused-vars
     } catch (e) {
@@ -290,7 +330,7 @@ const quickAddSatuan = () => {
   })
 }
 
-// --- 3. QUICK ADD KATEGORI (Nglink ke tabel Kategori) ---
+// --- 3. QUICK ADD KATEGORI ---
 const quickAddKategori = () => {
   $q.dialog({
     title: 'Tambah Kategori Baru',
@@ -306,8 +346,8 @@ const quickAddKategori = () => {
         keterangan: '-',
         createdAt: serverTimestamp(),
       })
-      await fetchReferences() // Refresh list dropdown
-      form.value.kategori = data // Set otomatis ke inputan
+      await fetchReferences()
+      form.value.kategori = data
       $q.notify({ color: 'positive', message: `Kategori ${data} ditambahkan` })
       // eslint-disable-next-line no-unused-vars
     } catch (e) {
@@ -331,8 +371,23 @@ const fetchBarang = async () => {
 }
 
 onMounted(() => {
+  // 1. Pantau Hak Akses User secara Real-time
+  const userEmail = authStore.user?.email
+  if (userEmail) {
+    const qUser = query(collection(db, 'karyawan'), where('email', '==', userEmail))
+    unsubscribeUser = onSnapshot(qUser, (snapshot) => {
+      if (!snapshot.empty) {
+        userData.value = snapshot.docs[0].data()
+      }
+    })
+  }
+
   fetchBarang()
   fetchReferences()
+})
+
+onUnmounted(() => {
+  if (unsubscribeUser) unsubscribeUser()
 })
 
 const openAddDialog = () => {

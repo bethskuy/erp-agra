@@ -6,7 +6,9 @@
         <div class="text-caption text-grey-7">Daftar penawaran yang telah dibuat</div>
       </div>
       <div class="col-auto">
+        <!-- Tombol Tambah: Hanya muncul jika punya izin 'buat' -->
         <q-btn
+          v-if="canAction('buat')"
           unelevated
           color="primary"
           icon="add"
@@ -71,10 +73,14 @@
             >Rp {{ (props.value || 0).toLocaleString() }}</q-td
           >
         </template>
+
+        <!-- KOLOM AKSI: Proteksi izin 'ubah' dan 'hapus' -->
         <template v-slot:body-cell-aksi="props">
           <q-td :props="props" class="q-gutter-xs text-center" @click.stop>
+            <!-- Tombol Ajukan: Biasanya butuh izin 'ubah' karena merubah status ke Pending -->
             <q-btn
               v-if="
+                canAction('ubah') &&
                 props.row.is_revised &&
                 props.row.status !== 'Pending' &&
                 props.row.status !== 'Approved'
@@ -86,8 +92,9 @@
               size="sm"
               @click="ajukanPenawaran(props.row)"
             />
+            <!-- Tombol Edit: Muncul jika status belum Approved DAN punya izin 'ubah' -->
             <q-btn
-              v-if="props.row.status !== 'Approved'"
+              v-if="props.row.status !== 'Approved' && canAction('ubah')"
               flat
               round
               color="blue"
@@ -95,13 +102,22 @@
               size="sm"
               @click="openEditDialog(props.row)"
             />
+            <!-- Tombol Delete: Muncul jika punya izin 'hapus' -->
             <q-btn
+              v-if="canAction('hapus')"
               flat
               round
               color="negative"
               icon="delete"
               size="sm"
               @click="confirmHapus(props.row)"
+            />
+            <!-- Indikator jika tidak ada izin aksi -->
+            <q-badge
+              v-if="!canAction('ubah') && !canAction('hapus')"
+              color="grey-2"
+              text-color="grey-7"
+              label="No Action"
             />
           </q-td>
         </template>
@@ -458,9 +474,10 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useQuasar } from 'quasar'
-import { db } from 'src/boot/firebase'
+// eslint-disable-next-line no-unused-vars
+import { db, auth } from 'src/boot/firebase'
 import {
   collection,
   getDocs,
@@ -470,12 +487,17 @@ import {
   updateDoc,
   addDoc,
   deleteDoc,
+  query,
+  where,
+  onSnapshot,
   serverTimestamp,
 } from 'firebase/firestore'
+import { useAuthStore } from 'src/stores/auth'
 import * as XLSX from 'xlsx'
 import html2pdf from 'html2pdf.js'
 
 const $q = useQuasar()
+const authStore = useAuthStore()
 const rows = ref([])
 const loading = ref(false)
 const submitting = ref(false)
@@ -488,6 +510,8 @@ const optCustomer = ref([])
 const selectedCustomer = ref(null)
 const tempKopFile = ref(null)
 const config = ref({ kopUrl: '' })
+const userData = ref(null)
+let unsubscribeUser = null
 
 const formDefault = {
   nomor: '',
@@ -526,6 +550,25 @@ const columns = [
   { name: 'aksi', align: 'center', label: 'AKSI', field: 'aksi' },
 ]
 
+/**
+ * LOGIKA SATPAM: Mengecek izin aksi granular (buat, ubah, hapus, approve)
+ * ID Target untuk Penawaran: _konstruksi_marketing_penawaran
+ */
+const canAction = (actionType) => {
+  if (authStore.user?.role === 'Super Admin') return true
+  if (!userData.value?.permissions_detail) return false
+
+  const modulePerm = userData.value.permissions_detail.find((m) => m.id === 'konstruksi')
+  if (!modulePerm || !modulePerm.isActive) return false
+
+  // ID Menu disesuaikan dengan generator rute: _konstruksi_marketing_penawaran
+  const targetId = '_konstruksi_marketing_penawaran'
+  const menu = modulePerm.menus.find((m) => m.id === targetId)
+
+  if (!menu) return false
+  return menu[actionType] || false
+}
+
 const fetchData = async () => {
   loading.value = true
   try {
@@ -543,7 +586,24 @@ const fetchData = async () => {
   loading.value = false
 }
 
-onMounted(fetchData)
+onMounted(() => {
+  // 1. Pantau Hak Akses User secara Real-time
+  const userEmail = authStore.user?.email
+  if (userEmail) {
+    const qUser = query(collection(db, 'karyawan'), where('email', '==', userEmail))
+    unsubscribeUser = onSnapshot(qUser, (snapshot) => {
+      if (!snapshot.empty) {
+        userData.value = snapshot.docs[0].data()
+      }
+    })
+  }
+
+  fetchData()
+})
+
+onUnmounted(() => {
+  if (unsubscribeUser) unsubscribeUser()
+})
 
 const calcRow = (idx) => {
   const it = form.value.items[idx]
@@ -616,8 +676,12 @@ const onCustomerChange = (val) => {
 }
 const confirmHapus = (row) => {
   $q.dialog({ title: 'Hapus Data', message: 'Yakin hapus data?', cancel: true }).onOk(async () => {
-    await deleteDoc(doc(db, 'penawaran', row.id))
-    fetchData()
+    try {
+      await deleteDoc(doc(db, 'penawaran', row.id))
+      fetchData()
+    } catch (e) {
+      console.error(e)
+    }
   })
 }
 const openPreview = (row) => {
@@ -835,19 +899,23 @@ const uploadKopPermanen = async (file) => {
   .final-pro-table th {
     background-color: #0d47a1 !important;
     color: white !important;
+    print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
   .row-calculation {
     background-color: #e3f2fd !important;
+    print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
   /* Pastikan warna grand total tetap muncul di cetakan */
   .row-grand-total {
     background-color: #0d47a1 !important;
+    print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
   .row-grand-total td {
     color: white !important;
+    print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
 }
