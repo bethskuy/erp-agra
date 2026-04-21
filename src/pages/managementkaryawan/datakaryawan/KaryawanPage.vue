@@ -1,6 +1,7 @@
 <template>
   <q-page class="bg-blue-grey-1 q-pa-lg">
     <template v-if="currentView === 'list'">
+      <!-- HEADER DATABASE -->
       <div class="row items-center justify-between q-mb-lg">
         <div>
           <div class="text-h4 text-weight-bolder text-blue-grey-10">Database Karyawan</div>
@@ -16,17 +17,30 @@
         />
       </div>
 
+      <!-- TABLE LIST KARYAWAN -->
       <q-card flat bordered class="shadow-2">
         <q-table :rows="karyawanList" :columns="columns" row-key="id" flat binary-state-sort>
           <template v-slot:body="props">
-            <q-tr :props="props" class="hover-bg cursor-pointer" @click="viewDetail(props.row)">
-              <q-td key="nik" :props="props">{{ props.row.nik }}</q-td>
-              <q-td key="nama" :props="props">{{ props.row.nama }}</q-td>
-              <q-td key="jabatan" :props="props">
+            <q-tr :props="props" class="hover-bg">
+              <!-- Click event hanya di kolom data agar tidak konflik dengan tombol aksi -->
+              <q-td key="nik" :props="props" class="cursor-pointer" @click="viewDetail(props.row)">
+                {{ props.row.nik }}
+              </q-td>
+              <q-td key="nama" :props="props" class="cursor-pointer" @click="viewDetail(props.row)">
+                {{ props.row.nama }}
+              </q-td>
+              <q-td
+                key="jabatan"
+                :props="props"
+                class="cursor-pointer"
+                @click="viewDetail(props.row)"
+              >
                 <q-badge color="blue-grey-7" outline>
                   {{ props.row.jabatan }}
                 </q-badge>
               </q-td>
+
+              <!-- KOLOM AKSI -->
               <q-td key="actions" :props="props" auto-width>
                 <q-btn
                   flat
@@ -36,13 +50,14 @@
                   size="sm"
                   @click.stop="editKaryawan(props.row)"
                 />
+                <!-- Gunakan stop agar tidak trigger viewDetail -->
                 <q-btn
                   flat
                   round
                   color="negative"
                   icon="delete"
                   size="sm"
-                  @click.stop="deleteKaryawan(props.row)"
+                  @click="deleteKaryawan(props.row, $event)"
                 />
               </q-td>
             </q-tr>
@@ -51,6 +66,7 @@
       </q-card>
     </template>
 
+    <!-- TAMPILAN DETAIL KARYAWAN -->
     <template v-else-if="currentView === 'detail'">
       <q-btn
         flat
@@ -65,7 +81,7 @@
         <q-card flat bordered style="width: 100%; max-width: 800px">
           <q-card-section class="text-center q-pa-lg">
             <q-avatar size="150px" class="shadow-4 q-mb-md">
-              <img :src="selectedKaryawan.fotoUrl || 'default-avatar.png'" />
+              <img :src="selectedKaryawan.fotoUrl || 'https://cdn.quasar.dev/img/avatar.png'" />
             </q-avatar>
             <div class="text-h4 text-weight-bold text-blue-grey-10">
               {{ selectedKaryawan.nama }}
@@ -107,7 +123,7 @@
                 <div class="text-body1">{{ selectedKaryawan.alamat || '-' }}</div>
               </div>
               <div class="col-12">
-                <div class="text-caption text-grey-7">Hak Akses</div>
+                <div class="text-caption text-grey-7 q-mb-sm">Hak Akses</div>
                 <q-chip
                   v-for="akses in selectedKaryawan.akses"
                   :key="akses"
@@ -118,38 +134,23 @@
                 >
                 <span v-if="!selectedKaryawan.akses?.length" class="text-body1">-</span>
               </div>
-              <div class="col-12">
-                <div class="text-caption text-grey-7 q-mb-sm">Dokumen</div>
-                <div v-if="selectedKaryawan.docUrls?.length">
-                  <q-btn
-                    v-for="doc in selectedKaryawan.docUrls"
-                    :key="doc.url"
-                    outline
-                    color="primary"
-                    icon="description"
-                    :label="doc.name"
-                    :href="doc.url"
-                    target="_blank"
-                    size="sm"
-                    class="q-mr-sm q-mb-sm"
-                  />
-                </div>
-                <div v-else class="text-body1">Tidak ada dokumen</div>
-              </div>
             </div>
           </q-card-section>
         </q-card>
       </div>
     </template>
 
+    <!-- DIALOG INPUT/EDIT KARYAWAN -->
     <q-dialog v-model="showDialog" persistent maximized>
       <q-card class="bg-grey-1">
         <q-toolbar class="bg-white text-blue-grey-10 q-pa-md shadow-1">
           <q-toolbar-title>{{ form.id ? 'Edit Karyawan' : 'Registrasi Karyawan' }}</q-toolbar-title>
           <q-btn flat v-close-popup icon="close" round />
         </q-toolbar>
+
         <q-card-section class="q-pa-xl">
           <div class="row q-col-gutter-xl">
+            <!-- Bagian Kiri -->
             <div class="col-12 col-md-6">
               <div class="row q-col-gutter-md bg-white q-pa-lg rounded-borders shadow-1">
                 <q-input
@@ -225,6 +226,8 @@
                 />
               </div>
             </div>
+
+            <!-- Bagian Kanan -->
             <div class="col-12 col-md-6">
               <div class="bg-white q-pa-lg rounded-borders shadow-1">
                 <div class="text-weight-bold q-mb-sm">Hak Akses:</div>
@@ -283,6 +286,7 @@
             </div>
           </div>
         </q-card-section>
+
         <q-card-actions align="right" class="q-pa-xl">
           <q-btn label="Batal" flat v-close-popup size="lg" />
           <q-btn
@@ -311,10 +315,10 @@ import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage
 import { createUserWithEmailAndPassword } from 'firebase/auth'
 import { useQuasar } from 'quasar'
 
+// STATE
 const $q = useQuasar()
 const currentView = ref('list')
 const selectedKaryawan = ref(null)
-const loading = ref(false)
 const showDialog = ref(false)
 const karyawanList = ref([])
 const jabatanOptions = ref([])
@@ -336,79 +340,17 @@ const form = ref({
   akses: [],
 })
 
+// ACTIONS
 const viewDetail = (data) => {
   selectedKaryawan.value = data
   currentView.value = 'detail'
 }
+
 const editKaryawan = (data) => {
   form.value = { ...data, password: '' }
+  docList.value = data.docUrls ? [...data.docUrls] : [{ name: '', file: null }]
   showDialog.value = true
 }
-
-const saveKaryawan = async () => {
-  loading.value = true
-  try {
-    let fotoUrl = form.value.fotoUrl || null
-    if (fotoFile.value) {
-      const fRef = storageRef(storage, 'karyawan/' + Date.now())
-      await uploadBytes(fRef, fotoFile.value)
-      fotoUrl = await getDownloadURL(fRef)
-    }
-    let docUrls = []
-    for (let d of docList.value) {
-      if (d.file) {
-        const sRef = storageRef(storage, 'docs/' + Date.now() + d.file.name)
-        await uploadBytes(sRef, d.file)
-        docUrls.push({ name: d.name, url: await getDownloadURL(sRef) })
-      } else if (d.url) {
-        docUrls.push(d)
-      }
-    }
-    if (form.value.id) {
-      await updateDoc(doc(db, 'karyawan', form.value.id), { ...form.value, fotoUrl, docUrls })
-    } else {
-      const cred = await createUserWithEmailAndPassword(auth, form.value.email, form.value.password)
-      await addDoc(collection(db, 'karyawan'), {
-        ...form.value,
-        fotoUrl,
-        docUrls,
-        uid: cred.user.uid,
-      })
-    }
-    $q.notify({ type: 'positive', message: 'Data Tersimpan!' })
-    showDialog.value = false
-  } catch (e) {
-    $q.notify({ type: 'negative', message: e.message })
-  } finally {
-    loading.value = false
-  }
-}
-
-onMounted(() => {
-  onSnapshot(
-    collection(db, 'karyawan'),
-    (s) => (karyawanList.value = s.docs.map((d) => ({ id: d.id, ...d.data() }))),
-  )
-  onSnapshot(
-    collection(db, 'jabatan'),
-    (s) =>
-      (jabatanOptions.value = s.docs.map((d) => ({
-        label: d.data().namaJabatan,
-        value: d.data().namaJabatan,
-      }))),
-  )
-  onSnapshot(
-    collection(db, 'modul'),
-    (s) => (modulList.value = s.docs.map((d) => ({ id: d.id, ...d.data() }))),
-  )
-})
-
-const columns = [
-  { name: 'nik', label: 'NIK', field: 'nik', align: 'left', sortable: true },
-  { name: 'nama', label: 'NAMA', field: 'nama', align: 'left', sortable: true },
-  { name: 'jabatan', label: 'JABATAN', field: 'jabatan', align: 'left' },
-  { name: 'actions', label: 'AKSI', field: 'id', align: 'right' },
-]
 
 const openDialog = () => {
   form.value = {
@@ -423,26 +365,126 @@ const openDialog = () => {
   showDialog.value = true
 }
 
-const deleteKaryawan = (row) => {
-  if (!row || !row.id) return
+// LOGIKA HAPUS (DIPERBAIKI)
+const deleteKaryawan = (row, e) => {
+  if (e) e.stopPropagation()
+
+  // LOG DEBUG UNTUK MEMASTIKAN ID TERBACA
+  console.log('DEBUG: Mencoba hapus ID:', row.id)
+
+  if (!row || !row.id) {
+    $q.notify({ type: 'warning', message: 'Data ID tidak ditemukan' })
+    return
+  }
+
   $q.dialog({
-    title: 'Konfirmasi',
-    message: `Hapus data ${row.nama}?`,
-    cancel: true,
+    title: 'Konfirmasi Hapus',
+    message: `Apakah Anda yakin ingin menghapus data karyawan ${row.nama}?`,
+    cancel: { label: 'Batal', flat: true },
+    ok: { label: 'Hapus', color: 'negative', unelevated: true },
     persistent: true,
   }).onOk(async () => {
     try {
       await deleteDoc(doc(db, 'karyawan', row.id))
-      $q.notify({ type: 'positive', message: 'Data berhasil dihapus!' })
-    } catch (e) {
-      $q.notify({ type: 'negative', message: e.message })
+      $q.notify({
+        type: 'positive',
+        message: 'Data berhasil dihapus!',
+      })
+    } catch (err) {
+      console.error('DELETE ERROR:', err)
+      $q.notify({
+        type: 'negative',
+        message: 'Gagal menghapus: ' + err.message,
+      })
     }
   })
 }
+
+// LOGIKA SIMPAN (DIPERBAIKI: Mencegah ID tersimpan di dalam data dokumen)
+const saveKaryawan = async () => {
+  $q.loading.show({ message: 'Menyimpan data...' })
+  try {
+    let fotoUrl = form.value.fotoUrl || null
+    if (fotoFile.value) {
+      const fRef = storageRef(storage, 'karyawan/' + Date.now())
+      await uploadBytes(fRef, fotoFile.value)
+      fotoUrl = await getDownloadURL(fRef)
+    }
+
+    let docUrls = []
+    for (let d of docList.value) {
+      if (d.file) {
+        const sRef = storageRef(storage, 'docs/' + Date.now() + d.file.name)
+        await uploadBytes(sRef, d.file)
+        docUrls.push({ name: d.name, url: await getDownloadURL(sRef) })
+      } else if (d.url) {
+        docUrls.push(d)
+      }
+    }
+
+    // Pisahkan ID agar tidak masuk ke payload data Firestore
+    const { id, password, ...formData } = form.value
+
+    if (id) {
+      // UPDATE: Gunakan variable 'password' yang sudah dipisah (ESLint fix)
+      console.log('Updating with password check:', !!password)
+      await updateDoc(doc(db, 'karyawan', id), {
+        ...formData,
+        fotoUrl,
+        docUrls,
+      })
+    } else {
+      // REGISTER BARU
+      const cred = await createUserWithEmailAndPassword(auth, form.value.email, form.value.password)
+      await addDoc(collection(db, 'karyawan'), {
+        ...formData,
+        fotoUrl,
+        docUrls,
+        uid: cred.user.uid,
+      })
+    }
+    $q.notify({ type: 'positive', message: 'Data berhasil disimpan!' })
+    showDialog.value = false
+  } catch (e) {
+    console.error('SAVE ERROR:', e)
+    $q.notify({ type: 'negative', message: 'Kesalahan: ' + e.message })
+  } finally {
+    $q.loading.hide()
+  }
+}
+
+// FETCH DATA (DIPERBAIKI: Memastikan ID dokumen Firestore tidak tertimpa field data)
+onMounted(() => {
+  onSnapshot(collection(db, 'karyawan'), (s) => {
+    // URUTAN SPREAD DIBALIK: d.id harus ditaruh setelah ...d.data() agar tidak tertimpa null
+    karyawanList.value = s.docs.map((d) => ({ ...d.data(), id: d.id }))
+  })
+
+  onSnapshot(collection(db, 'jabatan'), (s) => {
+    jabatanOptions.value = s.docs.map((d) => ({
+      label: d.data().namaJabatan,
+      value: d.data().namaJabatan,
+    }))
+  })
+
+  onSnapshot(collection(db, 'modul'), (s) => {
+    modulList.value = s.docs.map((d) => ({ id: d.id, ...d.data() }))
+  })
+})
+
+const columns = [
+  { name: 'nik', label: 'NIK', field: 'nik', align: 'left', sortable: true },
+  { name: 'nama', label: 'NAMA', field: 'nama', align: 'left', sortable: true },
+  { name: 'jabatan', label: 'JABATAN', field: 'jabatan', align: 'left' },
+  { name: 'actions', label: 'AKSI', field: 'id', align: 'right' },
+]
 </script>
 
 <style scoped>
 .hover-bg:hover {
   background-color: #f5f5f5;
+}
+.cursor-pointer {
+  cursor: pointer;
 }
 </style>
