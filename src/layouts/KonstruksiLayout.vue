@@ -21,9 +21,9 @@
       <div class="column fit">
         <q-scroll-area class="col">
           <q-list padding class="text-grey-9 text-weight-medium">
-            <!-- DASHBOARD: Selalu tampil jika modul konstruksi aktif -->
+            <!-- DASHBOARD: Sekarang menggunakan checkPermission('dashboard') -->
             <q-item
-              v-if="isModulActive"
+              v-if="checkPermission('dashboard')"
               clickable
               v-ripple
               to="/konstruksi/dashboard"
@@ -329,19 +329,12 @@ const userData = ref(null)
 let unsubscribeUser = null
 let unsubscribeApproval = null
 
-/**
- * Pengecekan apakah modul Konstruksi aktif secara keseluruhan
- */
 const isModulActive = computed(() => {
   if (authStore.user?.role === 'Super Admin') return true
   const moduleInfo = userData.value?.permissions_detail?.find((m) => m.id === 'konstruksi')
   return moduleInfo?.isActive || false
 })
 
-/**
- * Fungsi Inti: Mengecek izin 'lihat' untuk menu tertentu
- * ID menu disesuaikan dengan generator di AksesPage.vue: '/konstruksi_' + path
- */
 const checkPermission = (menuPath) => {
   if (authStore.user?.role === 'Super Admin') return true
   if (!userData.value?.permissions_detail) return false
@@ -349,24 +342,18 @@ const checkPermission = (menuPath) => {
   const modulePerm = userData.value.permissions_detail.find((m) => m.id === 'konstruksi')
   if (!modulePerm || !modulePerm.isActive) return false
 
-  // Format ID menu harus sama dengan yang disimpan AksesPage.vue
   const targetId = `/konstruksi_${menuPath}`.replace(/\//g, '_')
   const menu = modulePerm.menus.find((m) => m.id === targetId)
 
   return menu ? menu.lihat : false
 }
 
-/**
- * Pengecekan apakah sebuah kategori (expansion item) harus tampil
- * Tampil jika minimal ada satu menu di dalamnya yang diizinkan
- */
 const hasSectionAccess = (menuPaths) => {
   if (authStore.user?.role === 'Super Admin') return true
   return menuPaths.some((path) => checkPermission(path))
 }
 
 onMounted(() => {
-  // 1. Pantau Hak Akses User Real-time
   const userEmail = authStore.user?.email
   if (userEmail) {
     const qUser = query(collection(db, 'karyawan'), where('email', '==', userEmail))
@@ -377,7 +364,6 @@ onMounted(() => {
     })
   }
 
-  // 2. Pantau Pending Approval Count
   const qApproval = query(collection(db, 'penawaran'), where('status', '==', 'Pending'))
   unsubscribeApproval = onSnapshot(qApproval, (snapshot) => {
     pendingApprovalCount.value = snapshot.size
