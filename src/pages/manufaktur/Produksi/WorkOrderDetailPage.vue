@@ -1,120 +1,174 @@
 <template>
   <q-page class="bg-grey-2 q-pa-lg">
-
-    <!-- HEADER -->
     <div class="row items-center justify-between q-mb-lg">
       <div>
-        <div class="text-h4 text-weight-bold text-teal-10">
-          {{ wo.kode }}
+        <div class="row items-center">
+          <q-btn
+            flat
+            round
+            icon="arrow_back"
+            color="teal-10"
+            @click="$router.back()"
+            class="q-mr-sm"
+          />
+          <div class="text-h4 text-weight-bold text-teal-10">
+            {{ wo?.kode || 'Loading...' }}
+          </div>
         </div>
-        <div class="text-subtitle2 text-grey-6">
-          {{ wo.produk }}
+        <div class="text-subtitle2 text-grey-6 q-ml-xl">
+          Product: {{ wo?.productName || wo?.produk }}
         </div>
       </div>
 
       <div class="row q-gutter-sm">
-        <q-btn color="primary" label="Start" icon="play_arrow" @click="startProduction" />
-        <q-btn color="positive" label="Finish" icon="check" @click="finishProduction" />
-        <q-btn flat icon="arrow_back" @click="$router.back()" />
+        <q-btn
+          color="teal-10"
+          label="Start Production"
+          icon="play_arrow"
+          @click="startProduction"
+          v-if="status === 'Pending'"
+        />
+        <q-btn
+          color="positive"
+          label="Mark as Done"
+          icon="check"
+          @click="finishProduction"
+          v-if="status === 'Proses'"
+        />
       </div>
     </div>
 
-    <!-- INFO -->
-    <q-card class="q-mb-lg">
-      <q-card-section class="row justify-between">
-        <div>
-          <div class="text-subtitle2">Jumlah Order</div>
-          <div class="text-h6">{{ wo.jumlah }}</div>
+    <q-card flat class="q-mb-lg rounded-borders shadow-sm">
+      <q-card-section class="row justify-around items-center">
+        <div class="text-center">
+          <div class="text-subtitle2 text-grey-7">Target Order</div>
+          <div class="text-h5 text-weight-bold">{{ wo?.jumlah }} Unit</div>
         </div>
-
-        <div>
-          <div class="text-subtitle2">Progress</div>
-          <div class="text-h6 text-teal">{{ progress }}%</div>
+        <q-separator vertical inset />
+        <div class="text-center">
+          <div class="text-subtitle2 text-grey-7">Progress</div>
+          <div class="text-h5 text-weight-bold text-teal">{{ progress }}%</div>
         </div>
-
-        <div>
-          <q-badge :color="getStatusColor(status)">
+        <q-separator vertical inset />
+        <div class="text-center">
+          <div class="text-subtitle2 text-grey-7">Status</div>
+          <q-badge :color="getStatusColor(status)" class="q-pa-sm">
             {{ status }}
           </q-badge>
         </div>
       </q-card-section>
-
-      <q-linear-progress :value="progress / 100" color="teal" size="12px" />
+      <q-linear-progress :value="progress / 100" color="teal" size="10px" />
     </q-card>
 
-    <!-- INPUT HASIL -->
-    <q-card class="q-mb-lg">
+    <q-card flat class="q-mb-lg rounded-borders shadow-sm bg-white" v-if="status !== 'Selesai'">
       <q-card-section class="row items-center q-gutter-md">
-        <q-input v-model.number="inputHasil" type="number" label="Jumlah Hasil" style="width: 200px" />
-        <q-input v-model="inputKeterangan" label="Keterangan" style="width: 300px" />
-
-        <q-btn color="primary" icon="add" label="Input Hasil" @click="tambahHasil" />
+        <div class="text-subtitle1 text-weight-bold text-teal-10">Recording Production Result:</div>
+        <q-input
+          outlined
+          dense
+          v-model.number="inputHasil"
+          type="number"
+          label="Jumlah Hasil"
+          style="width: 150px"
+        />
+        <q-input
+          outlined
+          dense
+          v-model="inputKeterangan"
+          label="Catatan / QC"
+          style="flex-grow: 1"
+        />
+        <q-btn color="teal-10" icon="add" label="Submit & Deduct Stock" @click="tambahHasil" />
       </q-card-section>
     </q-card>
 
-    <!-- TABS -->
-    <q-tabs v-model="tab" class="text-teal">
-      <q-tab name="result" label="Production Result" />
-      <q-tab name="steps" label="Production Steps" />
-      <q-tab name="timeline" label="Timeline" />
-    </q-tabs>
+    <q-card flat class="rounded-borders shadow-sm">
+      <q-tabs v-model="tab" class="text-teal-10" align="left" inline-label>
+        <q-tab name="components" icon="extension" label="Components (BOM)" />
+        <q-tab name="result" icon="assignment_turned_in" label="Results" />
+        <q-tab name="steps" icon="formatting_list_numbered" label="Work Steps" />
+        <q-tab name="timeline" icon="history" label="Log History" />
+      </q-tabs>
 
-    <q-separator />
+      <q-separator />
 
-    <q-tab-panels v-model="tab" animated>
-
-      <!-- RESULT -->
-      <q-tab-panel name="result">
-        <q-table :rows="results" :columns="resultColumns" row-key="id" />
-      </q-tab-panel>
-
-      <!-- STEPS -->
-      <q-tab-panel name="steps">
-        <q-table :rows="steps" :columns="stepColumns" row-key="id">
-          <template v-slot:body-cell-status="props">
-            <q-td>
-              <q-badge :color="getStatusColor(props.row.status)">
-                {{ props.row.status }}
-              </q-badge>
-            </q-td>
-          </template>
-
-          <!-- 🔥 tombol DONE -->
-          <template v-slot:body-cell-action="props">
-            <q-td>
-              <q-btn
-                dense flat icon="check" color="positive"
-                @click="markStepDone(props.row)"
-              />
-            </q-td>
-          </template>
-        </q-table>
-      </q-tab-panel>
-
-      <!-- TIMELINE -->
-      <q-tab-panel name="timeline">
-        <q-timeline color="teal">
-          <q-timeline-entry
-            v-for="log in logs"
-            :key="log.id"
-            :title="log.activity"
-            :subtitle="formatDate(log.created_at)"
+      <q-tab-panels v-model="tab" animated>
+        <q-tab-panel name="components">
+          <q-table
+            :rows="bomComponents"
+            :columns="compColumns"
+            row-key="materialId"
+            flat
+            bordered
+            hide-bottom
           >
-            {{ log.description }}
-          </q-timeline-entry>
-        </q-timeline>
-      </q-tab-panel>
+            <template v-slot:body-cell-to_consume="props">
+              <q-td :props="props" class="text-weight-bold">
+                {{ props.row.qty * (wo?.jumlah || 1) }} {{ props.row.satuan }}
+              </q-td>
+            </template>
+            <template v-slot:body-cell-status="props">
+              <q-td :props="props">
+                <q-badge
+                  :color="props.row.stok >= props.row.qty * wo?.jumlah ? 'positive' : 'negative'"
+                >
+                  {{
+                    props.row.stok >= props.row.qty * wo?.jumlah ? 'Ready' : 'Insufficient Stock'
+                  }}
+                </q-badge>
+              </q-td>
+            </template>
+          </q-table>
+        </q-tab-panel>
 
-    </q-tab-panels>
+        <q-tab-panel name="result">
+          <q-table :rows="results" :columns="resultColumns" row-key="id" flat bordered />
+        </q-tab-panel>
 
+        <q-tab-panel name="steps">
+          <q-table :rows="steps" :columns="stepColumns" flat bordered>
+            <template v-slot:body-cell-status="props">
+              <q-td :props="props">
+                <q-badge :color="getStatusColor(props.row.status)">{{ props.row.status }}</q-badge>
+              </q-td>
+            </template>
+            <template v-slot:body-cell-action="props">
+              <q-td :props="props">
+                <q-btn
+                  dense
+                  flat
+                  icon="check_circle"
+                  color="positive"
+                  @click="markStepDone(props.row)"
+                  v-if="props.row.status !== 'Selesai'"
+                />
+              </q-td>
+            </template>
+          </q-table>
+        </q-tab-panel>
+
+        <q-tab-panel name="timeline">
+          <q-timeline color="teal-10" class="q-px-md">
+            <q-timeline-entry
+              v-for="log in logs"
+              :key="log.id"
+              :title="log.activity"
+              :subtitle="formatDate(log.created_at)"
+              :icon="log.activity === 'Start' ? 'play_arrow' : 'history'"
+            >
+              {{ log.description }}
+            </q-timeline-entry>
+          </q-timeline>
+        </q-tab-panel>
+      </q-tab-panels>
+    </q-card>
   </q-page>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
-
-// FIREBASE
+import { useQuasar } from 'quasar'
 import { db } from 'src/boot/firebase'
 import {
   doc,
@@ -122,144 +176,166 @@ import {
   collection,
   addDoc,
   updateDoc,
-  onSnapshot
+  onSnapshot,
+  query,
+  where,
+  getDocs,
+  increment,
 } from 'firebase/firestore'
 
 const route = useRoute()
+const $q = useQuasar()
 
-const wo = ref({})
+// STATE
+const wo = ref(null)
 const results = ref([])
 const steps = ref([])
 const logs = ref([])
-
-const progress = ref(0)
-const status = ref('Pending')
-const tab = ref('result')
-
+const bomComponents = ref([])
+const tab = ref('components')
 const inputHasil = ref(0)
 const inputKeterangan = ref('')
 
-// ================= REALTIME =================
-const listenData = () => {
+// LOGIKA PROGRESS
+const progress = computed(() => {
+  if (!wo.value || !wo.value.jumlah) return 0
+  const total = results.value.reduce((sum, r) => sum + Number(r.jumlah_hasil || 0), 0)
+  return Math.min(100, Math.round((total / wo.value.jumlah) * 100))
+})
+
+const status = computed(() => {
+  if (progress.value === 0) return 'Pending'
+  if (progress.value < 100) return 'Proses'
+  return 'Selesai'
+})
+
+// LOAD DATA
+const loadData = async () => {
   const id = route.params.id
+  if (!id) return
 
-  onSnapshot(collection(db, 'production_results'), (snap) => {
-    results.value = snap.docs
-      .map(d => ({ id: d.id, ...d.data() }))
-      .filter(r => r.work_order_id === id)
-    hitungProgress()
-  })
-
-  onSnapshot(collection(db, 'production_steps'), (snap) => {
-    steps.value = snap.docs
-      .map(d => ({ id: d.id, ...d.data() }))
-      .filter(s => s.work_order_id === id)
-  })
-
-  onSnapshot(collection(db, 'production_logs'), (snap) => {
-    logs.value = snap.docs
-      .map(d => ({ id: d.id, ...d.data() }))
-      .filter(l => l.work_order_id === id)
-  })
-}
-
-// ================= LOAD WO =================
-const loadWO = async () => {
-  const id = route.params.id
   const woSnap = await getDoc(doc(db, 'work_orders', id))
-  wo.value = woSnap.data()
-}
-
-// ================= PROGRESS =================
-const hitungProgress = () => {
-  const totalHasil = results.value.reduce((sum, r) => sum + Number(r.jumlah_hasil || 0), 0)
-
-  if (wo.value.jumlah > 0) {
-    progress.value = Math.min(100, Math.round((totalHasil / wo.value.jumlah) * 100))
+  if (woSnap.exists()) {
+    wo.value = { id: woSnap.id, ...woSnap.data() }
+    loadBOM(wo.value.productName || wo.value.produk)
   }
 
-  if (progress.value === 0) status.value = 'Pending'
-  else if (progress.value < 100) status.value = 'Proses'
-  else status.value = 'Selesai'
+  onSnapshot(
+    query(collection(db, 'production_results'), where('work_order_id', '==', id)),
+    (snap) => {
+      results.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+    },
+  )
+
+  onSnapshot(
+    query(collection(db, 'production_steps'), where('work_order_id', '==', id)),
+    (snap) => {
+      steps.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+    },
+  )
+
+  onSnapshot(query(collection(db, 'production_logs'), where('work_order_id', '==', id)), (snap) => {
+    logs.value = snap.docs
+      .map((d) => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => b.created_at - a.created_at)
+  })
 }
 
-// ================= TAMBAH HASIL =================
+const loadBOM = async (productName) => {
+  const q = query(collection(db, 'boms'), where('productName', '==', productName))
+  const snap = await getDocs(q)
+  if (!snap.empty) {
+    const materials = snap.docs[0].data().materials
+    const list = []
+    for (const m of materials) {
+      const matSnap = await getDoc(doc(db, 'materials', m.materialId))
+      list.push({ ...m, stok: matSnap.exists() ? matSnap.data().stok : 0 })
+    }
+    bomComponents.value = list
+  }
+}
+
+// ACTION: INPUT HASIL & POTONG STOK
 const tambahHasil = async () => {
-  if (!inputHasil.value || inputHasil.value <= 0) return
+  if (inputHasil.value <= 0) return
 
-  const total = results.value.reduce((s, r) => s + Number(r.jumlah_hasil || 0), 0)
+  $q.loading.show({ message: 'Updating Inventory...' })
+  try {
+    await addDoc(collection(db, 'production_results'), {
+      work_order_id: route.params.id,
+      jumlah_hasil: inputHasil.value,
+      keterangan: inputKeterangan.value,
+      created_at: new Date(),
+    })
 
-  if (total + inputHasil.value > wo.value.jumlah) {
-    alert('Over produksi!')
-    return
+    for (const item of bomComponents.value) {
+      const materialRef = doc(db, 'materials', item.materialId)
+      const totalPotong = item.qty * inputHasil.value
+      await updateDoc(materialRef, { stok: increment(-totalPotong) })
+    }
+
+    await addDoc(collection(db, 'production_logs'), {
+      work_order_id: route.params.id,
+      activity: 'Production Update',
+      description: `Produced ${inputHasil.value} units. Raw materials deducted.`,
+      created_at: new Date(),
+    })
+
+    inputHasil.value = 0
+    inputKeterangan.value = ''
+    $q.notify({ type: 'positive', message: 'Inventory Updated!' })
+  } catch (error) {
+    console.error(error)
+    $q.notify({ type: 'negative', message: 'System Error' })
+  } finally {
+    $q.loading.hide()
   }
-
-  await addDoc(collection(db, 'production_results'), {
-    work_order_id: route.params.id,
-    jumlah_hasil: inputHasil.value,
-    keterangan: inputKeterangan.value,
-    created_at: new Date(),
-  })
-
-  await addDoc(collection(db, 'production_logs'), {
-    work_order_id: route.params.id,
-    activity: 'Input Result',
-    description: `Tambah ${inputHasil.value}`,
-    created_at: new Date(),
-  })
-
-  inputHasil.value = 0
-  inputKeterangan.value = ''
 }
 
-// ================= STEP DONE =================
 const markStepDone = async (step) => {
-  await updateDoc(doc(db, 'production_steps', step.id), {
-    status: 'Selesai'
-  })
-
-  await addDoc(collection(db, 'production_logs'), {
-    work_order_id: route.params.id,
-    activity: 'Step Done',
-    description: `${step.nama_step} selesai`,
-    created_at: new Date(),
-  })
+  await updateDoc(doc(db, 'production_steps', step.id), { status: 'Selesai' })
 }
 
-// ================= ACTION =================
 const startProduction = async () => {
   await addDoc(collection(db, 'production_logs'), {
     work_order_id: route.params.id,
     activity: 'Start',
-    description: 'Produksi dimulai',
+    description: 'Production line activated.',
     created_at: new Date(),
   })
 }
 
-const finishProduction = async () => {
-  await addDoc(collection(db, 'production_logs'), {
-    work_order_id: route.params.id,
-    activity: 'Finish',
-    description: 'Produksi selesai',
-    created_at: new Date(),
-  })
-}
+// UTILS
+const formatDate = (d) => (d?.toDate ? d.toDate().toLocaleString() : '-')
+const getStatusColor = (s) => (s === 'Selesai' ? 'positive' : s === 'Proses' ? 'orange' : 'grey')
 
-// ================= UTIL =================
-const formatDate = (d) => {
-  if (!d) return '-'
-  return new Date(d.seconds * 1000).toLocaleString()
-}
+const compColumns = [
+  { name: 'nama', label: 'Component', field: 'nama', align: 'left' },
+  { name: 'to_consume', label: 'To Consume', align: 'right' },
+  { name: 'stok', label: 'Reserved Stock', field: 'stok', align: 'right' },
+  { name: 'status', label: 'Availability', align: 'center' },
+]
 
-const getStatusColor = (s) => {
-  if (s === 'Pending') return 'grey'
-  if (s === 'Proses') return 'orange'
-  if (s === 'Selesai') return 'positive'
-}
+const resultColumns = [
+  { name: 'tgl', label: 'Date', field: (row) => formatDate(row.created_at), align: 'left' },
+  { name: 'jumlah', label: 'Qty', field: 'jumlah_hasil', align: 'center' },
+  { name: 'ket', label: 'Notes', field: 'keterangan', align: 'left' },
+]
 
-// ================= LOAD =================
-onMounted(async () => {
-  await loadWO()
-  listenData()
-})
+const stepColumns = [
+  { name: 'nama_step', label: 'Operation', field: 'nama_step', align: 'left' },
+  { name: 'status', label: 'Status', align: 'center' },
+  { name: 'action', label: 'Action', align: 'center' },
+]
+
+onMounted(loadData)
 </script>
+
+<style scoped>
+.rounded-borders {
+  border-radius: 12px;
+}
+.shadow-sm {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+</style>

@@ -26,7 +26,7 @@
           </q-item>
         </q-expansion-item>
 
-        <!-- 🔥 MASTER (INI YANG KAMU BUTUH) -->
+        <!-- MASTER DATA -->
         <q-expansion-item icon="inventory" label="Master Data" expand-separator>
           <q-item clickable v-ripple to="/manufaktur/material">
             <q-item-section avatar>
@@ -48,8 +48,14 @@
     <!-- HEADER -->
     <q-header elevated class="bg-teal-8 text-white">
       <q-toolbar>
+        <!-- MENU -->
         <q-btn flat dense round icon="menu" @click="leftDrawerOpen = !leftDrawerOpen" />
+
+        <!-- TITLE -->
         <q-toolbar-title>Agra ERP - Manufacture</q-toolbar-title>
+
+        <!-- 🔥 TOMBOL BALIK KE HOME -->
+        <q-btn flat dense round icon="home" @click="$router.push('/')" />
       </q-toolbar>
     </q-header>
 
@@ -62,5 +68,6 @@
 
 <script setup>
 import { ref } from 'vue'
+
 const leftDrawerOpen = ref(true)
 </script>

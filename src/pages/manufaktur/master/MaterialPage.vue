@@ -1,76 +1,249 @@
 <template>
-  <q-page padding>
-    <div class="text-h5 q-mb-md">Detail Work Order</div>
+  <q-page class="bg-grey-2 q-pa-lg">
+    <div class="row items-center justify-between q-mb-lg">
+      <div>
+        <div class="text-h4 text-weight-bold text-teal-10">Material Inventory</div>
+        <div class="text-subtitle2 text-grey-6">Manajemen aset bahan baku produksi real-time</div>
+      </div>
 
-    <q-card class="q-pa-md q-mb-md">
-      <div><b>Kode:</b> {{ wo.kode }}</div>
-      <div><b>Produk:</b> {{ wo.produk }}</div>
-      <div><b>Jumlah:</b> {{ wo.jumlah }}</div>
-      <div><b>Status:</b> {{ wo.status }}</div>
+      <div class="row q-gutter-sm">
+        <q-btn outline color="teal-10" icon="download" label="Export CSV" />
+        <q-btn color="teal-10" icon="add" label="Tambah Material" @click="openDialog" />
+      </div>
+    </div>
+
+    <div class="row q-col-gutter-md q-mb-lg">
+      <div class="col-12 col-md-3">
+        <q-card flat class="bg-white q-pa-md rounded-borders shadow-sm">
+          <div class="text-grey-7">Total Item</div>
+          <div class="text-h5 text-weight-bold">{{ rows.length }} SKU</div>
+        </q-card>
+      </div>
+      <div class="col-12 col-md-3">
+        <q-card flat class="bg-red-1 q-pa-md rounded-borders shadow-sm">
+          <div class="text-red-7">Stok Kritis</div>
+          <div class="text-h5 text-weight-bold text-red-9">{{ lowStockCount }} Item</div>
+        </q-card>
+      </div>
+    </div>
+
+    <q-card flat class="rounded-borders shadow-sm">
+      <q-table
+        :rows="rows"
+        :columns="columns"
+        row-key="id"
+        flat
+        bordered
+        :pagination="{ rowsPerPage: 10 }"
+      >
+        <template v-slot:body-cell-stok="props">
+          <q-td :props="props">
+            <q-badge :color="props.row.stok <= (props.row.minStok || 0) ? 'red' : 'green'">
+              {{ props.row.stok }} {{ props.row.satuan }}
+            </q-badge>
+            <div
+              v-if="props.row.stok <= (props.row.minStok || 0)"
+              class="text-caption text-red text-weight-bold"
+            >
+              Harus Restock!
+            </div>
+          </q-td>
+        </template>
+
+        <template v-slot:body-cell-harga="props">
+          <q-td :props="props">
+            Rp {{ props.row.harga ? props.row.harga.toLocaleString() : 0 }}
+          </q-td>
+        </template>
+
+        <template v-slot:body-cell-actions="props">
+          <q-td :props="props" class="q-gutter-xs">
+            <q-btn dense flat icon="edit" color="primary" @click="editMaterial(props.row)">
+              <q-tooltip>Edit Data</q-tooltip>
+            </q-btn>
+            <q-btn dense flat icon="delete" color="negative" @click="confirmDelete(props.row.id)">
+              <q-tooltip>Hapus</q-tooltip>
+            </q-btn>
+          </q-td>
+        </template>
+      </q-table>
     </q-card>
 
-    <q-btn color="green" label="PRODUKSI SEKARANG" @click="prosesProduksi" />
+    <q-dialog v-model="dialog" persistent>
+      <q-card style="min-width: 450px" class="rounded-borders">
+        <q-card-section class="bg-teal-10 text-white">
+          <div class="text-h6">
+            <q-icon name="inventory_2" class="q-mr-sm" />
+            {{ isEdit ? 'Update Data Material' : 'Registrasi Material Baru' }}
+          </div>
+        </q-card-section>
+
+        <q-card-section class="q-gutter-md q-pt-lg">
+          <q-input outlined v-model="form.nama" label="Nama Material" />
+
+          <div class="row q-col-gutter-sm">
+            <div class="col-6">
+              <q-input outlined v-model.number="form.stok" type="number" label="Stok Awal" />
+            </div>
+            <div class="col-6">
+              <q-input outlined v-model.number="form.minStok" type="number" label="Minimal Stok" />
+            </div>
+          </div>
+
+          <div class="row q-col-gutter-sm">
+            <div class="col-6">
+              <q-input outlined v-model="form.satuan" label="Satuan" />
+            </div>
+            <div class="col-6">
+              <q-input
+                outlined
+                v-model.number="form.harga"
+                type="number"
+                label="Harga per Satuan"
+                prefix="Rp"
+              />
+            </div>
+          </div>
+        </q-card-section>
+
+        <q-card-actions align="right" class="q-pa-md">
+          <q-btn flat label="Batal" color="grey-7" v-close-popup />
+          <q-btn
+            unelevated
+            color="teal-10"
+            icon="save"
+            label="Simpan Data"
+            @click="simpanMaterial"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
-import { db } from 'boot/firebase'
-import { doc, getDoc, updateDoc, collection, getDocs } from 'firebase/firestore'
+import { ref, onMounted, computed } from 'vue'
+import { db } from 'src/boot/firebase'
+import { collection, getDocs, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore'
+import { useQuasar } from 'quasar'
 
-const route = useRoute()
-const wo = ref({})
+const $q = useQuasar()
 
-onMounted(async () => {
-  const snap = await getDoc(doc(db, 'work_orders', route.params.id))
-  wo.value = snap.data()
+const columns = [
+  { name: 'nama', label: 'MATERIAL NAME', field: 'nama', align: 'left', sortable: true },
+  { name: 'stok', label: 'CURRENT STOCK', field: 'stok', align: 'center', sortable: true },
+  { name: 'harga', label: 'UNIT PRICE (Rp)', field: 'harga', align: 'right', sortable: true },
+  { name: 'satuan', label: 'UoM', field: 'satuan', align: 'left' },
+  { name: 'actions', label: 'OPERATIONS', field: 'actions', align: 'center' },
+]
+
+const rows = ref([])
+const dialog = ref(false)
+const isEdit = ref(false)
+const selectedId = ref(null)
+
+const form = ref({
+  nama: '',
+  stok: 0,
+  minStok: 5,
+  satuan: '',
+  harga: 0,
 })
 
-const prosesProduksi = async () => {
-  // 🔥 1. Ambil BOM sesuai produk
-  const bomSnap = await getDocs(collection(db, 'boms'))
+const lowStockCount = computed(() => {
+  return rows.value.filter((item) => item.stok <= (item.minStok || 0)).length
+})
 
-  const bomList = bomSnap.docs.map((d) => d.data()).filter((b) => b.produk === wo.value.produk)
-
-  if (bomList.length === 0) {
-    alert('BOM tidak ditemukan!')
-    return
+const getData = async () => {
+  $q.loading.show({ message: 'Menghubungkan ke server...' })
+  try {
+    const snapshot = await getDocs(collection(db, 'materials'))
+    rows.value = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }))
+  } catch (error) {
+    console.error(error)
+    $q.notify({ color: 'negative', message: 'Gagal sinkronisasi data' })
+  } finally {
+    $q.loading.hide()
   }
-
-  // 🔥 2. Loop semua material di BOM
-  for (let bom of bomList) {
-    const totalKebutuhan = bom.qty * wo.value.jumlah
-
-    // 🔥 3. Ambil material dari Firestore
-    const materialSnap = await getDocs(collection(db, 'materials'))
-    const material = materialSnap.docs.find((m) => m.data().nama === bom.material)
-
-    if (!material) {
-      alert(`Material ${bom.material} tidak ada!`)
-      return
-    }
-
-    const dataMaterial = material.data()
-
-    // 🔥 4. CEK STOK
-    if (dataMaterial.stok < totalKebutuhan) {
-      alert(`Stok ${bom.material} tidak cukup!`)
-      return
-    }
-
-    // 🔥 5. POTONG STOK
-    await updateDoc(doc(db, 'materials', material.id), {
-      stok: dataMaterial.stok - totalKebutuhan,
-    })
-  }
-
-  // 🔥 6. UPDATE STATUS WO
-  await updateDoc(doc(db, 'work_orders', route.params.id), {
-    status: 'Done',
-    progress: 100,
-  })
-
-  alert('Produksi berhasil!')
 }
+
+const openDialog = () => {
+  form.value = { nama: '', stok: 0, minStok: 5, satuan: '', harga: 0 }
+  isEdit.value = false
+  dialog.value = true
+}
+
+const editMaterial = (row) => {
+  form.value = { ...row }
+  selectedId.value = row.id
+  isEdit.value = true
+  dialog.value = true
+}
+
+const simpanMaterial = async () => {
+  if (!form.value.nama) return
+
+  try {
+    const payload = {
+      nama: form.value.nama,
+      stok: Number(form.value.stok),
+      minStok: Number(form.value.minStok),
+      satuan: form.value.satuan,
+      harga: Number(form.value.harga),
+      updatedAt: new Date(),
+    }
+
+    if (isEdit.value) {
+      await updateDoc(doc(db, 'materials', selectedId.value), payload)
+      $q.notify({ color: 'positive', message: 'Update Berhasil' })
+    } else {
+      await addDoc(collection(db, 'materials'), payload)
+      $q.notify({ color: 'positive', message: 'Data Tersimpan' })
+    }
+
+    dialog.value = false
+    getData()
+  } catch (error) {
+    console.error(error)
+    $q.notify({ color: 'negative', message: 'Gagal memproses data' })
+  }
+}
+
+const confirmDelete = (id) => {
+  $q.dialog({
+    title: 'Hapus Material?',
+    message: 'Data akan dihapus permanen dari sistem.',
+    cancel: true,
+    persistent: true,
+  }).onOk(() => {
+    hapusMaterial(id)
+  })
+}
+
+const hapusMaterial = async (id) => {
+  try {
+    await deleteDoc(doc(db, 'materials', id))
+    $q.notify({ color: 'positive', icon: 'delete', message: 'Terhapus' })
+    getData()
+  } catch (error) {
+    console.error(error)
+    $q.notify({ color: 'negative', message: 'Gagal menghapus' })
+  }
+}
+
+onMounted(() => {
+  getData()
+})
 </script>
+
+<style scoped>
+.rounded-borders {
+  border-radius: 12px;
+}
+.shadow-sm {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+</style>
