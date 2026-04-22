@@ -1,36 +1,130 @@
 <template>
-  <q-layout view="lHh Lpr lFf" class="bg-grey-1">
-    <q-header elevated class="bg-indigo-10 text-white">
-      <q-toolbar class="q-py-sm">
+  <q-layout view="lHh Lpr lFf" class="bg-grey-2">
+    <!-- Header -->
+    <q-header borderless class="bg-indigo-10 text-white shadow-1">
+      <q-toolbar class="q-py-xs">
         <q-btn flat dense round icon="menu" @click="leftDrawerOpen = !leftDrawerOpen" />
         <q-toolbar-title class="text-weight-bolder">
-          AGRA <span class="text-weight-light">ERP</span>
-          <q-badge align="top" color="orange-9" class="q-ml-sm shadow-2 text-weight-bold">
-            KONSTRUKSI
-          </q-badge>
+          <div class="row items-center">
+            <span class="q-mr-xs">AGRA</span>
+            <span class="text-weight-light text-indigo-2">ERP</span>
+            <q-badge
+              align="middle"
+              color="orange-9"
+              class="q-ml-md text-weight-bold"
+              style="padding: 4px 8px"
+            >
+              KONSTRUKSI
+            </q-badge>
+          </div>
         </q-toolbar-title>
         <q-space />
-        <q-btn flat round icon="apps" to="/" class="q-mr-sm" />
-        <q-avatar color="white" text-color="primary" class="text-weight-bold">
+
+        <!-- NOTIFIKASI -->
+        <q-btn flat round icon="notifications" class="q-mr-xs">
+          <q-badge color="red" floating v-if="pendingApprovalCount > 0">{{
+            pendingApprovalCount
+          }}</q-badge>
+        </q-btn>
+
+        <!-- APP LAUNCHER (GOOGLE STYLE) -->
+        <q-btn flat round icon="apps" class="q-mr-sm">
+          <q-menu
+            auto-close
+            anchor="bottom right"
+            self="top right"
+            :offset="[0, 10]"
+            class="app-launcher-menu shadow-10"
+          >
+            <div class="q-pa-md bg-white" style="width: 320px; border-radius: 12px">
+              <div class="text-overline q-px-sm q-pb-sm text-grey-7">Modul Agra ERP</div>
+
+              <div class="row q-col-gutter-sm">
+                <!-- Loop Modul Dinamis dari Firestore -->
+                <template v-for="app in apps" :key="app.id">
+                  <div class="col-4" v-if="canShow(app)">
+                    <q-btn
+                      flat
+                      stack
+                      class="full-width app-btn"
+                      :class="{ 'active-app': app.aksesKey === 'konstruksi' }"
+                      no-caps
+                      :to="app.path"
+                    >
+                      <q-icon :name="app.icon" :color="app.color || 'primary'" size="32px" />
+                      <div class="app-label text-center">{{ app.name }}</div>
+                    </q-btn>
+                  </div>
+                </template>
+              </div>
+
+              <q-separator class="q-my-md" />
+
+              <!-- Tombol Kembali ke Menu Utama -->
+              <q-btn
+                outline
+                color="primary"
+                class="full-width text-weight-bold"
+                icon="home"
+                label="Kembali ke Menu Utama"
+                to="/"
+                no-caps
+                rounded
+              />
+            </div>
+          </q-menu>
+        </q-btn>
+
+        <!-- USER AVATAR -->
+        <q-avatar
+          size="32px"
+          color="white"
+          text-color="indigo-10"
+          class="text-weight-bold cursor-pointer"
+        >
           {{ userData?.nama?.charAt(0) || 'A' }}
         </q-avatar>
       </q-toolbar>
     </q-header>
 
-    <q-drawer v-model="leftDrawerOpen" show-if-above bordered :width="280" class="bg-white">
+    <!-- Sidebar / Drawer -->
+    <q-drawer v-model="leftDrawerOpen" show-if-above :width="290" class="bg-white" elevation="10">
       <div class="column fit">
+        <!-- Drawer Header / Profile Section -->
+        <div class="q-pa-lg bg-indigo-1 text-indigo-10 border-bottom-soft">
+          <div class="row items-center q-gutter-sm">
+            <q-avatar size="56px" color="indigo-10" text-color="white" class="shadow-2">
+              {{ userData?.nama?.charAt(0) || 'A' }}
+            </q-avatar>
+            <div class="col">
+              <div class="text-weight-bold text-subtitle1 ellipsis">
+                {{ userData?.nama || 'Administrator' }}
+              </div>
+              <div class="text-caption text-grey-7 ellipsis">
+                {{ authStore.user?.role || 'User' }}
+              </div>
+            </div>
+          </div>
+        </div>
+
         <q-scroll-area class="col">
-          <q-list padding class="text-grey-9 text-weight-medium">
-            <!-- DASHBOARD: Sekarang menggunakan checkPermission('dashboard') -->
+          <q-list class="q-px-sm q-py-md">
+            <!-- SECTION LABEL -->
+            <div class="q-px-md q-pt-sm q-pb-xs text-overline text-grey-6">UTAMA</div>
+
+            <!-- DASHBOARD -->
             <q-item
               v-if="checkPermission('dashboard')"
               clickable
               v-ripple
               to="/konstruksi/dashboard"
-              active-class="bg-blue-1 text-primary"
+              class="menu-item q-mb-xs"
+              active-class="menu-item-active"
             >
-              <q-item-section avatar><q-icon name="dashboard" /></q-item-section>
-              <q-item-section>DASHBOARD</q-item-section>
+              <q-item-section avatar>
+                <q-icon name="dashboard" />
+              </q-item-section>
+              <q-item-section class="text-weight-medium">DASHBOARD</q-item-section>
             </q-item>
 
             <!-- DATA MASTER -->
@@ -46,28 +140,26 @@
               "
               icon="grid_view"
               label="DATA MASTER"
-              header-class="text-weight-bold text-primary"
+              class="menu-expansion q-mb-xs"
+              header-class="text-weight-medium"
               default-opened
             >
-              <q-list class="q-pl-sm">
+              <q-list class="q-pl-md">
                 <!-- Data Rekanan -->
                 <q-expansion-item
                   v-if="hasSectionAccess(['marketing/customer', 'master/supplier'])"
                   label="Data Rekanan"
                   header-class="text-grey-8"
-                  :header-inset-level="0.1"
+                  dense
                 >
                   <q-item
                     v-if="checkPermission('marketing/customer')"
                     clickable
                     v-ripple
                     to="/konstruksi/marketing/customer"
-                    class="q-pl-xl"
-                    active-class="text-primary bg-blue-1"
+                    class="sub-menu-item"
+                    active-class="sub-menu-item-active"
                   >
-                    <q-item-section avatar side
-                      ><q-icon name="circle" size="6px" color="grey-4"
-                    /></q-item-section>
                     <q-item-section>Customer</q-item-section>
                   </q-item>
                   <q-item
@@ -75,12 +167,9 @@
                     clickable
                     v-ripple
                     to="/konstruksi/master/supplier"
-                    class="q-pl-xl"
-                    active-class="text-primary bg-blue-1"
+                    class="sub-menu-item"
+                    active-class="sub-menu-item-active"
                   >
-                    <q-item-section avatar side
-                      ><q-icon name="circle" size="6px" color="grey-4"
-                    /></q-item-section>
                     <q-item-section>Data Supplier</q-item-section>
                   </q-item>
                 </q-expansion-item>
@@ -96,19 +185,16 @@
                   "
                   label="Data Barang"
                   header-class="text-grey-8"
-                  :header-inset-level="0.1"
+                  dense
                 >
                   <q-item
                     v-if="checkPermission('master/barang-list')"
                     clickable
                     v-ripple
                     to="/konstruksi/master/barang-list"
-                    class="q-pl-xl"
-                    active-class="text-primary bg-blue-1"
+                    class="sub-menu-item"
+                    active-class="sub-menu-item-active"
                   >
-                    <q-item-section avatar side
-                      ><q-icon name="circle" size="6px" color="grey-4"
-                    /></q-item-section>
                     <q-item-section>List Barang</q-item-section>
                   </q-item>
                   <q-item
@@ -116,12 +202,9 @@
                     clickable
                     v-ripple
                     to="/konstruksi/master/barang-kategori"
-                    class="q-pl-xl"
-                    active-class="text-primary bg-blue-1"
+                    class="sub-menu-item"
+                    active-class="sub-menu-item-active"
                   >
-                    <q-item-section avatar side
-                      ><q-icon name="circle" size="6px" color="grey-4"
-                    /></q-item-section>
                     <q-item-section>Kategori Barang</q-item-section>
                   </q-item>
                   <q-item
@@ -129,40 +212,35 @@
                     clickable
                     v-ripple
                     to="/konstruksi/master/satuan"
-                    class="q-pl-xl"
-                    active-class="text-primary bg-blue-1"
+                    class="sub-menu-item"
+                    active-class="sub-menu-item-active"
                   >
-                    <q-item-section avatar side
-                      ><q-icon name="circle" size="6px" color="grey-4"
-                    /></q-item-section>
                     <q-item-section>Data Satuan</q-item-section>
                   </q-item>
                 </q-expansion-item>
               </q-list>
             </q-expansion-item>
 
-            <q-separator v-if="isModulActive" q-my-sm inset />
+            <q-separator spaced inset class="bg-grey-3" />
+            <div class="q-px-md q-pt-sm q-pb-xs text-overline text-grey-6">OPERASIONAL</div>
 
             <!-- MARKETING -->
             <q-expansion-item
               v-if="hasSectionAccess(['marketing/penawaran', 'marketing/approval-penawaran'])"
               icon="campaign"
               label="MARKETING"
-              header-class="text-weight-bold text-grey-8"
-              default-opened
+              class="menu-expansion q-mb-xs"
+              header-class="text-weight-medium"
             >
-              <q-list class="q-pl-sm">
+              <q-list class="q-pl-md">
                 <q-item
                   v-if="checkPermission('marketing/penawaran')"
                   clickable
                   v-ripple
                   to="/konstruksi/marketing/penawaran"
-                  :inset-level="0.4"
-                  active-class="text-primary bg-blue-1"
+                  class="sub-menu-item"
+                  active-class="sub-menu-item-active"
                 >
-                  <q-item-section avatar side
-                    ><q-icon name="circle" size="6px" color="grey-4"
-                  /></q-item-section>
                   <q-item-section>Penawaran</q-item-section>
                 </q-item>
                 <q-item
@@ -170,28 +248,16 @@
                   clickable
                   v-ripple
                   to="/konstruksi/marketing/approval-penawaran"
-                  :inset-level="0.4"
-                  active-class="text-primary bg-blue-1"
+                  class="sub-menu-item"
+                  active-class="sub-menu-item-active"
                 >
-                  <q-item-section avatar side
-                    ><q-icon name="circle" size="6px" color="grey-4"
-                  /></q-item-section>
                   <q-item-section>Approval Penawaran</q-item-section>
                   <q-item-section side v-if="pendingApprovalCount > 0">
-                    <q-badge
-                      color="orange-9"
-                      text-color="white"
-                      floating
-                      class="text-weight-bold shadow-2"
-                    >
-                      {{ pendingApprovalCount }}
-                    </q-badge>
+                    <q-badge color="orange-9" rounded>{{ pendingApprovalCount }}</q-badge>
                   </q-item-section>
                 </q-item>
               </q-list>
             </q-expansion-item>
-
-            <q-separator v-if="isModulActive" q-my-sm inset />
 
             <!-- PROYEK -->
             <q-expansion-item
@@ -204,27 +270,18 @@
               "
               icon="foundation"
               label="PROYEK"
-              header-class="text-weight-bold text-grey-8"
-              default-opened
+              class="menu-expansion q-mb-xs"
+              header-class="text-weight-medium"
             >
-              <q-expansion-item
-                v-if="hasSectionAccess(['master/proyek-data', 'master/proyek-kategori'])"
-                label="DATA PROYEK"
-                header-class="text-grey-7"
-                :header-inset-level="0.1"
-                default-opened
-              >
+              <q-list class="q-pl-md">
                 <q-item
                   v-if="checkPermission('master/proyek-data')"
                   clickable
                   v-ripple
                   to="/konstruksi/master/proyek-data"
-                  class="q-pl-xl"
-                  active-class="text-primary bg-blue-1"
+                  class="sub-menu-item"
+                  active-class="sub-menu-item-active"
                 >
-                  <q-item-section avatar side
-                    ><q-icon name="circle" size="6px" color="grey-4"
-                  /></q-item-section>
                   <q-item-section>Data Proyek</q-item-section>
                 </q-item>
                 <q-item
@@ -232,39 +289,23 @@
                   clickable
                   v-ripple
                   to="/konstruksi/master/proyek-kategori"
-                  class="q-pl-xl"
-                  active-class="text-primary bg-blue-1"
+                  class="sub-menu-item"
+                  active-class="sub-menu-item-active"
                 >
-                  <q-item-section avatar side
-                    ><q-icon name="circle" size="6px" color="grey-4"
-                  /></q-item-section>
                   <q-item-section>Kategori Proyek</q-item-section>
                 </q-item>
-              </q-expansion-item>
-
-              <q-expansion-item
-                v-if="checkPermission('pelaksanaan/spk-mandor')"
-                label="PELAKSANAAN"
-                header-class="text-grey-7"
-                :header-inset-level="0.1"
-                default-opened
-              >
                 <q-item
+                  v-if="checkPermission('pelaksanaan/spk-mandor')"
                   clickable
                   v-ripple
                   to="/konstruksi/pelaksanaan/spk-mandor"
-                  class="q-pl-xl"
-                  active-class="text-primary bg-blue-1"
+                  class="sub-menu-item"
+                  active-class="sub-menu-item-active"
                 >
-                  <q-item-section avatar side
-                    ><q-icon name="circle" size="6px" color="grey-4"
-                  /></q-item-section>
                   <q-item-section>SPK Mandor / Pekerja</q-item-section>
                 </q-item>
-              </q-expansion-item>
+              </q-list>
             </q-expansion-item>
-
-            <q-separator v-if="isModulActive" q-my-sm inset />
 
             <!-- GUDANG -->
             <q-item
@@ -272,53 +313,57 @@
               clickable
               v-ripple
               to="/konstruksi/gudang"
-              active-class="bg-blue-1 text-primary"
+              class="menu-item q-mb-xs"
+              active-class="menu-item-active"
             >
               <q-item-section avatar><q-icon name="inventory_2" /></q-item-section>
-              <q-item-section class="text-weight-bold">GUDANG</q-item-section>
+              <q-item-section class="text-weight-medium">GUDANG</q-item-section>
             </q-item>
-
-            <q-separator v-if="isModulActive" q-my-sm inset />
 
             <!-- PEMBELIAN -->
             <q-expansion-item
               v-if="checkPermission('pembelian/pesanan')"
               icon="shopping_cart"
               label="PEMBELIAN"
-              header-class="text-weight-bold text-grey-8"
-              default-opened
+              class="menu-expansion q-mb-xs"
+              header-class="text-weight-medium"
             >
-              <q-list class="q-pl-sm">
+              <q-list class="q-pl-md">
                 <q-item
                   clickable
                   v-ripple
                   to="/konstruksi/pembelian/pesanan"
-                  :inset-level="0.2"
-                  active-class="text-primary bg-blue-1"
+                  class="sub-menu-item"
+                  active-class="sub-menu-item-active"
                 >
-                  <q-item-section avatar side
-                    ><q-icon name="circle" size="6px" color="grey-4"
-                  /></q-item-section>
                   <q-item-section>Pesanan Pembelian (PO)</q-item-section>
                 </q-item>
-                <div style="height: 60px"></div>
               </q-list>
             </q-expansion-item>
+
+            <div style="height: 100px"></div>
           </q-list>
         </q-scroll-area>
       </div>
     </q-drawer>
 
     <q-page-container>
-      <router-view />
+      <router-view v-slot="{ Component }">
+        <transition
+          enter-active-class="animated fadeIn"
+          leave-active-class="animated fadeOut"
+          mode="out-in"
+        >
+          <component :is="Component" />
+        </transition>
+      </router-view>
     </q-page-container>
   </q-layout>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
-// eslint-disable-next-line no-unused-vars
-import { db, auth } from 'src/boot/firebase'
+import { db } from 'src/boot/firebase'
 import { collection, query, where, onSnapshot } from 'firebase/firestore'
 import { useAuthStore } from 'src/stores/auth'
 
@@ -326,9 +371,25 @@ const authStore = useAuthStore()
 const leftDrawerOpen = ref(false)
 const pendingApprovalCount = ref(0)
 const userData = ref(null)
+const apps = ref([])
+const currentAkses = ref([])
+
 let unsubscribeUser = null
 let unsubscribeApproval = null
+let unsubscribeApps = null
 
+/**
+ * Logika Pengecekan Akses Modul (Sinkron dengan IndexPage)
+ */
+const canShow = (app) => {
+  if (!authStore.user) return false
+  if (authStore.user.role === 'Super Admin') return true
+  if (app.aksesKey === 'admin')
+    return authStore.user.role === 'Admin' || authStore.user.role === 'Super Admin'
+  return currentAkses.value.includes(app.aksesKey)
+}
+
+// eslint-disable-next-line no-unused-vars
 const isModulActive = computed(() => {
   if (authStore.user?.role === 'Super Admin') return true
   const moduleInfo = userData.value?.permissions_detail?.find((m) => m.id === 'konstruksi')
@@ -354,16 +415,25 @@ const hasSectionAccess = (menuPaths) => {
 }
 
 onMounted(() => {
+  // 1. Ambil Data Modul secara Realtime
+  unsubscribeApps = onSnapshot(collection(db, 'modul'), (snapshot) => {
+    apps.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+  })
+
+  // 2. Ambil Data Karyawan & Hak Akses
   const userEmail = authStore.user?.email
   if (userEmail) {
     const qUser = query(collection(db, 'karyawan'), where('email', '==', userEmail))
     unsubscribeUser = onSnapshot(qUser, (snapshot) => {
       if (!snapshot.empty) {
-        userData.value = snapshot.docs[0].data()
+        const data = snapshot.docs[0].data()
+        userData.value = data
+        currentAkses.value = data.akses || []
       }
     })
   }
 
+  // 3. Approval Count
   const qApproval = query(collection(db, 'penawaran'), where('status', '==', 'Pending'))
   unsubscribeApproval = onSnapshot(qApproval, (snapshot) => {
     pendingApprovalCount.value = snapshot.size
@@ -373,17 +443,115 @@ onMounted(() => {
 onUnmounted(() => {
   if (unsubscribeUser) unsubscribeUser()
   if (unsubscribeApproval) unsubscribeApproval()
+  if (unsubscribeApps) unsubscribeApps()
 })
 </script>
 
-<style scoped>
-.text-primary {
+<style lang="scss" scoped>
+/* App Launcher Styling */
+.app-launcher-menu {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.app-btn {
+  border-radius: 8px;
+  padding: 12px 4px;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.5, 1);
+  min-height: 85px;
+
+  &:hover {
+    background: #f8f9fa;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+}
+
+.active-app {
+  background: #e8eaf6;
+  border: 1px solid rgba(var(--q-primary), 0.1);
+
+  .app-label {
+    font-weight: 700;
+    color: var(--q-primary);
+  }
+}
+
+.app-label {
+  font-size: 11px;
+  margin-top: 8px;
+  color: #444;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+/* Sidebar Styling */
+.menu-item {
+  border-radius: 8px;
+  color: #616161;
+  transition: all 0.3s ease;
+  margin: 0 8px 4px 8px;
+
+  &:hover {
+    background-color: #f5f5f5;
+    color: var(--q-primary);
+  }
+}
+
+.menu-item-active {
+  background-color: #e8eaf6 !important;
+  color: var(--q-indigo-10) !important;
+  font-weight: 700 !important;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: -8px;
+    top: 8px;
+    bottom: 8px;
+    width: 4px;
+    background: var(--q-indigo-10);
+    border-radius: 0 4px 4px 0;
+  }
+}
+
+.menu-expansion {
+  border-radius: 8px;
+  margin: 0 8px;
+
+  :deep(.q-item) {
+    border-radius: 8px;
+    min-height: 44px;
+  }
+}
+
+.sub-menu-item {
+  border-radius: 8px;
+  margin-bottom: 2px;
+  min-height: 35px;
+  font-size: 0.9rem;
+  color: #757575;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: var(--q-primary);
+    background-color: #fafafa;
+  }
+}
+
+.sub-menu-item-active {
   color: var(--q-primary) !important;
+  font-weight: 600;
+  background-color: rgba(var(--q-primary), 0.05);
 }
-.bg-blue-1 {
-  background-color: #e3f2fd !important;
+
+.border-bottom-soft {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
-.shadow-2 {
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+
+.text-indigo-2 {
+  color: #c5cae9;
 }
 </style>
