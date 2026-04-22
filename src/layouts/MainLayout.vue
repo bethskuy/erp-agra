@@ -1,6 +1,6 @@
 <template>
   <q-layout view="hHh lpR fFf" class="bg-grey-2">
-    <q-header elevated class="bg-primary text-white">
+    <q-header elevated class="bg-indigo-10 text-white">
       <q-toolbar class="q-py-sm">
         <q-toolbar-title class="text-weight-bolder text-uppercase tracking-widest">
           Agra ERP
@@ -35,9 +35,9 @@
       <router-view />
     </q-page-container>
 
-    <q-footer class="bg-white text-grey-9 border-top q-pa-sm">
+    <q-footer class="bg-red-10 text-white border-top q-pa-sm">
       <div class="text-center text-caption text-weight-medium">
-        © 2026 <span class="text-primary text-weight-bold">AGRA CONSTRUCTION</span> - Internal ERP
+        © 2026 <span class="text-white text-weight-bold">AGRA CONSTRUCTION</span> - Internal ERP
         System
       </div>
     </q-footer>
