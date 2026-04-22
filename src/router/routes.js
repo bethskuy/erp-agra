@@ -135,26 +135,28 @@ const routes = [
         component: () => import('pages/manufaktur/Produksi/ProductionResultPage.vue'),
       },
       {
-        path: 'work-order',
-        name: 'work-order',
-        component: () => import('pages/manufaktur/Produksi/WorkOrderPage.vue'),
-      },
-      {
         path: 'work-order/:id',
         name: 'work-order-detail',
         component: () => import('pages/manufaktur/Produksi/WorkOrderDetailPage.vue'),
       },
 
       {
-        path: 'material',
+        path: 'master/material', // Tambahkan 'master/' di depannya
         name: 'material',
         component: () => import('pages/manufaktur/master/MaterialPage.vue'),
       },
-
       {
-        path: 'bom',
+        path: 'master/bom', // Tambahkan 'master/' di depannya
         name: 'bom',
         component: () => import('pages/manufaktur/master/BOMPage.vue'),
+      },
+      {
+        path: 'gudang/monitoring',
+        component: () => import('pages/manufaktur/gudang/MonitoringStok.vue'),
+      },
+      {
+        path: 'gudang/barang-masuk',
+        component: () => import('pages/manufaktur/gudang/BarangMasukPage.vue'),
       },
     ],
   },

@@ -8,14 +8,35 @@
         </div>
       </div>
 
-      <q-btn color="primary" icon="add" label="Tambah WO" @click="openTambah" />
+      <q-btn
+        color="teal-10"
+        icon="add"
+        label="Tambah WO"
+        @click="openTambah"
+        class="rounded-borders shadow-sm"
+      />
     </div>
 
     <q-card flat class="rounded-borders shadow-sm">
       <q-table :rows="rows" :columns="columns" row-key="id" flat bordered>
+        <template v-slot:body-cell-kode="props">
+          <q-td :props="props">
+            <q-btn
+              flat
+              dense
+              color="teal-10"
+              class="text-weight-bold"
+              :label="props.value"
+              @click="goDetail(props.row)"
+            >
+              <q-tooltip>Klik untuk detail produksi</q-tooltip>
+            </q-btn>
+          </q-td>
+        </template>
+
         <template v-slot:body-cell-status="props">
           <q-td :props="props">
-            <q-badge :color="getStatusColor(props.value)">
+            <q-badge :color="getStatusColor(props.value)" class="q-pa-xs">
               {{ props.value }}
             </q-badge>
           </q-td>
@@ -41,7 +62,9 @@
               <q-tooltip>Selesaikan & Potong Stok</q-tooltip>
             </q-btn>
 
-            <q-btn dense flat icon="visibility" color="primary" @click="goDetail(props.row)" />
+            <q-btn dense flat icon="visibility" color="teal-10" @click="goDetail(props.row)">
+              <q-tooltip>Lihat Detail</q-tooltip>
+            </q-btn>
             <q-btn dense flat icon="edit" color="primary" @click="editWO(props.row)" />
             <q-btn dense flat icon="delete" color="negative" @click="hapusWO(props.row.id)" />
           </q-td>
@@ -49,29 +72,43 @@
       </q-table>
     </q-card>
 
-    <q-dialog v-model="dialog">
-      <q-card style="min-width: 400px">
-        <q-card-section>
-          <div class="text-h6">
-            {{ isEdit ? 'Edit Work Order' : 'Tambah Work Order' }}
-          </div>
+    <q-dialog v-model="dialog" persistent>
+      <q-card style="min-width: 450px" class="rounded-borders">
+        <q-card-section class="bg-teal-10 text-white row items-center">
+          <div class="text-h6">{{ isEdit ? 'Edit Work Order' : 'Tambah Work Order' }}</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
 
-        <q-card-section class="q-gutter-sm">
-          <q-input outlined v-model="form.kode" label="Kode WO" />
+        <q-card-section class="q-gutter-md q-pt-lg">
+          <q-input outlined dense v-model="form.kode" label="Kode WO" placeholder="Contoh: WO223" />
           <q-input
             outlined
+            dense
             v-model="form.produk"
-            label="Nama Produk (Sama dengan Nama di BOM)"
-            placeholder="Contoh: Helm Full Face"
+            label="Nama Produk"
+            placeholder="Harus sama dengan nama di BOM"
           />
-          <q-input outlined v-model.number="form.jumlah" type="number" label="Jumlah Produksi" />
-          <q-input outlined v-model="form.tanggal" type="date" label="Tanggal" stack-label />
+          <q-input
+            outlined
+            dense
+            v-model.number="form.jumlah"
+            type="number"
+            label="Jumlah Produksi"
+          />
+          <q-input
+            outlined
+            dense
+            v-model="form.tanggal"
+            type="date"
+            label="Tanggal Perintah"
+            stack-label
+          />
         </q-card-section>
 
-        <q-card-actions align="right">
-          <q-btn flat label="Batal" v-close-popup />
-          <q-btn color="primary" label="Simpan" @click="simpanWO" />
+        <q-card-actions align="right" class="q-pa-md">
+          <q-btn flat label="Batal" color="grey-7" v-close-popup />
+          <q-btn color="teal-10" label="Simpan Data" @click="simpanWO" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -82,8 +119,6 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
-
-// FIREBASE
 import { db } from 'src/boot/firebase'
 import {
   collection,
@@ -101,9 +136,9 @@ const router = useRouter()
 const $q = useQuasar()
 
 const columns = [
-  { name: 'kode', label: 'Kode WO', field: 'kode', align: 'left' },
-  { name: 'produk', label: 'Produk', field: 'produk', align: 'left' },
-  { name: 'jumlah', label: 'Jumlah', field: 'jumlah', align: 'center' },
+  { name: 'kode', label: 'Kode WO', field: 'kode', align: 'left', sortable: true },
+  { name: 'produk', label: 'Produk', field: 'produk', align: 'left', sortable: true },
+  { name: 'jumlah', label: 'Qty', field: 'jumlah', align: 'center' },
   { name: 'tanggal', label: 'Tanggal', field: 'tanggal', align: 'center' },
   { name: 'status', label: 'Status', field: 'status', align: 'center' },
   { name: 'progress', label: 'Progress', field: 'progress', align: 'center' },
@@ -122,7 +157,6 @@ const form = ref({
   tanggal: '',
 })
 
-// MENGAMBIL DATA DARI FIREBASE
 const getData = async () => {
   try {
     const snapshot = await getDocs(collection(db, 'work_orders'))
@@ -130,8 +164,8 @@ const getData = async () => {
       id: doc.id,
       ...doc.data(),
     }))
-  } catch (error) {
-    console.error('Gagal mengambil data WO:', error)
+  } catch (err) {
+    console.error('Gagal ambil WO:', err)
   }
 }
 
@@ -166,18 +200,16 @@ const simpanWO = async () => {
     }
     dialog.value = false
     getData()
-    $q.notify({ color: 'positive', message: 'Data berhasil disimpan' })
-  } catch (error) {
-    console.error('Gagal simpan WO:', error)
-    $q.notify({ color: 'negative', message: 'Gagal menyimpan data' })
+    $q.notify({ color: 'positive', icon: 'done', message: 'Berhasil disimpan' })
+  } catch {
+    $q.notify({ color: 'negative', message: 'Gagal simpan data' })
   }
 }
 
-// 🔥 LOGIKA INTI: PROSES SELESAI & POTONG STOK
 const confirmFinish = (row) => {
   $q.dialog({
     title: 'Selesaikan Produksi?',
-    message: `Aksi ini akan menandai WO selesai dan memotong stok material di inventori secara otomatis.`,
+    message: `Aksi ini akan menandai WO ${row.kode} selesai dan memotong stok material.`,
     cancel: true,
     persistent: true,
   }).onOk(() => {
@@ -186,72 +218,56 @@ const confirmFinish = (row) => {
 }
 
 const processFinishProduction = async (wo) => {
-  $q.loading.show({ message: 'Menghubungkan ke inventori...' })
+  $q.loading.show({ message: 'Memproses inventori...' })
   try {
-    // 1. Cari resep di koleksi BOM berdasarkan nama produk
-    const bomRef = collection(db, 'boms')
-    const q = query(bomRef, where('productName', '==', wo.produk))
+    const q = query(collection(db, 'boms'), where('productName', '==', wo.produk))
     const bomSnap = await getDocs(q)
 
-    if (bomSnap.empty) {
-      $q.notify({
-        color: 'warning',
-        icon: 'warning',
-        message: 'BOM tidak ditemukan! Status diupdate tanpa potong stok.',
-      })
-    } else {
+    if (!bomSnap.empty) {
       const bomData = bomSnap.docs[0].data()
-
-      // 2. Loop setiap bahan di resep dan kurangi stok di Master Material
       for (const item of bomData.materials) {
         const materialRef = doc(db, 'materials', item.materialId)
         await updateDoc(materialRef, {
-          // Stok berkurang = -(jumlah produksi WO * kebutuhan bahan di BOM)
           stok: increment(-(wo.jumlah * item.qty)),
         })
       }
     }
 
-    // 3. Update status WO menjadi Selesai & Progress 100%
     await updateDoc(doc(db, 'work_orders', wo.id), {
       status: 'Selesai',
       progress: 100,
     })
 
-    $q.notify({
-      color: 'positive',
-      icon: 'done',
-      message: 'Produksi Selesai & Stok Berhasil Dipotong!',
-    })
+    $q.notify({ color: 'positive', icon: 'check', message: 'Produksi Selesai & Stok Terpotong!' })
     getData()
-  } catch (error) {
-    console.error('Gagal proses selesai:', error)
-    $q.notify({ color: 'negative', message: 'Gagal memproses pemotongan stok' })
+  } catch {
+    $q.notify({ color: 'negative', message: 'Gagal proses stok' })
   } finally {
     $q.loading.hide()
   }
 }
 
 const hapusWO = async (id) => {
-  try {
-    await deleteDoc(doc(db, 'work_orders', id))
-    getData()
-    $q.notify({ color: 'positive', message: 'Work Order dihapus' })
-  } catch (error) {
-    console.error('Gagal hapus WO:', error)
-  }
+  $q.dialog({ title: 'Hapus?', message: 'Data akan hilang permanen.', cancel: true }).onOk(
+    async () => {
+      try {
+        await deleteDoc(doc(db, 'work_orders', id))
+        getData()
+      } catch (e) {
+        console.error(e)
+      }
+    },
+  )
 }
 
 const getStatusColor = (status) => {
-  if (status === 'Pending') return 'grey'
-  if (status === 'Proses') return 'orange'
+  if (status === 'Pending') return 'grey-7'
+  if (status === 'Proses') return 'orange-9'
   if (status === 'Selesai') return 'positive'
-  return 'blue'
+  return 'primary'
 }
 
-onMounted(() => {
-  getData()
-})
+onMounted(getData)
 </script>
 
 <style scoped>
@@ -259,6 +275,6 @@ onMounted(() => {
   border-radius: 12px;
 }
 .shadow-sm {
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
 }
 </style>

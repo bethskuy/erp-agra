@@ -1,95 +1,98 @@
 <template>
   <q-page class="bg-grey-2 q-pa-lg">
-    <div class="row items-center justify-between q-mb-lg">
+    <div class="row items-center justify-between q-mb-xl">
       <div>
-        <div class="text-h4 text-weight-bold text-teal-10">Dashboard Manufaktur</div>
-        <div class="text-subtitle2 text-grey-6">Monitoring produksi & efisiensi real-time</div>
+        <div class="text-h4 text-weight-bold text-teal-10">Dashboard</div>
+        <div class="text-subtitle2 text-grey-6">Ringkasan aktivitas produksi & inventori</div>
       </div>
-      <q-btn flat round icon="refresh" color="teal-10" @click="fetchStats" />
+      <q-btn round flat icon="notifications" color="teal-10">
+        <q-badge floating color="red" rounded />
+      </q-btn>
     </div>
 
-    <div class="row q-col-gutter-md q-mb-xl">
-      <div class="col-12 col-sm-6 col-md-3">
-        <q-card flat class="bg-blue-6 text-white rounded-borders shadow-sm">
-          <q-card-section>
-            <div class="text-subtitle2">Work Order</div>
-            <div class="text-h3 text-weight-bold">{{ stats.totalWO }}</div>
+    <div class="row q-col-gutter-lg q-mb-xl">
+      <div class="col-12 col-md-4">
+        <q-card
+          flat
+          class="rounded-borders shadow-sm no-border-left-accent-blue cursor-pointer"
+          @click="$router.push('/manufaktur/work-order')"
+        >
+          <q-card-section class="row items-center no-wrap">
+            <div class="col">
+              <div class="text-grey-7 text-subtitle1">Produksi Aktif</div>
+              <div class="text-h3 text-weight-bold">{{ totalActiveProduction }}</div>
+            </div>
+            <div class="col-auto">
+              <q-icon name="precision_manufacturing" size="44px" color="blue-8" />
+            </div>
           </q-card-section>
+          <q-separator />
+          <q-card-actions class="bg-blue-1 text-blue-8 text-caption">
+            Lihat Work Order
+          </q-card-actions>
         </q-card>
       </div>
 
-      <div class="col-12 col-sm-6 col-md-3">
-        <q-card flat class="bg-orange-8 text-white rounded-borders shadow-sm">
-          <q-card-section>
-            <div class="text-subtitle2">Sedang Proses</div>
-            <div class="text-h3 text-weight-bold">{{ stats.prosesWO }}</div>
+      <div class="col-12 col-md-4">
+        <q-card
+          flat
+          class="rounded-borders shadow-sm no-border-left-accent-red cursor-pointer"
+          @click="$router.push('/manufaktur/gudang/monitoring')"
+        >
+          <q-card-section class="row items-center no-wrap">
+            <div class="col">
+              <div class="text-grey-7 text-subtitle1">Stok Kritis</div>
+              <div class="text-h3 text-weight-bold">{{ totalCriticalStock }}</div>
+            </div>
+            <div class="col-auto">
+              <q-icon name="warning_amber" size="44px" color="red-8" />
+            </div>
           </q-card-section>
+          <q-separator />
+          <q-card-actions class="bg-red-1 text-red-8 text-caption">
+            Re-order Material Sekarang
+          </q-card-actions>
         </q-card>
       </div>
 
-      <div class="col-12 col-sm-6 col-md-3">
-        <q-card flat class="bg-green-7 text-white rounded-borders shadow-sm">
-          <q-card-section>
-            <div class="text-subtitle2">Rata-rata Progress</div>
-            <div class="text-h3 text-weight-bold">{{ stats.avgProgress }}%</div>
+      <div class="col-12 col-md-4">
+        <q-card
+          flat
+          class="rounded-borders shadow-sm no-border-left-accent-teal cursor-pointer"
+          @click="$router.push('/manufaktur/master/bom')"
+        >
+          <q-card-section class="row items-center no-wrap">
+            <div class="col">
+              <div class="text-grey-7 text-subtitle1">Total Resep (BOM)</div>
+              <div class="text-h3 text-weight-bold">{{ totalBOM }}</div>
+            </div>
+            <div class="col-auto">
+              <q-icon name="receipt_long" size="44px" color="teal-8" />
+            </div>
           </q-card-section>
-        </q-card>
-      </div>
-
-      <div class="col-12 col-sm-6 col-md-3">
-        <q-card flat class="bg-teal-7 text-white rounded-borders shadow-sm">
-          <q-card-section>
-            <div class="text-subtitle2">Selesai</div>
-            <div class="text-h3 text-weight-bold">{{ stats.selesaiWO }}</div>
-          </q-card-section>
+          <q-separator />
+          <q-card-actions class="bg-teal-1 text-teal-8 text-caption">
+            Kelola Master BOM
+          </q-card-actions>
         </q-card>
       </div>
     </div>
 
-    <q-card flat class="rounded-borders shadow-sm q-pa-lg">
-      <div class="text-h6 text-weight-bold q-mb-md">Status Produksi (Live)</div>
+    <q-card flat class="rounded-borders shadow-sm">
+      <q-card-section class="row items-center justify-between">
+        <div class="text-h6 text-teal-10">Monitoring Progress Produksi</div>
+        <q-btn flat round icon="more_vert" color="grey-7" />
+      </q-card-section>
 
-      <div class="q-mb-md">
-        <div class="row justify-between">
-          <span>Pending (Antrean)</span>
-          <span class="text-weight-bold">{{ stats.pendingWO }} WO</span>
-        </div>
-        <q-linear-progress
-          :value="stats.pendingWO / stats.totalWO || 0"
-          color="grey-6"
-          size="15px"
-          rounded
-          class="q-mt-xs"
-        />
-      </div>
+      <q-separator />
 
-      <div class="q-mb-md">
-        <div class="row justify-between">
-          <span>Proses Produksi</span>
-          <span class="text-weight-bold">{{ stats.prosesWO }} WO</span>
+      <q-card-section class="q-pa-xl flex flex-center" style="min-height: 200px">
+        <div class="text-center">
+          <q-icon name="analytics" size="80px" color="grey-4" />
+          <div class="text-grey-6 q-mt-md text-subtitle1">Aktivitas Terkini Produksi</div>
+          <div class="text-caption text-grey-5">Update operasional lapangan & gudang</div>
         </div>
-        <q-linear-progress
-          :value="stats.prosesWO / stats.totalWO || 0"
-          color="orange"
-          size="15px"
-          rounded
-          class="q-mt-xs"
-        />
-      </div>
-
-      <div class="q-mb-md">
-        <div class="row justify-between">
-          <span>Selesai / QC Pass</span>
-          <span class="text-weight-bold">{{ stats.selesaiWO }} WO</span>
-        </div>
-        <q-linear-progress
-          :value="stats.selesaiWO / stats.totalWO || 0"
-          color="positive"
-          size="15px"
-          rounded
-          class="q-mt-xs"
-        />
-      </div>
+      </q-card-section>
     </q-card>
   </q-page>
 </template>
@@ -97,52 +100,57 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { db } from 'src/boot/firebase'
+// Menghapus 'where' dan 'query' yang tidak terpakai agar tidak error ESLint
 import { collection, getDocs } from 'firebase/firestore'
 
-const stats = ref({
-  totalWO: 0,
-  prosesWO: 0,
-  pendingWO: 0,
-  selesaiWO: 0,
-  avgProgress: 0,
-})
+const totalActiveProduction = ref(0)
+const totalCriticalStock = ref(0)
+const totalBOM = ref(0)
 
-const fetchStats = async () => {
+const fetchDashboardData = async () => {
   try {
-    const querySnapshot = await getDocs(collection(db, 'work_orders'))
-    const data = querySnapshot.docs.map((doc) => doc.data())
+    // 1. Ambil data Work Orders
+    const woSnap = await getDocs(collection(db, 'work_orders'))
+    // Filter manual: Hitung yang statusnya bukan 'Selesai'
+    totalActiveProduction.value = woSnap.docs.filter(
+      (doc) => doc.data().status !== 'Selesai',
+    ).length
 
-    const total = data.length
-    const pending = data.filter((d) => d.status === 'Pending').length
-    const proses = data.filter((d) => d.status === 'Proses').length
-    const selesai = data.filter((d) => d.status === 'Selesai').length
+    // 2. Ambil data Materials
+    const materialSnap = await getDocs(collection(db, 'materials'))
+    // Filter manual: Hitung stok yang <= 10 (angka 10 bisa abang ganti sesuai kebutuhan)
+    totalCriticalStock.value = materialSnap.docs.filter((doc) => doc.data().stok <= 10).length
 
-    // Hitung rata-rata progress
-    const totalProgress = data.reduce((acc, curr) => acc + (curr.progress || 0), 0)
-    const avg = total > 0 ? Math.round(totalProgress / total) : 0
-
-    stats.value = {
-      totalWO: total,
-      pendingWO: pending,
-      prosesWO: proses,
-      selesaiWO: selesai,
-      avgProgress: avg,
-    }
+    // 3. Ambil data BOM
+    const bomSnap = await getDocs(collection(db, 'boms'))
+    totalBOM.value = bomSnap.docs.length
   } catch (error) {
-    console.error('Error fetching dashboard stats:', error)
+    console.error('Gagal mengambil data dashboard:', error)
   }
 }
 
 onMounted(() => {
-  fetchStats()
+  fetchDashboardData()
 })
 </script>
 
 <style scoped>
 .rounded-borders {
-  border-radius: 16px;
+  border-radius: 12px;
 }
 .shadow-sm {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+.no-border-left-accent-blue {
+  border-left: 6px solid #1976d2;
+}
+.no-border-left-accent-red {
+  border-left: 6px solid #d32f2f;
+}
+.no-border-left-accent-teal {
+  border-left: 6px solid #004d40;
+}
+.text-teal-10 {
+  color: #004d40;
 }
 </style>

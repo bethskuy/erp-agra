@@ -38,6 +38,21 @@
       </div>
     </div>
 
+    <q-card flat class="q-mb-lg rounded-borders shadow-sm bg-teal-10 text-white">
+      <q-card-section class="row items-center justify-between">
+        <div class="row items-center">
+          <q-icon name="apartment" size="md" class="q-mr-md" />
+          <div>
+            <div class="text-subtitle2 opacity-70">Target Project (Construction)</div>
+            <div class="text-h6 text-weight-bold">
+              {{ projectName || 'General Stock / No Project' }}
+            </div>
+          </div>
+        </div>
+        <q-badge outline color="white" v-if="wo?.project_id">Integrasi Aktif</q-badge>
+      </q-card-section>
+    </q-card>
+
     <q-card flat class="q-mb-lg rounded-borders shadow-sm">
       <q-card-section class="row justify-around items-center">
         <div class="text-center">
@@ -110,10 +125,14 @@
             <template v-slot:body-cell-status="props">
               <q-td :props="props">
                 <q-badge
-                  :color="props.row.stok >= props.row.qty * wo?.jumlah ? 'positive' : 'negative'"
+                  :color="
+                    props.row.stok >= props.row.qty * (wo?.jumlah || 1) ? 'positive' : 'negative'
+                  "
                 >
                   {{
-                    props.row.stok >= props.row.qty * wo?.jumlah ? 'Ready' : 'Insufficient Stock'
+                    props.row.stok >= props.row.qty * (wo?.jumlah || 1)
+                      ? 'Ready'
+                      : 'Insufficient Stock'
                   }}
                 </q-badge>
               </q-td>
@@ -188,6 +207,7 @@ const $q = useQuasar()
 
 // STATE
 const wo = ref(null)
+const projectName = ref('') // Untuk simpan nama proyek integrasi
 const results = ref([])
 const steps = ref([])
 const logs = ref([])
@@ -218,6 +238,14 @@ const loadData = async () => {
   if (woSnap.exists()) {
     wo.value = { id: woSnap.id, ...woSnap.data() }
     loadBOM(wo.value.productName || wo.value.produk)
+
+    // INTEGRASI: Ambil Nama Proyek jika ada project_id
+    if (wo.value.project_id) {
+      const projSnap = await getDoc(doc(db, 'projects', wo.value.project_id))
+      if (projSnap.exists()) {
+        projectName.value = projSnap.data().nama_proyek || projSnap.data().name
+      }
+    }
   }
 
   onSnapshot(
@@ -285,7 +313,7 @@ const tambahHasil = async () => {
     inputKeterangan.value = ''
     $q.notify({ type: 'positive', message: 'Inventory Updated!' })
   } catch (error) {
-    console.error(error)
+    console.error(error) // e sudah dihapus agar tidak ESLint error
     $q.notify({ type: 'negative', message: 'System Error' })
   } finally {
     $q.loading.hide()
@@ -337,5 +365,8 @@ onMounted(loadData)
 }
 .shadow-sm {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+.opacity-70 {
+  opacity: 0.7;
 }
 </style>
