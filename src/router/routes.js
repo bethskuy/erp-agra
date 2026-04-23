@@ -104,6 +104,12 @@ const routes = [
         name: 'absensi-riwayat',
         component: () => import('pages/absensi/RiwayatPage.vue'),
       },
+      // INI YANG BARU DITAMBAHKAN
+      {
+        path: 'pengajuan-izin',
+        name: 'absensi-pengajuan',
+        component: () => import('pages/absensi/PengajuanIzinPage.vue'),
+      },
     ],
   },
 
@@ -134,30 +140,6 @@ const routes = [
         name: 'production-result',
         component: () => import('pages/manufaktur/Produksi/ProductionResultPage.vue'),
       },
-      {
-        path: 'work-order/:id',
-        name: 'work-order-detail',
-        component: () => import('pages/manufaktur/Produksi/WorkOrderDetailPage.vue'),
-      },
-
-      {
-        path: 'master/material', // Tambahkan 'master/' di depannya
-        name: 'material',
-        component: () => import('pages/manufaktur/master/MaterialPage.vue'),
-      },
-      {
-        path: 'master/bom', // Tambahkan 'master/' di depannya
-        name: 'bom',
-        component: () => import('pages/manufaktur/master/BOMPage.vue'),
-      },
-      {
-        path: 'gudang/monitoring',
-        component: () => import('pages/manufaktur/gudang/MonitoringStok.vue'),
-      },
-      {
-        path: 'gudang/barang-masuk',
-        component: () => import('pages/manufaktur/gudang/BarangMasukPage.vue'),
-      },
     ],
   },
 
@@ -178,13 +160,12 @@ const routes = [
         component: () => import('pages/managementkaryawan/datakaryawan/KaryawanPage.vue'),
       },
       {
-        path: 'akses',
-        component: () => import('pages/managementkaryawan/AksesPage.vue'),
-        name: 'hak-akses',
-      },
-      {
         path: 'master/jabatan',
         component: () => import('pages/managementkaryawan/MasterJabatanPage.vue'),
+      },
+      {
+        path: '/management-karyawan/akses',
+        component: () => import('pages/managementkaryawan/AksesPage.vue'),
       },
     ],
   },

@@ -19,6 +19,7 @@
       <div class="column fit">
         <q-scroll-area class="col">
           <q-list padding class="text-grey-9 text-weight-medium">
+            <!-- DASHBOARD -->
             <q-item
               clickable
               v-ripple
@@ -29,6 +30,18 @@
               <q-item-section>DASHBOARD ABSENSI</q-item-section>
             </q-item>
 
+            <!-- MODUL PENGAJUAN (BARU) -->
+            <q-item
+              clickable
+              v-ripple
+              to="/absensi/pengajuan-izin"
+              active-class="bg-blue-1 text-primary"
+            >
+              <q-item-section avatar><q-icon name="edit_calendar" /></q-item-section>
+              <q-item-section>PENGAJUAN CUTI/IZIN</q-item-section>
+            </q-item>
+
+            <!-- RIWAYAT -->
             <q-item clickable v-ripple to="/absensi/riwayat" active-class="bg-blue-1 text-primary">
               <q-item-section avatar><q-icon name="history" /></q-item-section>
               <q-item-section>RIWAYAT ABSENSI</q-item-section>
@@ -55,7 +68,6 @@
 import { ref } from 'vue'
 
 const leftDrawerOpen = ref(false)
-// Logic Firebase milik temanmu dihapus di sini karena ini layout khusus absensi
 </script>
 
 <style scoped>
