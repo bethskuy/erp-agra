@@ -1,244 +1,567 @@
 <template>
-  <q-page class="bg-grey-2 q-pa-md font-pro">
-    <div class="row items-center q-mb-md">
-      <div class="col">
-        <div class="text-h5 text-weight-bold text-primary text-uppercase">Database Supplier</div>
-        <div class="text-caption text-grey-7">
-          Kelola vendor dan pemasok PT AGRA dengan sistem dokumen dinamis.
+  <q-page class="bg-grey-2 q-pa-md q-pa-md-lg font-pro">
+    <!-- VIEW 1: DAFTAR SUPPLIER -->
+    <template v-if="!showDetail">
+      <!-- HEADER SECTION -->
+      <div class="row items-center justify-between q-mb-xl animate-fade">
+        <div class="col-12 col-md-8">
+          <div class="text-h4 text-weight-bolder text-indigo-10 leading-tight">
+            Database Supplier
+            <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
+              >Vendor & Rantai Pasok</span
+            >
+          </div>
+          <div class="text-subtitle1 text-grey-7 q-mt-sm">
+            Kelola data mitra penyedia material dan jasa PT AGRA secara terintegrasi dan real-time.
+          </div>
+        </div>
+        <div class="col-12 col-md-auto q-mt-md q-mt-md-none">
+          <q-btn
+            v-if="canAction('buat')"
+            color="indigo-10"
+            icon="add_business"
+            label="Registrasi Supplier"
+            unelevated
+            rounded
+            no-caps
+            class="q-px-lg q-py-sm shadow-premium btn-hover"
+            @click="openAddDialog"
+          />
         </div>
       </div>
-      <div class="col-auto">
-        <!-- Tombol Tambah: Hanya muncul jika punya izin 'buat' -->
-        <q-btn
-          v-if="canAction('buat')"
-          unelevated
-          color="primary"
-          icon="add_business"
-          label="Tambah Supplier"
-          class="btn-radius shadow-2"
-          @click="openAddDialog"
-        />
-      </div>
-    </div>
 
-    <q-card flat bordered class="rounded-borders shadow-1">
-      <q-table
-        :rows="rows"
-        :columns="columns"
-        row-key="id"
-        flat
-        :loading="loading"
-        :filter="filter"
-        class="customer-table"
-        @row-click="onRowClick"
-      >
-        <template v-slot:top-right>
-          <q-input outlined dense debounce="300" v-model="filter" placeholder="Cari supplier...">
-            <template v-slot:append><q-icon name="search" /></template>
-          </q-input>
-        </template>
+      <!-- SEARCH & STATS CARD -->
+      <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white">
+        <q-card-section class="q-py-md">
+          <div class="row items-center q-col-gutter-md">
+            <div class="col-12 col-md-5">
+              <q-input
+                v-model="filter"
+                outlined
+                dense
+                rounded
+                placeholder="Cari Nama Supplier atau PIC..."
+                bg-color="white"
+                class="search-input"
+              >
+                <template v-slot:prepend>
+                  <q-icon name="search" color="primary" />
+                </template>
+                <template v-slot:append v-if="filter">
+                  <q-icon name="close" @click="filter = ''" class="cursor-pointer" />
+                </template>
+              </q-input>
+            </div>
+            <q-space />
+            <div class="col-12 col-md-auto text-caption text-grey-6">
+              Total Vendor:
+              <span class="text-weight-bold text-indigo-10">{{ rows.length }} Perusahaan</span>
+            </div>
+          </div>
+        </q-card-section>
+      </q-card>
 
-        <!-- KOLOM AKSI: Proteksi izin 'ubah' dan 'hapus' -->
-        <template v-slot:body-cell-aksi="props">
-          <q-td :props="props" class="q-gutter-xs text-center" @click.stop>
-            <!-- Tombol Edit: Muncul jika izin 'ubah' true -->
-            <q-btn
-              v-if="canAction('ubah')"
-              flat
-              round
-              color="blue"
-              icon="edit"
-              size="sm"
-              @click="openEditDialog(props.row)"
-            />
-            <!-- Tombol Delete: Muncul jika izin 'hapus' true -->
-            <q-btn
-              v-if="canAction('hapus')"
-              flat
-              round
-              color="negative"
-              icon="delete"
-              size="sm"
-              @click="confirmHapus(props.row)"
-            />
-            <!-- Tampilan jika tidak ada akses aksi -->
-            <q-badge
-              v-if="!canAction('ubah') && !canAction('hapus')"
-              color="grey-3"
-              text-color="grey-7"
-              label="No Action"
-            />
-          </q-td>
-        </template>
-      </q-table>
-    </q-card>
+      <!-- TABLE SECTION -->
+      <q-card flat bordered class="rounded-20 shadow-sm overflow-hidden bg-white">
+        <q-table
+          :rows="rows"
+          :columns="columns"
+          row-key="id"
+          flat
+          :loading="loading"
+          :filter="filter"
+          binary-state-sort
+          class="supplier-table"
+        >
+          <!-- Custom Header -->
+          <template v-slot:header="props">
+            <q-tr :props="props" class="bg-indigo-10 text-white">
+              <q-th
+                v-for="col in props.cols"
+                :key="col.name"
+                :props="props"
+                class="text-weight-bold"
+              >
+                {{ col.label }}
+              </q-th>
+            </q-tr>
+          </template>
 
-    <!-- Dialog Form Tambah/Edit -->
-    <q-dialog v-model="showDialog" persistent maximized transition-show="slide-up">
-      <q-card class="bg-grey-1 column no-wrap">
-        <q-toolbar class="bg-white text-grey-9 q-py-md bordered-bottom">
-          <q-btn flat round dense icon="close" v-close-popup />
-          <q-toolbar-title class="text-weight-bold text-center uppercase">
-            {{ isEditMode ? 'Update Data Supplier' : 'Tambah Supplier Baru' }}
-          </q-toolbar-title>
-          <div style="width: 48px"></div>
+          <!-- Custom Body -->
+          <template v-slot:body="props">
+            <q-tr
+              :props="props"
+              class="hover-bg transition-all cursor-pointer"
+              @click="onRowClick(null, props.row)"
+            >
+              <q-td key="nama">
+                <div class="row items-center no-wrap">
+                  <q-avatar
+                    size="36px"
+                    color="blue-1"
+                    text-color="indigo-10"
+                    class="q-mr-md text-weight-bold shadow-sm"
+                  >
+                    {{ props.row.nama?.charAt(0) }}
+                  </q-avatar>
+                  <div>
+                    <div class="text-weight-bold text-subtitle1 text-blue-grey-10">
+                      {{ props.row.nama }}
+                    </div>
+                    <div class="text-caption text-grey-6">{{ props.row.kontak || 'No Phone' }}</div>
+                  </div>
+                </div>
+              </q-td>
+              <q-td key="email">
+                <div class="text-weight-medium text-blue-grey-9">{{ props.row.email }}</div>
+              </q-td>
+              <q-td key="pic_nama">
+                <div class="row items-center">
+                  <q-icon name="person_pin" color="primary" class="q-mr-xs" size="xs" />
+                  <span class="text-weight-medium">{{ props.row.pic_nama || '-' }}</span>
+                </div>
+              </q-td>
+              <q-td key="aksi" class="text-center" @click.stop>
+                <div class="row justify-center q-gutter-sm">
+                  <q-btn
+                    v-if="canAction('ubah')"
+                    flat
+                    round
+                    color="blue-8"
+                    icon="edit"
+                    size="sm"
+                    @click="openEditDialog(props.row)"
+                  >
+                    <q-tooltip>Perbarui Data</q-tooltip>
+                  </q-btn>
+                  <q-btn
+                    v-if="canAction('hapus')"
+                    flat
+                    round
+                    color="negative"
+                    icon="delete_outline"
+                    size="sm"
+                    @click="confirmHapus(props.row)"
+                  >
+                    <q-tooltip>Hapus Data</q-tooltip>
+                  </q-btn>
+                  <q-btn
+                    flat
+                    round
+                    color="grey-6"
+                    icon="chevron_right"
+                    size="sm"
+                    @click="onRowClick(null, props.row)"
+                  />
+                </div>
+              </q-td>
+            </q-tr>
+          </template>
+
+          <template v-slot:no-data>
+            <div class="full-width row flex-center q-pa-xl text-grey-5">
+              <q-icon name="business_center" size="64px" class="q-mb-md" />
+              <div class="text-h6 full-width text-center">Data supplier tidak ditemukan</div>
+            </div>
+          </template>
+        </q-table>
+      </q-card>
+    </template>
+
+    <!-- VIEW 2: DETAIL PROFIL LENGKAP -->
+    <q-dialog
+      v-model="showDetail"
+      maximized
+      transition-show="slide-up"
+      transition-hide="slide-down"
+    >
+      <q-card class="bg-grey-2 column no-wrap" v-if="currentSupplier">
+        <q-toolbar class="bg-indigo-10 text-white q-py-md">
+          <q-btn flat round dense icon="arrow_back" v-close-popup />
+          <q-toolbar-title class="text-weight-bold">INFORMASI VENDOR</q-toolbar-title>
+          <q-btn
+            flat
+            icon="edit"
+            label="Edit Profil"
+            @click="openEditFromDetail"
+            v-if="canAction('ubah')"
+          />
         </q-toolbar>
 
         <q-card-section class="col scroll q-pa-xl">
           <div class="row justify-center">
             <div class="col-12 col-lg-10">
-              <div class="row q-col-gutter-xl">
-                <div class="col-12 col-md-6">
-                  <div class="text-subtitle2 text-primary text-bold q-mb-sm uppercase">
-                    Informasi Umum
+              <!-- Profil Header Card -->
+              <q-card
+                flat
+                bordered
+                class="rounded-20 shadow-premium q-mb-xl bg-white overflow-hidden"
+              >
+                <div class="row items-center">
+                  <div
+                    class="col-12 col-md-4 bg-blue-1 flex flex-center q-pa-xl"
+                    style="min-height: 250px"
+                  >
+                    <q-avatar
+                      size="150px"
+                      color="indigo-10"
+                      text-color="white"
+                      class="shadow-10 border-white-5"
+                    >
+                      <div class="text-h2">{{ currentSupplier.nama?.charAt(0) }}</div>
+                    </q-avatar>
                   </div>
-                  <div class="row q-col-gutter-sm q-mb-lg">
-                    <div class="col-12">
-                      <div class="label-form">Nama Supplier *</div>
-                      <q-input
-                        outlined
-                        dense
-                        v-model="form.nama"
-                        placeholder="PT. XXXXX"
-                        bg-color="white"
-                      />
+                  <div class="col-12 col-md-8 q-pa-xl">
+                    <div class="text-h3 text-weight-bolder text-indigo-10 q-mb-xs uppercase">
+                      {{ currentSupplier.nama }}
                     </div>
-                    <div class="col-12 col-md-6">
-                      <div class="label-form">Email *</div>
-                      <q-input outlined dense v-model="form.email" bg-color="white" />
+                    <div class="text-h6 text-grey-7 q-mb-lg flex items-center">
+                      <q-icon name="stars" color="orange-9" class="q-mr-sm" /> Verified Supplier
                     </div>
-                    <div class="col-12 col-md-6">
-                      <div class="label-form">No. Telepon</div>
-                      <q-input outlined dense v-model="form.kontak" bg-color="white" />
-                    </div>
-                    <div class="col-12">
-                      <div class="label-form">NPWP (No. Kartu)</div>
-                      <q-input
-                        outlined
-                        dense
-                        v-model="form.npwp"
-                        mask="##.###.###.#-###.###"
-                        bg-color="white"
-                      />
-                    </div>
-                    <div class="col-12">
-                      <div class="label-form">Alamat Lengkap</div>
-                      <q-input
-                        outlined
-                        dense
-                        v-model="form.alamat"
-                        type="textarea"
-                        rows="2"
-                        bg-color="white"
-                      />
-                    </div>
-                  </div>
-                  <div class="text-subtitle2 text-primary text-bold q-mb-sm uppercase">
-                    Kontak Person (PIC)
-                  </div>
-                  <div class="row q-col-gutter-sm">
-                    <div class="col-12 col-md-6">
-                      <div class="label-form">Nama PIC</div>
-                      <q-input outlined dense v-model="form.pic_nama" bg-color="white" />
-                    </div>
-                    <div class="col-12 col-md-6">
-                      <div class="label-form">Kontak PIC</div>
-                      <q-input outlined dense v-model="form.pic_kontak" bg-color="white" />
+
+                    <div class="row q-col-gutter-lg">
+                      <div class="col-12 col-sm-6">
+                        <div class="text-overline text-grey-6 tracking-widest">Alamat Email</div>
+                        <div class="text-subtitle1 text-weight-bold">
+                          {{ currentSupplier.email }}
+                        </div>
+                      </div>
+                      <div class="col-12 col-sm-6">
+                        <div class="text-overline text-grey-6 tracking-widest">
+                          Saluran Komunikasi
+                        </div>
+                        <div class="text-subtitle1 text-weight-bold text-primary">
+                          {{ currentSupplier.kontak }}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
+              </q-card>
 
+              <!-- Grid Informasi Detail -->
+              <div class="row q-col-gutter-xl">
+                <!-- Identitas & Alamat -->
                 <div class="col-12 col-md-6">
-                  <div class="text-subtitle2 text-primary text-bold q-mb-sm uppercase">
-                    Informasi Pembayaran
-                  </div>
-                  <div class="row q-col-gutter-sm q-mb-lg">
-                    <div class="col-12">
-                      <div class="label-form">No. Rekening</div>
-                      <q-input outlined dense v-model="form.rek_nomor" bg-color="white" />
-                    </div>
-                    <div class="col-12 col-md-6">
-                      <div class="label-form">Nama Bank</div>
-                      <q-input outlined dense v-model="form.rek_bank" bg-color="white" />
-                    </div>
-                    <div class="col-12 col-md-6">
-                      <div class="label-form">Atas Nama</div>
-                      <q-input outlined dense v-model="form.rek_nama" bg-color="white" />
-                    </div>
-                  </div>
+                  <q-card flat bordered class="rounded-20 shadow-sm bg-white full-height">
+                    <q-card-section
+                      class="bg-blue-grey-1 text-blue-grey-10 text-weight-bold uppercase letter-spacing-1"
+                    >
+                      <q-icon name="fact_check" class="q-mr-sm" /> Legalitas & Domisili
+                    </q-card-section>
+                    <q-separator />
+                    <q-card-section class="q-pa-lg">
+                      <div class="q-gutter-y-lg">
+                        <div class="row">
+                          <div class="col-4 text-grey-7 text-weight-medium">Nomor NPWP</div>
+                          <div class="col-8 text-weight-bolder text-indigo-10">
+                            {{ currentSupplier.npwp || 'Tidak Terlampir' }}
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="col-4 text-grey-7 text-weight-medium">Lokasi Kantor</div>
+                          <div class="col-8 text-grey-9 leading-relaxed">
+                            {{ currentSupplier.alamat || '-' }}
+                          </div>
+                        </div>
+                      </div>
+                    </q-card-section>
+                  </q-card>
+                </div>
 
-                  <div class="text-subtitle2 text-primary text-bold q-mb-sm uppercase">
-                    Berkas & Dokumen Legalitas
-                  </div>
-                  <q-card flat bordered class="bg-white q-pa-md rounded-borders">
-                    <div class="row items-center justify-between q-mb-md">
-                      <div class="text-caption text-grey-7 italic">
-                        Tambahkan NPWP, SIUP, atau dokumen vendor lainnya.
+                <!-- PIC & Payment -->
+                <div class="col-12 col-md-6">
+                  <q-card flat bordered class="rounded-20 shadow-sm bg-white full-height">
+                    <q-card-section
+                      class="bg-blue-grey-1 text-blue-grey-10 text-weight-bold uppercase letter-spacing-1"
+                    >
+                      <q-icon name="payments" class="q-mr-sm" /> PIC & Informasi Bank
+                    </q-card-section>
+                    <q-separator />
+                    <q-card-section class="q-pa-lg">
+                      <div class="q-gutter-y-md">
+                        <div class="row items-center">
+                          <div class="col-4 text-grey-7">Nama PIC</div>
+                          <div class="col-8 text-weight-bold">
+                            {{ currentSupplier.pic_nama || '-' }}
+                          </div>
+                        </div>
+                        <div class="row items-center">
+                          <div class="col-4 text-grey-7">Kontak PIC</div>
+                          <div class="col-8">{{ currentSupplier.pic_kontak || '-' }}</div>
+                        </div>
+                        <q-separator class="q-my-sm" />
+                        <div class="row items-center">
+                          <div class="col-4 text-grey-7">Instansi Bank</div>
+                          <div class="col-8 text-weight-bold text-indigo-10">
+                            {{ currentSupplier.rek_bank || '-' }}
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="col-4 text-grey-7">No. Rekening</div>
+                          <div class="col-8 text-weight-bold text-primary">
+                            {{ currentSupplier.rek_nomor || '-' }}
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="col-4 text-grey-7">Nama Pemilik</div>
+                          <div class="col-8 text-caption uppercase">
+                            {{ currentSupplier.rek_nama || '-' }}
+                          </div>
+                        </div>
+                      </div>
+                    </q-card-section>
+                  </q-card>
+                </div>
+
+                <!-- Arsip Dokumen -->
+                <div class="col-12">
+                  <q-card flat bordered class="rounded-20 shadow-sm bg-white overflow-hidden">
+                    <q-card-section class="bg-indigo-10 text-white text-weight-bold uppercase">
+                      <q-icon name="folder_shared" class="q-mr-sm" /> Berkas Digital Terlampir
+                    </q-card-section>
+                    <q-list separator>
+                      <q-expansion-item
+                        v-for="(docItem, i) in currentSupplier.additional_docs"
+                        :key="i"
+                        icon="description"
+                        :label="docItem.label"
+                        header-class="text-weight-bold text-blue-grey-10"
+                      >
+                        <div class="q-pa-md bg-grey-3">
+                          <iframe
+                            :src="docItem.url || docItem.base64"
+                            frameborder="0"
+                            style="width: 100%; height: 550px; border-radius: 15px"
+                            class="shadow-5 bg-white"
+                          ></iframe>
+                        </div>
+                      </q-expansion-item>
+                      <q-item v-if="!currentSupplier.additional_docs?.length">
+                        <q-item-section class="text-center q-pa-xl text-grey-5 italic">
+                          Tidak ada dokumen legalitas yang diunggah untuk vendor ini.
+                        </q-item-section>
+                      </q-item>
+                    </q-list>
+                  </q-card>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="q-py-xl"></div>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+
+    <!-- VIEW 3: DIALOG FORM (TAMBAH/UPDATE) -->
+    <q-dialog
+      v-model="showDialog"
+      persistent
+      maximized
+      transition-show="slide-up"
+      transition-hide="slide-down"
+      backdrop-filter="blur(4px)"
+    >
+      <q-card class="bg-grey-2 column no-wrap">
+        <q-toolbar class="bg-white text-indigo-10 q-py-md shadow-2">
+          <q-btn flat round dense icon="close" v-close-popup color="grey-7" />
+          <q-toolbar-title class="text-weight-bold text-center">
+            {{ isEditMode ? 'PEMBARUAN DATA VENDOR' : 'REGISTRASI VENDOR BARU' }}
+          </q-toolbar-title>
+          <q-btn
+            unelevated
+            color="indigo-10"
+            label="SIMPAN DATA"
+            :loading="submitting"
+            rounded
+            class="q-px-xl text-weight-bold shadow-3"
+            @click="simpanSupplier"
+          />
+        </q-toolbar>
+
+        <q-card-section class="col scroll q-pa-lg q-pa-md-xl">
+          <div class="row justify-center">
+            <div class="col-12 col-lg-10">
+              <div class="row q-col-gutter-xl">
+                <!-- FORM BAGIAN KIRI: PROFIL & PIC -->
+                <div class="col-12 col-md-6">
+                  <q-card flat bordered class="rounded-20 q-pa-lg bg-white shadow-1">
+                    <div
+                      class="text-subtitle1 text-indigo-10 text-weight-bolder q-mb-lg flex items-center"
+                    >
+                      <q-icon name="storefront" class="q-mr-sm" /> INFORMASI UTAMA VENDOR
+                    </div>
+                    <div class="q-gutter-y-md">
+                      <q-input
+                        outlined
+                        v-model="form.nama"
+                        label="Nama Supplier / Vendor *"
+                        stack-label
+                        placeholder="Masukkan nama resmi perusahaan"
+                      />
+                      <div class="row q-col-gutter-md">
+                        <q-input
+                          class="col-12 col-sm-6"
+                          outlined
+                          v-model="form.email"
+                          label="Email Korespondensi *"
+                          stack-label
+                        />
+                        <q-input
+                          class="col-12 col-sm-6"
+                          outlined
+                          v-model="form.kontak"
+                          label="Telepon Kantor"
+                          stack-label
+                        />
+                      </div>
+                      <q-input
+                        outlined
+                        v-model="form.npwp"
+                        label="Nomor NPWP"
+                        mask="##.###.###.#-###.###"
+                        stack-label
+                      />
+                      <q-input
+                        outlined
+                        v-model="form.alamat"
+                        type="textarea"
+                        label="Alamat Kantor Pusat"
+                        rows="2"
+                        autogrow
+                        stack-label
+                      />
+                    </div>
+                  </q-card>
+
+                  <q-card flat bordered class="rounded-20 q-pa-lg bg-white shadow-1 q-mt-lg">
+                    <div
+                      class="text-subtitle1 text-indigo-10 text-weight-bolder q-mb-md flex items-center"
+                    >
+                      <q-icon name="person_search" class="q-mr-sm" /> PERSON IN CHARGE (PIC)
+                    </div>
+                    <div class="row q-col-gutter-md">
+                      <q-input
+                        class="col-6"
+                        outlined
+                        v-model="form.pic_nama"
+                        label="Nama Lengkap"
+                        dense
+                      />
+                      <q-input
+                        class="col-6"
+                        outlined
+                        v-model="form.pic_kontak"
+                        label="HP / WhatsApp"
+                        dense
+                      />
+                    </div>
+                  </q-card>
+                </div>
+
+                <!-- FORM BAGIAN KANAN: FINANSIAL & BERKAS -->
+                <div class="col-12 col-md-6">
+                  <q-card flat bordered class="rounded-20 q-pa-lg bg-white shadow-1">
+                    <div
+                      class="text-subtitle1 text-indigo-10 text-weight-bolder q-mb-lg flex items-center"
+                    >
+                      <q-icon name="account_balance_wallet" class="q-mr-sm" /> INFORMASI PEMBAYARAN
+                    </div>
+                    <div class="q-gutter-y-md">
+                      <q-input
+                        outlined
+                        v-model="form.rek_nomor"
+                        label="Nomor Rekening"
+                        stack-label
+                      />
+                      <div class="row q-col-gutter-md">
+                        <q-input
+                          class="col-6"
+                          outlined
+                          v-model="form.rek_bank"
+                          label="Nama Bank"
+                          dense
+                        />
+                        <q-input
+                          class="col-6"
+                          outlined
+                          v-model="form.rek_nama"
+                          label="Atas Nama"
+                          dense
+                        />
+                      </div>
+                    </div>
+                  </q-card>
+
+                  <q-card flat bordered class="rounded-20 q-pa-lg bg-white shadow-1 q-mt-lg">
+                    <div class="row items-center justify-between q-mb-lg">
+                      <div
+                        class="text-subtitle1 text-indigo-10 text-weight-bolder flex items-center"
+                      >
+                        <q-icon name="upload_file" class="q-mr-sm" /> BERKAS LEGALITAS
                       </div>
                       <q-btn
                         round
                         unelevated
-                        color="primary"
+                        color="indigo-10"
                         icon="add"
                         size="sm"
                         @click="addDocRow"
                       />
                     </div>
+
                     <div
                       v-for="(item, index) in form.additional_docs"
                       :key="index"
-                      class="row q-col-gutter-sm items-center q-mb-sm"
+                      class="q-mb-md q-pa-sm bg-grey-1 rounded-borders border-dashed"
                     >
-                      <div class="col-5">
-                        <q-input
-                          outlined
-                          dense
-                          v-model="item.label"
-                          placeholder="Nama Dokumen"
-                          bg-color="grey-1"
-                        />
-                      </div>
-                      <div class="col-5">
-                        <q-file
-                          outlined
-                          dense
-                          v-model="item.fileObj"
-                          label="Pilih File"
-                          bg-color="grey-1"
-                        >
-                          <template v-slot:append><q-icon name="attach_file" size="xs" /></template>
-                        </q-file>
-                        <div
-                          v-if="item.url || item.base64"
-                          class="text-caption text-green text-italic"
-                        >
-                          ✔ File tersimpan
+                      <div class="row q-col-gutter-sm items-center">
+                        <div class="col-5">
+                          <q-input
+                            outlined
+                            dense
+                            v-model="item.label"
+                            placeholder="ex: SIUP / NIB"
+                            bg-color="white"
+                          />
+                        </div>
+                        <div class="col-5">
+                          <q-file
+                            outlined
+                            dense
+                            v-model="item.fileObj"
+                            label="Pilih File"
+                            bg-color="white"
+                          >
+                            <template v-slot:prepend
+                              ><q-icon name="attach_file" size="xs"
+                            /></template>
+                            <template v-slot:append v-if="item.url || item.base64">
+                              <q-icon name="check_circle" color="positive" size="xs" />
+                            </template>
+                          </q-file>
+                        </div>
+                        <div class="col-2 text-right">
+                          <q-btn
+                            flat
+                            round
+                            dense
+                            color="negative"
+                            icon="delete_sweep"
+                            size="sm"
+                            @click="removeDocRow(index)"
+                          />
                         </div>
                       </div>
-                      <div class="col-auto">
-                        <q-btn
-                          round
-                          flat
-                          dense
-                          color="negative"
-                          icon="delete"
-                          size="sm"
-                          @click="removeDocRow(index)"
-                        />
-                      </div>
+                    </div>
+
+                    <div
+                      v-if="!form.additional_docs.length"
+                      class="text-center q-pa-lg text-grey-5 dashed-box"
+                    >
+                      Lampirkan dokumen legalitas supplier di sini
                     </div>
                   </q-card>
-
-                  <div class="row justify-end q-mt-xl">
-                    <q-btn
-                      unelevated
-                      color="primary"
-                      label="SIMPAN DATA SUPPLIER"
-                      :loading="submitting"
-                      class="btn-radius q-px-xl shadow-2"
-                      @click="simpanSupplier"
-                    />
-                  </div>
                 </div>
               </div>
             </div>
@@ -247,108 +570,7 @@
       </q-card>
     </q-dialog>
 
-    <!-- Modal Profil Lengkap -->
-    <q-dialog v-model="showDetail" maximized transition-show="slide-up">
-      <q-card class="bg-grey-2 column no-wrap" v-if="currentSupplier">
-        <q-toolbar class="bg-primary text-white q-py-md">
-          <q-btn flat round dense icon="arrow_back" v-close-popup />
-          <q-toolbar-title class="text-center uppercase text-bold"
-            >Profil Lengkap Supplier</q-toolbar-title
-          >
-        </q-toolbar>
-
-        <q-card-section class="col scroll q-pa-xl">
-          <div class="row justify-center q-col-gutter-lg">
-            <div class="col-12 col-md-10 col-lg-8">
-              <q-card flat bordered class="q-pa-lg q-mb-md bg-white shadow-1 text-center">
-                <div class="text-h3 text-weight-bolder text-primary uppercase q-mb-xs">
-                  {{ currentSupplier.nama }}
-                </div>
-                <div class="text-grey-7 text-subtitle1">
-                  {{ currentSupplier.email }} | {{ currentSupplier.kontak }}
-                </div>
-              </q-card>
-
-              <div class="row q-col-gutter-md q-mb-md">
-                <div class="col-12 col-md-6">
-                  <q-card flat bordered class="bg-white full-height q-pa-md text-uppercase">
-                    <div class="text-bold text-primary q-mb-sm">Identitas Vendor</div>
-                    <q-separator q-mb-md />
-                    <div class="q-gutter-y-sm font-13">
-                      <div class="row">
-                        <div class="col-4 text-grey-7">NPWP</div>
-                        <div class="col-8 text-weight-bold">{{ currentSupplier.npwp || '-' }}</div>
-                      </div>
-                      <div class="row">
-                        <div class="col-4 text-grey-7">Alamat</div>
-                        <div class="col-8">{{ currentSupplier.alamat || '-' }}</div>
-                      </div>
-                    </div>
-                  </q-card>
-                </div>
-                <div class="col-12 col-md-6">
-                  <q-card flat bordered class="bg-white full-height q-pa-md text-uppercase">
-                    <div class="text-bold text-primary q-mb-sm">PIC & Pembayaran</div>
-                    <q-separator q-mb-md />
-                    <div class="q-gutter-y-sm font-13">
-                      <div class="row">
-                        <div class="col-4 text-grey-7">Nama PIC</div>
-                        <div class="col-8 text-weight-bold">
-                          {{ currentSupplier.pic_nama || '-' }}
-                        </div>
-                      </div>
-                      <div class="row">
-                        <div class="col-4 text-grey-7">Bank</div>
-                        <div class="col-8">{{ currentSupplier.rek_bank || '-' }}</div>
-                      </div>
-                      <div class="row">
-                        <div class="col-4 text-grey-7">Rekening</div>
-                        <div class="col-8">
-                          {{ currentSupplier.rek_nomor || '-' }} (an.
-                          {{ currentSupplier.rek_nama || '-' }})
-                        </div>
-                      </div>
-                    </div>
-                  </q-card>
-                </div>
-              </div>
-
-              <q-card flat bordered class="bg-white shadow-1">
-                <q-card-section class="text-bold uppercase text-primary"
-                  >Berkas Supplier Terlampir</q-card-section
-                >
-                <q-separator />
-                <q-list separator>
-                  <q-expansion-item
-                    v-for="(docItem, i) in currentSupplier.additional_docs"
-                    :key="i"
-                    icon="folder"
-                    :label="docItem.label"
-                    header-class="text-weight-bold"
-                  >
-                    <iframe
-                      :src="docItem.url || docItem.base64"
-                      frameborder="0"
-                      style="width: 100%; height: 600px"
-                    ></iframe>
-                  </q-expansion-item>
-                  <q-item
-                    v-if="
-                      !currentSupplier.additional_docs ||
-                      currentSupplier.additional_docs.length === 0
-                    "
-                  >
-                    <q-item-section class="text-center text-grey-6 italic q-pa-md"
-                      >Belum ada berkas terlampir.</q-item-section
-                    >
-                  </q-item>
-                </q-list>
-              </q-card>
-            </div>
-          </div>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
+    <div class="q-py-xl"></div>
   </q-page>
 </template>
 
@@ -358,7 +580,7 @@ import { useQuasar } from 'quasar'
 import { db, storage } from 'src/boot/firebase'
 import {
   collection,
-  getDocs,
+  onSnapshot,
   addDoc,
   updateDoc,
   deleteDoc,
@@ -366,7 +588,6 @@ import {
   query,
   orderBy,
   where,
-  onSnapshot,
   serverTimestamp,
 } from 'firebase/firestore'
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
@@ -375,7 +596,7 @@ import { useAuthStore } from 'src/stores/auth'
 const $q = useQuasar()
 const authStore = useAuthStore()
 const rows = ref([])
-const loading = ref(false)
+const loading = ref(true)
 const submitting = ref(false)
 const showDialog = ref(false)
 const showDetail = ref(false)
@@ -383,7 +604,9 @@ const isEditMode = ref(false)
 const filter = ref('')
 const currentSupplier = ref(null)
 const userData = ref(null)
-let unsubscribeUser = null
+
+let unsubUser = null
+let unsubSupplier = null
 
 const formDefault = {
   id: null,
@@ -402,32 +625,22 @@ const formDefault = {
 const form = ref({ ...formDefault })
 
 const columns = [
-  { name: 'nama', align: 'left', label: 'SUPPLIER', field: 'nama', sortable: true },
-  { name: 'email', align: 'left', label: 'EMAIL', field: 'email' },
-  { name: 'pic_nama', align: 'left', label: 'PIC', field: 'pic_nama' },
-  { name: 'aksi', align: 'center', label: 'AKSI', field: 'aksi' },
+  { name: 'nama', align: 'left', label: 'IDENTITAS VENDOR', field: 'nama', sortable: true },
+  { name: 'email', align: 'left', label: 'EMAIL RESMI', field: 'email', sortable: true },
+  { name: 'pic_nama', align: 'left', label: 'PENANGGUNG JAWAB', field: 'pic_nama' },
+  { name: 'aksi', align: 'center', label: 'AKSI KELOLA', field: 'aksi' },
 ]
 
-/**
- * LOGIKA SATPAM: Mengecek izin aksi granular (buat, ubah, hapus)
- * ID Target: _konstruksi_master_supplier
- */
 const canAction = (actionType) => {
   if (authStore.user?.role === 'Super Admin') return true
   if (!userData.value?.permissions_detail) return false
-
   const modulePerm = userData.value.permissions_detail.find((m) => m.id === 'konstruksi')
   if (!modulePerm || !modulePerm.isActive) return false
-
-  // ID Menu: _konstruksi_master_supplier (sesuai generator rute di AksesPage)
   const targetId = '_konstruksi_master_supplier'
   const menu = modulePerm.menus.find((m) => m.id === targetId)
-
-  if (!menu) return false
-  return menu[actionType] || false
+  return menu ? menu[actionType] || false : false
 }
 
-// HYBRID UPLOAD LOGIC
 const processHybridUpload = async (file, pathName) => {
   if (!file) return null
   if (file.size <= 512000) {
@@ -437,7 +650,7 @@ const processHybridUpload = async (file, pathName) => {
       reader.onload = () => resolve(reader.result)
     })
   } else {
-    const sRef = storageRef(storage, `suppliers/${Date.now()}_${pathName}`)
+    const sRef = storageRef(storage, `suppliers/legal/${Date.now()}_${pathName}`)
     const snap = await uploadBytes(sRef, file)
     return await getDownloadURL(snap.ref)
   }
@@ -448,12 +661,16 @@ const addDocRow = () =>
 const removeDocRow = (i) => form.value.additional_docs.splice(i, 1)
 
 const simpanSupplier = async () => {
-  if (!form.value.nama) return
+  if (!form.value.nama) {
+    $q.notify({ type: 'warning', message: 'Nama Supplier wajib diisi' })
+    return
+  }
+  $q.loading.show({ message: 'Menyimpan data vendor...' })
   submitting.value = true
   try {
     for (let item of form.value.additional_docs) {
       if (item.fileObj) {
-        const result = await processHybridUpload(item.fileObj, item.label)
+        const result = await processHybridUpload(item.fileObj, item.label || 'Doc')
         if (result.startsWith('http')) {
           item.url = result
           item.base64 = ''
@@ -475,93 +692,154 @@ const simpanSupplier = async () => {
       await addDoc(collection(db, 'suppliers'), payload)
     }
     showDialog.value = false
-    fetchData()
-    $q.notify({ type: 'positive', message: 'Data Supplier Berhasil Disimpan!' })
+    $q.notify({ type: 'positive', message: 'Data vendor berhasil diperbarui!', position: 'top' })
   } catch (e) {
     console.error(e)
-    $q.notify({ color: 'negative', message: 'Gagal Simpan!' })
+    $q.notify({ color: 'negative', message: 'Gagal sinkronisasi data.' })
   } finally {
+    $q.loading.hide()
     submitting.value = false
   }
-}
-
-const fetchData = async () => {
-  loading.value = true
-  const snap = await getDocs(query(collection(db, 'suppliers'), orderBy('createdAt', 'desc')))
-  rows.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
-  loading.value = false
 }
 
 const onRowClick = (e, row) => {
   currentSupplier.value = row
   showDetail.value = true
 }
+
 const openAddDialog = () => {
   isEditMode.value = false
   form.value = JSON.parse(JSON.stringify(formDefault))
   showDialog.value = true
 }
+
 const openEditDialog = (row) => {
   isEditMode.value = true
   form.value = JSON.parse(JSON.stringify(row))
   showDialog.value = true
 }
+
+const openEditFromDetail = () => {
+  form.value = JSON.parse(JSON.stringify(currentSupplier.value))
+  isEditMode.value = true
+  showDetail.value = false
+  showDialog.value = true
+}
+
 const confirmHapus = (r) => {
   $q.dialog({
-    title: 'Hapus',
-    message: `Hapus ${r.nama}?`,
-    cancel: true,
-    ok: { color: 'negative' },
+    title: 'Konfirmasi Penghapusan',
+    message: `Anda akan menghapus data ${r.nama} secara permanen dari sistem. Lanjutkan?`,
+    cancel: { label: 'Batal', flat: true, color: 'grey-7' },
+    ok: { label: 'Ya, Hapus', color: 'negative', unelevated: true, rounded: true },
+    persistent: true,
   }).onOk(async () => {
-    await deleteDoc(doc(db, 'suppliers', r.id))
-    fetchData()
+    try {
+      await deleteDoc(doc(db, 'suppliers', r.id))
+      $q.notify({ icon: 'delete', message: 'Data vendor telah dihapus.' })
+      // eslint-disable-next-line no-unused-vars
+    } catch (e) {
+      $q.notify({ color: 'negative', message: 'Gagal menghapus data.' })
+    }
   })
 }
 
 onMounted(() => {
-  // 1. Pantau Hak Akses User secara Real-time
+  // 1. Pantau Hak Akses User
   const userEmail = authStore.user?.email
   if (userEmail) {
     const qUser = query(collection(db, 'karyawan'), where('email', '==', userEmail))
-    unsubscribeUser = onSnapshot(qUser, (snapshot) => {
-      if (!snapshot.empty) {
-        userData.value = snapshot.docs[0].data()
-      }
+    unsubUser = onSnapshot(qUser, (snapshot) => {
+      if (!snapshot.empty) userData.value = snapshot.docs[0].data()
     })
   }
 
-  // 2. Tarik Data Supplier
-  fetchData()
+  // 2. Pantau Data Supplier secara Real-time
+  const qSupplier = query(collection(db, 'suppliers'), orderBy('createdAt', 'desc'))
+  unsubSupplier = onSnapshot(
+    qSupplier,
+    (snap) => {
+      rows.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+      loading.value = false
+    },
+    (err) => {
+      console.error('Firestore Listen Error:', err)
+      loading.value = false
+    },
+  )
 })
 
 onUnmounted(() => {
-  if (unsubscribeUser) unsubscribeUser()
+  if (unsubUser) unsubUser()
+  if (unsubSupplier) unsubSupplier()
 })
 </script>
 
 <style scoped>
-.label-form {
-  font-size: 11px;
-  font-weight: 700;
-  color: #555;
-  margin-bottom: 2px;
-  text-transform: uppercase;
+.font-pro {
+  font-family:
+    'Inter',
+    -apple-system,
+    sans-serif;
 }
-.btn-radius {
-  border-radius: 8px;
+.rounded-20 {
+  border-radius: 20px;
 }
-.rounded-borders {
+.shadow-premium {
+  box-shadow: 0 10px 30px rgba(25, 118, 210, 0.15);
+}
+.border-dashed {
+  border: 2px dashed #e0e0e0;
+}
+.dashed-box {
+  border: 2px dashed #e0e0e0;
   border-radius: 12px;
 }
-.customer-table :deep(tbody tr) {
-  cursor: pointer;
-  transition: 0.2s;
+
+.supplier-table :deep(thead tr th) {
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
-.customer-table :deep(tbody tr:hover) {
-  background-color: #fff9f2 !important;
+.btn-hover:hover {
+  filter: brightness(1.1);
+  transform: scale(1.02);
+  transition: 0.3s;
 }
-.font-13 {
-  font-size: 13px;
-  line-height: 1.6;
+.hover-bg:hover {
+  background-color: rgba(25, 118, 210, 0.03) !important;
+}
+.transition-all {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.animate-fade {
+  animation: fadeIn 0.8s ease-out;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.letter-spacing-1 {
+  letter-spacing: 1px;
+}
+.border-white-5 {
+  border: 5px solid white;
+}
+.search-input :deep(.q-field__control) {
+  border-radius: 30px;
+}
+.block {
+  display: block;
+}
+.uppercase {
+  text-transform: uppercase;
 }
 </style>

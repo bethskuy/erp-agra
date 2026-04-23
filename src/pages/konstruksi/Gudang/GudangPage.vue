@@ -1,101 +1,142 @@
 <template>
-  <q-page class="bg-grey-2 q-pa-md font-pro">
-    <!-- Header Section -->
-    <div class="row items-center q-mb-md">
-      <div class="col">
-        <div class="text-h5 text-weight-bold text-primary text-uppercase letter-spacing-1">
+  <q-page class="bg-grey-2 q-pa-md q-pa-md-lg font-pro">
+    <!-- HEADER SECTION -->
+    <div class="row items-center justify-between q-mb-xl animate-fade">
+      <div class="col-12 col-md-8">
+        <div class="text-h4 text-weight-bolder text-indigo-10 leading-tight">
           Manajemen Gudang
+          <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs">
+            {{
+              selectedGudang
+                ? 'Detail Inventaris: ' + selectedGudang.nama
+                : 'Pusat Logistik & Stok Proyek'
+            }}
+          </span>
         </div>
-        <div class="text-caption text-grey-7 text-uppercase">
-          {{ selectedGudang ? 'Detail Stok: ' + selectedGudang.nama : 'Daftar Lokasi Gudang' }}
+        <div class="text-subtitle1 text-grey-7 q-mt-sm">
+          Monitoring ketersediaan material secara real-time di seluruh titik distribusi.
         </div>
       </div>
-      <div class="col-auto" v-if="selectedGudang">
+      <div class="col-12 col-md-auto q-mt-md q-mt-md-none" v-if="selectedGudang">
         <q-btn
           flat
+          rounded
           icon="arrow_back"
-          label="Kembali"
+          label="Kembali ke Daftar Gudang"
           @click="selectedGudang = null"
-          color="grey-7"
+          color="indigo-10"
+          class="bg-white shadow-1"
         />
       </div>
     </div>
 
-    <!-- Gudang Selector Grid (Muncul saat belum pilih gudang) -->
-    <q-card v-if="!selectedGudang" flat bordered class="rounded-borders shadow-1">
-      <q-list separator>
-        <q-item
-          clickable
-          v-ripple
+    <!-- VIEW 1: GUDANG SELECTOR GRID -->
+    <div v-if="!selectedGudang" class="row q-col-gutter-lg animate-fade-up">
+      <!-- Gudang Utama Card -->
+      <div class="col-12 col-sm-6 col-md-4">
+        <q-card
+          flat
+          bordered
+          class="gudang-card rounded-20 cursor-pointer transition-all hover-shadow"
           @click="selectGudang({ id: 'UTAMA', nama: 'Gudang Utama' })"
-          class="q-py-md"
         >
-          <q-item-section avatar>
-            <q-avatar color="indigo-1" text-color="indigo-10" icon="warehouse" />
-          </q-item-section>
-          <q-item-section>
-            <q-item-label class="text-weight-bold text-subtitle1">GUDANG UTAMA</q-item-label>
-            <q-item-label caption>Pusat penyimpanan material utama perusahaan</q-item-label>
-          </q-item-section>
-          <q-item-section side><q-icon name="chevron_right" /></q-item-section>
-        </q-item>
+          <q-card-section class="q-pa-lg text-center">
+            <q-avatar
+              size="80px"
+              color="indigo-1"
+              text-color="indigo-10"
+              icon="warehouse"
+              class="q-mb-md shadow-2"
+            />
+            <div class="text-h6 text-weight-bolder text-indigo-10 uppercase">Gudang Utama</div>
+            <div class="text-caption text-grey-6 q-mt-sm">
+              Pusat penyimpanan material inti & alat berat perusahaan.
+            </div>
+          </q-card-section>
+          <q-separator inset />
+          <q-card-section class="bg-indigo-10 text-white text-center q-py-sm">
+            <div class="text-caption text-weight-bold tracking-widest">PILIH LOKASI</div>
+          </q-card-section>
+        </q-card>
+      </div>
 
-        <q-item
-          v-for="p in listProyek"
-          :key="p.id"
-          clickable
-          v-ripple
+      <!-- Proyek Gudang Cards -->
+      <div v-for="p in listProyek" :key="p.id" class="col-12 col-sm-6 col-md-4">
+        <q-card
+          flat
+          bordered
+          class="gudang-card rounded-20 cursor-pointer transition-all hover-shadow"
           @click="selectGudang({ id: p.id, nama: 'Gudang ' + (p.nama_proyek || p.nama) })"
-          class="q-py-md"
         >
-          <q-item-section avatar>
-            <q-avatar color="blue-1" text-color="primary" icon="construction" />
-          </q-item-section>
-          <q-item-section>
-            <q-item-label class="text-weight-bold text-subtitle1"
-              >GUDANG {{ p.nama_proyek || p.nama }}</q-item-label
-            >
-            <q-item-label caption>Lokasi Proyek: {{ p.lokasi || 'Aktif' }}</q-item-label>
-          </q-item-section>
-          <q-item-section side><q-icon name="chevron_right" /></q-item-section>
-        </q-item>
-      </q-list>
-    </q-card>
+          <q-card-section class="q-pa-lg text-center">
+            <q-avatar
+              size="80px"
+              color="blue-1"
+              text-color="primary"
+              icon="construction"
+              class="q-mb-md shadow-2"
+            />
+            <div class="text-h6 text-weight-bolder text-blue-grey-10 uppercase ellipsis">
+              Gudang {{ p.nama_proyek || p.nama }}
+            </div>
+            <div class="text-caption text-grey-7 q-mt-sm ellipsis-2-lines">
+              Lokasi: {{ p.lokasi || 'Proyek Aktif' }}
+            </div>
+          </q-card-section>
+          <q-separator inset />
+          <q-card-section class="bg-primary text-white text-center q-py-sm">
+            <div class="text-caption text-weight-bold tracking-widest">DETAIL LOGISTIK</div>
+          </q-card-section>
+        </q-card>
+      </div>
+    </div>
 
-    <!-- Detail Stok Gudang (Muncul setelah gudang dipilih) -->
-    <div v-else>
-      <div class="row q-gutter-sm q-mb-lg items-center">
+    <!-- VIEW 2: DETAIL STOK GUDANG -->
+    <div v-else class="animate-fade">
+      <!-- Transaksi & Action Bar -->
+      <div class="row q-gutter-md q-mb-lg items-center">
         <q-btn
           unelevated
           color="primary"
           icon="analytics"
           label="Stok Opname"
           :to="`/konstruksi/gudang/opname/${selectedGudang.id}`"
-          class="rounded-borders"
+          rounded
+          class="q-px-lg shadow-2"
         />
 
         <q-btn-dropdown
           unelevated
-          color="primary"
+          color="white"
+          text-color="primary"
           icon="sync_alt"
-          label="Transaksi"
-          class="rounded-borders"
+          label="Transaksi Stok"
+          rounded
+          class="shadow-1 q-px-lg"
         >
-          <q-list style="min-width: 180px">
-            <q-item clickable v-ripple to="/konstruksi/gudang/transaksi">
-              <q-item-section avatar><q-icon name="history" size="xs" /></q-item-section>
-              <q-item-section>Riwayat Transaksi</q-item-section>
+          <q-list style="min-width: 200px" class="q-pa-sm">
+            <q-item clickable v-ripple to="/konstruksi/gudang/transaksi" class="rounded-borders">
+              <q-item-section avatar><q-icon name="history" color="primary" /></q-item-section>
+              <q-item-section class="text-weight-medium">Riwayat Transaksi</q-item-section>
             </q-item>
-            <q-separator />
-            <q-item clickable v-ripple :to="`/konstruksi/gudang/masuk/${selectedGudang.id}`">
-              <q-item-section avatar
-                ><q-icon name="login" color="green" size="xs"
-              /></q-item-section>
-              <q-item-section>Barang Masuk</q-item-section>
+            <q-separator spaced />
+            <q-item
+              clickable
+              v-ripple
+              :to="`/konstruksi/gudang/masuk/${selectedGudang.id}`"
+              class="rounded-borders bg-green-1 text-green-10 q-mb-xs"
+            >
+              <q-item-section avatar><q-icon name="add_circle" /></q-item-section>
+              <q-item-section class="text-weight-bold">Barang Masuk</q-item-section>
             </q-item>
-            <q-item clickable v-ripple :to="`/konstruksi/gudang/keluar/${selectedGudang.id}`">
-              <q-item-section avatar><q-icon name="logout" color="red" size="xs" /></q-item-section>
-              <q-item-section>Barang Keluar</q-item-section>
+            <q-item
+              clickable
+              v-ripple
+              :to="`/konstruksi/gudang/keluar/${selectedGudang.id}`"
+              class="rounded-borders bg-red-1 text-red-10"
+            >
+              <q-item-section avatar><q-icon name="remove_circle" /></q-item-section>
+              <q-item-section class="text-weight-bold">Barang Keluar</q-item-section>
             </q-item>
           </q-list>
         </q-btn-dropdown>
@@ -105,51 +146,77 @@
         <q-btn
           unelevated
           color="indigo-10"
-          icon="add_box"
-          label="Tambah Stok"
+          icon="post_add"
+          label="Input Stok Manual"
           @click="openAddStokDialog"
-          class="rounded-borders px-lg"
+          rounded
+          class="q-px-lg shadow-premium btn-hover"
         />
       </div>
 
-      <q-card flat bordered class="rounded-borders shadow-1 bg-white">
+      <!-- TABLE INVENTARIS -->
+      <q-card flat bordered class="rounded-20 shadow-sm overflow-hidden bg-white">
         <q-table
-          :title="'Inventaris: ' + selectedGudang.nama"
           :rows="stokBarang"
           :columns="columns"
           row-key="id"
           :filter="filter"
           flat
-          class="no-shadow"
+          binary-state-sort
+          class="gudang-table"
         >
+          <template v-slot:header="props">
+            <q-tr :props="props" class="bg-indigo-10 text-white">
+              <q-th
+                v-for="col in props.cols"
+                :key="col.name"
+                :props="props"
+                class="text-weight-bold"
+              >
+                {{ col.label }}
+              </q-th>
+            </q-tr>
+          </template>
+
           <template v-slot:top-right>
             <q-input
               outlined
               dense
+              rounded
               v-model="filter"
-              placeholder="Cari Barang..."
-              class="bg-white rounded-borders"
-              style="width: 250px"
+              placeholder="Cari item di gudang ini..."
+              class="search-input"
+              style="width: 300px"
+              bg-color="white"
             >
-              <template v-slot:append><q-icon name="search" /></template>
+              <template v-slot:prepend><q-icon name="search" color="primary" /></template>
             </q-input>
           </template>
 
           <template v-slot:body-cell-stok="props">
-            <q-td :props="props">
-              <q-badge
-                :color="props.value > 10 ? 'green-7' : 'orange-9'"
-                class="q-px-sm q-py-xs text-weight-bold"
+            <q-td :props="props" class="text-center">
+              <q-chip
+                :color="props.value > 10 ? 'green-1' : 'orange-1'"
+                :text-color="props.value > 10 ? 'green-10' : 'orange-10'"
+                class="text-weight-bolder q-px-md"
+                :icon="props.value > 10 ? 'check_circle' : 'warning'"
               >
                 {{ props.value }}
-              </q-badge>
+              </q-chip>
             </q-td>
+          </template>
+
+          <template v-slot:no-data>
+            <div class="full-width row flex-center q-pa-xl text-grey-5">
+              <q-icon name="inventory_2" size="64px" class="q-mb-md" />
+              <div class="text-h6 full-width text-center italic">Gudang ini masih kosong</div>
+            </div>
           </template>
         </q-table>
       </q-card>
     </div>
 
-    <!-- DIALOG TAMBAH STOK (FULL SCREEN / MAXIMIZED) -->
+    <!-- DIALOG TAMBAH STOK (FULL SCREEN) -->
     <q-dialog
       v-model="dialogStok"
       persistent
@@ -158,114 +225,96 @@
       transition-hide="slide-down"
     >
       <q-card class="column bg-grey-2">
-        <!-- Header Dialog -->
-        <q-card-section class="row items-center bg-indigo-10 text-white q-py-md shrink">
-          <q-btn icon="close" flat round dense v-close-popup class="q-mr-md" />
-          <div class="text-h6 text-weight-bold">Form Tambah Stok Barang</div>
-          <q-space />
-          <!-- Tombol Simpan Data di Header Dihapus Sesuai Permintaan -->
-        </q-card-section>
+        <q-toolbar class="bg-white text-indigo-10 q-py-md shadow-2">
+          <q-btn flat round dense icon="close" v-close-popup color="grey-7" />
+          <q-toolbar-title class="text-weight-bold text-center"
+            >PENYESUAIAN STOK MANUAL</q-toolbar-title
+          >
+          <q-btn
+            unelevated
+            color="indigo-10"
+            label="SIMPAN DATA"
+            rounded
+            class="q-px-xl text-weight-bold shadow-3"
+            @click="stokFormRef.submit()"
+          />
+        </q-toolbar>
 
-        <!-- Body Scrollable -->
-        <q-scroll-area class="col q-pa-md">
-          <div class="row justify-center q-pt-lg">
+        <q-scroll-area class="col q-pa-lg q-pa-md-xl">
+          <div class="row justify-center">
             <div class="col-12 col-md-8 col-lg-6">
-              <!-- Card Kontainer Form -->
-              <q-card flat bordered class="rounded-borders q-pa-lg bg-white shadow-1">
+              <q-card flat bordered class="rounded-20 q-pa-xl bg-white shadow-1">
                 <q-form ref="stokFormRef" @submit="simpanStok" class="q-gutter-y-lg">
-                  <div class="row items-center q-gutter-sm">
-                    <q-icon name="info" color="grey-6" size="sm" />
-                    <div class="text-subtitle1 text-weight-bold text-grey-8">Informasi Lokasi</div>
+                  <div class="text-subtitle1 text-indigo-10 text-weight-bolder flex items-center">
+                    <q-icon name="location_on" class="q-mr-sm" /> KONFIRMASI PENYIMPANAN
                   </div>
 
                   <q-input
                     filled
-                    dense
-                    :model-value="selectedGudang?.nama"
-                    label="Gudang Tujuan"
+                    v-model="selectedGudang.nama"
+                    label="Lokasi Gudang"
                     readonly
-                    bg-color="grey-1"
-                  >
-                    <template v-slot:prepend><q-icon name="warehouse" /></template>
-                  </q-input>
+                    bg-color="indigo-1"
+                    class="text-weight-bold"
+                  />
 
-                  <q-separator />
+                  <q-separator class="q-my-md" />
 
-                  <div class="row items-center q-gutter-sm">
-                    <q-icon name="shopping_cart" color="grey-6" size="sm" />
-                    <div class="text-subtitle1 text-weight-bold text-grey-8">Pilih Item Barang</div>
+                  <div class="text-subtitle1 text-indigo-10 text-weight-bolder flex items-center">
+                    <q-icon name="inventory" class="q-mr-sm" /> SELEKSI ITEM & JUMLAH
                   </div>
 
                   <div class="row q-col-gutter-md">
-                    <!-- Filter Kategori -->
-                    <div class="col-12 col-sm-6">
+                    <div class="col-12">
                       <q-select
-                        filled
+                        outlined
                         v-model="formStok.kategori"
                         :options="kategoriOptions"
-                        label="Pilih Kategori"
+                        label="Filter Berdasarkan Kategori"
                         option-label="nama"
                         option-value="id"
                         emit-value
                         map-options
                         @update:model-value="onKategoriChange"
-                        :rules="[(val) => !!val || 'Kategori wajib dipilih']"
-                      >
-                        <template v-slot:prepend
-                          ><q-icon name="category" color="primary"
-                        /></template>
-                      </q-select>
+                        :rules="[(val) => !!val || 'Pilih kategori terlebih dahulu']"
+                      />
                     </div>
 
-                    <!-- Pilih Barang -->
-                    <div class="col-12 col-sm-6">
+                    <div class="col-12">
                       <q-select
-                        filled
+                        outlined
                         v-model="formStok.barang"
                         :options="filteredBarangOptions"
-                        label="Cari Nama Barang"
+                        label="Pilih Nama Barang"
                         option-label="nama_barang"
                         option-value="id"
                         :disable="!formStok.kategori"
                         use-input
                         @filter="filterBarang"
                         @update:model-value="onBarangChange"
-                        :rules="[(val) => !!val || 'Barang wajib dipilih']"
-                      >
-                        <template v-slot:prepend
-                          ><q-icon name="inventory" color="primary"
-                        /></template>
-                        <template v-slot:no-option>
-                          <q-item
-                            ><q-item-section class="text-grey"
-                              >Barang tidak ditemukan</q-item-section
-                            ></q-item
-                          >
-                        </template>
-                      </q-select>
+                        :rules="[(val) => !!val || 'Pilih barang yang akan ditambah']"
+                      />
                     </div>
                   </div>
 
-                  <div class="row q-col-gutter-md items-start">
+                  <div class="row q-col-gutter-md items-center">
                     <div class="col-12 col-sm-6">
                       <q-input
-                        filled
+                        outlined
                         v-model.number="formStok.jumlah"
                         type="number"
-                        label="Jumlah Tambahan"
-                        :rules="[
-                          (val) => (val !== null && val !== undefined) || 'Wajib diisi',
-                          (val) => val > 0 || 'Minimal 1',
-                        ]"
-                        class="text-h6"
+                        label="Kuantitas Tambahan"
+                        prefix="+"
+                        class="text-h5 text-weight-bolder text-indigo-10"
+                        :rules="[(val) => !!val || 'Wajib diisi', (val) => val > 0 || 'Minimal 1']"
                       >
                         <template v-slot:append>
                           <q-badge
-                            color="grey-2"
-                            text-color="grey-9"
+                            color="blue-1"
+                            text-color="primary"
                             class="q-pa-sm text-weight-bold"
                           >
-                            {{ formStok.satuan || '-' }}
+                            {{ formStok.satuan || 'UNIT' }}
                           </q-badge>
                         </template>
                       </q-input>
@@ -274,54 +323,34 @@
                     <div class="col-12 col-sm-6">
                       <div
                         v-if="formStok.barang"
-                        class="bg-blue-1 q-pa-md rounded-borders border-dashed"
+                        class="bg-indigo-1 q-pa-md rounded-borders border-dashed-indigo text-center"
                       >
-                        <div class="row items-center justify-between">
-                          <div class="text-caption text-grey-7">Stok Saat Ini:</div>
-                          <div class="text-h6 text-primary text-weight-bolder">
-                            {{ currentStokValue }} {{ formStok.satuan }}
-                          </div>
+                        <div class="text-caption text-grey-7">Stok Saat Ini</div>
+                        <div class="text-h6 text-indigo-10 text-weight-bolder">
+                          {{ currentStokValue }} {{ formStok.satuan }}
                         </div>
-                      </div>
-                      <div
-                        v-else
-                        class="text-caption text-grey-6 text-center q-pa-md border-dashed rounded-borders"
-                      >
-                        Pilih barang untuk melihat stok terkini
                       </div>
                     </div>
                   </div>
 
                   <q-input
-                    filled
+                    outlined
                     v-model="formStok.keterangan"
                     type="textarea"
-                    label="Catatan atau Keterangan Tambahan"
+                    label="Catatan / Alasan Penyesuaian"
                     rows="3"
-                    placeholder="Contoh: Pengadaan dari pusat, Sisa proyek A, dll."
+                    placeholder="Contoh: Sisa material proyek atau pengadaan darurat..."
                   />
-
-                  <div class="row justify-end q-mt-xl">
-                    <q-btn flat label="Batalkan" color="grey-7" v-close-popup class="q-mr-sm" />
-                    <q-btn
-                      unelevated
-                      label="Simpan Stok"
-                      color="indigo-10"
-                      type="submit"
-                      :loading="loadingSimpan"
-                      padding="10px 30px"
-                      class="rounded-borders"
-                    />
-                  </div>
                 </q-form>
               </q-card>
-
               <div class="q-py-xl"></div>
             </div>
           </div>
         </q-scroll-area>
       </q-card>
     </q-dialog>
+
+    <div class="q-py-xl"></div>
   </q-page>
 </template>
 
@@ -341,7 +370,6 @@ import {
 } from 'firebase/firestore'
 import { useQuasar } from 'quasar'
 
-// Initialization
 const $q = useQuasar()
 const listProyek = ref([])
 const selectedGudang = ref(null)
@@ -349,7 +377,6 @@ const stokBarang = ref([])
 const filter = ref('')
 const stokFormRef = ref(null)
 
-// Master Data & Dialog Refs
 const dialogStok = ref(false)
 const loadingSimpan = ref(false)
 const kategoriOptions = ref([])
@@ -357,23 +384,23 @@ const masterBarang = ref([])
 const filteredBarangOptions = ref([])
 const currentStokValue = ref(0)
 
-const formStok = ref({
-  kategori: null,
-  barang: null,
-  jumlah: null,
-  satuan: '',
-  keterangan: '',
-})
+const formStok = ref({ kategori: null, barang: null, jumlah: null, satuan: '', keterangan: '' })
 
 const columns = [
-  { name: 'nama', label: 'NAMA BARANG', field: 'nama_barang', align: 'left', sortable: true },
-  { name: 'stok', label: 'STOK FISIK', field: 'jumlah', align: 'center', sortable: true },
+  {
+    name: 'nama',
+    label: 'IDENTITAS MATERIAL',
+    field: 'nama_barang',
+    align: 'left',
+    sortable: true,
+  },
+  { name: 'stok', label: 'KUANTITAS FISIK', field: 'jumlah', align: 'center', sortable: true },
   { name: 'satuan', label: 'SATUAN', field: 'satuan', align: 'center' },
 ]
 
-// Logic Functions
 const selectGudang = (gudang) => {
   selectedGudang.value = gudang
+  window.scrollTo(0, 0)
 }
 
 const fetchMasterData = async () => {
@@ -381,10 +408,18 @@ const fetchMasterData = async () => {
     const catSnap = await getDocs(collection(db, 'kategori_barang'))
     kategoriOptions.value = catSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
 
-    const barSnap = await getDocs(collection(db, 'barang'))
-    masterBarang.value = barSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+    const barSnap = await getDocs(collection(db, 'master_barang'))
+    masterBarang.value = barSnap.docs.map((doc) => {
+      const data = doc.data()
+      return {
+        id: doc.id,
+        nama_barang: data.nama,
+        id_kategori: data.kategori,
+        satuan: data.unit,
+      }
+    })
   } catch (err) {
-    console.error('Gagal mengambil data master:', err)
+    console.error(err)
   }
 }
 
@@ -393,14 +428,16 @@ const fetchProyek = async () => {
     const snap = await getDocs(collection(db, 'proyek'))
     listProyek.value = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
   } catch (err) {
-    console.error('Gagal mengambil data proyek:', err)
+    console.error(err)
   }
 }
 
 const openAddStokDialog = async () => {
   formStok.value = { kategori: null, barang: null, jumlah: null, satuan: '', keterangan: '' }
   currentStokValue.value = 0
+  $q.loading.show()
   await fetchMasterData()
+  $q.loading.hide()
   dialogStok.value = true
 }
 
@@ -410,14 +447,6 @@ const onKategoriChange = (val) => {
 }
 
 const filterBarang = (val, update) => {
-  if (val === '') {
-    update(() => {
-      filteredBarangOptions.value = masterBarang.value.filter(
-        (b) => b.id_kategori === formStok.value.kategori,
-      )
-    })
-    return
-  }
   update(() => {
     const needle = val.toLowerCase()
     filteredBarangOptions.value = masterBarang.value.filter(
@@ -433,9 +462,6 @@ const onBarangChange = (val) => {
     formStok.value.satuan = val.satuan || ''
     const existing = stokBarang.value.find((s) => s.id_barang === val.id)
     currentStokValue.value = existing ? existing.jumlah : 0
-  } else {
-    formStok.value.satuan = ''
-    currentStokValue.value = 0
   }
 }
 
@@ -443,13 +469,13 @@ const simpanStok = async () => {
   if (!selectedGudang.value || !formStok.value.barang) return
 
   loadingSimpan.value = true
+  $q.loading.show({ message: 'Mensinkronisasi stok...' })
   try {
     const idGudang = selectedGudang.value.id
     const idBarang = formStok.value.barang.id
     const namaBarang = formStok.value.barang.nama_barang
     const tambahan = Number(formStok.value.jumlah)
 
-    // 1. Update atau Create record stok_barang
     const qStok = query(
       collection(db, 'stok_barang'),
       where('id_gudang', '==', idGudang),
@@ -458,9 +484,8 @@ const simpanStok = async () => {
     const stokSnap = await getDocs(qStok)
 
     if (!stokSnap.empty) {
-      const stokDoc = stokSnap.docs[0]
-      await updateDoc(doc(db, 'stok_barang', stokDoc.id), {
-        jumlah: Number(stokDoc.data().jumlah) + tambahan,
+      await updateDoc(doc(db, 'stok_barang', stokSnap.docs[0].id), {
+        jumlah: Number(stokSnap.docs[0].data().jumlah) + tambahan,
         updated_at: serverTimestamp(),
       })
     } else {
@@ -475,55 +500,37 @@ const simpanStok = async () => {
       })
     }
 
-    // 2. Catat riwayat di transaksi_gudang
-    await addDoc(collection(db, 'transaksi_gudang'), {
+    await addDoc(collection(db, 'aktivitas'), {
       id_gudang: idGudang,
-      id_barang: idBarang,
       nama_barang: namaBarang,
       tipe: 'MASUK',
       jumlah: tambahan,
       keterangan: formStok.value.keterangan || 'Penambahan stok manual',
-      tanggal: serverTimestamp(),
+      timestamp: serverTimestamp(),
     })
 
-    $q.notify({
-      color: 'positive',
-      message: 'Stok berhasil diperbarui',
-      icon: 'check_circle',
-      position: 'top',
-    })
-
+    $q.notify({ type: 'positive', message: 'Stok berhasil diperbarui!', position: 'top' })
     dialogStok.value = false
   } catch (error) {
-    console.error('Error saving stock:', error)
-    $q.notify({
-      color: 'negative',
-      message: 'Gagal menyimpan stok: ' + error.message,
-      position: 'top',
-    })
+    $q.notify({ type: 'negative', message: 'Gagal: ' + error.message })
   } finally {
+    $q.loading.hide()
     loadingSimpan.value = false
   }
 }
 
-// Watchers
+let unsubStok = null
 watch(selectedGudang, (newVal) => {
-  if (unsubscribeStok) unsubscribeStok()
+  if (unsubStok) unsubStok()
   if (newVal) {
-    const q = query(collection(db, 'stok_barang'), where('id_gudang', '==', newVal.id))
-    unsubscribeStok = onSnapshot(
-      q,
-      (snapshot) => {
-        stokBarang.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-      },
-      (err) => {
-        console.error('Error listening to stock:', err)
+    unsubStok = onSnapshot(
+      query(collection(db, 'stok_barang'), where('id_gudang', '==', newVal.id)),
+      (snap) => {
+        stokBarang.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
       },
     )
   }
 })
-
-let unsubscribeStok = null
 
 onMounted(fetchProyek)
 </script>
@@ -533,24 +540,75 @@ onMounted(fetchProyek)
   font-family:
     'Inter',
     -apple-system,
-    Helvetica,
-    Arial,
     sans-serif;
 }
-.rounded-borders {
+.rounded-20 {
+  border-radius: 20px;
+}
+.shadow-premium {
+  box-shadow: 0 10px 30px rgba(25, 118, 210, 0.15);
+}
+.hover-shadow:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1) !important;
+}
+.transition-all {
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.border-dashed-indigo {
+  border: 2px dashed #e8eaf6;
   border-radius: 12px;
 }
+
+.gudang-table :deep(thead tr th) {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.btn-hover:hover {
+  filter: brightness(1.1);
+  transform: scale(1.02);
+}
+.animate-fade {
+  animation: fadeIn 0.8s ease-out;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-up {
+  animation: fadeInUp 0.8s ease-out forwards;
+}
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .letter-spacing-1 {
   letter-spacing: 1px;
 }
-.px-lg {
-  padding-left: 20px;
-  padding-right: 20px;
+.tracking-widest {
+  letter-spacing: 0.15em;
 }
-.border-dashed {
-  border: 2px dashed #e0e0e0;
+.block {
+  display: block;
 }
-.shrink {
-  flex: 0 0 auto;
+.uppercase {
+  text-transform: uppercase;
+}
+.search-input :deep(.q-field__control) {
+  border-radius: 30px;
 }
 </style>
