@@ -129,7 +129,12 @@ const routes = [
         name: 'work-order',
         component: () => import('pages/manufaktur/Produksi/WorkOrderPage.vue'),
       },
-
+      // INI PERBAIKANNYA: Hapus kata 'Produksi/' di depan agar sesuai link tombol mata
+      {
+        path: 'work-order/:id',
+        name: 'work-order-detail',
+        component: () => import('pages/manufaktur/Produksi/WorkOrderDetailPage.vue'),
+      },
       {
         path: 'production-steps',
         name: 'production-steps',
@@ -139,6 +144,51 @@ const routes = [
         path: 'production-result',
         name: 'production-result',
         component: () => import('pages/manufaktur/Produksi/ProductionResultPage.vue'),
+      },
+      {
+        path: 'master/material',
+        name: 'material',
+        component: () => import('pages/manufaktur/master/MaterialPage.vue'),
+      },
+      {
+        path: 'master/bom',
+        name: 'bom',
+        component: () => import('pages/manufaktur/master/BOMPage.vue'),
+      },
+      {
+        path: 'gudang/monitoring',
+        name: 'monitoring-stok',
+        component: () => import('pages/manufaktur/gudang/MonitoringStok.vue'),
+      },
+      {
+        path: 'gudang/barang-masuk',
+        name: 'barang-masuk',
+        component: () => import('pages/manufaktur/gudang/BarangMasukPage.vue'),
+      },
+      {
+        path: 'produksi/quality-control',
+        name: 'production-qc',
+        component: () => import('pages/manufaktur/Produksi/QCPage.vue'),
+      },
+      {
+        path: 'gudang/material-request',
+        name: 'material-request',
+        component: () => import('pages/manufaktur/gudang/MaterialRequestPage.vue'),
+      },
+      {
+        path: 'gudang/delivery-order',
+        name: 'delivery-order',
+        component: () => import('pages/manufaktur/gudang/DeliveryOrderPage.vue'),
+      },
+      {
+        path: 'master/proyek',
+        name: 'master-proyek',
+        component: () => import('pages/manufaktur/master/ProjectListPage.vue'),
+      },
+      {
+        path: 'analytics/hpp',
+        name: 'hpp-produksi',
+        component: () => import('pages/manufaktur/analytics/HPPPage.vue'),
       },
     ],
   },

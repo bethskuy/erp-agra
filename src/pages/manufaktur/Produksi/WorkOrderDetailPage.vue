@@ -67,9 +67,11 @@
         <q-separator vertical inset />
         <div class="text-center">
           <div class="text-subtitle2 text-grey-7">Status</div>
-          <q-badge :color="getStatusColor(status)" class="q-pa-sm">
-            {{ status }}
-          </q-badge>
+          <div class="text-h5 text-weight-bold">
+            <q-badge :color="getStatusColor(status)" class="q-pa-sm">
+              {{ status }}
+            </q-badge>
+          </div>
         </div>
       </q-card-section>
       <q-linear-progress :value="progress / 100" color="teal" size="10px" />
@@ -101,7 +103,7 @@
       <q-tabs v-model="tab" class="text-teal-10" align="left" inline-label>
         <q-tab name="components" icon="extension" label="Components (BOM)" />
         <q-tab name="result" icon="assignment_turned_in" label="Results" />
-        <q-tab name="steps" icon="formatting_list_numbered" label="Work Steps" />
+        <q-tab name="steps" icon="format_list_numbered" label="Work Steps" />
         <q-tab name="timeline" icon="history" label="Log History" />
       </q-tabs>
 
@@ -207,7 +209,7 @@ const $q = useQuasar()
 
 // STATE
 const wo = ref(null)
-const projectName = ref('') // Untuk simpan nama proyek integrasi
+const projectName = ref('')
 const results = ref([])
 const steps = ref([])
 const logs = ref([])
@@ -239,7 +241,6 @@ const loadData = async () => {
     wo.value = { id: woSnap.id, ...woSnap.data() }
     loadBOM(wo.value.productName || wo.value.produk)
 
-    // INTEGRASI: Ambil Nama Proyek jika ada project_id
     if (wo.value.project_id) {
       const projSnap = await getDoc(doc(db, 'projects', wo.value.project_id))
       if (projSnap.exists()) {
@@ -313,7 +314,7 @@ const tambahHasil = async () => {
     inputKeterangan.value = ''
     $q.notify({ type: 'positive', message: 'Inventory Updated!' })
   } catch (error) {
-    console.error(error) // e sudah dihapus agar tidak ESLint error
+    console.error(error)
     $q.notify({ type: 'negative', message: 'System Error' })
   } finally {
     $q.loading.hide()
@@ -331,6 +332,16 @@ const startProduction = async () => {
     description: 'Production line activated.',
     created_at: new Date(),
   })
+}
+
+const finishProduction = async () => {
+  await addDoc(collection(db, 'production_logs'), {
+    work_order_id: route.params.id,
+    activity: 'Finished',
+    description: 'Production fully completed.',
+    created_at: new Date(),
+  })
+  // Optional: update status WO di sini jika diperlukan
 }
 
 // UTILS
