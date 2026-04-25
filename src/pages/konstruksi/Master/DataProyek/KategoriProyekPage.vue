@@ -1,112 +1,294 @@
 <template>
-  <q-page class="bg-grey-2 q-pa-md font-pro">
-    <div class="row items-center q-mb-md">
-      <div class="col">
-        <div class="text-h5 text-weight-bold text-primary text-uppercase">Kategori Proyek</div>
-        <div class="text-caption text-grey-7">
-          Master Data - Kelola pengelompokan jenis proyek PT AGRA.
+  <q-page class="bg-grey-2 q-pa-md q-pa-md-lg font-pro">
+    <!-- HEADER SECTION -->
+    <div class="row items-center justify-between q-mb-xl animate-fade no-print">
+      <div class="col-12 col-md-8">
+        <div class="text-h4 text-weight-bolder text-indigo-10 leading-tight">
+          Kategori Proyek
+          <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
+            >Klasifikasi Portofolio Proyek</span
+          >
+        </div>
+        <div class="text-subtitle1 text-grey-7 q-mt-sm">
+          Kelola parameter pengelompokan jenis pekerjaan untuk mempermudah filter laporan secara
+          real-time.
         </div>
       </div>
-      <div class="col-auto">
+      <div class="col-12 col-md-auto q-mt-md q-mt-md-none">
+        <!-- Tombol Tambah: Ditambahkan loading state jika data user belum siap -->
         <q-btn
+          v-if="canAction('buat')"
           unelevated
-          color="primary"
-          icon="add"
+          color="indigo-10"
+          icon="add_circle_outline"
           label="Tambah Kategori"
-          class="btn-radius shadow-2"
+          rounded
+          no-caps
+          class="q-px-lg q-py-sm shadow-premium btn-hover"
           @click="openAddDialog"
+          :loading="userDataLoading"
         />
       </div>
     </div>
 
-    <q-card flat bordered class="rounded-borders shadow-1">
+    <!-- SEARCH & SUMMARY CARD -->
+    <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print">
+      <q-card-section class="q-py-md">
+        <div class="row items-center q-col-gutter-md">
+          <div class="col-12 col-md-5">
+            <q-input
+              v-model="filter"
+              outlined
+              dense
+              rounded
+              placeholder="Cari nama atau deskripsi kategori..."
+              bg-color="white"
+              class="search-input"
+            >
+              <template v-slot:prepend>
+                <q-icon name="search" color="primary" />
+              </template>
+              <template v-slot:append v-if="filter">
+                <q-icon name="close" @click="filter = ''" class="cursor-pointer" />
+              </template>
+            </q-input>
+          </div>
+          <q-space />
+          <div class="col-12 col-md-auto text-caption text-grey-6">
+            Total Grup:
+            <span class="text-weight-bold text-indigo-10">{{ rows.length }} Kategori</span>
+          </div>
+        </div>
+      </q-card-section>
+    </q-card>
+
+    <!-- TABLE SECTION -->
+    <q-card flat bordered class="rounded-20 shadow-sm overflow-hidden bg-white no-print">
       <q-table
         :rows="rows"
         :columns="columns"
         row-key="id"
         flat
-        :filter="filter"
         :loading="loading"
-        class="customer-table"
-        @row-click="onRowClick"
+        :filter="filter"
+        binary-state-sort
+        class="kategori-table"
       >
-        <template v-slot:top-right>
-          <q-input outlined dense debounce="300" v-model="filter" placeholder="Cari kategori...">
-            <template v-slot:append><q-icon name="search" /></template>
-          </q-input>
+        <!-- Custom Header -->
+        <template v-slot:header="props">
+          <q-tr :props="props" class="bg-indigo-10 text-white">
+            <q-th v-for="col in props.cols" :key="col.name" :props="props" class="text-weight-bold">
+              {{ col.label }}
+            </q-th>
+          </q-tr>
         </template>
 
-        <template v-slot:body-cell-aksi="props">
-          <q-td :props="props" class="q-gutter-xs text-center" @click.stop>
-            <q-btn
-              flat
-              round
-              color="blue"
-              icon="edit"
-              size="sm"
-              @click="openEditDialog(props.row)"
-            />
-            <q-btn
-              flat
-              round
-              color="negative"
-              icon="delete"
-              size="sm"
-              @click="hapusKategori(props.row)"
-            />
-          </q-td>
+        <!-- Custom Body -->
+        <template v-slot:body="props">
+          <q-tr
+            :props="props"
+            class="hover-bg transition-all cursor-pointer"
+            @click="onRowClick(null, props.row)"
+          >
+            <q-td key="nama">
+              <div class="row items-center no-wrap">
+                <q-avatar
+                  size="32px"
+                  color="indigo-1"
+                  text-color="indigo-10"
+                  icon="category"
+                  class="q-mr-md shadow-sm"
+                />
+                <div class="text-weight-bolder text-subtitle2 text-blue-grey-10 text-uppercase">
+                  {{ props.row.nama }}
+                </div>
+              </div>
+            </q-td>
+            <q-td key="keterangan" class="text-grey-7 italic">
+              {{ props.row.keterangan || '-' }}
+            </q-td>
+            <q-td key="aksi" class="text-center" @click.stop>
+              <div class="row justify-center q-gutter-sm">
+                <q-btn
+                  v-if="canAction('ubah')"
+                  flat
+                  round
+                  color="blue-8"
+                  icon="edit"
+                  size="sm"
+                  @click="openEditDialog(props.row)"
+                >
+                  <q-tooltip>Ubah Kategori</q-tooltip>
+                </q-btn>
+                <q-btn
+                  v-if="canAction('hapus')"
+                  flat
+                  round
+                  color="negative"
+                  icon="delete_outline"
+                  size="sm"
+                  @click="hapusKategori(props.row)"
+                >
+                  <q-tooltip>Hapus</q-tooltip>
+                </q-btn>
+                <q-btn
+                  flat
+                  round
+                  color="grey-6"
+                  icon="chevron_right"
+                  size="sm"
+                  @click="onRowClick(null, props.row)"
+                />
+              </div>
+            </q-td>
+          </q-tr>
+        </template>
+
+        <!-- No Data -->
+        <template v-slot:no-data>
+          <div class="full-width row flex-center q-pa-xl text-grey-5">
+            <q-icon name="folder_off" size="64px" class="q-mb-md" />
+            <div class="text-h6 full-width text-center">Data kategori belum tersedia</div>
+          </div>
         </template>
       </q-table>
     </q-card>
 
-    <q-dialog
-      v-model="showDetail"
-      maximized
-      transition-show="slide-up"
-      transition-hide="slide-down"
-    >
+    <!-- VIEW 2: DETAIL KATEGORI -->
+    <q-dialog v-model="showDetail" maximized transition-show="fade" transition-hide="fade">
       <q-card class="bg-grey-2 column no-wrap">
-        <q-toolbar class="bg-primary text-white q-py-md">
+        <q-toolbar class="bg-indigo-10 text-white q-py-md shadow-2 shrink">
           <q-btn flat round dense icon="arrow_back" v-close-popup />
-          <q-toolbar-title class="text-center uppercase text-bold"
-            >Detail Kategori Proyek</q-toolbar-title
-          >
-          <q-btn flat label="Tutup" v-close-popup />
+          <q-toolbar-title class="text-weight-bold">DETAIL KATEGORI</q-toolbar-title>
+          <q-btn
+            flat
+            icon="edit"
+            label="Edit Data"
+            @click="openEditFromDetail"
+            v-if="canAction('ubah')"
+            class="gt-xs"
+          />
         </q-toolbar>
 
-        <q-card-section class="col scroll q-pa-xl">
+        <q-card-section class="col scroll q-pa-md q-pa-md-xl">
           <div class="row justify-center" v-if="currentCategory">
-            <div class="col-12 col-md-8 col-lg-6">
+            <div class="col-12 col-md-10 col-lg-8">
               <q-card
                 flat
                 bordered
-                class="q-pa-xl q-mb-md bg-white shadow-1 text-center rounded-borders"
+                class="rounded-20 shadow-premium q-mb-xl bg-white overflow-hidden"
               >
-                <q-avatar
-                  size="100px"
-                  color="blue-1"
-                  text-color="primary"
-                  icon="category"
-                  class="q-mb-md"
-                />
-                <div class="text-h3 text-weight-bolder text-primary uppercase q-mb-sm">
-                  {{ currentCategory.nama }}
+                <div class="row items-center">
+                  <div
+                    class="col-12 col-md-4 bg-indigo-1 flex flex-center q-pa-xl"
+                    style="min-height: 250px"
+                  >
+                    <q-avatar
+                      size="150px"
+                      color="indigo-10"
+                      text-color="white"
+                      class="shadow-10 border-white-5"
+                    >
+                      <q-icon name="category" size="80px" />
+                    </q-avatar>
+                  </div>
+                  <div class="col-12 col-md-8 q-pa-xl">
+                    <div class="text-overline text-indigo-10 text-bold tracking-widest">
+                      KATEGORI MASTER
+                    </div>
+                    <div class="text-h3 text-weight-black text-indigo-10 q-mb-xs uppercase">
+                      {{ currentCategory.nama }}
+                    </div>
+                    <div class="text-caption text-grey-6 flex items-center q-mt-md">
+                      <q-icon name="fingerprint" class="q-mr-xs" /> ID Sistem:
+                      {{ currentCategory.id }}
+                    </div>
+                  </div>
                 </div>
-                <div class="text-grey-7 italic">ID: {{ currentCategory.id }}</div>
               </q-card>
 
-              <q-card flat bordered class="bg-white q-pa-lg rounded-borders shadow-1">
-                <div class="text-bold text-primary q-mb-md uppercase">Deskripsi Kategori</div>
-                <q-separator q-mb-md />
-                <div class="bg-grey-1 q-pa-lg rounded-borders bordered" style="min-height: 200px">
-                  <div
-                    class="text-body1 text-grey-9"
-                    style="white-space: pre-wrap; line-height: 1.6"
-                  >
-                    {{
-                      currentCategory.keterangan ||
-                      'Tidak ada deskripsi tambahan untuk kategori ini.'
-                    }}
+              <q-card flat bordered class="rounded-20 shadow-sm bg-white overflow-hidden">
+                <q-card-section
+                  class="bg-blue-grey-1 text-blue-grey-10 text-weight-bold uppercase letter-spacing-1"
+                >
+                  <q-icon name="notes" class="q-mr-sm" /> Deskripsi & Catatan
+                </q-card-section>
+                <q-separator />
+                <q-card-section class="q-pa-xl">
+                  <div class="text-body1 text-grey-9 leading-relaxed" style="white-space: pre-wrap">
+                    {{ currentCategory.keterangan || 'Tidak ada deskripsi tambahan.' }}
+                  </div>
+                </q-card-section>
+              </q-card>
+            </div>
+          </div>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+
+    <!-- FORM DIALOG (TAMBAH/EDIT) -->
+    <q-dialog
+      v-model="showDialog"
+      persistent
+      maximized
+      transition-show="slide-up"
+      transition-hide="slide-down"
+      backdrop-filter="blur(4px)"
+    >
+      <q-card class="bg-grey-2 column no-wrap">
+        <q-toolbar class="bg-white text-indigo-10 q-py-md shadow-2 shrink">
+          <q-btn flat round dense icon="close" v-close-popup color="grey-7" />
+          <q-toolbar-title class="text-weight-bold text-center">
+            {{ isEditMode ? 'PEMBARUAN DATA KATEGORI' : 'REGISTRASI KATEGORI BARU' }}
+          </q-toolbar-title>
+          <q-btn
+            unelevated
+            color="indigo-10"
+            label="SIMPAN DATA"
+            :loading="submitting"
+            rounded
+            class="q-px-xl text-weight-bold shadow-3"
+            @click="simpanKategori"
+          />
+        </q-toolbar>
+
+        <q-card-section class="col scroll q-pa-lg q-pa-md-xl">
+          <div class="row justify-center">
+            <div class="col-12 col-md-8 col-lg-6">
+              <q-card flat bordered class="rounded-20 q-pa-xl bg-white shadow-1">
+                <div
+                  class="text-subtitle1 text-indigo-10 text-weight-bolder q-mb-lg flex items-center"
+                >
+                  <q-icon name="settings_suggest" class="q-mr-sm" /> KONFIGURASI PARAMETER
+                </div>
+
+                <div class="q-gutter-y-lg">
+                  <div>
+                    <div class="label-req">
+                      Nama Kategori Proyek <span class="text-negative">*</span>
+                    </div>
+                    <q-input
+                      outlined
+                      v-model="form.nama"
+                      placeholder="Contoh: Konstruksi Sipil, Infrastruktur..."
+                      bg-color="white"
+                      autofocus
+                      class="text-weight-bold text-h6"
+                      stack-label
+                    />
+                  </div>
+
+                  <div>
+                    <div class="label-req">Keterangan / Ruang Lingkup</div>
+                    <q-input
+                      outlined
+                      v-model="form.keterangan"
+                      type="textarea"
+                      rows="6"
+                      placeholder="Berikan penjelasan mengenai jenis proyek..."
+                      bg-color="white"
+                      stack-label
+                    />
                   </div>
                 </div>
               </q-card>
@@ -116,137 +298,132 @@
       </q-card>
     </q-dialog>
 
-    <q-dialog v-model="showDialog" persistent maximized transition-show="slide-up">
-      <q-card class="bg-grey-1 column no-wrap">
-        <q-toolbar class="bg-white text-grey-9 q-py-md bordered-bottom">
-          <q-btn flat round dense icon="close" v-close-popup />
-          <q-toolbar-title class="text-weight-bold text-center uppercase">
-            {{ isEditMode ? 'Edit Kategori' : 'Tambah Kategori Baru' }}
-          </q-toolbar-title>
-          <div style="width: 48px"></div>
-        </q-toolbar>
-
-        <q-card-section class="col scroll q-pa-xl">
-          <div class="row justify-center">
-            <div class="col-12 col-md-8 col-lg-6 q-gutter-y-lg">
-              <div>
-                <div class="label-req">Nama Kategori <span class="text-negative">*</span></div>
-                <q-input
-                  outlined
-                  dense
-                  v-model="form.nama"
-                  placeholder="Contoh: Infrastruktur, Sipil, dll"
-                  bg-color="white"
-                  autofocus
-                />
-              </div>
-
-              <div>
-                <div class="label-req">Keterangan / Deskripsi</div>
-                <q-input
-                  outlined
-                  dense
-                  v-model="form.keterangan"
-                  type="textarea"
-                  rows="6"
-                  placeholder="Berikan deskripsi kategori..."
-                  bg-color="white"
-                />
-              </div>
-
-              <div class="row items-center justify-end q-gutter-x-md q-pt-lg">
-                <q-btn flat label="Batal" color="grey-7" v-close-popup class="btn-radius q-px-lg" />
-                <q-btn
-                  unelevated
-                  color="primary"
-                  label="Simpan Kategori"
-                  :loading="submitting"
-                  @click="simpanKategori"
-                  class="btn-radius q-px-xl shadow-2"
-                />
-              </div>
-            </div>
-          </div>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
+    <div class="q-py-xl no-print"></div>
   </q-page>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { db } from 'src/boot/firebase'
 import {
   collection,
-  getDocs,
-  addDoc,
-  updateDoc,
-  deleteDoc,
   doc,
+  updateDoc,
+  addDoc,
+  deleteDoc,
   query,
+  where,
   orderBy,
+  onSnapshot,
   serverTimestamp,
 } from 'firebase/firestore'
+import { useAuthStore } from 'src/stores/auth'
 
 const $q = useQuasar()
+const authStore = useAuthStore()
 const filter = ref('')
-const loading = ref(false)
+const loading = ref(true)
+const userDataLoading = ref(true)
 const submitting = ref(false)
 const showDialog = ref(false)
 const showDetail = ref(false)
 const isEditMode = ref(false)
 const currentCategory = ref(null)
+const userData = ref(null)
 
 const formDefault = { nama: '', keterangan: '' }
 const form = ref({ ...formDefault })
 const rows = ref([])
 
+let unsubscribeUser = null
+let unsubscribeKategori = null
+
 const columns = [
-  { name: 'nama', align: 'left', label: 'NAMA KATEGORI', field: 'nama', sortable: true },
-  {
-    name: 'keterangan',
-    align: 'left',
-    label: 'KETERANGAN',
-    field: 'keterangan',
-    format: (val) => (val ? (val.length > 50 ? val.substring(0, 50) + '...' : val) : '-'),
-  },
-  { name: 'aksi', align: 'center', label: 'AKSI', field: 'aksi' },
+  { name: 'nama', align: 'left', label: 'IDENTITAS KATEGORI', field: 'nama', sortable: true },
+  { name: 'keterangan', align: 'left', label: 'PENJELASAN SINGKAT', field: 'keterangan' },
+  { name: 'aksi', align: 'center', label: 'KELOLA', field: 'id' },
 ]
+
+/**
+ * LOGIKA IZIN AKSES (SATPAM)
+ */
+const canAction = (actionType) => {
+  if (authStore.user?.role === 'Super Admin') return true
+  if (!userData.value?.permissions_detail) return false
+  const modulePerm = userData.value.permissions_detail.find((m) => m.id === 'konstruksi')
+  if (!modulePerm || !modulePerm.isActive) return false
+  const targetId = '_konstruksi_master_proyek-kategori'
+  const menu = modulePerm.menus.find((m) => m.id === targetId)
+  return menu ? menu[actionType] || false : false
+}
 
 const onRowClick = (evt, row) => {
   currentCategory.value = row
   showDetail.value = true
 }
 
-const fetchKategori = async () => {
+const fetchKategori = () => {
   loading.value = true
-  try {
-    const q = query(collection(db, 'kategori_proyek'), orderBy('nama', 'asc'))
-    const snap = await getDocs(q)
-    rows.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
-  } catch (e) {
-    console.error(e)
-  } finally {
-    loading.value = false
-  }
+  const q = query(collection(db, 'kategori_proyek'), orderBy('nama', 'asc'))
+  unsubscribeKategori = onSnapshot(
+    q,
+    (snap) => {
+      rows.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+      loading.value = false
+    },
+    (err) => {
+      console.error('Fetch Kategori Error:', err)
+      loading.value = false
+    },
+  )
 }
 
-onMounted(fetchKategori)
+onMounted(() => {
+  const userEmail = authStore.user?.email
+  if (userEmail) {
+    const qUser = query(collection(db, 'karyawan'), where('email', '==', userEmail))
+    unsubscribeUser = onSnapshot(qUser, (snapshot) => {
+      if (!snapshot.empty) {
+        userData.value = snapshot.docs[0].data()
+      }
+      userDataLoading.value = false
+    })
+  } else {
+    userDataLoading.value = false
+  }
+  fetchKategori()
+})
+
+onUnmounted(() => {
+  if (unsubscribeUser) unsubscribeUser()
+  if (unsubscribeKategori) unsubscribeKategori()
+})
 
 const openAddDialog = () => {
   isEditMode.value = false
   form.value = { ...formDefault }
   showDialog.value = true
 }
+
 const openEditDialog = (data) => {
   isEditMode.value = true
   form.value = { ...data }
   showDialog.value = true
 }
 
+const openEditFromDetail = () => {
+  form.value = JSON.parse(JSON.stringify(currentCategory.value))
+  isEditMode.value = true
+  showDetail.value = false
+  showDialog.value = true
+}
+
 const simpanKategori = async () => {
-  if (!form.value.nama) return
+  if (!form.value.nama) {
+    $q.notify({ type: 'warning', message: 'Nama kategori wajib diisi', position: 'top' })
+    return
+  }
   submitting.value = true
   try {
     const payload = {
@@ -261,10 +438,10 @@ const simpanKategori = async () => {
       await addDoc(collection(db, 'kategori_proyek'), payload)
     }
     showDialog.value = false
-    fetchKategori()
-    $q.notify({ color: 'positive', message: 'Kategori Berhasil Disimpan' })
+    $q.notify({ type: 'positive', message: 'Basis data kategori diperbarui!', position: 'top' })
   } catch (e) {
-    console.error(e)
+    console.error('Save Error:', e)
+    $q.notify({ type: 'negative', message: 'Gagal sinkronisasi data: ' + e.message })
   } finally {
     submitting.value = false
   }
@@ -272,38 +449,97 @@ const simpanKategori = async () => {
 
 const hapusKategori = (data) => {
   $q.dialog({
-    title: 'Hapus',
-    message: `Hapus kategori ${data.nama}?`,
-    cancel: true,
-    ok: { color: 'negative' },
+    title: 'Konfirmasi Penghapusan',
+    message: `Apakah Anda yakin ingin menghapus kategori "${data.nama}"? Tindakan ini bersifat permanen.`,
+    cancel: { label: 'Batal', flat: true, color: 'grey-7' },
+    ok: { label: 'Ya, Hapus', color: 'negative', unelevated: true, rounded: true },
+    persistent: true,
   }).onOk(async () => {
-    await deleteDoc(doc(db, 'kategori_proyek', data.id))
-    fetchKategori()
+    try {
+      await deleteDoc(doc(db, 'kategori_proyek', data.id))
+      $q.notify({ icon: 'delete', message: 'Kategori telah dihapus' })
+    } catch (e) {
+      console.error('Delete Error:', e)
+    }
   })
 }
 </script>
 
 <style scoped>
+.font-pro {
+  font-family:
+    'Inter',
+    -apple-system,
+    sans-serif;
+}
+.rounded-20 {
+  border-radius: 20px;
+}
+.shadow-premium {
+  box-shadow: 0 10px 30px rgba(25, 118, 210, 0.15);
+}
+.border-indigo-thin {
+  border: 1px solid rgba(26, 35, 126, 0.1);
+}
+.border-white-5 {
+  border: 5px solid white;
+}
+
+.kategori-table :deep(thead tr th) {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  font-weight: 800;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+}
+.btn-hover:hover {
+  filter: brightness(1.1);
+  transform: scale(1.02);
+  transition: 0.3s;
+}
+.hover-bg:hover {
+  background-color: rgba(25, 118, 210, 0.03) !important;
+}
+.transition-all {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.animate-fade {
+  animation: fadeIn 0.8s ease-out;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .label-req {
   font-size: 11px;
   font-weight: 700;
   color: #555;
   margin-bottom: 6px;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
-.btn-radius {
-  border-radius: 8px;
+.search-input :deep(.q-field__control) {
+  border-radius: 30px;
 }
-.rounded-borders {
-  border-radius: 12px;
+.block {
+  display: block;
 }
-.bordered-bottom {
-  border-bottom: 1px solid #eee;
+.leading-relaxed {
+  line-height: 1.6;
 }
-.customer-table :deep(tbody tr) {
-  cursor: pointer;
+.letter-spacing-1 {
+  letter-spacing: 1px;
 }
-.customer-table :deep(tbody tr:hover) {
-  background-color: #f0f4f8 !important;
+.shrink {
+  flex: 0 0 auto;
 }
 </style>
