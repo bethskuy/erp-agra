@@ -95,6 +95,11 @@ const routes = [
     meta: { requiresAuth: true, modul: 'absensi' },
     children: [
       {
+        path: 'profil',
+        name: 'absensi-profil',
+        component: () => import('pages/absensi/ProfilPage.vue'),
+      },
+      {
         path: 'dashboard',
         name: 'absensi-dashboard',
         component: () => import('pages/absensi/DashboardPage.vue'),
@@ -104,7 +109,6 @@ const routes = [
         name: 'absensi-riwayat',
         component: () => import('pages/absensi/RiwayatPage.vue'),
       },
-      // INI YANG BARU DITAMBAHKAN
       {
         path: 'pengajuan-izin',
         name: 'absensi-pengajuan',
@@ -129,7 +133,6 @@ const routes = [
         name: 'work-order',
         component: () => import('pages/manufaktur/Produksi/WorkOrderPage.vue'),
       },
-      // INI PERBAIKANNYA: Hapus kata 'Produksi/' di depan agar sesuai link tombol mata
       {
         path: 'work-order/:id',
         name: 'work-order-detail',
