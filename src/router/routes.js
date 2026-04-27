@@ -63,7 +63,12 @@ const routes = [
         path: 'pelaksanaan/spk-mandor',
         component: () => import('pages/konstruksi/Proyek/Pelaksanaan/SpkMandor/SpkMandorPage.vue'),
       },
-      { path: 'gudang', component: () => import('pages/konstruksi/Gudang/GudangPage.vue') },
+
+      // --- GRUP NAVIGASI GUDANG & LOGISTIK ---
+      {
+        path: 'gudang',
+        component: () => import('pages/konstruksi/Gudang/GudangPage.vue'),
+      },
       {
         path: 'gudang/transaksi',
         component: () => import('pages/konstruksi/Gudang/RiwayatTransaksiPage.vue'),
@@ -80,6 +85,21 @@ const routes = [
         path: 'gudang/keluar/:id',
         component: () => import('pages/konstruksi/Gudang/BarangKeluarPage.vue'),
       },
+
+      // RUTE BARU UNTUK PERMINTAAN BARANG
+      {
+        path: 'gudang/permintaan/list',
+        component: () => import('pages/konstruksi/Gudang/ListPermintaanPage.vue'),
+      },
+      {
+        path: 'gudang/permintaan-antar/:id',
+        component: () => import('pages/konstruksi/Gudang/PermintaanAntarGudangPage.vue'),
+      },
+      {
+        path: 'gudang/purchase-request/:id',
+        component: () => import('pages/konstruksi/Gudang/PurchaseRequestPage.vue'),
+      },
+
       {
         path: 'pembelian/pesanan',
         component: () =>
@@ -217,7 +237,7 @@ const routes = [
         component: () => import('pages/managementkaryawan/MasterJabatanPage.vue'),
       },
       {
-        path: '/management-karyawan/akses',
+        path: 'akses',
         component: () => import('pages/managementkaryawan/AksesPage.vue'),
       },
     ],

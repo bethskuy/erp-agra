@@ -148,6 +148,20 @@
 
           <q-space class="lt-sm" />
 
+          <!-- TOMBOL LIHAT DOKUMEN ANALISA (BISA PDF, WORD, EXCEL) -->
+          <q-btn
+            v-if="selectedData?.analisa_harga_url"
+            color="indigo-10"
+            icon="description"
+            :label="$q.screen.gt.xs ? 'Lihat Dokumen Analisa' : ''"
+            unelevated
+            rounded
+            class="q-mr-md shadow-2"
+            @click="openAnalisaFile(selectedData.analisa_harga_url)"
+          >
+            <q-tooltip>Unduh/Buka Berkas Analisa Pendukung (PDF/Word/Excel)</q-tooltip>
+          </q-btn>
+
           <!-- GROUP TOMBOL CETAK & PDF (RESPONSIVE) -->
           <q-btn-group unelevated rounded class="q-mr-xs q-mr-md-md shadow-1">
             <q-btn
@@ -220,7 +234,7 @@
           </template>
         </q-toolbar>
 
-        <!-- CONTAINER SURAT: SCALING FOR MOBILE -->
+        <!-- CONTAINER SURAT -->
         <q-card-section class="col scroll q-pa-none q-pa-md-md flex flex-center preview-container">
           <div id="quotation-print" class="letter-paper shadow-24" v-if="selectedData">
             <!-- Kop Surat -->
@@ -415,8 +429,6 @@ import {
   collection,
   query,
   where,
-  // eslint-disable-next-line no-unused-vars
-  getDocs,
   doc,
   updateDoc,
   getDoc,
@@ -625,6 +637,10 @@ const openPreview = (row) => {
   selectedData.value = row
   showPreview.value = true
   tempFile.value = null
+}
+
+const openAnalisaFile = (url) => {
+  if (url) window.open(url, '_blank')
 }
 
 const formatDateIndo = (d) =>

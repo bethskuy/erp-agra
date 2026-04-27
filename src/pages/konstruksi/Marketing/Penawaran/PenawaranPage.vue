@@ -256,6 +256,32 @@
                       stack-label
                     />
                   </div>
+                  <!-- TAMBAHAN: FIELD UPLOAD ANALISA HARGA MULTI-FORMAT -->
+                  <div class="col-12">
+                    <q-separator class="q-my-sm" />
+                    <div class="label-req q-mb-xs text-caption text-indigo-10 font-bold">
+                      DOKUMEN ANALISA HARGA (REFERENSI APPROVAL)
+                    </div>
+                    <q-file
+                      outlined
+                      dense
+                      v-model="analisaFile"
+                      label="Upload Dokumen Analisa (PDF, Word, Excel)"
+                      accept=".pdf, .doc, .docx, .xls, .xlsx"
+                      bg-color="indigo-1"
+                    >
+                      <template v-slot:prepend
+                        ><q-icon name="attach_file" color="primary"
+                      /></template>
+                      <template v-slot:append v-if="form.analisa_harga_url">
+                        <q-icon name="check_circle" color="positive" />
+                      </template>
+                      <template v-slot:hint
+                        >Dukung format PDF, Word, atau Excel sebagai acuan persetujuan
+                        margin.</template
+                      >
+                    </q-file>
+                  </div>
                 </q-card-section>
               </q-card>
 
@@ -468,6 +494,18 @@
           <q-btn flat round dense icon="arrow_back" v-close-popup />
           <q-toolbar-title class="text-weight-bold">PREVIEW DOKUMEN RESMI</q-toolbar-title>
           <q-btn-group unelevated rounded class="shadow-2">
+            <!-- TOMBOL LIHAT ANALISA (Muncul jika ada URL lampiran) -->
+            <q-btn
+              v-if="selectedData?.analisa_harga_url"
+              color="indigo-10"
+              icon="description"
+              label="Lihat Analisa"
+              class="q-px-md"
+              @click="openAnalisaLink(selectedData.analisa_harga_url)"
+            >
+              <q-tooltip>Unduh/Buka Berkas Analisa Pendukung (PDF/Word/Excel)</q-tooltip>
+            </q-btn>
+
             <q-btn color="primary" icon="print" label="Cetak" @click="printPage" class="q-px-md" />
             <q-btn color="red-9" icon="picture_as_pdf" label="PDF" @click="exportToPDF" />
             <q-btn color="green-8" icon="description" label="Excel" @click="exportToExcel" />
@@ -586,7 +624,7 @@
               <div class="terms-content-box leading-relaxed" v-html="selectedData.terms"></div>
             </div>
 
-            <!-- Signature -->
+            <!-- Signature Area (Menampilkan Tanda Tangan Digital yang Diambil dari Proses Approval) -->
             <div class="signature-container text-left q-mt-xl">
               <div class="text-closing-final q-mb-sm" v-html="selectedData.closing"></div>
               <div class="row q-mt-md">
@@ -596,7 +634,18 @@
                   <div class="text-weight-bold text-indigo-10 uppercase q-mb-xs">
                     {{ selectedData.nama_pt }}
                   </div>
-                  <div class="final-sign-space"></div>
+                  <!-- Menampilkan Gambar Tanda Tangan jika Statusnya sudah Approved -->
+                  <div class="final-sign-space">
+                    <img
+                      v-if="selectedData.signatureUrl"
+                      :src="selectedData.signatureUrl"
+                      class="img-signature"
+                      alt="Tanda Tangan Digital"
+                    />
+                    <div v-else class="text-caption text-grey-4 q-pt-xl italic">
+                      Belum ditandatangani
+                    </div>
+                  </div>
                   <div
                     class="text-signer-final text-weight-bolder underline uppercase text-indigo-10"
                   >
@@ -620,7 +669,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useQuasar } from 'quasar'
-import { db } from 'src/boot/firebase'
+import { db, storage } from 'src/boot/firebase'
 import {
   collection,
   getDocs,
@@ -635,6 +684,7 @@ import {
   onSnapshot,
   serverTimestamp,
 } from 'firebase/firestore'
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { useAuthStore } from 'src/stores/auth'
 import * as XLSX from 'xlsx'
 import html2pdf from 'html2pdf.js'
@@ -652,6 +702,7 @@ const selectedData = ref(null)
 const optCustomer = ref([])
 const selectedCustomer = ref(null)
 const tempKopFile = ref(null)
+const analisaFile = ref(null)
 const config = ref({ kopUrl: '' })
 const userData = ref(null)
 let unsubscribeUser = null
@@ -676,6 +727,7 @@ const formDefault = {
   biaya_lain: 0,
   biaya_lain_label: 'BIAYA LAIN',
   total_harga: 0,
+  analisa_harga_url: '',
 }
 const form = ref({ ...formDefault })
 
@@ -776,6 +828,14 @@ const simpanPenawaran = async () => {
   updateGrandTotal()
   submitting.value = true
   try {
+    // 1. Upload file analisa (PDF/Word/Excel) jika ada
+    if (analisaFile.value) {
+      const fileName = `analysis_${Date.now()}_${analisaFile.value.name}`
+      const aRef = storageRef(storage, `quotations/analysis/${fileName}`)
+      const uploadSnap = await uploadBytes(aRef, analisaFile.value)
+      form.value.analisa_harga_url = await getDownloadURL(uploadSnap.ref)
+    }
+
     const payload = {
       ...form.value,
       updatedAt: serverTimestamp(),
@@ -791,9 +851,11 @@ const simpanPenawaran = async () => {
       await addDoc(collection(db, 'penawaran'), payload)
     }
     showDialog.value = false
+    analisaFile.value = null
     $q.notify({ type: 'positive', message: 'Data Penawaran Berhasil Disimpan!', position: 'top' })
   } catch (e) {
     console.error(e)
+    $q.notify({ type: 'negative', message: 'Gagal menyimpan data: ' + e.message })
   }
   submitting.value = false
 }
@@ -818,6 +880,7 @@ const openEditDialog = (row) => {
   isEditMode.value = true
   form.value = JSON.parse(JSON.stringify(row))
   selectedCustomer.value = { id: row.customer_id, nama: row.nama_customer }
+  analisaFile.value = null
   showDialog.value = true
 }
 
@@ -826,6 +889,7 @@ const openAddDialog = () => {
   form.value = JSON.parse(JSON.stringify(formDefault))
   form.value.nomor = `${(rows.value.length + 1).toString().padStart(3, '0')}/AAP-QUOT/IV/2026`
   selectedCustomer.value = null
+  analisaFile.value = null
   showDialog.value = true
 }
 
@@ -867,6 +931,10 @@ const confirmHapus = (row) => {
 const openPreview = (row) => {
   selectedData.value = row
   showPreview.value = true
+}
+
+const openAnalisaLink = (url) => {
+  if (url) window.open(url, '_blank')
 }
 
 const formatIndoDate = (d) =>
@@ -1115,7 +1183,17 @@ const uploadKopPermanen = async (file) => {
   padding-top: 20px;
 }
 .final-sign-space {
-  height: 70px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  position: relative;
+}
+.img-signature {
+  max-height: 100px;
+  max-width: 250px;
+  object-fit: contain;
+  mix-blend-mode: multiply;
 }
 .text-signer-final {
   font-size: 14px;
@@ -1145,29 +1223,41 @@ const uploadKopPermanen = async (file) => {
   body {
     background: white !important;
     overflow: visible !important;
+    height: auto !important;
+    min-height: auto !important;
   }
-  /* Sembunyikan Scrollbar secara total di Chrome/Safari */
+  /* Sembunyikan Scrollbar secara total untuk semua elemen */
   ::-webkit-scrollbar {
     display: none !important;
+    width: 0 !important;
+    height: 0 !important;
   }
-  /* Sembunyikan elemen UI Quasar yang tidak perlu */
+  * {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+
+  /* Hilangkan elemen UI sistem */
   .no-print {
     display: none !important;
   }
   .q-dialog__inner--maximized {
     padding: 0 !important;
     overflow: visible !important;
+    position: relative !important;
   }
   .q-card.column.no-wrap {
     height: auto !important;
     overflow: visible !important;
     display: block !important;
+    box-shadow: none !important;
   }
 
   .preview-container {
     padding: 0 !important;
     overflow: visible !important;
     display: block !important;
+    min-height: auto !important;
   }
 
   .letter-paper {
@@ -1178,6 +1268,7 @@ const uploadKopPermanen = async (file) => {
     padding: 15mm !important;
     page-break-after: always;
     overflow: visible !important;
+    position: relative !important;
   }
   /* Force colors to show in print */
   .final-pro-table th,

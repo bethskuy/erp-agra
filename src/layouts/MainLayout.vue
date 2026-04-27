@@ -1,5 +1,6 @@
 <template>
   <q-layout view="hHh lpR fFf" class="bg-grey-2">
+    <!-- Header -->
     <q-header elevated class="bg-indigo-10 text-white">
       <q-toolbar class="q-py-sm">
         <q-toolbar-title class="text-weight-bolder text-uppercase tracking-widest">
@@ -35,12 +36,13 @@
       <router-view />
     </q-page-container>
 
-    <q-footer class="bg-red-10 text-white border-top q-pa-sm">
-      <div class="text-center text-caption text-weight-medium">
-        © 2026 <span class="text-white text-weight-bold">AGRA CONSTRUCTION</span> - Internal ERP
-        System
+    <!-- FOOTER CREDIT (PERBAIKAN: Warna putih agar menyatu dengan background)
+    <q-footer class="bg-white text-blue-grey-4 q-pa-md border-top-subtle">
+      <div class="text-center text-caption text-weight-bold tracking-widest uppercase">
+        © 2026 <span class="text-blue-grey-9 text-weight-bolder">AGRA CONSTRUCTION</span> - Internal
+        ERP System
       </div>
-    </q-footer>
+    </q-footer> -->
   </q-layout>
 </template>
 
@@ -67,6 +69,7 @@ const handleLogout = () => {
       unelevated: true,
       label: 'Ya, Keluar',
       color: 'negative',
+      rounded: true,
     },
     persistent: true,
   }).onOk(async () => {
@@ -100,8 +103,8 @@ const handleLogout = () => {
 .tracking-widest {
   letter-spacing: 2px;
 }
-.border-top {
-  border-top: 1px solid #ddd;
+.border-top-subtle {
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 /* Sembunyikan nama user kalau di layar HP kecil banget */
