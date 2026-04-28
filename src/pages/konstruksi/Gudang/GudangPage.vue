@@ -100,7 +100,7 @@
           color="primary"
           icon="analytics"
           label="Stok Opname"
-          :to="`/konstruksi/gudang/opname/${selectedGudang.id}`"
+          :to="'/konstruksi/gudang/opname/' + selectedGudang.id"
           rounded
           class="q-px-lg shadow-2"
         />
@@ -123,7 +123,7 @@
             <q-item
               clickable
               v-ripple
-              :to="`/konstruksi/gudang/masuk/${selectedGudang.id}`"
+              :to="'/konstruksi/gudang/masuk/' + selectedGudang.id"
               class="rounded-borders bg-green-1 text-green-10 q-mb-xs"
             >
               <q-item-section avatar><q-icon name="add_circle" /></q-item-section>
@@ -132,7 +132,7 @@
             <q-item
               clickable
               v-ripple
-              :to="`/konstruksi/gudang/keluar/${selectedGudang.id}`"
+              :to="'/konstruksi/gudang/keluar/' + selectedGudang.id"
               class="rounded-borders bg-red-1 text-red-10"
             >
               <q-item-section avatar><q-icon name="remove_circle" /></q-item-section>
@@ -151,10 +151,11 @@
           class="shadow-1 q-px-lg"
         >
           <q-list style="min-width: 280px" class="q-pa-sm">
+            <!-- FIX: Navigasi Daftar Permintaan dengan Context ID -->
             <q-item
               clickable
               v-ripple
-              to="/konstruksi/gudang/permintaan/list"
+              :to="'/konstruksi/gudang/permintaan/list?warehouseId=' + selectedGudang.id"
               class="rounded-borders q-mb-xs"
             >
               <q-item-section avatar><q-icon name="assignment" color="indigo-10" /></q-item-section>
@@ -172,7 +173,7 @@
             <q-item
               clickable
               v-ripple
-              :to="`/konstruksi/gudang/permintaan-antar/${selectedGudang.id}`"
+              :to="'/konstruksi/gudang/permintaan-antar/' + selectedGudang.id"
               class="rounded-borders q-mb-xs"
             >
               <q-item-section avatar><q-icon name="swap_horiz" color="orange-9" /></q-item-section>
@@ -184,7 +185,7 @@
             <q-item
               clickable
               v-ripple
-              :to="`/konstruksi/gudang/purchase-request/${selectedGudang.id}`"
+              :to="'/konstruksi/gudang/purchase-request/' + selectedGudang.id"
               class="rounded-borders"
             >
               <q-item-section avatar
@@ -273,7 +274,7 @@
       </q-card>
     </div>
 
-    <!-- DIALOG TAMBAH STOK MANUAL (FIXED CASACADING) -->
+    <!-- DIALOG TAMBAH STOK MANUAL -->
     <q-dialog
       v-model="dialogStok"
       persistent
@@ -322,7 +323,6 @@
                   </div>
 
                   <div class="row q-col-gutter-md">
-                    <!-- Kategori: Menggunakan option-value="nama" agar sinkron dengan Master Barang -->
                     <div class="col-12">
                       <q-select
                         outlined
@@ -338,7 +338,6 @@
                       />
                     </div>
 
-                    <!-- Nama Barang: Memfilter berdasarkan Nama Kategori yang dipilih -->
                     <div class="col-12">
                       <q-select
                         outlined
@@ -475,11 +474,9 @@ const selectGudang = (gudang) => {
 
 const fetchMasterData = async () => {
   try {
-    // Ambil Kategori
     const catSnap = await getDocs(query(collection(db, 'kategori_barang'), orderBy('nama', 'asc')))
     kategoriOptions.value = catSnap.docs.map((d) => ({ id: d.id, ...d.data() }))
 
-    // Ambil Master Barang dengan Merk untuk Tampilan Dropdown
     const barSnap = await getDocs(query(collection(db, 'master_barang'), orderBy('nama', 'asc')))
     masterBarang.value = barSnap.docs.map((d) => {
       const data = d.data()
@@ -487,9 +484,9 @@ const fetchMasterData = async () => {
         id: d.id,
         nama_barang: data.nama,
         merk: data.merk || '',
-        id_kategori: data.kategori, // Biasanya berisi nama kategori di master_barang
+        id_kategori: data.kategori,
         satuan: data.unit,
-        display_name: `${data.nama} ${data.merk ? '- ' + data.merk : ''}`,
+        display_name: data.nama + (data.merk ? ' - ' + data.merk : ''),
       }
     })
   } catch (err) {
@@ -519,7 +516,6 @@ const onKategoriChange = (val) => {
   formStok.value.barang = null
   formStok.value.satuan = ''
   currentStokValue.value = 0
-  // Memfilter barang berdasarkan Nama Kategori (String)
   filteredBarangOptions.value = masterBarang.value.filter((b) => b.id_kategori === val)
 }
 
@@ -544,7 +540,6 @@ const onBarangChange = (val) => {
 
 const simpanStok = async () => {
   if (!selectedGudang.value || !formStok.value.barang) return
-
   $q.loading.show({ message: 'Mensinkronisasi stok...' })
   try {
     const idGudang = selectedGudang.value.id
@@ -585,7 +580,7 @@ const simpanStok = async () => {
       timestamp: serverTimestamp(),
     })
 
-    $q.notify({ type: 'positive', message: 'Stok berhasil diperbarui!', position: 'top' })
+    $q.notify({ type: 'positive', message: 'Stok diperbarui!', position: 'top' })
     dialogStok.value = false
   } catch (error) {
     $q.notify({ type: 'negative', message: 'Gagal: ' + error.message })
@@ -649,7 +644,6 @@ onUnmounted(() => {
   border: 2px dashed #e8eaf6;
   border-radius: 12px;
 }
-
 .gudang-table :deep(thead tr th) {
   position: sticky;
   top: 0;
@@ -686,7 +680,6 @@ onUnmounted(() => {
     transform: translateY(0);
   }
 }
-
 .tracking-widest {
   letter-spacing: 0.15em;
 }
