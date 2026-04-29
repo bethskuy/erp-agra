@@ -2,15 +2,18 @@
   <q-page class="bg-grey-2 q-pa-md">
     <div class="row q-col-gutter-md justify-center">
       <template v-if="!showCamera">
+        <!-- BARIS 1: JAM & INFORMASI PENUGASAN -->
         <div class="col-12 col-md-5">
           <q-card class="main-card text-white shadow-5 full-height flex flex-center">
             <q-card-section class="text-center q-pa-lg">
               <div class="text-subtitle2 opacity-80 text-uppercase text-weight-bold font-digital">
                 ERP PT AGRA ABHINAYA PERKASA
               </div>
-              <div class="text-h2 text-weight-bolder q-my-md font-digital">{{ currentTime }}</div>
+              <div class="text-h2 text-weight-bolder q-my-md font-digital letter-spacing-2">
+                {{ currentTime }}
+              </div>
               <div class="text-subtitle1 text-weight-medium opacity-90">{{ currentDate }}</div>
-              <div class="status-pill q-mt-md inline-block">
+              <div class="status-pill q-mt-md inline-block shadow-1">
                 <q-icon name="circle" color="light-green-13" size="xs" />
                 <span class="q-ml-sm text-weight-bold">Status: Online</span>
               </div>
@@ -37,7 +40,7 @@
                 </div>
                 <div class="info-row">
                   <span class="label text-grey-7 text-weight-bold">Shift Kerja</span>
-                  <q-badge color="blue-1" text-color="blue-9" class="text-weight-bold"
+                  <q-badge color="blue-1" text-color="blue-9" class="text-weight-bold q-pa-xs"
                     >SHIFT 1 (08:15 - 17:00)</q-badge
                   >
                 </div>
@@ -71,11 +74,12 @@
           </q-card>
         </div>
 
+        <!-- BARIS 2: PEMBERITAHUAN ANDA (SINKRONISASI AKTIF) -->
         <div class="col-12 col-md-10 q-mt-md">
           <q-card flat bordered class="rounded-card shadow-1 overflow-hidden">
             <q-card-section class="bg-blue-grey-10 text-white q-pa-sm">
               <div class="text-subtitle2 text-weight-bold text-uppercase q-ml-sm">
-                Pemberitahuan Anda
+                Aktivitas Terbaru Anda
               </div>
             </q-card-section>
             <q-card-section class="q-pa-none scroll-container">
@@ -83,16 +87,18 @@
                 <q-item
                   v-if="riwayatData.length === 0"
                   class="text-center q-pa-lg text-grey-5 italic"
-                  >Belum ada aktivitas hari ini.</q-item
                 >
+                  Belum ada aktivitas presensi ditemukan hari ini.
+                </q-item>
                 <q-item v-for="item in riwayatData" :key="item.id" class="q-py-md">
                   <q-item-section avatar
                     ><q-avatar color="blue-1" text-color="primary" icon="history"
                   /></q-item-section>
                   <q-item-section>
-                    <q-item-label class="text-weight-bold text-uppercase text-grey-9">{{
-                      item.tanggal
-                    }}</q-item-label>
+                    <q-item-label
+                      class="text-weight-bold text-uppercase text-grey-9 text-caption"
+                      >{{ item.tanggal }}</q-item-label
+                    >
                     <q-item-label caption
                       >Area:
                       <span class="text-primary text-weight-bold">{{
@@ -115,11 +121,12 @@
           </q-card>
         </div>
 
+        <!-- BARIS 3: STATUS ABSENSI SELURUH KARYAWAN -->
         <div class="col-12 col-md-10 q-mt-md">
           <q-card flat bordered class="rounded-card shadow-1 overflow-hidden">
             <q-card-section class="bg-blue-grey-10 text-white q-pa-sm">
               <div class="text-subtitle2 text-weight-bold text-uppercase q-ml-sm">
-                Status Absensi Seluruh Karyawan Hari Ini
+                Status Absensi Karyawan Hari Ini
               </div>
             </q-card-section>
             <q-card-section class="q-pa-md">
@@ -132,10 +139,13 @@
                 hide-bottom
                 class="status-table"
               >
-                <template v-slot:no-data>
-                  <div class="full-width row flex-center q-pa-md text-grey-6 italic">
-                    Belum ada karyawan yang absen hari ini.
-                  </div>
+                <template v-slot:body-cell-nama="props">
+                  <q-td :props="props" class="text-weight-bold">
+                    <q-avatar size="24px" color="primary" text-color="white" class="q-mr-sm">
+                      {{ props.row.nama_karyawan.charAt(0) }}
+                    </q-avatar>
+                    {{ props.row.nama_karyawan }}
+                  </q-td>
                 </template>
               </q-table>
             </q-card-section>
@@ -143,22 +153,19 @@
         </div>
       </template>
 
+      <!-- MODUL KAMERA -->
       <div class="col-12 col-md-8" v-if="showCamera">
         <q-card flat bordered class="rounded-card shadow-5 overflow-hidden">
           <q-card-section class="bg-primary text-white row items-center q-pa-md">
             <q-btn icon="arrow_back" flat round dense @click="stopCamera" />
-            <div class="text-subtitle1 text-weight-bold q-ml-md">
-              AMBIL FOTO & VERIFIKASI LOKASI
-            </div>
+            <div class="text-subtitle1 text-weight-bold q-ml-md">AMBIL FOTO & VERIFIKASI GPS</div>
           </q-card-section>
-
           <q-card-section class="text-center q-pa-md">
             <div class="camera-wrapper relative-position shadow-2">
               <video ref="video" autoplay playsinline class="video-stream"></video>
               <canvas ref="canvas" class="hidden"></canvas>
               <div class="camera-guide" v-if="!capturedImage"><div class="guide-circle"></div></div>
             </div>
-
             <div class="row justify-center q-mt-md" v-if="!capturedImage">
               <q-btn
                 color="primary"
@@ -169,31 +176,27 @@
                 @click="takePhoto"
               />
             </div>
-
             <q-slide-transition>
               <div v-if="capturedImage" class="q-mt-lg text-left">
                 <q-img :src="capturedImage" class="captured-img rounded-borders shadow-2" />
-
                 <div class="q-mt-md bg-grey-1 q-pa-md rounded-borders border-grey">
-                  <div class="text-weight-bold text-primary q-mb-sm">Informasi Lokasi</div>
-                  <div class="text-caption text-grey-9 q-gutter-y-xs">
+                  <div class="text-weight-bold text-primary q-mb-sm text-uppercase">
+                    Detail Lokasi Presensi
+                  </div>
+                  <div class="text-caption text-grey-9">
                     <div>
-                      Latitude: <b>{{ locationData.lat }}</b>
-                    </div>
-                    <div>
-                      Longitude: <b>{{ locationData.lng }}</b>
+                      Lat: <b>{{ locationData.lat }}</b> | Lng: <b>{{ locationData.lng }}</b>
                     </div>
                     <div class="q-mt-xs">
                       <span
                         :class="locationData.inRange ? 'text-positive' : 'text-negative'"
                         class="text-weight-bold"
                       >
-                        Status Lokasi: {{ locationData.statusText }}
+                        Status: {{ locationData.statusText }}
                       </span>
                     </div>
                   </div>
                 </div>
-
                 <q-btn
                   unelevated
                   color="positive"
@@ -241,20 +244,21 @@ const currentTime = ref('')
 const currentDate = ref('')
 const riwayatData = ref([])
 const dataSeluruhKaryawan = ref([])
-const currentUserName = ref('KARYAWAN AGRA')
+const currentUserName = ref('USER')
 const documentId = ref(null)
 const showCamera = ref(false)
 const capturedImage = ref(null)
 const video = ref(null)
 const canvas = ref(null)
-const locationData = ref({ lat: 0, lng: 0, statusText: 'Mencari GPS...', inRange: false })
+const locationData = ref({ lat: 0, lng: 0, statusText: 'Mencari Lokasi...', inRange: false })
 
+// KONFIGURASI LOKASI KANTOR (Digunakan untuk perhitungan)
 const KANTOR_LAT = -6.2842
 const KANTOR_LNG = 107.1706
 
 const columnsKaryawan = [
   { name: 'no', label: 'No', field: 'no', align: 'left' },
-  { name: 'nama', label: 'Nama Karyawan', field: 'nama_karyawan', align: 'left' },
+  { name: 'nama', label: 'Nama Karyawan', align: 'left' },
   { name: 'checkin', label: 'Check-in', field: 'checkin', align: 'center' },
   { name: 'checkout', label: 'Check-out', field: 'checkout', align: 'center' },
 ]
@@ -285,9 +289,15 @@ const startAbsensi = () => {
   showCamera.value = true
   capturedImage.value = null
   setTimeout(() => {
-    navigator.mediaDevices.getUserMedia({ video: true }).then((s) => {
-      if (video.value) video.value.srcObject = s
-    })
+    navigator.mediaDevices
+      .getUserMedia({ video: true })
+      .then((s) => {
+        if (video.value) video.value.srcObject = s
+      })
+      .catch(() => {
+        $q.notify({ color: 'negative', message: 'Kamera tidak diizinkan.' })
+        showCamera.value = false
+      })
   }, 100)
 }
 
@@ -303,33 +313,45 @@ const takePhoto = () => {
   ctx.drawImage(video.value, 0, 0)
   capturedImage.value = canvas.value.toDataURL('image/jpeg')
 
-  navigator.geolocation.getCurrentPosition((p) => {
-    const lat = p.coords.latitude
-    const lng = p.coords.longitude
-    const R = 6371
-    const dLat = ((KANTOR_LAT - lat) * Math.PI) / 180
-    const dLon = ((KANTOR_LNG - lng) * Math.PI) / 180
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((lat * Math.PI) / 180) *
-        Math.cos((KANTOR_LAT * Math.PI) / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2)
-    const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-    locationData.value = {
-      lat: lat.toFixed(6),
-      lng: lng.toFixed(6),
-      inRange: dist <= 0.1,
-      statusText: dist <= 0.1 ? 'Dalam Jangkauan Kantor' : 'Di Luar Jangkauan Kantor',
-    }
-  })
+  navigator.geolocation.getCurrentPosition(
+    (p) => {
+      const lat = p.coords.latitude
+      const lng = p.coords.longitude
+
+      // Perhitungan Jarak Haversine (Resolusi ESLint Error)
+      const R = 6371 // Radius bumi dalam KM
+      const dLat = (KANTOR_LAT - lat) * (Math.PI / 180)
+      const dLon = (KANTOR_LNG - lng) * (Math.PI / 180)
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat * (Math.PI / 180)) *
+          Math.cos(KANTOR_LAT * (Math.PI / 180)) *
+          Math.sin(dLon / 2) *
+          Math.sin(dLon / 2)
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+      const distance = R * c // Hasil dalam KM
+
+      const inRange = distance <= 0.2 // Toleransi 200 meter
+
+      locationData.value = {
+        lat: lat.toFixed(6),
+        lng: lng.toFixed(6),
+        inRange: inRange,
+        statusText: inRange ? 'Lokasi Terverifikasi' : 'Di Luar Jangkauan Kantor',
+      }
+    },
+    () => {
+      $q.notify({ color: 'negative', message: 'Gagal mendapatkan lokasi GPS.' })
+    },
+  )
 }
 
 const saveAbsensi = async () => {
   $q.loading.show()
   try {
+    const name = currentUserName.value.trim().toUpperCase()
     await addDoc(collection(db, 'absensi'), {
-      nama_karyawan: currentUserName.value,
+      nama_karyawan: name,
       waktu_masuk: serverTimestamp(),
       waktu_pulang: null,
       tanggal: currentDate.value,
@@ -340,20 +362,31 @@ const saveAbsensi = async () => {
     stopCamera()
   } catch (e) {
     console.error(e)
+    $q.notify({ color: 'negative', message: 'Gagal menyimpan data.' })
   } finally {
     $q.loading.hide()
   }
 }
 
 const absenPulang = async () => {
-  const id = documentId.value
-  if (!id) return $q.notify({ color: 'warning', message: 'Kamu belum absen masuk hari ini!' })
+  if (!documentId.value) {
+    return $q.notify({
+      color: 'warning',
+      message: 'Anda belum melakukan Clock-in hari ini atau data belum sinkron!',
+      icon: 'info',
+    })
+  }
+
   $q.loading.show()
   try {
-    await updateDoc(doc(db, 'absensi', id), { waktu_pulang: serverTimestamp(), status: 'Selesai' })
+    await updateDoc(doc(db, 'absensi', documentId.value), {
+      waktu_pulang: serverTimestamp(),
+      status: 'Selesai',
+    })
     $q.notify({ color: 'negative', message: 'Clock-out Berhasil!' })
   } catch (e) {
     console.error(e)
+    $q.notify({ color: 'negative', message: 'Gagal memperbarui data.' })
   } finally {
     $q.loading.hide()
   }
@@ -361,35 +394,50 @@ const absenPulang = async () => {
 
 const formatWaktu = (ts) => (ts ? date.formatDate(ts.toDate(), 'HH.mm') : '--.--')
 
-let timer
-let unsubMe
-let unsubAll
+let timer, unsubMe, unsubAll
 onMounted(() => {
   updateTime()
   timer = setInterval(updateTime, 1000)
-
   const saved = localStorage.getItem('user_data')
   if (saved) {
     const parsed = JSON.parse(saved)
-    currentUserName.value = parsed.nama || parsed.displayName || 'KARYAWAN AGRA'
+    currentUserName.value = (parsed.nama || parsed.displayName || 'USER').trim().toUpperCase()
   }
 
-  // 1. DATA PRIBADI (Pemberitahuan) - Listen ke semua absen kamu
+  // 1. DATA PRIBADI - Menggunakan onSnapshot agar documentId terisi otomatis secara real-time
   const qMe = query(
     collection(db, 'absensi'),
     where('nama_karyawan', '==', currentUserName.value),
     orderBy('waktu_masuk', 'desc'),
     limit(5),
   )
-  unsubMe = onSnapshot(qMe, (snap) => {
-    riwayatData.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
-    const hariIni = riwayatData.value.find(
-      (a) => a.tanggal === currentDate.value && a.status === 'Hadir',
-    )
-    documentId.value = hariIni ? hariIni.id : null
-  })
 
-  // 2. DATA SEMUA KARYAWAN - Listen ke semua orang hari ini
+  unsubMe = onSnapshot(
+    qMe,
+    (snap) => {
+      riwayatData.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+      // Logika Sinkronisasi: Cari sesi hari ini yang belum selesai
+      const activeSession = riwayatData.value.find(
+        (a) => a.tanggal === currentDate.value && a.status === 'Hadir',
+      )
+      if (activeSession) {
+        documentId.value = activeSession.id
+      } else {
+        documentId.value = null
+      }
+    },
+    (err) => {
+      console.error('Query Me Error:', err)
+      if (err.message.includes('index')) {
+        $q.notify({
+          color: 'negative',
+          message: 'Indeks Firestore diperlukan. Cek log konsol browser.',
+        })
+      }
+    },
+  )
+
+  // 2. DATA SELURUH KARYAWAN
   const startDay = new Date()
   startDay.setHours(0, 0, 0, 0)
   const qAll = query(
@@ -397,6 +445,7 @@ onMounted(() => {
     where('waktu_masuk', '>=', Timestamp.fromDate(startDay)),
     orderBy('waktu_masuk', 'desc'),
   )
+
   unsubAll = onSnapshot(qAll, (snap) => {
     dataSeluruhKaryawan.value = snap.docs.map((d, i) => {
       const dta = d.data()
@@ -430,12 +479,6 @@ onUnmounted(() => {
   padding: 5px 15px;
   border-radius: 20px;
 }
-.info-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px solid #eee;
-}
 .camera-wrapper {
   width: 100%;
   height: 350px;
@@ -451,7 +494,7 @@ onUnmounted(() => {
 .guide-circle {
   width: 180px;
   height: 240px;
-  border: 3px solid #4caf50;
+  border: 3px dashed #4caf50;
   border-radius: 50% 50% 40% 40%;
   position: absolute;
   top: 50%;
@@ -459,11 +502,13 @@ onUnmounted(() => {
   transform: translate(-50%, -50%);
   box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.5);
 }
-.scroll-container {
-  max-height: 250px;
-  overflow-y: auto;
-}
 .font-digital {
   font-family: 'Courier New', Courier, monospace;
+}
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
 }
 </style>
