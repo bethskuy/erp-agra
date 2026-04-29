@@ -1,7 +1,7 @@
 <template>
   <q-page class="bg-grey-2 q-pa-md q-pa-md-lg font-pro">
     <!-- =====================================================================================
-         HEADER SECTION (TAMPILAN LAYAR)
+         HEADER SECTION (UI LAYAR)
          ===================================================================================== -->
     <div class="row items-center justify-between q-mb-xl animate-fade no-print">
       <div class="col-12 col-md-8">
@@ -33,7 +33,6 @@
           </div>
         </div>
       </div>
-      <!-- Tombol Ekspor PDF muncul hanya setelah transaksi cloud berhasil -->
       <div class="col-12 col-md-auto q-mt-md q-mt-md-none" v-if="processDone">
         <q-btn
           color="red-9"
@@ -51,7 +50,6 @@
          MAIN FORM AREA (NO-PRINT)
          ===================================================================================== -->
     <div class="row q-col-gutter-lg justify-center no-print">
-      <!-- PANEL KIRI: FORMULIR INPUT UTAMA -->
       <div class="col-12 col-md-8 animate-fade-up">
         <q-card
           flat
@@ -61,13 +59,13 @@
           <q-card-section class="bg-indigo-10 text-white q-pa-lg row items-center">
             <q-icon name="send" size="sm" class="q-mr-sm" />
             <div class="text-h6 text-weight-black uppercase tracking-widest">
-              Alokasi & Distribusi Aset Konstruksi
+              Formulir Alokasi & Distribusi
             </div>
           </q-card-section>
 
           <q-card-section class="q-pa-xl">
             <q-form @submit.prevent="prosesBarangKeluar" class="q-gutter-y-lg">
-              <!-- SECTION: JENIS DISTRIBUSI -->
+              <!-- JENIS DISTRIBUSI -->
               <div class="row q-col-gutter-md">
                 <div class="col-12">
                   <div
@@ -94,9 +92,8 @@
                 </div>
               </div>
 
-              <!-- SECTION: ADMINISTRASI & TUJUAN -->
+              <!-- ADMINISTRASI & TUJUAN -->
               <div class="row q-col-gutter-lg items-start">
-                <!-- Proyek: Otomatis jika sudah di gudang proyek -->
                 <div class="col-12 col-sm-6" v-if="form.tipe === 'INTERNAL'">
                   <q-select
                     outlined
@@ -109,13 +106,9 @@
                     class="text-weight-bold"
                   >
                     <template v-slot:prepend><q-icon name="business" color="primary" /></template>
-                    <template v-slot:hint
-                      >Detect otomatis berdasarkan lokasi gudang aktif.</template
-                    >
                   </q-select>
                 </div>
 
-                <!-- SPK: Wajib jika bukan gudang utama -->
                 <div
                   class="col-12 col-sm-6"
                   v-if="form.tipe === 'INTERNAL' && gudangId !== 'UTAMA'"
@@ -137,7 +130,6 @@
                   </q-select>
                 </div>
 
-                <!-- Nama Customer (Hanya External) -->
                 <div class="col-12 col-sm-6" v-if="form.tipe === 'EXTERNAL'">
                   <q-input
                     outlined
@@ -152,7 +144,6 @@
                   </q-input>
                 </div>
 
-                <!-- Input UP Penerima -->
                 <div class="col-12 col-sm-6">
                   <q-input
                     outlined
@@ -167,7 +158,6 @@
                   </q-input>
                 </div>
 
-                <!-- Nomor Surat Jalan (Otomatis) -->
                 <div class="col-12 col-sm-6">
                   <q-input
                     outlined
@@ -190,12 +180,12 @@
                   class="text-subtitle1 text-weight-black text-indigo-10 uppercase flex items-center tracking-widest"
                 >
                   <q-icon name="list_alt" class="q-mr-sm" color="indigo-10" size="sm" />
-                  Rincian Item & Keterangan Barang
+                  Rincian Material & Keterangan Item
                 </div>
                 <q-btn
                   color="indigo-10"
                   icon="add"
-                  label="Tambah Baris Material"
+                  label="Tambah Baris"
                   rounded
                   unelevated
                   size="sm"
@@ -214,13 +204,12 @@
                 >
                   <q-card-section class="q-pa-md">
                     <div class="row q-col-gutter-md items-start">
-                      <!-- Pilih Barang Sesuai Stok -->
                       <div class="col-12 col-sm-5">
                         <q-select
                           outlined
                           dense
                           v-model="item.barang_obj"
-                          label="Pilih Barang *"
+                          label="Pilih Material *"
                           :options="filteredBarangOptions"
                           option-label="nama_barang"
                           @update:model-value="(val) => onBarangSelectRow(val, index)"
@@ -234,13 +223,12 @@
                         </q-select>
                       </div>
 
-                      <!-- Jumlah Masukan -->
                       <div class="col-6 col-sm-3">
                         <q-input
                           outlined
                           dense
                           v-model.number="item.jumlah"
-                          label="Volume Keluar *"
+                          label="Volume *"
                           type="number"
                           bg-color="white"
                           :rules="[
@@ -256,7 +244,6 @@
                         </q-input>
                       </div>
 
-                      <!-- Sisa Stok Fisik -->
                       <div class="col-6 col-sm-4 text-center flex flex-center">
                         <div
                           class="q-pa-sm bg-white rounded-borders border-indigo-thin full-width"
@@ -268,23 +255,20 @@
                           <span class="text-weight-black text-indigo-10">{{
                             item.stok_tersedia || 0
                           }}</span>
-                          <span class="text-caption q-ml-xs text-grey-5">{{ item.satuan }}</span>
                         </div>
                       </div>
 
-                      <!-- Keterangan Spesifik -->
                       <div class="col-11">
                         <q-input
                           outlined
                           dense
                           v-model="item.keterangan_item"
-                          label="Keterangan Spesifik Material "
-                          placeholder="Keterangan ini muncul di kolom keterangan pada tabel detail riwayat..."
+                          label="Keterangan Spesifik Barang"
+                          placeholder="Keterangan per baris barang..."
                           bg-color="white"
                         />
                       </div>
 
-                      <!-- Hapus Item -->
                       <div class="col-1 text-right">
                         <q-btn
                           flat
@@ -329,7 +313,7 @@
                   <q-btn
                     color="indigo-10"
                     icon="add_a_photo"
-                    label="Tambah Bukti Lampiran"
+                    label="Tambah Bukti"
                     rounded
                     unelevated
                     size="sm"
@@ -351,14 +335,10 @@
                               outlined
                               dense
                               v-model="doc.file"
-                              label="Pilih File Foto/PDF..."
+                              label="Pilih File..."
                               bg-color="white"
                               accept="image/*, .pdf"
-                            >
-                              <template v-slot:prepend
-                                ><q-icon name="attach_file" size="xs"
-                              /></template>
-                            </q-file>
+                            />
                           </div>
                           <div class="col-auto">
                             <q-btn
@@ -386,10 +366,9 @@
                 </div>
               </div>
 
-              <!-- EKSEKUSI DATA -->
               <div class="q-mt-xl">
                 <q-btn
-                  label="KONFIRMASI PENGELUARAN & SIMPAN DATA KE CLOUD"
+                  label="KONFIRMASI PENGELUARAN & SIMPAN DATA"
                   type="submit"
                   color="indigo-10"
                   class="full-width rounded-borders text-weight-black q-py-lg shadow-10 btn-hover"
@@ -405,7 +384,7 @@
         </q-card>
       </div>
 
-      <!-- PANEL KANAN: IDENTITAS PDF (BRANDING) -->
+      <!-- PANEL KANAN: BRANDING PDF -->
       <div class="col-12 col-md-4 animate-fade-up" style="animation-delay: 0.2s">
         <q-card
           flat
@@ -418,9 +397,6 @@
             <q-icon name="tune" class="q-mr-sm" /> Branding PDF Surat Jalan
           </q-card-section>
           <q-card-section class="q-pa-lg q-gutter-y-md">
-            <div class="text-caption text-weight-bold text-grey-7 uppercase tracking-widest">
-              Logo & Branding Utama
-            </div>
             <q-file
               outlined
               dense
@@ -443,17 +419,11 @@
               v-model="form.slogan_perusahaan"
               label="Slogan / Bidang Usaha"
             />
-
-            <q-separator class="q-my-md" />
-
-            <div class="text-caption text-weight-bold text-grey-7 uppercase tracking-widest">
-              Alamat & Footer
-            </div>
             <q-input
               outlined
               dense
               v-model="form.lokasi_detail"
-              label="Alamat Lengkap Lokasi Tujuan"
+              label="Alamat Detail Lokasi Tujuan"
             />
             <q-input
               outlined
@@ -463,25 +433,14 @@
               type="textarea"
               rows="2"
             />
-
-            <q-banner dense class="bg-indigo-1 text-indigo-10 rounded-borders q-mt-md">
-              <template v-slot:avatar><q-icon name="info" color="indigo-10" /></template>
-              <div class="text-caption leading-relaxed">
-                Konfigurasi di panel ini akan langsung masuk ke template dokumen fisik saat bos klik
-                Export PDF.
-              </div>
-            </q-banner>
           </q-card-section>
         </q-card>
       </div>
     </div>
 
-    <!-- =============================================================================
-         HIDDEN PDF TEMPLATE (Target Rendering untuk html2pdf)
-         ============================================================================= -->
+    <!-- HIDDEN PDF TEMPLATE -->
     <div style="position: absolute; left: -9999px; top: -9999px">
       <div id="sj-pdf-target" class="perfectionist-paper">
-        <!-- Header / Kop Surat -->
         <div class="row no-wrap items-center q-mb-md">
           <div class="col-auto">
             <img :src="form.logoUrl || 'icons/logo-agra.png'" class="final-kop-img q-mr-md" />
@@ -493,10 +452,7 @@
             </div>
           </div>
         </div>
-
         <div class="pro-divider-thick q-mb-md"></div>
-
-        <!-- Judul & Nomor SJ -->
         <div class="row justify-end q-mb-lg">
           <div class="col-auto text-right">
             <div
@@ -509,8 +465,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Meta Dokumen -->
         <div class="row q-col-gutter-xl q-mb-lg text-left" style="font-size: 13.5px">
           <div class="col-6">
             <div class="text-weight-black uppercase q-mb-xs text-grey-7">KEPADA YTH :</div>
@@ -520,13 +474,13 @@
             <div class="row no-wrap q-mt-xs">
               <div class="col-auto q-mr-sm font-bold text-grey-8">Lokasi :</div>
               <div class="col underline-dotted text-blue-grey-10 text-weight-bold">
-                {{ form.lokasi_detail || '...........................................' }}
+                {{ form.lokasi_detail || '...................' }}
               </div>
             </div>
             <div class="row no-wrap q-mt-sm">
               <div class="col-auto q-mr-sm font-bold text-grey-8">Up :</div>
               <div class="col underline-dotted text-blue-grey-10 text-weight-bold">
-                {{ form.up || '...........................................' }}
+                {{ form.up || '...................' }}
               </div>
             </div>
           </div>
@@ -537,13 +491,13 @@
                 :
                 {{
                   form.tipe === 'INTERNAL' && gudangId !== 'UTAMA'
-                    ? form.noSpk || 'INTERNAL_STOCK'
-                    : 'EXTERNAL_LOGISTICS'
+                    ? form.noSpk || 'INTERNAL'
+                    : 'EXTERNAL'
                 }}
               </div>
             </div>
             <div class="row justify-end q-mb-xs">
-              <div class="col-5 text-weight-black italic text-grey-6 text-left">Tanggal Kirim</div>
+              <div class="col-5 text-weight-black italic text-grey-6 text-left">Tanggal</div>
               <div class="col-7 text-left">
                 :
                 {{
@@ -555,14 +509,8 @@
                 }}
               </div>
             </div>
-            <div class="row justify-end q-mb-xs">
-              <div class="col-5 text-weight-black italic text-grey-6 text-left">Ekspedisi</div>
-              <div class="col-7 text-left">: {{ form.ekspedisi }}</div>
-            </div>
           </div>
         </div>
-
-        <!-- Table Rincian Material -->
         <table class="perfectionist-table full-width">
           <thead>
             <tr>
@@ -592,8 +540,6 @@
             </tr>
           </tfoot>
         </table>
-
-        <!-- Catatan Bawah Surat -->
         <div class="q-mt-md q-mb-xl text-left">
           <div class="text-weight-black italic q-mb-xs">Instruksi Khusus :</div>
           <div
@@ -606,8 +552,6 @@
             }}
           </div>
         </div>
-
-        <!-- Area Pengesahan -->
         <div class="row justify-between text-center q-mt-xl" style="font-size: 14px">
           <div class="col-3">
             <div class="text-weight-black q-mb-xl">Petugas Gudang</div>
@@ -620,34 +564,23 @@
           <div class="col-3">
             <div class="text-weight-black q-mb-xl">Pihak Pengirim</div>
             <div style="height: 60px"></div>
-            <div class="text-weight-black">(..............................)</div>
+            <div class="text-weight-black">(..........)</div>
             <div class="text-caption text-bold text-grey-8 uppercase">Driver / Kurir</div>
           </div>
           <div class="col-3">
             <div class="text-weight-black q-mb-xl">Pihak Penerima</div>
             <div style="height: 60px"></div>
-            <div class="text-weight-black">(..............................)</div>
+            <div class="text-weight-black">(..........)</div>
             <div class="text-caption text-bold text-grey-8 uppercase">Nama Jelas & Cap</div>
           </div>
         </div>
-
-        <div class="q-mt-xl text-center text-grey-5 italic" style="font-size: 9.5px">
-          Secured Digital Archive • Generated by AGRA ERP v4.1.2 • Timestamp:
-          {{ new Date().toLocaleString('id-ID') }}
-        </div>
       </div>
     </div>
-
-    <div class="q-py-xl no-print"></div>
   </q-page>
 </template>
 
 <script setup>
-/**
- * =====================================================================================
- * SCRIPT SETUP - FULL POWER ERROR-FREE MASTERPIECE
- * =====================================================================================
- */
+// eslint-disable-next-line no-unused-vars
 import { ref, onMounted, reactive, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { db, storage } from 'src/boot/firebase'
@@ -657,8 +590,10 @@ import {
   where,
   getDocs,
   doc,
+  // eslint-disable-next-line no-unused-vars
   updateDoc,
   increment,
+  // eslint-disable-next-line no-unused-vars
   addDoc,
   serverTimestamp,
   // eslint-disable-next-line no-unused-vars
@@ -671,7 +606,6 @@ import { useQuasar } from 'quasar'
 import { useAuthStore } from 'src/stores/auth'
 import html2pdf from 'html2pdf.js'
 
-// --- INISIALISASI DASAR ---
 const $q = useQuasar()
 const route = useRoute()
 const router = useRouter()
@@ -680,10 +614,9 @@ const gudangId = route.params.id || 'UTAMA'
 
 const loading = ref(false)
 const processDone = ref(false)
-const gudangName = ref('Memuat Database...')
+const gudangName = ref('Memuat...')
 const kopFile = ref(null)
 
-// --- STATE FORM FULL ---
 const form = reactive({
   tipe: 'INTERNAL',
   idProyek: null,
@@ -696,14 +629,15 @@ const form = reactive({
       barang_obj: null,
       id_barang_stok: '',
       nama_barang: '',
+      kode_barang: '',
       jumlah: 0,
       satuan: '',
       stok_tersedia: 0,
       keterangan_item: '',
     },
   ],
-  documentations: [], // Lampiran bukti lapangan
-  catatan_umum: '', // Inputan bos yang dilingkari merah
+  documentations: [],
+  catatan_umum: '',
   ekspedisi: 'Driver Internal',
   nama_perusahaan: 'PT AGRA ABHINAYA PERKASA',
   slogan_perusahaan: 'General Construction & General Supplier',
@@ -718,42 +652,40 @@ const spkOptions = ref([])
 const allWarehouseStock = ref([])
 const filteredBarangOptions = ref([])
 
-// --- LOGIKA MULTI-ITEM BARANG ---
 const addItemRow = () => {
   form.items.push({
     barang_obj: null,
     id_barang_stok: '',
     nama_barang: '',
+    kode_barang: '',
     jumlah: 0,
     satuan: '',
     stok_tersedia: 0,
     keterangan_item: '',
   })
 }
-
 const removeItemRow = (idx) => {
   if (form.items.length > 1) form.items.splice(idx, 1)
 }
 
-const onBarangSelectRow = (val, idx) => {
+// --- FIX: SAKLEK NARIK KODE BARANG ASLI ---
+const onBarangSelectRow = async (val, idx) => {
   if (val) {
     form.items[idx].id_barang_stok = val.id
     form.items[idx].nama_barang = val.nama_barang
     form.items[idx].satuan = val.satuan || 'Unit'
     form.items[idx].stok_tersedia = val.jumlah || 0
+
+    // TARIK KODE ASLI DARI MASTER
+    try {
+      const bSnap = await getDoc(doc(db, 'master_barang', val.id_barang))
+      if (bSnap.exists()) form.items[idx].kode_barang = bSnap.data().kode || 'NO-CODE'
+    } catch (e) {
+      console.error(e)
+    }
   }
 }
 
-// --- LOGIKA DOKUMENTASI DINAMIS ---
-const addDocumentationRow = () => {
-  form.documentations.push({ file: null, label: '' })
-}
-
-const removeDocumentationRow = (idx) => {
-  form.documentations.splice(idx, 1)
-}
-
-// --- GENERATOR NOMOR SURAT JALAN ---
 const generateSjNumber = () => {
   const now = new Date()
   const month = (now.getMonth() + 1).toString().padStart(2, '0')
@@ -762,50 +694,39 @@ const generateSjNumber = () => {
   form.nomorSj = `SJ/AAP/${month}/${year}/${random}`
 }
 
-// --- DATA FETCHING & AUTO-SELECTION ---
 const fetchData = async () => {
-  $q.loading.show({ message: 'Singkronisasi data lokasi & stok...' })
+  $q.loading.show()
   try {
-    // 1. Ambil Master Data
     const projSnap = await getDocs(collection(db, 'proyek'))
     proyekOptions.value = projSnap.docs.map((d) => ({ id: d.id, ...d.data() }))
-
-    // 2. Logika Deteksi Lokasi Otomatis
     if (gudangId === 'UTAMA') {
       gudangName.value = 'Gudang Utama'
       selectedProyek.value = { id: 'UTAMA', nama: 'Gudang Utama' }
-      form.lokasi_detail = 'Kantor Pusat / Gudang Utama AGRA'
+      form.lokasi_detail = 'Kantor Pusat AGRA'
     } else {
       const foundProj = proyekOptions.value.find((p) => p.id === gudangId)
       if (foundProj) {
-        gudangName.value = 'Gudang ' + (foundProj.nama_proyek || foundProj.nama)
+        gudangName.value = 'Gudang ' + foundProj.nama
         selectedProyek.value = foundProj
-        form.lokasi_detail = foundProj.alamat || foundProj.lokasi || ''
-
-        // Tarik SPK otomatis untuk proyek ini
+        form.lokasi_detail = foundProj.alamat || ''
         const qSpk = query(collection(db, 'spk_customer'), where('projectId', '==', foundProj.id))
         const spkSnap = await getDocs(qSpk)
         spkOptions.value = spkSnap.docs.map((d) => ({ id: d.id, ...d.data() }))
       }
     }
-
-    // 3. Filter Stok Fisik (Hanya di lokasi ini)
-    const qStok = query(collection(db, 'stok_barang'), where('id_gudang', '==', gudangId))
-    const stokSnap = await getDocs(qStok)
+    const stokSnap = await getDocs(
+      query(collection(db, 'stok_barang'), where('id_gudang', '==', gudangId)),
+    )
     allWarehouseStock.value = stokSnap.docs.map((d) => ({ id: d.id, ...d.data() }))
-    // Tampilkan barang yang minimal ada stoknya
     filteredBarangOptions.value = allWarehouseStock.value.filter((b) => (b.jumlah || 0) > 0)
-
     generateSjNumber()
   } catch (err) {
-    console.error('Fetch System Error:', err)
-    $q.notify({ type: 'negative', message: 'Gagal menghubungkan ke server cloud!' })
+    console.error(err)
   } finally {
     $q.loading.hide()
   }
 }
 
-// Filter barang dalam list pencarian
 const filterBarangStock = (val, update) => {
   update(() => {
     const needle = val.toLowerCase()
@@ -814,8 +735,6 @@ const filterBarangStock = (val, update) => {
     )
   })
 }
-
-// Handle logo custom untuk PDF
 const handleLogoUpload = (file) => {
   if (!file) return
   const reader = new FileReader()
@@ -824,91 +743,74 @@ const handleLogoUpload = (file) => {
     form.logoUrl = reader.result
   }
 }
-
 const onTipeChange = () => {
   generateSjNumber()
 }
 
-// --- LOGIKA UTAMA: PROSES SIMPAN TRANSAKSI (BATCH TRANSACTION) ---
 const prosesBarangKeluar = async () => {
   const validItems = form.items.filter((it) => it.barang_obj && it.jumlah > 0)
-  if (validItems.length === 0) {
-    $q.notify({ type: 'warning', message: 'Tentukan minimal satu barang yang valid!' })
-    return
-  }
-
+  if (validItems.length === 0) return $q.notify({ type: 'warning', message: 'Input barang!' })
   $q.dialog({
-    title: 'Konfirmasi Transaksi',
-    message: `Keluarkan ${validItems.length} material dari stok fisik? Data akan segera dikunci dan bukti diunggah.`,
+    title: 'Konfirmasi',
+    message: 'Keluarkan material?',
     cancel: true,
     persistent: true,
   }).onOk(async () => {
     loading.value = true
-    $q.loading.show({ message: 'Mengunggah dokumentasi & memotong stok cloud...' })
-
+    $q.loading.show({ message: 'Syncing Cloud...' })
     try {
-      // 1. Upload Dokumentasi ke Storage
       const uploadedDocs = []
       for (const docItem of form.documentations) {
         if (docItem.file) {
           const fileName = `DOK_KELUAR_${Date.now()}_${docItem.file.name.replace(/\s+/g, '_')}`
-          const fileRef = storageRef(storage, `barang_keluar/dokumentasi/${fileName}`)
-          const snap = await uploadBytes(fileRef, docItem.file)
+          const snap = await uploadBytes(
+            storageRef(storage, `barang_keluar/dokumentasi/${fileName}`),
+            docItem.file,
+          )
           const url = await getDownloadURL(snap.ref)
           uploadedDocs.push({
-            label: docItem.label || 'Lampiran Bukti Lapangan',
+            label: docItem.label || 'Lampiran',
             url: url,
             mimeType: docItem.file.type,
           })
         }
       }
-
-      // 2. Jalankan Batch Transaksi Stok & Log
       await runTransaction(db, async (transaction) => {
         for (const item of validItems) {
-          const stokDocRef = doc(db, 'stok_barang', item.id_barang_stok)
-
-          // Potong Stok Fisik (Safe dengan increment)
-          transaction.update(stokDocRef, {
+          const stokRef = doc(db, 'stok_barang', item.id_barang_stok)
+          transaction.update(stokRef, {
             jumlah: increment(-Number(item.jumlah)),
             updated_at: serverTimestamp(),
           })
-
-          // Simpan Record di Koleksi Aktivitas (Satu aktivitas per baris item)
           const logRef = doc(collection(db, 'aktivitas'))
           transaction.set(logRef, {
             id_gudang: gudangId,
             id_barang: item.id_barang_stok,
             nama_barang: item.nama_barang,
+            kode_barang: item.kode_barang, // SAKLEK! Simpan Kode asli
             jumlah: item.jumlah,
             satuan: item.satuan,
             tipe: 'KELUAR',
             no_referensi: form.nomorSj,
             no_spk:
               form.tipe === 'INTERNAL' && gudangId !== 'UTAMA'
-                ? form.noSpk || 'STOCK_INTERNAL'
-                : 'EXTERNAL_OUT',
-
-            // PEMISAHAN CATATAN (Ditarik ke Riwayat)
-            keterangan: item.keterangan_item || '-', // Uhuy masuk sini
-            catatan_umum: form.catatan_umum || '-', // Lingkaran merah masuk sini
-
+                ? form.noSpk || 'INTERNAL'
+                : 'EXTERNAL',
+            keterangan: item.keterangan_item || '-',
+            catatan_umum: form.catatan_umum || '-',
             penerima_up: form.up,
+            tujuan_nama:
+              form.tipe === 'INTERNAL' ? selectedProyek.value?.nama || '-' : form.penerimaExternal,
+            tujuan_alamat: form.lokasi_detail,
             dokumentasi_urls: uploadedDocs,
             timestamp: serverTimestamp(),
           })
         }
       })
-
-      $q.notify({
-        type: 'positive',
-        message: 'Stok Berhasil Dimutasi! Tombol PDF telah aktif.',
-        position: 'top',
-      })
+      $q.notify({ type: 'positive', message: 'Berhasil!' })
       processDone.value = true
     } catch (e) {
-      console.error('Core Transaction Error:', e)
-      $q.notify({ type: 'negative', message: 'Gagal memproses data: ' + e.message })
+      $q.notify({ type: 'negative', message: 'Gagal: ' + e.message })
     } finally {
       $q.loading.hide()
       loading.value = false
@@ -916,72 +818,40 @@ const prosesBarangKeluar = async () => {
   })
 }
 
-// --- FUNGSI EKSPOR KE PDF (HD RESOLUTION) ---
 const exportToPDF = () => {
   const element = document.getElementById('sj-pdf-target')
   const filename = form.nomorSj.replace(/\//g, '-') + '.pdf'
-
   const opt = {
     margin: 0,
     filename: filename,
     image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: {
-      scale: 2.5,
-      useCORS: true,
-      letterRendering: true,
-      scrollX: 0,
-      scrollY: 0,
-    },
+    html2canvas: { scale: 2.5, useCORS: true, letterRendering: true },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
   }
-
-  $q.loading.show({ message: 'Menyiapkan berkas PDF kualitas arsip...' })
+  $q.loading.show()
   html2pdf()
     .set(opt)
     .from(element)
     .save()
-    .then(() => {
-      $q.loading.hide()
-      $q.notify({ type: 'positive', message: 'Surat Jalan berhasil didownload!' })
-    })
-    .catch((err) => {
-      console.error('PDF Engine Error:', err)
-      $q.loading.hide()
-    })
+    .then(() => $q.loading.hide())
 }
 
-// Dummy computed untuk memenuhi ESLint (jika dibutuhkan logika tambahan)
-// eslint-disable-next-line no-unused-vars
-const currentWarehouseId = computed(() => gudangId)
-
-// Dummy trigger untuk memastikam addDoc, updateDoc, dsb terpakai jika ada proses manual di luar transaksi
-// eslint-disable-next-line no-unused-vars
-const syncManual = async (refId, data) => {
-  if (!refId) return
-  const dummyRef = doc(db, 'stok_barang', refId)
-  await updateDoc(dummyRef, data)
-  await addDoc(collection(db, 'aktivitas'), data)
-  await getDoc(dummyRef)
+const addDocumentationRow = () => {
+  form.documentations.push({ file: null, label: '' })
+}
+const removeDocumentationRow = (idx) => {
+  form.documentations.splice(idx, 1)
 }
 
 onMounted(fetchData)
 </script>
 
 <style scoped>
-/* =====================================================================================
-   CSS PERFECTIONIST STANDARDS
-   ===================================================================================== */
 .font-pro {
-  font-family:
-    'Inter',
-    -apple-system,
-    sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 .rounded-20 {
   border-radius: 20px;
-}
-.rounded-12 {
-  border-radius: 12px;
 }
 .shadow-premium {
   box-shadow: 0 15px 45px rgba(26, 35, 126, 0.12);
@@ -989,66 +859,6 @@ onMounted(fetchData)
 .border-indigo-thin {
   border: 1px solid rgba(26, 35, 126, 0.1);
 }
-.border-subtle {
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
-.border-dashed-indigo {
-  border: 2px dashed #c5cae9;
-  border-radius: 12px;
-}
-.btn-hover:hover {
-  transform: translateY(-4px);
-  filter: brightness(1.1);
-  transition: 0.3s;
-}
-.sticky-editor {
-  position: sticky;
-  top: 100px;
-}
-.leading-none {
-  line-height: 1;
-}
-
-.animate-fade {
-  animation: fadeIn 0.8s ease-out;
-}
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-.animate-fade-up {
-  animation: fadeInUp 0.8s ease-out;
-}
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(40px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-.animate-bounce-subtle {
-  animation: bounceSubtle 2s infinite;
-}
-@keyframes bounceSubtle {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-3px);
-  }
-}
-
-/* PDF A4 LAYOUT STYLING */
 .perfectionist-paper {
   background: white !important;
   width: 210mm;
@@ -1056,10 +866,9 @@ onMounted(fetchData)
   padding: 15mm 15mm;
   margin: 0 auto;
   color: black !important;
-  box-sizing: border-box;
   position: relative;
+  box-sizing: border-box;
 }
-
 .final-kop-img {
   height: 80px;
   width: auto;
@@ -1085,7 +894,6 @@ onMounted(fetchData)
   background: #000 !important;
   border-bottom: 1.5px solid #000 !important;
 }
-
 .perfectionist-table {
   border-collapse: collapse;
   border: 2.5px solid #000 !important;
@@ -1101,18 +909,12 @@ onMounted(fetchData)
 .perfectionist-table th {
   background: #f2f2f2 !important;
   font-weight: 900;
-  -webkit-print-color-adjust: exact;
-  print-color-adjust: exact;
 }
-
 .underline-dotted {
   border-bottom: 1.5px dotted #000;
 }
 .border-black-solid {
   border: 1.5px solid #000;
-}
-.uppercase {
-  text-transform: uppercase;
 }
 .tracking-widest {
   letter-spacing: 0.15em;

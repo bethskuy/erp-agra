@@ -81,7 +81,7 @@
               color="indigo-10"
               class="q-px-md q-py-xs text-weight-bold shadow-2 animate-fade"
             >
-              {{ filteredRows.length }} AKTIVITAS TERCATAT DI LOKASI INI
+              {{ filteredRows.length }} RECORD LOKASI INI
             </q-badge>
           </div>
         </div>
@@ -89,7 +89,7 @@
     </q-card>
 
     <!-- =====================================================================================
-         MAIN TABLE SECTION (LOCKED BY WAREHOUSE)
+         MAIN TABLE SECTION (STRICT FILTER)
          ===================================================================================== -->
     <q-card
       flat
@@ -144,8 +144,9 @@
               >
                 {{ props.row.nama_barang }}
               </div>
-              <div class="text-caption text-grey-5 q-mt-xs font-mono">
-                ID: {{ props.row.id_barang || 'MATERIAL' }}
+              <!-- SAKLEK! Tampilkan Kode Item asli dari database -->
+              <div class="text-caption text-grey-5 q-mt-xs font-mono uppercase">
+                CODE: {{ props.row.kode_barang || 'MATERIAL' }}
               </div>
             </q-td>
 
@@ -177,20 +178,11 @@
             </q-td>
           </q-tr>
         </template>
-
-        <template v-slot:no-data>
-          <div class="full-width row flex-center q-pa-xl text-grey-5 animate-fade">
-            <q-icon name="history_toggle_off" size="64px" class="q-mb-md" />
-            <div class="text-h6 full-width text-center italic">
-              Belum ada riwayat aktivitas yang tercatat untuk gudang ini.
-            </div>
-          </div>
-        </template>
       </q-table>
     </q-card>
 
     <!-- =====================================================================================
-         DETAIL DIALOG (DENGAN RE-PRINT SURAT JALAN)
+         DETAIL DIALOG (DENGAN RE-PRINT IDENTIK)
          ===================================================================================== -->
     <q-dialog
       v-model="showDetailDialog"
@@ -200,16 +192,15 @@
       backdrop-filter="blur(8px)"
     >
       <q-card class="column no-wrap overflow-hidden bg-grey-2" v-if="selectedItem">
-        <!-- Header Toolbar -->
         <q-toolbar class="bg-indigo-10 text-white q-py-md shadow-4 shrink no-print">
           <q-icon name="assignment" size="sm" class="q-mr-sm" />
           <q-toolbar-title class="text-weight-bold uppercase letter-spacing-1">
             Detail Transaksi & Arsip Digital
           </q-toolbar-title>
 
-          <!-- TOMBOL RE-PRINT (IDENTIK DENGAN INPUT) -->
+          <!-- TOMBOL RE-PRINT IDENTIK -->
           <q-btn
-            v-if="selectedItem.tipe === 'KELUAR' || selectedItem.tipe === 'MASUK'"
+            v-if="selectedItem.tipe === 'KELUAR'"
             color="red-9"
             icon="picture_as_pdf"
             label="RE-PRINT SURAT JALAN"
@@ -222,30 +213,31 @@
           <q-btn icon="close" flat round dense v-close-popup />
         </q-toolbar>
 
-        <!-- Main Content Area -->
         <q-card-section class="col scroll q-pa-md q-pa-md-xl">
           <div class="row justify-center">
             <div class="col-12 col-md-11 col-lg-10">
-              <!-- 1. STATUS HEADER -->
+              <!-- STATUS HEADER -->
               <div class="row justify-between items-end q-mb-xl animate-fade">
                 <div class="column">
                   <div
-                    class="text-overline text-grey-6 leading-none q-mb-sm uppercase tracking-widest font-black"
+                    class="text-overline text-grey-6 uppercase tracking-widest font-black leading-none q-mb-sm"
                   >
-                    Klasifikasi Transaksi
+                    Status Klasifikasi
                   </div>
                   <q-chip
                     :color="getTipeColor(selectedItem.tipe)"
                     text-color="white"
                     class="text-weight-black q-px-xl q-py-lg shadow-5"
                   >
-                    <q-icon :name="getTipeIcon(selectedItem.tipe)" class="q-mr-md" size="sm" />
-                    {{ selectedItem.tipe }} MATERIAL
+                    <q-icon :name="getTipeIcon(selectedItem.tipe)" class="q-mr-md" />{{
+                      selectedItem.tipe
+                    }}
+                    MATERIAL
                   </q-chip>
                 </div>
                 <div class="text-right">
                   <div
-                    class="text-overline text-grey-6 leading-none q-mb-xs uppercase tracking-widest font-black"
+                    class="text-overline text-grey-6 uppercase tracking-widest font-black leading-none q-mb-xs"
                   >
                     Waktu Sinkronisasi
                   </div>
@@ -258,103 +250,98 @@
                 </div>
               </div>
 
-              <!-- 2. LOGISTICS METADATA -->
-              <div class="row q-col-gutter-lg q-mb-xl">
-                <div class="col-12">
-                  <q-card
-                    flat
-                    bordered
-                    class="rounded-20 bg-white shadow-premium border-indigo-thin overflow-hidden"
-                  >
-                    <q-card-section
-                      class="bg-indigo-1 q-pa-md text-weight-black text-indigo-10 uppercase tracking-widest flex items-center"
-                    >
-                      <q-icon name="folder_shared" class="q-mr-sm" /> Rincian Administrasi Transaksi
-                    </q-card-section>
-                    <q-card-section class="q-pa-lg">
-                      <div class="row q-col-gutter-xl">
-                        <div class="col-12 col-sm-4">
-                          <div class="text-overline text-grey-5 leading-none q-mb-xs font-bold">
-                            No. Surat Jalan / Ref
-                          </div>
-                          <div class="text-h6 text-weight-black text-indigo-10">
-                            {{ selectedItem.no_referensi || '-' }}
-                          </div>
-                        </div>
-                        <div class="col-12 col-sm-4 border-left-gt-xs">
-                          <div class="text-overline text-grey-5 leading-none q-mb-xs font-bold">
-                            No. SPK Terkait
-                          </div>
-                          <div class="text-h6 text-weight-bold text-primary">
-                            {{ selectedItem.no_spk || '-' }}
-                          </div>
-                        </div>
-                        <div class="col-12 col-sm-4 border-left-gt-xs">
-                          <div class="text-overline text-grey-5 leading-none q-mb-xs font-bold">
-                            UP / Penerima
-                          </div>
-                          <div class="text-h6 text-weight-bold text-blue-grey-10 uppercase">
-                            {{ selectedItem.penerima_up || '-' }}
-                          </div>
-                        </div>
+              <!-- LOGISTICS METADATA -->
+              <q-card
+                flat
+                bordered
+                class="rounded-20 bg-white shadow-premium border-indigo-thin overflow-hidden q-mb-xl"
+              >
+                <q-card-section
+                  class="bg-indigo-1 q-pa-md text-weight-black text-indigo-10 uppercase tracking-widest flex items-center"
+                >
+                  <q-icon name="folder_shared" class="q-mr-sm" /> Rincian Administrasi
+                </q-card-section>
+                <q-card-section class="q-pa-lg">
+                  <div class="row q-col-gutter-xl text-left">
+                    <div class="col-12 col-sm-4">
+                      <div class="text-overline text-grey-5 font-bold leading-none q-mb-xs">
+                        No. Surat Jalan / Ref
                       </div>
-                    </q-card-section>
-                  </q-card>
-                </div>
-              </div>
+                      <div class="text-h6 text-weight-black text-indigo-10">
+                        {{ selectedItem.no_referensi || '-' }}
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-4 border-left-gt-xs">
+                      <div class="text-overline text-grey-5 font-bold leading-none q-mb-xs">
+                        No. SPK Terkait
+                      </div>
+                      <div class="text-h6 text-weight-bold text-primary">
+                        {{ selectedItem.no_spk || '-' }}
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-4 border-left-gt-xs">
+                      <div class="text-overline text-grey-5 font-bold leading-none q-mb-xs">
+                        UP (Attention)
+                      </div>
+                      <div class="text-h6 text-weight-bold text-blue-grey-10 uppercase">
+                        {{ selectedItem.penerima_up || '-' }}
+                      </div>
+                    </div>
+                  </div>
+                </q-card-section>
+              </q-card>
 
-              <!-- 3. DETAILED ITEM TABLE -->
-              <div class="q-mb-md">
-                <div
-                  class="text-h6 text-weight-black text-indigo-10 uppercase q-mb-md flex items-center letter-spacing-1"
-                >
-                  <q-icon name="list_alt" class="q-mr-sm" size="md" color="indigo-10" />
-                  Rincian Material & Keterangan Item
-                </div>
-                <q-card
-                  flat
-                  bordered
-                  class="rounded-20 overflow-hidden shadow-sm bg-white border-subtle"
-                >
-                  <q-markup-table flat separator="cell" class="perfectionist-table">
-                    <thead>
-                      <tr class="bg-blue-grey-10 text-white text-bold uppercase font-11">
-                        <th width="60">NO</th>
-                        <th class="text-left" width="180">KODE BARANG</th>
-                        <th class="text-left">NAMA MATERIAL / ITEM</th>
-                        <th width="100">QTY</th>
-                        <th width="100">SATUAN</th>
-                        <th class="text-left">KETERANGAN (NOTE ITEM)</th>
-                      </tr>
-                    </thead>
-                    <tbody class="text-blue-grey-10">
-                      <tr v-for="(it, i) in groupedItems" :key="i">
-                        <td class="text-center font-black">{{ i + 1 }}</td>
-                        <td class="text-weight-medium text-grey-7 font-mono">
-                          {{ it.id_barang ? 'BRG-' + it.id_barang.slice(-6).toUpperCase() : '-' }}
-                        </td>
-                        <td class="text-weight-black uppercase text-subtitle2">
-                          {{ it.nama_barang }}
-                        </td>
-                        <td
-                          class="text-center text-weight-black text-h5"
-                          :class="getAmountColor(it.tipe)"
-                        >
-                          {{ it.jumlah }}
-                        </td>
-                        <td class="text-center text-weight-bold uppercase text-caption">
-                          {{ it.satuan || 'UNIT' }}
-                        </td>
-                        <td class="italic text-weight-bolder text-primary bg-blue-grey-1">
-                          {{ it.keterangan || '-' }}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </q-markup-table>
-                </q-card>
+              <!-- TABLE ITEM (SAKLEK NARIK KODE BARANG ASLI) -->
+              <div
+                class="text-h6 text-weight-black text-indigo-10 uppercase q-mb-md flex items-center letter-spacing-1"
+              >
+                <q-icon name="list_alt" class="q-mr-sm" color="indigo-10" />
+                Rincian Material & Keterangan Item
               </div>
+              <q-card
+                flat
+                bordered
+                class="rounded-20 overflow-hidden shadow-sm bg-white border-subtle q-mb-md"
+              >
+                <q-markup-table flat separator="cell" class="perfectionist-table">
+                  <thead>
+                    <tr class="bg-blue-grey-10 text-white text-bold uppercase font-11">
+                      <th width="60">NO</th>
+                      <th class="text-left" width="180">KODE BARANG</th>
+                      <th class="text-left">NAMA MATERIAL / ITEM</th>
+                      <th width="100">QTY</th>
+                      <th width="100">SATUAN</th>
+                      <th class="text-left">KETERANGAN (NOTE ITEM)</th>
+                    </tr>
+                  </thead>
+                  <tbody class="text-blue-grey-10">
+                    <tr v-for="(it, i) in groupedItems" :key="i">
+                      <td class="text-center font-black">{{ i + 1 }}</td>
+                      <!-- SAKLEK! Tampilkan Kode asli hasil sinkronisasi -->
+                      <td class="text-weight-bold text-grey-7 font-mono uppercase">
+                        {{ it.kode_barang || 'MATERIAL' }}
+                      </td>
+                      <td class="text-weight-black uppercase text-subtitle2">
+                        {{ it.nama_barang }}
+                      </td>
+                      <td
+                        class="text-center text-weight-black text-h5"
+                        :class="getAmountColor(it.tipe)"
+                      >
+                        {{ it.jumlah }}
+                      </td>
+                      <td class="text-center text-weight-bold uppercase text-caption">
+                        {{ it.satuan || 'UNIT' }}
+                      </td>
+                      <td class="italic text-weight-bolder text-primary bg-blue-grey-1">
+                        {{ it.keterangan || '-' }}
+                      </td>
+                    </tr>
+                  </tbody>
+                </q-markup-table>
+              </q-card>
 
-              <!-- 4. CATATAN UMUM (DI BAWAH TABEL) -->
+              <!-- CATATAN UMUM (DI BAWAH TABEL SESUAI PERMINTAAN BOS) -->
               <div class="q-mb-xl">
                 <q-card flat bordered class="rounded-20 bg-white shadow-sm border-subtle">
                   <q-card-section
@@ -362,7 +349,7 @@
                   >
                     <q-icon name="comment" class="q-mr-xs" /> Catatan Umum / Instruksi Transaksi
                   </q-card-section>
-                  <q-card-section class="q-pa-lg">
+                  <q-card-section class="q-pa-lg text-left">
                     <div class="text-body1 text-blue-grey-9 italic leading-relaxed">
                       "{{
                         selectedItem.catatan_umum ||
@@ -373,47 +360,7 @@
                 </q-card>
               </div>
 
-              <!-- 5. OPNAME DASHBOARD -->
-              <q-card
-                flat
-                bordered
-                class="bg-blue-1 rounded-20 q-mb-xl border-indigo-thin shadow-sm"
-                v-if="selectedItem.tipe === 'OPNAME'"
-              >
-                <q-card-section
-                  class="q-pa-lg bg-white border-bottom text-weight-bold text-indigo-10 uppercase tracking-widest flex items-center"
-                >
-                  <q-icon name="balance" class="q-mr-sm" color="primary" /> Dashboard Rekonsiliasi
-                  Stok Fisik
-                </q-card-section>
-                <q-card-section class="row q-col-gutter-lg text-center q-pa-xl">
-                  <div class="col-12 col-sm-4">
-                    <div class="text-overline text-grey-7 font-black uppercase">Data Sistem</div>
-                    <div class="text-h3 text-weight-black text-dark">
-                      {{ selectedItem.stok_sebelum }}
-                    </div>
-                  </div>
-                  <div class="col-12 col-sm-4 border-left-gt-xs">
-                    <div class="text-overline text-grey-7 font-black uppercase">
-                      Hasil Audit Fisik
-                    </div>
-                    <div class="text-h3 text-weight-black text-primary">
-                      {{ selectedItem.stok_sesudah }}
-                    </div>
-                  </div>
-                  <div class="col-12 col-sm-4 border-left-gt-xs">
-                    <div class="text-overline text-grey-7 font-black uppercase">Selisih (GAP)</div>
-                    <div
-                      class="text-h3 text-weight-black"
-                      :class="selectedItem.selisih < 0 ? 'text-negative' : 'text-positive'"
-                    >
-                      {{ selectedItem.selisih > 0 ? '+' : '' }}{{ selectedItem.selisih }}
-                    </div>
-                  </div>
-                </q-card-section>
-              </q-card>
-
-              <!-- 6. DOCUMENTATION -->
+              <!-- DOCUMENTATION GALLERY -->
               <div class="q-mb-xl" v-if="selectedItem.dokumentasi_urls?.length">
                 <div
                   class="text-h6 text-indigo-10 text-weight-black uppercase q-mb-md flex items-center letter-spacing-1"
@@ -486,14 +433,14 @@
     </q-dialog>
 
     <!-- =============================================================================
-         HIDDEN PDF TEMPLATE (IDENTIK DENGAN BARANG KELUAR)
+         HIDDEN PDF TEMPLATE (IDENTIK KEMBAR 100% DENGAN BARANG KELUAR)
          ============================================================================= -->
     <div style="position: absolute; left: -9999px; top: -9999px">
       <div id="sj-reprint-target" class="perfectionist-paper">
-        <!-- Kop Surat (Ditarik dari Branding Utama) -->
+        <!-- Kop Surat (Ditarik dari Master Perusahaan) -->
         <div class="row no-wrap items-center q-mb-md" v-if="selectedItem">
           <div class="col-auto">
-            <img :src="compConfig.kopUrl || 'icons/logo-agra.png'" class="final-kop-img q-mr-md" />
+            <img src="icons/logo-agra.png" class="final-kop-img q-mr-md" />
           </div>
           <div class="col text-left">
             <div class="text-pt-pro leading-none">
@@ -507,7 +454,7 @@
 
         <div class="pro-divider-thick q-mb-md"></div>
 
-        <!-- Judul & Nomor SJ (IDENTIK) -->
+        <!-- Judul & Nomor SJ -->
         <div class="row justify-end q-mb-lg" v-if="selectedItem">
           <div class="col-auto text-right">
             <div
@@ -522,7 +469,7 @@
           </div>
         </div>
 
-        <!-- Meta Dokumen (IDENTIK) -->
+        <!-- Meta Dokumen (SINKRON DENGAN DATA INPUT) -->
         <div
           class="row q-col-gutter-xl q-mb-lg text-left"
           style="font-size: 13.5px"
@@ -531,12 +478,12 @@
           <div class="col-6">
             <div class="text-weight-black uppercase q-mb-xs text-grey-7">KEPADA YTH :</div>
             <div class="text-h6 text-weight-black text-indigo-10 q-mb-xs uppercase">
-              {{ selectedItem.penerima_up || 'PIHAK PENERIMA' }}
+              {{ selectedItem.tujuan_nama || 'PIHAK PENERIMA' }}
             </div>
             <div class="row no-wrap q-mt-xs">
               <div class="col-auto q-mr-sm font-bold text-grey-8">Lokasi :</div>
               <div class="col underline-dotted text-blue-grey-10 text-weight-bold">
-                {{ warehouseName || 'LOKASI PROYEK' }}
+                {{ selectedItem.tujuan_alamat || warehouseName || 'LOKASI PROYEK' }}
               </div>
             </div>
             <div class="row no-wrap q-mt-sm">
@@ -587,6 +534,7 @@
               <td class="text-weight-black uppercase text-left">{{ it.nama_barang }}</td>
               <td class="text-center text-weight-black">{{ it.jumlah }}</td>
               <td class="text-center uppercase font-bold">{{ it.satuan }}</td>
+              <!-- Keterangan Item (Seperti 'uhuy', 'segar', dll) -->
               <td class="text-left text-blue-grey-8 italic">{{ it.keterangan || '-' }}</td>
             </tr>
           </tbody>
@@ -658,7 +606,7 @@
 <script setup>
 /**
  * =====================================================================================
- * RIWAYAT TRANSAKSI - SAKLEK GUDANG & IDENTIK RE-PRINT
+ * RIWAYAT TRANSAKSI - SAKLEK GUDANG & IDENTIK RE-PRINT MASTERPIECE
  * =====================================================================================
  */
 import { ref, onMounted, computed, watch } from 'vue'
@@ -690,7 +638,7 @@ const typeFilter = ref('ALL')
 const showDetailDialog = ref(false)
 const selectedItem = ref(null)
 const groupedItems = ref([])
-const compConfig = ref({ nama_perusahaan: '', slogan_perusahaan: '', kopUrl: '' })
+const compConfig = ref({ nama_perusahaan: '', slogan_perusahaan: '' })
 const warehouseName = ref('')
 
 // Tangkap ID Gudang secara reaktif (Obat Anti-Nyampur)
@@ -711,7 +659,7 @@ const columns = [
   { name: 'no_spk', label: 'NO. SPK', field: 'no_spk', align: 'left', sortable: true },
 ]
 
-// Filter Tipe (Memory Based untuk keamanan)
+// Computed Logic Filter Tipe (Memory Based for Strict Separation)
 const filteredRows = computed(() => {
   let data = riwayatList.value
   if (typeFilter.value !== 'ALL') data = data.filter((it) => it.tipe === typeFilter.value)
@@ -735,15 +683,15 @@ const formatTime = (ts) => {
   return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
 }
 
-// --- LOGIKA OPEN DETAIL & GROUPING DATA SJ ---
+// --- LOGIKA OPEN DETAIL & FETCH SEMUA ITEM DALAM SATU SJ ---
 const openDetail = async (row) => {
   selectedItem.value = row
   groupedItems.value = [row]
 
   if (row.no_referensi && row.no_referensi !== '-') {
-    $q.loading.show({ message: 'Mensinkronisasi data dokumen...' })
+    $q.loading.show({ message: 'Mensinkronisasi rincian surat jalan...' })
     try {
-      // SAKLEK! Cari seluruh item dengan NO REF yang sama di GUDANG yang sama
+      // SAKLEK! Cari seluruh rincian barang yang NO REF-nya sama di GUDANG yang sama
       const qGroup = query(
         collection(db, 'aktivitas'),
         where('no_referensi', '==', row.no_referensi),
@@ -754,11 +702,11 @@ const openDetail = async (row) => {
         groupedItems.value = snap.docs.map((d) => d.data())
       }
 
-      // Ambil Branding Terakhir (Untuk Kop PDF Identik)
+      // Ambil Branding Terakhir (Untuk Kop PDF)
       const confSnap = await getDoc(doc(db, 'config', 'perusahaan'))
       if (confSnap.exists()) compConfig.value = confSnap.data()
     } catch (err) {
-      console.error('Fetch Error:', err)
+      console.error('Group Fetch Error:', err)
     } finally {
       $q.loading.hide()
     }
@@ -769,7 +717,7 @@ const openDetail = async (row) => {
 
 const openLink = (u) => u && window.open(u, '_blank')
 
-// --- RE-PRINT PDF IDENTIK ---
+// --- EKSPOR ULANG KE PDF (RE-PRINT) - SINKRON DENGAN BARANG KELUAR ---
 const exportDetailToPDF = () => {
   const element = document.getElementById('sj-reprint-target')
   const filename = `REPRINT-${selectedItem.value.no_referensi.replace(/\//g, '-')}.pdf`
@@ -795,17 +743,17 @@ const exportDetailToPDF = () => {
     .save()
     .then(() => {
       $q.loading.hide()
-      $q.notify({ type: 'positive', message: 'Salinan resmi berhasil diunduh!' })
+      $q.notify({ type: 'positive', message: 'PDF Salinan berhasil diunduh!' })
     })
 }
 
-// --- LOGIKA UTAMA: REAL-TIME LISTENER (ANTI-NYAMPUR) ---
+// --- LOGIKA UTAMA: REAL-TIME LISTENER (SAKLEK GUDANG) ---
 let unsub = null
 const refreshListener = async () => {
   if (unsub) unsub()
   loading.value = true
 
-  // Ambil Nama Gudang untuk Header
+  // Ambil Nama Gudang untuk UI
   if (warehouseId.value === 'UTAMA') {
     warehouseName.value = 'Gudang Utama'
   } else if (warehouseId.value) {
@@ -823,7 +771,7 @@ const refreshListener = async () => {
     (snapshot) => {
       const allData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
 
-      // FILTER SAKLEK: Gak bakal nyasar lagi!
+      // FILTER SAKLEK: Perbandingan ID String absolut
       if (warehouseId.value) {
         riwayatList.value = allData.filter(
           (log) => String(log.id_gudang) === String(warehouseId.value),
@@ -835,13 +783,20 @@ const refreshListener = async () => {
       loading.value = false
     },
     (err) => {
-      console.error('Strict Filter Error:', err)
+      console.error('Firestore Strict Filter Error:', err)
       loading.value = false
     },
   )
 }
 
-watch(warehouseId, () => refreshListener(), { immediate: true })
+// Pantau perubahan warehouseId
+watch(
+  warehouseId,
+  () => {
+    refreshListener()
+  },
+  { immediate: true },
+)
 
 onMounted(() => {
   // handled by watch
@@ -850,7 +805,7 @@ onMounted(() => {
 
 <style scoped>
 /* =====================================================================================
-   CSS PERFECTIONIST - IDENTIK DENGAN BARANG KELUAR
+   CSS PERFECTIONIST STANDARDS
    ===================================================================================== */
 .font-pro {
   font-family:
