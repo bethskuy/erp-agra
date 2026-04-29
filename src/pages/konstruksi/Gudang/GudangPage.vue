@@ -115,7 +115,13 @@
           class="shadow-1 q-px-lg"
         >
           <q-list style="min-width: 200px" class="q-pa-sm">
-            <q-item clickable v-ripple to="/konstruksi/gudang/transaksi" class="rounded-borders">
+            <!-- FIX: Navigasi Riwayat Transaksi dengan Context ID agar tidak nyampur -->
+            <q-item
+              clickable
+              v-ripple
+              :to="'/konstruksi/gudang/transaksi?warehouseId=' + selectedGudang.id"
+              class="rounded-borders"
+            >
               <q-item-section avatar><q-icon name="history" color="primary" /></q-item-section>
               <q-item-section class="text-weight-medium">Riwayat Transaksi</q-item-section>
             </q-item>
@@ -151,7 +157,7 @@
           class="shadow-1 q-px-lg"
         >
           <q-list style="min-width: 280px" class="q-pa-sm">
-            <!-- FIX: Navigasi Daftar Permintaan dengan Context ID -->
+            <!-- Navigasi Daftar Permintaan -->
             <q-item
               clickable
               v-ripple

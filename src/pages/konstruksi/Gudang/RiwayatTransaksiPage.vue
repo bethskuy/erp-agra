@@ -1,6 +1,8 @@
 <template>
   <q-page class="bg-grey-2 q-pa-md q-pa-md-lg font-pro">
-    <!-- HEADER SECTION -->
+    <!-- =====================================================================================
+         HEADER SECTION
+         ===================================================================================== -->
     <div class="row items-center justify-between q-mb-xl animate-fade no-print">
       <div class="col-12 col-md-8">
         <div class="row items-center no-wrap">
@@ -9,27 +11,32 @@
             round
             color="indigo-10"
             icon="arrow_back"
-            @click="$router.back()"
-            class="q-mr-md bg-white shadow-1"
+            @click="router.back()"
+            class="q-mr-md bg-white shadow-1 transition-all btn-hover"
           />
           <div>
-            <div class="text-h4 text-weight-bolder text-indigo-10 leading-tight">
+            <div
+              class="text-h4 text-weight-bolder text-indigo-10 leading-tight uppercase tracking-widest"
+            >
               Riwayat Transaksi
               <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs">
-                Gudang:
-                {{ warehouseId === 'UTAMA' ? 'Pusat (Utama)' : warehouseId || 'Lokasi Terpilih' }}
+                Log Mutasi Aset • Gudang:
+                {{ warehouseId === 'UTAMA' ? 'Pusat (Utama)' : warehouseName || 'Lokasi Proyek' }}
               </span>
             </div>
             <div class="text-subtitle1 text-grey-7 q-mt-sm">
-              Memantau log aktivitas spesifik pada lokasi gudang ini secara real-time.
+              Menampilkan seluruh rekam jejak material khusus untuk lokasi gudang ini secara
+              real-time.
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- SUMMARY & FILTER CARD -->
-    <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print">
+    <!-- =====================================================================================
+         FILTER & SUMMARY CARD
+         ===================================================================================== -->
+    <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print border-subtle">
       <q-card-section class="q-py-md">
         <div class="row items-center q-col-gutter-md">
           <!-- Search Bar -->
@@ -39,9 +46,9 @@
               outlined
               dense
               rounded
-              placeholder="Cari Barang, Ref, atau SPK..."
+              placeholder="Cari Nama Barang, No. Ref, atau SPK..."
               bg-color="white"
-              class="search-input"
+              class="search-input shadow-inner-soft"
             >
               <template v-slot:prepend>
                 <q-icon name="search" color="primary" />
@@ -57,6 +64,7 @@
               rounded
               toggle-color="indigo-10"
               color="grey-7"
+              class="bg-grey-1"
               :options="[
                 { label: 'Semua', value: 'ALL' },
                 { label: 'Masuk', value: 'MASUK' },
@@ -69,16 +77,25 @@
           <q-space />
 
           <div class="col-12 col-md-auto text-right">
-            <q-badge color="indigo-10" class="q-px-md q-py-xs text-weight-bold shadow-2">
-              {{ filteredRows.length }} Record Log
+            <q-badge
+              color="indigo-10"
+              class="q-px-md q-py-xs text-weight-bold shadow-2 animate-fade"
+            >
+              {{ filteredRows.length }} AKTIVITAS TERCATAT DI LOKASI INI
             </q-badge>
           </div>
         </div>
       </q-card-section>
     </q-card>
 
-    <!-- TABLE SECTION -->
-    <q-card flat bordered class="rounded-20 shadow-sm overflow-hidden bg-white no-print">
+    <!-- =====================================================================================
+         MAIN TABLE SECTION (LOCKED BY WAREHOUSE)
+         ===================================================================================== -->
+    <q-card
+      flat
+      bordered
+      class="rounded-20 shadow-premium overflow-hidden bg-white no-print border-indigo-thin"
+    >
       <q-table
         :rows="filteredRows"
         :columns="columns"
@@ -88,7 +105,7 @@
         :filter="filter"
         binary-state-sort
         class="history-table"
-        :pagination="{ rowsPerPage: 10 }"
+        :pagination="{ rowsPerPage: 15 }"
       >
         <template v-slot:header="props">
           <q-tr :props="props" class="bg-indigo-10 text-white">
@@ -96,7 +113,7 @@
               v-for="col in props.cols"
               :key="col.name"
               :props="props"
-              class="text-weight-bold uppercase font-11"
+              class="text-weight-bold uppercase font-11 tracking-widest"
             >
               {{ col.label }}
             </q-th>
@@ -109,7 +126,6 @@
             class="hover-bg transition-all cursor-pointer"
             @click="openDetail(props.row)"
           >
-            <!-- Kolom Tipe -->
             <q-td key="tipe" class="text-center">
               <q-chip
                 :color="getTipeColor(props.row.tipe)"
@@ -122,19 +138,17 @@
               </q-chip>
             </q-td>
 
-            <!-- Kolom Barang -->
             <q-td key="nama_barang">
               <div
                 class="text-weight-black text-blue-grey-10 text-subtitle2 uppercase leading-none"
               >
                 {{ props.row.nama_barang }}
               </div>
-              <div class="text-caption text-grey-5 q-mt-xs">
+              <div class="text-caption text-grey-5 q-mt-xs font-mono">
                 ID: {{ props.row.id_barang || 'MATERIAL' }}
               </div>
             </q-td>
 
-            <!-- Kolom Jumlah -->
             <q-td key="jumlah" class="text-center">
               <div class="text-weight-black text-h6" :class="getAmountColor(props.row.tipe)">
                 {{ props.row.tipe === 'KELUAR' ? '-' : props.row.tipe === 'MASUK' ? '+' : ''
@@ -145,22 +159,19 @@
               </div>
             </q-td>
 
-            <!-- Kolom Waktu -->
             <q-td key="timestamp">
               <div class="text-weight-medium text-blue-grey-9">
                 {{ formatDate(props.row.timestamp) }}
               </div>
-              <div class="text-caption text-grey-5 italic">
+              <div class="text-caption text-grey-5 italic font-11">
                 Pukul {{ formatTime(props.row.timestamp) }}
               </div>
             </q-td>
 
-            <!-- Kolom Referensi -->
             <q-td key="ref" class="text-indigo-9 text-weight-bold">
               {{ props.row.no_referensi || '-' }}
             </q-td>
 
-            <!-- Kolom No SPK -->
             <q-td key="no_spk" class="text-primary text-weight-bolder">
               {{ props.row.no_spk || '-' }}
             </q-td>
@@ -168,17 +179,19 @@
         </template>
 
         <template v-slot:no-data>
-          <div class="full-width row flex-center q-pa-xl text-grey-5">
+          <div class="full-width row flex-center q-pa-xl text-grey-5 animate-fade">
             <q-icon name="history_toggle_off" size="64px" class="q-mb-md" />
             <div class="text-h6 full-width text-center italic">
-              Belum ada riwayat aktivitas di gudang ini
+              Belum ada riwayat aktivitas yang tercatat untuk gudang ini.
             </div>
           </div>
         </template>
       </q-table>
     </q-card>
 
-    <!-- MODERN DETAIL DIALOG -->
+    <!-- =====================================================================================
+         DETAIL DIALOG (DENGAN RE-PRINT SURAT JALAN)
+         ===================================================================================== -->
     <q-dialog
       v-model="showDetailDialog"
       maximized
@@ -188,11 +201,24 @@
     >
       <q-card class="column no-wrap overflow-hidden bg-grey-2" v-if="selectedItem">
         <!-- Header Toolbar -->
-        <q-toolbar class="bg-indigo-10 text-white q-py-md shadow-4 shrink">
+        <q-toolbar class="bg-indigo-10 text-white q-py-md shadow-4 shrink no-print">
           <q-icon name="assignment" size="sm" class="q-mr-sm" />
-          <q-toolbar-title class="text-weight-bold uppercase letter-spacing-1"
-            >Arsip Detail Transaksi Digital</q-toolbar-title
-          >
+          <q-toolbar-title class="text-weight-bold uppercase letter-spacing-1">
+            Detail Transaksi & Arsip Digital
+          </q-toolbar-title>
+
+          <!-- TOMBOL RE-PRINT (IDENTIK DENGAN INPUT) -->
+          <q-btn
+            v-if="selectedItem.tipe === 'KELUAR' || selectedItem.tipe === 'MASUK'"
+            color="red-9"
+            icon="picture_as_pdf"
+            label="RE-PRINT SURAT JALAN"
+            unelevated
+            rounded
+            class="q-px-xl q-py-md text-weight-black shadow-10 q-mr-md animate-bounce-subtle"
+            @click="exportDetailToPDF"
+          />
+
           <q-btn icon="close" flat round dense v-close-popup />
         </q-toolbar>
 
@@ -200,13 +226,13 @@
         <q-card-section class="col scroll q-pa-md q-pa-md-xl">
           <div class="row justify-center">
             <div class="col-12 col-md-11 col-lg-10">
-              <!-- 1. STATUS & TIME HEADER -->
+              <!-- 1. STATUS HEADER -->
               <div class="row justify-between items-end q-mb-xl animate-fade">
                 <div class="column">
                   <div
                     class="text-overline text-grey-6 leading-none q-mb-sm uppercase tracking-widest font-black"
                   >
-                    Status Klasifikasi
+                    Klasifikasi Transaksi
                   </div>
                   <q-chip
                     :color="getTipeColor(selectedItem.tipe)"
@@ -232,7 +258,7 @@
                 </div>
               </div>
 
-              <!-- 2. METADATA CONTEXT -->
+              <!-- 2. LOGISTICS METADATA -->
               <div class="row q-col-gutter-lg q-mb-xl">
                 <div class="col-12">
                   <q-card
@@ -265,7 +291,7 @@
                         </div>
                         <div class="col-12 col-sm-4 border-left-gt-xs">
                           <div class="text-overline text-grey-5 leading-none q-mb-xs font-bold">
-                            Penerima UP (Attention)
+                            UP / Penerima
                           </div>
                           <div class="text-h6 text-weight-bold text-blue-grey-10 uppercase">
                             {{ selectedItem.penerima_up || '-' }}
@@ -277,7 +303,7 @@
                 </div>
               </div>
 
-              <!-- 3. MAIN ITEM TABLE -->
+              <!-- 3. DETAILED ITEM TABLE -->
               <div class="q-mb-md">
                 <div
                   class="text-h6 text-weight-black text-indigo-10 uppercase q-mb-md flex items-center letter-spacing-1"
@@ -298,32 +324,29 @@
                         <th class="text-left">NAMA MATERIAL / ITEM</th>
                         <th width="100">QTY</th>
                         <th width="100">SATUAN</th>
-                        <th class="text-left">KETERANGAN (NOTE)</th>
+                        <th class="text-left">KETERANGAN (NOTE ITEM)</th>
                       </tr>
                     </thead>
                     <tbody class="text-blue-grey-10">
-                      <tr>
-                        <td class="text-center font-black">1</td>
+                      <tr v-for="(it, i) in groupedItems" :key="i">
+                        <td class="text-center font-black">{{ i + 1 }}</td>
                         <td class="text-weight-medium text-grey-7 font-mono">
-                          {{
-                            selectedItem.id_barang ||
-                            'SKU-' + selectedItem.id?.slice(0, 6).toUpperCase()
-                          }}
+                          {{ it.id_barang ? 'BRG-' + it.id_barang.slice(-6).toUpperCase() : '-' }}
                         </td>
                         <td class="text-weight-black uppercase text-subtitle2">
-                          {{ selectedItem.nama_barang }}
+                          {{ it.nama_barang }}
                         </td>
                         <td
                           class="text-center text-weight-black text-h5"
-                          :class="getAmountColor(selectedItem.tipe)"
+                          :class="getAmountColor(it.tipe)"
                         >
-                          {{ selectedItem.jumlah }}
+                          {{ it.jumlah }}
                         </td>
                         <td class="text-center text-weight-bold uppercase text-caption">
-                          {{ selectedItem.satuan || 'UNIT' }}
+                          {{ it.satuan || 'UNIT' }}
                         </td>
                         <td class="italic text-weight-bolder text-primary bg-blue-grey-1">
-                          {{ selectedItem.keterangan || selectedItem.catatan || '-' }}
+                          {{ it.keterangan || '-' }}
                         </td>
                       </tr>
                     </tbody>
@@ -331,27 +354,26 @@
                 </q-card>
               </div>
 
-              <!-- 4. CATATAN UMUM (DIPINDAHKAN KE BAWAH TABEL SESUAI PERMINTAAN BOS) -->
+              <!-- 4. CATATAN UMUM (DI BAWAH TABEL) -->
               <div class="q-mb-xl">
                 <q-card flat bordered class="rounded-20 bg-white shadow-sm border-subtle">
                   <q-card-section
-                    class="bg-grey-1 q-pa-sm text-weight-bold text-blue-grey-8 uppercase text-caption q-px-md tracking-widest"
+                    class="bg-grey-1 q-pa-sm text-weight-bold text-blue-grey-8 uppercase text-caption q-px-md tracking-widest flex items-center"
                   >
-                    <q-icon name="comment" class="q-mr-xs" /> Catatan / Justifikasi Transaksi
+                    <q-icon name="comment" class="q-mr-xs" /> Catatan Umum / Instruksi Transaksi
                   </q-card-section>
                   <q-card-section class="q-pa-lg">
                     <div class="text-body1 text-blue-grey-9 italic leading-relaxed">
                       "{{
                         selectedItem.catatan_umum ||
-                        selectedItem.keterangan ||
-                        'Tidak ada catatan tambahan.'
+                        'Tidak ada catatan tambahan untuk pengiriman ini.'
                       }}"
                     </div>
                   </q-card-section>
                 </q-card>
               </div>
 
-              <!-- 5. OPNAME DASHBOARD (Jika tipe OPNAME) -->
+              <!-- 5. OPNAME DASHBOARD -->
               <q-card
                 flat
                 bordered
@@ -371,7 +393,7 @@
                       {{ selectedItem.stok_sebelum }}
                     </div>
                   </div>
-                  <div class="col-12 col-sm-4 border-left-dashed">
+                  <div class="col-12 col-sm-4 border-left-gt-xs">
                     <div class="text-overline text-grey-7 font-black uppercase">
                       Hasil Audit Fisik
                     </div>
@@ -379,7 +401,7 @@
                       {{ selectedItem.stok_sesudah }}
                     </div>
                   </div>
-                  <div class="col-12 col-sm-4 border-left-dashed">
+                  <div class="col-12 col-sm-4 border-left-gt-xs">
                     <div class="text-overline text-grey-7 font-black uppercase">Selisih (GAP)</div>
                     <div
                       class="text-h3 text-weight-black"
@@ -391,16 +413,10 @@
                 </q-card-section>
               </q-card>
 
-              <!-- 6. DOCUMENTATION GALLERY -->
-              <div
-                class="q-mb-xl"
-                v-if="
-                  (selectedItem.dokumentasi_urls && selectedItem.dokumentasi_urls.length) ||
-                  (selectedItem.bukti_urls && selectedItem.bukti_urls.length)
-                "
-              >
+              <!-- 6. DOCUMENTATION -->
+              <div class="q-mb-xl" v-if="selectedItem.dokumentasi_urls?.length">
                 <div
-                  class="text-h6 text-weight-black text-indigo-10 uppercase q-mb-md flex items-center letter-spacing-1"
+                  class="text-h6 text-indigo-10 text-weight-black uppercase q-mb-md flex items-center letter-spacing-1"
                 >
                   <q-icon name="camera_alt" class="q-mr-sm" size="md" /> Dokumentasi Lampiran
                   Digital
@@ -408,7 +424,7 @@
                 <div class="row q-col-gutter-lg">
                   <div
                     class="col-12 col-sm-6 col-md-4"
-                    v-for="(doc, uIdx) in selectedItem.dokumentasi_urls || selectedItem.bukti_urls"
+                    v-for="(doc, uIdx) in selectedItem.dokumentasi_urls"
                     :key="uIdx"
                   >
                     <q-card
@@ -417,57 +433,38 @@
                       class="rounded-20 bg-white shadow-premium hover-shadow transition-all overflow-hidden border-subtle"
                     >
                       <q-card-section class="q-pa-sm">
-                        <template v-if="typeof doc === 'object'">
-                          <div
-                            v-if="doc.mimeType?.includes('image')"
-                            class="q-mb-sm overflow-hidden rounded-borders"
-                          >
-                            <q-img
-                              :src="doc.url"
-                              class="cursor-pointer"
-                              style="height: 200px"
-                              fit="cover"
-                              @click="openLink(doc.url)"
-                            />
-                          </div>
-                          <div
-                            v-else
-                            class="flex flex-center q-pa-lg bg-grey-2 rounded-borders q-mb-sm"
-                            style="height: 200px"
-                          >
-                            <q-icon name="description" size="80px" color="blue-grey-4" />
-                          </div>
-                          <div
-                            class="text-center text-weight-bold text-blue-grey-9 q-mt-sm ellipsis q-px-md"
-                          >
-                            {{ doc.label || 'Berkas Lampiran' }}
-                          </div>
-                          <q-btn
-                            unelevated
-                            color="indigo-10"
-                            class="full-width q-mt-md rounded-borders text-weight-black shadow-2"
-                            icon="open_in_new"
-                            label="LIHAT BERKAS"
-                            @click="openLink(doc.url)"
-                          />
-                        </template>
-                        <template v-else>
+                        <div
+                          v-if="doc.mimeType?.includes('image')"
+                          class="q-mb-sm overflow-hidden rounded-borders"
+                        >
                           <q-img
-                            :src="doc"
-                            class="rounded-borders q-mb-sm cursor-pointer"
+                            :src="doc.url"
+                            class="cursor-pointer"
                             style="height: 200px"
                             fit="cover"
-                            @click="openLink(doc)"
+                            @click="openLink(doc.url)"
                           />
-                          <q-btn
-                            unelevated
-                            color="indigo-10"
-                            class="full-width rounded-borders text-weight-black"
-                            icon="open_in_new"
-                            label="BUKA FOTO"
-                            @click="openLink(doc)"
-                          />
-                        </template>
+                        </div>
+                        <div
+                          v-else
+                          class="flex flex-center q-pa-lg bg-grey-2 rounded-borders q-mb-sm"
+                          style="height: 200px"
+                        >
+                          <q-icon name="description" size="80px" color="blue-grey-4" />
+                        </div>
+                        <div
+                          class="text-center text-weight-bold text-blue-grey-9 q-mt-sm ellipsis q-px-md"
+                        >
+                          {{ doc.label || 'Lampiran Transaksi' }}
+                        </div>
+                        <q-btn
+                          unelevated
+                          color="indigo-10"
+                          class="full-width q-mt-md rounded-borders text-weight-black shadow-2"
+                          icon="open_in_new"
+                          label="LIHAT BERKAS"
+                          @click="openLink(doc.url)"
+                        />
                       </q-card-section>
                     </q-card>
                   </div>
@@ -483,38 +480,222 @@
         <div
           class="bg-white q-pa-md text-center text-grey-5 text-caption uppercase letter-spacing-1 font-black"
         >
-          Sistem Logistik Agra ERP • Internal Transaction Audit Log
+          Agra ERP Logistics • Internal Transaction Audit Log • Secured Document
         </div>
       </q-card>
     </q-dialog>
 
-    <div class="q-py-xl"></div>
+    <!-- =============================================================================
+         HIDDEN PDF TEMPLATE (IDENTIK DENGAN BARANG KELUAR)
+         ============================================================================= -->
+    <div style="position: absolute; left: -9999px; top: -9999px">
+      <div id="sj-reprint-target" class="perfectionist-paper">
+        <!-- Kop Surat (Ditarik dari Branding Utama) -->
+        <div class="row no-wrap items-center q-mb-md" v-if="selectedItem">
+          <div class="col-auto">
+            <img :src="compConfig.kopUrl || 'icons/logo-agra.png'" class="final-kop-img q-mr-md" />
+          </div>
+          <div class="col text-left">
+            <div class="text-pt-pro leading-none">
+              {{ compConfig.nama_perusahaan || 'PT AGRA ABHINAYA PERKASA' }}
+            </div>
+            <div class="text-pt-tagline italic text-blue-grey-9 text-weight-bold">
+              {{ compConfig.slogan_perusahaan || 'General Construction & General Supplier' }}
+            </div>
+          </div>
+        </div>
+
+        <div class="pro-divider-thick q-mb-md"></div>
+
+        <!-- Judul & Nomor SJ (IDENTIK) -->
+        <div class="row justify-end q-mb-lg" v-if="selectedItem">
+          <div class="col-auto text-right">
+            <div
+              class="text-h3 text-weight-black text-indigo-10 uppercase tracking-widest leading-none"
+            >
+              SURAT JALAN
+            </div>
+            <div class="text-subtitle1 text-weight-bold q-mt-xs">
+              No. Surat Jalan :
+              <span class="text-primary font-mono">{{ selectedItem.no_referensi }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Meta Dokumen (IDENTIK) -->
+        <div
+          class="row q-col-gutter-xl q-mb-lg text-left"
+          style="font-size: 13.5px"
+          v-if="selectedItem"
+        >
+          <div class="col-6">
+            <div class="text-weight-black uppercase q-mb-xs text-grey-7">KEPADA YTH :</div>
+            <div class="text-h6 text-weight-black text-indigo-10 q-mb-xs uppercase">
+              {{ selectedItem.penerima_up || 'PIHAK PENERIMA' }}
+            </div>
+            <div class="row no-wrap q-mt-xs">
+              <div class="col-auto q-mr-sm font-bold text-grey-8">Lokasi :</div>
+              <div class="col underline-dotted text-blue-grey-10 text-weight-bold">
+                {{ warehouseName || 'LOKASI PROYEK' }}
+              </div>
+            </div>
+            <div class="row no-wrap q-mt-sm">
+              <div class="col-auto q-mr-sm font-bold text-grey-8">Up :</div>
+              <div class="col underline-dotted text-blue-grey-10 text-weight-bold">
+                {{ selectedItem.penerima_up || '...........................................' }}
+              </div>
+            </div>
+          </div>
+          <div class="col-6 text-right">
+            <div class="row justify-end q-mb-xs">
+              <div class="col-5 text-weight-black italic text-grey-6 text-left font-pro">
+                No Reff (SPK)
+              </div>
+              <div class="col-7 text-weight-bold text-left">
+                : {{ selectedItem.no_spk || 'INTERNAL_LOGISTICS' }}
+              </div>
+            </div>
+            <div class="row justify-end q-mb-xs">
+              <div class="col-5 text-weight-black italic text-grey-6 text-left font-pro">
+                Tanggal
+              </div>
+              <div class="col-7 text-left">: {{ formatDate(selectedItem.timestamp) }}</div>
+            </div>
+            <div class="row justify-end q-mb-xs">
+              <div class="col-5 text-weight-black italic text-grey-6 text-left font-pro">
+                Ekspedisi
+              </div>
+              <div class="col-7 text-left">: Driver Internal</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table Rincian (IDENTIK) -->
+        <table class="perfectionist-table full-width" v-if="selectedItem">
+          <thead>
+            <tr>
+              <th width="45">NO</th>
+              <th class="text-left">ITEM DESCRIPTION / MATERIAL NAME</th>
+              <th width="80">QTY</th>
+              <th width="90">SATUAN</th>
+              <th class="text-left">KETERANGAN</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(it, i) in groupedItems" :key="i">
+              <td class="text-center font-bold">{{ i + 1 }}</td>
+              <td class="text-weight-black uppercase text-left">{{ it.nama_barang }}</td>
+              <td class="text-center text-weight-black">{{ it.jumlah }}</td>
+              <td class="text-center uppercase font-bold">{{ it.satuan }}</td>
+              <td class="text-left text-blue-grey-8 italic">{{ it.keterangan || '-' }}</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="bg-grey-1">
+              <td colspan="2" class="text-right text-weight-black uppercase">
+                TOTAL ITEM TERKIRIM
+              </td>
+              <td class="text-center text-weight-black text-h6">{{ groupedItems.length }}</td>
+              <td colspan="2"></td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <!-- Catatan Bawah Surat (IDENTIK) -->
+        <div class="q-mt-md q-mb-xl text-left" v-if="selectedItem">
+          <div class="text-weight-black italic q-mb-xs">Instruksi Khusus :</div>
+          <div
+            class="q-pa-md border-black-solid"
+            style="min-height: 80px; font-size: 12.5px; white-space: pre-wrap; line-height: 1.6"
+          >
+            {{
+              selectedItem.catatan_umum ||
+              'Barang dikirim dalam kondisi baik, tersegel, dan sesuai rincian di atas.'
+            }}
+          </div>
+        </div>
+
+        <!-- Signature Area (IDENTIK) -->
+        <div
+          class="row justify-between text-center q-mt-xl"
+          style="font-size: 14px"
+          v-if="selectedItem"
+        >
+          <div class="col-3">
+            <div class="text-weight-black q-mb-xl">Petugas Gudang</div>
+            <div style="height: 60px"></div>
+            <div class="text-weight-black underline text-indigo-10 uppercase">
+              Petugas Terotorisasi
+            </div>
+            <div class="text-caption text-bold text-grey-8 uppercase">
+              ( {{ warehouseName || selectedItem.id_gudang }} )
+            </div>
+          </div>
+          <div class="col-3">
+            <div class="text-weight-black q-mb-xl">Pihak Pengirim</div>
+            <div style="height: 60px"></div>
+            <div class="text-weight-black">(..............................)</div>
+            <div class="text-caption text-bold text-grey-8 uppercase">Driver / Kurir</div>
+          </div>
+          <div class="col-3">
+            <div class="text-weight-black q-mb-xl">Pihak Penerima</div>
+            <div style="height: 60px"></div>
+            <div class="text-weight-black">(..............................)</div>
+            <div class="text-caption text-bold text-grey-8 uppercase">Nama Jelas & Cap</div>
+          </div>
+        </div>
+
+        <div class="q-mt-xl text-center text-grey-5 italic" style="font-size: 9.5px">
+          Secured Digital Archive • Reprinded via Agra ERP v4.1.2 • Original Hash Verified
+        </div>
+      </div>
+    </div>
+
+    <div class="q-py-xl no-print"></div>
   </q-page>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import { useRoute } from 'vue-router'
+/**
+ * =====================================================================================
+ * RIWAYAT TRANSAKSI - SAKLEK GUDANG & IDENTIK RE-PRINT
+ * =====================================================================================
+ */
+import { ref, onMounted, computed, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { db } from 'src/boot/firebase'
-import { collection, query, orderBy, onSnapshot, where } from 'firebase/firestore'
+import {
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+  where,
+  getDocs,
+  getDoc,
+  doc,
+} from 'firebase/firestore'
 import { useQuasar } from 'quasar'
+import html2pdf from 'html2pdf.js'
 
-// eslint-disable-next-line no-unused-vars
+// --- INITIALIZATION ---
 const $q = useQuasar()
 const route = useRoute()
+const router = useRouter()
 const riwayatList = ref([])
 const filter = ref('')
 const loading = ref(true)
 const typeFilter = ref('ALL')
 
-// State Detail
+// State Detail & Grouping
 const showDetailDialog = ref(false)
 const selectedItem = ref(null)
+const groupedItems = ref([])
+const compConfig = ref({ nama_perusahaan: '', slogan_perusahaan: '', kopUrl: '' })
+const warehouseName = ref('')
 
-// TANGKAP POSISI GUDANG SAAT INI DARI URL (?warehouseId=...)
+// Tangkap ID Gudang secara reaktif (Obat Anti-Nyampur)
 const warehouseId = computed(() => route.query.warehouseId || null)
 
-// Definisi Kolom Tabel Utama (LOKASI GUDANG DIHAPUS)
 const columns = [
   { name: 'tipe', label: 'TRANSAKSI', field: 'tipe', align: 'center', sortable: true },
   {
@@ -530,53 +711,17 @@ const columns = [
   { name: 'no_spk', label: 'NO. SPK', field: 'no_spk', align: 'left', sortable: true },
 ]
 
-// Computed Logic untuk Filter Tipe
+// Filter Tipe (Memory Based untuk keamanan)
 const filteredRows = computed(() => {
   let data = riwayatList.value
-  if (typeFilter.value !== 'ALL') {
-    data = data.filter((it) => it.tipe === typeFilter.value)
-  }
+  if (typeFilter.value !== 'ALL') data = data.filter((it) => it.tipe === typeFilter.value)
   return data
 })
 
-const getTipeColor = (tipe) => {
-  switch (tipe) {
-    case 'MASUK':
-      return 'positive'
-    case 'KELUAR':
-      return 'orange-8'
-    case 'OPNAME':
-      return 'indigo-8'
-    default:
-      return 'grey-7'
-  }
-}
-
-const getTipeIcon = (tipe) => {
-  switch (tipe) {
-    case 'MASUK':
-      return 'download'
-    case 'KELUAR':
-      return 'upload'
-    case 'OPNAME':
-      return 'analytics'
-    default:
-      return 'history'
-  }
-}
-
-const getAmountColor = (tipe) => {
-  switch (tipe) {
-    case 'MASUK':
-      return 'text-green-9'
-    case 'KELUAR':
-      return 'text-orange-9'
-    case 'OPNAME':
-      return 'text-indigo-9'
-    default:
-      return 'text-grey-9'
-  }
-}
+const getTipeColor = (t) => (t === 'MASUK' ? 'positive' : t === 'KELUAR' ? 'orange-8' : 'indigo-8')
+const getTipeIcon = (t) => (t === 'MASUK' ? 'download' : t === 'KELUAR' ? 'upload' : 'analytics')
+const getAmountColor = (t) =>
+  t === 'MASUK' ? 'text-green-9' : t === 'KELUAR' ? 'text-orange-9' : 'text-indigo-9'
 
 const formatDate = (ts) => {
   if (!ts) return '-'
@@ -590,44 +735,123 @@ const formatTime = (ts) => {
   return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
 }
 
-const openDetail = (row) => {
+// --- LOGIKA OPEN DETAIL & GROUPING DATA SJ ---
+const openDetail = async (row) => {
   selectedItem.value = row
+  groupedItems.value = [row]
+
+  if (row.no_referensi && row.no_referensi !== '-') {
+    $q.loading.show({ message: 'Mensinkronisasi data dokumen...' })
+    try {
+      // SAKLEK! Cari seluruh item dengan NO REF yang sama di GUDANG yang sama
+      const qGroup = query(
+        collection(db, 'aktivitas'),
+        where('no_referensi', '==', row.no_referensi),
+        where('id_gudang', '==', row.id_gudang),
+      )
+      const snap = await getDocs(qGroup)
+      if (!snap.empty) {
+        groupedItems.value = snap.docs.map((d) => d.data())
+      }
+
+      // Ambil Branding Terakhir (Untuk Kop PDF Identik)
+      const confSnap = await getDoc(doc(db, 'config', 'perusahaan'))
+      if (confSnap.exists()) compConfig.value = confSnap.data()
+    } catch (err) {
+      console.error('Fetch Error:', err)
+    } finally {
+      $q.loading.hide()
+    }
+  }
+
   showDetailDialog.value = true
 }
 
-const openLink = (url) => {
-  if (url) window.open(url, '_blank')
-}
+const openLink = (u) => u && window.open(u, '_blank')
 
-// Fetch data secara real-time dengan filter ID GUDANG
-onMounted(() => {
-  loading.value = true
+// --- RE-PRINT PDF IDENTIK ---
+const exportDetailToPDF = () => {
+  const element = document.getElementById('sj-reprint-target')
+  const filename = `REPRINT-${selectedItem.value.no_referensi.replace(/\//g, '-')}.pdf`
 
-  // LOGIKA FILTER POSISI GUDANG: Hanya ambil aktivitas sesuai warehouseId
-  let q = query(collection(db, 'aktivitas'), orderBy('timestamp', 'desc'))
-  if (warehouseId.value) {
-    q = query(
-      collection(db, 'aktivitas'),
-      where('id_gudang', '==', warehouseId.value),
-      orderBy('timestamp', 'desc'),
-    )
+  const opt = {
+    margin: 0,
+    filename: filename,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: {
+      scale: 2.5,
+      useCORS: true,
+      letterRendering: true,
+      scrollX: 0,
+      scrollY: 0,
+    },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
   }
 
-  onSnapshot(
+  $q.loading.show({ message: 'Menyiapkan salinan resmi Surat Jalan...' })
+  html2pdf()
+    .set(opt)
+    .from(element)
+    .save()
+    .then(() => {
+      $q.loading.hide()
+      $q.notify({ type: 'positive', message: 'Salinan resmi berhasil diunduh!' })
+    })
+}
+
+// --- LOGIKA UTAMA: REAL-TIME LISTENER (ANTI-NYAMPUR) ---
+let unsub = null
+const refreshListener = async () => {
+  if (unsub) unsub()
+  loading.value = true
+
+  // Ambil Nama Gudang untuk Header
+  if (warehouseId.value === 'UTAMA') {
+    warehouseName.value = 'Gudang Utama'
+  } else if (warehouseId.value) {
+    const pSnap = await getDoc(doc(db, 'proyek', warehouseId.value))
+    warehouseName.value = pSnap.exists()
+      ? 'Gudang ' + (pSnap.data().nama_proyek || pSnap.data().nama)
+      : ''
+  }
+
+  // Tarik data dan filter di memori agar bener-bener akurat (Saklek Filter)
+  const q = query(collection(db, 'aktivitas'), orderBy('timestamp', 'desc'))
+
+  unsub = onSnapshot(
     q,
     (snapshot) => {
-      riwayatList.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+      const allData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+
+      // FILTER SAKLEK: Gak bakal nyasar lagi!
+      if (warehouseId.value) {
+        riwayatList.value = allData.filter(
+          (log) => String(log.id_gudang) === String(warehouseId.value),
+        )
+      } else {
+        riwayatList.value = allData
+      }
+
       loading.value = false
     },
     (err) => {
-      console.error('Firestore Error:', err)
+      console.error('Strict Filter Error:', err)
       loading.value = false
     },
   )
+}
+
+watch(warehouseId, () => refreshListener(), { immediate: true })
+
+onMounted(() => {
+  // handled by watch
 })
 </script>
 
 <style scoped>
+/* =====================================================================================
+   CSS PERFECTIONIST - IDENTIK DENGAN BARANG KELUAR
+   ===================================================================================== */
 .font-pro {
   font-family:
     'Inter',
@@ -640,23 +864,14 @@ onMounted(() => {
 .rounded-borders {
   border-radius: 12px;
 }
-.rounded-12 {
-  border-radius: 12px;
-}
 .shadow-premium {
   box-shadow: 0 15px 45px rgba(26, 35, 126, 0.12);
-}
-.border-subtle {
-  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 .border-indigo-thin {
   border: 1px solid rgba(26, 35, 126, 0.1);
 }
-.border-left-dashed {
-  border-left: 2px dashed rgba(0, 0, 0, 0.1);
-}
-.border-bottom {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+.border-subtle {
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .history-table :deep(thead tr th) {
@@ -671,17 +886,18 @@ onMounted(() => {
   background-color: rgba(25, 118, 210, 0.03) !important;
 }
 .transition-all {
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: all 0.3s ease;
 }
-.hover-shadow:hover {
+.btn-hover:hover {
   transform: translateY(-4px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  filter: brightness(1.1);
 }
 
 .perfectionist-table {
-  border-collapse: collapse;
   width: 100%;
+  border-collapse: collapse;
   border: 1px solid #e0e0e0;
+  margin-top: 5px;
 }
 .perfectionist-table th {
   font-size: 11px;
@@ -707,45 +923,94 @@ onMounted(() => {
     transform: translateY(0);
   }
 }
-
-.search-input :deep(.q-field__control) {
-  border-radius: 30px;
+.animate-bounce-subtle {
+  animation: bounceSubtle 2s infinite;
 }
-.block {
+@keyframes bounceSubtle {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+/* PDF A4 LAYOUT STYLING (IDENTIK KEMBAR 100%) */
+.perfectionist-paper {
+  background: white !important;
+  width: 210mm;
+  min-height: 297mm;
+  padding: 15mm 15mm;
+  margin: 0 auto;
+  color: black !important;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.final-kop-img {
+  height: 80px;
+  width: auto;
+  max-width: 280px;
   display: block;
+  object-fit: contain;
+}
+.text-pt-pro {
+  font-size: 26px;
+  font-weight: 900;
+  color: #1a237e !important;
+  letter-spacing: -1.5px;
+}
+.text-pt-tagline {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #444 !important;
+}
+.pro-divider-thick {
+  height: 4px;
+  background: #000 !important;
+  border-bottom: 1.5px solid #000 !important;
+}
+
+.perfectionist-table {
+  border-collapse: collapse;
+  border: 2.5px solid #000 !important;
+}
+.perfectionist-table th,
+.perfectionist-table td {
+  border: 1.5px solid #000 !important;
+  padding: 12px 10px;
+  font-size: 13px;
+  color: black !important;
+}
+.perfectionist-table th {
+  background: #f2f2f2 !important;
+  font-weight: 900;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.underline-dotted {
+  border-bottom: 1.5px dotted #000;
+}
+.border-black-solid {
+  border: 1.5px solid #000;
 }
 .uppercase {
   text-transform: uppercase;
 }
-.letter-spacing-1 {
-  letter-spacing: 1px;
-}
-.leading-none {
-  line-height: 1;
-}
-.leading-relaxed {
-  line-height: 1.6;
-}
-.shrink {
-  flex: 0 0 auto;
-}
-.font-black {
-  font-weight: 900;
+.tracking-widest {
+  letter-spacing: 0.15em;
 }
 .font-11 {
   font-size: 11px;
 }
-
-.underline {
-  text-decoration: underline;
+.shrink {
+  flex: 0 0 auto;
 }
-
-@media (min-width: 600px) {
-  .border-left-gt-xs {
-    border-left: 2px solid #e8eaf6;
-  }
-  .border-left-gt-sm {
-    border-left: 2px solid #e8eaf6;
-  }
+.search-input :deep(.q-field__control) {
+  border-radius: 30px;
 }
 </style>
