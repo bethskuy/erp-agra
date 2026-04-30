@@ -1,155 +1,311 @@
 <template>
   <q-layout view="lHh Lpr lFf">
+    <!-- HEADER -->
     <q-header elevated class="bg-teal-10 text-white">
-      <q-toolbar>
-        <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
-
+      <q-toolbar class="q-py-sm">
+        <q-btn flat dense round icon="menu" @click="toggleLeftDrawer" />
         <q-toolbar-title class="text-weight-bold">
-          Agra ERP <span class="text-weight-light">| Manufacture</span>
+          AGRA <span class="text-weight-light">ERP</span>
         </q-toolbar-title>
+        <q-space />
 
-        <q-btn flat dense round icon="notifications">
-          <q-badge floating color="red" rounded />
-        </q-btn>
+        <div class="q-gutter-sm row items-center no-wrap">
+          <q-btn round flat icon="notifications">
+            <q-badge color="red" floating>2</q-badge>
+          </q-btn>
 
-        <q-btn flat dense round icon="apps">
-          <q-menu transition-show="jump-down" transition-hide="jump-up" :offset="[0, 10]">
-            <q-card style="min-width: 250px" class="q-pa-sm">
-              <q-card-section>
-                <div class="text-subtitle2 text-grey-7 q-mb-md text-center">Modul Agra ERP</div>
+          <!-- TOMBOL APPS DENGAN POP-UP MODUL (Sesuai image_d79bf1.png & image_d793f1.png) -->
+          <q-btn round flat icon="apps">
+            <q-menu transition-show="scale" transition-hide="scale" :offset="[0, 15]">
+              <div class="q-pa-md" style="width: 320px">
+                <div class="text-overline text-grey-7 q-mb-md">Modul Agra ERP</div>
+
                 <div class="row q-col-gutter-md">
+                  <!-- Modul Aset -->
                   <div class="col-4 text-center">
-                    <q-btn stack flat color="teal-10" class="full-width" to="/manufaktur/dashboard">
-                      <q-icon name="precision_manufacturing" size="30px" />
-                      <div style="font-size: 10px">Manufacture</div>
-                    </q-btn>
+                    <q-btn
+                      flat
+                      stack
+                      color="orange-9"
+                      icon="inventory_2"
+                      label="Modul Aset"
+                      class="full-width text-capitalize"
+                      to="/aset"
+                    />
                   </div>
+                  <!-- Management Karyawan -->
                   <div class="col-4 text-center">
-                    <q-btn stack flat color="blue-8" class="full-width" to="/konstruksi/dashboard">
-                      <q-icon name="engineering" size="30px" />
-                      <div style="font-size: 10px">Konstruksi</div>
-                    </q-btn>
+                    <q-btn
+                      flat
+                      stack
+                      color="deep-purple"
+                      icon="groups"
+                      label="Karyawan"
+                      class="full-width text-capitalize"
+                      to="/karyawan"
+                    />
                   </div>
+                  <!-- Manufacture -->
                   <div class="col-4 text-center">
-                    <q-btn stack flat color="purple-8" class="full-width" to="/management-karyawan">
-                      <q-icon name="groups" size="30px" />
-                      <div style="font-size: 10px">Karyawan</div>
-                    </q-btn>
+                    <q-btn
+                      flat
+                      stack
+                      color="teal-10"
+                      icon="factory"
+                      label="Manufacture"
+                      class="full-width text-capitalize"
+                      to="/manufaktur/dashboard"
+                    />
+                  </div>
+                  <!-- Absensi -->
+                  <div class="col-4 text-center">
+                    <q-btn
+                      flat
+                      stack
+                      color="green-7"
+                      icon="badge"
+                      label="Absensi"
+                      class="full-width text-capitalize"
+                      to="/absensi"
+                    />
+                  </div>
+                  <!-- Konstruksi -->
+                  <div class="col-4 text-center">
+                    <q-btn
+                      stack
+                      color="blue-1"
+                      text-color="primary"
+                      icon="engineering"
+                      label="Konstruksi"
+                      class="full-width text-capitalize shadow-0"
+                      to="/konstruksi"
+                    />
                   </div>
                 </div>
-              </q-card-section>
-              <q-separator />
-              <q-card-actions align="center">
+
+                <q-separator class="q-my-md" />
+
+                <!-- Tombol Kembali ke Menu Utama -->
                 <q-btn
-                  flat
-                  label="Beranda Utama"
+                  outline
                   color="primary"
                   icon="home"
+                  label="Kembali ke Menu Utama"
+                  class="full-width rounded-borders"
                   to="/"
-                  class="full-width"
                 />
-              </q-card-actions>
-            </q-card>
-          </q-menu>
-        </q-btn>
+              </div>
+            </q-menu>
+          </q-btn>
+
+          <q-btn round flat>
+            <q-avatar size="32px">
+              <img src="https://cdn.quasar.dev/img/boy-avatar.png" />
+            </q-avatar>
+          </q-btn>
+        </div>
       </q-toolbar>
     </q-header>
 
-    <q-drawer v-model="leftDrawerOpen" show-if-above bordered class="bg-grey-1">
-      <q-list>
-        <q-item-label header class="text-teal-10 text-weight-bold q-pt-md">
-          NAVIGASI SISTEM
-        </q-item-label>
-
-        <q-item clickable v-ripple to="/manufaktur/dashboard" active-class="text-teal-10 bg-teal-1">
-          <q-item-section avatar><q-icon name="dashboard" /></q-item-section>
-          <q-item-section>Dashboard</q-item-section>
-        </q-item>
-
-        <q-separator q-my-sm />
-
-        <q-expansion-item
-          icon="precision_manufacturing"
-          label="Produksi"
-          default-opened
-          header-class="text-weight-bold text-teal-10"
+    <!-- SIDEBAR / DRAWER -->
+    <q-drawer v-model="leftDrawerOpen" show-if-above bordered class="bg-white">
+      <!-- SECTION PROFIL USER -->
+      <div class="q-pa-md row items-center q-gutter-md border-bottom">
+        <q-avatar size="56px" color="teal-10" text-color="white" class="text-weight-bold"
+          >R</q-avatar
         >
-          <q-item clickable v-ripple to="/manufaktur/work-order" class="q-ml-md">
-            <q-item-section avatar><q-icon name="assignment" /></q-item-section>
-            <q-item-section>Work Order</q-item-section>
-          </q-item>
-          <q-item clickable v-ripple to="/manufaktur/production-steps" class="q-ml-md">
-            <q-item-section avatar><q-icon name="format_list_numbered" /></q-item-section>
-            <q-item-section>Production Steps</q-item-section>
-          </q-item>
-          <q-item clickable v-ripple to="/manufaktur/produksi/quality-control" class="q-ml-md">
-            <q-item-section avatar><q-icon name="fact_check" color="orange-8" /></q-item-section>
-            <q-item-section>Quality Control (QC)</q-item-section>
-          </q-item>
-          <q-item clickable v-ripple to="/manufaktur/production-result" class="q-ml-md">
-            <q-item-section avatar><q-icon name="inventory_2" /></q-item-section>
-            <q-item-section>Production Result</q-item-section>
-          </q-item>
-        </q-expansion-item>
+        <div>
+          <div class="text-weight-bold">Refqi Obeth Sudiarma...</div>
+          <div class="text-caption text-grey-7 text-uppercase">Super Admin</div>
+        </div>
+      </div>
 
-        <q-expansion-item
-          icon="warehouse"
-          label="Gudang & Logistik"
-          header-class="text-weight-bold text-teal-10"
-        >
-          <q-item clickable v-ripple to="/manufaktur/gudang/monitoring" class="q-ml-md">
-            <q-item-section avatar><q-icon name="analytics" /></q-item-section>
-            <q-item-section>Monitoring Stok</q-item-section>
+      <q-scroll-area style="height: calc(100% - 100px)">
+        <q-list padding>
+          <q-item-label header class="text-overline text-grey-6">UTAMA</q-item-label>
+          <q-item
+            clickable
+            v-ripple
+            to="/manufaktur/dashboard"
+            active-class="active-menu"
+            class="menu-item"
+          >
+            <q-item-section avatar><q-icon name="dashboard" /></q-item-section>
+            <q-item-section>DASHBOARD</q-item-section>
           </q-item>
-          <q-item clickable v-ripple to="/manufaktur/gudang/material-request" class="q-ml-md">
-            <q-item-section avatar><q-icon name="request_quote" color="blue-8" /></q-item-section>
-            <q-item-section>Material Request</q-item-section>
-          </q-item>
-          <q-item clickable v-ripple to="/manufaktur/gudang/barang-masuk" class="q-ml-md">
-            <q-item-section avatar><q-icon name="input" /></q-item-section>
-            <q-item-section>Barang Masuk</q-item-section>
-          </q-item>
-          <q-item clickable v-ripple to="/manufaktur/gudang/delivery-order" class="q-ml-md">
-            <q-item-section avatar><q-icon name="local_shipping" color="green-8" /></q-item-section>
-            <q-item-section>Surat Jalan (DO)</q-item-section>
-          </q-item>
-        </q-expansion-item>
 
-        <q-expansion-item
-          icon="insights"
-          label="Costing & Analitik"
-          header-class="text-weight-bold text-teal-10"
-        >
-          <q-item clickable v-ripple to="/manufaktur/analytics/hpp" class="q-ml-md">
-            <q-item-section avatar><q-icon name="payments" color="red-8" /></q-item-section>
-            <q-item-section>HPP Produksi</q-item-section>
-          </q-item>
-        </q-expansion-item>
+          <q-separator q-my-sm />
+          <q-item-label header class="text-overline text-grey-6">OPERASIONAL</q-item-label>
 
-        <q-separator q-my-sm />
+          <!-- SALES -->
+          <q-expansion-item icon="shopping_cart" label="SALES" header-class="text-weight-medium">
+            <q-item
+              clickable
+              v-ripple
+              to="/manufaktur/sales/quotation"
+              active-class="active-menu"
+              class="q-pl-xl"
+              dense
+            >
+              <q-item-section>Quotation</q-item-section>
+            </q-item>
+            <q-item
+              clickable
+              v-ripple
+              to="/manufaktur/sales/po-customer"
+              active-class="active-menu"
+              class="q-pl-xl"
+              dense
+            >
+              <q-item-section>PO Customer</q-item-section>
+            </q-item>
+          </q-expansion-item>
 
-        <q-expansion-item
-          icon="settings"
-          label="Master Data"
-          header-class="text-weight-bold text-grey-8"
-        >
-          <q-item clickable v-ripple to="/manufaktur/master/proyek" class="q-ml-md">
-            <q-item-section avatar><q-icon name="apartment" color="indigo" /></q-item-section>
-            <q-item-section>Daftar Proyek</q-item-section>
-          </q-item>
-          <q-item clickable v-ripple to="/manufaktur/master/bom" class="q-ml-md">
-            <q-item-section avatar><q-icon name="receipt_long" /></q-item-section>
-            <q-item-section>BOM (Resep)</q-item-section>
-          </q-item>
-          <q-item clickable v-ripple to="/manufaktur/master/material" class="q-ml-md">
-            <q-item-section avatar><q-icon name="category" /></q-item-section>
-            <q-item-section>Material Data</q-item-section>
-          </q-item>
-        </q-expansion-item>
-      </q-list>
+          <!-- PRODUKSI -->
+          <q-expansion-item
+            icon="precision_manufacturing"
+            label="PRODUKSI"
+            header-class="text-weight-medium"
+          >
+            <q-item
+              clickable
+              v-ripple
+              to="/manufaktur/produksi/proses-produksi/incoming"
+              active-class="active-menu"
+              class="q-pl-xl"
+              dense
+            >
+              <q-item-section>Incoming Material</q-item-section>
+            </q-item>
+            <q-item
+              clickable
+              v-ripple
+              to="/manufaktur/produksi/proses-packing-page"
+              active-class="active-menu"
+              class="q-pl-xl"
+              dense
+            >
+              <q-item-section>Monitoring Packing</q-item-section>
+            </q-item>
+          </q-expansion-item>
+
+          <!-- PROSES PACKING -->
+          <q-expansion-item
+            icon="inventory_2"
+            label="PROSES PACKING"
+            header-class="text-weight-medium"
+          >
+            <q-item
+              clickable
+              v-ripple
+              to="/manufaktur/proses-packing/check-hole"
+              active-class="active-menu"
+              class="q-pl-xl"
+              dense
+            >
+              <q-item-section>Check Hole</q-item-section>
+            </q-item>
+            <q-item
+              clickable
+              v-ripple
+              to="/manufaktur/proses-packing/check-pin"
+              active-class="active-menu"
+              class="q-pl-xl"
+              dense
+            >
+              <q-item-section>Check Pin GoNoGo</q-item-section>
+            </q-item>
+            <q-item
+              clickable
+              v-ripple
+              to="/manufaktur/proses-packing/check-tapping"
+              active-class="active-menu"
+              class="q-pl-xl"
+              dense
+            >
+              <q-item-section>Check Tapping</q-item-section>
+            </q-item>
+            <q-item
+              clickable
+              v-ripple
+              to="/manufaktur/proses-packing/packing-final"
+              active-class="active-menu"
+              class="q-pl-xl"
+              dense
+            >
+              <q-item-section>Packing Final</q-item-section>
+            </q-item>
+            <q-item
+              clickable
+              v-ripple
+              to="/manufaktur/proses-packing/visual-check"
+              active-class="active-menu"
+              class="q-pl-xl"
+              dense
+            >
+              <q-item-section>Visual Check</q-item-section>
+            </q-item>
+          </q-expansion-item>
+
+          <q-separator q-my-sm />
+          <q-item-label header class="text-overline text-grey-6">LOGISTIK & FINANCE</q-item-label>
+
+          <!-- WAREHOUSE -->
+          <q-expansion-item icon="warehouse" label="WAREHOUSE" header-class="text-weight-medium">
+            <q-item
+              clickable
+              v-ripple
+              to="/manufaktur/warehouse/outgoing-check"
+              active-class="active-menu"
+              class="q-pl-xl"
+              dense
+            >
+              <q-item-section>Outgoing Check</q-item-section>
+            </q-item>
+          </q-expansion-item>
+
+          <!-- DELIVERY -->
+          <q-expansion-item
+            icon="local_shipping"
+            label="DELIVERY"
+            header-class="text-weight-medium"
+          >
+            <q-item
+              clickable
+              v-ripple
+              to="/manufaktur/delivery/surat-jalan"
+              active-class="active-menu"
+              class="q-pl-xl"
+              dense
+            >
+              <q-item-section>Surat Jalan</q-item-section>
+            </q-item>
+          </q-expansion-item>
+
+          <!-- FINANCE -->
+          <q-expansion-item
+            icon="account_balance_wallet"
+            label="FINANCE"
+            header-class="text-weight-medium"
+            default-opened
+          >
+            <q-item
+              clickable
+              v-ripple
+              to="/manufaktur/finance/invoice"
+              active-class="active-menu"
+              class="q-pl-xl"
+              dense
+            >
+              <q-item-section>Invoice Customer</q-item-section>
+            </q-item>
+          </q-expansion-item>
+        </q-list>
+      </q-scroll-area>
     </q-drawer>
 
-    <q-page-container>
+    <!-- MAIN CONTAINER -->
+    <q-page-container class="bg-grey-2">
       <router-view />
     </q-page-container>
   </q-layout>
@@ -159,27 +315,32 @@
 import { ref } from 'vue'
 
 const leftDrawerOpen = ref(false)
-
-function toggleLeftDrawer() {
+const toggleLeftDrawer = () => {
   leftDrawerOpen.value = !leftDrawerOpen.value
 }
 </script>
 
 <style scoped>
-.text-teal-10 {
-  color: #004d40;
-}
 .bg-teal-10 {
-  background: #004d40;
+  background: #004d40 !important;
 }
-.bg-teal-1 {
-  background: #e0f2f1;
+.border-bottom {
+  border-bottom: 1px solid #e0e0e0;
 }
-
-.q-item.q-router-link--active {
-  color: #004d40;
-  background: #e0f2f1;
-  font-weight: bold;
-  border-right: 4px solid #004d40;
+.menu-item {
+  margin: 2px 12px;
+  border-radius: 8px;
+}
+.active-menu {
+  color: white !important;
+  background: #004d40 !important;
+  border-radius: 0 24px 24px 0 !important;
+  margin-left: 0 !important;
+  margin-right: 12px !important;
+}
+.text-overline {
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 1px;
 }
 </style>

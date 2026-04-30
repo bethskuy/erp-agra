@@ -137,7 +137,7 @@ const routes = [
     ],
   },
 
-  // 5. MODUL MANUFAKTUR
+  // 5. MODUL MANUFAKTUR (AGRA ERP - CUSTOM FLOW)
   {
     path: '/manufaktur',
     component: () => import('layouts/ManufakturLayout.vue'),
@@ -148,70 +148,72 @@ const routes = [
         name: 'manufaktur-dashboard',
         component: () => import('pages/manufaktur/DashboardPage.vue'),
       },
+
+      // --- SECTION 1: SALES (AWAL FLOW) ---
       {
-        path: 'work-order',
-        name: 'work-order',
-        component: () => import('pages/manufaktur/Produksi/WorkOrderPage.vue'),
+        path: 'sales/quotation',
+        name: 'manufaktur-quotation',
+        component: () => import('pages/manufaktur/sales/QuotationPage.vue'),
       },
       {
-        path: 'work-order/:id',
-        name: 'work-order-detail',
-        component: () => import('pages/manufaktur/Produksi/WorkOrderDetailPage.vue'),
+        path: 'sales/po-customer',
+        name: 'manufaktur-po-customer',
+        component: () => import('pages/manufaktur/sales/POCustomerPage.vue'),
+      },
+
+      // --- SECTION 2: PROSES PRODUKSI (INCOMING) ---
+      {
+        path: 'proses-produksi/incoming',
+        name: 'manufaktur-incoming-material',
+        component: () => import('pages/manufaktur/ProsesProduksi/IncomingMaterialPage.vue'),
+      },
+
+      // --- SECTION 3: PROSES PACKING (STAYWIRE 5 STEPS) ---
+      {
+        path: 'proses-packing/check-pin',
+        name: 'manufaktur-check-pin',
+        component: () => import('pages/manufaktur/ProsesPacking/CheckPinGoNoGo.vue'),
       },
       {
-        path: 'production-steps',
-        name: 'production-steps',
-        component: () => import('pages/manufaktur/Produksi/ProductionStepsPage.vue'),
+        path: 'proses-packing/check-hole',
+        name: 'manufaktur-check-hole',
+        component: () => import('pages/manufaktur/ProsesPacking/CheckHole.vue'),
       },
       {
-        path: 'production-result',
-        name: 'production-result',
-        component: () => import('pages/manufaktur/Produksi/ProductionResultPage.vue'),
+        path: 'proses-packing/check-tapping',
+        name: 'manufaktur-check-tapping',
+        component: () => import('pages/manufaktur/ProsesPacking/CheckTapping.vue'),
       },
       {
-        path: 'master/material',
-        name: 'material',
-        component: () => import('pages/manufaktur/master/MaterialPage.vue'),
+        path: 'proses-packing/visual-check',
+        name: 'manufaktur-visual-check',
+        component: () => import('pages/manufaktur/ProsesPacking/VisualCheck.vue'),
       },
       {
-        path: 'master/bom',
-        name: 'bom',
-        component: () => import('pages/manufaktur/master/BOMPage.vue'),
+        path: 'proses-packing/packing-final',
+        name: 'manufaktur-packing-final',
+        component: () => import('pages/manufaktur/ProsesPacking/PackingFinal.vue'),
       },
+
+      // --- SECTION 4: WAREHOUSE (GUDANG & OQC) ---
       {
-        path: 'gudang/monitoring',
-        name: 'monitoring-stok',
-        component: () => import('pages/manufaktur/gudang/MonitoringStok.vue'),
+        path: 'warehouse/outgoing-check',
+        name: 'manufaktur-warehouse-oqc',
+        component: () => import('pages/manufaktur/warehouse/outgoingcheckOQC.vue'),
       },
+
+      // --- SECTION 5: DELIVERY (SURAT JALAN) ---
       {
-        path: 'gudang/barang-masuk',
-        name: 'barang-masuk',
-        component: () => import('pages/manufaktur/gudang/BarangMasukPage.vue'),
+        path: 'delivery/surat-jalan',
+        name: 'manufaktur-delivery-sj',
+        component: () => import('pages/manufaktur/delivery/SuratJalanPage.vue'),
       },
+
+      // --- SECTION 6: FINANCE (INVOICE) ---
       {
-        path: 'produksi/quality-control',
-        name: 'production-qc',
-        component: () => import('pages/manufaktur/Produksi/QCPage.vue'),
-      },
-      {
-        path: 'gudang/material-request',
-        name: 'material-request',
-        component: () => import('pages/manufaktur/gudang/MaterialRequestPage.vue'),
-      },
-      {
-        path: 'gudang/delivery-order',
-        name: 'delivery-order',
-        component: () => import('pages/manufaktur/gudang/DeliveryOrderPage.vue'),
-      },
-      {
-        path: 'master/proyek',
-        name: 'master-proyek',
-        component: () => import('pages/manufaktur/master/ProjectListPage.vue'),
-      },
-      {
-        path: 'analytics/hpp',
-        name: 'hpp-produksi',
-        component: () => import('pages/manufaktur/analytics/HPPPage.vue'),
+        path: 'finance/invoice',
+        name: 'manufaktur-finance-invoice',
+        component: () => import('pages/manufaktur/finance/InvoiceCustomerPage.vue'),
       },
     ],
   },
