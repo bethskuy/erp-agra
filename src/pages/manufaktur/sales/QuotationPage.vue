@@ -890,6 +890,7 @@ onUnmounted(() => {
   .terms-header {
     background-color: #004d40 !important;
     color: white !important;
+    print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
   }
 }
