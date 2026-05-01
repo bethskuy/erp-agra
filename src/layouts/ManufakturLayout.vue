@@ -14,12 +14,11 @@
             <q-badge color="red" floating>2</q-badge>
           </q-btn>
 
-          <!-- TOMBOL APPS DENGAN POP-UP MODUL (Sesuai image_d79bf1.png & image_d793f1.png) -->
+          <!-- TOMBOL APPS DENGAN POP-UP MODUL -->
           <q-btn round flat icon="apps">
             <q-menu transition-show="scale" transition-hide="scale" :offset="[0, 15]">
               <div class="q-pa-md" style="width: 320px">
                 <div class="text-overline text-grey-7 q-mb-md">Modul Agra ERP</div>
-
                 <div class="row q-col-gutter-md">
                   <!-- Modul Aset -->
                   <div class="col-4 text-center">
@@ -135,20 +134,71 @@
           </q-item>
 
           <q-separator q-my-sm />
-          <q-item-label header class="text-overline text-grey-6">OPERASIONAL</q-item-label>
 
-          <!-- SALES -->
-          <q-expansion-item icon="shopping_cart" label="SALES" header-class="text-weight-medium">
+          <!-- MARKETING SYSTEM SECTION -->
+          <q-item-label header class="text-overline text-grey-6">MARKETING SYSTEM</q-item-label>
+
+          <q-expansion-item
+            icon="campaign"
+            label="PENAWARAN"
+            header-class="text-weight-medium"
+            default-opened
+          >
+            <!-- Sub-menu Quotation (Input) -->
             <q-item
               clickable
               v-ripple
-              to="/manufaktur/sales/quotation"
+              to="/manufaktur/penawaran"
               active-class="active-menu"
               class="q-pl-xl"
               dense
             >
+              <q-item-section avatar>
+                <q-icon name="description" size="xs" />
+              </q-item-section>
               <q-item-section>Quotation</q-item-section>
             </q-item>
+
+            <!-- Sub-menu Approval (ACC) -->
+            <q-item
+              clickable
+              v-ripple
+              to="/manufaktur/penawaran-approval"
+              active-class="active-menu"
+              class="q-pl-xl"
+              dense
+            >
+              <q-item-section avatar>
+                <q-icon name="verified" size="xs" />
+              </q-item-section>
+              <q-item-section>Approval Penawaran</q-item-section>
+
+              <!-- Real-time Badge Notifikasi -->
+              <q-item-section side v-if="pendingCount > 0">
+                <div class="row items-center no-wrap">
+                  <transition
+                    appear
+                    enter-active-class="animated bounceInUp"
+                    leave-active-class="animated fadeOutUp"
+                  >
+                    <q-badge
+                      v-if="showIncrement"
+                      color="green-14"
+                      :label="'+' + lastAddedCount"
+                      class="text-weight-bold q-mr-xs"
+                    />
+                  </transition>
+                  <q-badge color="orange-9" rounded :label="pendingCount" class="animate-bounce" />
+                </div>
+              </q-item-section>
+            </q-item>
+          </q-expansion-item>
+
+          <q-separator q-my-sm />
+          <q-item-label header class="text-overline text-grey-6">OPERASIONAL</q-item-label>
+
+          <!-- SALES -->
+          <q-expansion-item icon="shopping_cart" label="SALES" header-class="text-weight-medium">
             <q-item
               clickable
               v-ripple
@@ -312,12 +362,43 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { db } from 'src/boot/firebase'
+import { collection, query, where, onSnapshot } from 'firebase/firestore'
 
 const leftDrawerOpen = ref(false)
+const pendingCount = ref(0)
+const lastAddedCount = ref(0)
+const showIncrement = ref(false)
+let unsub = null
+
 const toggleLeftDrawer = () => {
   leftDrawerOpen.value = !leftDrawerOpen.value
 }
+
+// Listener Real-time untuk Badge Sidebar (Modul Penawaran Manufaktur)
+onMounted(() => {
+  const q = query(collection(db, 'penawaran_manufaktur'), where('status', '==', 'Pending'))
+
+  unsub = onSnapshot(q, (snap) => {
+    const newCount = snap.size
+
+    // Logika animasi +N jika ada penambahan data baru
+    if (newCount > pendingCount.value && pendingCount.value !== 0) {
+      lastAddedCount.value = newCount - pendingCount.value
+      showIncrement.value = true
+      setTimeout(() => {
+        showIncrement.value = false
+      }, 3000)
+    }
+
+    pendingCount.value = newCount
+  })
+})
+
+onUnmounted(() => {
+  if (unsub) unsub()
+})
 </script>
 
 <style scoped>
@@ -342,5 +423,53 @@ const toggleLeftDrawer = () => {
   font-size: 0.7rem;
   font-weight: 900;
   letter-spacing: 1px;
+}
+
+/* Animasi Badge */
+.animated {
+  animation-duration: 0.6s;
+  animation-fill-mode: both;
+}
+@keyframes bounceInUp {
+  from,
+  60%,
+  75%,
+  90%,
+  to {
+    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+  from {
+    opacity: 0;
+    transform: translate3d(0, 3000px, 0);
+  }
+  60% {
+    opacity: 1;
+    transform: translate3d(0, -20px, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+.bounceInUp {
+  animation-name: bounceInUp;
+}
+
+.animate-bounce {
+  animation: bounce 2s infinite;
+}
+@keyframes bounce {
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-5px);
+  }
+  60% {
+    transform: translateY(-3px);
+  }
 }
 </style>

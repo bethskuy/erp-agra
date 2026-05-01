@@ -137,7 +137,7 @@ const routes = [
     ],
   },
 
-  // 5. MODUL MANUFAKTUR (AGRA ERP - CUSTOM FLOW)
+  /// 5. MODUL MANUFAKTUR (AGRA ERP - CUSTOM FLOW)
   {
     path: '/manufaktur',
     component: () => import('layouts/ManufakturLayout.vue'),
@@ -148,13 +148,19 @@ const routes = [
         name: 'manufaktur-dashboard',
         component: () => import('pages/manufaktur/DashboardPage.vue'),
       },
-
-      // --- SECTION 1: SALES (AWAL FLOW) ---
+      // --- MENU SISTEM PENAWARAN (REVISI SESUAI GAMBAR) ---
       {
-        path: 'sales/quotation',
-        name: 'manufaktur-quotation',
-        component: () => import('pages/manufaktur/sales/QuotationPage.vue'),
+        path: 'penawaran',
+        name: 'PenawaranManufaktur',
+        component: () => import('pages/manufaktur/Penawaran/QuotationPage.vue'),
       },
+      {
+        path: 'penawaran-approval',
+        name: 'ApprovalPenawaranManufaktur',
+        component: () => import('pages/manufaktur/Penawaran/ApprovalQuotationPage.vue'),
+      },
+
+      // --- SECTION 1: SALES ---
       {
         path: 'sales/po-customer',
         name: 'manufaktur-po-customer',
@@ -163,7 +169,7 @@ const routes = [
 
       // --- SECTION 2: PROSES PRODUKSI (INCOMING) ---
       {
-        path: 'proses-produksi/incoming',
+        path: 'produksi/proses-produksi/incoming',
         name: 'manufaktur-incoming-material',
         component: () => import('pages/manufaktur/ProsesProduksi/IncomingMaterialPage.vue'),
       },
