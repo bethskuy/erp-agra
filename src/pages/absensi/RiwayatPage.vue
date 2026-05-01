@@ -26,9 +26,9 @@
                   readonly
                   class="q-px-md cursor-pointer"
                 >
-                  <template v-slot:prepend
-                    ><q-icon name="calendar_month" color="primary"
-                  /></template>
+                  <template v-slot:prepend>
+                    <q-icon name="calendar_month" color="primary" />
+                  </template>
                   <q-popup-proxy cover transition-show="scale" transition-hide="scale">
                     <q-date
                       v-model="filterBulan"
@@ -46,7 +46,7 @@
           </div>
         </div>
 
-        <!-- SUMMARY CARDS (INTEGRATED STATISTICS) -->
+        <!-- SUMMARY CARDS -->
         <div class="row q-col-gutter-lg q-mb-xl">
           <div class="col-12 col-sm-4">
             <q-card flat class="rounded-16 shadow-card bg-white">
@@ -101,7 +101,7 @@
             row-key="id"
             flat
             :loading="loading"
-            :pagination="{ rowsPerPage: 10 }"
+            :pagination="{ rowsPerPage: 31 }"
             class="modern-table"
           >
             <template v-slot:header="props">
@@ -121,7 +121,9 @@
               <q-tr :props="props" class="hover-row">
                 <q-td key="no" class="text-center text-grey-6">{{ props.rowIndex + 1 }}</q-td>
                 <q-td key="tanggal" class="text-center">
-                  <div class="text-weight-bold text-blue-grey-9">{{ props.row.tanggal }}</div>
+                  <div class="text-weight-bold text-blue-grey-9">
+                    {{ formatTanggalIndo(props.row.waktu_masuk) }}
+                  </div>
                 </q-td>
                 <q-td key="jamIn" class="text-center">
                   <q-chip outline color="positive" size="sm" icon="login" class="text-weight-bold">
@@ -140,7 +142,9 @@
                   </q-chip>
                 </q-td>
                 <q-td key="area" class="text-center">
-                  <div class="text-caption text-weight-medium">{{ props.row.nama_tempat }}</div>
+                  <div class="text-caption text-weight-medium">
+                    {{ props.row.nama_tempat || 'AREA AGRA' }}
+                  </div>
                 </q-td>
                 <q-td key="totalJam" class="text-center">
                   <q-badge
@@ -184,7 +188,7 @@ const $q = useQuasar()
 const loading = ref(true)
 const filterBulan = ref(date.formatDate(Date.now(), 'MMMM YYYY'))
 const rows = ref([])
-const userName = ref('KARYAWAN')
+const userName = ref('USER')
 
 const columns = [
   { name: 'no', label: 'NO', align: 'center' },
@@ -195,7 +199,6 @@ const columns = [
   { name: 'totalJam', label: 'DURASI KERJA', align: 'center' },
 ]
 
-// --- INTEGRASI STATISTIK TOTAL JAM KERJA ---
 const totalJamKerja = computed(() => {
   let totalMs = 0
   rows.value.forEach((row) => {
@@ -216,11 +219,33 @@ const formatWaktu = (ts) => {
   return date.formatDate(d, 'HH:mm')
 }
 
+const formatTanggalIndo = (ts) => {
+  if (!ts) return '-'
+  const d = ts.toDate ? ts.toDate() : new Date(ts)
+  const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
+  const months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'Mei',
+    'Jun',
+    'Jul',
+    'Agu',
+    'Sep',
+    'Okt',
+    'Nov',
+    'Des',
+  ]
+  return `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`
+}
+
 const hitungDurasi = (startTs, endTs) => {
   if (!startTs || !endTs) return 'AKTIF'
   const start = startTs.toDate ? startTs.toDate() : new Date(startTs)
   const end = endTs.toDate ? endTs.toDate() : new Date(endTs)
   const diffMs = end - start
+  if (diffMs < 0) return '0j 0m'
   const hrs = Math.floor(diffMs / 3600000)
   const mins = Math.floor((diffMs % 3600000) / 60000)
   return `${hrs}j ${mins}m`
@@ -233,25 +258,37 @@ const setupRealtimeListener = () => {
   if (unsubscribe) unsubscribe()
 
   try {
-    const [monthName, year] = filterBulan.value.split(' ')
-    const months = [
-      'Januari',
-      'Februari',
-      'Maret',
-      'April',
-      'Mei',
-      'Juni',
-      'Juli',
-      'Agustus',
-      'September',
-      'Oktober',
-      'November',
-      'Desember',
-    ]
-    const monthIndex = months.indexOf(monthName)
+    const parts = filterBulan.value.split(' ')
+    const monthName = parts[0]
+    const year = parts[1]
 
-    const startOfMonth = new Date(parseInt(year), monthIndex, 1)
-    const endOfMonth = new Date(parseInt(year), monthIndex + 1, 1)
+    const monthMap = {
+      Januari: 0,
+      January: 0,
+      Februari: 1,
+      February: 1,
+      Maret: 2,
+      March: 2,
+      April: 3,
+      Mei: 4,
+      May: 4,
+      Juni: 5,
+      June: 5,
+      Juli: 6,
+      July: 6,
+      Agustus: 7,
+      August: 7,
+      September: 8,
+      Oktober: 9,
+      October: 9,
+      November: 10,
+      Desember: 11,
+      December: 11,
+    }
+
+    const monthIndex = monthMap[monthName] ?? new Date().getMonth()
+    const startOfMonth = new Date(parseInt(year), monthIndex, 1, 0, 0, 0)
+    const endOfMonth = new Date(parseInt(year), monthIndex + 1, 1, 0, 0, 0)
 
     const q = query(
       collection(db, 'absensi'),
@@ -267,24 +304,26 @@ const setupRealtimeListener = () => {
         rows.value = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
         loading.value = false
       },
-      (error) => {
-        console.error('Listener error:', error)
+      (err) => {
+        console.error('Firestore Error:', err)
         $q.notify({ color: 'negative', message: 'Gagal memuat data presensi.' })
         loading.value = false
       },
     )
   } catch (e) {
-    console.error(e)
+    console.error('Setup Error:', e)
     loading.value = false
   }
 }
 
 onMounted(() => {
-  const saved = localStorage.getItem('user_data')
+  // SINKRONISASI: Mengambil nama lengkap dari key tunggal agra_erp_session
+  const saved = localStorage.getItem('agra_erp_session')
   if (saved) {
     const parsed = JSON.parse(saved)
-    userName.value = parsed.nama || parsed.displayName || 'KARYAWAN'
+    userName.value = (parsed.nama || 'USER').toUpperCase()
   }
+
   setupRealtimeListener()
 })
 
@@ -306,18 +345,15 @@ onUnmounted(() => {
 .letter-spacing-1 {
   letter-spacing: 1px;
 }
-
 .modern-table :deep(thead tr th) {
   position: sticky;
   top: 0;
   z-index: 1;
 }
-
 .hover-row:hover {
   background-color: #f8fafc !important;
   transition: all 0.3s ease;
 }
-
 .modern-table :deep(td) {
   height: 60px;
 }

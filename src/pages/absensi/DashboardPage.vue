@@ -5,7 +5,7 @@
         <!-- BARIS 1: JAM & INFORMASI PENUGASAN -->
         <div class="col-12 col-md-5">
           <q-card class="main-card text-white shadow-5 full-height flex flex-center">
-            <q-card-section class="text-center q-pa-lg">
+            <q-card-section class="text-center q-pa-lg full-width">
               <div class="text-subtitle2 opacity-80 text-uppercase text-weight-bold font-digital">
                 ERP PT AGRA ABHINAYA PERKASA
               </div>
@@ -13,9 +13,28 @@
                 {{ currentTime }}
               </div>
               <div class="text-subtitle1 text-weight-medium opacity-90">{{ currentDate }}</div>
-              <div class="status-pill q-mt-md inline-block shadow-1">
-                <q-icon name="circle" color="light-green-13" size="xs" />
-                <span class="q-ml-sm text-weight-bold">Status: Online</span>
+
+              <!-- STATUS LOKASI DASHBOARD -->
+              <div class="q-mt-lg bg-white-20 q-pa-md rounded-12 border-white-30">
+                <div class="row items-center justify-center q-gutter-x-sm q-mb-xs">
+                  <q-icon
+                    :name="locationData.inRange ? 'location_on' : 'location_off'"
+                    :color="locationData.inRange ? 'light-green-13' : 'orange-5'"
+                    size="sm"
+                  />
+                  <span class="text-subtitle2 text-weight-bolder">
+                    {{ locationData.statusText }}
+                  </span>
+                </div>
+
+                <div class="address-text q-mb-xs text-weight-medium">
+                  <q-icon name="explore" size="xs" class="q-mr-xs opacity-70" />
+                  {{ locationData.address || 'Mendeteksi alamat...' }}
+                </div>
+
+                <div class="text-caption opacity-60 x-small-text">
+                  {{ locationData.lat }}, {{ locationData.lng }}
+                </div>
               </div>
             </q-card-section>
           </q-card>
@@ -74,7 +93,7 @@
           </q-card>
         </div>
 
-        <!-- BARIS 2: PEMBERITAHUAN ANDA (SINKRONISASI AKTIF) -->
+        <!-- BARIS 2: AKTIVITAS TERBARU -->
         <div class="col-12 col-md-10 q-mt-md">
           <q-card flat bordered class="rounded-card shadow-1 overflow-hidden">
             <q-card-section class="bg-blue-grey-10 text-white q-pa-sm">
@@ -82,25 +101,24 @@
                 Aktivitas Terbaru Anda
               </div>
             </q-card-section>
-            <q-card-section class="q-pa-none scroll-container">
+            <q-card-section class="q-pa-none">
               <q-list separator>
                 <q-item
                   v-if="riwayatData.length === 0"
                   class="text-center q-pa-lg text-grey-5 italic"
+                  >Belum ada aktivitas hari ini.</q-item
                 >
-                  Belum ada aktivitas presensi ditemukan hari ini.
-                </q-item>
                 <q-item v-for="item in riwayatData" :key="item.id" class="q-py-md">
                   <q-item-section avatar
                     ><q-avatar color="blue-1" text-color="primary" icon="history"
                   /></q-item-section>
                   <q-item-section>
                     <q-item-label
-                      class="text-weight-bold text-uppercase text-grey-9 text-caption"
+                      class="text-weight-bold text-grey-9 text-uppercase text-caption"
                       >{{ item.tanggal }}</q-item-label
                     >
                     <q-item-label caption
-                      >Area:
+                      >Lokasi:
                       <span class="text-primary text-weight-bold">{{
                         item.nama_tempat
                       }}</span></q-item-label
@@ -138,16 +156,7 @@
                 dense
                 hide-bottom
                 class="status-table"
-              >
-                <template v-slot:body-cell-nama="props">
-                  <q-td :props="props" class="text-weight-bold">
-                    <q-avatar size="24px" color="primary" text-color="white" class="q-mr-sm">
-                      {{ props.row.nama_karyawan.charAt(0) }}
-                    </q-avatar>
-                    {{ props.row.nama_karyawan }}
-                  </q-td>
-                </template>
-              </q-table>
+              />
             </q-card-section>
           </q-card>
         </div>
@@ -158,15 +167,23 @@
         <q-card flat bordered class="rounded-card shadow-5 overflow-hidden">
           <q-card-section class="bg-primary text-white row items-center q-pa-md">
             <q-btn icon="arrow_back" flat round dense @click="stopCamera" />
-            <div class="text-subtitle1 text-weight-bold q-ml-md">AMBIL FOTO & VERIFIKASI GPS</div>
+            <div class="text-subtitle1 text-weight-bold q-ml-md">VERIFIKASI ABSENSI & GPS</div>
           </q-card-section>
+
           <q-card-section class="text-center q-pa-md">
             <div class="camera-wrapper relative-position shadow-2">
               <video ref="video" autoplay playsinline class="video-stream"></video>
               <canvas ref="canvas" class="hidden"></canvas>
-              <div class="camera-guide" v-if="!capturedImage"><div class="guide-circle"></div></div>
+              <!-- GARIS PANDU WAJAH -->
+              <div class="camera-guide" v-if="!capturedImage">
+                <div class="guide-circle"></div>
+                <div class="text-caption text-white q-mt-sm bg-black-50 rounded-borders q-px-sm">
+                  Posisikan wajah di dalam lingkaran
+                </div>
+              </div>
             </div>
-            <div class="row justify-center q-mt-md" v-if="!capturedImage">
+
+            <div v-if="!capturedImage" class="q-mt-md">
               <q-btn
                 color="primary"
                 icon="photo_camera"
@@ -176,31 +193,34 @@
                 @click="takePhoto"
               />
             </div>
+
             <q-slide-transition>
               <div v-if="capturedImage" class="q-mt-lg text-left">
                 <q-img :src="capturedImage" class="captured-img rounded-borders shadow-2" />
+
+                <!-- DETAIL LOKASI DI DALAM CLOCK-IN -->
                 <div class="q-mt-md bg-grey-1 q-pa-md rounded-borders border-grey">
-                  <div class="text-weight-bold text-primary q-mb-sm text-uppercase">
+                  <div class="text-weight-bold text-primary q-mb-xs text-uppercase small-label">
                     Detail Lokasi Presensi
                   </div>
-                  <div class="text-caption text-grey-9">
-                    <div>
-                      Lat: <b>{{ locationData.lat }}</b> | Lng: <b>{{ locationData.lng }}</b>
-                    </div>
-                    <div class="q-mt-xs">
-                      <span
-                        :class="locationData.inRange ? 'text-positive' : 'text-negative'"
-                        class="text-weight-bold"
-                      >
-                        Status: {{ locationData.statusText }}
-                      </span>
-                    </div>
+                  <div class="text-body2 text-blue-grey-9 text-weight-medium">
+                    {{ locationData.address }}
                   </div>
+                  <div class="text-caption text-grey-7 q-mt-xs">
+                    Koordinat: {{ locationData.lat }}, {{ locationData.lng }}
+                  </div>
+                  <q-badge
+                    :color="locationData.inRange ? 'positive' : 'negative'"
+                    class="q-mt-sm q-px-md text-weight-bold"
+                  >
+                    STATUS: {{ locationData.statusText.toUpperCase() }}
+                  </q-badge>
                 </div>
+
                 <q-btn
                   unelevated
                   color="positive"
-                  label="KIRIM ABSENSI"
+                  label="KIRIM SEKARANG"
                   class="full-width q-mt-md q-py-md text-weight-bold shadow-3"
                   icon="send"
                   @click="saveAbsensi"
@@ -208,7 +228,7 @@
                 <q-btn
                   flat
                   color="grey-7"
-                  label="ULANG FOTO"
+                  label="ULANGI FOTO"
                   class="full-width q-mt-xs"
                   @click="capturedImage = null"
                 />
@@ -250,15 +270,20 @@ const showCamera = ref(false)
 const capturedImage = ref(null)
 const video = ref(null)
 const canvas = ref(null)
-const locationData = ref({ lat: 0, lng: 0, statusText: 'Mencari Lokasi...', inRange: false })
+const locationData = ref({
+  lat: '0.0000',
+  lng: '0.0000',
+  address: '',
+  statusText: 'Mencari Lokasi...',
+  inRange: false,
+})
 
-// KONFIGURASI LOKASI KANTOR (Digunakan untuk perhitungan)
 const KANTOR_LAT = -6.2842
 const KANTOR_LNG = 107.1706
 
 const columnsKaryawan = [
   { name: 'no', label: 'No', field: 'no', align: 'left' },
-  { name: 'nama', label: 'Nama Karyawan', align: 'left' },
+  { name: 'nama', label: 'Nama Karyawan', field: 'nama_karyawan', align: 'left' },
   { name: 'checkin', label: 'Check-in', field: 'checkin', align: 'center' },
   { name: 'checkout', label: 'Check-out', field: 'checkout', align: 'center' },
 ]
@@ -285,41 +310,25 @@ const updateTime = () => {
   })
 }
 
-const startAbsensi = () => {
-  showCamera.value = true
-  capturedImage.value = null
-  setTimeout(() => {
-    navigator.mediaDevices
-      .getUserMedia({ video: true })
-      .then((s) => {
-        if (video.value) video.value.srcObject = s
-      })
-      .catch(() => {
-        $q.notify({ color: 'negative', message: 'Kamera tidak diizinkan.' })
-        showCamera.value = false
-      })
-  }, 100)
+const getAddressName = async (lat, lng) => {
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
+    )
+    const data = await response.json()
+    locationData.value.address = data.display_name.split(',').slice(0, 3).join(',')
+  } catch {
+    locationData.value.address = 'Gagal memuat alamat'
+  }
 }
 
-const stopCamera = () => {
-  if (video.value?.srcObject) video.value.srcObject.getTracks().forEach((t) => t.stop())
-  showCamera.value = false
-}
-
-const takePhoto = () => {
-  const ctx = canvas.value.getContext('2d')
-  canvas.value.width = video.value.videoWidth
-  canvas.value.height = video.value.videoHeight
-  ctx.drawImage(video.value, 0, 0)
-  capturedImage.value = canvas.value.toDataURL('image/jpeg')
-
+const detectLocation = () => {
+  if (!navigator.geolocation) return
   navigator.geolocation.getCurrentPosition(
     (p) => {
       const lat = p.coords.latitude
       const lng = p.coords.longitude
-
-      // Perhitungan Jarak Haversine (Resolusi ESLint Error)
-      const R = 6371 // Radius bumi dalam KM
+      const R = 6371
       const dLat = (KANTOR_LAT - lat) * (Math.PI / 180)
       const dLon = (KANTOR_LNG - lng) * (Math.PI / 180)
       const a =
@@ -329,54 +338,68 @@ const takePhoto = () => {
           Math.sin(dLon / 2) *
           Math.sin(dLon / 2)
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-      const distance = R * c // Hasil dalam KM
+      const distance = R * c
+      const inRange = distance <= 0.2
 
-      const inRange = distance <= 0.2 // Toleransi 200 meter
-
-      locationData.value = {
-        lat: lat.toFixed(6),
-        lng: lng.toFixed(6),
-        inRange: inRange,
-        statusText: inRange ? 'Lokasi Terverifikasi' : 'Di Luar Jangkauan Kantor',
-      }
+      locationData.value.lat = lat.toFixed(4)
+      locationData.value.lng = lng.toFixed(4)
+      locationData.value.inRange = inRange
+      locationData.value.statusText = inRange ? 'Lokasi Dalam Jangkauan' : 'Di Luar Area Kantor'
+      getAddressName(lat, lng)
     },
     () => {
-      $q.notify({ color: 'negative', message: 'Gagal mendapatkan lokasi GPS.' })
+      locationData.value.statusText = 'GPS Tidak Aktif'
     },
+    { enableHighAccuracy: true },
   )
+}
+
+const startAbsensi = () => {
+  showCamera.value = true
+  setTimeout(() => {
+    navigator.mediaDevices.getUserMedia({ video: true }).then((s) => {
+      if (video.value) video.value.srcObject = s
+    })
+  }, 100)
+}
+
+const takePhoto = () => {
+  const ctx = canvas.value.getContext('2d')
+  canvas.value.width = video.value.videoWidth
+  canvas.value.height = video.value.videoHeight
+  ctx.drawImage(video.value, 0, 0)
+  capturedImage.value = canvas.value.toDataURL('image/jpeg')
+}
+
+const stopCamera = () => {
+  if (video.value?.srcObject) video.value.srcObject.getTracks().forEach((t) => t.stop())
+  showCamera.value = false
 }
 
 const saveAbsensi = async () => {
   $q.loading.show()
   try {
-    const name = currentUserName.value.trim().toUpperCase()
     await addDoc(collection(db, 'absensi'), {
-      nama_karyawan: name,
+      nama_karyawan: currentUserName.value,
       waktu_masuk: serverTimestamp(),
       waktu_pulang: null,
       tanggal: currentDate.value,
       status: 'Hadir',
       nama_tempat: locationData.value.inRange ? 'KANTOR AGRA' : 'AREA TESTING',
+      alamat_lengkap: locationData.value.address,
+      koordinat: `${locationData.value.lat}, ${locationData.value.lng}`,
     })
     $q.notify({ color: 'positive', message: 'Clock-in Berhasil!' })
     stopCamera()
-  } catch (e) {
-    console.error(e)
-    $q.notify({ color: 'negative', message: 'Gagal menyimpan data.' })
+  } catch {
+    $q.notify({ color: 'negative', message: 'Gagal absen.' })
   } finally {
     $q.loading.hide()
   }
 }
 
 const absenPulang = async () => {
-  if (!documentId.value) {
-    return $q.notify({
-      color: 'warning',
-      message: 'Anda belum melakukan Clock-in hari ini atau data belum sinkron!',
-      icon: 'info',
-    })
-  }
-
+  if (!documentId.value) return $q.notify({ color: 'warning', message: 'Belum Clock-in!' })
   $q.loading.show()
   try {
     await updateDoc(doc(db, 'absensi', documentId.value), {
@@ -384,9 +407,8 @@ const absenPulang = async () => {
       status: 'Selesai',
     })
     $q.notify({ color: 'negative', message: 'Clock-out Berhasil!' })
-  } catch (e) {
-    console.error(e)
-    $q.notify({ color: 'negative', message: 'Gagal memperbarui data.' })
+  } catch {
+    $q.notify({ color: 'negative', message: 'Gagal Clock-out.' })
   } finally {
     $q.loading.hide()
   }
@@ -394,50 +416,35 @@ const absenPulang = async () => {
 
 const formatWaktu = (ts) => (ts ? date.formatDate(ts.toDate(), 'HH.mm') : '--.--')
 
-let timer, unsubMe, unsubAll
+let timer, unsubMe, unsubAll, locationTimer
 onMounted(() => {
   updateTime()
+  detectLocation()
   timer = setInterval(updateTime, 1000)
-  const saved = localStorage.getItem('user_data')
+  locationTimer = setInterval(detectLocation, 45000)
+
+  // SINKRONISASI: Menggunakan key agra_erp_session agar sinkron dengan Profil
+  const saved = localStorage.getItem('agra_erp_session') || localStorage.getItem('user_data')
   if (saved) {
     const parsed = JSON.parse(saved)
-    currentUserName.value = (parsed.nama || parsed.displayName || 'USER').trim().toUpperCase()
+    currentUserName.value = (parsed.nama || 'USER').toUpperCase()
   }
 
-  // 1. DATA PRIBADI - Menggunakan onSnapshot agar documentId terisi otomatis secara real-time
   const qMe = query(
     collection(db, 'absensi'),
     where('nama_karyawan', '==', currentUserName.value),
     orderBy('waktu_masuk', 'desc'),
     limit(5),
   )
+  unsubMe = onSnapshot(qMe, (snap) => {
+    riwayatData.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+    const active = riwayatData.value.find(
+      (a) => a.tanggal === currentDate.value && a.status === 'Hadir',
+    )
+    documentId.value = active ? active.id : null
+  })
 
-  unsubMe = onSnapshot(
-    qMe,
-    (snap) => {
-      riwayatData.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
-      // Logika Sinkronisasi: Cari sesi hari ini yang belum selesai
-      const activeSession = riwayatData.value.find(
-        (a) => a.tanggal === currentDate.value && a.status === 'Hadir',
-      )
-      if (activeSession) {
-        documentId.value = activeSession.id
-      } else {
-        documentId.value = null
-      }
-    },
-    (err) => {
-      console.error('Query Me Error:', err)
-      if (err.message.includes('index')) {
-        $q.notify({
-          color: 'negative',
-          message: 'Indeks Firestore diperlukan. Cek log konsol browser.',
-        })
-      }
-    },
-  )
-
-  // 2. DATA SELURUH KARYAWAN
+  // Penarikan data seluruh karyawan hari ini
   const startDay = new Date()
   startDay.setHours(0, 0, 0, 0)
   const qAll = query(
@@ -445,7 +452,6 @@ onMounted(() => {
     where('waktu_masuk', '>=', Timestamp.fromDate(startDay)),
     orderBy('waktu_masuk', 'desc'),
   )
-
   unsubAll = onSnapshot(qAll, (snap) => {
     dataSeluruhKaryawan.value = snap.docs.map((d, i) => {
       const dta = d.data()
@@ -461,6 +467,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   clearInterval(timer)
+  clearInterval(locationTimer)
   if (unsubMe) unsubMe()
   if (unsubAll) unsubAll()
 })
@@ -474,10 +481,23 @@ onUnmounted(() => {
 .rounded-card {
   border-radius: 12px;
 }
-.status-pill {
-  background: rgba(255, 255, 255, 0.2);
-  padding: 5px 15px;
-  border-radius: 20px;
+.bg-white-20 {
+  background: rgba(255, 255, 255, 0.15);
+}
+.border-white-30 {
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+.rounded-12 {
+  border-radius: 12px;
+}
+.address-text {
+  font-size: 0.85rem;
+  line-height: 1.2;
+  max-width: 90%;
+  margin: 0 auto;
+}
+.x-small-text {
+  font-size: 0.65rem;
 }
 .camera-wrapper {
   width: 100%;
@@ -491,16 +511,33 @@ onUnmounted(() => {
   height: 100%;
   object-fit: cover;
 }
-.guide-circle {
-  width: 180px;
-  height: 240px;
-  border: 3px dashed #4caf50;
-  border-radius: 50% 50% 40% 40%;
+.camera-guide {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.guide-circle {
+  width: 180px;
+  height: 240px;
+  border: 3px dashed #4caf50;
+  border-radius: 100px;
+  background: rgba(76, 175, 80, 0.05);
+}
+.bg-black-50 {
+  background: rgba(0, 0, 0, 0.5);
+}
+.captured-img {
+  width: 100%;
+  max-height: 300px;
+  object-fit: cover;
+}
+.small-label {
+  font-size: 0.7rem;
+  letter-spacing: 1px;
 }
 .font-digital {
   font-family: 'Courier New', Courier, monospace;
