@@ -51,16 +51,15 @@
         </q-input>
       </div>
 
-      <!-- Apps Grid Section (Odoo Style) -->
+      <!-- Apps Grid Section -->
       <div class="row q-col-gutter-lg justify-center items-start animate-fade-up">
         <div
           v-for="(app, index) in filteredApps"
-          :key="app.id"
+          :key="app.aksesKey"
           class="col-4 col-sm-3 col-md-2 flex justify-center"
         >
-          <!-- Tombol Modul dengan Desain App-Icon -->
+          <!-- Tombol Modul -->
           <div
-            v-if="canShow(app)"
             class="app-container full-width"
             @click="$router.push(app.path)"
             :style="{ '--delay': index * 0.05 + 's' }"
@@ -96,8 +95,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-// eslint-disable-next-line no-unused-vars
-import { db, auth } from 'src/boot/firebase'
+import { db } from 'src/boot/firebase'
 import { collection, onSnapshot, getDocs, writeBatch, doc, query, where } from 'firebase/firestore'
 import { useAuthStore } from 'src/stores/auth'
 
@@ -108,16 +106,24 @@ const userData = ref(null)
 const currentAkses = ref([])
 let unsubscribeUser = null
 
-// Filter Apps berdasarkan pencarian cerdas
+// Filter Apps agar unik (berdasarkan aksesKey) dan sesuai hak akses
 const filteredApps = computed(() => {
-  return apps.value.filter(
+  // Langkah 1: Hilangkan duplikasi dari data mentah database
+  const uniqueMap = new Map()
+  apps.value.forEach((app) => {
+    if (!uniqueMap.has(app.aksesKey)) {
+      uniqueMap.set(app.aksesKey, app)
+    }
+  })
+
+  const uniqueApps = Array.from(uniqueMap.values())
+
+  // Langkah 2: Filter berdasarkan pencarian dan ijin akses
+  return uniqueApps.filter(
     (app) => app.name.toLowerCase().includes(searchQuery.value.toLowerCase()) && canShow(app),
   )
 })
 
-/**
- * Logika Pengecekan Akses
- */
 const canShow = (app) => {
   if (!authStore.user) return false
   if (authStore.user.role === 'Super Admin') return true
@@ -127,11 +133,13 @@ const canShow = (app) => {
 }
 
 /**
- * Inisialisasi Modul Default
+ * Perbaikan: Menggunakan SetDoc dengan ID unik agar tidak duplikat
  */
 const setupDefaultModuls = async () => {
   const querySnapshot = await getDocs(collection(db, 'modul'))
-  if (querySnapshot.empty) {
+
+  // Jika database masih kosong atau kurang dari 4, jalankan inisialisasi cerdas
+  if (querySnapshot.size < 4) {
     const batch = writeBatch(db)
     const defaultData = [
       {
@@ -167,7 +175,13 @@ const setupDefaultModuls = async () => {
         aksesKey: 'admin',
       },
     ]
-    defaultData.forEach((m) => batch.set(doc(collection(db, 'modul')), m))
+
+    // Gunakan aksesKey sebagai ID Dokumen agar tidak pernah duplikat (Upsert)
+    defaultData.forEach((m) => {
+      const docRef = doc(db, 'modul', `modul_${m.aksesKey}`)
+      batch.set(docRef, m)
+    })
+
     await batch.commit()
   }
 }
@@ -198,13 +212,10 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* Latar Belakang Bersih & Profesional */
 .bg-modern-dashboard {
   background: linear-gradient(135deg, #f8fafd 0%, #ffffff 100%);
   min-height: 100vh;
 }
-
-/* Logo Styling */
 .logo-container {
   width: 140px;
   height: 140px;
@@ -214,14 +225,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   padding: 10px;
-  transition: transform 0.4s ease;
 }
-
-.logo-container:hover {
-  transform: scale(1.05);
-}
-
-/* Odoo-style App Icon Card */
 .app-icon-card {
   width: 90px;
   height: 90px;
@@ -230,24 +234,15 @@ onUnmounted(() => {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
-
 .app-container {
   animation: appAppear 0.5s ease-out forwards;
   animation-delay: var(--delay);
   opacity: 0;
 }
-
 .app-card-wrapper:hover .app-icon-card {
   transform: translateY(-8px);
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
-  filter: brightness(1.05);
 }
-
-.app-card-wrapper:active .app-icon-card {
-  transform: scale(0.92);
-}
-
-/* Warna-warna Lembut Card */
 .bg-light-blue-1 {
   background-color: #f0f7ff !important;
 }
@@ -261,32 +256,22 @@ onUnmounted(() => {
   background-color: #faf5ff !important;
 }
 
-/* Tipografi & Gradasi Teks */
 .text-gradient {
   background: linear-gradient(135deg, #1976d2, #64b5f6);
-  background-clip: text; /* Standard property */
-  -webkit-background-clip: text; /* Safari/Webkit property */
+  background-clip: text;
+  -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
-
 .tracking-widest {
   letter-spacing: 0.35em;
 }
 .leading-tight {
   line-height: 1.15;
 }
-
-/* Search Bar Odoo Style */
 .search-odoo {
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
   transition: box-shadow 0.3s ease;
 }
-
-.search-odoo:focus-within {
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.08);
-}
-
-/* Animasi */
 @keyframes appAppear {
   from {
     transform: scale(0.85);
@@ -297,14 +282,12 @@ onUnmounted(() => {
     opacity: 1;
   }
 }
-
 .animate-fade-down {
   animation: fadeDown 0.8s ease-out;
 }
 .animate-fade-up {
   animation: fadeUp 0.8s ease-out;
 }
-
 @keyframes fadeDown {
   from {
     transform: translateY(-40px);
@@ -315,7 +298,6 @@ onUnmounted(() => {
     opacity: 1;
   }
 }
-
 @keyframes fadeUp {
   from {
     transform: translateY(40px);
@@ -326,8 +308,6 @@ onUnmounted(() => {
     opacity: 1;
   }
 }
-
-/* Responsivitas */
 @media (max-width: 600px) {
   .text-h3 {
     font-size: 2rem;
@@ -340,14 +320,6 @@ onUnmounted(() => {
   .q-icon {
     font-size: 36px !important;
   }
-  .logo-container {
-    width: 110px;
-    height: 110px;
-  }
-}
-
-.border-top-subtle {
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
 .shadow-premium {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);

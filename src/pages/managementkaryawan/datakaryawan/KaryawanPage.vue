@@ -106,66 +106,6 @@
             </q-tr>
           </template>
 
-          <!-- Custom Grid untuk Mobile -->
-          <template v-slot:item="props">
-            <div class="q-pa-xs col-xs-12 col-sm-6">
-              <q-card
-                flat
-                bordered
-                class="q-pa-sm shadow-1 hover-bg transition-all"
-                @click="viewDetail(props.row)"
-              >
-                <q-card-section>
-                  <div class="row items-center no-wrap">
-                    <q-avatar color="indigo-1" text-color="primary" size="40px" class="q-mr-md">
-                      {{ props.row.nama?.charAt(0) }}
-                    </q-avatar>
-                    <div class="col overflow-hidden">
-                      <div class="text-weight-bold text-subtitle1 ellipsis">
-                        {{ props.row.nama }}
-                      </div>
-                      <div class="text-caption text-grey-7">{{ props.row.nik }}</div>
-                    </div>
-                    <div class="col-auto">
-                      <q-badge color="blue-1" text-color="blue-grey-10" class="text-weight-bold">
-                        {{ props.row.jabatan }}
-                      </q-badge>
-                    </div>
-                  </div>
-                </q-card-section>
-
-                <q-separator />
-
-                <q-card-actions align="right">
-                  <q-btn
-                    flat
-                    round
-                    color="blue-8"
-                    icon="edit"
-                    size="sm"
-                    @click.stop="editKaryawan(props.row)"
-                  />
-                  <q-btn
-                    flat
-                    round
-                    color="negative"
-                    icon="delete"
-                    size="sm"
-                    @click.stop="deleteKaryawan(props.row, $event)"
-                  />
-                  <q-btn
-                    flat
-                    round
-                    color="grey-7"
-                    icon="chevron_right"
-                    size="sm"
-                    @click="viewDetail(props.row)"
-                  />
-                </q-card-actions>
-              </q-card>
-            </div>
-          </template>
-
           <!-- Row Desktop -->
           <template v-slot:body="props">
             <q-tr :props="props" class="hover-bg transition-all">
@@ -215,7 +155,7 @@
                   color="negative"
                   icon="delete"
                   size="sm"
-                  @click="deleteKaryawan(props.row, $event)"
+                  @click.stop="deleteKaryawan(props.row, $event)"
                 />
               </q-td>
             </q-tr>
@@ -383,7 +323,7 @@
               <div class="row q-col-gutter-lg q-col-gutter-md-xl">
                 <!-- Data Personal -->
                 <div class="col-12 col-md-7">
-                  <q-card flat bordered class="rounded-borders q-pa-md q-pa-md-lg">
+                  <q-card flat bordered class="rounded-borders q-pa-md q-pa-md-lg bg-white">
                     <div
                       class="text-subtitle1 text-md-h6 q-mb-md text-blue-grey-10 flex items-center"
                     >
@@ -394,7 +334,7 @@
                         class="col-12"
                         outlined
                         v-model="form.nik"
-                        label="NIK (Otomatis)"
+                        label="NIK"
                         readonly
                         bg-color="grey-1"
                         dense
@@ -404,7 +344,6 @@
                         outlined
                         v-model="form.nama"
                         label="Nama Lengkap"
-                        placeholder="Sesuai KTP"
                         dense
                       />
                       <q-input
@@ -461,7 +400,7 @@
                     </div>
                   </q-card>
 
-                  <q-card flat bordered class="rounded-borders q-pa-md q-pa-md-lg q-mt-lg">
+                  <q-card flat bordered class="rounded-borders q-pa-md q-pa-md-lg q-mt-lg bg-white">
                     <div
                       class="text-subtitle1 text-md-h6 q-mb-md text-blue-grey-10 flex items-center"
                     >
@@ -488,21 +427,22 @@
                   </q-card>
                 </div>
 
-                <!-- Akses & Foto -->
+                <!-- Akses & Media -->
                 <div class="col-12 col-md-5">
-                  <q-card flat bordered class="rounded-borders q-pa-md q-pa-md-lg">
+                  <q-card flat bordered class="rounded-borders q-pa-md q-pa-md-lg bg-white">
                     <div
                       class="text-subtitle1 text-md-h6 q-mb-md text-blue-grey-10 flex items-center"
                     >
                       <q-icon name="admin_panel_settings" color="primary" class="q-mr-sm" /> Hak
                       Akses
                     </div>
-                    <!-- MODIFIKASI: Mengubah checkbox ke dropdown (q-select) untuk pemilihan bisnis utama -->
+
+                    <!-- PERBAIKAN DROPDOWN: MENGGUNAKAN uniqueDivisionOptions AGAR TIDAK DOUBLE -->
                     <div class="q-mt-sm">
                       <q-select
                         outlined
                         v-model="form.akses"
-                        :options="filteredModulList"
+                        :options="uniqueDivisionOptions"
                         option-label="name"
                         option-value="aksesKey"
                         emit-value
@@ -511,7 +451,7 @@
                         use-chips
                         stack-label
                         label="Pilih Divisi / Bidang Bisnis *"
-                        placeholder="Pilih satu atau lebih..."
+                        placeholder="Klik untuk memilih..."
                         dense
                         bg-color="grey-1"
                         :rules="[(val) => (val && val.length > 0) || 'Pilih minimal satu divisi']"
@@ -527,14 +467,7 @@
                     >
                       <q-icon name="image" color="primary" class="q-mr-sm" /> Foto Profil
                     </div>
-                    <q-file
-                      outlined
-                      v-model="fotoFile"
-                      label="Pilih Foto"
-                      accept="image/*"
-                      class="q-mb-md"
-                      dense
-                    >
+                    <q-file outlined v-model="fotoFile" label="Pilih Foto" accept="image/*" dense>
                       <template v-slot:prepend><q-icon name="cloud_upload" /></template>
                     </q-file>
 
@@ -583,19 +516,20 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue' // Menambahkan computed
+import { ref, onMounted, computed } from 'vue'
 import { db, auth, storage } from 'src/boot/firebase'
+// eslint-disable-next-line no-unused-vars
 import { collection, addDoc, updateDoc, doc, onSnapshot, deleteDoc } from 'firebase/firestore'
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { createUserWithEmailAndPassword } from 'firebase/auth'
 import { useQuasar } from 'quasar'
 
-// STATE
 const $q = useQuasar()
 const currentView = ref('list')
 const filter = ref('')
 const selectedKaryawan = ref(null)
 const showDialog = ref(false)
+// eslint-disable-next-line no-unused-vars
 const loadingSimpan = ref(false)
 const karyawanList = ref([])
 const jabatanOptions = ref([])
@@ -603,35 +537,39 @@ const modulList = ref([])
 const docList = ref([{ name: '', file: null }])
 const fotoFile = ref(null)
 
-const form = ref({
-  id: null,
-  nik: '',
-  nama: '',
-  kotaLahir: '',
-  tglLahir: '',
-  tglMasuk: '',
-  alamat: '',
-  jabatan: '',
-  email: '',
-  password: '',
-  akses: [],
-})
+const form = ref({ id: null, nik: '', nama: '', jabatan: '', email: '', password: '', akses: [] })
 
-// LOGIKA FILTER MODUL (Sesuai Permintaan: Hanya Manufaktur dan Konstruksi)
-const filteredModulList = computed(() => {
-  return modulList.value.filter((mod) => {
+/**
+ * LOGIKA KRUSIAL: MENCEGAH DATA DOUBLE DI DROPDOWN
+ * Menggunakan Map() untuk memastikan hanya ada SATU entri per aksesKey
+ */
+const uniqueDivisionOptions = computed(() => {
+  const uniqueMap = new Map()
+
+  modulList.value.forEach((mod) => {
     const key = mod.aksesKey?.toLowerCase()
     const name = mod.name?.toLowerCase()
-    return (
+
+    // Filter hanya departemen utama
+    const isTarget =
       key === 'manufaktur' ||
       key === 'konstruksi' ||
-      name === 'manufacture' ||
-      name === 'konstruksi'
-    )
+      name?.includes('manufacture') ||
+      name?.includes('konstruksi')
+
+    // Jika data valid dan belum ada di Map, masukkan. Jika sudah ada, abaikan (Anti-Double)
+    if (isTarget && mod.aksesKey && !uniqueMap.has(mod.aksesKey)) {
+      uniqueMap.set(mod.aksesKey, {
+        name: name?.includes('manufacture') || key === 'manufaktur' ? 'Manufaktur' : 'Konstruksi',
+        aksesKey: mod.aksesKey,
+      })
+    }
   })
+
+  return Array.from(uniqueMap.values())
 })
 
-// HELPER UNTUK LOAD SCRIPT DARI CDN
+// HELPER LIBRARY EKSTERNAL
 const loadScript = (src) => {
   return new Promise((resolve, reject) => {
     if (document.querySelector(`script[src="${src}"]`)) return resolve()
@@ -653,7 +591,7 @@ const loadExternalLibraries = async () => {
       'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js',
     )
   } catch (err) {
-    console.error('Gagal memuat library ekspor:', err)
+    console.error('Lib Error:', err)
   }
 }
 
@@ -662,55 +600,21 @@ const viewDetail = (data) => {
   selectedKaryawan.value = data
   currentView.value = 'detail'
 }
-
 const editKaryawan = (data) => {
   form.value = { ...data, password: '' }
-  docList.value = data.docUrls ? [...data.docUrls] : [{ name: '', file: null }]
   showDialog.value = true
 }
-
 const openDialog = () => {
-  form.value = {
-    id: null,
-    nik: 'KRY-' + Date.now().toString().slice(-6),
-    nama: '',
-    email: '',
-    password: '',
-    akses: [],
-  }
-  docList.value = [{ name: '', file: null }]
+  form.value = { id: null, nik: 'KRY-' + Date.now().toString().slice(-6), akses: [] }
   showDialog.value = true
-}
-
-const deleteKaryawan = (row, e) => {
-  if (e) e.stopPropagation()
-  if (!row || !row.id) return
-
-  $q.dialog({
-    title: 'Konfirmasi Hapus',
-    message: `Apakah Anda yakin ingin menghapus data karyawan ${row.nama}? Tindakan ini tidak dapat dibatalkan.`,
-    cancel: { label: 'Batal', flat: true, color: 'grey-7' },
-    ok: { label: 'Ya, Hapus', color: 'negative', unelevated: true, rounded: true },
-    persistent: true,
-  }).onOk(async () => {
-    try {
-      await deleteDoc(doc(db, 'karyawan', row.id))
-      $q.notify({ type: 'positive', message: 'Data karyawan berhasil dihapus' })
-    } catch (err) {
-      $q.notify({ type: 'negative', message: 'Gagal menghapus: ' + err.message })
-    }
-  })
 }
 
 const saveKaryawan = async () => {
-  if (!form.value.nama || !form.value.jabatan) {
-    $q.notify({ type: 'warning', message: 'Nama dan Jabatan wajib diisi' })
+  if (!form.value.nama || !form.value.akses.length) {
+    $q.notify({ type: 'warning', message: 'Lengkapi Nama dan Hak Akses' })
     return
   }
-
-  $q.loading.show({ message: 'Sedang memproses data...' })
-  loadingSimpan.value = true
-
+  $q.loading.show()
   try {
     let fotoUrl = form.value.fotoUrl || null
     if (fotoFile.value) {
@@ -718,168 +622,51 @@ const saveKaryawan = async () => {
       await uploadBytes(fRef, fotoFile.value)
       fotoUrl = await getDownloadURL(fRef)
     }
-
-    let docUrls = []
-    for (let d of docList.value) {
-      if (d.file) {
-        const sRef = storageRef(storage, `karyawan/docs/${Date.now()}_${d.file.name}`)
-        await uploadBytes(sRef, d.file)
-        docUrls.push({ name: d.name, url: await getDownloadURL(sRef) })
-      } else if (d.url) {
-        docUrls.push(d)
-      }
-    }
-
     // eslint-disable-next-line no-unused-vars
     const { id, password, ...formData } = form.value
-
     if (id) {
-      await updateDoc(doc(db, 'karyawan', id), {
-        ...formData,
-        fotoUrl,
-        docUrls,
-      })
+      await updateDoc(doc(db, 'karyawan', id), { ...formData, fotoUrl })
     } else {
-      if (!form.value.email || !form.value.password) {
-        throw new Error('Email dan Password wajib diisi untuk karyawan baru')
-      }
       const cred = await createUserWithEmailAndPassword(auth, form.value.email, form.value.password)
-      await addDoc(collection(db, 'karyawan'), {
-        ...formData,
-        fotoUrl,
-        docUrls,
-        uid: cred.user.uid,
-      })
+      await addDoc(collection(db, 'karyawan'), { ...formData, fotoUrl, uid: cred.user.uid })
     }
-    $q.notify({ type: 'positive', message: 'Data karyawan berhasil disimpan!' })
     showDialog.value = false
+    $q.notify({ type: 'positive', message: 'Berhasil!' })
   } catch (e) {
-    console.error('SAVE ERROR:', e)
-    $q.notify({ type: 'negative', message: 'Terjadi Kesalahan: ' + e.message })
+    $q.notify({ type: 'negative', message: e.message })
   } finally {
     $q.loading.hide()
-    loadingSimpan.value = false
   }
 }
 
-// EXPORT FUNCTIONS
 const exportToExcel = () => {
-  try {
-    if (!window.XLSX) {
-      $q.notify({ color: 'warning', message: 'Library Excel sedang dimuat, tunggu sebentar...' })
-      return
-    }
-
-    const headerRow1 = ['AGRA ABHINAYA PERKASA']
-    const headerRow2 = ['LAPORAN DATABASE KARYAWAN']
-    const headerRow3 = [`Dicetak pada: ${new Date().toLocaleString()}`]
-    const emptyRow = ['']
-    const tableHeader = [
-      'NIK',
-      'Nama Karyawan',
-      'Jabatan',
-      'Email',
-      'No. HP',
-      'Alamat',
-      'Tanggal Masuk',
-    ]
-    const dataRows = karyawanList.value.map((k) => [
-      k.nik || '-',
-      k.nama || '-',
-      k.jabatan || '-',
-      k.email || '-',
-      k.hp || '-',
-      k.alamat || '-',
-      k.tglMasuk || '-',
-    ])
-    const finalData = [headerRow1, headerRow2, headerRow3, emptyRow, tableHeader, ...dataRows]
-    const ws = window.XLSX.utils.aoa_to_sheet(finalData)
-    ws['!cols'] = [
-      { wch: 15 },
-      { wch: 35 },
-      { wch: 20 },
-      { wch: 30 },
-      { wch: 18 },
-      { wch: 45 },
-      { wch: 15 },
-    ]
-    ws['!merges'] = [
-      { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } },
-      { s: { r: 1, c: 0 }, e: { r: 1, c: 6 } },
-      { s: { r: 2, c: 0 }, e: { r: 2, c: 6 } },
-    ]
-    const wb = window.XLSX.utils.book_new()
-    window.XLSX.utils.book_append_sheet(wb, ws, 'Database Karyawan')
-    window.XLSX.writeFile(wb, `Database_Karyawan_AGRA_${Date.now()}.xlsx`)
-    $q.notify({ color: 'positive', message: 'Excel berhasil diexport', icon: 'check' })
-  } catch (e) {
-    console.error(e)
-    $q.notify({ color: 'negative', message: 'Gagal export excel.' })
-  }
+  if (!window.XLSX) return
+  const data = karyawanList.value.map((k) => [k.nik, k.nama, k.jabatan, k.email])
+  const ws = window.XLSX.utils.aoa_to_sheet([['NIK', 'NAMA', 'JABATAN', 'EMAIL'], ...data])
+  const wb = window.XLSX.utils.book_new()
+  window.XLSX.utils.book_append_sheet(wb, ws, 'Data')
+  window.XLSX.writeFile(wb, `Karyawan_AGRA.xlsx`)
 }
 
 const exportToPDF = () => {
-  try {
-    const jspdf = window.jspdf
-    if (!jspdf) {
-      $q.notify({ color: 'warning', message: 'Library PDF sedang dimuat, tunggu sebentar...' })
-      return
-    }
-    const doc = new jspdf.jsPDF()
-    doc.setFontSize(20)
-    doc.setTextColor(25, 118, 210)
-    doc.text('AGRA ABHINAYA PERKASA', 105, 20, { align: 'center' })
-    doc.setFontSize(14)
-    doc.setTextColor(100)
-    doc.text('LAPORAN DATABASE KARYAWAN', 105, 30, { align: 'center' })
-    doc.setDrawColor(200)
-    doc.line(15, 35, 195, 35)
-    doc.setFontSize(10)
-    doc.text(`Dicetak pada: ${new Date().toLocaleString()}`, 15, 42)
-    const tableData = karyawanList.value.map((k) => [k.nik, k.nama, k.jabatan, k.hp, k.email])
-    doc.autoTable({
-      head: [['NIK', 'Nama Karyawan', 'Jabatan', 'No. HP', 'Email']],
-      body: tableData,
-      startY: 50,
-      headStyles: { fillColor: [25, 118, 210], fontSize: 10 },
-      styles: { fontSize: 9, cellPadding: 3 },
-      alternateRowStyles: { fillColor: [245, 245, 245] },
-    })
-    doc.save('Database_Karyawan_AGRA.pdf')
-    $q.notify({ color: 'positive', message: 'PDF berhasil dibuat', icon: 'picture_as_pdf' })
-  } catch (e) {
-    console.error(e)
-    $q.notify({ color: 'negative', message: 'Gagal export PDF.' })
-  }
+  const jspdf = window.jspdf
+  if (!jspdf) return
+  const doc = new jspdf.jsPDF()
+  doc.text('DATABASE KARYAWAN AGRA', 105, 20, { align: 'center' })
+  const tableData = karyawanList.value.map((k) => [k.nik, k.nama, k.jabatan])
+  doc.autoTable({ head: [['NIK', 'NAMA', 'JABATAN']], body: tableData, startY: 30 })
+  doc.save('Karyawan_AGRA.pdf')
 }
 
 const exportSinglePDF = (k) => {
-  try {
-    const jspdf = window.jspdf
-    if (!jspdf) return
-    const doc = new jspdf.jsPDF()
-    doc.setFontSize(22)
-    doc.setTextColor(25, 118, 210)
-    doc.text('PROFIL KARYAWAN AGRA', 105, 20, { align: 'center' })
-    doc.setDrawColor(25, 118, 210)
-    doc.setLineWidth(1)
-    doc.line(15, 25, 195, 25)
-    doc.setFontSize(12)
-    doc.setTextColor(50)
-    doc.text(`Nama: ${k.nama}`, 20, 40)
-    doc.text(`NIK: ${k.nik}`, 20, 50)
-    doc.text(`Jabatan: ${k.jabatan}`, 20, 60)
-    doc.text(`Email: ${k.email}`, 20, 70)
-    doc.text(`Telepon: ${k.hp}`, 20, 80)
-    doc.text(`Alamat: ${k.alamat}`, 20, 90)
-    doc.save(`Profil_${k.nama}.pdf`)
-    // eslint-disable-next-line no-unused-vars
-  } catch (e) {
-    $q.notify({ color: 'negative', message: 'Gagal cetak profil' })
-  }
+  const jspdf = window.jspdf
+  if (!jspdf) return
+  const doc = new jspdf.jsPDF()
+  doc.setFontSize(20).text('PROFIL KARYAWAN', 20, 20)
+  doc.setFontSize(12).text([`Nama: ${k.nama}`, `NIK: ${k.nik}`, `Jabatan: ${k.jabatan}`], 20, 40)
+  doc.save(`Profil_${k.nama}.pdf`)
 }
 
-// FETCH DATA
 onMounted(async () => {
   await loadExternalLibraries()
   onSnapshot(collection(db, 'karyawan'), (s) => {
@@ -906,12 +693,7 @@ const columns = [
 
 <style scoped>
 .font-pro {
-  font-family:
-    'Inter',
-    -apple-system,
-    Helvetica,
-    Arial,
-    sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 .rounded-borders {
   border-radius: 12px;
@@ -919,39 +701,14 @@ const columns = [
 .hover-bg:hover {
   background-color: rgba(25, 118, 210, 0.03) !important;
 }
-.cursor-pointer {
-  cursor: pointer;
-}
-.border-subtle {
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
-.uppercase-tracking {
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-weight: 700;
-  font-size: 0.65rem;
-}
-@media (min-width: 600px) {
-  .uppercase-tracking {
-    font-size: 0.75rem;
-  }
-}
 .border-white-5 {
   border: 5px solid white;
-}
-.transition-all {
-  transition: all 0.3s ease;
-}
-.shrink {
-  flex: 0 0 auto;
 }
 .karyawan-table :deep(thead tr th) {
   position: sticky;
   top: 0;
   z-index: 1;
-}
-/* Menghilangkan shadow grid q-table bawaan agar lebih rapi */
-.karyawan-table :deep(.q-table__grid-content) {
-  padding: 8px;
+  background: #263238;
+  color: white;
 }
 </style>
