@@ -497,17 +497,29 @@
                       <q-icon name="admin_panel_settings" color="primary" class="q-mr-sm" /> Hak
                       Akses
                     </div>
-                    <div class="row q-col-gutter-sm bg-grey-1 q-pa-sm rounded-borders">
-                      <q-checkbox
-                        v-for="mod in modulList"
-                        :key="mod.id"
+                    <!-- MODIFIKASI: Mengubah checkbox ke dropdown (q-select) untuk pemilihan bisnis utama -->
+                    <div class="q-mt-sm">
+                      <q-select
+                        outlined
                         v-model="form.akses"
-                        :val="mod.aksesKey"
-                        :label="mod.name"
-                        class="col-6"
-                        color="primary"
+                        :options="filteredModulList"
+                        option-label="name"
+                        option-value="aksesKey"
+                        emit-value
+                        map-options
+                        multiple
+                        use-chips
+                        stack-label
+                        label="Pilih Divisi / Bidang Bisnis *"
+                        placeholder="Pilih satu atau lebih..."
                         dense
-                      />
+                        bg-color="grey-1"
+                        :rules="[(val) => (val && val.length > 0) || 'Pilih minimal satu divisi']"
+                      >
+                        <template v-slot:prepend>
+                          <q-icon name="business_center" color="primary" />
+                        </template>
+                      </q-select>
                     </div>
 
                     <div
@@ -571,7 +583,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue' // Menambahkan computed
 import { db, auth, storage } from 'src/boot/firebase'
 import { collection, addDoc, updateDoc, doc, onSnapshot, deleteDoc } from 'firebase/firestore'
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
@@ -603,6 +615,20 @@ const form = ref({
   email: '',
   password: '',
   akses: [],
+})
+
+// LOGIKA FILTER MODUL (Sesuai Permintaan: Hanya Manufaktur dan Konstruksi)
+const filteredModulList = computed(() => {
+  return modulList.value.filter((mod) => {
+    const key = mod.aksesKey?.toLowerCase()
+    const name = mod.name?.toLowerCase()
+    return (
+      key === 'manufaktur' ||
+      key === 'konstruksi' ||
+      name === 'manufacture' ||
+      name === 'konstruksi'
+    )
+  })
 })
 
 // HELPER UNTUK LOAD SCRIPT DARI CDN
