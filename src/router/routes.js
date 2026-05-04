@@ -101,12 +101,6 @@ const routes = [
         component: () =>
           import('pages/konstruksi/Pembelian/PesananPembelian/PesananPembelianPage.vue'),
       },
-      {
-        path: 'pembelian/approval-po',
-        component: () => import('pages/konstruksi/Pembelian/ApprovalPurchaseOrderPage.vue'),
-        // Opsional: Tambahkan meta untuk proteksi halaman
-        meta: { requiresAdmin: true },
-      },
     ],
   },
 

@@ -392,24 +392,6 @@
                   <q-item-section avatar><q-icon name="receipt_long" size="20px" /></q-item-section>
                   <q-item-section>Pesanan Pembelian (PO)</q-item-section>
                 </q-item>
-                <q-item
-                  v-if="authStore.user?.role === 'Super Admin' || authStore.user?.role === 'Admin'"
-                  clickable
-                  v-ripple
-                  to="/konstruksi/pembelian/approval-po"
-                  class="level-2-item"
-                  active-class="sub-menu-item-active"
-                >
-                  <q-item-section avatar
-                    ><q-icon name="fact_check" color="orange-9" size="20px"
-                  /></q-item-section>
-                  <q-item-section class="text-weight-bold">Approval PO</q-item-section>
-                  <q-item-section side v-if="pendingPoCount > 0">
-                    <q-badge color="orange-9" rounded padding="4px 8px">{{
-                      pendingPoCount
-                    }}</q-badge>
-                  </q-item-section>
-                </q-item>
               </q-list>
             </q-expansion-item>
 
