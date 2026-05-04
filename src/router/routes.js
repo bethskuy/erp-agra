@@ -59,10 +59,6 @@ const routes = [
         path: 'master/proyek-kategori',
         component: () => import('pages/konstruksi/Master/DataProyek/KategoriProyekPage.vue'),
       },
-      {
-        path: 'pelaksanaan/spk-mandor',
-        component: () => import('pages/konstruksi/Proyek/Pelaksanaan/SpkMandor/SpkMandorPage.vue'),
-      },
 
       // --- GRUP NAVIGASI GUDANG & LOGISTIK ---
       {
@@ -104,6 +100,12 @@ const routes = [
         path: 'pembelian/pesanan',
         component: () =>
           import('pages/konstruksi/Pembelian/PesananPembelian/PesananPembelianPage.vue'),
+      },
+      {
+        path: 'pembelian/approval-po',
+        component: () => import('pages/konstruksi/Pembelian/ApprovalPurchaseOrderPage.vue'),
+        // Opsional: Tambahkan meta untuk proteksi halaman
+        meta: { requiresAdmin: true },
       },
     ],
   },

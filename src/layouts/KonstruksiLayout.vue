@@ -23,7 +23,7 @@
           </q-badge>
         </q-btn>
 
-        <!-- APP LAUNCHER -->
+        <!-- APP LAUNCHER (PERBAIKAN: ANTI-DUPLIKAT) -->
         <q-btn flat round icon="apps" class="q-mr-xs">
           <q-menu
             auto-close
@@ -35,8 +35,9 @@
             <div class="q-pa-md bg-white" style="width: 320px; border-radius: 12px">
               <div class="text-overline q-px-sm q-pb-sm text-grey-7">Modul Agra ERP</div>
               <div class="row q-col-gutter-sm">
-                <template v-for="app in apps" :key="app.id">
-                  <div class="col-4" v-if="canShow(app)">
+                <!-- MENGGUNAKAN filteredUniqueApps AGAR TIDAK DOUBLE -->
+                <template v-for="app in filteredUniqueApps" :key="app.aksesKey">
+                  <div class="col-4">
                     <q-btn
                       flat
                       stack
@@ -108,7 +109,6 @@
 
               <q-separator class="q-my-sm" />
 
-              <!-- FIX: Sekarang memunculkan kotak dialog profil -->
               <q-item clickable v-ripple class="rounded-borders" @click="showProfileDialog = true">
                 <q-item-section avatar
                   ><q-icon name="person_outline" color="blue-grey-7" size="20px"
@@ -176,7 +176,6 @@
               <q-item-section class="text-weight-bold">DASHBOARD</q-item-section>
             </q-item>
 
-            <!-- DATA MASTER (LEVEL 1) -->
             <q-expansion-item
               v-if="
                 hasSectionAccess([
@@ -194,7 +193,6 @@
               default-opened
             >
               <q-list>
-                <!-- Data Rekanan (LEVEL 2) -->
                 <q-expansion-item
                   v-if="hasSectionAccess(['marketing/customer', 'master/supplier'])"
                   icon="groups"
@@ -204,7 +202,6 @@
                   class="level-2-expansion"
                 >
                   <q-list>
-                    <!-- Sub-Menu Items (LEVEL 3) -->
                     <q-item
                       v-if="checkPermission('marketing/customer')"
                       clickable
@@ -213,9 +210,9 @@
                       class="level-3-item"
                       active-class="sub-menu-item-active"
                     >
-                      <q-item-section avatar>
-                        <q-icon name="person_outline" size="18px" />
-                      </q-item-section>
+                      <q-item-section avatar
+                        ><q-icon name="person_outline" size="18px"
+                      /></q-item-section>
                       <q-item-section>Customer</q-item-section>
                     </q-item>
                     <q-item
@@ -226,15 +223,14 @@
                       class="level-3-item"
                       active-class="sub-menu-item-active"
                     >
-                      <q-item-section avatar>
-                        <q-icon name="local_shipping" size="18px" />
-                      </q-item-section>
+                      <q-item-section avatar
+                        ><q-icon name="local_shipping" size="18px"
+                      /></q-item-section>
                       <q-item-section>Data Supplier</q-item-section>
                     </q-item>
                   </q-list>
                 </q-expansion-item>
 
-                <!-- Data Barang (LEVEL 2) -->
                 <q-expansion-item
                   v-if="
                     hasSectionAccess([
@@ -258,9 +254,7 @@
                       class="level-3-item"
                       active-class="sub-menu-item-active"
                     >
-                      <q-item-section avatar>
-                        <q-icon name="list_alt" size="18px" />
-                      </q-item-section>
+                      <q-item-section avatar><q-icon name="list_alt" size="18px" /></q-item-section>
                       <q-item-section>List Barang</q-item-section>
                     </q-item>
                     <q-item
@@ -271,9 +265,7 @@
                       class="level-3-item"
                       active-class="sub-menu-item-active"
                     >
-                      <q-item-section avatar>
-                        <q-icon name="category" size="18px" />
-                      </q-item-section>
+                      <q-item-section avatar><q-icon name="category" size="18px" /></q-item-section>
                       <q-item-section>Kategori Barang</q-item-section>
                     </q-item>
                     <q-item
@@ -284,9 +276,9 @@
                       class="level-3-item"
                       active-class="sub-menu-item-active"
                     >
-                      <q-item-section avatar>
-                        <q-icon name="straighten" size="18px" />
-                      </q-item-section>
+                      <q-item-section avatar
+                        ><q-icon name="straighten" size="18px"
+                      /></q-item-section>
                       <q-item-section>Data Satuan</q-item-section>
                     </q-item>
                   </q-list>
@@ -299,7 +291,6 @@
               OPERASIONAL
             </div>
 
-            <!-- MARKETING -->
             <q-expansion-item
               v-if="hasSectionAccess(['marketing/penawaran', 'marketing/approval-penawaran'])"
               icon="campaign"
@@ -316,9 +307,9 @@
                   class="level-2-item"
                   active-class="sub-menu-item-active"
                 >
-                  <q-item-section avatar>
-                    <q-icon name="request_quote" size="20px" />
-                  </q-item-section>
+                  <q-item-section avatar
+                    ><q-icon name="request_quote" size="20px"
+                  /></q-item-section>
                   <q-item-section>Penawaran</q-item-section>
                 </q-item>
                 <q-item
@@ -329,9 +320,7 @@
                   class="level-2-item"
                   active-class="sub-menu-item-active"
                 >
-                  <q-item-section avatar>
-                    <q-icon name="fact_check" size="20px" />
-                  </q-item-section>
+                  <q-item-section avatar><q-icon name="fact_check" size="20px" /></q-item-section>
                   <q-item-section>Approval Penawaran</q-item-section>
                   <q-item-section side v-if="pendingApprovalCount > 0">
                     <q-badge color="orange-9" rounded>{{ pendingApprovalCount }}</q-badge>
@@ -340,15 +329,8 @@
               </q-list>
             </q-expansion-item>
 
-            <!-- PROYEK -->
             <q-expansion-item
-              v-if="
-                hasSectionAccess([
-                  'master/proyek-data',
-                  'master/proyek-kategori',
-                  'pelaksanaan/spk-mandor',
-                ])
-              "
+              v-if="hasSectionAccess(['master/proyek-data', 'master/proyek-kategori'])"
               icon="foundation"
               label="PROYEK"
               class="menu-expansion q-mb-sm"
@@ -363,9 +345,7 @@
                   class="level-2-item"
                   active-class="sub-menu-item-active"
                 >
-                  <q-item-section avatar>
-                    <q-icon name="apartment" size="20px" />
-                  </q-item-section>
+                  <q-item-section avatar><q-icon name="apartment" size="20px" /></q-item-section>
                   <q-item-section>Data Proyek</q-item-section>
                 </q-item>
                 <q-item
@@ -376,28 +356,12 @@
                   class="level-2-item"
                   active-class="sub-menu-item-active"
                 >
-                  <q-item-section avatar>
-                    <q-icon name="account_tree" size="20px" />
-                  </q-item-section>
+                  <q-item-section avatar><q-icon name="account_tree" size="20px" /></q-item-section>
                   <q-item-section>Kategori Proyek</q-item-section>
-                </q-item>
-                <q-item
-                  v-if="checkPermission('pelaksanaan/spk-mandor')"
-                  clickable
-                  v-ripple
-                  to="/konstruksi/pelaksanaan/spk-mandor"
-                  class="level-2-item"
-                  active-class="sub-menu-item-active"
-                >
-                  <q-item-section avatar>
-                    <q-icon name="engineering" size="20px" />
-                  </q-item-section>
-                  <q-item-section>SPK Mandor / Pekerja</q-item-section>
                 </q-item>
               </q-list>
             </q-expansion-item>
 
-            <!-- GUDANG -->
             <q-item
               v-if="checkPermission('gudang')"
               clickable
@@ -406,13 +370,10 @@
               class="menu-item q-mb-sm"
               active-class="menu-item-active"
             >
-              <q-item-section avatar>
-                <q-icon name="warehouse" size="22px" />
-              </q-item-section>
+              <q-item-section avatar><q-icon name="warehouse" size="22px" /></q-item-section>
               <q-item-section class="text-weight-bold uppercase">GUDANG & LOGISTIK</q-item-section>
             </q-item>
 
-            <!-- PEMBELIAN -->
             <q-expansion-item
               v-if="checkPermission('pembelian/pesanan')"
               icon="shopping_cart"
@@ -428,10 +389,26 @@
                   class="level-2-item"
                   active-class="sub-menu-item-active"
                 >
-                  <q-item-section avatar>
-                    <q-icon name="receipt_long" size="20px" />
-                  </q-item-section>
+                  <q-item-section avatar><q-icon name="receipt_long" size="20px" /></q-item-section>
                   <q-item-section>Pesanan Pembelian (PO)</q-item-section>
+                </q-item>
+                <q-item
+                  v-if="authStore.user?.role === 'Super Admin' || authStore.user?.role === 'Admin'"
+                  clickable
+                  v-ripple
+                  to="/konstruksi/pembelian/approval-po"
+                  class="level-2-item"
+                  active-class="sub-menu-item-active"
+                >
+                  <q-item-section avatar
+                    ><q-icon name="fact_check" color="orange-9" size="20px"
+                  /></q-item-section>
+                  <q-item-section class="text-weight-bold">Approval PO</q-item-section>
+                  <q-item-section side v-if="pendingPoCount > 0">
+                    <q-badge color="orange-9" rounded padding="4px 8px">{{
+                      pendingPoCount
+                    }}</q-badge>
+                  </q-item-section>
                 </q-item>
               </q-list>
             </q-expansion-item>
@@ -474,7 +451,6 @@
                 <q-item-label class="text-weight-bold">{{ userData?.nik || '-' }}</q-item-label>
               </q-item-section>
             </q-item>
-
             <q-item class="bg-grey-1 rounded-borders">
               <q-item-section avatar><q-icon name="email" color="primary" /></q-item-section>
               <q-item-section>
@@ -484,7 +460,6 @@
                 <q-item-label class="text-weight-medium">{{ userData?.email || '-' }}</q-item-label>
               </q-item-section>
             </q-item>
-
             <q-item class="bg-grey-1 rounded-borders">
               <q-item-section avatar><q-icon name="phone" color="primary" /></q-item-section>
               <q-item-section>
@@ -495,16 +470,6 @@
               </q-item-section>
             </q-item>
           </q-list>
-
-          <!-- <q-btn
-            unelevated
-            color="indigo-10"
-            label="EDIT PROFIL LENGKAP"
-            icon="edit"
-            class="full-width q-mt-lg rounded-borders text-weight-bold"
-            to="#"
-            v-close-popup
-          /> -->
         </q-card-section>
       </q-card>
     </q-dialog>
@@ -524,7 +489,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue' // MENGGUNAKAN computed
 import { auth, db } from 'src/boot/firebase'
 import { signOut } from 'firebase/auth'
 import { collection, query, where, onSnapshot } from 'firebase/firestore'
@@ -536,7 +501,7 @@ const $q = useQuasar()
 const authStore = useAuthStore()
 const router = useRouter()
 const leftDrawerOpen = ref(false)
-const showProfileDialog = ref(false) // State untuk kotak dialog
+const showProfileDialog = ref(false)
 const pendingApprovalCount = ref(0)
 const userData = ref(null)
 const apps = ref([])
@@ -545,6 +510,20 @@ const currentAkses = ref([])
 let unsubscribeUser = null
 let unsubscribeApproval = null
 let unsubscribeApps = null
+
+/**
+ * LOGIKA KRUSIAL: MENCEGAH MODUL DOUBLE DI APP LAUNCHER
+ */
+const filteredUniqueApps = computed(() => {
+  const uniqueMap = new Map()
+  apps.value.forEach((app) => {
+    // Saring modul unik berdasarkan aksesKey dan filter ijin akses
+    if (!uniqueMap.has(app.aksesKey) && canShow(app)) {
+      uniqueMap.set(app.aksesKey, app)
+    }
+  })
+  return Array.from(uniqueMap.values())
+})
 
 const canShow = (app) => {
   if (!authStore.user) return false
@@ -582,7 +561,7 @@ const handleLogout = () => {
       await signOut(auth)
       $q.notify({
         color: 'positive',
-        message: 'Logout Berhasil. Sampai jumpa!',
+        message: 'Logout Berhasil!',
         icon: 'check_circle',
         position: 'top',
       })
@@ -622,17 +601,15 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-/* App Launcher Styles */
 .app-launcher-menu {
   border-radius: 12px;
   overflow: hidden;
   border: 1px solid rgba(0, 0, 0, 0.05);
 }
-
 .app-btn {
   border-radius: 8px;
   padding: 12px 4px;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.5, 1);
+  transition: all 0.3s ease;
   min-height: 85px;
   &:hover {
     background: #f8f9fa;
@@ -640,7 +617,6 @@ onUnmounted(() => {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   }
 }
-
 .active-app {
   background: #e8eaf6;
   border: 1px solid rgba(var(--q-primary), 0.1);
@@ -649,7 +625,6 @@ onUnmounted(() => {
     color: var(--q-primary);
   }
 }
-
 .app-label {
   font-size: 11px;
   margin-top: 8px;
@@ -657,12 +632,9 @@ onUnmounted(() => {
   font-weight: 500;
   line-height: 1.2;
 }
-
-/* Sidebar Navigation Styles */
 .menu-item {
   border-radius: 0 25px 25px 0;
   color: #546e7a;
-  transition: all 0.3s ease;
   margin: 0 12px 4px 0;
   font-size: 13.5px;
   &:hover {
@@ -670,14 +642,12 @@ onUnmounted(() => {
     color: #1a237e;
   }
 }
-
 .menu-item-active {
   background-color: #e8eaf6 !important;
   color: #1a237e !important;
   font-weight: 800 !important;
   border-right: 5px solid #1a237e;
 }
-
 .menu-expansion {
   border-radius: 0 25px 25px 0;
   margin: 0 12px 4px 0;
@@ -687,8 +657,6 @@ onUnmounted(() => {
     min-height: 50px;
   }
 }
-
-/* LEVEL 2 INDENTATION */
 .level-2-expansion {
   margin-bottom: 2px;
   :deep(.q-item) {
@@ -700,7 +668,6 @@ onUnmounted(() => {
     min-width: 40px;
   }
 }
-
 .level-2-item {
   border-radius: 0 25px 25px 0;
   margin-bottom: 2px;
@@ -708,14 +675,10 @@ onUnmounted(() => {
   padding-left: 42px;
   font-size: 13.5px;
   color: #546e7a;
-  transition: all 0.2s ease;
   &:hover {
-    color: #1a237e;
     background-color: #f5f5f5;
   }
 }
-
-/* LEVEL 3 INDENTATION */
 .level-3-item {
   border-radius: 0 25px 25px 0;
   margin-bottom: 2px;
@@ -723,46 +686,20 @@ onUnmounted(() => {
   padding-left: 72px;
   font-size: 13px;
   color: #607d8b;
-  transition: all 0.2s ease;
-  &:hover {
-    color: #1a237e;
-    background-color: #f5f5f5;
-  }
   :deep(.q-item__section--avatar) {
     min-width: 32px;
   }
 }
-
 .sub-menu-item-active {
   color: #1a237e !important;
   font-weight: 700;
   background-color: rgba(26, 35, 126, 0.05) !important;
 }
-
 .border-bottom-soft {
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
-
-.text-indigo-2 {
-  color: #c5cae9;
-}
-
-.tracking-widest {
-  letter-spacing: 0.12em;
-}
-
-.uppercase {
-  text-transform: uppercase;
-}
-
-.rounded-12 {
-  border-radius: 12px;
-}
 .rounded-20 {
   border-radius: 20px;
-}
-.font-10 {
-  font-size: 10px;
 }
 .border-white-3 {
   border: 3px solid white;
