@@ -16,14 +16,14 @@
 
         <q-space />
 
-        <!-- NOTIFIKASI -->
+        <!-- NOTIFIKASI TOTAL (Penawaran + PR) -->
         <q-btn flat round icon="notifications" class="q-mr-xs">
-          <q-badge color="red" floating v-if="pendingApprovalCount > 0">
-            {{ pendingApprovalCount }}
+          <q-badge color="red" floating v-if="pendingApprovalCount + pendingPrCount > 0">
+            {{ pendingApprovalCount + pendingPrCount }}
           </q-badge>
         </q-btn>
 
-        <!-- APP LAUNCHER (PERBAIKAN: ANTI-DUPLIKAT) -->
+        <!-- APP LAUNCHER -->
         <q-btn flat round icon="apps" class="q-mr-xs">
           <q-menu
             auto-close
@@ -35,7 +35,6 @@
             <div class="q-pa-md bg-white" style="width: 320px; border-radius: 12px">
               <div class="text-overline q-px-sm q-pb-sm text-grey-7">Modul Agra ERP</div>
               <div class="row q-col-gutter-sm">
-                <!-- MENGGUNAKAN filteredUniqueApps AGAR TIDAK DOUBLE -->
                 <template v-for="app in filteredUniqueApps" :key="app.aksesKey">
                   <div class="col-4">
                     <q-btn
@@ -67,7 +66,7 @@
           </q-menu>
         </q-btn>
 
-        <!-- USER AVATAR (Interactive Menu) -->
+        <!-- USER PROFILE -->
         <q-btn flat round no-caps class="q-ml-xs">
           <q-avatar
             size="32px"
@@ -77,8 +76,6 @@
           >
             {{ userData?.nama?.charAt(0) || 'A' }}
           </q-avatar>
-
-          <!-- Dropdown Menu Profile -->
           <q-menu
             auto-close
             anchor="bottom right"
@@ -106,18 +103,14 @@
                   }}</q-item-label>
                 </q-item-section>
               </q-item>
-
               <q-separator class="q-my-sm" />
-
               <q-item clickable v-ripple class="rounded-borders" @click="showProfileDialog = true">
                 <q-item-section avatar
                   ><q-icon name="person_outline" color="blue-grey-7" size="20px"
                 /></q-item-section>
                 <q-item-section class="text-weight-medium">Profil Saya</q-item-section>
               </q-item>
-
               <q-separator class="q-my-sm" />
-
               <q-item
                 clickable
                 v-ripple
@@ -136,7 +129,6 @@
     <!-- Sidebar / Drawer -->
     <q-drawer v-model="leftDrawerOpen" show-if-above :width="295" class="bg-white" elevation="10">
       <div class="column fit">
-        <!-- Drawer Header -->
         <div class="q-pa-lg bg-indigo-1 text-indigo-10 border-bottom-soft">
           <div class="row items-center q-gutter-md">
             <q-avatar size="56px" color="indigo-10" text-color="white" class="shadow-2">
@@ -161,7 +153,6 @@
             <div class="q-px-md q-pt-sm q-pb-sm text-overline text-grey-6 tracking-widest">
               UTAMA
             </div>
-
             <q-item
               v-if="checkPermission('dashboard')"
               clickable
@@ -170,12 +161,11 @@
               class="menu-item q-mb-sm"
               active-class="menu-item-active"
             >
-              <q-item-section avatar>
-                <q-icon name="dashboard" size="22px" />
-              </q-item-section>
+              <q-item-section avatar><q-icon name="dashboard" size="22px" /></q-item-section>
               <q-item-section class="text-weight-bold">DASHBOARD</q-item-section>
             </q-item>
 
+            <!-- DATA MASTER -->
             <q-expansion-item
               v-if="
                 hasSectionAccess([
@@ -193,6 +183,7 @@
               default-opened
             >
               <q-list>
+                <!-- Rekanan -->
                 <q-expansion-item
                   v-if="hasSectionAccess(['marketing/customer', 'master/supplier'])"
                   icon="groups"
@@ -230,7 +221,7 @@
                     </q-item>
                   </q-list>
                 </q-expansion-item>
-
+                <!-- Barang -->
                 <q-expansion-item
                   v-if="
                     hasSectionAccess([
@@ -291,14 +282,34 @@
               OPERASIONAL
             </div>
 
+            <!-- MARKETING -->
             <q-expansion-item
-              v-if="hasSectionAccess(['marketing/penawaran', 'marketing/approval-penawaran'])"
+              v-if="
+                hasSectionAccess([
+                  'marketing/penawaran',
+                  'marketing/approval-penawaran',
+                  'marketing/ahsp',
+                ])
+              "
               icon="campaign"
               label="MARKETING"
               class="menu-expansion q-mb-sm"
               header-class="text-weight-bold"
             >
               <q-list>
+                <!-- MENU BARU: AHSP -->
+                <q-item
+                  v-if="checkPermission('marketing/ahsp')"
+                  clickable
+                  v-ripple
+                  to="/konstruksi/marketing/ahsp"
+                  class="level-2-item"
+                  active-class="sub-menu-item-active"
+                >
+                  <q-item-section avatar><q-icon name="calculate" size="20px" /></q-item-section>
+                  <q-item-section>Analisa AHSP</q-item-section>
+                </q-item>
+
                 <q-item
                   v-if="checkPermission('marketing/penawaran')"
                   clickable
@@ -312,6 +323,7 @@
                   /></q-item-section>
                   <q-item-section>Penawaran</q-item-section>
                 </q-item>
+
                 <q-item
                   v-if="checkPermission('marketing/approval-penawaran')"
                   clickable
@@ -329,6 +341,7 @@
               </q-list>
             </q-expansion-item>
 
+            <!-- PROYEK -->
             <q-expansion-item
               v-if="hasSectionAccess(['master/proyek-data', 'master/proyek-kategori'])"
               icon="foundation"
@@ -362,6 +375,7 @@
               </q-list>
             </q-expansion-item>
 
+            <!-- GUDANG -->
             <q-item
               v-if="checkPermission('gudang')"
               clickable
@@ -374,12 +388,14 @@
               <q-item-section class="text-weight-bold uppercase">GUDANG & LOGISTIK</q-item-section>
             </q-item>
 
+            <!-- PEMBELIAN -->
             <q-expansion-item
               v-if="checkPermission('pembelian/pesanan')"
               icon="shopping_cart"
               label="PEMBELIAN"
               class="menu-expansion q-mb-sm"
               header-class="text-weight-bold"
+              default-opened
             >
               <q-list>
                 <q-item
@@ -391,6 +407,12 @@
                 >
                   <q-item-section avatar><q-icon name="receipt_long" size="20px" /></q-item-section>
                   <q-item-section>Pesanan Pembelian (PO)</q-item-section>
+                  <!-- BADGE NOTIFIKASI PR PENDING -->
+                  <q-item-section side v-if="pendingPrCount > 0">
+                    <q-badge color="orange-9" rounded class="q-px-sm text-weight-bold">{{
+                      pendingPrCount
+                    }}</q-badge>
+                  </q-item-section>
                 </q-item>
               </q-list>
             </q-expansion-item>
@@ -401,61 +423,7 @@
       </div>
     </q-drawer>
 
-    <!-- DIALOG PROFIL SAYA (MODERN BOX) -->
-    <q-dialog v-model="showProfileDialog" backdrop-filter="blur(4px)">
-      <q-card style="width: 400px; max-width: 90vw" class="rounded-20 overflow-hidden shadow-24">
-        <q-card-section class="bg-indigo-10 text-white q-pa-xl text-center relative-position">
-          <q-btn
-            icon="close"
-            flat
-            round
-            dense
-            v-close-popup
-            class="absolute-top-right q-ma-md opacity-70"
-          />
-          <q-avatar size="100px" class="shadow-10 border-white-3 q-mb-md">
-            <img :src="userData?.fotoUrl || 'https://cdn.quasar.dev/img/avatar.png'" />
-          </q-avatar>
-          <div class="text-h5 text-weight-black">{{ userData?.nama || 'Administrator' }}</div>
-          <div class="text-subtitle2 opacity-80 uppercase tracking-widest q-mt-xs">
-            {{ authStore.user?.role || 'Staff' }}
-          </div>
-        </q-card-section>
-
-        <q-card-section class="q-pa-lg">
-          <q-list class="q-gutter-y-sm">
-            <q-item class="bg-grey-1 rounded-borders">
-              <q-item-section avatar><q-icon name="fingerprint" color="primary" /></q-item-section>
-              <q-item-section>
-                <q-item-label caption class="text-weight-bold text-grey-7 uppercase font-10"
-                  >ID Karyawan (NIK)</q-item-label
-                >
-                <q-item-label class="text-weight-bold">{{ userData?.nik || '-' }}</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item class="bg-grey-1 rounded-borders">
-              <q-item-section avatar><q-icon name="email" color="primary" /></q-item-section>
-              <q-item-section>
-                <q-item-label caption class="text-weight-bold text-grey-7 uppercase font-10"
-                  >Email Sistem</q-item-label
-                >
-                <q-item-label class="text-weight-medium">{{ userData?.email || '-' }}</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item class="bg-grey-1 rounded-borders">
-              <q-item-section avatar><q-icon name="phone" color="primary" /></q-item-section>
-              <q-item-section>
-                <q-item-label caption class="text-weight-bold text-grey-7 uppercase font-10"
-                  >No. Telepon / WA</q-item-label
-                >
-                <q-item-label class="text-weight-medium">{{ userData?.hp || '-' }}</q-item-label>
-              </q-item-section>
-            </q-item>
-          </q-list>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
-
+    <!-- Page Container -->
     <q-page-container>
       <router-view v-slot="{ Component }">
         <transition
@@ -471,7 +439,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue' // MENGGUNAKAN computed
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { auth, db } from 'src/boot/firebase'
 import { signOut } from 'firebase/auth'
 import { collection, query, where, onSnapshot } from 'firebase/firestore'
@@ -485,21 +453,19 @@ const router = useRouter()
 const leftDrawerOpen = ref(false)
 const showProfileDialog = ref(false)
 const pendingApprovalCount = ref(0)
+const pendingPrCount = ref(0)
 const userData = ref(null)
 const apps = ref([])
 const currentAkses = ref([])
 
-let unsubscribeUser = null
-let unsubscribeApproval = null
-let unsubscribeApps = null
+let unsubUser = null
+let unsubApproval = null
+let unsubApps = null
+let unsubPrBadge = null
 
-/**
- * LOGIKA KRUSIAL: MENCEGAH MODUL DOUBLE DI APP LAUNCHER
- */
 const filteredUniqueApps = computed(() => {
   const uniqueMap = new Map()
   apps.value.forEach((app) => {
-    // Saring modul unik berdasarkan aksesKey dan filter ijin akses
     if (!uniqueMap.has(app.aksesKey) && canShow(app)) {
       uniqueMap.set(app.aksesKey, app)
     }
@@ -535,33 +501,30 @@ const handleLogout = () => {
     title: '<span class="text-indigo-10 text-weight-bold">Konfirmasi Keluar</span>',
     message: 'Apakah Anda yakin ingin mengakhiri sesi AGRA ERP ini?',
     html: true,
-    cancel: { flat: true, label: 'Batal', color: 'grey-7' },
+    cancel: true,
     ok: { unelevated: true, label: 'Ya, Keluar', color: 'negative', rounded: true },
     persistent: true,
   }).onOk(async () => {
     try {
       await signOut(auth)
-      $q.notify({
-        color: 'positive',
-        message: 'Logout Berhasil!',
-        icon: 'check_circle',
-        position: 'top',
-      })
       router.push('/login')
     } catch (e) {
-      $q.notify({ color: 'negative', message: 'Gagal Logout: ' + e.message })
+      console.error(e)
     }
   })
 }
 
 onMounted(() => {
-  unsubscribeApps = onSnapshot(collection(db, 'modul'), (snapshot) => {
+  // 1. Ambil List Modul
+  unsubApps = onSnapshot(collection(db, 'modul'), (snapshot) => {
     apps.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
   })
+
+  // 2. Ambil Data User Aktif
   const userEmail = authStore.user?.email
   if (userEmail) {
     const qUser = query(collection(db, 'karyawan'), where('email', '==', userEmail))
-    unsubscribeUser = onSnapshot(qUser, (snapshot) => {
+    unsubUser = onSnapshot(qUser, (snapshot) => {
       if (!snapshot.empty) {
         const data = snapshot.docs[0].data()
         userData.value = data
@@ -569,16 +532,29 @@ onMounted(() => {
       }
     })
   }
+
+  // 3. Notifikasi Penawaran Pending
   const qApproval = query(collection(db, 'penawaran'), where('status', '==', 'Pending'))
-  unsubscribeApproval = onSnapshot(qApproval, (snapshot) => {
+  unsubApproval = onSnapshot(qApproval, (snapshot) => {
     pendingApprovalCount.value = snapshot.size
+  })
+
+  // 4. Notifikasi Purchase Request Pending (Untuk Menu Pembelian)
+  const qPr = query(
+    collection(db, 'permintaan_barang'),
+    where('status', '==', 'Pending'),
+    where('tipe', '==', 'PURCHASE_REQUEST'),
+  )
+  unsubPrBadge = onSnapshot(qPr, (snap) => {
+    pendingPrCount.value = snap.size
   })
 })
 
 onUnmounted(() => {
-  if (unsubscribeUser) unsubscribeUser()
-  if (unsubscribeApproval) unsubscribeApproval()
-  if (unsubscribeApps) unsubscribeApps()
+  if (unsubUser) unsubUser()
+  if (unsubApproval) unsubApproval()
+  if (unsubApps) unsubApps()
+  if (unsubPrBadge) unsubPrBadge()
 })
 </script>
 
@@ -601,10 +577,10 @@ onUnmounted(() => {
 }
 .active-app {
   background: #e8eaf6;
-  border: 1px solid rgba(var(--q-primary), 0.1);
+  border: 1px solid rgba(26, 35, 126, 0.1);
   .app-label {
     font-weight: 700;
-    color: var(--q-primary);
+    color: #1a237e;
   }
 }
 .app-label {
@@ -646,9 +622,6 @@ onUnmounted(() => {
     min-height: 44px;
     border-radius: 0 25px 25px 0;
   }
-  :deep(.q-item__section--avatar) {
-    min-width: 40px;
-  }
 }
 .level-2-item {
   border-radius: 0 25px 25px 0;
@@ -668,9 +641,6 @@ onUnmounted(() => {
   padding-left: 72px;
   font-size: 13px;
   color: #607d8b;
-  :deep(.q-item__section--avatar) {
-    min-width: 32px;
-  }
 }
 .sub-menu-item-active {
   color: #1a237e !important;

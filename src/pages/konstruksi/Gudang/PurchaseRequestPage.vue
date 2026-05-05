@@ -17,6 +17,7 @@
         </div>
         <div class="col-12 col-md-auto q-mt-md q-mt-md-none">
           <q-btn
+            v-if="canAction('buat')"
             color="indigo-10"
             icon="add_circle"
             label="Buat Pengajuan Baru"
@@ -46,14 +47,9 @@
               </q-input>
             </div>
             <q-space />
-            <div class="col-12 col-md-auto">
-              <q-badge
-                color="indigo-1"
-                text-color="indigo-10"
-                class="q-pa-sm rounded-12 text-weight-bold"
-              >
-                {{ rows.length }} DOKUMEN TERCATAT
-              </q-badge>
+            <div class="col-12 col-md-auto text-caption text-grey-6">
+              Total Dokumen:
+              <span class="text-weight-bold text-indigo-10">{{ rows.length }} Record</span>
             </div>
           </div>
         </q-card-section>
@@ -95,9 +91,15 @@
               }}</q-td>
               <q-td key="gudang">
                 <div class="text-weight-bold text-blue-grey-9 uppercase">
-                  {{ props.row.proyek_nama || props.row.dari_gudang?.nama }}
+                  {{ props.row.proyek_nama }}
                 </div>
                 <div class="text-caption text-grey-6">{{ props.row.pemohon?.nama }}</div>
+                <div
+                  v-if="props.row.status === 'Rejected' && props.row.alasan_reject"
+                  class="text-negative text-caption italic"
+                >
+                  <q-icon name="info" size="xs" /> {{ props.row.alasan_reject }}
+                </div>
               </q-td>
               <q-td key="total" class="text-right text-weight-bold">
                 Rp {{ (props.row.total_estimasi || 0).toLocaleString() }}
@@ -109,27 +111,57 @@
                   size="sm"
                   class="text-weight-bold shadow-sm"
                 >
-                  {{ props.row.status }}
+                  {{ props.row.status || 'Draft' }}
                 </q-chip>
               </q-td>
               <q-td key="aksi" class="text-center" @click.stop>
-                <q-btn
-                  flat
-                  round
-                  color="indigo-10"
-                  icon="visibility"
-                  size="sm"
-                  @click="openPreview(props.row)"
-                />
-                <q-btn
-                  v-if="props.row.status === 'Pending'"
-                  flat
-                  round
-                  color="negative"
-                  icon="delete_outline"
-                  size="sm"
-                  @click="confirmHapus(props.row)"
-                />
+                <div class="row justify-center q-gutter-xs">
+                  <!-- ACTION: AJUKAN APPROVAL -->
+                  <q-btn
+                    v-if="
+                      canAction('ubah') &&
+                      (props.row.status === 'Draft' || props.row.status === 'Rejected')
+                    "
+                    flat
+                    round
+                    color="orange-9"
+                    icon="send"
+                    size="sm"
+                    @click="ajukanPR(props.row)"
+                  >
+                    <q-tooltip>Ajukan Approval</q-tooltip>
+                  </q-btn>
+
+                  <!-- ACTION: EDIT DRAFT -->
+                  <q-btn
+                    v-if="
+                      canAction('ubah') &&
+                      props.row.status !== 'Approved' &&
+                      props.row.status !== 'Ordered'
+                    "
+                    flat
+                    round
+                    color="blue-8"
+                    icon="edit_note"
+                    size="sm"
+                    @click="openEditDialog(props.row)"
+                  >
+                    <q-tooltip>Edit Draft</q-tooltip>
+                  </q-btn>
+
+                  <!-- ACTION: HAPUS -->
+                  <q-btn
+                    v-if="canAction('hapus')"
+                    flat
+                    round
+                    color="negative"
+                    icon="delete_outline"
+                    size="sm"
+                    @click="confirmHapus(props.row)"
+                  >
+                    <q-tooltip>Hapus</q-tooltip>
+                  </q-btn>
+                </div>
               </q-td>
             </q-tr>
           </template>
@@ -148,13 +180,13 @@
       <q-card class="column bg-grey-2">
         <q-toolbar class="bg-white text-indigo-10 q-py-md shadow-2 shrink">
           <q-btn flat round dense icon="close" v-close-popup color="grey-7" />
-          <q-toolbar-title class="text-weight-bold text-center uppercase tracking-widest"
-            >Entry Purchase Request</q-toolbar-title
-          >
+          <q-toolbar-title class="text-weight-bold text-center uppercase tracking-widest">
+            {{ isEditMode ? 'EDIT' : 'ENTRY' }} PURCHASE REQUEST
+          </q-toolbar-title>
           <q-btn
             unelevated
             color="indigo-10"
-            label="SIMPAN & AJUKAN PR"
+            :label="isEditMode ? 'UPDATE PERUBAHAN' : 'SIMPAN SEBAGAI DRAFT'"
             :loading="submitting"
             @click="submitPurchaseRequest"
             rounded
@@ -194,11 +226,17 @@
                     </div>
                     <div class="col-12 col-md-4">
                       <div class="label-req q-mb-xs">NOMOR REFERENSI (Auto)</div>
-                      <q-input outlined dense v-model="form.nomor" bg-color="white" readonly />
+                      <q-input
+                        outlined
+                        dense
+                        v-model="form.nomor"
+                        bg-color="white"
+                        :readonly="!isEditMode"
+                      />
                     </div>
 
                     <div class="col-12 col-md-4">
-                      <div class="label-req q-mb-xs">TUJUAN DIVISI / PROYEK (Otomatis) *</div>
+                      <div class="label-req q-mb-xs">GUDANG / PROJECT (Contextual) *</div>
                       <q-input
                         filled
                         dense
@@ -331,7 +369,7 @@
                           @update:model-value="calcRow(index)"
                         />
                       </td>
-                      <td class="text-right text-weight-black text-indigo-10 bg-indigo-1">
+                      <td class="text-right text-weight-black text-indigo-10 bg-indigo-0">
                         Rp {{ (item.total || 0).toLocaleString() }}
                       </td>
                       <td class="text-center">
@@ -541,7 +579,7 @@
       </q-card>
     </q-dialog>
 
-    <!-- PREVIEW DIALOG (REFINED ELEGANCE) -->
+    <!-- PREVIEW DIALOG -->
     <q-dialog v-model="showPreview" maximized transition-show="fade" transition-hide="fade">
       <q-card class="column no-wrap bg-grey-4">
         <q-toolbar class="bg-white text-indigo-10 q-py-md no-print shadow-2 shrink">
@@ -555,7 +593,6 @@
 
         <q-card-section class="col scroll q-pa-md q-pa-md-xl flex flex-center">
           <div id="pr-print-area" class="letter-paper shadow-24" v-if="selectedData">
-            <!-- HEADER (KOP SURAT) -->
             <div class="row no-wrap items-center">
               <div v-if="selectedData.logoUrl" class="col-auto q-mr-xl">
                 <img :src="selectedData.logoUrl" class="final-kop-img" />
@@ -566,8 +603,6 @@
               </div>
             </div>
             <div class="final-divider"></div>
-
-            <!-- JUDUL & NOMOR PR (REFINED SIZE) -->
             <div class="row justify-end q-mt-md">
               <div class="col-auto text-right">
                 <div class="quotation-title-pro uppercase">PURCHASE REQUEST</div>
@@ -576,8 +611,6 @@
                 </div>
               </div>
             </div>
-
-            <!-- META INFO (PERFECT ALIGNMENT) -->
             <div class="row q-mt-md q-mb-lg text-left text-body2">
               <div class="col-7">
                 <table class="meta-info-table">
@@ -614,19 +647,15 @@
                 </div>
               </div>
             </div>
-
-            <!-- Content Intro -->
             <div
               class="text-body2 q-mb-sm text-left leading-relaxed"
               v-html="selectedData.introduction"
             ></div>
-
-            <!-- TABLE ITEM (DINAMIS 1:1) -->
             <table class="final-pro-table full-width">
               <thead>
                 <tr>
                   <th width="40">NO</th>
-                  <th class="text-left">ITEM DESCRIPTION</th>
+                  <th>ITEM DESCRIPTION</th>
                   <th width="60">QTY</th>
                   <th width="60">UNIT</th>
                   <th width="120">est UNIT PRICE</th>
@@ -645,7 +674,7 @@
                   </td>
                 </tr>
               </tbody>
-              <tfoot class="final-table-footer">
+              <tfoot>
                 <tr class="row-calculation">
                   <td colspan="5" class="text-right text-bold uppercase">Subtotal Amount</td>
                   <td class="text-right text-bold text-indigo-10">
@@ -662,8 +691,6 @@
                 </tr>
               </tfoot>
             </table>
-
-            <!-- TERMS -->
             <div class="terms-container text-left q-mt-lg">
               <div class="terms-header uppercase">Syarat & Kondisi :</div>
               <div
@@ -671,8 +698,6 @@
                 v-html="selectedData.terms"
               ></div>
             </div>
-
-            <!-- SIGNATURE AREA (PRECISE PREPARED BY) -->
             <div class="signature-container text-left q-mt-xl">
               <div class="text-closing-final q-mb-md font-11" v-html="selectedData.closing"></div>
               <div class="row q-mt-lg justify-end">
@@ -686,7 +711,7 @@
                       :src="selectedData.signatureUrl"
                       class="img-signature-clean"
                     />
-                    <div v-else style="height: 80px" class="flex flex-center text-grey-4 italic">
+                    <div v-else style="height: 100px" class="flex flex-center text-grey-4 italic">
                       Belum ditandatangani
                     </div>
                   </div>
@@ -713,6 +738,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+// eslint-disable-next-line no-unused-vars
 import { db, storage } from 'src/boot/firebase'
 import {
   collection,
@@ -724,7 +750,11 @@ import {
   setDoc,
   getDoc,
   deleteDoc,
+  updateDoc,
+  query,
+  where,
 } from 'firebase/firestore'
+// eslint-disable-next-line no-unused-vars
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { useQuasar } from 'quasar'
 import { useAuthStore } from 'src/stores/auth'
@@ -744,6 +774,7 @@ const selectedWarehouseObj = ref(null)
 const showDialog = ref(false)
 const showPreview = ref(false)
 const showPad = ref(false)
+const isEditMode = ref(false)
 const loading = ref(true)
 const submitting = ref(false)
 const loadingSpk = ref(false)
@@ -756,6 +787,7 @@ const masterBarang = ref([])
 const allBarang = ref([])
 const selectedData = ref(null)
 const tempKopFile = ref(null)
+// eslint-disable-next-line no-unused-vars
 const analisaFile = ref(null)
 const tempSignFile = ref(null)
 const signatureCanvas = ref(null)
@@ -796,8 +828,20 @@ const formDefault = {
   approve_jabatan: 'Manager Operasional',
   no_reff: '',
   catatan: '',
+  status: 'Draft',
 }
 const form = ref({ ...formDefault })
+
+// --- PERMISSIONS (Like PenawaranPage) ---
+const canAction = (actionType) => {
+  if (authStore.user?.role === 'Super Admin') return true
+  if (!userData.value?.permissions_detail) return false
+  const modulePerm = userData.value.permissions_detail.find((m) => m.id === 'konstruksi')
+  if (!modulePerm || !modulePerm.isActive) return false
+  const targetId = '_konstruksi_gudang_permintaan' // Sesuaikan dengan ID menu gudang/PR lo
+  const menu = modulePerm.menus.find((m) => m.id === targetId)
+  return menu ? menu[actionType] || false : false
+}
 
 const fetchData = async () => {
   loading.value = true
@@ -838,27 +882,109 @@ const fetchData = async () => {
 const fetchCurrentUser = () => {
   const email = authStore.user?.email
   if (!email) return
-  unsubUser = onSnapshot(collection(db, 'karyawan'), (snap) => {
-    const found = snap.docs.find((d) => d.data().email === email)
-    if (found) {
-      userData.value = found.data()
-      form.value.ttd_nama = userData.value.nama
-      form.value.ttd_jabatan = userData.value.jabatan
+  const qKaryawan = query(collection(db, 'karyawan'), where('email', '==', email))
+  unsubUser = onSnapshot(qKaryawan, (snap) => {
+    if (!snap.empty) {
+      userData.value = snap.docs[0].data()
+      if (!isEditMode.value) {
+        form.value.ttd_nama = userData.value.nama
+        form.value.ttd_jabatan = userData.value.jabatan
+      }
     }
   })
 }
 
-const loadSpkByProject = async (projId) => {
-  if (!projId || projId === 'UTAMA') {
-    optSpk.value = []
-    return
+// --- WORKFLOW ACTIONS ---
+const openAddDialog = () => {
+  isEditMode.value = false
+  form.value = JSON.parse(JSON.stringify(formDefault))
+  form.value.nomor =
+    'PR/AAP/' +
+    (new Date().getMonth() + 1).toString().padStart(2, '0') +
+    '/' +
+    Date.now().toString().slice(-4)
+  form.value.logoUrl = config.value.kopUrl || ''
+  form.value.nama_pt = config.value.nama_pt || 'PT AGRA ABHINAYA PERKASA'
+  if (userData.value) {
+    form.value.ttd_nama = userData.value.nama
+    form.value.ttd_jabatan = userData.value.jabatan
   }
-  loadingSpk.value = true
-  const snap = await getDocs(collection(db, 'spk_customer'))
-  optSpk.value = snap.docs
-    .map((d) => ({ id: d.id, ...d.data() }))
-    .filter((d) => d.projectId === projId)
-  loadingSpk.value = false
+  showDialog.value = true
+}
+
+const openEditDialog = (row) => {
+  isEditMode.value = true
+  form.value = JSON.parse(JSON.stringify(row))
+  showDialog.value = true
+}
+
+const ajukanPR = (row) => {
+  $q.dialog({
+    title: 'Ajukan Approval',
+    message: `Kirim Purchase Request ${row.nomor} untuk diperiksa pimpinan?`,
+    cancel: true,
+    ok: { color: 'orange-9', unelevated: true, label: 'Ya, Kirim' },
+  }).onOk(async () => {
+    try {
+      await updateDoc(doc(db, 'permintaan_barang', row.id), {
+        status: 'Pending',
+        updatedAt: serverTimestamp(),
+      })
+      $q.notify({ type: 'positive', message: 'Berhasil dikirim ke antrean approval.' })
+    } catch (e) {
+      $q.notify({ type: 'negative', message: 'Gagal: ' + e.message })
+    }
+  })
+}
+
+const submitPurchaseRequest = async () => {
+  if (!selectedWarehouseObj.value)
+    return $q.notify({ type: 'negative', message: 'Gudang tidak terdeteksi!' })
+  if (!form.value.signatureUrl)
+    return $q.notify({ type: 'warning', message: 'Tanda tangan wajib diisi!' })
+
+  submitting.value = true
+  try {
+    const payload = {
+      ...form.value,
+      tipe: 'PURCHASE_REQUEST',
+      proyek_id: selectedWarehouseObj.value.id,
+      proyek_nama: selectedWarehouseObj.value.nama,
+      no_reff: selectedSpk.value?.nomor_spk || form.value.no_reff || '',
+      total_estimasi: calculateTotalPR(),
+      pemohon: { id: authStore.user?.uid, nama: authStore.user?.nama },
+      updatedAt: serverTimestamp(),
+    }
+
+    payload.items = payload.items.map((it) => ({
+      id_barang: it.id_barang,
+      nama_barang: it.nama_barang,
+      qty: it.qty,
+      satuan: it.satuan,
+      estimasi_harga: it.estimasi_harga,
+      total: it.qty * it.estimasi_harga,
+    }))
+
+    const docId = payload.id
+    if (isEditMode.value && docId) {
+      delete payload.id
+      await updateDoc(doc(db, 'permintaan_barang', docId), payload)
+    } else {
+      payload.timestamp = serverTimestamp()
+      payload.status = 'Draft'
+      await addDoc(collection(db, 'permintaan_barang'), payload)
+    }
+
+    showDialog.value = false
+    $q.notify({
+      type: 'positive',
+      message: `PR Berhasil ${isEditMode.value ? 'Diupdate' : 'Disimpan sebagai Draft'}!`,
+    })
+  } catch (e) {
+    $q.notify({ type: 'negative', message: e.message })
+  } finally {
+    submitting.value = false
+  }
 }
 
 // --- SIGNATURE LOGIC ---
@@ -873,27 +999,21 @@ watch(showPad, async (v) => {
     signaturePad = new SignaturePad(c, { penColor: '#000000' })
   }
 })
-
 const clearPad = () => signaturePad?.clear()
-
 const saveManualSignature = () => {
-  if (!signaturePad || signaturePad.isEmpty())
-    return $q.notify({ type: 'warning', message: 'Silakan tanda tangan!' })
+  if (!signaturePad || signaturePad.isEmpty()) return
   form.value.signatureUrl = signaturePad.toDataURL()
   showPad.value = false
 }
-
 const uploadSignatureFile = (file) => {
   if (!file) return
   const reader = new FileReader()
   reader.readAsDataURL(file)
   reader.onload = () => {
     form.value.signatureUrl = reader.result
-    $q.notify({ type: 'positive', message: 'Tanda tangan berhasil diunggah' })
+    $q.notify({ type: 'positive', message: 'Tanda tangan diunggah' })
   }
 }
-
-// --- ACTIONS ---
 const handleLogoChange = async (f) => {
   if (!f) return
   const r = new FileReader()
@@ -903,66 +1023,11 @@ const handleLogoChange = async (f) => {
     await setDoc(doc(db, 'config', 'perusahaan'), { kopUrl: r.result }, { merge: true })
   }
 }
-const openAddDialog = () => {
-  form.value = JSON.parse(JSON.stringify(formDefault))
-  form.value.nomor =
-    'PR/AAP/' +
-    (new Date().getMonth() + 1).toString().padStart(2, '0') +
-    '/' +
-    Date.now().toString().slice(-4)
-  form.value.logoUrl = config.value.kopUrl || ''
-  form.value.nama_pt = config.value.nama_pt || 'PT AGRA ABHINAYA PERKASA'
-  if (userData.value) {
-    form.value.ttd_nama = userData.value.nama
-    form.value.ttd_jabatan = userData.value.jabatan
-  }
-  if (warehouseIdContext && warehouseIdContext !== 'UTAMA') loadSpkByProject(warehouseIdContext)
-  showDialog.value = true
-}
 const calcRow = (idx) => {
   const it = form.value.items[idx]
   it.total = (it.qty || 0) * (it.estimasi_harga || 0)
 }
 const calculateTotalPR = () => form.value.items.reduce((s, it) => s + (it.total || 0), 0)
-const submitPurchaseRequest = async () => {
-  if (!selectedWarehouseObj.value) return
-  submitting.value = true
-  try {
-    let docUrl = ''
-    if (analisaFile.value) {
-      const r = storageRef(storage, `pr/analisa/${Date.now()}_${analisaFile.value.name}`)
-      const s = await uploadBytes(r, analisaFile.value)
-      docUrl = await getDownloadURL(s.ref)
-    }
-    const p = {
-      ...form.value,
-      tipe: 'PURCHASE_REQUEST',
-      status: 'Pending',
-      proyek_id: selectedWarehouseObj.value.id,
-      proyek_nama: selectedWarehouseObj.value.nama,
-      no_reff: selectedSpk.value?.nomor_spk || '',
-      analisa_harga_url: docUrl,
-      total_estimasi: calculateTotalPR(),
-      pemohon: { id: authStore.user?.uid, nama: authStore.user?.nama },
-      timestamp: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    }
-    p.items = p.items.map((it) => ({
-      id_barang: it.id_barang,
-      nama_barang: it.nama_barang,
-      qty: it.qty,
-      satuan: it.satuan,
-      estimasi_harga: it.estimasi_harga,
-      total: it.qty * it.estimasi_harga,
-    }))
-    await addDoc(collection(db, 'permintaan_barang'), p)
-    showDialog.value = false
-  } catch (e) {
-    console.error(e)
-  } finally {
-    submitting.value = false
-  }
-}
 const addItemRow = () =>
   form.value.items.push({
     barang: null,
@@ -997,7 +1062,9 @@ const getStatusColor = (s) =>
       ? 'negative'
       : s === 'Ordered'
         ? 'indigo-10'
-        : 'orange-8'
+        : s === 'Pending'
+          ? 'orange-8'
+          : 'blue-grey-6'
 const openPreview = (r) => {
   selectedData.value = r
   showPreview.value = true
@@ -1007,7 +1074,7 @@ const exportToPDF = () => {
   const e = document.getElementById('pr-print-area')
   const o = {
     margin: 0,
-    filename: `PR_${selectedData.value.nomor.replace(/\//g, '-')}.pdf`,
+    filename: `PR_${selectedData.value.nomor}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
     html2canvas: { scale: 2.5, useCORS: true, letterRendering: true },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
@@ -1031,6 +1098,7 @@ onUnmounted(() => {
   if (unsubUser) unsubUser()
   if (unsubRows) unsubRows()
 })
+
 const columns = [
   { name: 'nomor', align: 'left', label: 'REFERENCE NO', field: 'nomor', sortable: true },
   { name: 'gudang', align: 'left', label: 'PROJECT / REQUESTOR', field: 'proyek_nama' },
@@ -1042,7 +1110,7 @@ const columns = [
     sortable: true,
   },
   { name: 'status', align: 'center', label: 'STATUS', field: 'status' },
-  { name: 'aksi', align: 'center', label: '' },
+  { name: 'aksi', align: 'center', label: 'ACTIONS' },
 ]
 </script>
 
@@ -1088,8 +1156,6 @@ const columns = [
 .item-entry-table :deep(tbody td) {
   border-bottom: 1px solid #f0f0f0;
 }
-
-/* SIGNATURE PAD */
 .signature-pad-wrapper {
   border: 2px dashed #1a237e;
   border-radius: 12px;
@@ -1101,8 +1167,27 @@ const columns = [
   height: 100%;
   cursor: crosshair;
 }
-
-/* PREVIEW DOCUMENT STYLING (ELEGANT & PROFESSIONAL) */
+.final-pro-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  border: 1.5px solid #1a237e;
+}
+.final-pro-table th {
+  background: #1a237e !important;
+  color: white !important;
+  padding: 10px 8px;
+  font-size: 10px;
+  font-weight: 900;
+  text-align: center;
+  border: 1px solid #1a237e;
+}
+.final-pro-table td {
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  font-size: 11.5px;
+  color: #111;
+}
 .letter-paper {
   background: white;
   width: 210mm;
@@ -1141,8 +1226,6 @@ const columns = [
   margin-top: 15px;
   border-bottom: 1px solid #1a237e;
 }
-
-/* REDUCED TITLE SIZE FOR ELEGANCE */
 .quotation-title-pro {
   font-size: 20px;
   font-weight: 900;
@@ -1157,8 +1240,6 @@ const columns = [
   font-weight: 800;
   margin-top: 4px;
 }
-
-/* META TABLE CLEAN ALIGNMENT */
 .meta-info-table {
   border-collapse: collapse;
   width: 100%;
@@ -1176,7 +1257,6 @@ const columns = [
   width: 15px;
   text-align: center;
 }
-
 .label-grey-pro {
   color: #888;
   font-size: 11px;
@@ -1195,30 +1275,6 @@ const columns = [
   color: #444;
   font-weight: 700;
 }
-
-/* TABLE PREVIEW */
-.final-pro-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-  border: 1.5px solid #1a237e;
-}
-.final-pro-table th {
-  background: #1a237e !important;
-  color: white !important;
-  padding: 10px 8px;
-  font-size: 10px;
-  font-weight: 900;
-  text-align: center;
-  border: 1px solid #1a237e;
-}
-.final-pro-table td {
-  padding: 8px 10px;
-  border: 1px solid #ddd;
-  font-size: 11.5px;
-  color: #111;
-}
-
 .row-calculation {
   background: #f9fafb !important;
 }
@@ -1231,12 +1287,10 @@ const columns = [
   background: #1a237e !important;
 }
 .row-grand-total td {
-  padding: 10px 12px !important;
+  padding: 12px 12px !important;
   color: white !important;
   border: 1px solid #1a237e !important;
 }
-
-/* TERMS & SIGNATURE */
 .terms-container {
   border: 1.5px solid #1a237e;
   margin-top: 20px;
@@ -1252,11 +1306,10 @@ const columns = [
   letter-spacing: 1px;
 }
 .terms-content-box {
-  padding: 8px 15px;
+  padding: 8px 12px;
   font-size: 10.5px;
   color: #333;
 }
-
 .signature-container {
   margin-top: auto;
   padding-top: 30px;
@@ -1287,7 +1340,6 @@ const columns = [
   font-weight: 700;
   color: #444;
 }
-
 .underline {
   text-decoration: none;
 }
@@ -1297,7 +1349,34 @@ const columns = [
 .opacity-0 {
   opacity: 0;
 }
-
+.pr-table :deep(thead tr th) {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  padding: 16px;
+}
+.hover-bg:hover {
+  background-color: rgba(26, 35, 126, 0.03) !important;
+}
+.transition-all {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.animate-fade {
+  animation: fadeIn 0.6s ease-out;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 @media print {
   @page {
     size: A4;

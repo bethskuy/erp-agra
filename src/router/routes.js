@@ -44,6 +44,10 @@ const routes = [
         component: () => import('pages/konstruksi/Master/DataSatuan/MasterSatuanPage.vue'),
       },
       {
+        path: 'marketing/ahsp',
+        component: () => import('pages/konstruksi/Marketing/AhspPage.vue'),
+      },
+      {
         path: 'marketing/penawaran',
         component: () => import('pages/konstruksi/Marketing/Penawaran/PenawaranPage.vue'),
       },
