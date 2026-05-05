@@ -99,6 +99,30 @@
               >
                 <q-tooltip>Lihat Detail & ACC</q-tooltip>
               </q-btn>
+              <template v-if="props.row.status === 'Pending'">
+                <q-btn
+                  flat
+                  round
+                  color="positive"
+                  icon="check_circle"
+                  size="sm"
+                  :loading="actionLoading === `${props.row.id}-Approved`"
+                  @click="approveQuotation(props.row)"
+                >
+                  <q-tooltip>Approve Penawaran</q-tooltip>
+                </q-btn>
+                <q-btn
+                  flat
+                  round
+                  color="negative"
+                  icon="cancel"
+                  size="sm"
+                  :loading="actionLoading === `${props.row.id}-Rejected`"
+                  @click="rejectQuotation(props.row)"
+                >
+                  <q-tooltip>Tolak Penawaran</q-tooltip>
+                </q-btn>
+              </template>
             </q-td>
           </q-tr>
         </template>
@@ -115,53 +139,22 @@
           <!-- PDF & PRINT -->
           <q-btn-group unelevated rounded class="q-mr-md shadow-1">
             <q-btn color="teal-10" icon="print" label="Cetak" @click="printNow" />
-            <q-btn color="red-9" icon="picture_as_pdf" label="PDF" @click="exportToPDF" />
+            <q-btn color="red-9" icon="picture_as_pdf" label="Download PDF" @click="exportToPDF" />
           </q-btn-group>
-
-          <!-- TANDA TANGAN OPTIONS -->
-          <q-btn-dropdown
-            v-if="selectedData?.status === 'Pending'"
-            color="teal-10"
-            icon="draw"
-            label="Tanda Tangan"
-            unelevated
-            rounded
-            class="q-mr-md"
-          >
-            <q-list class="q-pa-sm" style="min-width: 200px">
-              <q-item clickable v-ripple v-close-popup @click="showPad = true">
-                <q-item-section avatar><q-icon name="gesture" color="teal-10" /></q-item-section>
-                <q-item-section>Gurat Digital</q-item-section>
-              </q-item>
-            </q-list>
-          </q-btn-dropdown>
-
-          <template v-if="selectedData?.status === 'Pending'">
-            <q-btn
-              unelevated
-              color="negative"
-              label="REJECT"
-              @click="updateStatus(selectedData, 'Rejected')"
-              rounded
-              class="q-mr-sm"
-            />
-            <q-btn
-              unelevated
-              color="positive"
-              icon="verified"
-              label="APPROVE SEKARANG"
-              @click="updateStatus(selectedData, 'Approved')"
-              rounded
-            />
-          </template>
         </q-toolbar>
 
         <q-card-section class="col scroll flex flex-center q-pa-md preview-container">
           <div id="quotation-print" class="letter-paper shadow-24" v-if="selectedData">
             <!-- Kop Surat -->
             <div class="row no-wrap items-center">
-              <div class="col-auto q-mr-md">
-                <q-icon name="factory" color="teal-10" size="55px" />
+              <div class="col-auto q-mr-md letter-logo-box">
+                <img
+                  v-if="selectedData.logo"
+                  :src="selectedData.logo"
+                  class="letter-logo"
+                  alt="Logo Penawaran"
+                />
+                <q-icon v-else name="factory" color="teal-10" size="55px" />
               </div>
               <div class="col text-left">
                 <div class="final-pt-name uppercase text-teal-10">{{ selectedData.nama_pt }}</div>
@@ -239,7 +232,7 @@
               Demikian penawaran ini kami sampaikan, terima kasih.
             </div>
 
-            <div class="signature-container text-right q-mt-xl">
+            <div class="signature-container q-mt-xl">
               <div class="text-body2 uppercase">Hormat Kami,</div>
               <div class="text-weight-bold text-teal-10 uppercase q-mb-xs">
                 {{ selectedData.nama_pt }}
@@ -250,13 +243,15 @@
                   :src="selectedData.signatureUrl"
                   class="img-signature"
                 />
-                <div v-else class="text-caption text-grey-4 italic">Belum ditandatangani</div>
+                <div v-else class="signature-placeholder text-caption text-grey-5 italic">
+                  Belum ditandatangani approval
+                </div>
               </div>
               <div class="text-signer-final text-weight-bolder text-teal-10 uppercase">
-                <u>{{ selectedData.ttd_nama || '( ........................ )' }}</u>
+                <u>{{ primarySigner.nama || '( ........................ )' }}</u>
               </div>
               <div class="text-role-final uppercase text-grey-8 text-caption font-bold">
-                {{ selectedData.ttd_jabatan }}
+                {{ primarySigner.jabatan }}
               </div>
             </div>
           </div>
@@ -285,7 +280,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { db } from 'src/boot/firebase'
 import {
   collection,
@@ -308,9 +303,13 @@ const showPreview = ref(false)
 const showPad = ref(false)
 const selectedData = ref(null)
 const signatureCanvas = ref(null)
+const actionLoading = ref(null)
 
 let unsubApproval = null
 let signaturePad = null
+
+const defaultItem = { deskripsi: '-', qty: 0, satuan: '-', harga: 0 }
+const defaultSigner = { nama: '', jabatan: '' }
 
 const columns = [
   { name: 'nomor', align: 'left', label: 'REFERENCE NO', field: 'nomor', sortable: true },
@@ -333,12 +332,29 @@ const columns = [
 ]
 
 // --- HELPER FUNCTIONS ---
+const normalizeQuotation = (row) => ({
+  ...row,
+  logo: row.logo || null,
+  status: row.status || 'Pending',
+  items: Array.isArray(row.items) && row.items.length ? row.items : [{ ...defaultItem }],
+  signers:
+    Array.isArray(row.signers) && row.signers.length
+      ? row.signers
+      : [{ nama: row.ttd_nama || '', jabatan: row.ttd_jabatan || '' }],
+  syarat: row.syarat || '',
+})
+
+const primarySigner = computed(() => selectedData.value?.signers?.[0] || defaultSigner)
+
 const calculateRowTotal = (row, type = 'grand') => {
   if (!row || !row.items) return 0
-  const sub = row.items.reduce((acc, it) => acc + Number(it.qty || 0) * Number(it.harga || 0), 0)
+  const sub =
+    Number(row.subtotal) ||
+    row.items.reduce((acc, it) => acc + Number(it.qty || 0) * Number(it.harga || 0), 0)
   if (type === 'subtotal') return sub
-  const tax = sub * (Number(row.tax_rate || 0) / 100)
-  return sub + tax + Number(row.biaya_lain || 0)
+  const tax = Number(row.tax_amount) || sub * (Number(row.tax_rate || 0) / 100)
+  const grand = sub + tax + Number(row.biaya_lain || 0)
+  return Number(row.grand_total) || grand
 }
 
 const formatDateIndo = (d) =>
@@ -353,15 +369,24 @@ watch(showPad, async (val) => {
   if (val) {
     await nextTick()
     const canvas = signatureCanvas.value
+    if (!canvas) return
     const ratio = Math.max(window.devicePixelRatio || 1, 1)
     canvas.width = canvas.offsetWidth * ratio
     canvas.height = canvas.offsetHeight * ratio
-    canvas.getContext('2d').scale(ratio, ratio)
+    canvas.getContext('2d')?.scale(ratio, ratio)
     signaturePad = new SignaturePad(canvas)
+  } else {
+    signaturePad = null
   }
 })
 
 const clearPad = () => signaturePad?.clear()
+
+const syncQuotation = (updatedRow) => {
+  const normalized = normalizeQuotation(updatedRow)
+  allRows.value = allRows.value.map((row) => (row.id === normalized.id ? normalized : row))
+  if (selectedData.value?.id === normalized.id) selectedData.value = normalized
+}
 
 const saveManualSignature = async () => {
   if (!signaturePad || signaturePad.isEmpty()) return
@@ -372,11 +397,12 @@ const saveManualSignature = async () => {
       signatureUrl: base64,
       updatedAt: serverTimestamp(),
     })
-    selectedData.value.signatureUrl = base64
+    syncQuotation({ ...selectedData.value, signatureUrl: base64 })
     showPad.value = false
     $q.notify({ type: 'positive', message: 'Tanda tangan berhasil dipasang!' })
   } catch (e) {
     console.error(e)
+    $q.notify({ type: 'negative', message: 'Gagal menyimpan tanda tangan!' })
   } finally {
     $q.loading.hide()
   }
@@ -384,6 +410,18 @@ const saveManualSignature = async () => {
 
 // --- APPROVAL & EXPORT LOGIC ---
 const updateStatus = (row, status) => {
+  if (!row?.id) return
+  if (status === 'Approved' && !row.signatureUrl) {
+    $q.notify({
+      type: 'warning',
+      message: 'Pasang tanda tangan approval sebelum approve penawaran.',
+    })
+    selectedData.value = normalizeQuotation(row)
+    showPreview.value = true
+    showPad.value = true
+    return
+  }
+
   $q.dialog({
     title: 'Konfirmasi Otorisasi',
     message: `Ubah status menjadi ${status}?`,
@@ -391,49 +429,68 @@ const updateStatus = (row, status) => {
     ok: { color: status === 'Approved' ? 'positive' : 'negative', label: 'Ya, Proses' },
   }).onOk(async () => {
     try {
+      actionLoading.value = `${row.id}-${status}`
       $q.loading.show()
       await updateDoc(doc(db, 'penawaran_manufaktur', row.id), {
         status: status,
         updatedAt: serverTimestamp(),
         approvedAt: status === 'Approved' ? serverTimestamp() : null,
+        rejectedAt: status === 'Rejected' ? serverTimestamp() : null,
       })
+      syncQuotation({ ...row, status })
       showPreview.value = false
       $q.notify({ type: 'positive', message: `Status diperbarui menjadi ${status}` })
     } catch (e) {
       console.error(e)
+      $q.notify({ type: 'negative', message: 'Gagal memperbarui status penawaran!' })
     } finally {
+      actionLoading.value = null
       $q.loading.hide()
     }
   })
 }
 
+const approveQuotation = (row) => updateStatus(normalizeQuotation(row), 'Approved')
+const rejectQuotation = (row) => updateStatus(normalizeQuotation(row), 'Rejected')
+
 const exportToPDF = () => {
   const element = document.getElementById('quotation-print')
+  if (!element || !selectedData.value) {
+    $q.notify({ type: 'warning', message: 'Detail penawaran belum siap untuk dibuat PDF.' })
+    return
+  }
+
+  const fileName = `Quotation_${(selectedData.value.nomor || 'Penawaran').replace(/\//g, '-')}.pdf`
   const opt = {
     margin: 0,
-    filename: `Quotation_${selectedData.value.nomor.replace(/\//g, '-')}.pdf`,
+    filename: fileName,
     image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2.5, useCORS: true },
+    html2canvas: { scale: 2.5, useCORS: true, allowTaint: true },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
   }
-  $q.loading.show({ message: 'Generating PDF...' })
+  $q.loading.show({ message: 'Membuat file PDF...' })
   html2pdf()
     .set(opt)
     .from(element)
     .save()
     .then(() => $q.loading.hide())
+    .catch((e) => {
+      console.error(e)
+      $q.loading.hide()
+      $q.notify({ type: 'negative', message: 'Gagal membuat PDF!' })
+    })
 }
 
 const printNow = () => window.print()
 const openApproval = (row) => {
-  selectedData.value = row
+  selectedData.value = normalizeQuotation(row)
   showPreview.value = true
 }
 
 onMounted(() => {
   const q = query(collection(db, 'penawaran_manufaktur'), orderBy('updatedAt', 'desc'))
   unsubApproval = onSnapshot(q, (snap) => {
-    allRows.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+    allRows.value = snap.docs.map((d) => normalizeQuotation({ id: d.id, ...d.data() }))
     loading.value = false
   })
 })
@@ -468,6 +525,19 @@ onUnmounted(() => {
   height: 3px;
   margin-top: 15px;
 }
+.letter-logo-box {
+  width: 78px;
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.letter-logo {
+  max-width: 78px;
+  max-height: 58px;
+  object-fit: contain;
+  display: block;
+}
 .final-pro-table {
   width: 100%;
   border-collapse: collapse;
@@ -488,12 +558,36 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
 }
+.signature-container {
+  width: 260px;
+  margin-left: auto;
+  text-align: center;
+}
 .final-sign-space {
-  height: 100px;
+  height: 78px;
+  width: 100%;
+  align-items: flex-end;
+  justify-content: center;
+  margin-top: 4px;
+  margin-bottom: 2px;
 }
 .img-signature {
-  max-height: 100px;
+  max-width: 230px;
+  max-height: 76px;
+  object-fit: contain;
   mix-blend-mode: multiply;
+}
+.signature-placeholder {
+  border-bottom: 1px dashed #9e9e9e;
+  width: 220px;
+  padding-bottom: 8px;
+  text-align: center;
+}
+.text-signer-final {
+  line-height: 1.2;
+}
+.text-role-final {
+  line-height: 1.2;
 }
 
 @media print {
