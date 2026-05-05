@@ -221,6 +221,39 @@ const routes = [
         name: 'manufaktur-finance-invoice',
         component: () => import('pages/manufaktur/finance/InvoiceCustomerPage.vue'),
       },
+      // --- SECTION 7: GUDANG MANUFAKTUR ---
+      {
+        path: 'gudang',
+        component: () => import('pages/manufaktur/Gudang/ManufacturGudangPage.vue'),
+      },
+      {
+        path: 'gudang/transaksi',
+        component: () => import('pages/manufaktur/Gudang/ManufacturRiwayatTransaksiPage.vue'),
+      },
+      {
+        path: 'gudang/opname/:id',
+        component: () => import('pages/manufaktur/Gudang/ManufacturOpnamePage.vue'),
+      },
+      {
+        path: 'gudang/masuk/:id',
+        component: () => import('pages/manufaktur/Gudang/ManufacturBarangMasukPage.vue'),
+      },
+      {
+        path: 'gudang/keluar/:id',
+        component: () => import('pages/manufaktur/Gudang/ManufacturBarangKeluarPage.vue'),
+      },
+      {
+        path: 'gudang/permintaan/list',
+        component: () => import('pages/manufaktur/Gudang/ManufacturListPermintaanPage.vue'),
+      },
+      {
+        path: 'gudang/permintaan-antar/:id',
+        component: () => import('pages/manufaktur/Gudang/ManufacturPermintaanAntarGudangPage.vue'),
+      },
+      {
+        path: 'gudang/purchase-request/:id',
+        component: () => import('pages/manufaktur/Gudang/ManufacturPurchaseRequestPage.vue'),
+      },
     ],
   },
 
