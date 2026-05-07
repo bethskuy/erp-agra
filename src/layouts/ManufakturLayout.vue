@@ -1,6 +1,5 @@
 <template>
   <q-layout view="lHh Lpr lFf">
-    <!-- HEADER -->
     <q-header elevated class="bg-teal-10 text-white">
       <q-toolbar class="q-py-sm">
         <q-btn flat dense round icon="menu" @click="toggleLeftDrawer" />
@@ -97,43 +96,48 @@
       </q-toolbar>
     </q-header>
 
-    <!-- SIDEBAR / DRAWER -->
-    <q-drawer v-model="leftDrawerOpen" show-if-above bordered class="bg-white">
-      <!-- SECTION PROFIL USER -->
-      <div class="q-pa-md row items-center q-gutter-md border-bottom">
-        <q-avatar size="56px" color="teal-10" text-color="white" class="text-weight-bold"
+    <q-drawer
+      v-model="leftDrawerOpen"
+      show-if-above
+      bordered
+      :width="272"
+      class="sidebar-drawer bg-white"
+    >
+      <div class="sidebar-profile row items-center no-wrap border-bottom">
+        <q-avatar size="40px" color="teal-10" text-color="white" class="text-weight-bold"
           >R</q-avatar
         >
-        <div>
-          <div class="text-weight-bold">Refqi Obeth Sudiarma...</div>
-          <div class="text-caption text-grey-7 text-uppercase">Super Admin</div>
+        <div class="sidebar-profile__meta">
+          <div class="sidebar-profile__name">Refqi Obeth Sudiarma...</div>
+          <div class="sidebar-profile__role">Super Admin</div>
         </div>
       </div>
 
-      <q-scroll-area style="height: calc(100% - 100px)">
-        <q-list padding>
-          <q-item-label header class="text-overline text-grey-6">UTAMA</q-item-label>
+      <q-scroll-area style="height: calc(100% - 72px)" class="sidebar-scroll">
+        <q-list class="menu-list">
+          <q-item-label header class="section-title">UTAMA</q-item-label>
           <q-item
             v-if="checkPermission('dashboard')"
             clickable
             v-ripple
             to="/manufaktur/dashboard"
             active-class="active-menu"
-            class="menu-item"
+            class="menu-item nav-item"
           >
-            <q-item-section avatar><q-icon name="dashboard" /></q-item-section>
-            <q-item-section>DASHBOARD</q-item-section>
+            <q-item-section avatar class="menu-icon"><q-icon name="dashboard" /></q-item-section>
+            <q-item-section class="menu-text">Dashboard</q-item-section>
           </q-item>
 
-          <q-separator q-my-sm />
+          <q-separator class="sidebar-separator" />
 
-          <!-- MARKETING SYSTEM SECTION -->
-          <q-item-label header class="text-overline text-grey-6">MARKETING SYSTEM</q-item-label>
+          <q-item-label header class="section-title">MARKETING SYSTEM</q-item-label>
+
           <q-expansion-item
             v-if="hasSectionAccess(['penawaran', 'penawaran-approval'])"
             icon="campaign"
-            label="PENAWARAN"
-            header-class="text-weight-medium"
+            label="Penawaran"
+            header-class="nav-group"
+            expand-icon-class="nav-expand-icon"
             default-opened
           >
             <q-item
@@ -142,11 +146,13 @@
               v-ripple
               to="/manufaktur/penawaran"
               active-class="active-menu"
-              class="q-pl-xl"
+              class="submenu-item"
               dense
             >
-              <q-item-section avatar><q-icon name="description" size="xs" /></q-item-section>
-              <q-item-section>Quotation</q-item-section>
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="description" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Quotation</q-item-section>
             </q-item>
             <q-item
               v-if="checkPermission('penawaran-approval')"
@@ -154,40 +160,65 @@
               v-ripple
               to="/manufaktur/penawaran-approval"
               active-class="active-menu"
-              class="q-pl-xl"
+              class="submenu-item"
               dense
             >
-              <q-item-section avatar><q-icon name="verified" size="xs" /></q-item-section>
-              <q-item-section>Approval Penawaran</q-item-section>
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="verified" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Approval Penawaran</q-item-section>
               <q-item-section side v-if="pendingCount > 0">
                 <q-badge color="orange-9" rounded :label="pendingCount" class="animate-bounce" />
               </q-item-section>
             </q-item>
           </q-expansion-item>
 
-          <q-separator q-my-sm />
-          <q-item-label header class="text-overline text-grey-6">OPERASIONAL</q-item-label>
+          <q-expansion-item
+            icon="inventory_2"
+            label="Gudang"
+            default-opened
+            header-class="nav-group"
+            expand-icon-class="nav-expand-icon"
+          >
+            <q-item
+              clickable
+              to="/manufaktur/gudang"
+              dense
+              class="submenu-item"
+              active-class="active-menu"
+            >
+              <q-item-section avatar class="submenu-icon">
+                <q-icon name="inventory_2" size="xs" />
+              </q-item-section>
+              <q-item-section class="submenu-text">Stok Gudang</q-item-section>
+            </q-item>
+          </q-expansion-item>
 
-          <!-- SALES -->
+          <q-separator class="sidebar-separator" />
+          <q-item-label header class="section-title">OPERASIONAL</q-item-label>
+
           <q-expansion-item
             v-if="checkPermission('sales/po-customer')"
             icon="shopping_cart"
-            label="SALES"
-            header-class="text-weight-medium"
+            label="Sales"
+            header-class="nav-group"
+            expand-icon-class="nav-expand-icon"
           >
             <q-item
               clickable
               v-ripple
               to="/manufaktur/sales/po-customer"
               active-class="active-menu"
-              class="q-pl-xl"
+              class="submenu-item"
               dense
             >
-              <q-item-section>PO Customer</q-item-section>
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="receipt_long" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">PO Customer</q-item-section>
             </q-item>
           </q-expansion-item>
 
-          <!-- PRODUKSI -->
           <q-expansion-item
             v-if="
               hasSectionAccess([
@@ -196,8 +227,9 @@
               ])
             "
             icon="precision_manufacturing"
-            label="PRODUKSI"
-            header-class="text-weight-medium"
+            label="Produksi"
+            header-class="nav-group"
+            expand-icon-class="nav-expand-icon"
           >
             <q-item
               v-if="checkPermission('produksi/proses-produksi/incoming')"
@@ -205,10 +237,13 @@
               v-ripple
               to="/manufaktur/produksi/proses-produksi/incoming"
               active-class="active-menu"
-              class="q-pl-xl"
+              class="submenu-item"
               dense
             >
-              <q-item-section>Incoming Material</q-item-section>
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="move_to_inbox" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Incoming Material</q-item-section>
             </q-item>
             <q-item
               v-if="checkPermission('produksi/proses-packing-page')"
@@ -216,14 +251,16 @@
               v-ripple
               to="/manufaktur/produksi/proses-packing-page"
               active-class="active-menu"
-              class="q-pl-xl"
+              class="submenu-item"
               dense
             >
-              <q-item-section>Monitoring Packing</q-item-section>
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="inventory" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Monitoring Packing</q-item-section>
             </q-item>
           </q-expansion-item>
 
-          <!-- PROSES PACKING -->
           <q-expansion-item
             v-if="
               hasSectionAccess([
@@ -235,8 +272,9 @@
               ])
             "
             icon="inventory_2"
-            label="PROSES PACKING"
-            header-class="text-weight-medium"
+            label="Proses Packing"
+            header-class="nav-group"
+            expand-icon-class="nav-expand-icon"
           >
             <q-item
               v-if="checkPermission('proses-packing/check-hole')"
@@ -244,126 +282,138 @@
               v-ripple
               to="/manufaktur/proses-packing/check-hole"
               active-class="active-menu"
-              class="q-pl-xl"
+              class="submenu-item"
               dense
-              ><q-item-section>Check Hole</q-item-section></q-item
             >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="radio_button_unchecked" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Check Hole</q-item-section>
+            </q-item>
             <q-item
               v-if="checkPermission('proses-packing/check-pin')"
               clickable
               v-ripple
               to="/manufaktur/proses-packing/check-pin"
               active-class="active-menu"
-              class="q-pl-xl"
+              class="submenu-item"
               dense
-              ><q-item-section>Check Pin GoNoGo</q-item-section></q-item
             >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="rule" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Check Pin GoNoGo</q-item-section>
+            </q-item>
             <q-item
               v-if="checkPermission('proses-packing/check-tapping')"
               clickable
               v-ripple
               to="/manufaktur/proses-packing/check-tapping"
               active-class="active-menu"
-              class="q-pl-xl"
+              class="submenu-item"
               dense
-              ><q-item-section>Check Tapping</q-item-section></q-item
             >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="settings_input_component" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Check Tapping</q-item-section>
+            </q-item>
             <q-item
               v-if="checkPermission('proses-packing/packing-final')"
               clickable
               v-ripple
               to="/manufaktur/proses-packing/packing-final"
               active-class="active-menu"
-              class="q-pl-xl"
+              class="submenu-item"
               dense
-              ><q-item-section>Packing Final</q-item-section></q-item
             >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="inventory_2" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Packing Final</q-item-section>
+            </q-item>
             <q-item
               v-if="checkPermission('proses-packing/visual-check')"
               clickable
               v-ripple
               to="/manufaktur/proses-packing/visual-check"
               active-class="active-menu"
-              class="q-pl-xl"
+              class="submenu-item"
               dense
-              ><q-item-section>Visual Check</q-item-section></q-item
             >
-          </q-expansion-item>
-
-          <q-separator q-my-sm />
-          <q-item-label header class="text-overline text-grey-6">LOGISTIK & FINANCE</q-item-label>
-
-          <!-- GUDANG SECTION (FIXED: Cuma Stok Gudang) -->
-          <q-expansion-item icon="inventory_2" label="GUDANG" default-opened expand-separator>
-            <q-item
-              clickable
-              to="/manufaktur/gudang"
-              dense
-              class="q-pl-lg"
-              active-class="bg-green-8 text-white"
-            >
-              <q-item-section avatar>
-                <q-icon name="inventory_2" />
-              </q-item-section>
-              <q-item-section>Stok Gudang</q-item-section>
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="visibility" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Visual Check</q-item-section>
             </q-item>
           </q-expansion-item>
 
-          <!-- WAREHOUSE LAMA -->
+          <q-separator class="sidebar-separator" />
+          <q-item-label header class="section-title">LOGISTIK & FINANCE</q-item-label>
+
           <q-expansion-item
             v-if="checkPermission('warehouse/outgoing-check')"
             icon="warehouse"
-            label="WAREHOUSE"
-            header-class="text-weight-medium"
+            label="Warehouse"
+            header-class="nav-group"
+            expand-icon-class="nav-expand-icon"
           >
             <q-item
               clickable
               v-ripple
               to="/manufaktur/warehouse/outgoing-check"
               active-class="active-menu"
-              class="q-pl-xl"
+              class="submenu-item"
               dense
             >
-              <q-item-section avatar><q-icon name="fact_check" size="xs" /></q-item-section>
-              <q-item-section>Outgoing Check</q-item-section>
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="fact_check" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Outgoing Check</q-item-section>
             </q-item>
           </q-expansion-item>
 
-          <!-- DELIVERY -->
           <q-expansion-item
             v-if="checkPermission('delivery/surat-jalan')"
             icon="local_shipping"
-            label="DELIVERY"
-            header-class="text-weight-medium"
+            label="Delivery"
+            header-class="nav-group"
+            expand-icon-class="nav-expand-icon"
           >
             <q-item
               clickable
               v-ripple
               to="/manufaktur/delivery/surat-jalan"
               active-class="active-menu"
-              class="q-pl-xl"
+              class="submenu-item"
               dense
             >
-              <q-item-section>Surat Jalan</q-item-section>
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="local_shipping" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Surat Jalan</q-item-section>
             </q-item>
           </q-expansion-item>
 
-          <!-- FINANCE -->
           <q-expansion-item
             v-if="checkPermission('finance/invoice')"
             icon="account_balance_wallet"
-            label="FINANCE"
-            header-class="text-weight-medium"
+            label="Finance"
+            header-class="nav-group"
+            expand-icon-class="nav-expand-icon"
           >
             <q-item
               clickable
               v-ripple
               to="/manufaktur/finance/invoice"
               active-class="active-menu"
-              class="q-pl-xl"
+              class="submenu-item"
               dense
             >
-              <q-item-section>Invoice Customer</q-item-section>
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="request_quote" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Invoice Customer</q-item-section>
             </q-item>
           </q-expansion-item>
         </q-list>
@@ -429,26 +479,185 @@ onUnmounted(() => {
   background: #004d40 !important;
 }
 .border-bottom {
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid #edf1f0;
+}
+.sidebar-drawer {
+  color: #22312f;
+  transition:
+    width 0.24s ease,
+    transform 0.24s ease;
+}
+.sidebar-drawer :deep(.q-drawer) {
+  transition:
+    width 0.24s ease,
+    transform 0.24s ease;
+}
+.sidebar-profile {
+  min-height: 72px;
+  padding: 12px 16px;
+  gap: 10px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbfa 100%);
+}
+.sidebar-profile__meta {
+  min-width: 0;
+  line-height: 1.2;
+}
+.sidebar-profile__name {
+  max-width: 184px;
+  overflow: hidden;
+  color: #17211f;
+  font-size: 13px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sidebar-profile__role {
+  margin-top: 3px;
+  color: #6a7a76;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+.sidebar-scroll {
+  background: #fbfcfc;
+}
+.menu-list {
+  padding: 8px 8px 14px;
+}
+.section-title {
+  min-height: auto;
+  padding: 13px 10px 6px;
+  color: #7b8b86;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.9px;
+  line-height: 1;
+}
+.sidebar-separator {
+  margin: 8px 8px 2px;
+  background: #edf1f0;
 }
 .menu-item {
-  margin: 2px 12px;
+  min-height: 36px;
+  margin: 1px 4px;
+  padding: 0 10px;
   border-radius: 8px;
+  color: #354541;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+.menu-item:hover,
+.submenu-item:hover,
+:deep(.nav-group:hover) {
+  background: #edf7f3;
+  color: #004d40;
+}
+.menu-item:hover,
+.submenu-item:hover {
+  transform: translateX(1px);
+}
+.menu-icon,
+.submenu-icon {
+  min-width: 30px;
+  padding-right: 8px;
+  color: inherit;
+}
+.menu-icon :deep(.q-icon) {
+  font-size: 19px;
+}
+.menu-text,
+.submenu-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.submenu-item {
+  min-height: 32px;
+  margin: 1px 4px 1px 20px;
+  padding: 0 10px;
+  border-radius: 8px;
+  color: #42524e;
+  font-size: 12.5px;
+  font-weight: 550;
+  letter-spacing: 0;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+.submenu-icon {
+  min-width: 24px;
+  padding-right: 7px;
+  color: #7a8a86;
+}
+.submenu-item:hover .submenu-icon {
+  color: #006b59;
+}
+:deep(.nav-group) {
+  min-height: 36px;
+  margin: 1px 4px;
+  padding: 0 10px;
+  border-radius: 8px;
+  color: #263936;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease;
+}
+:deep(.nav-group .q-item__section--avatar) {
+  min-width: 30px;
+  padding-right: 8px;
+  color: #60716d;
+}
+:deep(.nav-group .q-item__label) {
+  line-height: 1.1;
+}
+:deep(.nav-expand-icon) {
+  color: #8a9894;
+  font-size: 18px;
+}
+:deep(.q-expansion-item__content) {
+  padding: 2px 0 4px;
+  transition:
+    max-height 0.22s ease,
+    opacity 0.18s ease;
+}
+:deep(.q-expansion-item--expanded > .nav-group) {
+  color: #004d40;
+  background: #f2f8f5;
+}
+:deep(.q-expansion-item--expanded > .nav-group .q-item__section--avatar) {
+  color: #006b59;
 }
 .active-menu {
   color: white !important;
-  background: #004d40 !important;
-  border-radius: 0 24px 24px 0 !important;
-  margin-left: 0 !important;
-  margin-right: 12px !important;
+  background: linear-gradient(135deg, #004d40 0%, #00705c 100%) !important;
+  border-radius: 9px !important;
+  box-shadow: 0 8px 20px rgba(0, 77, 64, 0.2);
+  font-weight: 750;
+}
+.active-menu .submenu-icon,
+.active-menu .menu-icon {
+  color: white !important;
 }
 .text-overline {
-  font-size: 0.7rem;
-  font-weight: 900;
-  letter-spacing: 1px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.9px;
 }
 .animate-bounce {
-  animation: bounce 2s infinite;
+  animation: bounce 2.2s infinite;
 }
 @keyframes bounce {
   0%,
@@ -459,10 +668,10 @@ onUnmounted(() => {
     transform: translateY(0);
   }
   40% {
-    transform: translateY(-5px);
+    transform: translateY(-3px);
   }
   60% {
-    transform: translateY(-3px);
+    transform: translateY(-2px);
   }
 }
 </style>

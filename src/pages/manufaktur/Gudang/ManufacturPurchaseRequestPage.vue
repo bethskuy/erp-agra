@@ -263,6 +263,25 @@
                         :loading="loadingSpk"
                       />
                     </div>
+                    <div class="col-12 col-md-4">
+                      <div class="label-req q-mb-xs">PO CUSTOMER TERKAIT</div>
+                      <q-select
+                        outlined
+                        dense
+                        clearable
+                        v-model="selectedPoCustomer"
+                        :options="poCustomerOptions"
+                        option-label="label"
+                        placeholder="Pilih PO Customer..."
+                        bg-color="white"
+                        :loading="loadingPoCustomer"
+                        @update:model-value="applyPoCustomer"
+                      >
+                        <template v-slot:prepend>
+                          <q-icon name="shopping_cart" color="green-10" />
+                        </template>
+                      </q-select>
+                    </div>
                     <div class="col-12 col-md-2">
                       <div class="label-req q-mb-xs">Lokasi Terbit</div>
                       <q-input
@@ -339,6 +358,10 @@
                           @filter="filterMasterBarang"
                           @update:model-value="(val) => onBarangSelect(val, index)"
                         />
+                        <div class="text-caption q-mt-xs" :class="getStockTextClass(item)">
+                          <q-icon :name="getStockIcon(item)" size="xs" class="q-mr-xs" />
+                          {{ getStockText(item) }}
+                        </div>
                       </td>
                       <td>
                         <q-input
@@ -409,6 +432,56 @@
                     </tr>
                   </tfoot>
                 </q-markup-table>
+              </q-card>
+
+              <q-card
+                v-if="form.po_customer_id"
+                flat
+                bordered
+                class="rounded-12 q-mb-lg bg-white shadow-1"
+              >
+                <q-card-section class="bg-green-1 q-py-xs row items-center border-bottom">
+                  <q-icon name="sync_alt" class="q-mr-xs" size="xs" />
+                  <div class="text-weight-bold text-green-10 uppercase font-8">
+                    Sinkronisasi PO Customer & Gudang
+                  </div>
+                  <q-space />
+                  <q-chip
+                    dense
+                    text-color="white"
+                    :color="stockValidationSummary.hasShortage ? 'orange-9' : 'green-10'"
+                    class="text-weight-bold"
+                  >
+                    {{ stockValidationSummary.hasShortage ? 'Stok perlu pengadaan' : 'Stok cukup' }}
+                  </q-chip>
+                </q-card-section>
+                <q-card-section class="q-pa-md">
+                  <div class="row q-col-gutter-md">
+                    <div class="col-12 col-md-4">
+                      <div class="label-req q-mb-xs">Nomor PO Customer</div>
+                      <div class="text-weight-bold text-green-10">
+                        {{ form.nomor_po_customer || '-' }}
+                      </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                      <div class="label-req q-mb-xs">Material PO</div>
+                      <div class="text-weight-bold">
+                        {{ stockValidationSummary.totalItems }} item
+                      </div>
+                    </div>
+                    <div class="col-12 col-md-4">
+                      <div class="label-req q-mb-xs">Kekurangan Stok</div>
+                      <div
+                        class="text-weight-bold"
+                        :class="
+                          stockValidationSummary.hasShortage ? 'text-orange-10' : 'text-green-10'
+                        "
+                      >
+                        {{ stockValidationSummary.shortageItems }} item
+                      </div>
+                    </div>
+                  </div>
+                </q-card-section>
               </q-card>
 
               <!-- SECTION 3: TERMS & SIGNATURE -->
@@ -736,7 +809,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 // eslint-disable-next-line no-unused-vars
 import { db, storage } from 'src/boot/firebase'
@@ -783,6 +856,9 @@ const rows = ref([])
 const optGudang = ref([])
 const optSpk = ref([])
 const selectedSpk = ref(null)
+const selectedPoCustomer = ref(null)
+const poCustomerOptions = ref([])
+const loadingPoCustomer = ref(false)
 const masterBarang = ref([])
 const allBarang = ref([])
 const selectedData = ref(null)
@@ -827,10 +903,25 @@ const formDefault = {
   approve_nama: 'Wartono',
   approve_jabatan: 'Manager Operasional',
   no_reff: '',
+  po_customer_id: '',
+  nomor_po_customer: '',
+  po_customer_ref: '',
+  po_customer_status: '',
+  gudang_status: '',
+  stock_validation: [],
   catatan: '',
   status: 'Draft',
 }
 const form = ref({ ...formDefault })
+
+const stockValidationSummary = computed(() => {
+  const items = form.value.stock_validation || []
+  return {
+    totalItems: items.length,
+    shortageItems: items.filter((it) => it.shortage > 0).length,
+    hasShortage: items.some((it) => it.shortage > 0),
+  }
+})
 
 // --- PERMISSIONS (Like PenawaranPage) ---
 const canAction = (actionType) => {
@@ -841,6 +932,197 @@ const canAction = (actionType) => {
   const targetId = '_manufaktur_gudang_permintaan' // Sesuaikan dengan ID menu gudang/PR lo
   const menu = modulePerm.menus.find((m) => m.id === targetId)
   return menu ? menu[actionType] || false : false
+}
+
+const getDocumentNumber = (docData) => docData.nomor || docData.noPO || docData.no_po || docData.id
+
+const getItemName = (item) => item.nama_barang || item.produk || item.nama || item.description || ''
+
+const getItemQty = (item) => Number(item.qty || item.quantity || item.jumlah || 0)
+
+const getItemUnit = (item) => item.satuan || item.unit || item.uom || 'pcs'
+
+const getItemPrice = (item) => Number(item.estimasi_harga || item.harga || item.price || 0)
+
+const resolveMasterBarang = (item) => {
+  const itemId = item.id_barang || item.barang_id || item.id
+  const itemName = getItemName(item).toLowerCase()
+  return (
+    allBarang.value.find((barang) => itemId && barang.id === itemId) ||
+    allBarang.value.find((barang) => barang.nama?.toLowerCase() === itemName) ||
+    null
+  )
+}
+
+const normalizePoItems = (poData) => {
+  const rawItems = Array.isArray(poData.items) && poData.items.length ? poData.items : [poData]
+  return rawItems
+    .map((item) => {
+      const master = resolveMasterBarang(item)
+      const qty = getItemQty(item)
+      const estimasiHarga = getItemPrice(item)
+      return {
+        barang: master,
+        id_barang: master?.id || item.id_barang || item.barang_id || '',
+        nama_barang: master?.nama || getItemName(item),
+        qty,
+        satuan: master?.unit || getItemUnit(item),
+        estimasi_harga: estimasiHarga,
+        total: qty * estimasiHarga,
+        po_customer_item_id: item.id || item.id_barang || '',
+      }
+    })
+    .filter((item) => item.nama_barang && item.qty > 0)
+}
+
+const getStockQty = (stockData) =>
+  Number(stockData.stok ?? stockData.qty ?? stockData.jumlah ?? stockData.stock ?? 0)
+
+const findStockForItem = async (item) => {
+  if (!selectedWarehouseObj.value) return null
+
+  if (item.id_barang) {
+    const stockByIdQuery = query(
+      collection(db, 'stok_barang_manufaktur'),
+      where('id_gudang', '==', selectedWarehouseObj.value.id),
+      where('id_barang', '==', item.id_barang),
+    )
+    const stockByIdSnap = await getDocs(stockByIdQuery)
+    if (!stockByIdSnap.empty) {
+      return { id: stockByIdSnap.docs[0].id, ...stockByIdSnap.docs[0].data() }
+    }
+  }
+
+  const warehouseStockQuery = query(
+    collection(db, 'stok_barang_manufaktur'),
+    where('id_gudang', '==', selectedWarehouseObj.value.id),
+  )
+  const warehouseStockSnap = await getDocs(warehouseStockQuery)
+  const itemName = item.nama_barang?.toLowerCase()
+  const found = warehouseStockSnap.docs.find((stockDoc) => {
+    const stock = stockDoc.data()
+    return (
+      stock.nama_barang?.toLowerCase() === itemName ||
+      stock.nama?.toLowerCase() === itemName ||
+      stock.nama_item?.toLowerCase() === itemName
+    )
+  })
+  return found ? { id: found.id, ...found.data() } : null
+}
+
+const validateStockMaterial = async () => {
+  if (!selectedWarehouseObj.value || !form.value.items?.length) {
+    form.value.stock_validation = []
+    return []
+  }
+
+  const result = await Promise.all(
+    form.value.items.map(async (item) => {
+      const stock = await findStockForItem(item)
+      const available = stock ? getStockQty(stock) : 0
+      const requested = Number(item.qty || 0)
+      return {
+        id_barang: item.id_barang || '',
+        nama_barang: item.nama_barang || '',
+        requested,
+        available,
+        shortage: Math.max(requested - available, 0),
+        satuan: item.satuan || stock?.satuan || stock?.unit || '',
+        id_stok: stock?.id || '',
+        status: available >= requested ? 'CUKUP' : 'KURANG',
+      }
+    }),
+  )
+
+  form.value.stock_validation = result
+  return result
+}
+
+const getStockValidation = (item) =>
+  (form.value.stock_validation || []).find(
+    (stock) =>
+      (item.id_barang && stock.id_barang === item.id_barang) ||
+      stock.nama_barang?.toLowerCase() === item.nama_barang?.toLowerCase(),
+  )
+
+const getStockText = (item) => {
+  const stock = getStockValidation(item)
+  if (!stock) return 'Stok belum dicek'
+  if (stock.shortage > 0) {
+    return `Stok kurang ${stock.shortage.toLocaleString()} dari kebutuhan ${stock.requested.toLocaleString()}`
+  }
+  return `Stok tersedia ${stock.available.toLocaleString()} ${stock.satuan || ''}`
+}
+
+const getStockTextClass = (item) => {
+  const stock = getStockValidation(item)
+  if (!stock) return 'text-grey-6'
+  return stock.shortage > 0 ? 'text-orange-10 text-weight-bold' : 'text-green-10 text-weight-bold'
+}
+
+const getStockIcon = (item) => {
+  const stock = getStockValidation(item)
+  if (!stock) return 'inventory'
+  return stock.shortage > 0 ? 'warning' : 'check_circle'
+}
+
+const loadPoCustomerOptions = async () => {
+  loadingPoCustomer.value = true
+  try {
+    const poSnap = await getDocs(collection(db, 'purchase_order_manufactur'))
+    poCustomerOptions.value = poSnap.docs
+      .map((poDoc) => {
+        const po = { id: poDoc.id, ...poDoc.data() }
+        return {
+          ...po,
+          label: `${getDocumentNumber(po)} - ${po.customerName || po.customer_nama || po.kepada_yth || 'Customer'}`,
+        }
+      })
+      .filter((po) => ['Approved', 'Gudang Review', 'Partial', 'Ready'].includes(po.status))
+      .sort(
+        (a, b) =>
+          (b.updatedAt?.seconds || b.created_at?.seconds || 0) -
+          (a.updatedAt?.seconds || a.created_at?.seconds || 0),
+      )
+  } finally {
+    loadingPoCustomer.value = false
+  }
+}
+
+const applyPoCustomer = async (po) => {
+  if (!po) {
+    form.value.po_customer_id = ''
+    form.value.nomor_po_customer = ''
+    form.value.po_customer_ref = ''
+    form.value.po_customer_status = ''
+    form.value.gudang_status = ''
+    form.value.stock_validation = []
+    return
+  }
+
+  const poItems = normalizePoItems(po)
+  form.value.po_customer_id = po.id
+  form.value.nomor_po_customer = getDocumentNumber(po)
+  form.value.po_customer_ref = po.no_reff || po.noPO || po.nomor || ''
+  form.value.po_customer_status = po.status || ''
+  form.value.gudang_status = 'PR_DRAFT'
+  form.value.kepada_yth =
+    po.customerName || po.customer_nama || po.kepada_yth || form.value.kepada_yth
+  form.value.no_reff = po.no_reff || form.value.no_reff
+  if (poItems.length) form.value.items = poItems
+  await validateStockMaterial()
+}
+
+const syncPoCustomerStatus = async (poId, status, extra = {}) => {
+  if (!poId) return
+  await updateDoc(doc(db, 'purchase_order_manufactur', poId), {
+    gudang_status: status,
+    last_pr_nomor: form.value.nomor || '',
+    last_pr_status: form.value.status || '',
+    stock_validation: form.value.stock_validation || [],
+    updatedAt: serverTimestamp(),
+    ...extra,
+  })
 }
 
 const fetchData = async () => {
@@ -877,6 +1159,7 @@ const fetchData = async () => {
     .map((d) => ({ id: d.id, nama: d.data().nama, unit: d.data().unit }))
     .sort((a, b) => a.nama.localeCompare(b.nama))
   masterBarang.value = [...allBarang.value]
+  await loadPoCustomerOptions()
 }
 
 const fetchCurrentUser = () => {
@@ -898,6 +1181,8 @@ const fetchCurrentUser = () => {
 const openAddDialog = () => {
   isEditMode.value = false
   form.value = JSON.parse(JSON.stringify(formDefault))
+  selectedPoCustomer.value = null
+  selectedSpk.value = null
   form.value.nomor =
     'PR/AAP/' +
     (new Date().getMonth() + 1).toString().padStart(2, '0') +
@@ -915,7 +1200,10 @@ const openAddDialog = () => {
 const openEditDialog = (row) => {
   isEditMode.value = true
   form.value = JSON.parse(JSON.stringify(row))
+  selectedPoCustomer.value =
+    poCustomerOptions.value.find((po) => po.id === row.po_customer_id) || null
   showDialog.value = true
+  validateStockMaterial()
 }
 
 const ajukanPR = (row) => {
@@ -930,6 +1218,14 @@ const ajukanPR = (row) => {
         status: 'Pending',
         updatedAt: serverTimestamp(),
       })
+      if (row.po_customer_id) {
+        await updateDoc(doc(db, 'purchase_order_manufactur', row.po_customer_id), {
+          gudang_status: 'PR_PENDING_APPROVAL',
+          last_pr_nomor: row.nomor,
+          last_pr_status: 'Pending',
+          updatedAt: serverTimestamp(),
+        })
+      }
       $q.notify({ type: 'positive', message: 'Berhasil dikirim ke antrean approval.' })
     } catch (e) {
       $q.notify({ type: 'negative', message: 'Gagal: ' + e.message })
@@ -945,6 +1241,7 @@ const submitPurchaseRequest = async () => {
 
   submitting.value = true
   try {
+    const stockValidation = await validateStockMaterial()
     const payload = {
       ...form.value,
       tipe: 'PURCHASE_REQUEST',
@@ -953,6 +1250,9 @@ const submitPurchaseRequest = async () => {
       no_reff: selectedSpk.value?.nomor_spk || form.value.no_reff || '',
       total_estimasi: calculateTotalPR(),
       pemohon: { id: authStore.user?.uid, nama: authStore.user?.nama },
+      stock_validation: stockValidation,
+      stock_status: stockValidation.some((it) => it.shortage > 0) ? 'NEED_PROCUREMENT' : 'READY',
+      gudang_status: isEditMode.value ? form.value.gudang_status || 'PR_UPDATED' : 'PR_DRAFT',
       updatedAt: serverTimestamp(),
     }
 
@@ -963,16 +1263,26 @@ const submitPurchaseRequest = async () => {
       satuan: it.satuan,
       estimasi_harga: it.estimasi_harga,
       total: it.qty * it.estimasi_harga,
+      po_customer_item_id: it.po_customer_item_id || '',
+      stock_requested: Number(it.qty || 0),
     }))
 
     const docId = payload.id
     if (isEditMode.value && docId) {
       delete payload.id
       await updateDoc(doc(db, 'permintaan_barang_manufaktur', docId), payload)
+      await syncPoCustomerStatus(payload.po_customer_id, 'PR_UPDATED', {
+        last_pr_id: docId,
+        last_pr_status: payload.status || 'Draft',
+      })
     } else {
       payload.timestamp = serverTimestamp()
       payload.status = 'Draft'
-      await addDoc(collection(db, 'permintaan_barang_manufaktur'), payload)
+      const prRef = await addDoc(collection(db, 'permintaan_barang_manufaktur'), payload)
+      await syncPoCustomerStatus(payload.po_customer_id, 'PR_DRAFT_CREATED', {
+        last_pr_id: prRef.id,
+        last_pr_status: 'Draft',
+      })
     }
 
     showDialog.value = false
@@ -1026,6 +1336,7 @@ const handleLogoChange = async (f) => {
 const calcRow = (idx) => {
   const it = form.value.items[idx]
   it.total = (it.qty || 0) * (it.estimasi_harga || 0)
+  if (form.value.po_customer_id) validateStockMaterial()
 }
 const calculateTotalPR = () => form.value.items.reduce((s, it) => s + (it.total || 0), 0)
 const addItemRow = () =>
@@ -1047,6 +1358,7 @@ const onBarangSelect = (v, idx) => {
     form.value.items[idx].nama_barang = v.nama
     form.value.items[idx].satuan = v.unit
     calcRow(idx)
+    if (form.value.po_customer_id) validateStockMaterial()
   }
 }
 const filterMasterBarang = (v, u) => {

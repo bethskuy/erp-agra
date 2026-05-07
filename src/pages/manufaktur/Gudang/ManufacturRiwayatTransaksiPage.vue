@@ -139,9 +139,7 @@
             </q-td>
 
             <q-td key="nama_barang">
-              <div
-                class="text-weight-black text-green-10 text-subtitle2 uppercase leading-none"
-              >
+              <div class="text-weight-black text-green-10 text-subtitle2 uppercase leading-none">
                 {{ props.row.nama_barang }}
               </div>
               <!-- SAKLEK! Tampilkan Kode Item asli dari database -->
@@ -171,6 +169,10 @@
 
             <q-td key="ref" class="text-green-9 text-weight-bold">
               {{ props.row.no_referensi || '-' }}
+            </q-td>
+
+            <q-td key="po_customer" class="text-green-10 text-weight-bolder">
+              {{ props.row.nomor_po_customer || props.row.no_po_customer || '-' }}
             </q-td>
 
             <q-td key="no_spk" class="text-green-10 text-weight-bolder">
@@ -277,6 +279,14 @@
                       </div>
                       <div class="text-h6 text-weight-bold text-green-10">
                         {{ selectedItem.no_spk || '-' }}
+                      </div>
+                    </div>
+                    <div class="col-12 col-sm-4 border-left-gt-xs">
+                      <div class="text-overline text-grey-5 font-bold leading-none q-mb-xs">
+                        PO Customer
+                      </div>
+                      <div class="text-h6 text-weight-bold text-green-10">
+                        {{ selectedItem.nomor_po_customer || selectedItem.no_po_customer || '-' }}
                       </div>
                     </div>
                     <div class="col-12 col-sm-4 border-left-gt-xs">
@@ -621,6 +631,8 @@ import {
   getDocs,
   getDoc,
   doc,
+  updateDoc,
+  serverTimestamp,
 } from 'firebase/firestore'
 import { useQuasar } from 'quasar'
 import html2pdf from 'html2pdf.js'
@@ -656,6 +668,13 @@ const columns = [
   { name: 'jumlah', label: 'VOL', field: 'jumlah', align: 'center', sortable: true },
   { name: 'timestamp', label: 'WAKTU', field: 'timestamp', align: 'left', sortable: true },
   { name: 'ref', label: 'DOK. REFERENSI', field: 'no_referensi', align: 'left', sortable: true },
+  {
+    name: 'po_customer',
+    label: 'PO CUSTOMER',
+    field: 'nomor_po_customer',
+    align: 'left',
+    sortable: true,
+  },
   { name: 'no_spk', label: 'NO. SPK', field: 'no_spk', align: 'left', sortable: true },
 ]
 
@@ -670,6 +689,52 @@ const getTipeColor = (t) => (t === 'MASUK' ? 'green-10' : t === 'KELUAR' ? 'gree
 const getTipeIcon = (t) => (t === 'MASUK' ? 'download' : t === 'KELUAR' ? 'upload' : 'analytics')
 const getAmountColor = (t) =>
   t === 'MASUK' ? 'text-green-9' : t === 'KELUAR' ? 'text-green-9' : 'text-green-9'
+
+const syncedPoActivity = new Set()
+
+const getPoTotalQty = (poData) => {
+  const items = Array.isArray(poData.items) && poData.items.length ? poData.items : [poData]
+  return items.reduce((sum, item) => sum + Number(item.qty || item.quantity || item.jumlah || 0), 0)
+}
+
+const syncPoCustomerFromActivities = async (logs) => {
+  const grouped = logs.reduce((acc, log) => {
+    const poId = log.po_customer_id || log.id_po_customer
+    if (!poId) return acc
+    if (!acc[poId]) acc[poId] = []
+    acc[poId].push(log)
+    return acc
+  }, {})
+
+  await Promise.all(
+    Object.entries(grouped).map(async ([poId, poLogs]) => {
+      const latestSeconds = Math.max(...poLogs.map((log) => log.timestamp?.seconds || 0))
+      const syncKey = `${poId}:${latestSeconds}:${poLogs.length}`
+      if (syncedPoActivity.has(syncKey)) return
+      syncedPoActivity.add(syncKey)
+
+      try {
+        const poSnap = await getDoc(doc(db, 'purchase_order_manufactur', poId))
+        const totalRequested = poSnap.exists() ? getPoTotalQty(poSnap.data()) : 0
+        const totalOut = poLogs
+          .filter((log) => log.tipe === 'KELUAR')
+          .reduce((sum, log) => sum + Number(log.jumlah || log.qty || 0), 0)
+        const gudangStatus =
+          totalRequested > 0 && totalOut >= totalRequested ? 'STOCK_OUT_DONE' : 'STOCK_OUT_PARTIAL'
+
+        await updateDoc(doc(db, 'purchase_order_manufactur', poId), {
+          gudang_status: gudangStatus,
+          gudang_processed_qty: totalOut,
+          gudang_requested_qty: totalRequested,
+          gudang_last_activity_at: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        })
+      } catch (err) {
+        console.error('PO Customer sync error:', err)
+      }
+    }),
+  )
+}
 
 const formatDate = (ts) => {
   if (!ts) return '-'
@@ -780,6 +845,7 @@ const refreshListener = async () => {
         riwayatList.value = allData
       }
 
+      syncPoCustomerFromActivities(riwayatList.value)
       loading.value = false
     },
     (err) => {
