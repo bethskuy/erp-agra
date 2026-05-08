@@ -171,7 +171,7 @@ const routes = [
       {
         path: 'produksi/proses-produksi/incoming',
         name: 'manufaktur-incoming-material',
-        component: () => import('pages/manufaktur/ProsesProduksi/IncomingMaterialPage.vue'),
+        component: () => import('pages/manufaktur/Produksi/IncomingMaterialPage.vue'),
       },
 
       // --- SECTION 3: PROSES PACKING (STAYWIRE 5 STEPS) ---
@@ -220,6 +220,112 @@ const routes = [
         path: 'finance/invoice',
         name: 'manufaktur-finance-invoice',
         component: () => import('pages/manufaktur/finance/InvoiceCustomerPage.vue'),
+      },
+      // --- SECTION 7: GUDANG MANUFAKTUR ---
+      {
+        path: 'gudang',
+        component: () => import('pages/manufaktur/Gudang/ManufacturGudangPage.vue'),
+      },
+      {
+        path: 'gudang/transaksi',
+        component: () => import('pages/manufaktur/Gudang/ManufacturRiwayatTransaksiPage.vue'),
+      },
+      {
+        path: 'gudang/opname/:id',
+        component: () => import('pages/manufaktur/Gudang/ManufacturOpnamePage.vue'),
+      },
+      {
+        path: 'gudang/masuk/:id',
+        component: () => import('pages/manufaktur/Gudang/ManufacturBarangMasukPage.vue'),
+      },
+      {
+        path: 'gudang/keluar/:id',
+        component: () => import('pages/manufaktur/Gudang/ManufacturBarangKeluarPage.vue'),
+      },
+      {
+        path: 'gudang/permintaan/list',
+        component: () => import('pages/manufaktur/Gudang/ManufacturListPermintaanPage.vue'),
+      },
+      {
+        path: 'gudang/permintaan-antar/:id',
+        component: () => import('pages/manufaktur/Gudang/ManufacturPermintaanAntarGudangPage.vue'),
+      },
+      {
+        path: 'gudang/purchase-request/:id',
+        component: () => import('pages/manufaktur/Gudang/ManufacturPurchaseRequestPage.vue'),
+      },
+      // =====================================================
+      // INCOMING MATERIAL ROUTES
+      // File: src/router/routes.js
+      // =====================================================
+
+      // taruh di children manufaktur
+      // jangan ubah route lain
+
+      {
+        path: '/manufaktur/produksi/proses-produksi/incoming',
+        name: 'incoming-material',
+        component: () => import('pages/manufaktur/Produksi/IncomingMaterialPage.vue'),
+        meta: {
+          requiresAuth: true,
+          title: 'Incoming Material',
+          module: 'manufaktur',
+        },
+      },
+
+      {
+        path: '/manufaktur/produksi/proses-produksi/incoming/table',
+        name: 'incoming-table',
+        component: () => import('pages/manufaktur/Produksi/IncomingTablePage.vue'),
+        meta: {
+          requiresAuth: true,
+          title: 'Incoming Table',
+          module: 'manufaktur',
+        },
+      },
+
+      {
+        path: '/manufaktur/produksi/proses-produksi/incoming/dialog',
+        name: 'incoming-dialog',
+        component: () => import('pages/manufaktur/Produksi/IncomingDialog.vue'),
+        meta: {
+          requiresAuth: true,
+          title: 'Incoming Dialog',
+          module: 'manufaktur',
+        },
+      },
+
+      {
+        path: '/manufaktur/produksi/proses-produksi/incoming/summary',
+        name: 'incoming-summary',
+        component: () => import('pages/manufaktur/Produksi/IncomingSummary.vue'),
+        meta: {
+          requiresAuth: true,
+          title: 'Incoming Summary',
+          module: 'manufaktur',
+        },
+      },
+
+      {
+        path: '/manufaktur/produksi/proses-produksi/incoming/status',
+        name: 'incoming-status',
+        component: () => import('pages/manufaktur/Produksi/IncomingStatusBadge.vue'),
+        meta: {
+          requiresAuth: true,
+          title: 'Incoming Status',
+          module: 'manufaktur',
+        },
+      },
+
+      {
+        path: '/manufaktur/produksi/proses-produksi/material',
+        name: 'incoming-material-data',
+        component: () => import('pages/manufaktur/Produksi/IncomingMaterial.vue'),
+        meta: {
+          requiresAuth: true,
+          title: 'Incoming Material Data',
+          module: 'manufaktur',
+        },
       },
     ],
   },
