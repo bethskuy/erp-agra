@@ -235,36 +235,38 @@
             <div class="row q-mt-md q-mb-lg text-left text-body2">
               <div class="col-7">
                 <table class="meta-info-table">
-                  <tr>
-                    <td class="text-bold label-meta">Customer</td>
-                    <td class="meta-separator">:</td>
-                    <td class="text-weight-medium">
-                      {{
-                        manufacturSelectedData.customerName ||
-                        manufacturSelectedData.customer_nama ||
-                        manufacturSelectedData.kepada_yth
-                      }}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="text-bold label-meta">Project</td>
-                    <td class="meta-separator">:</td>
-                    <td class="text-weight-bold text-green-10 uppercase">
-                      {{ manufacturSelectedData.proyek_nama || '-' }}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="text-bold label-meta">No. Reff</td>
-                    <td class="meta-separator">:</td>
-                    <td>{{ manufacturSelectedData.no_reff || '-' }}</td>
-                  </tr>
-                  <tr>
-                    <td class="text-bold label-meta">Requestor</td>
-                    <td class="meta-separator">:</td>
-                    <td class="text-weight-medium uppercase">
-                      {{ manufacturSelectedData.pemohon?.nama || '-' }}
-                    </td>
-                  </tr>
+                  <tbody>
+                    <tr>
+                      <td class="text-bold label-meta">Customer</td>
+                      <td class="meta-separator">:</td>
+                      <td class="text-weight-medium">
+                        {{
+                          manufacturSelectedData.customerName ||
+                          manufacturSelectedData.customer_nama ||
+                          manufacturSelectedData.kepada_yth
+                        }}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="text-bold label-meta">Project</td>
+                      <td class="meta-separator">:</td>
+                      <td class="text-weight-bold text-green-10 uppercase">
+                        {{ manufacturSelectedData.proyek_nama || '-' }}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="text-bold label-meta">No. Reff</td>
+                      <td class="meta-separator">:</td>
+                      <td>{{ manufacturSelectedData.no_reff || '-' }}</td>
+                    </tr>
+                    <tr>
+                      <td class="text-bold label-meta">Requestor</td>
+                      <td class="meta-separator">:</td>
+                      <td class="text-weight-medium uppercase">
+                        {{ manufacturSelectedData.pemohon?.nama || '-' }}
+                      </td>
+                    </tr>
+                  </tbody>
                 </table>
               </div>
               <div class="col-5 text-right">
