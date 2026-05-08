@@ -812,7 +812,7 @@
 import { ref, onMounted, onUnmounted, nextTick, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 // eslint-disable-next-line no-unused-vars
-import { db, storage } from 'src/boot/firebase'
+import { auth, db, storage } from 'src/boot/firebase'
 import {
   collection,
   getDocs,
@@ -827,6 +827,7 @@ import {
   query,
   where,
 } from 'firebase/firestore'
+import { onAuthStateChanged } from 'firebase/auth'
 // eslint-disable-next-line no-unused-vars
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { useQuasar } from 'quasar'
@@ -872,6 +873,7 @@ const config = ref({ kopUrl: '', nama_pt: '', slogan_pt: '' })
 const userData = ref(null)
 let unsubUser = null
 let unsubRows = null
+let unsubAuth = null
 
 const formDefault = {
   nomor: '',
@@ -908,6 +910,10 @@ const formDefault = {
   po_customer_ref: '',
   po_customer_status: '',
   gudang_status: '',
+  workflow_status: 'PR_DRAFT',
+  approval_source: '',
+  approval_sync_status: '',
+  po_customer_document_id: '',
   stock_validation: [],
   catatan: '',
   status: 'Draft',
@@ -932,6 +938,42 @@ const canAction = (actionType) => {
   const targetId = '_manufaktur_gudang_permintaan' // Sesuaikan dengan ID menu gudang/PR lo
   const menu = modulePerm.menus.find((m) => m.id === targetId)
   return menu ? menu[actionType] || false : false
+}
+
+const getAuthProfile = () => {
+  const storeUser = authStore.user || {}
+  const firebaseUser = auth.currentUser || {}
+  return {
+    uid: storeUser.uid || firebaseUser.uid || '',
+    email: storeUser.email || firebaseUser.email || '',
+    nama:
+      userData.value?.nama ||
+      storeUser.nama ||
+      storeUser.name ||
+      storeUser.displayName ||
+      firebaseUser.displayName ||
+      (storeUser.email || firebaseUser.email || '').split('@')[0] ||
+      '',
+    jabatan: userData.value?.jabatan || storeUser.jabatan || storeUser.role || '',
+  }
+}
+
+const bindCurrentUserToForm = (force = false) => {
+  if (isEditMode.value && !force) return
+  const profile = getAuthProfile()
+  if (!force && form.value.ttd_nama && form.value.ttd_jabatan) return
+  form.value.ttd_nama = profile.nama || form.value.ttd_nama || ''
+  form.value.ttd_jabatan = profile.jabatan || form.value.ttd_jabatan || ''
+}
+
+const buildPemohonPayload = () => {
+  const profile = getAuthProfile()
+  return {
+    id: profile.uid,
+    nama: profile.nama,
+    email: profile.email,
+    jabatan: profile.jabatan,
+  }
 }
 
 const getDocumentNumber = (docData) => docData.nomor || docData.noPO || docData.no_po || docData.id
@@ -1096,6 +1138,10 @@ const applyPoCustomer = async (po) => {
     form.value.po_customer_ref = ''
     form.value.po_customer_status = ''
     form.value.gudang_status = ''
+    form.value.workflow_status = 'PR_DRAFT'
+    form.value.approval_source = ''
+    form.value.approval_sync_status = ''
+    form.value.po_customer_document_id = ''
     form.value.stock_validation = []
     return
   }
@@ -1105,7 +1151,9 @@ const applyPoCustomer = async (po) => {
   form.value.nomor_po_customer = getDocumentNumber(po)
   form.value.po_customer_ref = po.no_reff || po.noPO || po.nomor || ''
   form.value.po_customer_status = po.status || ''
+  form.value.po_customer_document_id = po.id
   form.value.gudang_status = 'PR_DRAFT'
+  form.value.workflow_status = 'PR_DRAFT'
   form.value.kepada_yth =
     po.customerName || po.customer_nama || po.kepada_yth || form.value.kepada_yth
   form.value.no_reff = po.no_reff || form.value.no_reff
@@ -1162,19 +1210,32 @@ const fetchData = async () => {
   await loadPoCustomerOptions()
 }
 
-const fetchCurrentUser = () => {
-  const email = authStore.user?.email
-  if (!email) return
+const listenCurrentUserByEmail = (email) => {
+  if (unsubUser) unsubUser()
+  if (!email) {
+    bindCurrentUserToForm()
+    return
+  }
   const qKaryawan = query(collection(db, 'karyawan_manufaktur'), where('email', '==', email))
   unsubUser = onSnapshot(qKaryawan, (snap) => {
     if (!snap.empty) {
-      userData.value = snap.docs[0].data()
-      if (!isEditMode.value) {
-        form.value.ttd_nama = userData.value.nama
-        form.value.ttd_jabatan = userData.value.jabatan
-      }
+      userData.value = { id: snap.docs[0].id, ...snap.docs[0].data() }
+    } else {
+      userData.value = null
     }
+    bindCurrentUserToForm()
   })
+}
+
+const fetchCurrentUser = () => {
+  listenCurrentUserByEmail(authStore.user?.email || auth.currentUser?.email || '')
+
+  if (!unsubAuth) {
+    unsubAuth = onAuthStateChanged(auth, (firebaseUser) => {
+      const email = authStore.user?.email || firebaseUser?.email || ''
+      listenCurrentUserByEmail(email)
+    })
+  }
 }
 
 // --- WORKFLOW ACTIONS ---
@@ -1190,10 +1251,7 @@ const openAddDialog = () => {
     Date.now().toString().slice(-4)
   form.value.logoUrl = config.value.kopUrl || ''
   form.value.nama_pt = config.value.nama_pt || 'PT AGRA ABHINAYA PERKASA'
-  if (userData.value) {
-    form.value.ttd_nama = userData.value.nama
-    form.value.ttd_jabatan = userData.value.jabatan
-  }
+  bindCurrentUserToForm(true)
   showDialog.value = true
 }
 
@@ -1216,11 +1274,19 @@ const ajukanPR = (row) => {
     try {
       await updateDoc(doc(db, 'permintaan_barang_manufaktur', row.id), {
         status: 'Pending',
+        gudang_status: 'PR_PENDING_APPROVAL',
+        workflow_status: 'PENDING_APPROVAL',
+        approval_source: 'PO_CUSTOMER',
+        approval_sync_status: 'Pending',
+        po_customer_document_id: row.po_customer_id || row.po_customer_document_id || '',
         updatedAt: serverTimestamp(),
       })
       if (row.po_customer_id) {
         await updateDoc(doc(db, 'purchase_order_manufactur', row.po_customer_id), {
           gudang_status: 'PR_PENDING_APPROVAL',
+          approval_sync_status: 'Pending',
+          pending_pr_id: row.id,
+          last_pr_id: row.id,
           last_pr_nomor: row.nomor,
           last_pr_status: 'Pending',
           updatedAt: serverTimestamp(),
@@ -1249,10 +1315,16 @@ const submitPurchaseRequest = async () => {
       proyek_nama: selectedWarehouseObj.value.nama,
       no_reff: selectedSpk.value?.nomor_spk || form.value.no_reff || '',
       total_estimasi: calculateTotalPR(),
-      pemohon: { id: authStore.user?.uid, nama: authStore.user?.nama },
+      pemohon: buildPemohonPayload(),
       stock_validation: stockValidation,
       stock_status: stockValidation.some((it) => it.shortage > 0) ? 'NEED_PROCUREMENT' : 'READY',
       gudang_status: isEditMode.value ? form.value.gudang_status || 'PR_UPDATED' : 'PR_DRAFT',
+      workflow_status: isEditMode.value
+        ? form.value.workflow_status || 'PR_UPDATED'
+        : 'PR_DRAFT',
+      approval_source: form.value.approval_source || 'PO_CUSTOMER',
+      approval_sync_status: form.value.approval_sync_status || form.value.status || 'Draft',
+      po_customer_document_id: form.value.po_customer_id || form.value.po_customer_document_id || '',
       updatedAt: serverTimestamp(),
     }
 
@@ -1309,6 +1381,14 @@ watch(showPad, async (v) => {
     signaturePad = new SignaturePad(c, { penColor: '#000000' })
   }
 })
+
+watch(
+  () => authStore.user?.email,
+  (email) => {
+    listenCurrentUserByEmail(email || auth.currentUser?.email || '')
+  },
+)
+
 const clearPad = () => signaturePad?.clear()
 const saveManualSignature = () => {
   if (!signaturePad || signaturePad.isEmpty()) return
@@ -1407,6 +1487,7 @@ onMounted(() => {
   fetchCurrentUser()
 })
 onUnmounted(() => {
+  if (unsubAuth) unsubAuth()
   if (unsubUser) unsubUser()
   if (unsubRows) unsubRows()
 })

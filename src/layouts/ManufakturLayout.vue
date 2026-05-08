@@ -223,6 +223,8 @@
             v-if="
               hasSectionAccess([
                 'produksi/proses-produksi/incoming',
+                'produksi/proses-produksi/incoming/table',
+                'produksi/proses-produksi/incoming/summary',
                 'produksi/proses-packing-page',
               ])
             "
@@ -241,9 +243,37 @@
               dense
             >
               <q-item-section avatar class="submenu-icon"
-                ><q-icon name="move_to_inbox" size="xs"
+                ><q-icon name="inventory_2" size="xs"
               /></q-item-section>
               <q-item-section class="submenu-text">Incoming Material</q-item-section>
+            </q-item>
+            <q-item
+              v-if="checkPermission('produksi/proses-produksi/incoming/table')"
+              clickable
+              v-ripple
+              to="/manufaktur/produksi/proses-produksi/incoming/table"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="fact_check" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Monitoring Incoming</q-item-section>
+            </q-item>
+            <q-item
+              v-if="checkPermission('produksi/proses-produksi/incoming/summary')"
+              clickable
+              v-ripple
+              to="/manufaktur/produksi/proses-produksi/incoming/summary"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="analytics" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Summary Incoming</q-item-section>
             </q-item>
             <q-item
               v-if="checkPermission('produksi/proses-packing-page')"

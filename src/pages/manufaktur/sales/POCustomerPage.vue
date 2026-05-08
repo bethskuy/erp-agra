@@ -447,6 +447,8 @@ const manufacturSignatureCanvas = ref(null)
 let manufacturSignaturePad = null
 let manufacturUnsubUser = null
 let manufacturUnsubRows = null
+let manufacturPoRows = []
+let manufacturPendingPrRows = []
 
 const manufacturColumns = [
   { name: 'nomor', align: 'left', label: 'PO NUMBER', field: 'nomor', sortable: true },
@@ -479,8 +481,10 @@ const manufacturGetGudangStatusLabel = (manufacturStatus) => {
     PR_UPDATED: 'PR Update',
     PR_PENDING_APPROVAL: 'PR Pending',
     PR_APPROVED: 'PR Approved',
+    PR_REJECTED: 'PR Rejected',
     STOCK_OUT_PARTIAL: 'Parsial',
     STOCK_OUT_DONE: 'Selesai',
+    PO_REJECTED: 'PO Rejected',
   }
   return manufacturLabels[manufacturStatus] || 'Belum Diproses'
 }
@@ -488,6 +492,7 @@ const manufacturGetGudangStatusLabel = (manufacturStatus) => {
 const manufacturGetGudangStatusColor = (manufacturStatus) => {
   if (manufacturStatus === 'STOCK_OUT_DONE') return 'green-10'
   if (manufacturStatus === 'STOCK_OUT_PARTIAL') return 'orange-9'
+  if (['PR_REJECTED', 'PO_REJECTED'].includes(manufacturStatus)) return 'negative'
   if (
     ['PR_DRAFT_CREATED', 'PR_UPDATED', 'PR_PENDING_APPROVAL', 'PR_APPROVED'].includes(
       manufacturStatus,
@@ -511,37 +516,83 @@ const manufacturCanAction = (manufacturActionType) => {
   return manufacturMenu ? manufacturMenu[manufacturActionType] || false : false
 }
 
+const manufacturGetSortSeconds = (manufacturItem) =>
+  manufacturItem.updatedAt?.seconds ||
+  manufacturItem.created_at?.seconds ||
+  manufacturItem.createdAt?.seconds ||
+  manufacturItem.timestamp?.seconds ||
+  0
+
+const manufacturMergeRows = () => {
+  manufacturRows.value = [...manufacturPendingPrRows, ...manufacturPoRows].sort(
+    (manufacturA, manufacturB) =>
+      manufacturGetSortSeconds(manufacturB) - manufacturGetSortSeconds(manufacturA),
+  )
+  manufacturLoading.value = false
+}
+
+const manufacturNormalizePendingPr = (manufacturDoc) => {
+  const manufacturPr = { id: manufacturDoc.id, ...manufacturDoc.data() }
+  return {
+    ...manufacturPr,
+    id: `PR-${manufacturDoc.id}`,
+    pr_id: manufacturDoc.id,
+    source_collection: 'permintaan_barang_manufaktur',
+    source_type: 'PURCHASE_REQUEST_GUDANG',
+    nomor: manufacturPr.nomor || manufacturPr.no_reff || manufacturDoc.id,
+    customerName:
+      manufacturPr.nomor_po_customer ||
+      manufacturPr.kepada_yth ||
+      manufacturPr.proyek_nama ||
+      'Purchase Request Gudang',
+    gudang_status: manufacturPr.gudang_status || 'PR_PENDING_APPROVAL',
+    status: manufacturPr.status || 'Pending',
+    total_estimasi: manufacturPr.total_estimasi || manufacturPr.total || 0,
+  }
+}
+
 const loadManufacturData = () => {
   manufacturLoading.value = true
+  if (manufacturUnsubRows) manufacturUnsubRows()
   getDoc(doc(db, 'config_manufaktur', 'perusahaan')).then((manufacturSnap) => {
     if (manufacturSnap.exists()) manufacturConfig.value = manufacturSnap.data()
   })
 
-  manufacturUnsubRows = onSnapshot(
+  const manufacturUnsubPo = onSnapshot(
     collection(db, 'purchase_order_manufactur'),
     (manufacturSnap) => {
-      manufacturRows.value = manufacturSnap.docs
+      manufacturPoRows = manufacturSnap.docs
         .map((manufacturDoc) => ({ id: manufacturDoc.id, ...manufacturDoc.data() }))
         .filter((manufacturItem) => manufacturItem.status !== 'Draft')
-        .sort(
-          (manufacturA, manufacturB) =>
-            (manufacturB.updatedAt?.seconds ||
-              manufacturB.created_at?.seconds ||
-              manufacturB.createdAt?.seconds ||
-              0) -
-            (manufacturA.updatedAt?.seconds ||
-              manufacturA.created_at?.seconds ||
-              manufacturA.createdAt?.seconds ||
-              0),
-        )
-      manufacturLoading.value = false
+        .map((manufacturItem) => ({
+          ...manufacturItem,
+          source_collection: 'purchase_order_manufactur',
+          source_type: 'PO_CUSTOMER',
+        }))
+      manufacturMergeRows()
     },
   )
+
+  const manufacturPendingPrQuery = query(
+    collection(db, 'permintaan_barang_manufaktur'),
+    where('tipe', '==', 'PURCHASE_REQUEST'),
+    where('status', '==', 'Pending'),
+  )
+  const manufacturUnsubPr = onSnapshot(manufacturPendingPrQuery, (manufacturSnap) => {
+    manufacturPendingPrRows = manufacturSnap.docs.map(manufacturNormalizePendingPr)
+    manufacturMergeRows()
+  })
+
+  manufacturUnsubRows = () => {
+    manufacturUnsubPo()
+    manufacturUnsubPr()
+  }
 }
 
 const manufacturHandleApproval = (manufacturRow, manufacturStatus, manufacturAlasan = null) => {
   if (
     manufacturStatus === 'Approved' &&
+    manufacturRow.source_type !== 'PURCHASE_REQUEST_GUDANG' &&
     !manufacturRow.approve_signature_url &&
     !manufacturSignaturePad
   ) {
@@ -562,6 +613,50 @@ const manufacturHandleApproval = (manufacturRow, manufacturStatus, manufacturAla
     })
     .onOk(async () => {
       try {
+        if (manufacturRow.source_type === 'PURCHASE_REQUEST_GUDANG') {
+          const manufacturPrData = {
+            status: manufacturStatus,
+            gudang_status: manufacturStatus === 'Approved' ? 'PR_APPROVED' : 'PR_REJECTED',
+            workflow_status: manufacturStatus === 'Approved' ? 'PR_APPROVED' : 'PR_REJECTED',
+            approval_source: 'PO_CUSTOMER',
+            approval_sync_status: manufacturStatus,
+            approve_nama: manufacturUserData.value?.nama || 'Admin Manufaktur',
+            approve_jabatan: manufacturUserData.value?.jabatan || 'Manager',
+            approve_at: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+          }
+          if (manufacturAlasan) manufacturPrData.alasan_reject = manufacturAlasan
+          if (manufacturRow.approve_signature_url) {
+            manufacturPrData.approve_signature_url = manufacturRow.approve_signature_url
+          }
+
+          await updateDoc(
+            doc(db, 'permintaan_barang_manufaktur', manufacturRow.pr_id),
+            manufacturPrData,
+          )
+
+          const manufacturRelatedPoId =
+            manufacturRow.po_customer_id || manufacturRow.po_customer_document_id
+          if (manufacturRelatedPoId) {
+            await updateDoc(doc(db, 'purchase_order_manufactur', manufacturRelatedPoId), {
+              gudang_status:
+                manufacturStatus === 'Approved' ? 'PR_APPROVED' : 'PR_REJECTED',
+              last_pr_id: manufacturRow.pr_id,
+              last_pr_nomor: manufacturRow.nomor || '',
+              last_pr_status: manufacturStatus,
+              approval_sync_status: manufacturStatus,
+              updatedAt: serverTimestamp(),
+            })
+          }
+
+          manufacturShowPreview.value = false
+          manufacturQ.notify({
+            type: 'positive',
+            message: `Purchase Request Gudang telah di-${manufacturStatus.toLowerCase()}`,
+          })
+          return
+        }
+
         const manufacturData = {
           status: manufacturStatus,
           updatedAt: serverTimestamp(),
@@ -577,6 +672,20 @@ const manufacturHandleApproval = (manufacturRow, manufacturStatus, manufacturAla
         }
 
         await updateDoc(doc(db, 'purchase_order_manufactur', manufacturRow.id), manufacturData)
+        if (manufacturRow.last_pr_id) {
+          await updateDoc(doc(db, 'permintaan_barang_manufaktur', manufacturRow.last_pr_id), {
+            status: manufacturStatus,
+            gudang_status: manufacturStatus === 'Approved' ? 'PR_APPROVED' : 'PR_REJECTED',
+            workflow_status: manufacturStatus === 'Approved' ? 'PR_APPROVED' : 'PR_REJECTED',
+            approval_source: 'PO_CUSTOMER',
+            approval_sync_status: manufacturStatus,
+            approve_nama: manufacturUserData.value?.nama || 'Admin Manufaktur',
+            approve_jabatan: manufacturUserData.value?.jabatan || 'Manager',
+            approve_at: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            ...(manufacturAlasan ? { alasan_reject: manufacturAlasan } : {}),
+          })
+        }
         manufacturShowPreview.value = false
         manufacturQ.notify({
           type: 'positive',
