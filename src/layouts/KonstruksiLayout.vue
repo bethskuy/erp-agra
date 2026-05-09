@@ -297,7 +297,6 @@
               header-class="text-weight-bold"
             >
               <q-list>
-                <!-- MENU BARU: AHSP -->
                 <q-item
                   v-if="checkPermission('marketing/ahsp')"
                   clickable
@@ -343,7 +342,13 @@
 
             <!-- PROYEK -->
             <q-expansion-item
-              v-if="hasSectionAccess(['master/proyek-data', 'master/proyek-kategori'])"
+              v-if="
+                hasSectionAccess([
+                  'master/proyek-data',
+                  'master/proyek-monitoring',
+                  'master/proyek-kategori',
+                ])
+              "
               icon="foundation"
               label="PROYEK"
               class="menu-expansion q-mb-sm"
@@ -361,6 +366,20 @@
                   <q-item-section avatar><q-icon name="apartment" size="20px" /></q-item-section>
                   <q-item-section>Data Proyek</q-item-section>
                 </q-item>
+
+                <!-- Monitoring Proyek (Baru) -->
+                <q-item
+                  v-if="checkPermission('master/proyek-monitoring')"
+                  clickable
+                  v-ripple
+                  to="/konstruksi/master/proyek-monitoring"
+                  class="level-2-item"
+                  active-class="sub-menu-item-active"
+                >
+                  <q-item-section avatar><q-icon name="monitor" size="20px" /></q-item-section>
+                  <q-item-section>Monitoring Proyek</q-item-section>
+                </q-item>
+
                 <q-item
                   v-if="checkPermission('master/proyek-kategori')"
                   clickable
@@ -395,7 +414,6 @@
               label="PEMBELIAN"
               class="menu-expansion q-mb-sm"
               header-class="text-weight-bold"
-              default-opened
             >
               <q-list>
                 <q-item
@@ -413,6 +431,108 @@
                       pendingPrCount
                     }}</q-badge>
                   </q-item-section>
+                </q-item>
+              </q-list>
+            </q-expansion-item>
+
+            <!-- FINANCE -->
+            <q-expansion-item
+              v-if="
+                hasSectionAccess([
+                  'finance/tagihan',
+                  'finance/tagihan-supplier',
+                  'finance/pengeluaran',
+                  'finance/pembayaran',
+                  'finance/approval-pembayaran',
+                  'finance/balansheet',
+                ])
+              "
+              icon="account_balance_wallet"
+              label="FINANCE"
+              class="menu-expansion q-mb-sm"
+              header-class="text-weight-bold"
+            >
+              <q-list>
+                <!-- Monitoring Tagihan -->
+                <q-item
+                  v-if="checkPermission('finance/tagihan')"
+                  clickable
+                  v-ripple
+                  to="/konstruksi/finance/tagihan"
+                  class="level-2-item"
+                  active-class="sub-menu-item-active"
+                >
+                  <q-item-section avatar><q-icon name="receipt" size="20px" /></q-item-section>
+                  <q-item-section>Monitoring Tagihan</q-item-section>
+                </q-item>
+
+                <!-- Tagihan Supplier atau Labour -->
+                <q-item
+                  v-if="checkPermission('finance/tagihan-supplier')"
+                  clickable
+                  v-ripple
+                  to="/konstruksi/finance/tagihan-supplier"
+                  class="level-2-item"
+                  active-class="sub-menu-item-active"
+                >
+                  <q-item-section avatar><q-icon name="list_alt" size="20px" /></q-item-section>
+                  <q-item-section>Tagihan Supplier / Labour</q-item-section>
+                </q-item>
+
+                <!-- Monitoring Pengeluaran -->
+                <q-item
+                  v-if="checkPermission('finance/pengeluaran')"
+                  clickable
+                  v-ripple
+                  to="/konstruksi/finance/pengeluaran"
+                  class="level-2-item"
+                  active-class="sub-menu-item-active"
+                >
+                  <q-item-section avatar
+                    ><q-icon name="trending_down" size="20px"
+                  /></q-item-section>
+                  <q-item-section>Monitoring Pengeluaran</q-item-section>
+                </q-item>
+
+                <!-- Pengajuan Pembayaran -->
+                <q-item
+                  v-if="checkPermission('finance/pembayaran')"
+                  clickable
+                  v-ripple
+                  to="/konstruksi/finance/pembayaran"
+                  class="level-2-item"
+                  active-class="sub-menu-item-active"
+                >
+                  <q-item-section avatar><q-icon name="payments" size="20px" /></q-item-section>
+                  <q-item-section>Pengajuan Pembayaran</q-item-section>
+                </q-item>
+
+                <!-- Approval Pembayaran -->
+                <q-item
+                  v-if="checkPermission('finance/approval-pembayaran')"
+                  clickable
+                  v-ripple
+                  to="/konstruksi/finance/approval-pembayaran"
+                  class="level-2-item"
+                  active-class="sub-menu-item-active"
+                >
+                  <q-item-section avatar><q-icon name="gavel" size="20px" /></q-item-section>
+                  <q-item-section>Approval Pembayaran</q-item-section>
+                </q-item>
+
+                <!-- Monitoring Balansheet (Paling Bawah & Selalu Hijau Tua) -->
+                <q-item
+                  v-if="checkPermission('finance/balansheet')"
+                  clickable
+                  v-ripple
+                  to="/konstruksi/finance/balansheet"
+                  class="level-2-item special-green-item q-mt-sm"
+                  active-class="sub-menu-item-active-green"
+                >
+                  <q-item-section avatar
+                    ><q-icon name="account_balance" size="20px"
+                  /></q-item-section>
+                  <q-item-section>Monitoring Balansheet</q-item-section>
                 </q-item>
               </q-list>
             </q-expansion-item>
@@ -630,10 +750,37 @@ onUnmounted(() => {
   padding-left: 42px;
   font-size: 13.5px;
   color: #546e7a;
+  transition: all 0.3s ease;
   &:hover {
     background-color: #f5f5f5;
   }
 }
+
+/* KELAS KHUSUS PERMANEN HIJAU TUA UNTUK BALANSHEET */
+.special-green-item {
+  background-color: #2e7d32 !important; /* Hijau tua permanen */
+  color: #ffffff !important; /* Teks putih permanen */
+  font-weight: 700;
+
+  .q-icon {
+    color: #ffffff !important; /* Ikon putih permanen */
+  }
+
+  &:hover {
+    background-color: #1b5e20 !important; /* Sedikit lebih gelap saat di-hover */
+  }
+}
+
+.sub-menu-item-active-green {
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  background-color: #1b5e20 !important;
+  border-right: 5px solid #81c784; /* Garis aksen hijau muda */
+  .q-icon {
+    color: #ffffff !important;
+  }
+}
+
 .level-3-item {
   border-radius: 0 25px 25px 0;
   margin-bottom: 2px;

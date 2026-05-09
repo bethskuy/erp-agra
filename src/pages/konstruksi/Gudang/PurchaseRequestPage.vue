@@ -250,7 +250,7 @@
                         /></template>
                       </q-input>
                     </div>
-                    <div class="col-12 col-md-4">
+                    <div class="col-12 col-md-4" v-if="selectedWarehouseObj?.id !== 'UTAMA'">
                       <div class="label-req q-mb-xs">NO. REFF: (SPK PROJECT)</div>
                       <q-select
                         outlined
@@ -877,6 +877,21 @@ const fetchData = async () => {
     .map((d) => ({ id: d.id, nama: d.data().nama, unit: d.data().unit }))
     .sort((a, b) => a.nama.localeCompare(b.nama))
   masterBarang.value = [...allBarang.value]
+
+  // --- MENGAMBIL DATA SPK UNTUK DROPDOWN REFF ---
+  loadingSpk.value = true
+  try {
+    const spkSnap = await getDocs(collection(db, 'spk_customer')) // PERBAIKAN: Mengubah 'spk' menjadi 'spk_customer'
+    optSpk.value = spkSnap.docs.map((d) => ({
+      id: d.id,
+      nomor_spk: d.data().nomor_spk || d.data().nomor || d.id,
+      ...d.data(),
+    }))
+  } catch (err) {
+    console.error('Error fetching SPK reference', err)
+  } finally {
+    loadingSpk.value = false
+  }
 }
 
 const fetchCurrentUser = () => {
@@ -909,12 +924,20 @@ const openAddDialog = () => {
     form.value.ttd_nama = userData.value.nama
     form.value.ttd_jabatan = userData.value.jabatan
   }
+  selectedSpk.value = null // Reset pilihan SPK ketika buat baru
   showDialog.value = true
 }
 
 const openEditDialog = (row) => {
   isEditMode.value = true
   form.value = JSON.parse(JSON.stringify(row))
+
+  // Mencocokkan nilai SPK yang sudah ada di referensi form
+  if (row.no_reff) {
+    selectedSpk.value = optSpk.value.find((s) => s.nomor_spk === row.no_reff) || null
+  } else {
+    selectedSpk.value = null
+  }
   showDialog.value = true
 }
 
@@ -1290,6 +1313,7 @@ const columns = [
   padding: 12px 12px !important;
   color: white !important;
   border: 1px solid #1a237e !important;
+  background: #1a237e;
 }
 .terms-container {
   border: 1.5px solid #1a237e;
