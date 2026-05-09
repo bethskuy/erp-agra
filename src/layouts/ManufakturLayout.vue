@@ -173,6 +173,97 @@
             </q-item>
           </q-expansion-item>
 
+          <q-item-label header class="section-title">MASTER DATA</q-item-label>
+
+          <q-expansion-item
+            icon="dataset"
+            label="Master"
+            header-class="nav-group"
+            expand-icon-class="nav-expand-icon"
+          >
+            <q-list>
+              <q-item
+                clickable
+                v-ripple
+                to="/manufaktur/marketing/customer"
+                active-class="active-menu"
+                class="submenu-item master-child-item"
+                dense
+              >
+                <q-item-section avatar class="submenu-icon">
+                  <q-icon name="person_outline" size="xs" />
+                </q-item-section>
+                <q-item-section class="submenu-text">Customer</q-item-section>
+              </q-item>
+
+              <q-item
+                clickable
+                v-ripple
+                to="/manufaktur/master/supplier"
+                active-class="active-menu"
+                class="submenu-item master-child-item"
+                dense
+              >
+                <q-item-section avatar class="submenu-icon">
+                  <q-icon name="local_shipping" size="xs" />
+                </q-item-section>
+                <q-item-section class="submenu-text">Data Supplier</q-item-section>
+              </q-item>
+
+              <q-expansion-item
+                icon="inventory_2"
+                label="Data Barang"
+                header-class="submenu-group master-child-group"
+                expand-icon-class="nav-expand-icon"
+                dense
+              >
+                <q-list>
+                  <q-item
+                    clickable
+                    v-ripple
+                    to="/manufaktur/master/barang-list"
+                    active-class="active-menu"
+                    class="submenu-item master-grandchild-item"
+                    dense
+                  >
+                    <q-item-section avatar class="submenu-icon">
+                      <q-icon name="list_alt" size="xs" />
+                    </q-item-section>
+                    <q-item-section class="submenu-text">List Barang</q-item-section>
+                  </q-item>
+
+                  <q-item
+                    clickable
+                    v-ripple
+                    to="/manufaktur/master/barang-kategori"
+                    active-class="active-menu"
+                    class="submenu-item master-grandchild-item"
+                    dense
+                  >
+                    <q-item-section avatar class="submenu-icon">
+                      <q-icon name="category" size="xs" />
+                    </q-item-section>
+                    <q-item-section class="submenu-text">Kategori Barang</q-item-section>
+                  </q-item>
+
+                  <q-item
+                    clickable
+                    v-ripple
+                    to="/manufaktur/master/satuan"
+                    active-class="active-menu"
+                    class="submenu-item master-grandchild-item"
+                    dense
+                  >
+                    <q-item-section avatar class="submenu-icon">
+                      <q-icon name="straighten" size="xs" />
+                    </q-item-section>
+                    <q-item-section class="submenu-text">Data Satuan</q-item-section>
+                  </q-item>
+                </q-list>
+              </q-expansion-item>
+            </q-list>
+          </q-expansion-item>
+
           <q-expansion-item
             icon="inventory_2"
             label="Gudang"
@@ -220,14 +311,7 @@
           </q-expansion-item>
 
           <q-expansion-item
-            v-if="
-              hasSectionAccess([
-                'produksi/proses-produksi/incoming',
-                'produksi/proses-produksi/incoming/table',
-                'produksi/proses-produksi/incoming/summary',
-                'produksi/proses-packing-page',
-              ])
-            "
+            v-if="hasSectionAccess(['produksi/proses-produksi/incoming'])"
             icon="precision_manufacturing"
             label="Produksi"
             header-class="nav-group"
@@ -246,48 +330,6 @@
                 ><q-icon name="inventory_2" size="xs"
               /></q-item-section>
               <q-item-section class="submenu-text">Incoming Material</q-item-section>
-            </q-item>
-            <q-item
-              v-if="checkPermission('produksi/proses-produksi/incoming/table')"
-              clickable
-              v-ripple
-              to="/manufaktur/produksi/proses-produksi/incoming/table"
-              active-class="active-menu"
-              class="submenu-item"
-              dense
-            >
-              <q-item-section avatar class="submenu-icon"
-                ><q-icon name="fact_check" size="xs"
-              /></q-item-section>
-              <q-item-section class="submenu-text">Monitoring Incoming</q-item-section>
-            </q-item>
-            <q-item
-              v-if="checkPermission('produksi/proses-produksi/incoming/summary')"
-              clickable
-              v-ripple
-              to="/manufaktur/produksi/proses-produksi/incoming/summary"
-              active-class="active-menu"
-              class="submenu-item"
-              dense
-            >
-              <q-item-section avatar class="submenu-icon"
-                ><q-icon name="analytics" size="xs"
-              /></q-item-section>
-              <q-item-section class="submenu-text">Summary Incoming</q-item-section>
-            </q-item>
-            <q-item
-              v-if="checkPermission('produksi/proses-packing-page')"
-              clickable
-              v-ripple
-              to="/manufaktur/produksi/proses-packing-page"
-              active-class="active-menu"
-              class="submenu-item"
-              dense
-            >
-              <q-item-section avatar class="submenu-icon"
-                ><q-icon name="inventory" size="xs"
-              /></q-item-section>
-              <q-item-section class="submenu-text">Monitoring Packing</q-item-section>
             </q-item>
           </q-expansion-item>
 
@@ -585,6 +627,7 @@ onUnmounted(() => {
 }
 .menu-item:hover,
 .submenu-item:hover,
+:deep(.submenu-group:hover),
 :deep(.nav-group:hover) {
   background: #edf7f3;
   color: #004d40;
@@ -631,6 +674,49 @@ onUnmounted(() => {
 }
 .submenu-item:hover .submenu-icon {
   color: #006b59;
+}
+:deep(.submenu-group) {
+  min-height: 32px;
+  margin: 1px 4px 1px 20px;
+  padding: 0 10px;
+  border-radius: 8px;
+  color: #42524e;
+  font-size: 12.5px;
+  font-weight: 650;
+  letter-spacing: 0;
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+:deep(.submenu-group .q-item__section--avatar) {
+  min-width: 24px;
+  padding-right: 7px;
+  color: #7a8a86;
+}
+:deep(.submenu-group .q-item__label) {
+  min-width: 0;
+  overflow: hidden;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+:deep(.q-expansion-item--expanded > .submenu-group) {
+  color: #004d40;
+  background: #f2f8f5;
+}
+:deep(.q-expansion-item--expanded > .submenu-group .q-item__section--avatar) {
+  color: #006b59;
+}
+.master-child-item {
+  margin-left: 20px;
+}
+:deep(.master-child-group) {
+  margin-left: 20px;
+}
+.master-grandchild-item {
+  margin-left: 38px;
 }
 :deep(.nav-group) {
   min-height: 36px;

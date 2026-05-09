@@ -61,7 +61,7 @@
       </div>
 
       <!-- Proyek Gudang Cards -->
-      <div v-for="p in listProyek" :key="p.id" class="col-12 col-sm-6 col-md-4">
+      <div v-for="p in gudangCards" :key="p.id" class="col-12 col-sm-6 col-md-4">
         <q-card
           flat
           bordered
@@ -221,7 +221,7 @@
       <!-- TABLE INVENTARIS -->
       <q-card flat bordered class="rounded-20 shadow-sm overflow-hidden bg-white">
         <q-table
-          :rows="stokBarang"
+          :rows="inventoryItems"
           :columns="columns"
           row-key="id"
           :filter="filter"
@@ -333,7 +333,7 @@
                       <q-select
                         outlined
                         v-model="formStok.kategori"
-                        :options="kategoriOptions"
+                        :options="kategoriBarang"
                         label="Filter Berdasarkan Kategori"
                         option-label="nama"
                         option-value="nama"
@@ -348,7 +348,7 @@
                       <q-select
                         outlined
                         v-model="formStok.barang"
-                        :options="filtegreenBarangOptions"
+                        :options="filteredBarangOptions"
                         label="Pilih Nama Barang"
                         option-label="display_name"
                         option-value="id"
@@ -370,6 +370,33 @@
                   </div>
 
                   <div class="row q-col-gutter-md items-center">
+                    <div class="col-12" v-if="selectedBarang">
+                      <q-card flat bordered class="bg-green-1 rounded-borders">
+                        <q-card-section class="q-pa-md">
+                          <div class="row q-col-gutter-md">
+                            <div class="col-12 col-sm-4">
+                              <div class="text-caption text-grey-7">Kategori</div>
+                              <div class="text-weight-bold text-green-10">
+                                {{ selectedBarang.kategori || '-' }}
+                              </div>
+                            </div>
+                            <div class="col-12 col-sm-4">
+                              <div class="text-caption text-grey-7">Satuan</div>
+                              <div class="text-weight-bold text-green-10">
+                                {{ selectedBarang.satuan || '-' }}
+                              </div>
+                            </div>
+                            <div class="col-12 col-sm-4">
+                              <div class="text-caption text-grey-7">Stok Existing</div>
+                              <div class="text-weight-bold text-green-10">
+                                {{ currentStokValue }} {{ selectedBarang.satuan || '' }}
+                              </div>
+                            </div>
+                          </div>
+                        </q-card-section>
+                      </q-card>
+                    </div>
+
                     <div class="col-12 col-sm-6">
                       <q-input
                         outlined
@@ -426,7 +453,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
 import { db } from 'src/boot/firebase'
 import {
   collection,
@@ -441,25 +468,42 @@ import {
   orderBy,
 } from 'firebase/firestore'
 import { useQuasar } from 'quasar'
+import { useAuthStore } from 'src/stores/auth'
 
 const $q = useQuasar()
-const listProyek = ref([])
+const authStore = useAuthStore()
+const warehouseList = ref([])
 const selectedGudang = ref(null)
-const stokBarang = ref([])
+const inventoryItems = ref([])
 const filter = ref('')
 const stokFormRef = ref(null)
 
 const dialogStok = ref(false)
-const kategoriOptions = ref([])
+const kategoriBarang = ref([])
 const masterBarang = ref([])
-const filtegreenBarangOptions = ref([])
-const currentStokValue = ref(0)
+const filteredBarangOptions = ref([])
 const pendingRequestCount = ref(0)
 
 const formStok = ref({ kategori: null, barang: null, jumlah: null, satuan: '', keterangan: '' })
 
 let unsubPermintaan = null
 let unsubStok = null
+let unsubMasterBarang = null
+let unsubKategoriBarang = null
+
+const gudangCards = computed(() => warehouseList.value)
+
+const selectedBarang = computed(() => {
+  if (!formStok.value.barang) return null
+  if (typeof formStok.value.barang === 'object') return formStok.value.barang
+  return masterBarang.value.find((barang) => barang.id === formStok.value.barang) || null
+})
+
+const currentStokValue = computed(() => {
+  if (!selectedBarang.value) return 0
+  const existing = inventoryItems.value.find((stok) => stok.id_barang === selectedBarang.value.id)
+  return Number(existing?.jumlah || 0)
+})
 
 const columns = [
   {
@@ -478,47 +522,146 @@ const selectGudang = (gudang) => {
   window.scrollTo(0, 0)
 }
 
+const hydrateKategoriFromBarang = () => {
+  const kategoriMap = new Map(kategoriBarang.value.map((item) => [item.nama, item]))
+  masterBarang.value.forEach((barang) => {
+    if (barang.kategori && !kategoriMap.has(barang.kategori)) {
+      kategoriMap.set(barang.kategori, { id: barang.kategori, nama: barang.kategori })
+    }
+  })
+  kategoriBarang.value = Array.from(kategoriMap.values()).sort((a, b) =>
+    String(a.nama || '').localeCompare(String(b.nama || '')),
+  )
+}
+
+const fetchDataBarang = () => {
+  if (unsubMasterBarang) unsubMasterBarang()
+  const qBarang = query(collection(db, 'manufactur_master_barang'), orderBy('nama', 'asc'))
+  unsubMasterBarang = onSnapshot(
+    qBarang,
+    (snap) => {
+      masterBarang.value = snap.docs.map((d) => {
+        const data = d.data()
+        return {
+          id: d.id,
+          nama_barang: data.nama,
+          merk: data.merk || '',
+          kategori: data.kategori || '',
+          satuan: data.unit || data.satuan || '',
+          display_name: data.nama + (data.merk ? ' - ' + data.merk : ''),
+          raw: data,
+        }
+      })
+      hydrateKategoriFromBarang()
+      filteredBarangOptions.value = formStok.value.kategori
+        ? masterBarang.value.filter((barang) => barang.kategori === formStok.value.kategori)
+        : masterBarang.value
+      if (selectedBarang.value && !masterBarang.value.some((barang) => barang.id === selectedBarang.value.id)) {
+        formStok.value.barang = null
+        formStok.value.satuan = ''
+      }
+    },
+    (err) => {
+      console.error(err)
+      $q.notify({ type: 'negative', message: 'Gagal memuat master barang manufactur' })
+    },
+  )
+}
+
+const fetchKategoriBarang = () => {
+  if (unsubKategoriBarang) unsubKategoriBarang()
+  const qKategori = query(collection(db, 'manufactur_master_kategori_barang'), orderBy('nama', 'asc'))
+  unsubKategoriBarang = onSnapshot(
+    qKategori,
+    (snap) => {
+      kategoriBarang.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+      hydrateKategoriFromBarang()
+    },
+    (err) => {
+      console.error(err)
+      $q.notify({ type: 'negative', message: 'Gagal memuat kategori barang manufactur' })
+    },
+  )
+}
+
 const fetchMasterData = async () => {
   try {
-    const catSnap = await getDocs(query(collection(db, 'kategori_barang_manufaktur'), orderBy('nama', 'asc')))
-    kategoriOptions.value = catSnap.docs.map((d) => ({ id: d.id, ...d.data() }))
-
-    const barSnap = await getDocs(query(collection(db, 'master_barang_manufaktur'), orderBy('nama', 'asc')))
+    const [catSnap, barSnap] = await Promise.all([
+      getDocs(query(collection(db, 'manufactur_master_kategori_barang'), orderBy('nama', 'asc'))),
+      getDocs(query(collection(db, 'manufactur_master_barang'), orderBy('nama', 'asc'))),
+    ])
+    kategoriBarang.value = catSnap.docs.map((d) => ({ id: d.id, ...d.data() }))
     masterBarang.value = barSnap.docs.map((d) => {
       const data = d.data()
       return {
         id: d.id,
         nama_barang: data.nama,
         merk: data.merk || '',
-        id_kategori: data.kategori,
-        satuan: data.unit,
+        kategori: data.kategori || '',
+        satuan: data.unit || data.satuan || '',
         display_name: data.nama + (data.merk ? ' - ' + data.merk : ''),
+        raw: data,
       }
     })
+    hydrateKategoriFromBarang()
   } catch (err) {
     console.error(err)
   }
 }
 
-const fetchProyek = async () => {
-  try {
-    const snap = await getDocs(collection(db, 'gudang_manufaktur'))
-    listProyek.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
-    if (listProyek.value.length < 2) {
-      listProyek.value.push({
-        id: 'dummy-project',
-        nama: 'Gudang Project',
-        lokasi: 'Proyek Aktif',
-      })
+const normalizeWarehouseCard = (docSnap, source) => {
+  const data = docSnap.data()
+  const nama = data.nama_proyek || data.nama || data.nama_gudang || data.name || ''
+
+  return {
+    id: docSnap.id,
+    ...data,
+    nama,
+    nama_proyek: data.nama_proyek || nama,
+    lokasi: data.lokasi || data.alamat || data.location || '',
+    source,
+  }
+}
+
+const mergeWarehouseDocs = (warehouseMap, docs, source) => {
+  docs.forEach((docSnap) => {
+    if (docSnap.id === 'UTAMA') return
+    if (!warehouseMap.has(docSnap.id)) {
+      warehouseMap.set(docSnap.id, normalizeWarehouseCard(docSnap, source))
     }
-  } catch (err) {
-    console.error(err)
+  })
+}
+
+const fetchWarehouses = async () => {
+  const warehouseMap = new Map()
+  const warehouseSources = [
+    'proyek_manufaktur',
+    'gudang_manufaktur',
+    'manufactur_master_proyek',
+  ]
+  let hasFetchError = false
+
+  await Promise.all(
+    warehouseSources.map(async (source) => {
+      try {
+        const snap = await getDocs(collection(db, source))
+        mergeWarehouseDocs(warehouseMap, snap.docs, source)
+      } catch (err) {
+        hasFetchError = true
+        console.warn(`Daftar gudang dari ${source} tidak dapat dimuat`, err)
+      }
+    }),
+  )
+
+  warehouseList.value = Array.from(warehouseMap.values())
+
+  if (hasFetchError && warehouseList.value.length === 0) {
+    $q.notify({ type: 'negative', message: 'Gagal memuat daftar gudang manufactur' })
   }
 }
 
 const openAddStokDialog = async () => {
   formStok.value = { kategori: null, barang: null, jumlah: null, satuan: '', keterangan: '' }
-  currentStokValue.value = 0
   $q.loading.show({ message: 'Menyiapkan database barang...' })
   await fetchMasterData()
   $q.loading.hide()
@@ -528,16 +671,17 @@ const openAddStokDialog = async () => {
 const onKategoriChange = (val) => {
   formStok.value.barang = null
   formStok.value.satuan = ''
-  currentStokValue.value = 0
-  filtegreenBarangOptions.value = masterBarang.value.filter((b) => b.id_kategori === val)
+  filteredBarangOptions.value = val
+    ? masterBarang.value.filter((barang) => barang.kategori === val)
+    : masterBarang.value
 }
 
 const filterBarang = (val, update) => {
   update(() => {
-    const needle = val.toLowerCase()
-    filtegreenBarangOptions.value = masterBarang.value.filter(
+    const needle = String(val || '').toLowerCase()
+    filteredBarangOptions.value = masterBarang.value.filter(
       (b) =>
-        b.id_kategori === formStok.value.kategori &&
+        (!formStok.value.kategori || b.kategori === formStok.value.kategori) &&
         b.display_name.toLowerCase().indexOf(needle) > -1,
     )
   })
@@ -546,19 +690,25 @@ const filterBarang = (val, update) => {
 const onBarangChange = (val) => {
   if (val) {
     formStok.value.satuan = val.satuan || ''
-    const existing = stokBarang.value.find((s) => s.id_barang === val.id)
-    currentStokValue.value = existing ? existing.jumlah : 0
   }
 }
 
 const simpanStok = async () => {
-  if (!selectedGudang.value || !formStok.value.barang) return
+  if (!selectedGudang.value || !selectedBarang.value) return
+  const tambahan = Number(formStok.value.jumlah)
+  if (!Number.isFinite(tambahan) || tambahan <= 0) {
+    $q.notify({ type: 'negative', message: 'Kuantitas tidak boleh kosong, nol, atau minus' })
+    return
+  }
+
   $q.loading.show({ message: 'Mensinkronisasi stok...' })
   try {
     const idGudang = selectedGudang.value.id
-    const idBarang = formStok.value.barang.id
-    const namaBarang = formStok.value.barang.display_name
-    const tambahan = Number(formStok.value.jumlah)
+    const barang = selectedBarang.value
+    const idBarang = barang.id
+    const namaBarang = barang.display_name
+    const stokAwal = currentStokValue.value
+    const auditUser = authStore.user?.email || authStore.user?.nama || 'system'
 
     const qStok = query(
       collection(db, 'stok_barang_manufaktur'),
@@ -568,19 +718,33 @@ const simpanStok = async () => {
     const stokSnap = await getDocs(qStok)
 
     if (!stokSnap.empty) {
+      const currentJumlah = Number(stokSnap.docs[0].data().jumlah || 0)
       await updateDoc(doc(db, 'stok_barang_manufaktur', stokSnap.docs[0].id), {
-        jumlah: Number(stokSnap.docs[0].data().jumlah) + tambahan,
+        jumlah: currentJumlah + tambahan,
+        nama_barang: barang.nama_barang,
+        kategori: barang.kategori || '',
+        satuan: barang.satuan || formStok.value.satuan,
         updated_at: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        updated_by: auditUser,
+        updatedBy: auditUser,
       })
     } else {
       await addDoc(collection(db, 'stok_barang_manufaktur'), {
         id_gudang: idGudang,
         id_barang: idBarang,
-        nama_barang: formStok.value.barang.nama_barang,
+        nama_barang: barang.nama_barang,
+        kategori: barang.kategori || '',
         jumlah: tambahan,
-        satuan: formStok.value.satuan,
+        satuan: barang.satuan || formStok.value.satuan,
         created_at: serverTimestamp(),
+        createdAt: serverTimestamp(),
+        created_by: auditUser,
+        createdBy: auditUser,
         updated_at: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        updated_by: auditUser,
+        updatedBy: auditUser,
       })
     }
 
@@ -589,8 +753,14 @@ const simpanStok = async () => {
       nama_barang: namaBarang,
       tipe: 'MASUK',
       jumlah: tambahan,
+      stok_awal: stokAwal,
+      stok_akhir: stokAwal + tambahan,
+      satuan: barang.satuan || formStok.value.satuan,
+      kategori: barang.kategori || '',
       keterangan: formStok.value.keterangan || 'Penambahan stok manual',
       timestamp: serverTimestamp(),
+      created_by: auditUser,
+      createdBy: auditUser,
     })
 
     $q.notify({ type: 'positive', message: 'Stok diperbarui!', position: 'top' })
@@ -616,20 +786,26 @@ watch(selectedGudang, (newVal) => {
     unsubStok = onSnapshot(
       query(collection(db, 'stok_barang_manufaktur'), where('id_gudang', '==', newVal.id)),
       (snap) => {
-        stokBarang.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+        inventoryItems.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
       },
     )
+  } else {
+    inventoryItems.value = []
   }
 })
 
 onMounted(() => {
-  fetchProyek()
+  fetchWarehouses()
+  fetchKategoriBarang()
+  fetchDataBarang()
   listenPermintaan()
 })
 
 onUnmounted(() => {
   if (unsubPermintaan) unsubPermintaan()
   if (unsubStok) unsubStok()
+  if (unsubMasterBarang) unsubMasterBarang()
+  if (unsubKategoriBarang) unsubKategoriBarang()
 })
 </script>
 

@@ -142,6 +142,47 @@ const routes = [
         component: () => import('pages/manufaktur/DashboardPage.vue'),
       },
       {
+        path: 'marketing/customer',
+        name: 'manufaktur-master-customer',
+        component: () => import('pages/manufaktur/Master/Customer/CustomerPage.vue'),
+      },
+      {
+        path: 'master/supplier',
+        name: 'manufaktur-master-supplier',
+        component: () => import('pages/manufaktur/Master/DataSupplier/MasterSupplierPage.vue'),
+      },
+      {
+        path: 'master/barang-list',
+        name: 'manufaktur-master-barang',
+        component: () => import('pages/manufaktur/Master/DataBarang/MasterBarangPage.vue'),
+      },
+      {
+        path: 'master/barang-kategori',
+        name: 'manufaktur-master-barang-kategori',
+        component: () => import('pages/manufaktur/Master/DataBarang/KategoriBarangPage.vue'),
+      },
+      {
+        path: 'master/pekerjaan',
+        name: 'manufaktur-master-pekerjaan',
+        component: () => import('pages/manufaktur/Master/DataPekerjaan/MasterPekerjaanPage.vue'),
+      },
+      {
+        path: 'master/proyek-data',
+        name: 'manufaktur-master-proyek',
+        component: () => import('pages/manufaktur/Master/DataProyek/MasterProyekPage.vue'),
+      },
+      {
+        path: 'master/proyek-kategori',
+        name: 'manufaktur-master-proyek-kategori',
+        component: () => import('pages/manufaktur/Master/DataProyek/KategoriProyekPage.vue'),
+      },
+      {
+        path: 'master/satuan',
+        name: 'manufaktur-master-satuan',
+        component: () => import('pages/manufaktur/Master/DataSatuan/MasterSatuanPage.vue'),
+      },
+      // --- MENU SISTEM PENAWARAN (REVISI SESUAI GAMBAR) ---
+      {
         path: 'penawaran',
         name: 'PenawaranManufaktur',
         component: () => import('pages/manufaktur/Penawaran/QuotationPage.vue'),
@@ -257,6 +298,122 @@ const routes = [
       {
         path: 'gudang/purchase-request/:id',
         component: () => import('pages/manufaktur/Gudang/ManufacturPurchaseRequestPage.vue'),
+      },
+      // =====================================================
+      // INCOMING MATERIAL ROUTES
+      // File: src/router/routes.js
+      // =====================================================
+
+      // taruh di children manufaktur
+      // jangan ubah route lain
+
+      {
+        path: '/manufaktur/produksi/proses-produksi/incoming',
+        name: 'incoming-material',
+        component: () => import('pages/manufaktur/Produksi/IncomingMaterialPage.vue'),
+        meta: {
+          requiresAuth: true,
+          title: 'Incoming Material',
+          module: 'manufaktur',
+        },
+      },
+
+      {
+        path: '/manufaktur/produksi/proses-produksi/incoming/table',
+        name: 'incoming-table',
+        component: () => import('pages/manufaktur/Produksi/IncomingTablePage.vue'),
+        meta: {
+          requiresAuth: true,
+          title: 'Incoming Table',
+          module: 'manufaktur',
+        },
+      },
+
+      {
+        path: '/manufaktur/produksi/proses-produksi/incoming/dialog',
+        name: 'incoming-dialog',
+        component: () => import('pages/manufaktur/Produksi/IncomingDialog.vue'),
+        meta: {
+          requiresAuth: true,
+          title: 'Incoming Dialog',
+          module: 'manufaktur',
+        },
+      },
+
+      {
+        path: '/manufaktur/produksi/proses-produksi/incoming/summary',
+        name: 'incoming-summary',
+        component: () => import('pages/manufaktur/Produksi/IncomingSummary.vue'),
+        meta: {
+          requiresAuth: true,
+          title: 'Incoming Summary',
+          module: 'manufaktur',
+        },
+      },
+
+      {
+        path: '/manufaktur/produksi/proses-produksi/incoming/status',
+        name: 'incoming-status',
+        component: () => import('pages/manufaktur/Produksi/IncomingStatusBadge.vue'),
+        meta: {
+          requiresAuth: true,
+          title: 'Incoming Status',
+          module: 'manufaktur',
+        },
+      },
+
+      {
+        path: '/manufaktur/produksi/proses-produksi/material',
+        name: 'incoming-material-data',
+        component: () => import('pages/manufaktur/Produksi/IncomingMaterial.vue'),
+        meta: {
+          requiresAuth: true,
+          title: 'Incoming Material Data',
+          module: 'manufaktur',
+        },
+      },
+      // =========================
+      // MANUFAKTUR MASTER ROUTES
+      // =========================
+
+      {
+        path: '/manufaktur/master/customer',
+        component: () => import('pages/manufaktur/Master/Customer/CustomerPage.vue'),
+      },
+
+      {
+        path: '/manufaktur/master/data-barang/kategori',
+        component: () => import('pages/manufaktur/Master/DataBarang/KategoriBarangPage.vue'),
+      },
+
+      {
+        path: '/manufaktur/master/data-barang/master',
+        component: () => import('pages/manufaktur/Master/DataBarang/MasterBarangPage.vue'),
+      },
+
+      {
+        path: '/manufaktur/master/data-pekerjaan',
+        component: () => import('pages/manufaktur/Master/DataPekerjaan/MasterPekerjaanPage.vue'),
+      },
+
+      {
+        path: '/manufaktur/master/data-proyek/kategori',
+        component: () => import('pages/manufaktur/Master/DataProyek/KategoriProyekPage.vue'),
+      },
+
+      {
+        path: '/manufaktur/master/data-proyek/master',
+        component: () => import('pages/manufaktur/Master/DataProyek/MasterProyekPage.vue'),
+      },
+
+      {
+        path: '/manufaktur/master/data-satuan',
+        component: () => import('pages/manufaktur/Master/DataSatuan/MasterSatuanPage.vue'),
+      },
+
+      {
+        path: '/manufaktur/master/data-supplier',
+        component: () => import('pages/manufaktur/Master/DataSupplier/MasterSupplierPage.vue'),
       },
     ],
   },

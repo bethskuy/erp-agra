@@ -179,10 +179,20 @@
                   color="negative"
                   icon="block"
                   size="sm"
-                  :disable="getStatus(slotProps.row) === 'INCOMING_REJECT'"
+                  :disable="['REJECTED', 'INCOMING_REJECT'].includes(getStatus(slotProps.row))"
                   @click="rejectRow(slotProps.row)"
                 >
                   <q-tooltip>Reject</q-tooltip>
+                </q-btn>
+                <q-btn
+                  flat
+                  round
+                  color="negative"
+                  icon="delete_forever"
+                  size="sm"
+                  @click="deleteRow(slotProps.row)"
+                >
+                  <q-tooltip>Hapus Incoming</q-tooltip>
                 </q-btn>
               </div>
             </q-td>
@@ -210,7 +220,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['refresh', 'view', 'edit', 'advance', 'validasi', 'reject', 'open-file', 'export'])
+const emit = defineEmits(['refresh', 'view', 'edit', 'advance', 'validasi', 'reject', 'delete', 'open-file', 'export'])
 const $q = useQuasar()
 
 const keyword = ref('')
@@ -236,6 +246,7 @@ const statusOptions = [
   { label: 'Validasi Selesai', value: 'VALIDASI_SELESAI' },
   { label: 'Partial', value: 'PARTIAL' },
   { label: 'Incoming Reject', value: 'INCOMING_REJECT' },
+  { label: 'Rejected', value: 'REJECTED' },
 ]
 
 const columns = [
@@ -271,8 +282,17 @@ const columns = [
 
 const getSuratJalan = (row) => row?.nomor_surat_jalan || row?.noSuratJalan || '-'
 const getSupplier = (row) => row?.supplier || row?.asal || '-'
-const getMaterial = (row) => row?.nama_barang || row?.nama_material || row?.tipe_material || '-'
-const getKategori = (row) => row?.kategori_material || row?.tipe_material || 'Material produksi'
+const getItems = (row) => (Array.isArray(row?.items) && row.items.length ? row.items : [])
+const getMaterial = (row) => {
+  const items = getItems(row)
+  if (items.length > 1) return `${items[0]?.nama_barang || items[0]?.nama_material || '-'} +${items.length - 1} item`
+  return row?.nama_barang || row?.nama_material || row?.tipe_material || items[0]?.nama_barang || '-'
+}
+const getKategori = (row) => {
+  const items = getItems(row)
+  if (items.length > 1) return `${items.length} detail material`
+  return row?.kategori_material || row?.tipe_material || items[0]?.kategori_material || 'Material produksi'
+}
 const getSatuan = (row) => row?.satuan || 'PCS'
 const getCheckerQc = (row) => row?.checker_qc || row?.qc_checker || row?.checker_gudang || row?.checker || '-'
 const getKondisi = (row) => row?.kondisi_barang || (Number(row?.qty_ng || 0) > 0 ? 'RUSAK' : 'BAIK')
@@ -283,6 +303,7 @@ const getBadgeStatus = (row) => {
     VALIDASI_SELESAI: 'SELESAI',
     PARTIAL: 'QC_PENDING',
     INCOMING_REJECT: 'QC_NG',
+    REJECTED: 'QC_NG',
   }
 
   return badgeStatusMap[status] || status
@@ -292,13 +313,26 @@ const getStatusLabel = (row) => {
   const labelMap = {
     VALIDASI_SELESAI: 'Validasi Selesai',
     PARTIAL: 'Partial',
-    INCOMING_REJECT: 'Incoming Reject',
+    INCOMING_REJECT: 'Rejected',
+    REJECTED: 'Rejected',
   }
 
   return labelMap[status] || ''
 }
-const getQtySj = (row) => Number(row?.qty_surat_jalan ?? row?.qtySJ ?? row?.quantity ?? 0)
-const getQtyActual = (row) => Number(row?.qty_actual ?? row?.qtyActual ?? row?.quantity ?? 0)
+const getQtySj = (row) => {
+  const items = getItems(row)
+  if (items.length) {
+    return items.reduce((sum, item) => sum + Number(item.qty_surat_jalan ?? item.qtySJ ?? item.qty ?? 0), 0)
+  }
+  return Number(row?.qty_surat_jalan ?? row?.qtySJ ?? row?.quantity ?? 0)
+}
+const getQtyActual = (row) => {
+  const items = getItems(row)
+  if (items.length) {
+    return items.reduce((sum, item) => sum + Number(item.qty_actual ?? item.qtyActual ?? item.quantity ?? 0), 0)
+  }
+  return Number(row?.qty_actual ?? row?.qtyActual ?? row?.quantity ?? 0)
+}
 const getQtyDiff = (row) => Number(row?.selisih_qty ?? getQtyActual(row) - getQtySj(row))
 const formatNumber = (value) => Number(value || 0).toLocaleString('id-ID')
 
@@ -352,6 +386,7 @@ const filteredRows = computed(() => {
         getSupplier(row),
         getMaterial(row),
         getKategori(row),
+        ...getItems(row).flatMap((item) => [item.nama_barang, item.kategori_material, item.catatan]),
         getCheckerQc(row),
         getStatus(row),
         row?.catatan,
@@ -374,7 +409,7 @@ const resetFilter = () => {
   pagination.value.page = 1
 }
 
-const isFinalStatus = (row) => ['SELESAI', 'VALIDASI_SELESAI', 'INCOMING_REJECT'].includes(getStatus(row))
+const isFinalStatus = (row) => ['SELESAI', 'VALIDASI_SELESAI', 'INCOMING_REJECT', 'REJECTED'].includes(getStatus(row))
 
 const validasiRow = (row) => {
   emit('validasi', row)
@@ -383,6 +418,10 @@ const validasiRow = (row) => {
 
 const rejectRow = (row) => {
   emit('reject', row)
+}
+
+const deleteRow = (row) => {
+  emit('delete', row)
 }
 
 const exportExcel = () => {
