@@ -105,6 +105,7 @@
       </q-card-section>
     </q-card>
 
+    <!-- MODAL TAMBAH/EDIT LOKASI UTAMA -->
     <q-dialog v-model="dialogLokasi" persistent>
       <q-card style="width: 600px; max-width: 95vw" class="rounded-12">
         <q-card-section class="bg-primary text-white row items-center q-py-sm">
@@ -138,12 +139,23 @@
               :rules="[(val) => !!val || 'Longitude wajib diisi']"
             />
 
+            <!-- TOMBOL PILIH DARI PETA INTERAKTIF -->
             <q-btn
               unelevated
-              color="teal-6"
+              color="primary"
+              icon="map"
+              label="Pilih Lokasi dari Peta Interaktif"
+              class="full-width text-weight-bold q-py-sm"
+              @click="openMapModal"
+            />
+
+            <!-- TOMBOL AMBIL LOKASI ADMIN SEKARANG -->
+            <q-btn
+              unelevated
+              color="teal"
               icon="my_location"
               label="Ambil Lokasi Admin Sekarang"
-              class="full-width text-weight-bold q-py-sm"
+              class="full-width text-weight-bold q-py-sm q-mb-sm"
               @click="dapatkanLokasiSekarang"
               :loading="gettingLocation"
             />
@@ -171,6 +183,77 @@
             />
           </q-card-actions>
         </q-form>
+      </q-card>
+    </q-dialog>
+
+    <!-- MODAL PETA INTERAKTIF (LEAFLET) -->
+    <q-dialog v-model="mapDialog" persistent @show="onMapDialogShow">
+      <q-card style="width: 800px; max-width: 95vw" class="rounded-12">
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6 text-weight-bold">Pilih Lokasi Kantor di Peta</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+
+        <q-card-section>
+          <div class="row q-col-gutter-md q-mb-sm">
+            <div class="col-12 col-md-6">
+              <q-input outlined dense v-model="tempMapLat" label="Latitude Manual" />
+            </div>
+            <div class="col-12 col-md-6">
+              <q-input outlined dense v-model="tempMapLng" label="Longitude Manual" />
+            </div>
+          </div>
+
+          <q-btn
+            unelevated
+            color="cyan-4"
+            text-color="white"
+            icon="my_location"
+            label="ARAHKAN PETA KE KOORDINAT"
+            class="full-width text-weight-bold q-mb-md shadow-1"
+            @click="arahkanPetaKeKoordinat"
+          />
+
+          <!-- CONTAINER PETA -->
+          <div
+            class="relative-position rounded-borders overflow-hidden shadow-2"
+            style="height: 350px; border: 1px solid #e0e0e0"
+          >
+            <div id="leaflet-map-container" style="height: 100%; width: 100%; z-index: 1"></div>
+
+            <!-- KOTAK PENCARIAN DI ATAS PETA -->
+            <q-card
+              class="absolute-top-left q-ma-sm shadow-3 rounded-borders"
+              style="z-index: 1000; width: 280px; max-width: 80%"
+            >
+              <q-input
+                v-model="mapSearch"
+                dense
+                borderless
+                class="q-px-sm bg-white"
+                placeholder="Cari lokasi..."
+                @keyup.enter="cariLokasiDiPeta"
+                :loading="searchingMap"
+              >
+                <template v-slot:prepend>
+                  <q-icon name="search" class="cursor-pointer" @click="cariLokasiDiPeta" />
+                </template>
+              </q-input>
+            </q-card>
+          </div>
+        </q-card-section>
+
+        <q-card-actions align="right" class="bg-grey-1 q-pa-md border-top">
+          <q-btn flat label="BATAL" color="grey-7" v-close-popup class="text-weight-bold" />
+          <q-btn
+            unelevated
+            label="PILIH LOKASI INI"
+            color="primary"
+            @click="konfirmasiPeta"
+            class="text-weight-bold q-px-lg shadow-2"
+          />
+        </q-card-actions>
       </q-card>
     </q-dialog>
   </q-page>
@@ -215,6 +298,16 @@ const columns = [
   { name: 'aksi', label: 'Aksi', align: 'center' },
 ]
 
+// STATE PETA INTERAKTIF
+const mapDialog = ref(false)
+const mapSearch = ref('')
+const tempMapLat = ref('')
+const tempMapLng = ref('')
+const searchingMap = ref(false)
+
+let leafletMap = null
+let mapMarker = null
+
 // AMBIL DATA REAL-TIME DARI FIRESTORE
 const fetchLokasi = () => {
   onSnapshot(
@@ -230,7 +323,7 @@ const fetchLokasi = () => {
   )
 }
 
-// BUKA MODAL TAMBAH/EDIT
+// BUKA MODAL TAMBAH/EDIT UTAMA
 const openDialog = (data = null) => {
   if (data) {
     isEdit.value = true
@@ -249,7 +342,7 @@ const openDialog = (data = null) => {
   dialogLokasi.value = true
 }
 
-// SIMPAN ATAU UPDATE LOKASI
+// SIMPAN ATAU UPDATE LOKASI KE DATABASE
 const simpanLokasi = async () => {
   saving.value = true
   try {
@@ -291,13 +384,13 @@ const hapusLokasi = (id) => {
       await deleteDoc(doc(db, 'lokasi_kantor', id))
       $q.notify({ color: 'positive', message: 'Lokasi berhasil dihapus!' })
     } catch (error) {
-      console.error('Gagal menghapus lokasi:', error) // Error variabel sekarang terpakai
+      console.error('Gagal menghapus:', error)
       $q.notify({ color: 'negative', message: 'Gagal menghapus lokasi.' })
     }
   })
 }
 
-// FITUR DETEKSI OTOMATIS LOKASI ADMIN
+// FITUR 1: DETEKSI OTOMATIS GPS HP/LAPTOP ADMIN
 const dapatkanLokasiSekarang = () => {
   if (!navigator.geolocation) {
     $q.notify({ color: 'negative', message: 'Browser Anda tidak mendukung fitur GPS.' })
@@ -321,6 +414,124 @@ const dapatkanLokasiSekarang = () => {
   )
 }
 
+// ==========================================
+// FITUR 2: SISTEM PETA INTERAKTIF (LEAFLET)
+// ==========================================
+
+const openMapModal = () => {
+  // Set nilai awal peta ke form saat ini, atau default Jakarta/Bekasi jika kosong
+  tempMapLat.value = form.value.latitude || '-6.284200'
+  tempMapLng.value = form.value.longitude || '107.170600'
+  mapDialog.value = true
+
+  // Suntikkan Library Leaflet secara dinamis jika belum ada
+  if (!window.L) {
+    const link = document.createElement('link')
+    link.rel = 'stylesheet'
+    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
+    document.head.appendChild(link)
+
+    const script = document.createElement('script')
+    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+    script.onload = () => {
+      // Tunggu modal selesai animasi
+      setTimeout(() => initLeafletMap(), 100)
+    }
+    document.head.appendChild(script)
+  }
+}
+
+// Dipanggil oleh event @show pada q-dialog
+const onMapDialogShow = () => {
+  if (window.L) {
+    setTimeout(() => initLeafletMap(), 100)
+  }
+}
+
+const initLeafletMap = () => {
+  const lat = parseFloat(tempMapLat.value)
+  const lng = parseFloat(tempMapLng.value)
+
+  // Bersihkan peta lama jika sudah pernah dibuka
+  if (leafletMap) {
+    leafletMap.off()
+    leafletMap.remove()
+    leafletMap = null
+  }
+
+  // Inisialisasi Peta
+  leafletMap = window.L.map('leaflet-map-container').setView([lat, lng], 15)
+
+  // Gunakan layer OpenStreetMap
+  window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors',
+  }).addTo(leafletMap)
+
+  // Tambahkan Pin Marker yang bisa digeser (Draggable)
+  mapMarker = window.L.marker([lat, lng], { draggable: true }).addTo(leafletMap)
+
+  // Saat pin marker digeser, update input koordinat
+  // eslint-disable-next-line no-unused-vars
+  mapMarker.on('dragend', function (e) {
+    const pos = mapMarker.getLatLng()
+    tempMapLat.value = pos.lat.toFixed(6)
+    tempMapLng.value = pos.lng.toFixed(6)
+  })
+
+  // Saat peta diklik sembarang tempat, pindahkan pin marker
+  leafletMap.on('click', function (e) {
+    mapMarker.setLatLng(e.latlng)
+    tempMapLat.value = e.latlng.lat.toFixed(6)
+    tempMapLng.value = e.latlng.lng.toFixed(6)
+  })
+
+  // Pastikan ukuran peta menyesuaikan container (Mencegah peta terpotong abu-abu)
+  leafletMap.invalidateSize()
+}
+
+// Tombol Cyan "ARAHKAN PETA"
+const arahkanPetaKeKoordinat = () => {
+  if (leafletMap && mapMarker) {
+    const lat = parseFloat(tempMapLat.value) || 0
+    const lng = parseFloat(tempMapLng.value) || 0
+    leafletMap.setView([lat, lng], 16)
+    mapMarker.setLatLng([lat, lng])
+  }
+}
+
+// Fitur Pencarian Tempat
+const cariLokasiDiPeta = async () => {
+  if (!mapSearch.value) return
+  searchingMap.value = true
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(mapSearch.value)}`,
+    )
+    const data = await response.json()
+
+    if (data && data.length > 0) {
+      const result = data[0]
+      tempMapLat.value = parseFloat(result.lat).toFixed(6)
+      tempMapLng.value = parseFloat(result.lon).toFixed(6)
+      arahkanPetaKeKoordinat()
+    } else {
+      $q.notify({ color: 'warning', message: 'Lokasi tidak ditemukan di peta.' })
+    }
+  } catch (error) {
+    console.error(error)
+    $q.notify({ color: 'negative', message: 'Terjadi kesalahan saat mencari lokasi.' })
+  } finally {
+    searchingMap.value = false
+  }
+}
+
+// Tombol "PILIH LOKASI INI"
+const konfirmasiPeta = () => {
+  form.value.latitude = tempMapLat.value
+  form.value.longitude = tempMapLng.value
+  mapDialog.value = false
+}
+
 onMounted(() => {
   fetchLokasi()
 })
@@ -339,5 +550,8 @@ onMounted(() => {
 .admin-table :deep(th) {
   font-size: 13px;
   letter-spacing: 0.5px;
+}
+.border-top {
+  border-top: 1px solid #e0e0e0;
 }
 </style>

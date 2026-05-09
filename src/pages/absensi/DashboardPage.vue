@@ -19,10 +19,13 @@
                 <div class="row items-center justify-center q-gutter-x-sm q-mb-xs">
                   <q-icon
                     :name="locationData.inRange ? 'location_on' : 'location_off'"
-                    :color="locationData.inRange ? 'light-green-13' : 'orange-5'"
+                    :color="locationData.inRange ? 'light-green-13' : 'red-4'"
                     size="sm"
                   />
-                  <span class="text-subtitle2 text-weight-bolder">
+                  <span
+                    class="text-subtitle2 text-weight-bolder"
+                    :class="locationData.inRange ? 'text-light-green-13' : 'text-red-4'"
+                  >
                     {{ locationData.statusText }}
                   </span>
                 </div>
@@ -34,6 +37,17 @@
 
                 <div class="text-caption opacity-60 x-small-text">
                   {{ locationData.lat }}, {{ locationData.lng }}
+                </div>
+
+                <!-- INDIKATOR LOKASI KANTOR (JIKA COCOK) -->
+                <div
+                  v-if="locationData.inRange"
+                  class="q-mt-sm text-caption text-weight-bold text-light-green-11 uppercase"
+                >
+                  Area Valid: {{ locationData.matchedLocationName }}
+                </div>
+                <div v-else class="q-mt-sm text-caption text-weight-bold text-red-3 uppercase">
+                  Harap mendekat ke area kantor!
                 </div>
               </div>
             </q-card-section>
@@ -53,14 +67,12 @@
               <div class="q-gutter-y-sm q-mb-lg">
                 <div class="info-row">
                   <span class="label text-grey-7 text-weight-bold">Nama Karyawan</span>
-                  <!-- Mengambil nama secara dinamis dari userData -->
                   <span class="text-weight-bolder text-primary text-uppercase">{{
                     userData.nama || 'MEMUAT...'
                   }}</span>
                 </div>
                 <div class="info-row">
                   <span class="label text-grey-7 text-weight-bold">Posisi / Jabatan</span>
-                  <!-- Mengambil jabatan secara dinamis dari userData -->
                   <q-badge color="blue-1" text-color="blue-9" class="text-weight-bold q-pa-xs">{{
                     userData.jabatan || userData.role || 'STAFF'
                   }}</q-badge>
@@ -68,17 +80,19 @@
               </div>
 
               <div class="row q-col-gutter-sm">
+                <!-- TOMBOL CLOCK-IN DENGAN LOGIKA GEMBOK -->
                 <div class="col-6">
                   <q-btn
                     unelevated
                     rounded
-                    color="positive"
-                    icon="camera_alt"
-                    label="CLOCK-IN"
+                    :color="locationData.inRange ? 'positive' : 'grey-6'"
+                    :icon="locationData.inRange ? 'camera_alt' : 'lock'"
+                    :label="locationData.inRange ? 'CLOCK-IN' : 'TERKUNCI'"
                     class="full-width q-py-md text-weight-bold shadow-2"
                     @click="startAbsensi"
                   />
                 </div>
+                <!-- TOMBOL CLOCK-OUT -->
                 <div class="col-6">
                   <q-btn
                     unelevated
@@ -219,14 +233,23 @@
                   </q-badge>
                 </div>
 
+                <!-- TOMBOL KIRIM TERKUNCI DOUBLE GUARD -->
                 <q-btn
                   unelevated
-                  color="positive"
-                  label="KIRIM SEKARANG"
+                  :color="locationData.inRange ? 'positive' : 'grey-5'"
+                  :label="locationData.inRange ? 'KIRIM SEKARANG' : 'DIBLOKIR'"
                   class="full-width q-mt-md q-py-md text-weight-bold shadow-3"
                   icon="send"
                   @click="saveAbsensi"
                 />
+
+                <div
+                  v-if="!locationData.inRange"
+                  class="text-negative text-center q-mt-sm text-weight-bold text-caption"
+                >
+                  Tombol pengiriman dikunci karena Anda di luar area.
+                </div>
+
                 <q-btn
                   flat
                   color="grey-7"
@@ -280,16 +303,18 @@ const showCamera = ref(false)
 const capturedImage = ref(null)
 const video = ref(null)
 const canvas = ref(null)
+
+// Variabel Penampung Lokasi Kantor dari Firestore
+const daftarLokasiKantor = ref([])
+
 const locationData = ref({
   lat: '0.0000',
   lng: '0.0000',
   address: '',
   statusText: 'Mencari Lokasi...',
   inRange: false,
+  matchedLocationName: 'AREA LUAR KANTOR',
 })
-
-const KANTOR_LAT = -6.2842
-const KANTOR_LNG = 107.1706
 
 const columnsKaryawan = [
   { name: 'no', label: 'No', field: 'no', align: 'left' },
@@ -332,29 +357,51 @@ const getAddressName = async (lat, lng) => {
   }
 }
 
+// RUMUS MENGHITUNG JARAK ANTARA 2 TITIK KOORDINAT (HAVERSINE)
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 6371 // Radius Bumi dalam KM
+  const dLat = (lat2 - lat1) * (Math.PI / 180)
+  const dLon = (lon2 - lon1) * (Math.PI / 180)
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) *
+      Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  return R * c // Hasil dalam KM
+}
+
+// FUNGSI DETEKSI LOKASI MULTI-KANTOR
 const detectLocation = () => {
   if (!navigator.geolocation) return
   navigator.geolocation.getCurrentPosition(
     (p) => {
       const lat = p.coords.latitude
       const lng = p.coords.longitude
-      const R = 6371
-      const dLat = (KANTOR_LAT - lat) * (Math.PI / 180)
-      const dLon = (KANTOR_LNG - lng) * (Math.PI / 180)
-      const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(lat * (Math.PI / 180)) *
-          Math.cos(KANTOR_LAT * (Math.PI / 180)) *
-          Math.sin(dLon / 2) *
-          Math.sin(dLon / 2)
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-      const distance = R * c
-      const inRange = distance <= 0.2 // Maksimal 200 meter dari KANTOR_LAT/LNG
 
-      locationData.value.lat = lat.toFixed(4)
-      locationData.value.lng = lng.toFixed(4)
-      locationData.value.inRange = inRange
-      locationData.value.statusText = inRange ? 'Lokasi Dalam Jangkauan' : 'Di Luar Area Kantor'
+      locationData.value.lat = lat.toFixed(5)
+      locationData.value.lng = lng.toFixed(5)
+
+      let foundMatch = false
+      let matchedName = 'AREA LUAR KANTOR'
+
+      // CEK SATU-PERSATU DARI SEMUA LOKASI KANTOR YANG ADA DI DATABASE
+      for (const loc of daftarLokasiKantor.value) {
+        const distance = calculateDistance(lat, lng, loc.latitude, loc.longitude)
+
+        // Jika jarak user <= radius kantor (KM)
+        if (distance <= loc.radius) {
+          foundMatch = true
+          matchedName = loc.nama_lokasi
+          break // Stop loop, sudah ketemu 1 yang valid
+        }
+      }
+
+      locationData.value.inRange = foundMatch
+      locationData.value.matchedLocationName = matchedName
+      locationData.value.statusText = foundMatch ? 'Lokasi Dalam Jangkauan' : 'DI LUAR AREA KANTOR'
+
       getAddressName(lat, lng)
     },
     () => {
@@ -364,7 +411,22 @@ const detectLocation = () => {
   )
 }
 
+// ==========================================
+// PENGUNCIAN TOMBOL CLOCK-IN
+// ==========================================
 const startAbsensi = () => {
+  // Jika di luar range, blokir kamera terbuka!
+  if (!locationData.value.inRange) {
+    $q.notify({
+      color: 'negative',
+      icon: 'gavel',
+      message: 'AKSES DITOLAK: Anda berada di luar radius lokasi kantor yang diizinkan!',
+      position: 'top',
+      timeout: 3000,
+    })
+    return
+  }
+
   showCamera.value = true
   setTimeout(() => {
     navigator.mediaDevices.getUserMedia({ video: true }).then((s) => {
@@ -386,10 +448,18 @@ const stopCamera = () => {
   showCamera.value = false
 }
 
+// ==========================================
+// PENGUNCIAN FUNGSI SIMPAN KE DATABASE
+// ==========================================
 const saveAbsensi = async () => {
+  // Double guard: Cegah simpan data kalau bukan inRange
+  if (!locationData.value.inRange) {
+    $q.notify({ color: 'negative', message: 'Tidak bisa mengirim absensi dari luar area!' })
+    return
+  }
+
   $q.loading.show()
   try {
-    // Pastikan nama_karyawan sesuai persis dengan huruf kapital, sama seperti di profil/login
     const formattedName = (userData.value.nama || 'USER').toUpperCase()
 
     await addDoc(collection(db, 'absensi'), {
@@ -398,7 +468,7 @@ const saveAbsensi = async () => {
       waktu_pulang: null,
       tanggal: currentDate.value,
       status: 'Hadir',
-      nama_tempat: locationData.value.inRange ? 'KANTOR AGRA' : 'AREA LUAR KANTOR',
+      nama_tempat: locationData.value.matchedLocationName, // Cth: PT AGRA ABHINAYA PERKASA
       alamat_lengkap: locationData.value.address,
       koordinat: `${locationData.value.lat}, ${locationData.value.lng}`,
     })
@@ -413,7 +483,7 @@ const saveAbsensi = async () => {
 }
 
 const absenPulang = async () => {
-  if (!documentId.value) return $q.notify({ color: 'warning', message: 'Belum Clock-in!' })
+  if (!documentId.value) return $q.notify({ color: 'warning', message: 'Belum Clock-in hari ini!' })
   $q.loading.show()
   try {
     await updateDoc(doc(db, 'absensi', documentId.value), {
@@ -431,16 +501,23 @@ const absenPulang = async () => {
 
 const formatWaktu = (ts) => (ts ? date.formatDate(ts.toDate(), 'HH.mm') : '--.--')
 
-let timer, unsubMe, unsubAll, unsubUser, locationTimer
+let timer, unsubMe, unsubAll, unsubUser, unsubLokasi, locationTimer
 
 onMounted(() => {
   updateTime()
-  detectLocation()
   timer = setInterval(updateTime, 1000)
+
+  // 0. AMBIL DAFTAR LOKASI KANTOR DARI ADMIN (REALTIME)
+  unsubLokasi = onSnapshot(collection(db, 'lokasi_kantor'), (snap) => {
+    daftarLokasiKantor.value = snap.docs.map((doc) => doc.data())
+    // Langsung tembak deteksi GPS begitu pengaturan lokasi selesai diunduh
+    detectLocation()
+  })
+
   locationTimer = setInterval(detectLocation, 45000)
 
   // 1. SINKRONISASI DATA USER DARI LOCALSTORAGE
-  const saved = localStorage.getItem('user_data') // Kunci yang benar dan seragam!
+  const saved = localStorage.getItem('user_data')
   if (saved) {
     try {
       const parsed = JSON.parse(saved)
@@ -451,7 +528,6 @@ onMounted(() => {
         email: parsed.email || '',
       }
 
-      // 2. REAL-TIME SINKRONISASI FIRESTORE (Jika data di Profil berubah, ini ikut berubah!)
       if (userData.value.email) {
         const qUser = query(collection(db, 'karyawan'), where('email', '==', userData.value.email))
         unsubUser = onSnapshot(qUser, (snap) => {
@@ -472,9 +548,7 @@ onMounted(() => {
   }
 
   // 3. AMBIL DATA RIWAYAT PRIBADI HARI INI
-  // Gunakan nama KAPITAL agar sinkron dengan yang disimpan di `saveAbsensi`
   const searchName = (userData.value.nama || 'USER').toUpperCase()
-
   const qMe = query(
     collection(db, 'absensi'),
     where('nama_karyawan', '==', searchName),
@@ -518,6 +592,7 @@ onUnmounted(() => {
   if (unsubMe) unsubMe()
   if (unsubAll) unsubAll()
   if (unsubUser) unsubUser()
+  if (unsubLokasi) unsubLokasi()
 })
 </script>
 
@@ -595,5 +670,8 @@ onUnmounted(() => {
   justify-content: space-between;
   padding: 10px 0;
   border-bottom: 1px solid #eee;
+}
+.uppercase {
+  text-transform: uppercase;
 }
 </style>
