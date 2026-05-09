@@ -36,8 +36,8 @@
           <div class="row justify-center">
             <div class="col-12 col-xl-10">
           <div class="status-strip row items-center q-col-gutter-sm">
-            <div class="col-12 col-sm">
-              <div class="text-caption text-grey-7 text-weight-bold">STATUS VALIDASI</div>
+            <div class="col-12 col-md">
+              <div class="text-caption text-grey-7 text-weight-bold">STATUS VALIDASI SAAT INI</div>
               <div class="row items-center q-gutter-sm">
                 <q-badge :color="statusMeta.color" class="status-badge">
                   <q-icon :name="statusMeta.icon" size="14px" class="q-mr-xs" />
@@ -47,9 +47,12 @@
               </div>
             </div>
             <div class="col-6 col-sm-auto metric-cell">
-              <div class="text-caption text-grey-7">Selisih</div>
-              <div class="text-subtitle2 text-weight-bolder" :class="selisihQty === 0 ? 'text-positive' : 'text-orange-10'">
-                {{ formatNumber(selisihQty) }}
+              <div class="text-caption text-grey-7">Selisih Qty</div>
+              <div
+                class="text-subtitle2 text-weight-bolder"
+                :class="totalSelisih === 0 ? 'text-positive' : 'text-orange-10'"
+              >
+                {{ formatNumber(totalSelisih) }}
               </div>
             </div>
             <div class="col-6 col-sm-auto metric-cell">
@@ -58,185 +61,319 @@
             </div>
           </div>
 
-          <q-separator class="q-my-md" />
+          <div class="form-section-stack">
+            <q-card flat bordered class="form-section-card rounded-20 shadow-1 bg-white">
+              <q-card-section class="section-head bg-green-1 text-green-10">
+                <q-icon name="description" size="xs" class="q-mr-xs" />
+                Informasi Dokumen
+              </q-card-section>
+              <q-separator />
+              <q-card-section class="q-pa-md">
+                <div class="row q-col-gutter-md">
+                  <div class="col-12 col-md-5">
+                    <q-input
+                      v-model.trim="form.nomor_surat_jalan"
+                      outlined
+                      dense
+                      label="Nomor Surat Jalan *"
+                      class="important-field"
+                      :rules="[requiredRule]"
+                      lazy-rules
+                    />
+                  </div>
+                  <div class="col-12 col-md-4">
+                    <q-input
+                      v-model.trim="form.supplier"
+                      outlined
+                      dense
+                      label="Supplier *"
+                      :rules="[requiredRule]"
+                      lazy-rules
+                    />
+                  </div>
+                  <div class="col-12 col-md-3">
+                    <q-input
+                      v-model="form.tanggal_masuk"
+                      outlined
+                      dense
+                      readonly
+                      label="Tanggal Masuk *"
+                      :rules="[requiredRule]"
+                      lazy-rules
+                    >
+                      <template #append>
+                        <q-icon name="event" class="cursor-pointer">
+                          <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                            <q-date v-model="form.tanggal_masuk" mask="YYYY-MM-DD" today-btn>
+                              <div class="row items-center justify-end q-pa-sm">
+                                <q-btn v-close-popup label="Pilih" color="green-10" flat no-caps />
+                              </div>
+                            </q-date>
+                          </q-popup-proxy>
+                        </q-icon>
+                      </template>
+                    </q-input>
+                  </div>
 
-          <q-card flat bordered class="form-section-card rounded-20 shadow-1 bg-white">
-            <q-card-section class="section-head bg-green-1 text-green-10">
-              <q-icon name="description" size="xs" class="q-mr-xs" />
-              IDENTITAS DOKUMEN & MATERIAL
-            </q-card-section>
-            <q-card-section class="q-pa-md">
-          <div class="row q-col-gutter-md">
-            <div class="col-12 col-md-4">
-              <q-input
-                v-model.trim="form.nomor_surat_jalan"
-                outlined
-                dense
-                label="Nomor Surat Jalan *"
-                :rules="[requiredRule]"
-                lazy-rules
-              />
-            </div>
-            <div class="col-12 col-md-4">
-              <q-input
-                v-model.trim="form.supplier"
-                outlined
-                dense
-                label="Supplier *"
-                :rules="[requiredRule]"
-                lazy-rules
-              />
-            </div>
-            <div class="col-12 col-md-4">
-              <q-input
-                v-model="form.tanggal_masuk"
-                outlined
-                dense
-                readonly
-                label="Tanggal Masuk *"
-                :rules="[requiredRule]"
-                lazy-rules
-              >
-                <template #append>
-                  <q-icon name="event" class="cursor-pointer">
-                    <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                      <q-date v-model="form.tanggal_masuk" mask="YYYY-MM-DD" today-btn>
-                        <div class="row items-center justify-end q-pa-sm">
-                          <q-btn v-close-popup label="Pilih" color="green-10" flat no-caps />
+                  <div class="col-12">
+                    <q-file
+                      v-model="form.surat_jalan_file"
+                      outlined
+                      dense
+                      clearable
+                      counter
+                      accept=".pdf,application/pdf"
+                      :max-file-size="MAX_PDF_SIZE"
+                      label="Upload Surat Jalan (PDF)"
+                      hint="Format PDF, maksimal 5MB"
+                      color="green-10"
+                      @rejected="onSuratJalanRejected"
+                      @update:model-value="onSuratJalanSelected"
+                    >
+                      <template #prepend>
+                        <q-icon name="picture_as_pdf" color="green-10" />
+                      </template>
+                    </q-file>
+                  </div>
+
+                  <div v-if="suratJalanMeta" class="col-12">
+                    <q-card flat bordered class="file-preview-card">
+                      <q-card-section class="row items-center q-pa-sm q-col-gutter-sm">
+                        <div class="col-auto">
+                          <q-avatar size="36px" color="green-1" text-color="green-10" icon="description" />
                         </div>
-                      </q-date>
-                    </q-popup-proxy>
-                  </q-icon>
-                </template>
-              </q-input>
-            </div>
+                        <div class="col min-width-0">
+                          <div class="text-weight-bold text-green-10 ellipsis">
+                            {{ suratJalanMeta.nama_file }}
+                          </div>
+                          <div class="text-caption text-grey-7">
+                            {{ formatFileSize(suratJalanMeta.ukuran_file) }} ·
+                            {{ formatUploadTimestamp(suratJalanMeta.upload_timestamp) }}
+                          </div>
+                        </div>
+                        <div class="col-auto">
+                          <q-btn flat round dense color="negative" icon="delete" @click="removeSuratJalanFile">
+                            <q-tooltip>Hapus file</q-tooltip>
+                          </q-btn>
+                        </div>
+                      </q-card-section>
+                    </q-card>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
 
-            <div class="col-12 col-md-5">
-              <q-input
-                v-model.trim="form.nama_barang"
-                outlined
-                dense
-                label="Nama Barang *"
-                :rules="[requiredRule]"
-                lazy-rules
-              />
-            </div>
-            <div class="col-12 col-md-4">
-              <q-select
-                v-model="form.kategori_material"
-                outlined
-                dense
-                emit-value
-                map-options
-                label="Kategori Material *"
-                :options="kategoriOptions"
-                :rules="[requiredRule]"
-                lazy-rules
-              />
-            </div>
-            <div class="col-12 col-md-3">
-              <q-select
-                v-model="form.satuan"
-                outlined
-                dense
-                emit-value
-                map-options
-                label="Satuan *"
-                :options="satuanOptions"
-                :rules="[requiredRule]"
-                lazy-rules
-              />
-            </div>
+            <q-card flat bordered class="form-section-card rounded-20 shadow-1 bg-white">
+              <q-card-section class="section-head bg-green-1 text-green-10">
+                <div class="row items-center justify-between full-width no-wrap">
+                  <div class="row items-center no-wrap">
+                    <q-icon name="table_rows" size="xs" class="q-mr-xs" />
+                    Detail Material Incoming
+                  </div>
+                  <q-btn
+                    unelevated
+                    color="green-10"
+                    icon="add"
+                    label="Tambah Baris Item"
+                    no-caps
+                    dense
+                    class="q-px-md"
+                    @click="addItem"
+                  />
+                </div>
+              </q-card-section>
+              <q-separator />
+              <q-card-section class="q-pa-none">
+                <div class="incoming-items-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th style="min-width: 220px">Nama Barang</th>
+                        <th style="min-width: 150px">Kategori</th>
+                        <th style="min-width: 110px">Satuan</th>
+                        <th style="min-width: 120px">Qty SJ</th>
+                        <th style="min-width: 120px">Qty Actual</th>
+                        <th style="min-width: 90px">Selisih</th>
+                        <th style="min-width: 150px">Kondisi</th>
+                        <th style="min-width: 120px">Status QC</th>
+                        <th style="min-width: 220px">Catatan</th>
+                        <th class="text-center" style="width: 56px"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(item, index) in form.items" :key="item.uid">
+                        <td>
+                          <q-input
+                            v-model.trim="item.nama_barang"
+                            dense
+                            outlined
+                            placeholder="Nama barang"
+                            :rules="[requiredRule]"
+                            lazy-rules
+                          />
+                        </td>
+                        <td>
+                          <q-select
+                            v-model="item.kategori_material"
+                            dense
+                            outlined
+                            emit-value
+                            map-options
+                            :options="kategoriOptions"
+                            :rules="[requiredRule]"
+                            lazy-rules
+                          />
+                        </td>
+                        <td>
+                          <q-select
+                            v-model="item.satuan"
+                            dense
+                            outlined
+                            emit-value
+                            map-options
+                            :options="satuanOptions"
+                            :rules="[requiredRule]"
+                            lazy-rules
+                          />
+                        </td>
+                        <td>
+                          <q-input
+                            v-model.number="item.qty_surat_jalan"
+                            dense
+                            outlined
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            :rules="[requiredNumberRule, positiveNumberRule]"
+                            lazy-rules
+                          />
+                        </td>
+                        <td>
+                          <q-input
+                            v-model.number="item.qty_actual"
+                            dense
+                            outlined
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            :rules="[requiredNumberRule, nonNegativeRule]"
+                            lazy-rules
+                            @update:model-value="normalizeItemQty(item)"
+                          />
+                        </td>
+                        <td class="text-right">
+                          <q-badge
+                            outline
+                            :color="itemSelisih(item) === 0 ? 'positive' : 'orange-10'"
+                            class="qty-badge"
+                          >
+                            {{ formatNumber(itemSelisih(item)) }}
+                          </q-badge>
+                        </td>
+                        <td>
+                          <q-select
+                            v-model="item.kondisi_barang"
+                            dense
+                            outlined
+                            emit-value
+                            map-options
+                            :options="kondisiOptions"
+                            :rules="[requiredRule]"
+                            lazy-rules
+                          />
+                        </td>
+                        <td>
+                          <q-badge :color="itemStatusMeta(item).color" class="status-badge">
+                            {{ itemStatusMeta(item).label }}
+                          </q-badge>
+                        </td>
+                        <td>
+                          <q-input
+                            v-model.trim="item.catatan"
+                            dense
+                            outlined
+                            placeholder="Catatan item"
+                            :rules="[itemCatatanRule(item)]"
+                            lazy-rules
+                          />
+                        </td>
+                        <td class="text-center">
+                          <q-btn
+                            flat
+                            round
+                            dense
+                            color="negative"
+                            icon="delete"
+                            :disable="form.items.length === 1"
+                            @click="removeItem(index)"
+                          >
+                            <q-tooltip>Hapus item</q-tooltip>
+                          </q-btn>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
 
-            <div class="col-12 col-sm-6 col-md-3">
-              <q-input
-                v-model.number="form.qty_surat_jalan"
-                outlined
-                dense
-                min="0"
-                step="0.01"
-                type="number"
-                label="Qty Surat Jalan *"
-                :rules="[requiredNumberRule, positiveNumberRule]"
-                lazy-rules
-              />
-            </div>
-            <div class="col-12 col-sm-6 col-md-3">
-              <q-input
-                v-model.number="form.qty_actual"
-                outlined
-                dense
-                min="0"
-                step="0.01"
-                type="number"
-                label="Qty Actual *"
-                :rules="[requiredNumberRule, nonNegativeRule]"
-                lazy-rules
-                @update:model-value="normalizeActualQty"
-              />
-            </div>
-            <div class="col-12 col-sm-6 col-md-3">
-              <q-input
-                outlined
-                dense
-                readonly
-                label="Selisih Qty"
-                :model-value="formatNumber(selisihQty)"
-              />
-            </div>
-            <div class="col-12 col-sm-6 col-md-3">
-              <q-input
-                outlined
-                dense
-                readonly
-                label="Status Validation"
-                :model-value="validationStatus"
-              />
-            </div>
+                <div class="row items-center justify-end q-pa-md bg-green-1">
+                  <div class="row q-gutter-md items-center">
+                    <div class="summary-pill">
+                      <span>Total SJ</span>
+                      <strong>{{ formatNumber(totalQtySj) }}</strong>
+                    </div>
+                    <div class="summary-pill">
+                      <span>Total Actual</span>
+                      <strong>{{ formatNumber(totalQtyActual) }}</strong>
+                    </div>
+                    <div class="summary-pill" :class="totalSelisih === 0 ? 'is-ok' : 'is-warning'">
+                      <span>Selisih</span>
+                      <strong>{{ formatNumber(totalSelisih) }}</strong>
+                    </div>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
 
-            <div class="col-12 col-md-4">
-              <q-input
-                v-model.trim="form.checker_qc"
-                outlined
-                dense
-                label="Checker QC *"
-                :rules="[requiredRule]"
-                lazy-rules
-              />
-            </div>
-            <div class="col-12 col-md-4">
-              <q-select
-                v-model="form.kondisi_barang"
-                outlined
-                dense
-                emit-value
-                map-options
-                label="Kondisi Barang *"
-                :options="kondisiOptions"
-                :rules="[requiredRule]"
-                lazy-rules
-              />
-            </div>
-            <div class="col-12 col-md-4">
-              <q-input outlined dense readonly label="Auto Timestamp" :model-value="timestampLabel" />
-            </div>
-
-            <div class="col-12">
-              <q-input
-                v-model.trim="form.catatan"
-                outlined
-                dense
-                type="textarea"
-                rows="3"
-                :label="form.kondisi_barang === 'RUSAK' ? 'Catatan *' : 'Catatan'"
-                placeholder="Catatan checker, temuan selisih, atau informasi penerimaan material"
-                :rules="[catatanRule]"
-                lazy-rules
-              />
-            </div>
+            <q-card flat bordered class="form-section-card rounded-20 shadow-1 bg-white">
+              <q-card-section class="section-head bg-green-1 text-green-10">
+                <q-icon name="edit_note" size="xs" class="q-mr-xs" />
+                Summary Validasi & Audit
+              </q-card-section>
+              <q-separator />
+              <q-card-section class="q-pa-md">
+                <div class="row q-col-gutter-md">
+                  <div class="col-12 col-md-4">
+                    <q-input
+                      v-model.trim="form.checker_qc"
+                      outlined
+                      dense
+                      label="Checker QC *"
+                      :rules="[requiredRule]"
+                      lazy-rules
+                    />
+                  </div>
+                  <div class="col-12 col-md-4">
+                    <q-input outlined dense readonly label="Status Validasi" class="result-field" :model-value="validationStatus" />
+                  </div>
+                  <div class="col-12 col-md-4">
+                    <q-input outlined dense readonly label="Timestamp" :model-value="timestampLabel" />
+                  </div>
+                  <div class="col-12">
+                    <q-input
+                      v-model.trim="form.catatan"
+                      outlined
+                      dense
+                      type="textarea"
+                      rows="3"
+                      label="Catatan Dokumen"
+                      placeholder="Catatan umum incoming, instruksi tindak lanjut, atau informasi audit"
+                      lazy-rules
+                    />
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
           </div>
-            </q-card-section>
-          </q-card>
             </div>
           </div>
         </q-card-section>
@@ -271,6 +408,10 @@
 
 <script setup>
 import { computed, nextTick, ref, watch } from 'vue'
+import { useQuasar } from 'quasar'
+
+const $q = useQuasar()
+const MAX_PDF_SIZE = 5 * 1024 * 1024
 
 const props = defineProps({
   modelValue: {
@@ -330,18 +471,28 @@ const isSubmitting = computed(() => props.submitting || localSubmitting.value)
 
 const today = () => new Date().toISOString().slice(0, 10)
 
+const createItem = (overrides = {}) => ({
+  uid: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+  nama_barang: '',
+  kategori_material: 'RAW_MATERIAL',
+  satuan: 'PCS',
+  qty_surat_jalan: null,
+  qty_actual: null,
+  kondisi_barang: 'BAIK',
+  status_qc: 'OK',
+  catatan: '',
+  ...overrides,
+})
+
 const defaultForm = () => ({
   nomor_surat_jalan: '',
   supplier: '',
-  nama_barang: '',
-  kategori_material: 'RAW_MATERIAL',
-  qty_surat_jalan: null,
-  qty_actual: null,
-  satuan: 'PCS',
   checker_qc: props.currentUserName,
-  kondisi_barang: 'BAIK',
   catatan: '',
   tanggal_masuk: today(),
+  surat_jalan_file: null,
+  surat_jalan_pdf: null,
+  items: [createItem()],
 })
 
 const form = ref(defaultForm())
@@ -350,18 +501,26 @@ const requiredRule = (value) => !!String(value ?? '').trim() || 'Field wajib dii
 const requiredNumberRule = (value) => value !== null && value !== '' && Number.isFinite(Number(value)) || 'Field wajib diisi'
 const positiveNumberRule = (value) => Number(value || 0) > 0 || 'Qty surat jalan wajib lebih dari 0'
 const nonNegativeRule = (value) => Number(value || 0) >= 0 || 'Qty actual tidak boleh minus'
-const catatanRule = (value) =>
-  form.value.kondisi_barang !== 'RUSAK' || !!String(value ?? '').trim() || 'Catatan wajib untuk barang rusak'
 
-const qtySuratJalan = computed(() => Number(form.value.qty_surat_jalan || 0))
-const qtyActual = computed(() => Number(form.value.qty_actual || 0))
-const selisihQty = computed(() => qtyActual.value - qtySuratJalan.value)
+const itemCatatanRule = (item) => (value) =>
+  item.kondisi_barang !== 'RUSAK' || !!String(value ?? '').trim() || 'Catatan wajib untuk barang rusak'
+
+const itemQtySj = (item) => Number(item?.qty_surat_jalan || 0)
+const itemQtyActual = (item) => Number(item?.qty_actual || 0)
+const itemSelisih = (item) => itemQtyActual(item) - itemQtySj(item)
+
+const totalQtySj = computed(() => form.value.items.reduce((sum, item) => sum + itemQtySj(item), 0))
+const totalQtyActual = computed(() => form.value.items.reduce((sum, item) => sum + itemQtyActual(item), 0))
+const totalSelisih = computed(() => totalQtyActual.value - totalQtySj.value)
+const rejectItemCount = computed(() => form.value.items.filter((item) => item.kondisi_barang === 'RUSAK').length)
+const partialItemCount = computed(() =>
+  form.value.items.filter((item) => item.kondisi_barang !== 'RUSAK' && itemSelisih(item) !== 0).length,
+)
 
 const validationStatus = computed(() => {
-  if (form.value.kondisi_barang === 'RUSAK') return 'INCOMING_REJECT'
-  if (qtyActual.value < qtySuratJalan.value) return 'PARTIAL'
-  if (qtyActual.value === qtySuratJalan.value) return 'VALIDASI_SELESAI'
-  return 'PARTIAL'
+  if (rejectItemCount.value > 0) return 'INCOMING_REJECT'
+  if (partialItemCount.value > 0 || totalSelisih.value !== 0) return 'PARTIAL'
+  return 'VALIDASI_SELESAI'
 })
 
 const statusMeta = computed(() => {
@@ -399,12 +558,122 @@ const timestampLabel = computed(() =>
   }),
 )
 
+const suratJalanMeta = computed(() => form.value.surat_jalan_pdf)
 const formatNumber = (value) => Number(value || 0).toLocaleString('id-ID')
+const formatFileSize = (size) => {
+  const bytes = Number(size || 0)
+  if (!bytes) return '-'
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`
+}
+const formatUploadTimestamp = (value) => {
+  if (!value) return 'Belum tersimpan'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return 'Belum tersimpan'
+  return date.toLocaleString('id-ID', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
 
-const normalizeActualQty = () => {
-  if (Number(form.value.qty_actual || 0) < 0) {
-    form.value.qty_actual = 0
+const buildSuratJalanMeta = (file) => ({
+  nama_file: file.name,
+  ukuran_file: file.size,
+  tipe_file: file.type || 'application/pdf',
+  local_reference: file.name,
+  url: '',
+  upload_timestamp: new Date().toISOString(),
+})
+
+const notifyInvalidFile = (message) => {
+  $q.notify({ type: 'negative', message })
+}
+
+const onSuratJalanRejected = (entries = []) => {
+  const failed = entries[0]
+  if (failed?.failedPropValidation === 'max-file-size') {
+    notifyInvalidFile('Ukuran Surat Jalan maksimal 5MB')
+    return
   }
+  notifyInvalidFile('File Surat Jalan harus berformat PDF')
+}
+
+const onSuratJalanSelected = (file) => {
+  if (!file) {
+    form.value.surat_jalan_pdf = null
+    return
+  }
+
+  const isPdf = file.type === 'application/pdf' || file.name?.toLowerCase().endsWith('.pdf')
+  if (!isPdf) {
+    form.value.surat_jalan_file = null
+    form.value.surat_jalan_pdf = null
+    notifyInvalidFile('File Surat Jalan harus berformat PDF')
+    return
+  }
+
+  if (file.size > MAX_PDF_SIZE) {
+    form.value.surat_jalan_file = null
+    form.value.surat_jalan_pdf = null
+    notifyInvalidFile('Ukuran Surat Jalan maksimal 5MB')
+    return
+  }
+
+  form.value.surat_jalan_pdf = buildSuratJalanMeta(file)
+}
+
+const removeSuratJalanFile = () => {
+  form.value.surat_jalan_file = null
+  form.value.surat_jalan_pdf = null
+}
+
+const itemStatusMeta = (item) => {
+  if (item.kondisi_barang === 'RUSAK') return { label: 'NG', color: 'negative', status: 'NG' }
+  if (itemSelisih(item) !== 0) return { label: 'REVIEW', color: 'orange-9', status: 'REVIEW' }
+  return { label: 'OK', color: 'green-10', status: 'OK' }
+}
+
+const normalizeItemQty = (item) => {
+  if (Number(item.qty_actual || 0) < 0) item.qty_actual = 0
+}
+
+const normalizeItem = (item = {}) =>
+  createItem({
+    nama_barang: item.nama_barang || item.nama_material || item.material || '',
+    kategori_material: item.kategori_material || item.tipe_material || 'RAW_MATERIAL',
+    satuan: item.satuan || 'PCS',
+    qty_surat_jalan: Number(item.qty_surat_jalan ?? item.qtySJ ?? item.qty ?? 0),
+    qty_actual: Number(item.qty_actual ?? item.qtyActual ?? item.quantity ?? 0),
+    kondisi_barang: item.kondisi_barang || (item.status_qc === 'NG' ? 'RUSAK' : 'BAIK'),
+    status_qc: item.status_qc || item.qc_status || 'OK',
+    catatan: item.catatan || item.catatan_incoming || item.defect_note || '',
+  })
+
+const getRowItems = (row) => {
+  if (Array.isArray(row?.items) && row.items.length) return row.items.map(normalizeItem)
+  if (!row) return [createItem()]
+  return [
+    normalizeItem({
+      nama_barang: row.nama_barang || row.nama_material || row.tipe_material || '',
+      kategori_material: row.kategori_material || row.tipe_material || 'RAW_MATERIAL',
+      satuan: row.satuan || 'PCS',
+      qty_surat_jalan: Number(row.qty_surat_jalan ?? row.qtySJ ?? row.qty ?? 0),
+      qty_actual: Number(row.qty_actual ?? row.qtyActual ?? row.quantity ?? 0),
+      kondisi_barang: row.kondisi_barang || (row.status_incoming === 'INCOMING_REJECT' ? 'RUSAK' : 'BAIK'),
+      catatan: row.catatan || row.catatan_incoming || row.defect_note || '',
+    }),
+  ]
+}
+
+const addItem = () => {
+  form.value.items.push(createItem({ kategori_material: form.value.items.at(-1)?.kategori_material || 'RAW_MATERIAL' }))
+}
+
+const removeItem = (index) => {
+  if (form.value.items.length > 1) form.value.items.splice(index, 1)
 }
 
 const hydrateForm = () => {
@@ -416,15 +685,12 @@ const hydrateForm = () => {
         ...row,
         nomor_surat_jalan: row.nomor_surat_jalan || row.noSuratJalan || '',
         supplier: row.supplier || row.asal || '',
-        nama_barang: row.nama_barang || row.nama_material || row.tipe_material || '',
-        kategori_material: row.kategori_material || row.tipe_material || 'RAW_MATERIAL',
-        qty_surat_jalan: Number(row.qty_surat_jalan ?? row.qtySJ ?? 0),
-        qty_actual: Number(row.qty_actual ?? row.qtyActual ?? row.quantity ?? 0),
-        satuan: row.satuan || 'PCS',
         checker_qc: row.checker_qc || row.qc_checker || row.checker_gudang || props.currentUserName,
-        kondisi_barang: row.kondisi_barang || (row.status_incoming === 'INCOMING_REJECT' ? 'RUSAK' : 'BAIK'),
         catatan: row.catatan || row.catatan_incoming || row.defect_note || '',
         tanggal_masuk: row.tanggal_masuk || today(),
+        surat_jalan_file: null,
+        surat_jalan_pdf: row.surat_jalan_pdf || row.surat_jalan_file_metadata || null,
+        items: getRowItems(row),
       }
     : defaultForm()
 
@@ -436,33 +702,61 @@ const resetForm = () => {
 }
 
 const submitForm = async () => {
-  normalizeActualQty()
+  form.value.items.forEach(normalizeItemQty)
   const valid = await formRef.value?.validate()
   if (!valid) return
 
   localSubmitting.value = true
+  const formPayload = { ...form.value }
+  delete formPayload.surat_jalan_file
+  const items = form.value.items.map((item, index) => ({
+    ...item,
+    no: index + 1,
+    qty_surat_jalan: itemQtySj(item),
+    qty_actual: itemQtyActual(item),
+    selisih_qty: itemSelisih(item),
+    status_qc: itemStatusMeta(item).status,
+    qc_status: itemStatusMeta(item).status,
+  }))
+  const firstItem = items[0] || createItem()
   const payload = {
-    ...form.value,
-    qty_surat_jalan: qtySuratJalan.value,
-    qty_actual: qtyActual.value,
-    selisih_qty: selisihQty.value,
+    ...formPayload,
+    items,
+    total_items: items.length,
+    qty_surat_jalan: totalQtySj.value,
+    qty_actual: totalQtyActual.value,
+    selisih_qty: totalSelisih.value,
     status_validation: validationStatus.value,
     status_incoming: validationStatus.value,
     incoming_timestamp: timestamp.value.toISOString(),
+    surat_jalan_pdf: form.value.surat_jalan_pdf,
+    surat_jalan_file_metadata: form.value.surat_jalan_pdf,
+    nama_barang: firstItem.nama_barang,
+    kategori_material: firstItem.kategori_material,
+    satuan: firstItem.satuan,
+    kondisi_barang: rejectItemCount.value > 0 ? 'RUSAK' : 'BAIK',
 
     // Backward-compatible aliases for the existing incoming material page.
     asal: form.value.supplier,
-    nama_material: form.value.nama_barang,
-    tipe_material: form.value.kategori_material,
-    quantity: qtyActual.value,
+    nama_material: firstItem.nama_barang,
+    tipe_material: firstItem.kategori_material,
+    quantity: totalQtyActual.value,
     qc_checker: form.value.checker_qc,
     checker_gudang: form.value.checker_qc,
-    qc_status: form.value.kondisi_barang === 'RUSAK' ? 'NG' : 'OK',
-    status_qc: form.value.kondisi_barang === 'RUSAK' ? 'NG' : 'OK',
-    qty_ok: form.value.kondisi_barang === 'RUSAK' ? 0 : qtyActual.value,
-    qty_ng: form.value.kondisi_barang === 'RUSAK' ? qtyActual.value : 0,
+    qc_status: rejectItemCount.value > 0 ? 'NG' : partialItemCount.value > 0 ? 'REVIEW' : 'OK',
+    status_qc: rejectItemCount.value > 0 ? 'NG' : partialItemCount.value > 0 ? 'REVIEW' : 'OK',
+    qty_ok: items
+      .filter((item) => item.status_qc === 'OK')
+      .reduce((sum, item) => sum + Number(item.qty_actual || 0), 0),
+    qty_ng: items
+      .filter((item) => item.status_qc === 'NG')
+      .reduce((sum, item) => sum + Number(item.qty_actual || 0), 0),
     catatan_incoming: form.value.catatan,
-    defect_note: form.value.kondisi_barang === 'RUSAK' ? form.value.catatan : '',
+    defect_note: items
+      .filter((item) => item.status_qc === 'NG')
+      .map((item) => item.catatan)
+      .filter(Boolean)
+      .join('; '),
   }
 
   emit('save', { form: payload })
@@ -545,13 +839,96 @@ watch(
   overflow: hidden;
 }
 
+.form-section-stack {
+  display: grid;
+  gap: 14px;
+}
+
+.incoming-items-table {
+  overflow-x: auto;
+}
+
+.incoming-items-table table {
+  border-collapse: collapse;
+  min-width: 1320px;
+  width: 100%;
+}
+
+.incoming-items-table th {
+  background: #1b5e20;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  padding: 10px 8px;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.incoming-items-table td {
+  border-bottom: 1px solid #edf2ed;
+  padding: 8px;
+  vertical-align: top;
+}
+
+.incoming-items-table :deep(.q-field--dense .q-field__bottom) {
+  padding-top: 2px;
+}
+
+.qty-badge {
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 900;
+  margin-top: 8px;
+  min-width: 58px;
+  padding: 5px 8px;
+}
+
+.summary-pill {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #dfe8df;
+  border-radius: 10px;
+  display: flex;
+  gap: 8px;
+  min-height: 34px;
+  padding: 6px 10px;
+}
+
+.summary-pill span {
+  color: #667085;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.summary-pill strong {
+  color: #1b5e20;
+  font-size: 14px;
+}
+
+.summary-pill.is-warning strong {
+  color: #e65100;
+}
+
+.file-preview-card {
+  background: #fbfffc;
+  border-color: #cfe3d4;
+  border-radius: 12px;
+}
+
+.min-width-0 {
+  min-width: 0;
+}
+
 .section-head {
   align-items: center;
   display: flex;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 900;
-  letter-spacing: 0.8px;
-  padding: 8px 12px;
+  letter-spacing: 0.4px;
+  padding: 10px 14px;
+  text-transform: uppercase;
 }
 
 .rounded-20 {
@@ -565,6 +942,15 @@ watch(
 :deep(.q-field--dense .q-field__control),
 :deep(.q-field--dense .q-field__marginal) {
   min-height: 38px;
+}
+
+:deep(.important-field .q-field__control) {
+  background: #fbfffc;
+  border-color: #1b5e20;
+}
+
+:deep(.result-field .q-field__control) {
+  background: #f5faf6;
 }
 
 @media (max-width: 700px) {
