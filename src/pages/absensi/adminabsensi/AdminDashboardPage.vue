@@ -1,152 +1,288 @@
 <template>
-  <q-page class="bg-grey-2 q-pa-md q-pa-md-xl font-pro">
-    <div class="text-h4 text-weight-regular text-blue-grey-9 q-mb-lg">Dashboard Administrator</div>
-
-    <q-card flat bordered class="rounded-12 shadow-sm q-mb-lg bg-white overflow-hidden">
-      <q-card-section class="bg-blue-8 text-white q-py-sm">
-        <div class="text-subtitle1 text-weight-bold">Statistik Cepat</div>
-      </q-card-section>
-
-      <q-card-section class="q-pa-md">
-        <div class="row q-col-gutter-md">
-          <div class="col-12 col-md-4">
-            <q-card flat class="bg-blue-1 shadow-1 rounded-borders text-center q-py-lg">
-              <div class="text-blue-9 text-subtitle1 text-weight-bold q-mb-sm">Total Karyawan</div>
-              <div class="text-h3 text-blue-9 text-weight-bolder">{{ stats.totalKaryawan }}</div>
-            </q-card>
-          </div>
-
-          <div class="col-12 col-md-4">
-            <q-card flat class="bg-green-1 shadow-1 rounded-borders text-center q-py-lg">
-              <div class="text-green-9 text-subtitle1 text-weight-bold q-mb-sm">
-                Karyawan Hadir Hari Ini
-              </div>
-              <div class="text-h3 text-green-9 text-weight-bolder">{{ stats.hadirHariIni }}</div>
-            </q-card>
-          </div>
-
-          <div class="col-12 col-md-4">
-            <q-card flat class="bg-orange-1 shadow-1 rounded-borders text-center q-py-lg">
-              <div class="text-orange-9 text-subtitle1 text-weight-bold q-mb-sm">
-                Cuti Menunggu Persetujuan
-              </div>
-              <div class="text-h3 text-orange-9 text-weight-bolder">{{ stats.cutiMenunggu }}</div>
-            </q-card>
-          </div>
+  <q-page class="bg-blue-grey-1 q-pa-lg font-inter">
+    <!-- HEADER SECTION -->
+    <div class="row items-center justify-between q-mb-xl">
+      <div>
+        <h4 class="text-h4 text-weight-bolder text-blue-grey-10 q-ma-none letter-spacing-tight">
+          Dashboard Administrator
+        </h4>
+        <div class="text-subtitle1 text-blue-grey-6 q-mt-xs">
+          Pantau ringkasan dan aktivitas kehadiran karyawan hari ini.
         </div>
-      </q-card-section>
-    </q-card>
+      </div>
+      <div class="q-mt-md q-mt-md-none">
+        <q-btn
+          unelevated
+          color="primary"
+          icon="download"
+          label="Export Laporan"
+          class="rounded-12 text-weight-bold q-px-md q-py-sm shadow-soft-primary"
+          @click="downloadExcel"
+        />
+      </div>
+    </div>
 
-    <q-card flat bordered class="rounded-12 shadow-sm bg-white overflow-hidden">
-      <q-card-section class="bg-blue-grey-8 text-white q-py-sm">
-        <div class="text-subtitle1 text-weight-bold">Status Absensi Seluruh Karyawan</div>
-      </q-card-section>
+    <!-- QUICK STATS SECTION -->
+    <div class="row q-col-gutter-lg q-mb-xl">
+      <!-- Total Karyawan -->
+      <div class="col-12 col-md-4">
+        <q-card flat class="rounded-24 shadow-soft bg-white p-relative overflow-hidden">
+          <div class="absolute-top-right q-pa-md opacity-20">
+            <q-icon name="groups" size="80px" color="blue-5" />
+          </div>
+          <q-card-section class="q-pa-lg">
+            <div class="row items-center q-mb-md">
+              <q-avatar
+                color="blue-1"
+                text-color="blue-8"
+                size="48px"
+                icon="groups"
+                class="shadow-1"
+              />
+              <div
+                class="q-ml-md text-subtitle1 text-weight-bold text-blue-grey-8 uppercase letter-spacing-1"
+              >
+                Total Karyawan
+              </div>
+            </div>
+            <div class="text-h3 text-weight-bolder text-blue-grey-10 q-mt-sm">
+              {{ stats.totalKaryawan }}
+              <span class="text-subtitle1 text-weight-medium text-grey-5">Orang</span>
+            </div>
+          </q-card-section>
+        </q-card>
+      </div>
 
-      <q-card-section class="q-pa-md">
-        <div class="row items-center justify-center q-mb-lg q-col-gutter-md">
-          <div class="col-12 col-md-auto text-center">
-            <q-btn flat round icon="chevron_left" @click="ubahTanggal(-1)" />
-            <q-btn outline color="blue-grey-9" class="q-px-md text-weight-bold" icon-right="event">
+      <!-- Karyawan Hadir -->
+      <div class="col-12 col-md-4">
+        <q-card flat class="rounded-24 shadow-soft bg-white p-relative overflow-hidden">
+          <div class="absolute-top-right q-pa-md opacity-20">
+            <q-icon name="how_to_reg" size="80px" color="teal-5" />
+          </div>
+          <q-card-section class="q-pa-lg">
+            <div class="row items-center q-mb-md">
+              <q-avatar
+                color="teal-1"
+                text-color="teal-8"
+                size="48px"
+                icon="how_to_reg"
+                class="shadow-1"
+              />
+              <div
+                class="q-ml-md text-subtitle1 text-weight-bold text-blue-grey-8 uppercase letter-spacing-1"
+              >
+                Hadir Hari Ini
+              </div>
+            </div>
+            <div class="text-h3 text-weight-bolder text-blue-grey-10 q-mt-sm">
+              {{ stats.hadirHariIni }}
+              <span class="text-subtitle1 text-weight-medium text-grey-5">Orang</span>
+            </div>
+            <div class="q-mt-sm">
+              <q-linear-progress
+                :value="persentaseHadir"
+                color="teal-6"
+                class="rounded-borders"
+                size="6px"
+              />
+            </div>
+          </q-card-section>
+        </q-card>
+      </div>
+
+      <!-- Cuti Menunggu -->
+      <div class="col-12 col-md-4">
+        <q-card flat class="rounded-24 shadow-soft bg-white p-relative overflow-hidden">
+          <div class="absolute-top-right q-pa-md opacity-20">
+            <q-icon name="pending_actions" size="80px" color="orange-5" />
+          </div>
+          <q-card-section class="q-pa-lg">
+            <div class="row items-center q-mb-md">
+              <q-avatar
+                color="orange-1"
+                text-color="orange-8"
+                size="48px"
+                icon="pending_actions"
+                class="shadow-1"
+              />
+              <div
+                class="q-ml-md text-subtitle1 text-weight-bold text-blue-grey-8 uppercase letter-spacing-1"
+              >
+                Cuti Tertunda
+              </div>
+            </div>
+            <div class="text-h3 text-weight-bolder text-blue-grey-10 q-mt-sm">
+              {{ stats.cutiMenunggu }}
+              <span class="text-subtitle1 text-weight-medium text-grey-5">Pengajuan</span>
+            </div>
+          </q-card-section>
+        </q-card>
+      </div>
+    </div>
+
+    <!-- MAIN DATA TABLE -->
+    <q-card flat class="rounded-24 shadow-soft bg-white overflow-hidden">
+      <!-- Toolbar & Date Filter -->
+      <q-card-section class="q-pa-lg bg-white border-bottom">
+        <div class="row items-center justify-between">
+          <div class="col-12 col-md-auto q-mb-md q-md-mb-none">
+            <div class="text-h6 text-weight-bold text-blue-grey-10">Laporan Kehadiran Harian</div>
+            <div class="text-caption text-blue-grey-6 q-mt-xs text-weight-medium">
+              Telah Absen:
+              <span class="text-teal-7 text-weight-bolder">{{ stats.hadirHariIni }}</span> | Belum
+              Absen:
+              <span class="text-red-5 text-weight-bolder">{{
+                stats.totalKaryawan - stats.hadirHariIni
+              }}</span>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-auto flex items-center q-gutter-x-sm">
+            <q-btn
+              flat
+              round
+              color="blue-grey-5"
+              icon="chevron_left"
+              @click="ubahTanggal(-1)"
+              class="bg-grey-1"
+            />
+
+            <q-btn
+              outline
+              color="primary"
+              class="rounded-12 q-px-md text-weight-bold bg-blue-1 border-none"
+              icon-right="event"
+            >
               {{ displayDate }}
               <q-popup-proxy cover transition-show="scale" transition-hide="scale">
                 <q-date
                   v-model="selectedDate"
                   mask="YYYY-MM-DD"
                   @update:model-value="fetchDataHarian"
+                  color="primary"
                 />
               </q-popup-proxy>
             </q-btn>
-            <q-btn flat round icon="chevron_right" @click="ubahTanggal(1)" />
+
+            <q-btn
+              flat
+              round
+              color="blue-grey-5"
+              icon="chevron_right"
+              @click="ubahTanggal(1)"
+              class="bg-grey-1"
+            />
           </div>
         </div>
-
-        <div class="text-center q-mb-md text-blue-grey-9">
-          <div>
-            Karyawan yang sudah Absen :
-            <span class="text-positive text-weight-bold"
-              >{{ stats.hadirHariIni }} / {{ stats.totalKaryawan }}</span
-            >
-          </div>
-          <div>
-            Belum Absen :
-            <span class="text-negative text-weight-bold">{{
-              stats.totalKaryawan - stats.hadirHariIni
-            }}</span>
-          </div>
-        </div>
-
-        <div class="row justify-end q-mb-md">
-          <q-btn
-            color="green-7"
-            icon="download"
-            label="DOWNLOAD EXCEL"
-            unelevated
-            class="text-weight-bold"
-            size="sm"
-            @click="downloadExcel"
-          />
-        </div>
-
-        <q-table
-          :rows="rows"
-          :columns="columns"
-          row-key="id"
-          flat
-          bordered
-          :loading="loading"
-          class="admin-table"
-          :pagination="{ rowsPerPage: 15 }"
-        >
-          <template v-slot:header="props">
-            <q-tr :props="props" class="bg-grey-2">
-              <q-th
-                v-for="col in props.cols"
-                :key="col.name"
-                :props="props"
-                class="text-weight-bold text-blue-grey-9"
-              >
-                {{ col.label }}
-              </q-th>
-            </q-tr>
-          </template>
-
-          <template v-slot:body="props">
-            <q-tr :props="props">
-              <q-td key="no" class="text-center">{{ props.rowIndex + 1 }}</q-td>
-              <q-td key="nama" class="text-weight-bold">{{ props.row.nama_karyawan }}</q-td>
-              <q-td key="jamMasuk" class="text-center">
-                <q-badge v-if="props.row.waktu_masuk" color="positive" class="q-pa-xs">{{
-                  formatJam(props.row.waktu_masuk)
-                }}</q-badge>
-                <span v-else class="text-grey">-</span>
-              </q-td>
-              <q-td key="jamPulang" class="text-center">
-                <q-badge v-if="props.row.waktu_pulang" color="negative" class="q-pa-xs">{{
-                  formatJam(props.row.waktu_pulang)
-                }}</q-badge>
-                <span v-else class="text-grey">-</span>
-              </q-td>
-              <q-td key="status" class="text-center">
-                <q-chip
-                  :color="props.row.waktu_masuk ? 'positive' : 'negative'"
-                  text-color="white"
-                  size="sm"
-                  class="text-weight-bold"
-                >
-                  {{ props.row.waktu_masuk ? 'HADIR' : 'BELUM ABSEN' }}
-                </q-chip>
-              </q-td>
-            </q-tr>
-          </template>
-
-          <template v-slot:no-data>
-            <div class="full-width row flex-center q-pa-md text-grey-6">
-              <q-icon size="2em" name="info" class="q-mr-sm" />
-              Tidak ada data absensi untuk tanggal ini.
-            </div>
-          </template>
-        </q-table>
       </q-card-section>
+
+      <!-- Table Section -->
+      <q-table
+        :rows="rows"
+        :columns="columns"
+        row-key="id"
+        flat
+        :loading="loading"
+        class="premium-table"
+        :pagination="{ rowsPerPage: 15 }"
+        card-class="bg-transparent"
+      >
+        <template v-slot:header="props">
+          <q-tr :props="props">
+            <q-th
+              v-for="col in props.cols"
+              :key="col.name"
+              :props="props"
+              class="text-weight-bolder text-blue-grey-5 uppercase letter-spacing-1 bg-grey-1"
+            >
+              {{ col.label }}
+            </q-th>
+          </q-tr>
+        </template>
+
+        <template v-slot:body="props">
+          <q-tr :props="props" class="hover-effect">
+            <!-- Kolom No -->
+            <q-td key="no" class="text-center text-blue-grey-5 text-weight-bold">{{
+              props.rowIndex + 1
+            }}</q-td>
+
+            <!-- Kolom Nama & Avatar -->
+            <q-td key="nama">
+              <div class="row items-center no-wrap">
+                <q-avatar
+                  size="36px"
+                  :color="getRandomColor(props.row.nama_karyawan)"
+                  text-color="white"
+                  class="text-weight-bold shadow-1 q-mr-md"
+                >
+                  {{ getInitial(props.row.nama_karyawan) }}
+                </q-avatar>
+                <div>
+                  <div class="text-weight-bold text-blue-grey-9 text-subtitle2">
+                    {{ props.row.nama_karyawan }}
+                  </div>
+                  <div class="text-caption text-blue-grey-4">Karyawan Agra</div>
+                </div>
+              </div>
+            </q-td>
+
+            <!-- Kolom Jam Masuk -->
+            <q-td key="jamMasuk" class="text-center">
+              <div
+                v-if="props.row.waktu_masuk"
+                class="time-badge bg-teal-1 text-teal-9 text-weight-bold"
+              >
+                <q-icon name="login" size="xs" class="q-mr-xs" />
+                {{ formatJam(props.row.waktu_masuk) }}
+              </div>
+              <span v-else class="text-grey-4 text-weight-bold">- : -</span>
+            </q-td>
+
+            <!-- Kolom Jam Pulang -->
+            <q-td key="jamPulang" class="text-center">
+              <div
+                v-if="props.row.waktu_pulang"
+                class="time-badge bg-orange-1 text-orange-9 text-weight-bold"
+              >
+                <q-icon name="logout" size="xs" class="q-mr-xs" />
+                {{ formatJam(props.row.waktu_pulang) }}
+              </div>
+              <span v-else class="text-grey-4 text-weight-bold">- : -</span>
+            </q-td>
+
+            <!-- Kolom Status -->
+            <q-td key="status" class="text-center">
+              <q-badge
+                v-if="props.row.waktu_masuk"
+                rounded
+                color="teal-6"
+                class="q-px-sm q-py-xs text-weight-bold shadow-1"
+              >
+                <q-icon name="check_circle" size="xs" class="q-mr-xs" /> HADIR
+              </q-badge>
+              <q-badge
+                v-else
+                rounded
+                color="red-5"
+                class="q-px-sm q-py-xs text-weight-bold shadow-1"
+              >
+                <q-icon name="cancel" size="xs" class="q-mr-xs" /> BELUM ABSEN
+              </q-badge>
+            </q-td>
+          </q-tr>
+        </template>
+
+        <template v-slot:no-data>
+          <div class="full-width column flex-center q-pa-xl text-blue-grey-4">
+            <q-icon size="4em" name="event_busy" class="q-mb-md opacity-50" />
+            <div class="text-h6 text-weight-bold">Tidak Ada Data</div>
+            <div class="text-caption">
+              Belum ada karyawan yang melakukan absensi pada tanggal ini.
+            </div>
+          </div>
+        </template>
+      </q-table>
     </q-card>
   </q-page>
 </template>
@@ -175,12 +311,18 @@ const stats = ref({
 const rows = ref([])
 
 const columns = [
-  { name: 'no', label: 'NO', align: 'center' },
-  { name: 'nama', label: 'NAMA KARYAWAN', align: 'left', field: 'nama_karyawan' },
-  { name: 'jamMasuk', label: 'JAM MASUK', align: 'center' },
-  { name: 'jamPulang', label: 'JAM PULANG', align: 'center' },
+  { name: 'no', label: 'NO', align: 'center', style: 'width: 60px' },
+  { name: 'nama', label: 'INFORMASI KARYAWAN', align: 'left', field: 'nama_karyawan' },
+  { name: 'jamMasuk', label: 'CLOCK IN', align: 'center' },
+  { name: 'jamPulang', label: 'CLOCK OUT', align: 'center' },
   { name: 'status', label: 'STATUS', align: 'center' },
 ]
+
+// Computed Persentase Hadir
+const persentaseHadir = computed(() => {
+  if (stats.value.totalKaryawan === 0) return 0
+  return stats.value.hadirHariIni / stats.value.totalKaryawan
+})
 
 // Format Tanggal untuk Label
 const displayDate = computed(() => {
@@ -214,6 +356,20 @@ const ubahTanggal = (hari) => {
   current.setDate(current.getDate() + hari)
   selectedDate.value = date.formatDate(current, 'YYYY-MM-DD')
   fetchDataHarian()
+}
+
+// UI HELPER: Ambil inisial nama untuk avatar
+const getInitial = (name) => {
+  if (!name) return 'U'
+  return name.charAt(0).toUpperCase()
+}
+
+// UI HELPER: Generate warna random berdasarkan nama (agar avatar berwarna-warni elegan)
+const getRandomColor = (name) => {
+  if (!name) return 'primary'
+  const colors = ['blue-6', 'teal-6', 'indigo-5', 'deep-purple-5', 'cyan-7', 'light-blue-7']
+  const index = name.length % colors.length
+  return colors[index]
 }
 
 // AMBIL DATA REAL-TIME KARYAWAN
@@ -259,9 +415,11 @@ const fetchDataHarian = async () => {
 
 const downloadExcel = () => {
   $q.notify({
-    color: 'info',
-    message: 'Fitur download Excel sedang dipersiapkan',
-    icon: 'hourglass_empty',
+    color: 'teal',
+    message: 'Fitur Export Laporan (Excel/PDF) sedang dalam pengembangan.',
+    icon: 'auto_graph',
+    position: 'top',
+    classes: 'rounded-12 text-weight-bold',
   })
 }
 
@@ -287,7 +445,7 @@ onMounted(() => {
       jabatan.includes('super admin') ||
       jabatan.includes('superadmin')
 
-    // JIKA BUKAN ADMIN, LANGSUNG TENDANG BALIK!
+    // JIKA BUKAN ADMIN, TENDANG BALIK!
     if (!isAdminIdentity && !isAdminRole) {
       $q.notify({
         color: 'negative',
@@ -296,7 +454,7 @@ onMounted(() => {
         position: 'top',
       })
       router.replace('/absensi/dashboard')
-      return // Berhenti di sini, jangan load data
+      return
     }
   } else {
     router.replace('/login')
@@ -310,14 +468,70 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.font-pro {
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+.font-inter {
   font-family: 'Inter', sans-serif;
+}
+
+/* SHADOWS & RADIUS */
+.shadow-soft {
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.08) !important;
+}
+.shadow-soft-primary {
+  box-shadow: 0 8px 24px -8px rgba(25, 118, 210, 0.6) !important;
+}
+.rounded-24 {
+  border-radius: 24px;
 }
 .rounded-12 {
   border-radius: 12px;
 }
-.admin-table :deep(th) {
-  font-size: 13px;
-  letter-spacing: 0.5px;
+.border-bottom {
+  border-bottom: 1px solid #f1f5f9;
+}
+.border-none {
+  border: none !important;
+}
+
+/* TYPOGRAPHY */
+.letter-spacing-tight {
+  letter-spacing: -0.5px;
+}
+.letter-spacing-1 {
+  letter-spacing: 1px;
+}
+.uppercase {
+  text-transform: uppercase;
+}
+.opacity-20 {
+  opacity: 0.2;
+}
+.opacity-50 {
+  opacity: 0.5;
+}
+
+/* CUSTOM COMPONENTS */
+.time-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+}
+
+/* TABLE STYLING */
+.premium-table :deep(thead tr th) {
+  font-size: 12px;
+  border-bottom: 2px solid #f1f5f9;
+}
+.premium-table :deep(tbody tr td) {
+  font-size: 14px;
+  border-bottom: 1px solid #f1f5f9;
+  transition: all 0.3s ease;
+}
+.hover-effect:hover td {
+  background-color: #f8fafc !important;
 }
 </style>

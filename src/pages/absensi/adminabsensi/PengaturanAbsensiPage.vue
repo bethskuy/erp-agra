@@ -1,184 +1,303 @@
 <template>
-  <q-page class="bg-grey-2 q-pa-md q-pa-md-xl font-pro">
-    <div class="text-h4 text-weight-regular text-blue-grey-9 q-mb-lg">Manajemen Absensi</div>
+  <q-page class="bg-blue-grey-1 q-pa-lg font-inter">
+    <!-- HEADER SECTION -->
+    <div class="row items-center justify-between q-mb-xl">
+      <div class="col-12 col-md-8">
+        <h4 class="text-h4 text-weight-bolder text-blue-grey-10 q-ma-none letter-spacing-tight">
+          Pengaturan Lokasi
+        </h4>
+        <div class="text-subtitle1 text-blue-grey-6 q-mt-xs">
+          Manajemen titik koordinat dan radius area kantor untuk validasi GPS karyawan.
+        </div>
+      </div>
+      <div class="col-12 col-md-auto q-mt-md q-md-mt-none">
+        <q-btn
+          unelevated
+          color="primary"
+          icon="add_location_alt"
+          label="TAMBAH LOKASI BARU"
+          class="rounded-12 text-weight-bold q-px-lg q-py-sm shadow-soft-primary"
+          @click="openDialog()"
+        />
+      </div>
+    </div>
 
-    <q-card flat bordered class="rounded-12 shadow-sm bg-white overflow-hidden">
-      <q-card-section class="bg-blue-grey-8 text-white q-py-md row items-center justify-between">
-        <div class="text-subtitle1 text-weight-bold">Daftar Lokasi Kantor</div>
-      </q-card-section>
-
-      <q-card-section class="q-pa-md">
-        <div class="row items-center justify-between q-mb-md q-col-gutter-md">
-          <div class="col-12 col-md-5">
-            <q-input outlined dense v-model="search" placeholder="Cari Lokasi..." class="bg-white">
-              <template v-slot:append>
-                <q-icon name="search" />
+    <!-- MAIN DATA TABLE CARD -->
+    <q-card flat class="rounded-24 shadow-soft bg-white overflow-hidden">
+      <!-- Toolbar Pencarian -->
+      <q-card-section class="q-pa-lg border-bottom bg-white">
+        <div class="row items-center justify-between q-col-gutter-md">
+          <div class="col-12 col-md-6 col-lg-4">
+            <q-input
+              outlined
+              dense
+              v-model="search"
+              placeholder="Cari nama lokasi..."
+              class="rounded-input bg-grey-1"
+              color="primary"
+            >
+              <template v-slot:prepend>
+                <q-icon name="search" color="blue-grey-5" />
               </template>
             </q-input>
           </div>
-          <div class="col-12 col-md-auto">
-            <q-btn
-              unelevated
-              color="primary"
-              icon="add_location_alt"
-              label="TAMBAH LOKASI"
-              class="text-weight-bold q-px-md"
-              @click="openDialog()"
-            />
+          <div class="col-12 col-md-auto text-blue-grey-5 text-weight-medium text-caption">
+            <q-icon name="info" size="xs" class="q-mr-xs" />
+            Titik-titik ini yang akan mendeteksi HP Karyawan
           </div>
         </div>
+      </q-card-section>
 
-        <q-table
-          :rows="lokasiList"
-          :columns="columns"
-          row-key="id"
-          flat
-          bordered
-          :filter="search"
-          :loading="loading"
-          class="admin-table"
-        >
-          <template v-slot:header="props">
-            <q-tr :props="props" class="bg-grey-1">
-              <q-th
-                v-for="col in props.cols"
-                :key="col.name"
-                :props="props"
-                class="text-weight-bold text-blue-grey-9"
-              >
-                {{ col.label }}
-              </q-th>
-            </q-tr>
-          </template>
+      <!-- Tabel -->
+      <q-table
+        :rows="lokasiList"
+        :columns="columns"
+        row-key="id"
+        flat
+        :filter="search"
+        :loading="loading"
+        class="premium-table"
+        :pagination="{ rowsPerPage: 10 }"
+        card-class="bg-transparent"
+      >
+        <template v-slot:header="props">
+          <q-tr :props="props">
+            <q-th
+              v-for="col in props.cols"
+              :key="col.name"
+              :props="props"
+              class="text-weight-bolder text-blue-grey-5 uppercase letter-spacing-1 bg-grey-1"
+            >
+              {{ col.label }}
+            </q-th>
+          </q-tr>
+        </template>
 
-          <template v-slot:body="props">
-            <q-tr :props="props">
-              <q-td key="nama" class="text-weight-bold text-blue-grey-9">{{
-                props.row.nama_lokasi
-              }}</q-td>
-              <q-td key="koordinat">
+        <template v-slot:body="props">
+          <q-tr :props="props" class="hover-effect">
+            <!-- Kolom Nama Lokasi -->
+            <q-td key="nama">
+              <div class="row items-center no-wrap">
+                <q-avatar size="40px" color="blue-1" text-color="primary" class="q-mr-md shadow-1">
+                  <q-icon name="domain" size="20px" />
+                </q-avatar>
+                <div>
+                  <div class="text-weight-bold text-blue-grey-10 text-subtitle2">
+                    {{ props.row.nama_lokasi }}
+                  </div>
+                  <div class="text-caption text-blue-grey-4">Zona Validasi Aktif</div>
+                </div>
+              </div>
+            </q-td>
+
+            <!-- Kolom Koordinat -->
+            <q-td key="koordinat">
+              <div class="column q-gutter-y-xs">
+                <div class="text-weight-medium text-blue-grey-8">
+                  <q-icon name="explore" color="teal-5" size="xs" class="q-mr-xs" />
+                  {{ props.row.latitude }}, {{ props.row.longitude }}
+                </div>
                 <a
                   :href="`https://www.google.com/maps/search/?api=1&query=${props.row.latitude},${props.row.longitude}`"
                   target="_blank"
-                  class="text-primary text-weight-medium text-decoration-none"
+                  class="text-primary text-caption text-weight-bold text-decoration-none"
                 >
-                  Lihat Lokasi <q-icon name="open_in_new" />
+                  Lihat di Google Maps <q-icon name="open_in_new" size="10px" />
                 </a>
-                <div class="text-caption text-grey-7 q-mt-xs">
-                  lat : {{ props.row.latitude }} <br />
-                  long : {{ props.row.longitude }}
-                </div>
-              </q-td>
-              <q-td key="radius" class="text-weight-bold">{{ props.row.radius }} KM</q-td>
-              <q-td key="aksi" class="text-center">
+              </div>
+            </q-td>
+
+            <!-- Kolom Radius -->
+            <q-td key="radius">
+              <q-badge
+                color="teal-1"
+                text-color="teal-9"
+                class="q-px-sm q-py-xs text-weight-bolder shadow-1 rounded-8"
+              >
+                <q-icon name="radar" size="xs" class="q-mr-xs" />
+                {{ props.row.radius }} KM
+              </q-badge>
+            </q-td>
+
+            <!-- Kolom Aksi -->
+            <q-td key="aksi" class="text-right">
+              <div class="row justify-end q-gutter-x-sm">
                 <q-btn
                   flat
                   round
-                  color="primary"
-                  icon="edit"
+                  color="blue-7"
+                  icon="edit_location_alt"
                   size="sm"
+                  class="bg-blue-1 transition-smooth"
                   @click="openDialog(props.row)"
                 >
-                  <q-tooltip>Edit Lokasi</q-tooltip>
+                  <q-tooltip class="bg-blue-8">Edit Lokasi</q-tooltip>
                 </q-btn>
                 <q-btn
                   flat
                   round
-                  color="negative"
-                  icon="delete"
+                  color="red-6"
+                  icon="delete_outline"
                   size="sm"
+                  class="bg-red-1 transition-smooth"
                   @click="hapusLokasi(props.row.id)"
                 >
-                  <q-tooltip>Hapus Lokasi</q-tooltip>
+                  <q-tooltip class="bg-red-8">Hapus Lokasi</q-tooltip>
                 </q-btn>
-              </q-td>
-            </q-tr>
-          </template>
+              </div>
+            </q-td>
+          </q-tr>
+        </template>
 
-          <template v-slot:no-data>
-            <div class="full-width row flex-center q-pa-lg text-grey-6">
-              <q-icon size="2em" name="location_off" class="q-mr-sm" />
-              Belum ada lokasi kantor yang diatur.
-            </div>
-          </template>
-        </q-table>
-      </q-card-section>
+        <template v-slot:no-data>
+          <div class="full-width column flex-center q-pa-xl text-blue-grey-4">
+            <q-icon size="4em" name="wrong_location" class="q-mb-md opacity-50" />
+            <div class="text-h6 text-weight-bold">Belum Ada Lokasi</div>
+            <div class="text-caption">Silakan tambah lokasi kantor agar fitur GPS aktif.</div>
+          </div>
+        </template>
+      </q-table>
     </q-card>
 
-    <!-- MODAL TAMBAH/EDIT LOKASI UTAMA -->
-    <q-dialog v-model="dialogLokasi" persistent>
-      <q-card style="width: 600px; max-width: 95vw" class="rounded-12">
-        <q-card-section class="bg-primary text-white row items-center q-py-sm">
-          <div class="text-h6 text-weight-bold">
-            {{ isEdit ? 'Edit Lokasi Kantor' : 'Tambah Lokasi Kantor Baru' }}
+    <!-- ============================================== -->
+    <!-- MODAL TAMBAH / EDIT LOKASI (CLEAN DESIGN)      -->
+    <!-- ============================================== -->
+    <q-dialog v-model="dialogLokasi" persistent backdrop-filter="blur(4px)">
+      <q-card style="width: 550px; max-width: 95vw" class="rounded-24 shadow-soft">
+        <!-- Dialog Header -->
+        <q-card-section class="row items-center q-pb-none q-pt-lg q-px-lg">
+          <div class="row items-center">
+            <q-avatar
+              color="blue-1"
+              text-color="primary"
+              icon="place"
+              size="42px"
+              class="q-mr-md"
+            />
+            <div>
+              <div class="text-h6 text-weight-bold text-blue-grey-10 line-height-1">
+                {{ isEdit ? 'Perbarui Lokasi' : 'Lokasi Kantor Baru' }}
+              </div>
+              <div class="text-caption text-blue-grey-5">
+                Pastikan koordinat akurat agar GPS valid.
+              </div>
+            </div>
           </div>
           <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
+          <q-btn
+            icon="close"
+            flat
+            round
+            dense
+            v-close-popup
+            color="blue-grey-4"
+            class="bg-grey-2"
+          />
         </q-card-section>
 
+        <!-- Dialog Body -->
         <q-form @submit.prevent="simpanLokasi">
-          <q-card-section class="q-gutter-y-md q-pa-md">
+          <q-card-section class="q-gutter-y-md q-pa-lg">
             <q-input
               v-model="form.nama_lokasi"
               outlined
               label="Nama Lokasi (Cth: Head Office)"
-              :rules="[(val) => !!val || 'Nama lokasi wajib diisi']"
-            />
-
-            <q-input
-              v-model="form.latitude"
-              outlined
-              label="Latitude"
-              :rules="[(val) => !!val || 'Latitude wajib diisi']"
-            />
-
-            <q-input
-              v-model="form.longitude"
-              outlined
-              label="Longitude"
-              :rules="[(val) => !!val || 'Longitude wajib diisi']"
-            />
-
-            <!-- TOMBOL PILIH DARI PETA INTERAKTIF -->
-            <q-btn
-              unelevated
+              class="rounded-input"
               color="primary"
-              icon="map"
-              label="Pilih Lokasi dari Peta Interaktif"
-              class="full-width text-weight-bold q-py-sm"
-              @click="openMapModal"
-            />
+              :rules="[(val) => !!val || 'Nama lokasi wajib diisi']"
+            >
+              <template v-slot:prepend><q-icon name="apartment" color="blue-grey-4" /></template>
+            </q-input>
 
-            <!-- TOMBOL AMBIL LOKASI ADMIN SEKARANG -->
-            <q-btn
-              unelevated
-              color="teal"
-              icon="my_location"
-              label="Ambil Lokasi Admin Sekarang"
-              class="full-width text-weight-bold q-py-sm q-mb-sm"
-              @click="dapatkanLokasiSekarang"
-              :loading="gettingLocation"
-            />
+            <div class="row q-col-gutter-md">
+              <div class="col-12 col-md-6">
+                <q-input
+                  v-model="form.latitude"
+                  outlined
+                  label="Latitude"
+                  class="rounded-input"
+                  color="primary"
+                  :rules="[(val) => !!val || 'Latitude wajib diisi']"
+                >
+                  <template v-slot:prepend
+                    ><q-icon name="gps_fixed" color="blue-grey-4"
+                  /></template>
+                </q-input>
+              </div>
+              <div class="col-12 col-md-6">
+                <q-input
+                  v-model="form.longitude"
+                  outlined
+                  label="Longitude"
+                  class="rounded-input"
+                  color="primary"
+                  :rules="[(val) => !!val || 'Longitude wajib diisi']"
+                >
+                  <template v-slot:prepend
+                    ><q-icon name="gps_fixed" color="blue-grey-4"
+                  /></template>
+                </q-input>
+              </div>
+            </div>
+
+            <!-- Action Buttons for Location -->
+            <div class="row q-col-gutter-sm q-mb-xs">
+              <div class="col-12 col-md-6">
+                <q-btn
+                  unelevated
+                  color="primary"
+                  icon="map"
+                  label="Buka Peta"
+                  class="full-width rounded-12 text-weight-bold shadow-2 q-py-sm"
+                  @click="openMapModal"
+                />
+              </div>
+              <div class="col-12 col-md-6">
+                <q-btn
+                  unelevated
+                  color="teal-6"
+                  icon="my_location"
+                  label="Ambil GPS Saat Ini"
+                  class="full-width rounded-12 text-weight-bold shadow-2 q-py-sm"
+                  @click="dapatkanLokasiSekarang"
+                  :loading="gettingLocation"
+                />
+              </div>
+            </div>
 
             <q-input
               v-model.number="form.radius"
               outlined
               type="number"
-              step="0.1"
-              label="Radius Validasi Absen (KM)"
-              hint="Berapa kilometer maksimal karyawan boleh absen dari titik ini? (Cth: 0.5)"
+              step="0.01"
+              label="Radius Toleransi Absen (KM)"
+              hint="Contoh: 0.5 untuk 500 meter"
+              class="rounded-input q-mt-md"
+              color="primary"
               :rules="[(val) => !!val || 'Radius wajib diisi']"
-            />
+            >
+              <template v-slot:prepend><q-icon name="radar" color="teal-6" /></template>
+              <template v-slot:append
+                ><span class="text-caption text-weight-bold text-blue-grey-5">KM</span></template
+              >
+            </q-input>
           </q-card-section>
 
-          <q-card-actions align="right" class="bg-grey-1 q-pa-md">
-            <q-btn flat label="Batal" color="grey-7" v-close-popup class="text-weight-bold" />
+          <!-- Dialog Footer -->
+          <q-card-actions align="right" class="bg-grey-1 q-pa-md border-top">
+            <q-btn
+              flat
+              label="Batal"
+              color="blue-grey-6"
+              v-close-popup
+              class="text-weight-bold rounded-8 q-px-md"
+            />
             <q-btn
               unelevated
-              label="SIMPAN LOKASI"
+              label="SIMPAN DATA"
               color="primary"
               type="submit"
-              class="text-weight-bold q-px-lg"
+              class="text-weight-bold rounded-12 q-px-xl shadow-soft-primary"
               :loading="saving"
             />
           </q-card-actions>
@@ -186,74 +305,111 @@
       </q-card>
     </q-dialog>
 
-    <!-- MODAL PETA INTERAKTIF (LEAFLET) -->
-    <q-dialog v-model="mapDialog" persistent @show="onMapDialogShow">
-      <q-card style="width: 800px; max-width: 95vw" class="rounded-12">
-        <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6 text-weight-bold">Pilih Lokasi Kantor di Peta</div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
-        </q-card-section>
+    <!-- ============================================== -->
+    <!-- MODAL PETA INTERAKTIF (LEAFLET MODERN)         -->
+    <!-- ============================================== -->
+    <q-dialog v-model="mapDialog" persistent @show="onMapDialogShow" backdrop-filter="blur(4px)">
+      <q-card style="width: 850px; max-width: 95vw" class="rounded-24 shadow-soft overflow-hidden">
+        <!-- Peta Interaktif Langsung Full di Atas -->
+        <div
+          class="relative-position"
+          style="height: 450px; width: 100%; background-color: #e2e8f0"
+        >
+          <div id="leaflet-map-container" style="height: 100%; width: 100%; z-index: 1"></div>
 
-        <q-card-section>
-          <div class="row q-col-gutter-md q-mb-sm">
-            <div class="col-12 col-md-6">
-              <q-input outlined dense v-model="tempMapLat" label="Latitude Manual" />
-            </div>
-            <div class="col-12 col-md-6">
-              <q-input outlined dense v-model="tempMapLng" label="Longitude Manual" />
-            </div>
-          </div>
-
-          <q-btn
-            unelevated
-            color="cyan-4"
-            text-color="white"
-            icon="my_location"
-            label="ARAHKAN PETA KE KOORDINAT"
-            class="full-width text-weight-bold q-mb-md shadow-1"
-            @click="arahkanPetaKeKoordinat"
-          />
-
-          <!-- CONTAINER PETA -->
+          <!-- Floating Header & Close Button di atas Peta -->
           <div
-            class="relative-position rounded-borders overflow-hidden shadow-2"
-            style="height: 350px; border: 1px solid #e0e0e0"
+            class="absolute-top row justify-between items-center q-pa-md"
+            style="z-index: 1000; pointer-events: none"
           >
-            <div id="leaflet-map-container" style="height: 100%; width: 100%; z-index: 1"></div>
-
-            <!-- KOTAK PENCARIAN DI ATAS PETA -->
-            <q-card
-              class="absolute-top-left q-ma-sm shadow-3 rounded-borders"
-              style="z-index: 1000; width: 280px; max-width: 80%"
+            <q-chip
+              color="white"
+              text-color="blue-grey-10"
+              class="shadow-3 text-weight-bolder q-pa-md"
+              style="pointer-events: auto"
             >
+              <q-icon name="satellite_alt" color="primary" class="q-mr-sm" size="20px" />
+              Tentukan Lokasi Validasi
+            </q-chip>
+            <q-btn
+              icon="close"
+              round
+              dense
+              color="white"
+              text-color="red-5"
+              class="shadow-3"
+              v-close-popup
+              style="pointer-events: auto"
+            />
+          </div>
+
+          <!-- Floating Search Box Mulus -->
+          <q-card
+            class="absolute-top-left shadow-4 rounded-16 overflow-hidden"
+            style="z-index: 1000; top: 70px; left: 16px; width: 300px; max-width: 80%"
+          >
+            <q-input
+              v-model="mapSearch"
+              dense
+              borderless
+              class="q-px-md bg-white text-weight-medium"
+              placeholder="Cari nama jalan / daerah..."
+              @keyup.enter="cariLokasiDiPeta"
+              :loading="searchingMap"
+            >
+              <template v-slot:append>
+                <q-btn flat round dense icon="search" color="primary" @click="cariLokasiDiPeta" />
+              </template>
+            </q-input>
+          </q-card>
+        </div>
+
+        <!-- Bagian Bawah Peta (Manual Input & Konfirmasi) -->
+        <q-card-section class="bg-white">
+          <div class="row items-center justify-between q-col-gutter-md">
+            <!-- Manual Koordinat & Sinkronisasi -->
+            <div class="col-12 col-md-8 row q-gutter-x-sm">
               <q-input
-                v-model="mapSearch"
+                outlined
                 dense
-                borderless
-                class="q-px-sm bg-white"
-                placeholder="Cari lokasi..."
-                @keyup.enter="cariLokasiDiPeta"
-                :loading="searchingMap"
+                v-model="tempMapLat"
+                label="Latitude"
+                class="col bg-grey-1 rounded-8"
+                color="primary"
+              />
+              <q-input
+                outlined
+                dense
+                v-model="tempMapLng"
+                label="Longitude"
+                class="col bg-grey-1 rounded-8"
+                color="primary"
+              />
+              <q-btn
+                unelevated
+                outline
+                color="blue-grey-4"
+                icon="sync"
+                class="col-auto rounded-8 bg-white"
+                @click="arahkanPetaKeKoordinat"
               >
-                <template v-slot:prepend>
-                  <q-icon name="search" class="cursor-pointer" @click="cariLokasiDiPeta" />
-                </template>
-              </q-input>
-            </q-card>
+                <q-tooltip>Sinkronkan Pin ke Input</q-tooltip>
+              </q-btn>
+            </div>
+
+            <!-- Tombol Konfirmasi -->
+            <div class="col-12 col-md-4 text-right">
+              <q-btn
+                unelevated
+                label="PILIH TITIK INI"
+                icon="check_circle"
+                color="primary"
+                @click="konfirmasiPeta"
+                class="full-width rounded-12 text-weight-bold shadow-soft-primary q-py-sm"
+              />
+            </div>
           </div>
         </q-card-section>
-
-        <q-card-actions align="right" class="bg-grey-1 q-pa-md border-top">
-          <q-btn flat label="BATAL" color="grey-7" v-close-popup class="text-weight-bold" />
-          <q-btn
-            unelevated
-            label="PILIH LOKASI INI"
-            color="primary"
-            @click="konfirmasiPeta"
-            class="text-weight-bold q-px-lg shadow-2"
-          />
-        </q-card-actions>
       </q-card>
     </q-dialog>
   </q-page>
@@ -292,10 +448,10 @@ const form = ref({
 })
 
 const columns = [
-  { name: 'nama', label: 'Nama Lokasi', align: 'left', field: 'nama_lokasi', sortable: true },
-  { name: 'koordinat', label: 'Koordinat', align: 'left' },
-  { name: 'radius', label: 'Radius', align: 'left', field: 'radius' },
-  { name: 'aksi', label: 'Aksi', align: 'center' },
+  { name: 'nama', label: 'NAMA LOKASI', align: 'left', field: 'nama_lokasi', sortable: true },
+  { name: 'koordinat', label: 'KOORDINAT GPS', align: 'left' },
+  { name: 'radius', label: 'TOLERANSI (RADIUS)', align: 'left', field: 'radius' },
+  { name: 'aksi', label: '', align: 'right' },
 ]
 
 // STATE PETA INTERAKTIF
@@ -356,11 +512,15 @@ const simpanLokasi = async () => {
 
     if (isEdit.value) {
       await updateDoc(doc(db, 'lokasi_kantor', editId.value), dataSimpan)
-      $q.notify({ color: 'positive', message: 'Lokasi berhasil diperbarui!' })
+      $q.notify({ color: 'positive', message: 'Lokasi berhasil diperbarui!', position: 'top' })
     } else {
       dataSimpan.created_at = serverTimestamp()
       await addDoc(collection(db, 'lokasi_kantor'), dataSimpan)
-      $q.notify({ color: 'positive', message: 'Lokasi baru berhasil ditambahkan!' })
+      $q.notify({
+        color: 'positive',
+        message: 'Lokasi baru berhasil ditambahkan!',
+        position: 'top',
+      })
     }
     dialogLokasi.value = false
   } catch (error) {
@@ -382,7 +542,7 @@ const hapusLokasi = (id) => {
   }).onOk(async () => {
     try {
       await deleteDoc(doc(db, 'lokasi_kantor', id))
-      $q.notify({ color: 'positive', message: 'Lokasi berhasil dihapus!' })
+      $q.notify({ color: 'positive', message: 'Lokasi berhasil dihapus!', position: 'top' })
     } catch (error) {
       console.error('Gagal menghapus:', error)
       $q.notify({ color: 'negative', message: 'Gagal menghapus lokasi.' })
@@ -403,12 +563,19 @@ const dapatkanLokasiSekarang = () => {
       form.value.latitude = position.coords.latitude.toFixed(6)
       form.value.longitude = position.coords.longitude.toFixed(6)
       gettingLocation.value = false
-      $q.notify({ color: 'positive', message: 'Lokasi berhasil didapatkan!', position: 'top' })
+      $q.notify({
+        color: 'positive',
+        message: 'Koordinat saat ini berhasil dikunci!',
+        position: 'top',
+      })
     },
     (error) => {
       console.error(error)
       gettingLocation.value = false
-      $q.notify({ color: 'negative', message: 'Gagal mendapatkan lokasi. Pastikan GPS aktif.' })
+      $q.notify({
+        color: 'negative',
+        message: 'Gagal mendapatkan lokasi. Pastikan GPS browser aktif.',
+      })
     },
     { enableHighAccuracy: true },
   )
@@ -419,12 +586,10 @@ const dapatkanLokasiSekarang = () => {
 // ==========================================
 
 const openMapModal = () => {
-  // Set nilai awal peta ke form saat ini, atau default Jakarta/Bekasi jika kosong
   tempMapLat.value = form.value.latitude || '-6.284200'
   tempMapLng.value = form.value.longitude || '107.170600'
   mapDialog.value = true
 
-  // Suntikkan Library Leaflet secara dinamis jika belum ada
   if (!window.L) {
     const link = document.createElement('link')
     link.rel = 'stylesheet'
@@ -434,17 +599,15 @@ const openMapModal = () => {
     const script = document.createElement('script')
     script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
     script.onload = () => {
-      // Tunggu modal selesai animasi
-      setTimeout(() => initLeafletMap(), 100)
+      setTimeout(() => initLeafletMap(), 200)
     }
     document.head.appendChild(script)
   }
 }
 
-// Dipanggil oleh event @show pada q-dialog
 const onMapDialogShow = () => {
   if (window.L) {
-    setTimeout(() => initLeafletMap(), 100)
+    setTimeout(() => initLeafletMap(), 200)
   }
 }
 
@@ -452,25 +615,31 @@ const initLeafletMap = () => {
   const lat = parseFloat(tempMapLat.value)
   const lng = parseFloat(tempMapLng.value)
 
-  // Bersihkan peta lama jika sudah pernah dibuka
   if (leafletMap) {
     leafletMap.off()
     leafletMap.remove()
     leafletMap = null
   }
 
-  // Inisialisasi Peta
-  leafletMap = window.L.map('leaflet-map-container').setView([lat, lng], 15)
+  leafletMap = window.L.map('leaflet-map-container').setView([lat, lng], 16)
 
-  // Gunakan layer OpenStreetMap
-  window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors',
+  // Style peta modern ala Google Maps Carto
+  window.L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap &copy; CARTO',
+    subdomains: 'abcd',
+    maxZoom: 20,
   }).addTo(leafletMap)
 
-  // Tambahkan Pin Marker yang bisa digeser (Draggable)
-  mapMarker = window.L.marker([lat, lng], { draggable: true }).addTo(leafletMap)
+  // Custom Icon Agar Terlihat Premium
+  const customIcon = window.L.icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
+    iconSize: [38, 38],
+    iconAnchor: [19, 38],
+    popupAnchor: [0, -38],
+  })
 
-  // Saat pin marker digeser, update input koordinat
+  mapMarker = window.L.marker([lat, lng], { draggable: true, icon: customIcon }).addTo(leafletMap)
+
   // eslint-disable-next-line no-unused-vars
   mapMarker.on('dragend', function (e) {
     const pos = mapMarker.getLatLng()
@@ -478,18 +647,15 @@ const initLeafletMap = () => {
     tempMapLng.value = pos.lng.toFixed(6)
   })
 
-  // Saat peta diklik sembarang tempat, pindahkan pin marker
   leafletMap.on('click', function (e) {
     mapMarker.setLatLng(e.latlng)
     tempMapLat.value = e.latlng.lat.toFixed(6)
     tempMapLng.value = e.latlng.lng.toFixed(6)
   })
 
-  // Pastikan ukuran peta menyesuaikan container (Mencegah peta terpotong abu-abu)
   leafletMap.invalidateSize()
 }
 
-// Tombol Cyan "ARAHKAN PETA"
 const arahkanPetaKeKoordinat = () => {
   if (leafletMap && mapMarker) {
     const lat = parseFloat(tempMapLat.value) || 0
@@ -499,7 +665,6 @@ const arahkanPetaKeKoordinat = () => {
   }
 }
 
-// Fitur Pencarian Tempat
 const cariLokasiDiPeta = async () => {
   if (!mapSearch.value) return
   searchingMap.value = true
@@ -519,13 +684,12 @@ const cariLokasiDiPeta = async () => {
     }
   } catch (error) {
     console.error(error)
-    $q.notify({ color: 'negative', message: 'Terjadi kesalahan saat mencari lokasi.' })
+    $q.notify({ color: 'negative', message: 'Terjadi kesalahan pencarian.' })
   } finally {
     searchingMap.value = false
   }
 }
 
-// Tombol "PILIH LOKASI INI"
 const konfirmasiPeta = () => {
   form.value.latitude = tempMapLat.value
   form.value.longitude = tempMapLng.value
@@ -538,20 +702,94 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.font-pro {
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+.font-inter {
   font-family: 'Inter', sans-serif;
+}
+
+/* SHADOWS & RADIUS */
+.shadow-soft {
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.08) !important;
+}
+.shadow-soft-primary {
+  box-shadow: 0 8px 24px -8px rgba(25, 118, 210, 0.6) !important;
+}
+.rounded-24 {
+  border-radius: 24px;
+}
+.rounded-16 {
+  border-radius: 16px;
 }
 .rounded-12 {
   border-radius: 12px;
 }
+.rounded-8 {
+  border-radius: 8px;
+}
+.border-bottom {
+  border-bottom: 1px solid #f1f5f9;
+}
+.border-top {
+  border-top: 1px solid #f1f5f9;
+}
+
+/* TYPOGRAPHY */
+.letter-spacing-tight {
+  letter-spacing: -0.5px;
+}
+.letter-spacing-1 {
+  letter-spacing: 1px;
+}
+.line-height-1 {
+  line-height: 1.2;
+}
+.uppercase {
+  text-transform: uppercase;
+}
+.opacity-50 {
+  opacity: 0.5;
+}
+
+/* CUSTOM INPUTS */
+.rounded-input :deep(.q-field__control) {
+  border-radius: 12px;
+}
+.rounded-input :deep(.q-field__marginal) {
+  height: 50px;
+}
+
+/* BUTTON TRANSITIONS */
+.transition-smooth {
+  transition: all 0.3s ease;
+}
+.transition-smooth:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+/* TABLE STYLING */
+.premium-table :deep(thead tr th) {
+  font-size: 12px;
+  border-bottom: 2px solid #f1f5f9;
+}
+.premium-table :deep(tbody tr td) {
+  font-size: 14px;
+  border-bottom: 1px solid #f1f5f9;
+  transition: all 0.3s ease;
+}
+.hover-effect:hover td {
+  background-color: #f8fafc !important;
+}
 .text-decoration-none {
   text-decoration: none;
 }
-.admin-table :deep(th) {
-  font-size: 13px;
-  letter-spacing: 0.5px;
+.text-decoration-none:hover {
+  text-decoration: underline;
 }
-.border-top {
-  border-top: 1px solid #e0e0e0;
+
+/* LEAFLET OVERRIDES */
+#leaflet-map-container {
+  font-family: 'Inter', sans-serif;
 }
 </style>
