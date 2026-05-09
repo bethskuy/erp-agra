@@ -2,7 +2,6 @@
   <q-page class="bg-blue-grey-1 q-pa-lg">
     <div class="row justify-center">
       <div class="col-12 col-xl-11">
-        <!-- HEADER PAGE -->
         <div class="row items-center justify-between q-mb-xl">
           <div class="col-12 col-md-auto">
             <h4 class="text-weight-bolder text-blue-grey-10 q-ma-none letter-spacing-1">
@@ -16,18 +15,24 @@
             <q-card flat bordered class="rounded-16 bg-white shadow-sm">
               <q-card-section class="row items-center q-py-sm q-px-md">
                 <q-avatar size="42px" color="primary" text-color="white" class="shadow-2">
-                  {{ currentUserName ? currentUserName.substring(0, 1).toUpperCase() : 'U' }}
+                  <img v-if="userData.fotoUrl" :src="userData.fotoUrl" />
+                  <span v-else>{{
+                    userData.nama ? userData.nama.substring(0, 1).toUpperCase() : 'U'
+                  }}</span>
                 </q-avatar>
                 <div class="q-ml-md">
-                  <div class="text-weight-bold text-blue-grey-9">{{ currentUserName }}</div>
-                  <div class="text-caption text-grey-6 text-uppercase">AGRA - KARYAWAN</div>
+                  <div class="text-weight-bold text-blue-grey-9 text-uppercase">
+                    {{ userData.nama || 'Memuat...' }}
+                  </div>
+                  <div class="text-caption text-grey-6 text-uppercase">
+                    AGRA - {{ userData.jabatan || userData.role || 'KARYAWAN' }}
+                  </div>
                 </div>
               </q-card-section>
             </q-card>
           </div>
         </div>
 
-        <!-- STATISTIK -->
         <div class="row q-col-gutter-lg q-mb-xl">
           <div class="col-12 col-sm-4" v-for="(stat, index) in leaveStats" :key="index">
             <q-card flat class="rounded-16 shadow-card overflow-hidden full-height">
@@ -64,7 +69,6 @@
           </div>
         </div>
 
-        <!-- FORM & TABLE -->
         <div class="column q-gutter-y-xl">
           <q-card flat class="rounded-16 shadow-card bg-white">
             <q-card-section class="q-pa-lg">
@@ -166,7 +170,6 @@
             </q-card-section>
           </q-card>
 
-          <!-- SECTION 3: DAFTAR PENGAJUAN -->
           <q-card flat class="rounded-16 shadow-card bg-white overflow-hidden">
             <q-card-section class="q-pa-lg">
               <div class="row items-center q-mb-lg">
@@ -279,7 +282,15 @@ const $q = useQuasar()
 const loading = ref(true)
 const submitting = ref(false)
 const rows = ref([])
-const currentUserName = ref('User')
+
+// State Dinamis Terintegrasi
+const userData = ref({
+  nama: 'Memuat...',
+  jabatan: 'Karyawan',
+  role: 'Staff',
+  fotoUrl: '',
+  email: '',
+})
 
 const form = ref({
   jenis: null,
@@ -365,8 +376,11 @@ const onSubmit = async () => {
     const end = typeof range === 'string' ? range : range?.to
     if (!start) throw new Error('Pilih tanggal!')
 
+    // Paksa UPPERCASE agar konsisten dengan filter di Riwayat
+    const namaKaryawan = (userData.value.nama || 'USER').toUpperCase()
+
     await addDoc(collection(db, 'pengajuan'), {
-      nama_karyawan: currentUserName.value,
+      nama_karyawan: namaKaryawan,
       jenis_pengajuan: form.value.jenis,
       tanggal_mulai: start,
       tanggal_selesai: end || start,
@@ -392,38 +406,70 @@ const onSubmit = async () => {
   }
 }
 
-let unsubscribe = null
+let unsubscribeData = null
+let unsubscribeUser = null
+
 onMounted(() => {
-  const saved = localStorage.getItem('agra_erp_session')
+  // 1. SINKRONISASI DATA USER (Menggunakan key 'user_data' yang benar)
+  const saved = localStorage.getItem('user_data')
   if (saved) {
     try {
       const parsed = JSON.parse(saved)
-      currentUserName.value = parsed.nama || 'User Agra'
-      // eslint-disable-next-line no-unused-vars
+      userData.value = {
+        nama: parsed.nama || 'User',
+        jabatan: parsed.jabatan || parsed.role || 'Karyawan',
+        role: parsed.role || 'Staff',
+        email: parsed.email || '',
+        fotoUrl: parsed.fotoUrl || parsed.foto_profil || '',
+      }
+
+      // 2. REAL-TIME LISTENER PROFILE DARI FIRESTORE
+      if (userData.value.email) {
+        const qUser = query(collection(db, 'karyawan'), where('email', '==', userData.value.email))
+        unsubscribeUser = onSnapshot(qUser, (snap) => {
+          if (!snap.empty) {
+            const data = snap.docs[0].data()
+            userData.value = {
+              ...userData.value,
+              nama: data.nama || userData.value.nama,
+              jabatan: data.jabatan || userData.value.jabatan,
+              role: data.role || userData.value.role,
+              fotoUrl: data.foto_profil || data.fotoUrl || userData.value.fotoUrl,
+            }
+          }
+        })
+      }
     } catch (e) {
-      currentUserName.value = 'User Agra'
+      console.error('Error memuat sesi lokal:', e)
     }
   }
 
-  const q = query(
+  // 3. AMBIL DAFTAR PENGAJUAN MILIK USER SAJA
+  // Menggunakan nama UPPERCASE agar sinkron dengan yang disave
+  const searchName = (userData.value.nama || 'USER').toUpperCase()
+
+  const qData = query(
     collection(db, 'pengajuan'),
-    where('nama_karyawan', '==', currentUserName.value),
+    where('nama_karyawan', '==', searchName),
     orderBy('created_at', 'desc'),
   )
-  unsubscribe = onSnapshot(
-    q,
+
+  unsubscribeData = onSnapshot(
+    qData,
     (snap) => {
       rows.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
       loading.value = false
     },
-    () => {
+    (err) => {
+      console.error('Gagal mengambil data pengajuan:', err)
       loading.value = false
     },
   )
 })
 
 onUnmounted(() => {
-  if (unsubscribe) unsubscribe()
+  if (unsubscribeData) unsubscribeData()
+  if (unsubscribeUser) unsubscribeUser()
 })
 </script>
 

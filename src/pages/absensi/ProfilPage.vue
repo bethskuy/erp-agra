@@ -7,8 +7,10 @@
           <div class="row items-center q-pa-md q-pa-md-lg">
             <!-- Avatar Section -->
             <div class="col-12 col-sm-auto flex justify-center q-mb-md q-mb-sm-none">
-              <q-avatar size="140px" class="shadow-5 border-white relative-position">
-                <q-img :src="user.foto || 'https://cdn.quasar.dev/img/avatar.png'" />
+              <q-avatar size="140px" class="shadow-5 border-white relative-position bg-grey-2">
+                <q-img
+                  :src="user.fotoUrl || user.foto_profil || 'https://cdn.quasar.dev/img/avatar.png'"
+                />
                 <q-btn
                   round
                   color="primary"
@@ -31,11 +33,13 @@
             <div class="col-12 col-sm q-ml-sm-xl text-center text-sm-left">
               <div class="row items-center justify-center justify-sm-start no-wrap">
                 <div class="text-h4 text-weight-bolder text-blue-grey-10 text-uppercase ellipsis">
-                  {{ user.nama }}
+                  {{ user.nama || 'Memuat...' }}
                 </div>
                 <q-icon name="verified" color="primary" size="xs" class="q-ml-xs" />
               </div>
-              <div class="text-h6 text-primary text-weight-medium q-mt-xs">{{ user.jabatan }}</div>
+              <div class="text-h6 text-primary text-weight-medium q-mt-xs">
+                {{ user.jabatan || user.role || 'Staff' }}
+              </div>
 
               <div class="row q-mt-md q-gutter-x-sm justify-center justify-sm-start">
                 <q-badge
@@ -43,7 +47,7 @@
                   text-color="blue-grey-10"
                   class="q-px-md q-py-xs text-weight-bold"
                 >
-                  NIK: {{ user.nik }}
+                  NIK: {{ user.nik || '-' }}
                 </q-badge>
                 <q-badge
                   color="green-1"
@@ -62,7 +66,7 @@
                 color="primary"
                 icon="edit"
                 label="EDIT PROFIL"
-                class="q-px-lg"
+                class="q-px-lg shadow-3 text-weight-bold"
                 no-caps
                 @click="openEditDialog"
               />
@@ -102,18 +106,27 @@
           <div class="col-12 col-md-4">
             <div class="column q-gutter-y-md full-height">
               <q-card flat class="full-card q-pa-lg shadow-2 bg-white">
-                <div class="text-subtitle2 text-weight-bold text-grey-8 q-mb-md">DOMISILI</div>
+                <div class="text-subtitle2 text-weight-bold text-grey-8 q-mb-md flex items-center">
+                  <q-icon name="location_on" color="primary" class="q-mr-sm" size="sm" />
+                  DOMISILI
+                </div>
                 <div class="bg-blue-grey-1 q-pa-md rounded-borders border-dashed">
-                  <div class="text-body2 text-blue-grey-9">{{ user.alamat || 'Belum diatur' }}</div>
+                  <div class="text-body2 text-blue-grey-9 leading-relaxed">
+                    {{
+                      user.alamat || 'Alamat domisili belum diatur. Silakan perbarui profil Anda.'
+                    }}
+                  </div>
                 </div>
               </q-card>
 
               <q-card flat class="full-card q-pa-lg shadow-2 bg-blue-10 text-white">
                 <div class="row items-center q-mb-md">
                   <q-icon name="contact_phone" color="red-4" size="sm" class="q-mr-sm" />
-                  <span class="text-weight-bold">DARURAT</span>
+                  <span class="text-weight-bold tracking-widest">KONTAK DARURAT</span>
                 </div>
-                <div class="text-h6 text-weight-bolder">{{ user.emergency_name || '-' }}</div>
+                <div class="text-h6 text-weight-bolder">
+                  {{ user.emergency_name || 'BELUM DIATUR' }}
+                </div>
                 <div class="text-body2 opacity-80">{{ user.emergency_phone || '-' }}</div>
               </q-card>
             </div>
@@ -124,48 +137,95 @@
 
     <!-- DIALOG EDIT -->
     <q-dialog v-model="editDialog" persistent backdrop-filter="blur(4px)">
-      <q-card style="width: 500px; max-width: 95vw; border-radius: 20px">
+      <q-card style="width: 600px; max-width: 95vw; border-radius: 20px">
         <q-card-section class="bg-primary text-white row items-center q-pa-md">
-          <div class="text-subtitle1 text-weight-bold">Update Profil</div>
+          <div class="text-subtitle1 text-weight-bold">Update Profil Saya</div>
           <q-space />
           <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
 
-        <q-card-section class="q-pa-md q-gutter-y-sm">
-          <q-input v-model="tempUser.nama" label="Nama Lengkap" outlined dense stack-label />
+        <q-card-section class="q-pa-md q-gutter-y-md">
+          <q-input v-model="tempUser.nama" label="Nama Lengkap" outlined dense />
+
           <div class="row q-col-gutter-sm">
-            <q-input v-model="tempUser.nik" label="NIK" outlined dense stack-label class="col-6" />
             <q-input
-              v-model="tempUser.jabatan"
-              label="Jabatan"
+              v-model="tempUser.email"
+              label="Email Login"
               outlined
               dense
-              stack-label
-              class="col-6"
+              class="col-12 col-sm-6"
+              readonly
+              hint="Hubungi Admin untuk ubah email"
+            />
+            <q-input
+              v-model="tempUser.nik"
+              label="NIK"
+              outlined
+              dense
+              class="col-12 col-sm-6"
+              readonly
+              hint="Sesuai database HRD"
             />
           </div>
-          <q-input v-model="tempUser.email" label="Email Kantor" outlined dense stack-label />
-          <q-input v-model="tempUser.phone" label="Nomor Telepon" outlined dense stack-label />
+
+          <div class="row q-col-gutter-sm">
+            <q-input
+              v-model="tempUser.jabatan"
+              label="Jabatan / Posisi"
+              outlined
+              dense
+              class="col-12 col-sm-6"
+              readonly
+            />
+            <q-input
+              v-model="tempUser.hp"
+              label="Nomor Telepon Pribadi"
+              outlined
+              dense
+              class="col-12 col-sm-6"
+            />
+          </div>
+
           <q-input
             v-model="tempUser.alamat"
-            label="Alamat Domisili"
+            label="Alamat Lengkap Domisili"
             outlined
             dense
-            stack-label
             type="textarea"
             rows="3"
           />
+
+          <q-separator class="q-my-sm" />
+          <div class="text-subtitle2 text-weight-bold text-grey-8">
+            Kontak Darurat (Keluarga/Kerabat)
+          </div>
+
+          <div class="row q-col-gutter-sm">
+            <q-input
+              v-model="tempUser.emergency_name"
+              label="Nama Kontak Darurat"
+              outlined
+              dense
+              class="col-12 col-sm-6"
+            />
+            <q-input
+              v-model="tempUser.emergency_phone"
+              label="No. Telepon Darurat"
+              outlined
+              dense
+              class="col-12 col-sm-6"
+            />
+          </div>
         </q-card-section>
 
-        <q-card-actions align="right" class="q-pa-md">
-          <q-btn flat label="BATAL" color="grey-7" v-close-popup no-caps />
+        <q-card-actions align="right" class="q-pa-md bg-grey-1">
+          <q-btn flat label="BATAL" color="grey-7" v-close-popup class="text-weight-bold" />
           <q-btn
             unelevated
-            label="SIMPAN PERUBAAN"
+            label="SIMPAN PERUBAHAN"
             color="primary"
             @click="saveProfile"
-            no-caps
-            class="q-px-lg"
+            class="q-px-lg text-weight-bold shadow-3 rounded-borders"
           />
         </q-card-actions>
       </q-card>
@@ -176,36 +236,76 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useQuasar } from 'quasar'
+import { db, storage } from 'src/boot/firebase'
+import { collection, query, where, onSnapshot, doc, updateDoc } from 'firebase/firestore'
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
 
 const $q = useQuasar()
 const fileInput = ref(null)
 const editDialog = ref(false)
 
 const user = ref({
-  nama: 'REVAL ALFARIZZI AKBAR',
-  nik: '312310250',
-  jabatan: 'Operator produksi',
-  email: 'reval@agra.co.id',
-  phone: '08123456789',
-  alamat: 'Dian Anyar H2-7 RT002 RW 012 PURWAKARTA JAWA BARAT',
-  foto: null,
-  emergency_name: 'Admin Agra',
-  emergency_phone: '0812-0000-1111',
+  id: '',
+  nama: '',
+  nik: '',
+  jabatan: '',
+  role: '',
+  email: '',
+  hp: '',
+  alamat: '',
+  fotoUrl: '',
+  foto_profil: '',
+  emergency_name: '',
+  emergency_phone: '',
+  akses: [],
 })
 
 const tempUser = ref({})
 
 const displayFields = computed(() => [
   { label: 'Email Kantor', value: user.value.email },
-  { label: 'Nomor Telepon', value: user.value.phone },
-  { label: 'Jabatan Aktif', value: user.value.jabatan },
+  { label: 'Nomor Telepon', value: user.value.hp },
+  { label: 'Jabatan Aktif', value: user.value.jabatan || user.value.role },
   { label: 'Unit NIK', value: user.value.nik },
 ])
 
-const loadProfile = () => {
-  const saved = localStorage.getItem('agra_erp_session')
+const syncProfileData = () => {
+  // 1. Ambil data dari key yang BENAR (Sama dengan Login & Layout)
+  const saved = localStorage.getItem('user_data')
   if (saved) {
-    user.value = { ...user.value, ...JSON.parse(saved) }
+    try {
+      const parsed = JSON.parse(saved)
+      user.value = { ...user.value, ...parsed }
+
+      // 2. Real-time Listener ke Firestore
+      if (user.value.email) {
+        const q = query(collection(db, 'karyawan'), where('email', '==', user.value.email))
+        onSnapshot(
+          q,
+          (snap) => {
+            if (!snap.empty) {
+              const docData = snap.docs[0]
+              const data = docData.data()
+
+              // Perbarui state reaktif
+              user.value = {
+                ...user.value,
+                ...data,
+                id: docData.id, // Simpan ID dokumen untuk proses Update
+              }
+
+              // Perbarui LocalStorage agar Layout/Sidebar ikut terupdate otomatis
+              localStorage.setItem('user_data', JSON.stringify(user.value))
+            }
+          },
+          (error) => {
+            console.warn('Real-time sync error:', error)
+          },
+        )
+      }
+    } catch (e) {
+      console.error('Gagal memuat profil:', e)
+    }
   }
 }
 
@@ -214,38 +314,91 @@ const openEditDialog = () => {
   editDialog.value = true
 }
 
-const saveProfile = () => {
-  user.value = { ...tempUser.value }
-  localStorage.setItem('agra_erp_session', JSON.stringify(user.value))
-  $q.notify({
-    color: 'primary',
-    message: 'Profil Berhasil Disinkronkan!',
-    position: 'top',
-    icon: 'sync',
-  })
-  editDialog.value = false
+const saveProfile = async () => {
+  $q.loading.show()
+  try {
+    const namaKapital = tempUser.value.nama.trim().toUpperCase()
+
+    // 1. Update ke Firestore (Jika ID dokumen tersedia)
+    if (user.value.id) {
+      const userRef = doc(db, 'karyawan', user.value.id)
+      await updateDoc(userRef, {
+        nama: namaKapital,
+        hp: tempUser.value.hp || '',
+        alamat: tempUser.value.alamat || '',
+        emergency_name: tempUser.value.emergency_name || '',
+        emergency_phone: tempUser.value.emergency_phone || '',
+      })
+    }
+
+    // 2. Update State Lokal & Local Storage
+    user.value = {
+      ...user.value,
+      ...tempUser.value,
+      nama: namaKapital,
+    }
+    localStorage.setItem('user_data', JSON.stringify(user.value))
+
+    $q.notify({
+      color: 'positive',
+      message: 'Profil berhasil diperbarui & disinkronkan!',
+      position: 'top',
+      icon: 'sync',
+    })
+
+    editDialog.value = false
+  } catch (error) {
+    console.error(error)
+    $q.notify({ color: 'negative', message: 'Gagal menyimpan profil: ' + error.message })
+  } finally {
+    $q.loading.hide()
+  }
 }
 
 const triggerUpload = () => fileInput.value.click()
 
-const onFileChange = (e) => {
+const onFileChange = async (e) => {
   const file = e.target.files[0]
-  if (file) {
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      user.value.foto = event.target.result
-      // Konsisten simpan ke agra_erp_session agar halaman lain ikut terupdate
-      localStorage.setItem('agra_erp_session', JSON.stringify(user.value))
-      $q.notify({ color: 'positive', message: 'Foto profil diperbarui!', icon: 'photo_camera' })
+  if (!file) return
+
+  $q.loading.show({ message: 'Mengunggah foto profil...' })
+  try {
+    // 1. Upload ke Firebase Storage
+    const fRef = storageRef(storage, `karyawan/avatars/${Date.now()}_${file.name}`)
+    await uploadBytes(fRef, file)
+    const url = await getDownloadURL(fRef)
+
+    // 2. Simpan URL ke Firestore
+    if (user.value.id) {
+      await updateDoc(doc(db, 'karyawan', user.value.id), {
+        fotoUrl: url,
+        foto_profil: url,
+      })
     }
-    reader.readAsDataURL(file)
+
+    // 3. Update Local State & Session
+    user.value.fotoUrl = url
+    localStorage.setItem('user_data', JSON.stringify(user.value))
+
+    $q.notify({ color: 'positive', message: 'Foto profil berhasil diubah!', icon: 'photo_camera' })
+  } catch (error) {
+    console.error('Upload error:', error)
+    $q.notify({ color: 'negative', message: 'Gagal mengunggah foto profil.' })
+  } finally {
+    $q.loading.hide()
+    if (fileInput.value) fileInput.value.value = ''
   }
 }
 
-onMounted(() => loadProfile())
+onMounted(() => {
+  syncProfileData()
+})
 </script>
 
 <style scoped>
+.font-pro {
+  font-family: 'Inter', sans-serif;
+}
 .full-card {
   border-radius: 16px;
 }
@@ -257,6 +410,9 @@ onMounted(() => loadProfile())
 }
 .tracking-widest {
   letter-spacing: 1px;
+}
+.leading-relaxed {
+  line-height: 1.6;
 }
 .ellipsis {
   overflow: hidden;

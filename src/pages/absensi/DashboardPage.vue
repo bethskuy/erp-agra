@@ -53,15 +53,17 @@
               <div class="q-gutter-y-sm q-mb-lg">
                 <div class="info-row">
                   <span class="label text-grey-7 text-weight-bold">Nama Karyawan</span>
+                  <!-- Mengambil nama secara dinamis dari userData -->
                   <span class="text-weight-bolder text-primary text-uppercase">{{
-                    currentUserName
+                    userData.nama || 'MEMUAT...'
                   }}</span>
                 </div>
                 <div class="info-row">
-                  <span class="label text-grey-7 text-weight-bold">Shift Kerja</span>
-                  <q-badge color="blue-1" text-color="blue-9" class="text-weight-bold q-pa-xs"
-                    >SHIFT 1 (08:15 - 17:00)</q-badge
-                  >
+                  <span class="label text-grey-7 text-weight-bold">Posisi / Jabatan</span>
+                  <!-- Mengambil jabatan secara dinamis dari userData -->
+                  <q-badge color="blue-1" text-color="blue-9" class="text-weight-bold q-pa-xs">{{
+                    userData.jabatan || userData.role || 'STAFF'
+                  }}</q-badge>
                 </div>
               </div>
 
@@ -264,7 +266,15 @@ const currentTime = ref('')
 const currentDate = ref('')
 const riwayatData = ref([])
 const dataSeluruhKaryawan = ref([])
-const currentUserName = ref('USER')
+
+// Variabel data user dinamis yang tersinkron
+const userData = ref({
+  nama: 'Memuat...',
+  jabatan: 'Staff',
+  role: 'Staff',
+  email: '',
+})
+
 const documentId = ref(null)
 const showCamera = ref(false)
 const capturedImage = ref(null)
@@ -339,7 +349,7 @@ const detectLocation = () => {
           Math.sin(dLon / 2)
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
       const distance = R * c
-      const inRange = distance <= 0.2
+      const inRange = distance <= 0.2 // Maksimal 200 meter dari KANTOR_LAT/LNG
 
       locationData.value.lat = lat.toFixed(4)
       locationData.value.lng = lng.toFixed(4)
@@ -379,20 +389,24 @@ const stopCamera = () => {
 const saveAbsensi = async () => {
   $q.loading.show()
   try {
+    // Pastikan nama_karyawan sesuai persis dengan huruf kapital, sama seperti di profil/login
+    const formattedName = (userData.value.nama || 'USER').toUpperCase()
+
     await addDoc(collection(db, 'absensi'), {
-      nama_karyawan: currentUserName.value,
+      nama_karyawan: formattedName,
       waktu_masuk: serverTimestamp(),
       waktu_pulang: null,
       tanggal: currentDate.value,
       status: 'Hadir',
-      nama_tempat: locationData.value.inRange ? 'KANTOR AGRA' : 'AREA TESTING',
+      nama_tempat: locationData.value.inRange ? 'KANTOR AGRA' : 'AREA LUAR KANTOR',
       alamat_lengkap: locationData.value.address,
       koordinat: `${locationData.value.lat}, ${locationData.value.lng}`,
     })
-    $q.notify({ color: 'positive', message: 'Clock-in Berhasil!' })
+    $q.notify({ color: 'positive', message: 'Berhasil Clock-in!' })
     stopCamera()
-  } catch {
-    $q.notify({ color: 'negative', message: 'Gagal absen.' })
+  } catch (e) {
+    console.error('Gagal Clock-in:', e)
+    $q.notify({ color: 'negative', message: 'Gagal absen, coba lagi.' })
   } finally {
     $q.loading.hide()
   }
@@ -406,9 +420,10 @@ const absenPulang = async () => {
       waktu_pulang: serverTimestamp(),
       status: 'Selesai',
     })
-    $q.notify({ color: 'negative', message: 'Clock-out Berhasil!' })
-  } catch {
-    $q.notify({ color: 'negative', message: 'Gagal Clock-out.' })
+    $q.notify({ color: 'negative', message: 'Berhasil Clock-out!' })
+  } catch (e) {
+    console.error('Gagal Clock-out:', e)
+    $q.notify({ color: 'negative', message: 'Gagal Clock-out, coba lagi.' })
   } finally {
     $q.loading.hide()
   }
@@ -416,26 +431,57 @@ const absenPulang = async () => {
 
 const formatWaktu = (ts) => (ts ? date.formatDate(ts.toDate(), 'HH.mm') : '--.--')
 
-let timer, unsubMe, unsubAll, locationTimer
+let timer, unsubMe, unsubAll, unsubUser, locationTimer
+
 onMounted(() => {
   updateTime()
   detectLocation()
   timer = setInterval(updateTime, 1000)
   locationTimer = setInterval(detectLocation, 45000)
 
-  // SINKRONISASI: Menggunakan key agra_erp_session agar sinkron dengan Profil
-  const saved = localStorage.getItem('agra_erp_session') || localStorage.getItem('user_data')
+  // 1. SINKRONISASI DATA USER DARI LOCALSTORAGE
+  const saved = localStorage.getItem('user_data') // Kunci yang benar dan seragam!
   if (saved) {
-    const parsed = JSON.parse(saved)
-    currentUserName.value = (parsed.nama || 'USER').toUpperCase()
+    try {
+      const parsed = JSON.parse(saved)
+      userData.value = {
+        nama: parsed.nama || 'User',
+        jabatan: parsed.jabatan || parsed.role || 'Staff',
+        role: parsed.role || 'Staff',
+        email: parsed.email || '',
+      }
+
+      // 2. REAL-TIME SINKRONISASI FIRESTORE (Jika data di Profil berubah, ini ikut berubah!)
+      if (userData.value.email) {
+        const qUser = query(collection(db, 'karyawan'), where('email', '==', userData.value.email))
+        unsubUser = onSnapshot(qUser, (snap) => {
+          if (!snap.empty) {
+            const data = snap.docs[0].data()
+            userData.value = {
+              ...userData.value,
+              nama: data.nama || userData.value.nama,
+              jabatan: data.jabatan || userData.value.jabatan,
+              role: data.role || userData.value.role,
+            }
+          }
+        })
+      }
+    } catch (e) {
+      console.error('Gagal parse data sesi lokal', e)
+    }
   }
+
+  // 3. AMBIL DATA RIWAYAT PRIBADI HARI INI
+  // Gunakan nama KAPITAL agar sinkron dengan yang disimpan di `saveAbsensi`
+  const searchName = (userData.value.nama || 'USER').toUpperCase()
 
   const qMe = query(
     collection(db, 'absensi'),
-    where('nama_karyawan', '==', currentUserName.value),
+    where('nama_karyawan', '==', searchName),
     orderBy('waktu_masuk', 'desc'),
     limit(5),
   )
+
   unsubMe = onSnapshot(qMe, (snap) => {
     riwayatData.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
     const active = riwayatData.value.find(
@@ -444,7 +490,7 @@ onMounted(() => {
     documentId.value = active ? active.id : null
   })
 
-  // Penarikan data seluruh karyawan hari ini
+  // 4. PENARIKAN DATA SELURUH KARYAWAN HARI INI
   const startDay = new Date()
   startDay.setHours(0, 0, 0, 0)
   const qAll = query(
@@ -452,6 +498,7 @@ onMounted(() => {
     where('waktu_masuk', '>=', Timestamp.fromDate(startDay)),
     orderBy('waktu_masuk', 'desc'),
   )
+
   unsubAll = onSnapshot(qAll, (snap) => {
     dataSeluruhKaryawan.value = snap.docs.map((d, i) => {
       const dta = d.data()
@@ -470,6 +517,7 @@ onUnmounted(() => {
   clearInterval(locationTimer)
   if (unsubMe) unsubMe()
   if (unsubAll) unsubAll()
+  if (unsubUser) unsubUser()
 })
 </script>
 

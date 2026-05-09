@@ -286,7 +286,9 @@ const setupRealtimeListener = () => {
       December: 11,
     }
 
-    const monthIndex = monthMap[monthName] ?? new Date().getMonth()
+    // Perbaikan: Menghindari penggunaan operator ?? (Nullish Coalescing) yang sering menyebabkan TS Error di VS Code lama
+    const monthIndex =
+      monthMap[monthName] !== undefined ? monthMap[monthName] : new Date().getMonth()
     const startOfMonth = new Date(parseInt(year), monthIndex, 1, 0, 0, 0)
     const endOfMonth = new Date(parseInt(year), monthIndex + 1, 1, 0, 0, 0)
 
@@ -317,8 +319,7 @@ const setupRealtimeListener = () => {
 }
 
 onMounted(() => {
-  // SINKRONISASI: Mengambil nama lengkap dari key tunggal agra_erp_session
-  const saved = localStorage.getItem('agra_erp_session')
+  const saved = localStorage.getItem('user_data')
   if (saved) {
     const parsed = JSON.parse(saved)
     userName.value = (parsed.nama || 'USER').toUpperCase()

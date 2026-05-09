@@ -1,19 +1,14 @@
 const routes = [
-  // 1. LANDING PAGE
   {
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
     meta: { requiresAuth: true },
     children: [{ path: '', component: () => import('pages/IndexPage.vue') }],
   },
-
-  // 2. AUTHENTICATION
   {
     path: '/login',
     component: () => import('pages/auth/LoginPage.vue'),
   },
-
-  // 3. MODUL KONSTRUKSI
   {
     path: '/konstruksi',
     component: () => import('layouts/KonstruksiLayout.vue'),
@@ -63,12 +58,7 @@ const routes = [
         path: 'master/proyek-kategori',
         component: () => import('pages/konstruksi/Master/DataProyek/KategoriProyekPage.vue'),
       },
-
-      // --- GRUP NAVIGASI GUDANG & LOGISTIK ---
-      {
-        path: 'gudang',
-        component: () => import('pages/konstruksi/Gudang/GudangPage.vue'),
-      },
+      { path: 'gudang', component: () => import('pages/konstruksi/Gudang/GudangPage.vue') },
       {
         path: 'gudang/transaksi',
         component: () => import('pages/konstruksi/Gudang/RiwayatTransaksiPage.vue'),
@@ -85,8 +75,6 @@ const routes = [
         path: 'gudang/keluar/:id',
         component: () => import('pages/konstruksi/Gudang/BarangKeluarPage.vue'),
       },
-
-      // RUTE BARU UNTUK PERMINTAAN BARANG
       {
         path: 'gudang/permintaan/list',
         component: () => import('pages/konstruksi/Gudang/ListPermintaanPage.vue'),
@@ -99,7 +87,6 @@ const routes = [
         path: 'gudang/purchase-request/:id',
         component: () => import('pages/konstruksi/Gudang/PurchaseRequestPage.vue'),
       },
-
       {
         path: 'pembelian/pesanan',
         component: () =>
@@ -107,13 +94,21 @@ const routes = [
       },
     ],
   },
-
-  // 4. MODUL ABSENSI
   {
     path: '/absensi',
     component: () => import('layouts/AbsensiLayout.vue'),
     meta: { requiresAuth: true, modul: 'absensi' },
     children: [
+      {
+        path: 'admin/dashboard',
+        name: 'absensi-admin-dashboard',
+        component: () => import('pages/absensi/adminabsensi/AdminDashboardPage.vue'),
+      },
+      {
+        path: 'admin/pengaturan',
+        name: 'absensi-admin-pengaturan',
+        component: () => import('pages/absensi/adminabsensi/PengaturanAbsensiPage.vue'),
+      },
       {
         path: 'profil',
         name: 'absensi-profil',
@@ -136,8 +131,6 @@ const routes = [
       },
     ],
   },
-
-  /// 5. MODUL MANUFAKTUR (AGRA ERP - CUSTOM FLOW)
   {
     path: '/manufaktur',
     component: () => import('layouts/ManufakturLayout.vue'),
@@ -148,7 +141,6 @@ const routes = [
         name: 'manufaktur-dashboard',
         component: () => import('pages/manufaktur/DashboardPage.vue'),
       },
-      // --- MENU SISTEM PENAWARAN (REVISI SESUAI GAMBAR) ---
       {
         path: 'penawaran',
         name: 'PenawaranManufaktur',
@@ -159,22 +151,41 @@ const routes = [
         name: 'ApprovalPenawaranManufaktur',
         component: () => import('pages/manufaktur/Penawaran/ApprovalQuotationPage.vue'),
       },
-
-      // --- SECTION 1: SALES ---
       {
         path: 'sales/po-customer',
         name: 'manufaktur-po-customer',
         component: () => import('pages/manufaktur/sales/POCustomerPage.vue'),
       },
-
-      // --- SECTION 2: PROSES PRODUKSI (INCOMING) ---
       {
         path: 'produksi/proses-produksi/incoming',
         name: 'manufaktur-incoming-material',
         component: () => import('pages/manufaktur/Produksi/IncomingMaterialPage.vue'),
       },
-
-      // --- SECTION 3: PROSES PACKING (STAYWIRE 5 STEPS) ---
+      {
+        path: 'produksi/proses-produksi/incoming/table',
+        name: 'incoming-table',
+        component: () => import('pages/manufaktur/Produksi/IncomingTablePage.vue'),
+      },
+      {
+        path: 'produksi/proses-produksi/incoming/dialog',
+        name: 'incoming-dialog',
+        component: () => import('pages/manufaktur/Produksi/IncomingDialog.vue'),
+      },
+      {
+        path: 'produksi/proses-produksi/incoming/summary',
+        name: 'incoming-summary',
+        component: () => import('pages/manufaktur/Produksi/IncomingSummary.vue'),
+      },
+      {
+        path: 'produksi/proses-produksi/incoming/status',
+        name: 'incoming-status',
+        component: () => import('pages/manufaktur/Produksi/IncomingStatusBadge.vue'),
+      },
+      {
+        path: 'produksi/proses-produksi/material',
+        name: 'incoming-material-data',
+        component: () => import('pages/manufaktur/Produksi/IncomingMaterial.vue'),
+      },
       {
         path: 'proses-packing/check-pin',
         name: 'manufaktur-check-pin',
@@ -200,28 +211,21 @@ const routes = [
         name: 'manufaktur-packing-final',
         component: () => import('pages/manufaktur/ProsesPacking/PackingFinal.vue'),
       },
-
-      // --- SECTION 4: WAREHOUSE (GUDANG & OQC) ---
       {
         path: 'warehouse/outgoing-check',
         name: 'manufaktur-warehouse-oqc',
         component: () => import('pages/manufaktur/warehouse/outgoingcheckOQC.vue'),
       },
-
-      // --- SECTION 5: DELIVERY (SURAT JALAN) ---
       {
         path: 'delivery/surat-jalan',
         name: 'manufaktur-delivery-sj',
         component: () => import('pages/manufaktur/delivery/SuratJalanPage.vue'),
       },
-
-      // --- SECTION 6: FINANCE (INVOICE) ---
       {
         path: 'finance/invoice',
         name: 'manufaktur-finance-invoice',
         component: () => import('pages/manufaktur/finance/InvoiceCustomerPage.vue'),
       },
-      // --- SECTION 7: GUDANG MANUFAKTUR ---
       {
         path: 'gudang',
         component: () => import('pages/manufaktur/Gudang/ManufacturGudangPage.vue'),
@@ -254,83 +258,8 @@ const routes = [
         path: 'gudang/purchase-request/:id',
         component: () => import('pages/manufaktur/Gudang/ManufacturPurchaseRequestPage.vue'),
       },
-      // =====================================================
-      // INCOMING MATERIAL ROUTES
-      // File: src/router/routes.js
-      // =====================================================
-
-      // taruh di children manufaktur
-      // jangan ubah route lain
-
-      {
-        path: '/manufaktur/produksi/proses-produksi/incoming',
-        name: 'incoming-material',
-        component: () => import('pages/manufaktur/Produksi/IncomingMaterialPage.vue'),
-        meta: {
-          requiresAuth: true,
-          title: 'Incoming Material',
-          module: 'manufaktur',
-        },
-      },
-
-      {
-        path: '/manufaktur/produksi/proses-produksi/incoming/table',
-        name: 'incoming-table',
-        component: () => import('pages/manufaktur/Produksi/IncomingTablePage.vue'),
-        meta: {
-          requiresAuth: true,
-          title: 'Incoming Table',
-          module: 'manufaktur',
-        },
-      },
-
-      {
-        path: '/manufaktur/produksi/proses-produksi/incoming/dialog',
-        name: 'incoming-dialog',
-        component: () => import('pages/manufaktur/Produksi/IncomingDialog.vue'),
-        meta: {
-          requiresAuth: true,
-          title: 'Incoming Dialog',
-          module: 'manufaktur',
-        },
-      },
-
-      {
-        path: '/manufaktur/produksi/proses-produksi/incoming/summary',
-        name: 'incoming-summary',
-        component: () => import('pages/manufaktur/Produksi/IncomingSummary.vue'),
-        meta: {
-          requiresAuth: true,
-          title: 'Incoming Summary',
-          module: 'manufaktur',
-        },
-      },
-
-      {
-        path: '/manufaktur/produksi/proses-produksi/incoming/status',
-        name: 'incoming-status',
-        component: () => import('pages/manufaktur/Produksi/IncomingStatusBadge.vue'),
-        meta: {
-          requiresAuth: true,
-          title: 'Incoming Status',
-          module: 'manufaktur',
-        },
-      },
-
-      {
-        path: '/manufaktur/produksi/proses-produksi/material',
-        name: 'incoming-material-data',
-        component: () => import('pages/manufaktur/Produksi/IncomingMaterial.vue'),
-        meta: {
-          requiresAuth: true,
-          title: 'Incoming Material Data',
-          module: 'manufaktur',
-        },
-      },
     ],
   },
-
-  // 6. MODUL MANAGEMENT KARYAWAN & HAK AKSES
   {
     path: '/management-karyawan',
     component: () => import('layouts/ManagementKaryawanLayout.vue'),
@@ -350,14 +279,13 @@ const routes = [
         path: 'master/jabatan',
         component: () => import('pages/managementkaryawan/MasterJabatanPage.vue'),
       },
-      {
-        path: 'akses',
-        component: () => import('pages/managementkaryawan/AksesPage.vue'),
-      },
+      { path: 'akses', component: () => import('pages/managementkaryawan/AksesPage.vue') },
     ],
   },
-
-  { path: '/:catchAll(.*)*', component: () => import('pages/ErrorNotFound.vue') },
+  {
+    path: '/:catchAll(.*)*',
+    component: () => import('pages/ErrorNotFound.vue'),
+  },
 ]
 
 export default routes

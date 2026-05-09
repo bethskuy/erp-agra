@@ -2,14 +2,12 @@
   <q-layout view="lHh Lpr lFf">
     <q-page-container>
       <q-page class="login-page flex flex-center font-pro">
-        <!-- BACKGROUND DECORATION -->
         <div class="login-bg-overlay"></div>
         <div class="blob blob-1"></div>
         <div class="blob blob-2"></div>
 
         <q-card class="login-card shadow-24 overflow-hidden animate-fade-in">
           <div class="row no-wrap full-height">
-            <!-- LEFT PANEL: BRANDING (Hidden on Mobile) -->
             <div
               class="col-md-6 gt-sm bg-indigo-10 relative-position overflow-hidden flex flex-center"
             >
@@ -24,9 +22,7 @@
                 <div class="text-subtitle1 q-mt-md opacity-80 text-weight-medium">
                   Integrated Engineering & Construction Management System
                 </div>
-                <div class="q-mt-xl"></div>
               </div>
-              <!-- Subtle pattern -->
               <q-icon
                 name="architecture"
                 size="400px"
@@ -34,10 +30,8 @@
               />
             </div>
 
-            <!-- RIGHT PANEL: LOGIN FORM -->
             <div class="col-12 col-md-6 flex flex-center bg-white">
               <q-card-section class="full-width q-pa-xl">
-                <!-- Logo for Mobile -->
                 <div class="lt-md text-center q-mb-xl">
                   <div class="text-h4 text-weight-black text-indigo-10">AGRA ERP</div>
                   <div class="text-caption text-grey-7">Sign in to your account</div>
@@ -62,9 +56,9 @@
                       placeholder="name@company.com"
                       class="custom-input shadow-inner-soft"
                     >
-                      <template v-slot:prepend>
-                        <q-icon name="alternate_email" color="indigo-10" />
-                      </template>
+                      <template v-slot:prepend
+                        ><q-icon name="alternate_email" color="indigo-10"
+                      /></template>
                     </q-input>
                   </div>
 
@@ -89,9 +83,7 @@
                       placeholder="••••••••"
                       class="custom-input shadow-inner-soft"
                     >
-                      <template v-slot:prepend>
-                        <q-icon name="lock" color="indigo-10" />
-                      </template>
+                      <template v-slot:prepend><q-icon name="lock" color="indigo-10" /></template>
                       <template v-slot:append>
                         <q-btn
                           flat
@@ -122,9 +114,7 @@
                     unelevated
                     :loading="loading"
                   >
-                    <template v-slot:loading>
-                      <q-spinner-dots />
-                    </template>
+                    <template v-slot:loading><q-spinner-dots /></template>
                   </q-btn>
                 </q-form>
 
@@ -172,39 +162,43 @@ const prosesLogin = async () => {
     const q = query(collection(db, 'karyawan'), where('email', '==', email.value.toLowerCase()))
     let snapshot = await getDocs(q)
 
+    let userDataToSave = {}
+
     if (snapshot.empty) {
-      const dataBaru = {
-        nama: 'Refqiobeth Developer',
+      userDataToSave = {
+        nama: 'Refqi Obeth Sudiarman',
         email: email.value.toLowerCase(),
         role: 'Super Admin',
+        jabatan: 'Super Admin',
         uid: cred.user.uid,
-        akses: ['konstruksi', 'absensi', 'manufaktur', 'admin'],
+        akses: ['konstruksi', 'absensi', 'manufaktur', 'admin', 'aset'],
       }
-      await setDoc(doc(collection(db, 'karyawan')), dataBaru)
-      authStore.setLogin(dataBaru, dataBaru.akses)
+      await setDoc(doc(collection(db, 'karyawan')), userDataToSave)
     } else {
-      authStore.setLogin(snapshot.docs[0].data(), snapshot.docs[0].data().akses)
+      userDataToSave = snapshot.docs[0].data()
     }
+
+    // 1. Simpan ke Pinia (Digunakan oleh IndexPage)
+    authStore.setLogin(userDataToSave, userDataToSave.akses)
+
+    // 2. Simpan ke LocalStorage (WAJIB: Digunakan oleh AbsensiLayout & Dashboard)
+    localStorage.setItem('user_data', JSON.stringify(userDataToSave))
 
     $q.notify({
       color: 'positive',
-      message: 'Login Berhasil! Mengalihkan...',
+      message: 'Login Berhasil! Mengalihkan ke Menu Utama...',
       icon: 'verified',
       position: 'top',
     })
 
+    // 3. PAKSA ARAHKAN KE PORTAL UTAMA
     router.push('/')
   } catch (e) {
     let msg = 'Kredensial tidak valid!'
     if (e.code === 'auth/user-not-found') msg = 'Akun tidak terdaftar!'
     if (e.code === 'auth/wrong-password') msg = 'Password salah!'
 
-    $q.notify({
-      color: 'negative',
-      message: msg,
-      icon: 'report_problem',
-      position: 'bottom',
-    })
+    $q.notify({ color: 'negative', message: msg, icon: 'report_problem', position: 'bottom' })
   } finally {
     loading.value = false
   }
@@ -213,22 +207,18 @@ const prosesLogin = async () => {
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap');
-
 .font-pro {
   font-family:
     'Inter',
     -apple-system,
     sans-serif;
 }
-
 .login-page {
   background-color: #f8fafd;
   position: relative;
   overflow: hidden;
   min-height: 100vh;
 }
-
-/* Background Blobs */
 .blob {
   position: absolute;
   width: 500px;
@@ -245,7 +235,6 @@ const prosesLogin = async () => {
   bottom: -100px;
   right: -100px;
 }
-
 .login-bg-overlay {
   position: absolute;
   inset: 0;
@@ -254,7 +243,6 @@ const prosesLogin = async () => {
     radial-gradient(at 100% 0%, hsla(215, 100%, 98%, 1) 0, transparent 50%);
   z-index: 0;
 }
-
 .login-card {
   width: 950px;
   max-width: 95vw;
@@ -265,20 +253,16 @@ const prosesLogin = async () => {
   z-index: 10;
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
-
 .branding-overlay {
   position: absolute;
   inset: 0;
   background: linear-gradient(135deg, rgba(26, 35, 126, 0.95) 0%, rgba(13, 71, 161, 0.8) 100%);
   z-index: 1;
 }
-
 .z-top {
   position: relative;
   z-index: 5;
 }
-
-/* Custom Inputs */
 .custom-input :deep(.q-field__control) {
   background-color: #f1f5f9;
   border: 1px solid #e2e8f0;
@@ -293,7 +277,6 @@ const prosesLogin = async () => {
   background-color: #fff;
   box-shadow: 0 0 0 4px rgba(26, 35, 126, 0.1);
 }
-
 .rounded-25 {
   border-radius: 25px;
 }
@@ -306,14 +289,12 @@ const prosesLogin = async () => {
   box-shadow: 0 8px 25px rgba(26, 35, 126, 0.3);
   filter: brightness(1.1);
 }
-
 .no-decoration {
   text-decoration: none;
 }
 .hover-underline:hover {
   text-decoration: underline;
 }
-
 .leading-none {
   line-height: 1;
 }
@@ -329,11 +310,9 @@ const prosesLogin = async () => {
 .opacity-10 {
   opacity: 0.1;
 }
-
 .animate-fade-in {
   animation: fadeIn 0.8s ease-out forwards;
 }
-
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -344,8 +323,6 @@ const prosesLogin = async () => {
     transform: translateY(0) scale(1);
   }
 }
-
-/* Responsive Mobile */
 @media (max-width: 1023px) {
   .login-card {
     height: auto;
