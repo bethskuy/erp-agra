@@ -1,7 +1,10 @@
 <template>
   <q-page class="bg-blue-grey-1 q-pa-md q-pa-lg-lg font-pro">
     <!-- HEADER SECTION -->
-    <div class="row items-center justify-between q-mb-lg animate-fade no-print">
+    <div
+      class="row items-center justify-between q-mb-lg animate-fade no-print"
+      v-if="poViewMode === 'list'"
+    >
       <div class="col-12 col-md-8">
         <div class="text-h4 text-weight-bolder text-indigo-10 leading-tight">
           Approval & Pesanan Pembelian
@@ -24,7 +27,7 @@
     </div>
 
     <!-- TABS NAVIGATION -->
-    <div class="q-mb-lg animate-fade no-print">
+    <div class="q-mb-lg animate-fade no-print" v-if="poViewMode === 'list'">
       <q-tabs
         v-model="activeTab"
         dense
@@ -50,12 +53,17 @@
       </q-tabs>
     </div>
 
-    <q-tab-panels v-model="activeTab" animated class="bg-transparent q-pa-none">
+    <!-- TAB PANELS -->
+    <q-tab-panels
+      v-model="activeTab"
+      animated
+      class="bg-transparent q-pa-none"
+      v-if="poViewMode === 'list'"
+    >
       <!-- ==========================================
            TAB 1: PURCHASE REQUEST (PR)
            ========================================== -->
       <q-tab-panel name="pr" class="q-pa-none">
-        <!-- SEARCH & SUMMARY CARD -->
         <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print">
           <q-card-section class="q-py-md">
             <div class="row items-center q-col-gutter-md">
@@ -79,7 +87,6 @@
           </q-card-section>
         </q-card>
 
-        <!-- TABLE LIST SECTION -->
         <q-card flat bordered class="rounded-20 shadow-sm overflow-hidden bg-white no-print">
           <q-table
             :rows="rows"
@@ -311,429 +318,431 @@
             </q-table>
           </q-card>
         </div>
+      </q-tab-panel>
+    </q-tab-panels>
 
-        <!-- ======================================================================
-             VIEW SWITCHER: FORM PEMBUATAN PURCHASE ORDER (PO)
-             ====================================================================== -->
-        <div v-if="poViewMode === 'form'" class="animate-fade">
-          <div class="row items-center justify-between q-mb-md">
-            <div class="row items-center">
-              <q-btn
-                flat
-                round
-                icon="arrow_back"
-                color="indigo-10"
-                @click="poViewMode = 'list'"
-                class="q-mr-md bg-white shadow-1"
-              />
-              <div>
-                <div class="text-h5 text-weight-black text-indigo-10 uppercase letter-spacing-1">
-                  Penerbitan Purchase Order
+    <!-- ======================================================================
+         VIEW SWITCHER: FORM PEMBUATAN PURCHASE ORDER (PO)
+         ====================================================================== -->
+    <div v-if="poViewMode === 'form'" class="animate-fade">
+      <div class="row items-center justify-between q-mb-md">
+        <div class="row items-center">
+          <q-btn
+            flat
+            round
+            icon="arrow_back"
+            color="indigo-10"
+            @click="poViewMode = 'list'"
+            class="q-mr-md bg-white shadow-1"
+          />
+          <div>
+            <div class="text-h5 text-weight-black text-indigo-10 uppercase letter-spacing-1">
+              Penerbitan Purchase Order
+            </div>
+            <div class="text-subtitle1 text-grey-7">Isi formulir pengadaan barang ke Supplier</div>
+          </div>
+        </div>
+        <q-btn
+          unelevated
+          color="indigo-10"
+          icon="save"
+          label="SIMPAN DOKUMEN PO"
+          :loading="submitting"
+          @click="savePo"
+          class="rounded-20 q-px-xl text-weight-bold shadow-4"
+        />
+      </div>
+
+      <div class="row q-col-gutter-lg">
+        <!-- KOLOM KIRI: KONFIGURASI DOKUMEN & SUPPLIER -->
+        <div class="col-12 col-md-5">
+          <!-- Kop Surat -->
+          <q-card flat bordered class="rounded-20 q-mb-lg bg-white shadow-1">
+            <q-card-section
+              class="bg-indigo-1 q-py-sm text-indigo-10 text-weight-bold flex items-center border-bottom"
+            >
+              <q-icon name="apartment" class="q-mr-xs" size="sm" /> KOP SURAT PERUSAHAAN
+            </q-card-section>
+            <q-card-section class="q-pa-lg">
+              <div class="q-gutter-y-md">
+                <div>
+                  <div class="label-req q-mb-xs">Logo Dokumen (Tersimpan Otomatis)</div>
+                  <q-file
+                    outlined
+                    dense
+                    v-model="tempLogoPo"
+                    label="Upload Logo..."
+                    accept="image/*"
+                    @update:model-value="handleLogoUploadPo"
+                    bg-color="white"
+                  >
+                    <template v-slot:prepend><q-icon name="cloud_upload" /></template>
+                    <template v-slot:append v-if="poForm.logoUrl"
+                      ><q-avatar size="24px" class="bg-grey-2"
+                        ><img :src="poForm.logoUrl" /></q-avatar
+                    ></template>
+                  </q-file>
                 </div>
-                <div class="text-subtitle1 text-grey-7">
-                  Isi formulir pengadaan barang ke Supplier
+                <div>
+                  <div class="label-req q-mb-xs">Nama Perusahaan</div>
+                  <q-input
+                    outlined
+                    dense
+                    v-model="poForm.nama_pt"
+                    bg-color="white"
+                    class="text-weight-bold"
+                  />
+                </div>
+                <div>
+                  <div class="label-req q-mb-xs">Slogan / Keterangan</div>
+                  <q-input outlined dense v-model="poForm.slogan_pt" bg-color="white" />
                 </div>
               </div>
-            </div>
-            <q-btn
-              unelevated
-              color="indigo-10"
-              icon="save"
-              label="SIMPAN DOKUMEN PO"
-              :loading="submitting"
-              @click="savePo"
-              class="rounded-20 q-px-xl text-weight-bold shadow-4"
-            />
-          </div>
+            </q-card-section>
+          </q-card>
 
-          <div class="row q-col-gutter-lg">
-            <!-- KOLOM KIRI: KONFIGURASI DOKUMEN & SUPPLIER -->
-            <div class="col-12 col-md-5">
-              <!-- Kop Surat -->
-              <q-card flat bordered class="rounded-20 q-mb-lg bg-white shadow-1">
-                <q-card-section
-                  class="bg-indigo-1 q-py-sm text-indigo-10 text-weight-bold flex items-center border-bottom"
-                >
-                  <q-icon name="apartment" class="q-mr-xs" size="sm" /> KOP SURAT PERUSAHAAN
-                </q-card-section>
-                <q-card-section class="q-pa-lg">
-                  <div class="q-gutter-y-md">
-                    <div>
-                      <div class="label-req q-mb-xs">Logo Dokumen (Tersimpan Otomatis)</div>
-                      <q-file
-                        outlined
-                        dense
-                        v-model="tempLogoPo"
-                        label="Upload Logo..."
-                        accept="image/*"
-                        @update:model-value="handleLogoUploadPo"
-                        bg-color="white"
-                      >
-                        <template v-slot:prepend><q-icon name="cloud_upload" /></template>
-                        <template v-slot:append v-if="poForm.logoUrl"
-                          ><q-avatar size="24px" class="bg-grey-2"
-                            ><img :src="poForm.logoUrl" /></q-avatar
-                        ></template>
-                      </q-file>
-                    </div>
-                    <div>
-                      <div class="label-req q-mb-xs">Nama Perusahaan</div>
-                      <q-input
-                        outlined
-                        dense
-                        v-model="poForm.nama_pt"
-                        bg-color="white"
-                        class="text-weight-bold"
-                      />
-                    </div>
-                    <div>
-                      <div class="label-req q-mb-xs">Slogan / Keterangan</div>
-                      <q-input outlined dense v-model="poForm.slogan_pt" bg-color="white" />
-                    </div>
-                  </div>
-                </q-card-section>
-              </q-card>
-
-              <!-- Identitas Tujuan (Supplier) -->
-              <q-card flat bordered class="rounded-20 q-mb-lg bg-white shadow-1">
-                <q-card-section
-                  class="bg-indigo-1 q-py-sm text-indigo-10 text-weight-bold flex items-center border-bottom"
-                >
-                  <q-icon name="local_shipping" class="q-mr-xs" size="sm" /> KEPADA YTH (SUPPLIER)
-                </q-card-section>
-                <q-card-section class="q-pa-lg">
-                  <div class="q-gutter-y-md">
-                    <div>
-                      <div class="label-req q-mb-xs text-primary">Tarik Data Master Supplier</div>
-                      <q-select
-                        outlined
-                        dense
-                        v-model="poForm.supplier"
-                        :options="optSupplier"
-                        option-label="nama"
-                        placeholder="Pilih Supplier..."
-                        bg-color="blue-50"
-                        use-input
-                        @filter="filterSupplier"
-                        @update:model-value="onSupplierSelect"
-                      />
-                    </div>
-                    <div>
-                      <div class="label-req q-mb-xs">To (Nama Perusahaan / Toko)</div>
-                      <q-input
-                        outlined
-                        dense
-                        v-model="poForm.kepada_yth"
-                        bg-color="white"
-                        class="text-weight-bold uppercase"
-                      />
-                    </div>
-                    <div>
-                      <div class="label-req q-mb-xs">Address (Alamat)</div>
-                      <q-input
-                        outlined
-                        dense
-                        type="textarea"
-                        rows="2"
-                        v-model="poForm.alamat_supplier"
-                        bg-color="white"
-                      />
-                    </div>
-                    <div>
-                      <div class="label-req q-mb-xs">Attn (UP / Kontak Person)</div>
-                      <q-input outlined dense v-model="poForm.attn_supplier" bg-color="white" />
-                    </div>
-                  </div>
-                </q-card-section>
-              </q-card>
-
-              <!-- Referensi PR & Proyek -->
-              <q-card flat bordered class="rounded-20 bg-white shadow-1">
-                <q-card-section
-                  class="bg-indigo-1 q-py-sm text-indigo-10 text-weight-bold flex items-center border-bottom"
-                >
-                  <q-icon name="receipt_long" class="q-mr-xs" size="sm" /> DETAIL PEMBELIAN
-                  (PURCHASE DETAIL)
-                </q-card-section>
-                <q-card-section class="q-pa-lg">
-                  <div class="q-gutter-y-md">
-                    <div class="row q-col-gutter-md">
-                      <div class="col-6">
-                        <div class="label-req q-mb-xs">Nomor PO (Otomatis)</div>
-                        <q-input
-                          outlined
-                          dense
-                          v-model="poForm.nomor"
-                          readonly
-                          bg-color="grey-2"
-                          class="text-weight-bold text-indigo-10"
-                        />
-                      </div>
-                      <div class="col-6">
-                        <div class="label-req q-mb-xs">Tanggal Terbit PO</div>
-                        <q-input
-                          outlined
-                          dense
-                          type="date"
-                          v-model="poForm.tanggal"
-                          bg-color="white"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <div class="label-req q-mb-xs text-primary">
-                        Tarik Data dari PR (Approved)
-                      </div>
-                      <q-select
-                        outlined
-                        dense
-                        v-model="poForm.referensi_pr"
-                        :options="optPr"
-                        option-label="nomor"
-                        placeholder="Pilih PR untuk ditarik itemnya..."
-                        bg-color="blue-50"
-                        @update:model-value="onPrSelect"
-                      >
-                        <template v-slot:option="scope">
-                          <q-item v-bind="scope.itemProps">
-                            <q-item-section>
-                              <q-item-label class="text-weight-bold">{{
-                                scope.opt.nomor
-                              }}</q-item-label>
-                              <q-item-label caption>{{ scope.opt.proyek_nama }}</q-item-label>
-                            </q-item-section>
-                          </q-item>
-                        </template>
-                      </q-select>
-                    </div>
-                    <div v-if="poForm.proyek_nama">
-                      <div class="label-req q-mb-xs">Untuk Proyek / Gudang</div>
-                      <q-input
-                        outlined
-                        dense
-                        v-model="poForm.proyek_nama"
-                        readonly
-                        bg-color="grey-2"
-                        class="text-weight-bold uppercase"
-                      />
-                    </div>
-                  </div>
-                </q-card-section>
-              </q-card>
-            </div>
-
-            <!-- KOLOM KANAN: DAFTAR BARANG & KETENTUAN -->
-            <div class="col-12 col-md-7">
-              <q-card flat bordered class="rounded-20 q-mb-lg bg-white shadow-1 overflow-hidden">
-                <q-toolbar class="bg-indigo-10 text-white q-py-sm">
-                  <q-icon name="list_alt" class="q-mr-md" />
-                  <div class="text-weight-bold uppercase">DAFTAR PESANAN BARANG (ITEMS)</div>
-                  <q-space />
-                  <q-btn
-                    flat
+          <!-- Identitas Tujuan (Supplier) -->
+          <q-card flat bordered class="rounded-20 q-mb-lg bg-white shadow-1">
+            <q-card-section
+              class="bg-indigo-1 q-py-sm text-indigo-10 text-weight-bold flex items-center border-bottom"
+            >
+              <q-icon name="local_shipping" class="q-mr-xs" size="sm" /> KEPADA YTH (SUPPLIER)
+            </q-card-section>
+            <q-card-section class="q-pa-lg">
+              <div class="q-gutter-y-md">
+                <div>
+                  <div class="label-req q-mb-xs text-primary">Tarik Data Master Supplier</div>
+                  <q-select
+                    outlined
                     dense
-                    icon="add"
-                    label="Tambah Baris"
-                    @click="addPoItem"
-                    no-caps
-                    class="text-weight-bold bg-indigo-9 rounded-12 q-px-sm"
+                    v-model="poForm.supplier"
+                    :options="optSupplier"
+                    option-label="nama"
+                    placeholder="Pilih Supplier..."
+                    bg-color="blue-50"
+                    use-input
+                    @filter="filterSupplier"
+                    @update:model-value="onSupplierSelect"
                   />
-                </q-toolbar>
-
-                <q-markup-table flat separator="cell" class="po-entry-table">
-                  <thead class="bg-blue-grey-1 text-indigo-10">
-                    <tr>
-                      <th width="40">NO</th>
-                      <th class="text-left">ITEM DESCRIPTION</th>
-                      <th width="80">QTY</th>
-                      <th width="80">SATUAN</th>
-                      <th width="150" class="text-right">UNIT PRICE</th>
-                      <th width="150" class="text-right">AMOUNT</th>
-                      <th width="40"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="(item, idx) in poForm.items" :key="idx">
-                      <td class="text-center font-bold text-grey-6">{{ idx + 1 }}</td>
-                      <td>
-                        <q-input
-                          borderless
-                          dense
-                          v-model="item.nama_barang"
-                          placeholder="Nama Barang..."
-                          class="text-weight-bold uppercase"
-                        />
-                        <q-input
-                          borderless
-                          dense
-                          v-model="item.desc"
-                          placeholder="Deskripsi Tambahan (Opsional)..."
-                          class="text-caption"
-                        />
-                      </td>
-                      <td>
-                        <q-input
-                          borderless
-                          dense
-                          type="number"
-                          v-model.number="item.qty"
-                          input-class="text-center text-weight-bold"
-                        />
-                      </td>
-                      <td>
-                        <q-input
-                          borderless
-                          dense
-                          v-model="item.satuan"
-                          input-class="text-center uppercase"
-                        />
-                      </td>
-                      <td>
-                        <q-input
-                          borderless
-                          dense
-                          type="number"
-                          v-model.number="item.harga_satuan"
-                          input-class="text-right"
-                        />
-                      </td>
-                      <td class="text-right text-weight-bold text-indigo-10 bg-indigo-50">
-                        Rp {{ ((item.qty || 0) * (item.harga_satuan || 0)).toLocaleString() }}
-                      </td>
-                      <td class="text-center">
-                        <q-btn
-                          flat
-                          round
-                          icon="delete"
-                          color="negative"
-                          size="xs"
-                          @click="poForm.items.splice(idx, 1)"
-                        />
-                      </td>
-                    </tr>
-                    <tr v-if="poForm.items.length === 0">
-                      <td colspan="7" class="text-center q-pa-xl text-grey-5 italic">
-                        Tarik data dari PR atau klik Tambah Baris
-                      </td>
-                    </tr>
-                  </tbody>
-                  <tfoot class="bg-grey-1" v-if="poForm.items.length > 0">
-                    <tr>
-                      <td colspan="5" class="text-right text-weight-bold">Subtotal</td>
-                      <td class="text-right text-weight-bold text-indigo-10">
-                        Rp {{ calculatePoTotal().toLocaleString() }}
-                      </td>
-                      <td></td>
-                    </tr>
-                    <tr>
-                      <td colspan="5" class="text-right text-weight-bold">
-                        Biaya Mobdemob / Lainnya (Rp)
-                      </td>
-                      <td class="no-padding">
-                        <q-input
-                          borderless
-                          dense
-                          type="number"
-                          v-model.number="poForm.mobdemob"
-                          input-class="text-right text-weight-bold text-orange-9 bg-orange-1 q-px-md"
-                        />
-                      </td>
-                      <td></td>
-                    </tr>
-                    <tr class="bg-indigo-10 text-white">
-                      <td
-                        colspan="5"
-                        class="text-right text-weight-black uppercase tracking-widest text-h6"
-                      >
-                        Grand Total
-                      </td>
-                      <td class="text-right text-weight-black text-h6">
-                        Rp
-                        {{ (calculatePoTotal() + (poForm.mobdemob || 0)).toLocaleString() }}
-                      </td>
-                      <td></td>
-                    </tr>
-                  </tfoot>
-                </q-markup-table>
-              </q-card>
-
-              <q-card flat bordered class="rounded-20 bg-white shadow-1">
-                <q-card-section
-                  class="bg-indigo-1 q-py-sm text-indigo-10 text-weight-bold flex items-center border-bottom"
-                >
-                  <q-icon name="gavel" class="q-mr-xs" size="sm" /> SYARAT & KONDISI SERTA
-                  PEMBAYARAN
-                </q-card-section>
-                <q-card-section class="q-pa-lg">
-                  <div class="label-req q-mb-xs">Syarat dan Kondisi (Terms & Conditions)</div>
-                  <q-editor
-                    v-model="poForm.syarat_kondisi"
-                    min-height="8rem"
-                    flat
-                    bordered
-                    class="q-mb-md rounded-12"
+                </div>
+                <div>
+                  <div class="label-req q-mb-xs">To (Nama Perusahaan / Toko)</div>
+                  <q-input
+                    outlined
+                    dense
+                    v-model="poForm.kepada_yth"
+                    bg-color="white"
+                    class="text-weight-bold uppercase"
                   />
-
-                  <div class="label-req q-mb-xs">Sistem Pembayaran</div>
-                  <q-editor
-                    v-model="poForm.sistem_pembayaran"
-                    min-height="6rem"
-                    flat
-                    bordered
-                    class="q-mb-md rounded-12"
-                  />
-
-                  <div class="label-req q-mb-xs">Pesan Penutup</div>
+                </div>
+                <div>
+                  <div class="label-req q-mb-xs">Address (Alamat)</div>
                   <q-input
                     outlined
                     dense
                     type="textarea"
                     rows="2"
-                    v-model="poForm.closing"
+                    v-model="poForm.alamat_supplier"
                     bg-color="white"
-                    class="q-mb-md"
                   />
+                </div>
+                <div>
+                  <div class="label-req q-mb-xs">Attn (UP / Kontak Person)</div>
+                  <q-input outlined dense v-model="poForm.attn_supplier" bg-color="white" />
+                </div>
+              </div>
+            </q-card-section>
+          </q-card>
 
-                  <div class="row q-col-gutter-md">
-                    <div class="col-4">
-                      <div class="label-req q-mb-xs">Prepared By</div>
-                      <q-input
-                        outlined
-                        dense
-                        v-model="poForm.prepared_by"
-                        bg-color="white"
-                        placeholder="Nama..."
-                      />
-                    </div>
-                    <div class="col-4">
-                      <div class="label-req q-mb-xs">Requested By</div>
-                      <q-input
-                        outlined
-                        dense
-                        v-model="poForm.requested_by"
-                        bg-color="white"
-                        placeholder="Nama..."
-                      />
-                    </div>
-                    <div class="col-4">
-                      <div class="label-req q-mb-xs">Approved Supplier</div>
-                      <q-input
-                        outlined
-                        dense
-                        v-model="poForm.approved_supplier"
-                        bg-color="white"
-                        placeholder="Kosongkan jika blm ttd"
-                      />
-                    </div>
+          <!-- Referensi PR & Proyek -->
+          <q-card flat bordered class="rounded-20 bg-white shadow-1">
+            <q-card-section
+              class="bg-indigo-1 q-py-sm text-indigo-10 text-weight-bold flex items-center border-bottom"
+            >
+              <q-icon name="receipt_long" class="q-mr-xs" size="sm" /> DETAIL PEMBELIAN (PURCHASE
+              DETAIL)
+            </q-card-section>
+            <q-card-section class="q-pa-lg">
+              <div class="q-gutter-y-md">
+                <div class="row q-col-gutter-md">
+                  <div class="col-6">
+                    <div class="label-req q-mb-xs">Nomor PO (Otomatis)</div>
+                    <q-input
+                      outlined
+                      dense
+                      v-model="poForm.nomor"
+                      readonly
+                      bg-color="grey-2"
+                      class="text-weight-bold text-indigo-10"
+                    />
                   </div>
-                </q-card-section>
-              </q-card>
-            </div>
-          </div>
-          <div class="q-py-xl"></div>
+                  <div class="col-6">
+                    <div class="label-req q-mb-xs">Tanggal Terbit PO</div>
+                    <q-input outlined dense type="date" v-model="poForm.tanggal" bg-color="white" />
+                  </div>
+                </div>
+                <div>
+                  <div class="label-req q-mb-xs text-primary">Tarik Data dari PR (Approved)</div>
+                  <q-select
+                    outlined
+                    dense
+                    v-model="poForm.referensi_pr"
+                    :options="optPr"
+                    option-label="nomor"
+                    placeholder="Pilih PR untuk ditarik itemnya..."
+                    bg-color="blue-50"
+                    @update:model-value="onPrSelect"
+                  >
+                    <template v-slot:option="scope">
+                      <q-item v-bind="scope.itemProps">
+                        <q-item-section>
+                          <q-item-label class="text-weight-bold">{{
+                            scope.opt.nomor
+                          }}</q-item-label>
+                          <q-item-label caption>{{ scope.opt.proyek_nama }}</q-item-label>
+                        </q-item-section>
+                      </q-item>
+                    </template>
+                  </q-select>
+                </div>
+
+                <div v-if="poForm.proyek_nama">
+                  <div class="label-req q-mb-xs">Untuk Proyek / Gudang</div>
+                  <q-input
+                    outlined
+                    dense
+                    v-model="poForm.proyek_nama"
+                    readonly
+                    bg-color="grey-2"
+                    class="text-weight-bold uppercase"
+                  />
+                </div>
+
+                <!-- TAMBAHAN: AUTO FIELD SPK SAAT PR DIPILIH -->
+                <div v-if="poForm.no_spk">
+                  <div class="label-req q-mb-xs">NO. REFF (SPK PROJECT)</div>
+                  <q-input
+                    outlined
+                    dense
+                    v-model="poForm.no_spk"
+                    readonly
+                    bg-color="grey-2"
+                    class="text-weight-bold uppercase"
+                  />
+                </div>
+              </div>
+            </q-card-section>
+          </q-card>
         </div>
-      </q-tab-panel>
-    </q-tab-panels>
+
+        <!-- KOLOM KANAN: DAFTAR BARANG & KETENTUAN -->
+        <div class="col-12 col-md-7">
+          <q-card flat bordered class="rounded-20 q-mb-lg bg-white shadow-1 overflow-hidden">
+            <q-toolbar class="bg-indigo-10 text-white q-py-sm">
+              <q-icon name="list_alt" class="q-mr-md" />
+              <div class="text-weight-bold uppercase">DAFTAR PESANAN BARANG (ITEMS)</div>
+              <q-space />
+              <q-btn
+                flat
+                dense
+                icon="add"
+                label="Tambah Baris"
+                @click="addPoItem"
+                no-caps
+                class="text-weight-bold bg-indigo-9 rounded-12 q-px-sm"
+              />
+            </q-toolbar>
+
+            <q-markup-table flat separator="cell" class="po-entry-table">
+              <thead class="bg-blue-grey-1 text-indigo-10">
+                <tr>
+                  <th width="40">NO</th>
+                  <th class="text-left">ITEM DESCRIPTION</th>
+                  <th width="80">QTY</th>
+                  <th width="80">SATUAN</th>
+                  <th width="150" class="text-right">UNIT PRICE</th>
+                  <th width="150" class="text-right">AMOUNT</th>
+                  <th width="40"></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(item, idx) in poForm.items" :key="idx">
+                  <td class="text-center font-bold text-grey-6">{{ idx + 1 }}</td>
+                  <td>
+                    <q-input
+                      borderless
+                      dense
+                      v-model="item.nama_barang"
+                      placeholder="Nama Barang..."
+                      class="text-weight-bold uppercase"
+                    />
+                    <q-input
+                      borderless
+                      dense
+                      v-model="item.desc"
+                      placeholder="Deskripsi Tambahan (Opsional)..."
+                      class="text-caption"
+                    />
+                  </td>
+                  <td>
+                    <q-input
+                      borderless
+                      dense
+                      type="number"
+                      v-model.number="item.qty"
+                      input-class="text-center text-weight-bold"
+                    />
+                  </td>
+                  <td>
+                    <q-input
+                      borderless
+                      dense
+                      v-model="item.satuan"
+                      input-class="text-center uppercase"
+                    />
+                  </td>
+                  <td>
+                    <q-input
+                      borderless
+                      dense
+                      type="number"
+                      v-model.number="item.harga_satuan"
+                      input-class="text-right"
+                    />
+                  </td>
+                  <td class="text-right text-weight-bold text-indigo-10 bg-indigo-50">
+                    Rp {{ ((item.qty || 0) * (item.harga_satuan || 0)).toLocaleString() }}
+                  </td>
+                  <td class="text-center">
+                    <q-btn
+                      flat
+                      round
+                      icon="delete"
+                      color="negative"
+                      size="xs"
+                      @click="poForm.items.splice(idx, 1)"
+                    />
+                  </td>
+                </tr>
+                <tr v-if="poForm.items.length === 0">
+                  <td colspan="7" class="text-center q-pa-xl text-grey-5 italic">
+                    Tarik data dari PR atau klik Tambah Baris
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot class="bg-grey-1" v-if="poForm.items.length > 0">
+                <tr>
+                  <td colspan="5" class="text-right text-weight-bold">Subtotal</td>
+                  <td class="text-right text-weight-bold text-indigo-10">
+                    Rp {{ calculatePoTotal().toLocaleString() }}
+                  </td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td colspan="5" class="text-right text-weight-bold">
+                    Biaya Mobdemob / Lainnya (Rp)
+                  </td>
+                  <td class="no-padding">
+                    <q-input
+                      borderless
+                      dense
+                      type="number"
+                      v-model.number="poForm.mobdemob"
+                      input-class="text-right text-weight-bold text-orange-9 bg-orange-1 q-px-md"
+                    />
+                  </td>
+                  <td></td>
+                </tr>
+                <tr class="bg-indigo-10 text-white">
+                  <td
+                    colspan="5"
+                    class="text-right text-weight-black uppercase tracking-widest text-h6"
+                  >
+                    Grand Total
+                  </td>
+                  <td class="text-right text-weight-black text-h6">
+                    Rp {{ (calculatePoTotal() + (poForm.mobdemob || 0)).toLocaleString() }}
+                  </td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </q-markup-table>
+          </q-card>
+
+          <q-card flat bordered class="rounded-20 bg-white shadow-1">
+            <q-card-section
+              class="bg-indigo-1 q-py-sm text-indigo-10 text-weight-bold flex items-center border-bottom"
+            >
+              <q-icon name="gavel" class="q-mr-xs" size="sm" /> SYARAT & KONDISI SERTA PEMBAYARAN
+            </q-card-section>
+            <q-card-section class="q-pa-lg">
+              <div class="label-req q-mb-xs">Syarat dan Kondisi (Terms & Conditions)</div>
+              <q-editor
+                v-model="poForm.syarat_kondisi"
+                min-height="8rem"
+                flat
+                bordered
+                class="q-mb-md rounded-12"
+              />
+
+              <div class="label-req q-mb-xs">Sistem Pembayaran</div>
+              <q-editor
+                v-model="poForm.sistem_pembayaran"
+                min-height="6rem"
+                flat
+                bordered
+                class="q-mb-md rounded-12"
+              />
+
+              <div class="label-req q-mb-xs">Pesan Penutup</div>
+              <q-input
+                outlined
+                dense
+                type="textarea"
+                rows="2"
+                v-model="poForm.closing"
+                bg-color="white"
+                class="q-mb-md"
+              />
+
+              <div class="row q-col-gutter-md">
+                <div class="col-4">
+                  <div class="label-req q-mb-xs">Prepared By</div>
+                  <q-input
+                    outlined
+                    dense
+                    v-model="poForm.prepared_by"
+                    bg-color="white"
+                    placeholder="Nama..."
+                  />
+                </div>
+                <div class="col-4">
+                  <div class="label-req q-mb-xs">Requested By</div>
+                  <q-input
+                    outlined
+                    dense
+                    v-model="poForm.requested_by"
+                    bg-color="white"
+                    placeholder="Nama..."
+                  />
+                </div>
+                <div class="col-4">
+                  <div class="label-req q-mb-xs">Approved Supplier</div>
+                  <q-input
+                    outlined
+                    dense
+                    v-model="poForm.approved_supplier"
+                    bg-color="white"
+                    placeholder="Kosongkan jika blm ttd"
+                  />
+                </div>
+              </div>
+            </q-card-section>
+          </q-card>
+        </div>
+      </div>
+      <div class="q-py-xl"></div>
+    </div>
 
     <!-- PREVIEW DIALOG UNTUK PR -->
     <q-dialog v-model="showPreview" maximized transition-show="fade" transition-hide="fade">
@@ -955,38 +964,35 @@
         </q-toolbar>
 
         <q-card-section class="col scroll q-pa-md q-pa-md-xl flex flex-center preview-container">
-          <div id="po-print-area" class="letter-paper shadow-24" v-if="selectedPo">
-            <div class="row no-wrap items-center q-mb-md">
+          <!-- AREA CETAK PO -->
+          <div id="po-print-area" class="po-print-container" v-if="selectedPo">
+            <!-- Header (Logo & Company) -->
+            <div class="row no-wrap items-center">
               <div class="col-auto">
-                <img
-                  :src="selectedPo.logoUrl || 'icons/logo-agra.png'"
-                  class="final-kop-img q-mr-xl"
-                />
+                <img :src="selectedPo.logoUrl || 'icons/logo-agra.png'" class="po-logo" />
               </div>
-              <div class="col text-left">
-                <div class="final-pt-name leading-none">{{ selectedPo.nama_pt }}</div>
-                <div class="final-pt-tagline italic text-blue-grey-9 text-weight-bold">
-                  {{ selectedPo.slogan_pt }}
-                </div>
+              <div class="col text-left q-pl-md">
+                <div class="po-company-name">{{ selectedPo.nama_pt }}</div>
+                <div class="po-company-slogan">{{ selectedPo.slogan_pt }}</div>
               </div>
             </div>
 
             <!-- GARIS INDIGO -->
-            <div class="pro-divider-indigo q-mb-md"></div>
+            <div class="po-divider q-mb-md"></div>
 
-            <div class="row justify-end q-mb-lg">
-              <div class="col-auto text-right">
-                <div class="quotation-title-pro uppercase tracking-widest">PURCHASE ORDER</div>
-                <div class="text-subtitle1 text-weight-bold q-mt-xs">
-                  No. PO : <span class="text-indigo-10 font-mono">{{ selectedPo.nomor }}</span>
-                </div>
+            <!-- Title & PO Number -->
+            <div class="text-right q-mb-lg">
+              <div class="po-title">PURCHASE ORDER</div>
+              <div class="po-no">
+                No. PO : <span class="text-indigo-10 font-mono">{{ selectedPo.nomor }}</span>
               </div>
             </div>
 
-            <div class="row q-col-gutter-xl q-mb-lg text-left" style="font-size: 13.5px">
-              <div class="col-6">
-                <div class="text-weight-black uppercase q-mb-xs text-grey-7">KEPADA YTH :</div>
-                <div class="text-h6 text-weight-black text-indigo-10 q-mb-xs uppercase">
+            <!-- Meta KEPADA YTH & Date -->
+            <div class="row justify-between q-mb-md po-meta">
+              <div class="col-7 text-left">
+                <div class="po-meta-label">KEPADA YTH :</div>
+                <div class="text-indigo-10 text-h6 text-weight-bolder q-mb-xs uppercase">
                   {{ selectedPo.kepada_yth }}
                 </div>
                 <div class="row no-wrap q-mt-xs">
@@ -996,38 +1002,46 @@
                   </div>
                 </div>
                 <div class="row no-wrap q-mt-sm">
-                  <div class="col-auto q-mr-sm font-bold text-grey-8">Attn :</div>
+                  <div class="col-auto q-mr-sm font-bold text-grey-8">
+                    Attn &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:
+                  </div>
                   <div class="col text-blue-grey-10 text-weight-bold">
                     {{ selectedPo.attn_supplier || '-' }}
                   </div>
                 </div>
               </div>
-              <div class="col-6 text-right">
+              <div class="col-5 text-right">
                 <div class="row justify-end q-mb-xs">
                   <div class="col-5 text-weight-black italic text-grey-6 text-left">Date</div>
                   <div class="col-7 text-left">: {{ formatDateIndo(selectedPo.tanggal) }}</div>
+                </div>
+                <div class="row justify-end q-mb-xs" v-if="selectedPo.no_spk">
+                  <div class="col-5 text-weight-black italic text-grey-6 text-left">No. SPK</div>
+                  <div class="col-7 text-left">: {{ selectedPo.no_spk }}</div>
                 </div>
               </div>
             </div>
 
             <!-- TABEL DENGAN GARIS BATAS -->
-            <table class="preview-pro-table full-width q-mb-lg">
+            <table class="po-table">
               <thead>
                 <tr>
-                  <th width="45">NO</th>
-                  <th class="text-left">ITEM DESCRIPTION</th>
-                  <th width="80">QTY</th>
-                  <th width="90">SATUAN</th>
-                  <th class="text-right" width="130">UNIT PRICE</th>
-                  <th class="text-right" width="140">AMOUNT</th>
+                  <th width="5%">NO</th>
+                  <th class="text-left" width="45%">ITEM DESCRIPTION</th>
+                  <th width="10%">QTY</th>
+                  <th width="10%">SATUAN</th>
+                  <th class="text-right" width="15%">UNIT PRICE</th>
+                  <th class="text-right" width="15%">AMOUNT</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="(item, i) in selectedPo.items" :key="i">
-                  <td class="text-center font-bold">{{ i + 1 }}</td>
-                  <td class="text-left">
-                    <div class="text-weight-bold uppercase">{{ item.nama_barang }}</div>
-                    <div class="text-caption text-grey-8" v-if="item.desc">{{ item.desc }}</div>
+                  <td class="text-center text-weight-bold">{{ i + 1 }}</td>
+                  <td class="text-left text-weight-bold uppercase">
+                    {{ item.nama_barang }}
+                    <div v-if="item.desc" class="text-caption text-weight-regular text-grey-8">
+                      {{ item.desc }}
+                    </div>
                   </td>
                   <td class="text-center text-weight-bold">{{ item.qty }}</td>
                   <td class="text-center uppercase">{{ item.satuan }}</td>
@@ -1060,8 +1074,11 @@
                     {{ selectedPo.mobdemob?.toLocaleString('id-ID', { minimumFractionDigits: 2 }) }}
                   </td>
                 </tr>
-                <tr class="row-grand-total">
-                  <td colspan="5" class="text-right text-bold text-h6 uppercase tracking-widest">
+                <tr class="po-grand-total">
+                  <td
+                    colspan="5"
+                    class="text-right text-weight-bold text-h6 uppercase tracking-widest"
+                  >
                     Grand Total
                   </td>
                   <td class="text-right text-white text-bold text-subtitle1">
@@ -1073,18 +1090,18 @@
               </tfoot>
             </table>
 
-            <div class="terms-container text-left q-mt-lg">
-              <div class="terms-header uppercase">Syarat Dan Kondisi</div>
+            <div class="po-terms-box q-mt-lg">
+              <div class="po-terms-title">Syarat Dan Kondisi</div>
               <div
-                class="terms-content-box leading-relaxed"
+                class="po-terms-content leading-relaxed"
                 v-html="selectedPo.syarat_kondisi"
               ></div>
             </div>
 
-            <div class="terms-container text-left q-mt-sm">
-              <div class="terms-header uppercase">Sistem Pembayaran</div>
+            <div class="po-terms-box q-mt-sm">
+              <div class="po-terms-title">Sistem Pembayaran</div>
               <div
-                class="terms-content-box leading-relaxed"
+                class="po-terms-content leading-relaxed"
                 v-html="selectedPo.sistem_pembayaran"
               ></div>
             </div>
@@ -1093,7 +1110,10 @@
               {{ selectedPo.closing }}
             </div>
 
-            <div class="row justify-between text-center q-mt-xl" style="font-size: 14px">
+            <div
+              class="row justify-between text-center q-mt-xl po-signature"
+              style="font-size: 14px"
+            >
               <div class="col-4">
                 <div class="text-weight-bold q-mb-xl">Prepared By</div>
                 <div style="height: 60px"></div>
@@ -1125,7 +1145,8 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick, watch, computed } from 'vue'
-import { db } from 'src/boot/firebase'
+// eslint-disable-next-line no-unused-vars
+import { db, storage } from 'src/boot/firebase'
 import {
   collection,
   query,
@@ -1182,6 +1203,7 @@ const poFormDefault = {
   tanggal: new Date().toISOString().substr(0, 10),
   referensi_pr: null,
   proyek_nama: '',
+  no_spk: '',
   items: [],
   mobdemob: 0,
   syarat_kondisi:
@@ -1272,7 +1294,7 @@ const fetchData = async () => {
     if (d.id === 'perusahaan') config.value = d.data()
   })
 
-  // PERBAIKAN DI SINI: Collection database untuk supplier adalah 'suppliers' (pakai 's')
+  // Collection database untuk supplier adalah 'suppliers' (pakai 's')
   const snapSupp = await getDocs(collection(db, 'suppliers'))
   allSupplier.value = snapSupp.docs.map((d) => ({ id: d.id, ...d.data() }))
   optSupplier.value = [...allSupplier.value]
@@ -1363,6 +1385,7 @@ const onSupplierSelect = (supp) => {
 const onPrSelect = (prData) => {
   if (prData) {
     poForm.value.proyek_nama = prData.proyek_nama || ''
+    poForm.value.no_spk = prData.no_reff || '' // SET NO SPK OTOMATIS
     poForm.value.requested_by = prData.pemohon?.nama || ''
 
     poForm.value.items = prData.items.map((it) => ({
@@ -1375,6 +1398,7 @@ const onPrSelect = (prData) => {
     }))
   } else {
     poForm.value.proyek_nama = ''
+    poForm.value.no_spk = ''
     poForm.value.requested_by = ''
     poForm.value.items = []
   }
@@ -1405,6 +1429,7 @@ const savePo = async () => {
   try {
     const payload = {
       ...poForm.value,
+      no_spk: poForm.value.no_spk || '', // simpan ke database
       total_amount: calculatePoTotal(),
       grand_total: calculatePoTotal() + (poForm.value.mobdemob || 0),
       createdAt: serverTimestamp(),
@@ -1461,8 +1486,8 @@ const exportPoToPDF = () => {
   const o = {
     margin: 0,
     filename: `PO_${selectedPo.value.nomor.replace(/\//g, '-')}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2.5, useCORS: true, letterRendering: true },
+    image: { type: 'jpeg', quality: 1 },
+    html2canvas: { scale: 3, useCORS: true, letterRendering: true },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
   }
   html2pdf().set(o).from(e).save()
@@ -1667,7 +1692,7 @@ onUnmounted(() => {
   cursor: crosshair;
 }
 
-/* PREVIEW DOC */
+/* PREVIEW DOC FOR PR (OLD) */
 .letter-paper {
   background: white;
   width: 210mm;
@@ -1839,12 +1864,158 @@ onUnmounted(() => {
   letter-spacing: 0.5px;
   padding: 16px;
 }
-.hover-bg:hover {
-  background-color: rgba(26, 35, 126, 0.03) !important;
+
+/* =======================================================================
+   PO PRINT CONTAINER (NEW - PDF EXPORT SPECIFIC FOR PO)
+   ======================================================================= */
+.po-print-container {
+  background: white !important;
+  width: 210mm;
+  min-height: 297mm;
+  padding: 15mm 20mm;
+  margin: 0 auto;
+  color: #000 !important;
+  font-family: Arial, Helvetica, sans-serif !important; /* Force clean standard font */
+  line-height: 1.4;
+  box-sizing: border-box;
+  position: relative;
 }
-.transition-all {
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+.po-logo {
+  height: 60px;
+  object-fit: contain;
 }
+.po-company-name {
+  font-size: 20px;
+  font-weight: 900;
+  color: #1a237e !important;
+  margin-bottom: 2px;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.po-company-slogan {
+  font-size: 11px;
+  font-weight: 700;
+  color: #555 !important;
+  text-transform: uppercase;
+}
+
+.po-divider {
+  height: 3px;
+  background: #1a237e !important;
+  margin: 10px 0;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.po-title {
+  font-size: 18px;
+  font-weight: 900;
+  color: #1a237e !important;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.po-no {
+  font-size: 12px;
+  font-weight: 800;
+  color: #000 !important;
+}
+
+.po-meta {
+  font-size: 12px;
+  color: #333 !important;
+}
+.po-meta-label {
+  color: #666 !important;
+  font-size: 11px;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.po-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-top: 15px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+}
+.po-table th {
+  background: #1a237e !important;
+  color: white !important;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 10px 8px;
+  border: 1px solid #ccc;
+  text-transform: uppercase;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.po-table td {
+  font-size: 12px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  color: #000 !important;
+}
+.po-table tfoot td {
+  padding: 8px;
+  border: 1px solid #ccc;
+  font-size: 12px;
+}
+
+.po-grand-total td {
+  background: #1a237e !important;
+  color: white !important;
+  font-size: 14px;
+  font-weight: 900;
+  border: 1px solid #1a237e !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.po-terms-box {
+  border: 1.5px solid #1a237e !important;
+  border-radius: 4px;
+  overflow: hidden;
+  page-break-inside: avoid;
+  margin-bottom: 10px;
+}
+.po-terms-title {
+  background: #1a237e !important;
+  color: white !important;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 6px 10px;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  text-transform: uppercase;
+}
+.po-terms-content {
+  padding: 8px 10px;
+  font-size: 11px;
+  color: #000 !important;
+}
+.po-terms-content p {
+  margin: 0 0 5px 0;
+}
+.po-terms-content ol,
+.po-terms-content ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.po-closing {
+  font-size: 11.5px;
+  color: #333 !important;
+}
+.po-signature {
+  font-size: 12px;
+  color: #000 !important;
+  page-break-inside: avoid;
+}
+
+/* ANIMATIONS */
 .animate-fade {
   animation: fadeIn 0.6s ease-out;
 }
@@ -1859,56 +2030,6 @@ onUnmounted(() => {
   }
 }
 
-/* PDF PREVIEW STYLES */
-.pro-divider-indigo {
-  height: 4px;
-  background: #1a237e;
-  margin-top: 15px;
-  border-bottom: 1px solid #1a237e;
-}
-
-.preview-pro-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 11.5px;
-}
-
-.preview-pro-table th {
-  background-color: #1a237e !important;
-  color: white !important;
-  font-weight: 800;
-  text-transform: uppercase;
-  padding: 12px 10px;
-  border: 1px solid #ccc;
-}
-
-.preview-pro-table td {
-  padding: 8px 10px;
-  border: 1px solid #ccc;
-  vertical-align: top;
-  color: #333;
-}
-
-.preview-pro-table .row-calculation {
-  background-color: #f9fafb !important;
-}
-
-.preview-pro-table .row-calculation td {
-  font-weight: 700;
-  border: 1px solid #ccc !important;
-}
-
-.preview-pro-table .row-grand-total {
-  background-color: #1a237e !important;
-  color: white !important;
-}
-
-.preview-pro-table .row-grand-total td {
-  font-weight: 900;
-  font-size: 13px;
-  border: 1px solid #1a237e !important;
-}
-
 @media print {
   @page {
     size: A4;
@@ -1920,36 +2041,10 @@ onUnmounted(() => {
   .no-print {
     display: none !important;
   }
-  .letter-paper {
+  .po-print-container {
     box-shadow: none !important;
     margin: 0 !important;
     width: 210mm !important;
-  }
-  .final-pro-table th,
-  .row-grand-total,
-  .terms-header,
-  .preview-pro-table th,
-  .preview-pro-table .row-grand-total {
-    background-color: #1a237e !important;
-    color: white !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  .row-calculation,
-  .preview-pro-table .row-calculation {
-    background-color: #f9fafb !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  .pro-divider-indigo {
-    background: #1a237e !important;
-    border-color: #1a237e !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  .preview-pro-table th,
-  .preview-pro-table td {
-    border: 1px solid #999 !important;
   }
 }
 </style>

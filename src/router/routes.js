@@ -58,6 +58,11 @@ const routes = [
         path: 'master/proyek-kategori',
         component: () => import('pages/konstruksi/Master/DataProyek/KategoriProyekPage.vue'),
       },
+      // --- TAMBAHAN ROUTE MONITORING PROYEK ---
+      {
+        path: 'master/proyek-monitoring',
+        component: () => import('pages/konstruksi/Master/DataProyek/MonitoringProyekPage.vue'),
+      },
       { path: 'gudang', component: () => import('pages/konstruksi/Gudang/GudangPage.vue') },
       {
         path: 'gudang/transaksi',
@@ -91,6 +96,31 @@ const routes = [
         path: 'pembelian/pesanan',
         component: () =>
           import('pages/konstruksi/Pembelian/PesananPembelian/PesananPembelianPage.vue'),
+      },
+      // --- TAMBAHAN ROUTE FINANCE ---
+      {
+        path: 'finance/tagihan',
+        component: () => import('pages/konstruksi/Finance/MonitoringTagihanPage.vue'),
+      },
+      {
+        path: 'finance/tagihan-supplier',
+        component: () => import('pages/konstruksi/Finance/TagihanSupplierPage.vue'),
+      },
+      {
+        path: 'finance/pengeluaran',
+        component: () => import('pages/konstruksi/Finance/MonitoringPengeluaranPage.vue'),
+      },
+      {
+        path: 'finance/pembayaran',
+        component: () => import('pages/konstruksi/Finance/PengajuanPembayaranPage.vue'),
+      },
+      {
+        path: 'finance/approval-pembayaran',
+        component: () => import('pages/konstruksi/Finance/ApprovalPembayaranPage.vue'),
+      },
+      {
+        path: 'finance/balansheet',
+        component: () => import('pages/konstruksi/Finance/MonitoringBalansheetPage.vue'),
       },
     ],
   },
@@ -303,9 +333,6 @@ const routes = [
       // INCOMING MATERIAL ROUTES
       // File: src/router/routes.js
       // =====================================================
-
-      // taruh di children manufaktur
-      // jangan ubah route lain
 
       {
         path: '/manufaktur/produksi/proses-produksi/incoming',
