@@ -13,7 +13,7 @@
               rounded
               clearable
               debounce="250"
-              placeholder="Cari nomor SJ, supplier, material, checker QC..."
+              placeholder="Cari nomor SJ, supplier, material, checker incoming..."
               bg-color="white"
               class="search-input"
             >
@@ -65,7 +65,7 @@
       <q-card-section class="bg-green-10 text-white q-py-sm">
         <div class="row items-center justify-between">
           <div class="text-caption text-weight-bold uppercase tracking-widest">Monitoring Incoming</div>
-          <div class="text-caption">QC Validation & Riwayat Incoming</div>
+          <div class="text-caption">Validasi Awal & Riwayat Incoming</div>
         </div>
       </q-card-section>
       <q-table
@@ -163,23 +163,23 @@
                   <q-tooltip>Edit</q-tooltip>
                 </q-btn>
                 <q-btn
+                  v-if="canSendToQc(slotProps.row)"
                   flat
                   round
                   color="positive"
-                  icon="fact_check"
+                  icon="send"
                   size="sm"
-                  :disable="isFinalStatus(slotProps.row)"
-                  @click="validasiRow(slotProps.row)"
+                  @click="sendToQcRow(slotProps.row)"
                 >
-                  <q-tooltip>Validasi</q-tooltip>
+                  <q-tooltip>Kirim ke QC</q-tooltip>
                 </q-btn>
                 <q-btn
+                  v-if="canRejectRow(slotProps.row)"
                   flat
                   round
                   color="negative"
                   icon="block"
                   size="sm"
-                  :disable="['REJECTED', 'INCOMING_REJECT'].includes(getStatus(slotProps.row))"
                   @click="rejectRow(slotProps.row)"
                 >
                   <q-tooltip>Reject</q-tooltip>
@@ -220,7 +220,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['refresh', 'view', 'edit', 'advance', 'validasi', 'reject', 'delete', 'open-file', 'export'])
+const emit = defineEmits(['refresh', 'view', 'edit', 'advance', 'validasi', 'send-to-qc', 'reject', 'delete', 'open-file', 'export'])
 const $q = useQuasar()
 
 const keyword = ref('')
@@ -236,17 +236,11 @@ const pagination = ref({
 const statusOptions = [
   { label: 'Semua Status', value: 'ALL' },
   { label: 'Menunggu Validasi', value: 'MENUNGGU_VALIDASI' },
-  { label: 'Barang Datang', value: 'BARANG_DATANG' },
-  { label: 'Validasi Gudang', value: 'VALIDASI_GUDANG' },
-  { label: 'QC Pending', value: 'QC_PENDING' },
-  { label: 'QC OK', value: 'QC_OK' },
-  { label: 'QC NG', value: 'QC_NG' },
-  { label: 'Masuk Gudang', value: 'MASUK_GUDANG' },
-  { label: 'Selesai', value: 'SELESAI' },
-  { label: 'Validasi Selesai', value: 'VALIDASI_SELESAI' },
-  { label: 'Partial', value: 'PARTIAL' },
-  { label: 'Incoming Reject', value: 'INCOMING_REJECT' },
-  { label: 'Rejected', value: 'REJECTED' },
+  { label: 'Send To QC', value: 'SEND_TO_QC' },
+  { label: 'QC Process', value: 'QC_PROCESS' },
+  { label: 'QC Approved', value: 'QC_APPROVED' },
+  { label: 'QC Rejected', value: 'QC_REJECTED' },
+  { label: 'Distribusi Material', value: 'DISTRIBUSI_MATERIAL' },
 ]
 
 const columns = [
@@ -274,7 +268,7 @@ const columns = [
     sortable: true,
   },
   { name: 'selisih', label: 'Selisih', align: 'right', field: (row) => getQtyDiff(row), sortable: true },
-  { name: 'checker_qc', label: 'Checker QC', align: 'left', field: (row) => getCheckerQc(row), sortable: true },
+  { name: 'checker_qc', label: 'Checker Incoming', align: 'left', field: (row) => getCheckerQc(row), sortable: true },
   { name: 'tanggal_masuk', label: 'Tanggal Masuk', align: 'left', field: 'tanggal_masuk', sortable: true },
   { name: 'status', label: 'Status', align: 'center', field: (row) => getStatus(row), sortable: true },
   { name: 'action', label: 'Action', align: 'center' },
@@ -304,6 +298,11 @@ const getBadgeStatus = (row) => {
     PARTIAL: 'QC_PENDING',
     INCOMING_REJECT: 'QC_NG',
     REJECTED: 'QC_NG',
+    SEND_TO_QC: 'VALIDASI_QC',
+    QC_PROCESS: 'VALIDASI_QC',
+    QC_APPROVED: 'VALIDASI_SELESAI',
+    QC_REJECTED: 'QC_NG',
+    DISTRIBUSI_MATERIAL: 'VALIDASI_SELESAI',
   }
 
   return badgeStatusMap[status] || status
@@ -315,6 +314,11 @@ const getStatusLabel = (row) => {
     PARTIAL: 'Partial',
     INCOMING_REJECT: 'Rejected',
     REJECTED: 'Rejected',
+    SEND_TO_QC: 'Send To QC',
+    QC_PROCESS: 'QC Process',
+    QC_APPROVED: 'QC Approved',
+    QC_REJECTED: 'QC Rejected',
+    DISTRIBUSI_MATERIAL: 'Distribusi Material',
   }
 
   return labelMap[status] || ''
@@ -409,14 +413,18 @@ const resetFilter = () => {
   pagination.value.page = 1
 }
 
-const isFinalStatus = (row) => ['SELESAI', 'VALIDASI_SELESAI', 'INCOMING_REJECT', 'REJECTED'].includes(getStatus(row))
+const REJECTABLE_STATUSES = []
 
-const validasiRow = (row) => {
-  emit('validasi', row)
-  emit('advance', row)
+const canRejectRow = (row) => REJECTABLE_STATUSES.includes(getStatus(row))
+const canSendToQc = (row) => getStatus(row) === 'MENUNGGU_VALIDASI'
+
+const sendToQcRow = (row) => {
+  if (!canSendToQc(row)) return
+  emit('send-to-qc', row)
 }
 
 const rejectRow = (row) => {
+  if (!canRejectRow(row)) return
   emit('reject', row)
 }
 
