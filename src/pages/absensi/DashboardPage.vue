@@ -9,19 +9,24 @@
         <div class="col-12 col-md-7 col-lg-8">
           <q-card flat class="bento-card bg-white full-height relative-position overflow-hidden">
             <div class="decor-circle-1"></div>
-            <!-- FIX: z-top dihapus dan diganti z-content agar tidak menembus header saat discroll -->
             <q-card-section
               class="q-pa-lg q-pa-md-xl z-content full-height flex column justify-center"
             >
               <div class="row items-center">
                 <div class="col-auto q-mr-lg q-mb-sm relative-position">
+                  <!-- BUG FIXED: Foto Profil Terintegrasi Dinamis -->
                   <q-avatar
                     size="84px"
                     :color="getRandomColor(userData.nama)"
                     text-color="white"
-                    class="shadow-soft text-weight-bolder text-h4"
+                    class="shadow-soft text-weight-bolder text-h4 overflow-hidden"
                   >
-                    {{ getInitial(userData.nama) }}
+                    <q-img
+                      v-if="userData.fotoUrl || userData.foto_profil"
+                      :src="userData.fotoUrl || userData.foto_profil"
+                      class="absolute-full"
+                    />
+                    <span v-else>{{ getInitial(userData.nama) }}</span>
                   </q-avatar>
                   <q-badge floating color="teal-5" rounded class="status-badge shadow-1" />
                 </div>
@@ -63,26 +68,32 @@
           </q-card>
         </div>
 
-        <!-- WIDGET 2: JAM DIGITAL -->
+        <!-- WIDGET 2: JAM "AURORA HOLOGRAPHIC" PREMIUM -->
         <div class="col-12 col-md-5 col-lg-4">
           <q-card
             flat
-            class="bento-card bg-gradient-dark text-white full-height flex flex-center relative-position overflow-hidden"
+            class="bento-card aurora-card text-white full-height flex flex-center relative-position overflow-hidden"
           >
-            <div class="decor-glass-glow"></div>
-            <!-- FIX: z-top dihapus dan diganti z-content -->
-            <q-card-section class="text-center z-content q-pa-lg">
-              <div
-                class="text-caption text-blue-3 text-weight-bold uppercase letter-spacing-2 q-mb-sm"
-              >
-                Waktu Server AGRA
+            <div class="aurora-bg"></div>
+            <div class="glass-layer"></div>
+
+            <q-card-section class="text-center z-content q-pa-lg full-width">
+              <div class="row items-center justify-center q-mb-md opacity-80">
+                <q-icon name="schedule" size="xs" color="white" class="q-mr-sm" />
+                <div class="text-caption text-white text-weight-bold uppercase letter-spacing-2">
+                  Waktu Server AGRA
+                </div>
               </div>
-              <div
-                class="text-h2 text-weight-black font-digital drop-shadow-glow line-height-tight"
-              >
-                {{ currentTime }}
+
+              <div class="time-wrapper drop-shadow-glow text-white">
+                <span class="time-hhmm"
+                  >{{ currentHours }}<span class="blink text-blue-2">:</span
+                  >{{ currentMinutes }}</span
+                >
+                <span class="time-ss text-blue-3">{{ currentSeconds }}</span>
               </div>
-              <div class="text-subtitle2 text-blue-1 text-weight-medium q-mt-sm opacity-80">
+
+              <div class="date-chip q-mt-md shadow-2">
                 {{ currentDate }}
               </div>
             </q-card-section>
@@ -512,18 +523,24 @@ import {
 import { useQuasar, date } from 'quasar'
 
 const $q = useQuasar()
-const currentTime = ref('')
-const currentDate = ref('')
-const riwayatData = ref([])
 
-// Variabel dataSeluruhKaryawan diaktifkan kembali untuk Widget Status Tim!
+// State Jam Terpisah untuk Animasi Keren
+const currentHours = ref('')
+const currentMinutes = ref('')
+const currentSeconds = ref('')
+const currentDate = ref('')
+
+const riwayatData = ref([])
 const dataSeluruhKaryawan = ref([])
 
+// State User (Ditambah fotoUrl & foto_profil)
 const userData = ref({
   nama: 'Memuat...',
   jabatan: 'Staff',
   role: 'Staff',
   email: '',
+  fotoUrl: '',
+  foto_profil: '',
 })
 
 const documentId = ref(null)
@@ -557,7 +574,10 @@ const getRandomColor = (name) => {
 
 const updateTime = () => {
   const now = new Date()
-  currentTime.value = date.formatDate(now, 'HH:mm:ss')
+  currentHours.value = date.formatDate(now, 'HH')
+  currentMinutes.value = date.formatDate(now, 'mm')
+  currentSeconds.value = date.formatDate(now, 'ss')
+
   currentDate.value = date.formatDate(now, 'dddd, DD MMMM YYYY', {
     days: ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'],
     months: [
@@ -752,19 +772,21 @@ onMounted(() => {
     detectLocation()
   })
 
-  // Perbarui deteksi tiap 30 detik agar lebih responsif
   locationTimer = setInterval(detectLocation, 30000)
 
-  // 1. SINKRON USER LOCALSTORAGE
+  // 1. SINKRON USER LOCALSTORAGE & AMBIL FOTO
   const saved = localStorage.getItem('user_data')
   if (saved) {
     try {
       const parsed = JSON.parse(saved)
       userData.value = {
+        ...userData.value,
         nama: parsed.nama || 'User',
         jabatan: parsed.jabatan || parsed.role || 'Staff',
         role: parsed.role || 'Staff',
         email: parsed.email || '',
+        fotoUrl: parsed.fotoUrl || '',
+        foto_profil: parsed.foto_profil || '',
       }
 
       if (userData.value.email) {
@@ -777,6 +799,8 @@ onMounted(() => {
               nama: data.nama || userData.value.nama,
               jabatan: data.jabatan || userData.value.jabatan,
               role: data.role || userData.value.role,
+              fotoUrl: data.fotoUrl || data.foto_profil || userData.value.fotoUrl,
+              foto_profil: data.foto_profil || data.fotoUrl || userData.value.foto_profil,
             }
           }
         })
@@ -835,7 +859,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@700;800;900&display=swap');
 
 /* GLOBAL TYPOGRAPHY */
 .font-inter {
@@ -934,23 +958,79 @@ onUnmounted(() => {
   border: 3px solid white;
 }
 
-/* CLOCK WIDGET */
-.bg-gradient-dark {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+/* =======================================
+   AURORA HOLOGRAPHIC CLOCK CSS
+   ======================================= */
+.aurora-card {
+  background: #0f172a;
 }
-.decor-glass-glow {
+.aurora-bg {
   position: absolute;
-  width: 250px;
-  height: 250px;
-  background: radial-gradient(circle, rgba(56, 189, 248, 0.15) 0%, transparent 60%);
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(56, 189, 248, 0.35),
+    rgba(99, 102, 241, 0.15),
+    transparent 60%
+  );
+  animation: rotateAurora 15s linear infinite;
+}
+@keyframes rotateAurora {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+.glass-layer {
+  position: absolute;
+  inset: 0;
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
 }
 .drop-shadow-glow {
-  text-shadow: 0 4px 20px rgba(56, 189, 248, 0.3);
+  text-shadow: 0 4px 30px rgba(56, 189, 248, 0.4);
 }
+
+.time-wrapper {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  line-height: 1;
+}
+.time-hhmm {
+  font-size: 5rem;
+  font-weight: 900;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: -3px;
+}
+.time-ss {
+  font-size: 2.2rem;
+  font-weight: 800;
+  font-family: 'JetBrains Mono', monospace;
+  margin-left: 8px;
+}
+.blink {
+  animation: blinker 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+}
+
+.date-chip {
+  display: inline-block;
+  padding: 8px 20px;
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+/* ======================================= */
 
 /* RADAR PANEL */
 .radar-box {
