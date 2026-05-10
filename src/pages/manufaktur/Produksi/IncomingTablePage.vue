@@ -38,7 +38,16 @@
           </div>
 
           <div class="col-12 col-sm-6 col-md-2">
-            <q-input v-model="dateFilter" outlined dense rounded type="date" label="Tanggal Masuk" clearable bg-color="white" />
+            <q-input
+              v-model="dateFilter"
+              outlined
+              dense
+              rounded
+              type="date"
+              label="Tanggal Masuk"
+              clearable
+              bg-color="white"
+            />
           </div>
 
           <q-space />
@@ -48,11 +57,26 @@
               <q-badge color="green-10" class="q-px-md q-py-xs text-weight-bold shadow-1">
                 {{ filteredRows.length }} RECORD
               </q-badge>
-              <q-btn flat dense color="grey-7" icon="filter_alt_off" label="Reset" no-caps @click="resetFilter" />
+              <q-btn
+                flat
+                dense
+                color="grey-7"
+                icon="filter_alt_off"
+                label="Reset"
+                no-caps
+                @click="resetFilter"
+              />
               <q-btn flat round color="blue-grey-8" icon="file_download" @click="exportExcel">
                 <q-tooltip>Export Excel</q-tooltip>
               </q-btn>
-              <q-btn flat round color="green-10" icon="refresh" :loading="loading" @click="emit('refresh')">
+              <q-btn
+                flat
+                round
+                color="green-10"
+                icon="refresh"
+                :loading="loading"
+                @click="emit('refresh')"
+              >
                 <q-tooltip>Refresh</q-tooltip>
               </q-btn>
             </div>
@@ -64,7 +88,9 @@
     <q-card flat bordered class="table-card rounded-20 shadow-sm overflow-hidden bg-white">
       <q-card-section class="bg-green-10 text-white q-py-sm">
         <div class="row items-center justify-between">
-          <div class="text-caption text-weight-bold uppercase tracking-widest">Monitoring Incoming</div>
+          <div class="text-caption text-weight-bold uppercase tracking-widest">
+            Monitoring Incoming
+          </div>
           <div class="text-caption">Validasi Awal & Riwayat Incoming</div>
         </div>
       </q-card-section>
@@ -83,7 +109,9 @@
           <q-inner-loading showing color="green-10">
             <div class="column items-center q-gutter-sm">
               <q-spinner-gears size="34px" color="green-10" />
-              <div class="text-caption text-grey-7 text-weight-bold">Memuat incoming material...</div>
+              <div class="text-caption text-grey-7 text-weight-bold">
+                Memuat incoming material...
+              </div>
             </div>
           </q-inner-loading>
         </template>
@@ -93,7 +121,9 @@
             <div class="empty-icon">
               <q-icon name="inventory_2" size="42px" />
             </div>
-            <div class="text-subtitle1 text-weight-bolder text-green-10">Belum ada incoming material</div>
+            <div class="text-subtitle1 text-weight-bolder text-green-10">
+              Belum ada incoming material
+            </div>
             <div class="text-caption text-grey-7">
               Data penerimaan dari surat jalan akan tampil setelah form incoming disimpan.
             </div>
@@ -143,8 +173,12 @@
             </q-td>
 
             <q-td key="tanggal_masuk" :props="slotProps">
-              <div class="cell-main text-green-10">{{ formatDate(slotProps.row.tanggal_masuk) }}</div>
-              <div class="text-caption text-grey-6">{{ formatDateTime(slotProps.row.created_at) }}</div>
+              <div class="cell-main text-green-10">
+                {{ formatDate(slotProps.row.tanggal_masuk) }}
+              </div>
+              <div class="text-caption text-grey-6">
+                {{ formatDateTime(slotProps.row.created_at) }}
+              </div>
             </q-td>
 
             <q-td key="status" :props="slotProps" class="text-center">
@@ -156,10 +190,25 @@
 
             <q-td key="action" :props="slotProps" class="text-center" @click.stop>
               <div class="row justify-center q-gutter-xs no-wrap">
-                <q-btn flat round color="blue-grey-8" icon="visibility" size="sm" @click="emit('view', slotProps.row)">
+                <q-btn
+                  flat
+                  round
+                  color="blue-grey-8"
+                  icon="visibility"
+                  size="sm"
+                  @click="emit('view', slotProps.row)"
+                >
                   <q-tooltip>Detail</q-tooltip>
                 </q-btn>
-                <q-btn flat round color="green-9" icon="edit_note" size="sm" @click="emit('edit', slotProps.row)">
+                <q-btn
+                  v-if="['MENUNGGU_VALIDASI', 'PARTIAL'].includes(slotProps.row?.status)"
+                  flat
+                  round
+                  color="green-9"
+                  icon="edit_note"
+                  size="sm"
+                  @click="emit('edit', slotProps.row)"
+                >
                   <q-tooltip>Edit</q-tooltip>
                 </q-btn>
                 <q-btn
@@ -220,7 +269,18 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['refresh', 'view', 'edit', 'advance', 'validasi', 'send-to-qc', 'reject', 'delete', 'open-file', 'export'])
+const emit = defineEmits([
+  'refresh',
+  'view',
+  'edit',
+  'advance',
+  'validasi',
+  'send-to-qc',
+  'reject',
+  'delete',
+  'open-file',
+  'export',
+])
 const $q = useQuasar()
 
 const keyword = ref('')
@@ -251,8 +311,20 @@ const columns = [
     field: (row) => getSuratJalan(row),
     sortable: true,
   },
-  { name: 'supplier', label: 'Supplier', align: 'left', field: (row) => getSupplier(row), sortable: true },
-  { name: 'material', label: 'Material', align: 'left', field: (row) => getMaterial(row), sortable: true },
+  {
+    name: 'supplier',
+    label: 'Supplier',
+    align: 'left',
+    field: (row) => getSupplier(row),
+    sortable: true,
+  },
+  {
+    name: 'material',
+    label: 'Material',
+    align: 'left',
+    field: (row) => getMaterial(row),
+    sortable: true,
+  },
   {
     name: 'qty_surat_jalan',
     label: 'Qty SJ',
@@ -267,10 +339,34 @@ const columns = [
     field: (row) => getQtyActual(row),
     sortable: true,
   },
-  { name: 'selisih', label: 'Selisih', align: 'right', field: (row) => getQtyDiff(row), sortable: true },
-  { name: 'checker_qc', label: 'Checker Incoming', align: 'left', field: (row) => getCheckerQc(row), sortable: true },
-  { name: 'tanggal_masuk', label: 'Tanggal Masuk', align: 'left', field: 'tanggal_masuk', sortable: true },
-  { name: 'status', label: 'Status', align: 'center', field: (row) => getStatus(row), sortable: true },
+  {
+    name: 'selisih',
+    label: 'Selisih',
+    align: 'right',
+    field: (row) => getQtyDiff(row),
+    sortable: true,
+  },
+  {
+    name: 'checker_qc',
+    label: 'Checker Incoming',
+    align: 'left',
+    field: (row) => getCheckerQc(row),
+    sortable: true,
+  },
+  {
+    name: 'tanggal_masuk',
+    label: 'Tanggal Masuk',
+    align: 'left',
+    field: 'tanggal_masuk',
+    sortable: true,
+  },
+  {
+    name: 'status',
+    label: 'Status',
+    align: 'center',
+    field: (row) => getStatus(row),
+    sortable: true,
+  },
   { name: 'action', label: 'Action', align: 'center' },
 ]
 
@@ -279,18 +375,28 @@ const getSupplier = (row) => row?.supplier || row?.asal || '-'
 const getItems = (row) => (Array.isArray(row?.items) && row.items.length ? row.items : [])
 const getMaterial = (row) => {
   const items = getItems(row)
-  if (items.length > 1) return `${items[0]?.nama_barang || items[0]?.nama_material || '-'} +${items.length - 1} item`
-  return row?.nama_barang || row?.nama_material || row?.tipe_material || items[0]?.nama_barang || '-'
+  if (items.length > 1)
+    return `${items[0]?.nama_barang || items[0]?.nama_material || '-'} +${items.length - 1} item`
+  return (
+    row?.nama_barang || row?.nama_material || row?.tipe_material || items[0]?.nama_barang || '-'
+  )
 }
 const getKategori = (row) => {
   const items = getItems(row)
   if (items.length > 1) return `${items.length} detail material`
-  return row?.kategori_material || row?.tipe_material || items[0]?.kategori_material || 'Material produksi'
+  return (
+    row?.kategori_material ||
+    row?.tipe_material ||
+    items[0]?.kategori_material ||
+    'Material produksi'
+  )
 }
 const getSatuan = (row) => row?.satuan || 'PCS'
-const getCheckerQc = (row) => row?.checker_qc || row?.qc_checker || row?.checker_gudang || row?.checker || '-'
+const getCheckerQc = (row) =>
+  row?.checker_qc || row?.qc_checker || row?.checker_gudang || row?.checker || '-'
 const getKondisi = (row) => row?.kondisi_barang || (Number(row?.qty_ng || 0) > 0 ? 'RUSAK' : 'BAIK')
-const getStatus = (row) => row?.status_validation || row?.status_incoming || row?.status_qc || 'MENUNGGU_VALIDASI'
+const getStatus = (row) =>
+  row?.status_validation || row?.status_incoming || row?.status_qc || 'MENUNGGU_VALIDASI'
 const getBadgeStatus = (row) => {
   const status = getStatus(row)
   const badgeStatusMap = {
@@ -326,14 +432,20 @@ const getStatusLabel = (row) => {
 const getQtySj = (row) => {
   const items = getItems(row)
   if (items.length) {
-    return items.reduce((sum, item) => sum + Number(item.qty_surat_jalan ?? item.qtySJ ?? item.qty ?? 0), 0)
+    return items.reduce(
+      (sum, item) => sum + Number(item.qty_surat_jalan ?? item.qtySJ ?? item.qty ?? 0),
+      0,
+    )
   }
   return Number(row?.qty_surat_jalan ?? row?.qtySJ ?? row?.quantity ?? 0)
 }
 const getQtyActual = (row) => {
   const items = getItems(row)
   if (items.length) {
-    return items.reduce((sum, item) => sum + Number(item.qty_actual ?? item.qtyActual ?? item.quantity ?? 0), 0)
+    return items.reduce(
+      (sum, item) => sum + Number(item.qty_actual ?? item.qtyActual ?? item.quantity ?? 0),
+      0,
+    )
   }
   return Number(row?.qty_actual ?? row?.qtyActual ?? row?.quantity ?? 0)
 }
@@ -390,7 +502,11 @@ const filteredRows = computed(() => {
         getSupplier(row),
         getMaterial(row),
         getKategori(row),
-        ...getItems(row).flatMap((item) => [item.nama_barang, item.kategori_material, item.catatan]),
+        ...getItems(row).flatMap((item) => [
+          item.nama_barang,
+          item.kategori_material,
+          item.catatan,
+        ]),
         getCheckerQc(row),
         getStatus(row),
         row?.catatan,
@@ -400,7 +516,8 @@ const filteredRows = computed(() => {
         .some((value) => String(value).toLowerCase().includes(needle))
 
     const statusMatch = statusFilter.value === 'ALL' || getStatus(row) === statusFilter.value
-    const dateMatch = !dateFilter.value || normalizeDate(row?.tanggal_masuk || row?.created_at) === dateFilter.value
+    const dateMatch =
+      !dateFilter.value || normalizeDate(row?.tanggal_masuk || row?.created_at) === dateFilter.value
 
     return textMatch && statusMatch && dateMatch
   })

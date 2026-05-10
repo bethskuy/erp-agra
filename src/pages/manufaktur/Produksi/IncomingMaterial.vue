@@ -80,21 +80,33 @@
 
             <div class="col-12 col-sm-6 col-md-4">
               <div class="field-label">Selisih</div>
-              <div class="field-value" :class="qtyDiff(selectedRow) === 0 ? 'text-positive' : 'text-orange-10'">
+              <div
+                class="field-value"
+                :class="qtyDiff(selectedRow) === 0 ? 'text-positive' : 'text-orange-10'"
+              >
                 {{ formatNumber(qtyDiff(selectedRow)) }}
               </div>
             </div>
 
             <div class="col-12">
               <div class="field-label">Catatan</div>
-              <div class="text-body2">{{ selectedRow.catatan || selectedRow.catatan_incoming || '-' }}</div>
+              <div class="text-body2">
+                {{ selectedRow.catatan || selectedRow.catatan_incoming || '-' }}
+              </div>
             </div>
           </div>
         </q-card-section>
 
         <q-card-actions align="right" class="bg-grey-1 q-pa-md">
           <q-btn flat color="grey-7" label="Tutup" no-caps v-close-popup />
-          <q-btn flat color="green-10" icon="edit_note" label="Edit" no-caps @click="openEditDialog(selectedRow)" />
+          <q-btn
+            flat
+            color="green-10"
+            icon="edit_note"
+            label="Edit"
+            no-caps
+            @click="openEditDialog(selectedRow)"
+          />
           <q-btn
             unelevated
             color="positive"
@@ -123,7 +135,16 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { auth, db } from 'src/boot/firebase'
-import { addDoc, collection, doc, onSnapshot, orderBy, query, serverTimestamp, updateDoc } from 'firebase/firestore'
+import {
+  addDoc,
+  collection,
+  doc,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  updateDoc,
+} from 'firebase/firestore'
 import { useAuthStore } from 'src/stores/auth'
 import IncomingDialog from './IncomingDialog.vue'
 import IncomingSummary from './IncomingSummary.vue'
@@ -209,7 +230,9 @@ const listenIncoming = () => {
   unsubscribeIncoming = onSnapshot(
     query(collection(db, COLLECTION_NAME), orderBy('created_at', 'desc')),
     (snapshot) => {
-      incomingRows.value = snapshot.docs.map((document) => normalizeIncomingRow(document.id, document.data()))
+      incomingRows.value = snapshot.docs.map((document) =>
+        normalizeIncomingRow(document.id, document.data()),
+      )
       loading.value = false
     },
     (error) => {
@@ -242,7 +265,8 @@ const buildPayload = (form) => {
   const qtyActual = Number(form.qty_actual ?? 0)
   const material = form.material || form.nama_barang || form.nama_material || ''
   const checker = form.checker || form.checker_qc || form.qc_checker || currentUserName.value
-  const status = form.status || form.status_validation || form.status_incoming || getAutoStatus(form)
+  const status =
+    form.status || form.status_validation || form.status_incoming || getAutoStatus(form)
 
   return {
     nomor_surat_jalan: form.nomor_surat_jalan || '',
@@ -285,7 +309,8 @@ const validatePayload = (payload) => {
   if (!payload.supplier) return 'Supplier wajib diisi'
   if (!payload.material) return 'Material wajib diisi'
   if (!Number.isFinite(payload.qty) || payload.qty <= 0) return 'Qty surat jalan wajib lebih dari 0'
-  if (!Number.isFinite(payload.qty_actual) || payload.qty_actual < 0) return 'Qty actual tidak boleh minus'
+  if (!Number.isFinite(payload.qty_actual) || payload.qty_actual < 0)
+    return 'Qty actual tidak boleh minus'
   if (!payload.checker) return 'Checker QC wajib diisi'
   return ''
 }
@@ -334,7 +359,11 @@ const validasiIncoming = (row) => {
     cancel: true,
     ok: { color: 'green-10', unelevated: true, label: 'Validasi' },
   }).onOk(async () => {
-    await updateStatus(row, row.selisih_qty === 0 ? STATUS_VALIDATED : STATUS_PARTIAL, 'Validasi QC berhasil')
+    await updateStatus(
+      row,
+      row.selisih_qty === 0 ? STATUS_VALIDATED : STATUS_PARTIAL,
+      'Validasi QC berhasil',
+    )
   })
 }
 
@@ -373,7 +402,8 @@ const exportExcel = () => {
 }
 
 const isFinalStatus = (row) => [STATUS_VALIDATED, STATUS_REJECT].includes(row?.status)
-const qtyDiff = (row) => Number(row?.qty_actual || 0) - Number(row?.qty || row?.qty_surat_jalan || 0)
+const qtyDiff = (row) =>
+  Number(row?.qty_actual || 0) - Number(row?.qty || row?.qty_surat_jalan || 0)
 const formatNumber = (value) => Number(value || 0).toLocaleString('id-ID')
 
 const toDate = (value) => {

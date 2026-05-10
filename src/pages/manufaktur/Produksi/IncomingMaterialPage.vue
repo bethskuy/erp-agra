@@ -190,6 +190,9 @@
                       </div>
                       <div class="detail-status-wrap">
                         <incoming-status-badge :status="getStatus(selectedRow)" dense />
+                        <q-badge v-if="detailHasMaterialShortage" color="orange-8" class="shortage-warning-badge q-ml-sm">
+                          Menunggu Kekurangan Material
+                        </q-badge>
                       </div>
                     </div>
 
@@ -381,6 +384,7 @@
           <q-btn flat color="grey-7" label="Tutup" no-caps v-close-popup />
           <q-btn flat color="green-10" icon="edit_note" label="Edit" no-caps @click="openEditDialog(selectedRow)" />
           <q-btn
+            v-if="!hasMaterialShortage(selectedRow)"
             unelevated
             color="positive"
             icon="send"
@@ -390,6 +394,7 @@
             @click="sendToQc(selectedRow)"
           />
       <q-btn
+        v-if="!hasMaterialShortage(selectedRow)"
         unelevated
         color="green-10"
         icon="send"
@@ -527,6 +532,7 @@ const satuanMaterialOptions = computed(() =>
 )
 
 const detailItems = computed(() => (selectedRow.value ? getIncomingItems(selectedRow.value) : []))
+const detailHasMaterialShortage = computed(() => hasMaterialShortage(selectedRow.value))
 const detailCustomerName = computed(() => selectedRow.value?.supplier || selectedRow.value?.asal || '-')
 const detailCompanyName = computed(
   () =>
@@ -637,6 +643,10 @@ const getIncomingItems = (row) => {
 
 const getQtySj = (row) => getIncomingItems(row).reduce((sum, item) => sum + toSafeNumber(item.qty_surat_jalan), 0)
 const getQtyActual = (row) => getIncomingItems(row).reduce((sum, item) => sum + toSafeNumber(item.qty_actual), 0)
+const hasMaterialShortage = (row) =>
+  getIncomingItems(row).some((item) => toSafeNumber(item.qty_surat_jalan) > toSafeNumber(item.qty_actual))
+const isWorkflowBlockedByShortage = (status) =>
+  ['VALIDASI_SELESAI', STATUS_SEND_TO_QC, STATUS_QC_PROCESS, STATUS_QC_APPROVED, STATUS_DISTRIBUSI].includes(status)
 const formatNumber = (value) => Number(value || 0).toLocaleString('id-ID')
 const selisihQtyClass = (value) => (toSafeNumber(value) < 0 ? 'text-orange-10 text-weight-bold' : '')
 const detailSelisihClass = (value) => {
@@ -697,12 +707,16 @@ const normalizeIncomingRow = (id, data) => {
   const qtyActual = getQtyActual({ ...data, items })
   const material = data.material || data.nama_barang || data.nama_material || data.tipe_material || ''
   const checker = data.checker_qc || data.qc_checker || data.checker || data.checker_gudang || ''
-  const status = getStatus(data)
+  const shortage = hasMaterialShortage({ ...data, items })
+  const currentStatus = getStatus(data)
+  const status = shortage && isWorkflowBlockedByShortage(currentStatus) ? STATUS_DATANG : currentStatus
 
   return {
     id,
     ...data,
     items,
+    material_shortage: shortage,
+    shortage_warning: shortage ? 'Menunggu Kekurangan Material' : '',
     supplier: data.supplier || data.asal || '',
     material: material || items[0]?.nama_barang || '',
     nama_barang: material || items[0]?.nama_barang || '',
@@ -716,7 +730,7 @@ const normalizeIncomingRow = (id, data) => {
     qc_checker: checker,
     status: status,
     status_incoming: status,
-    status_validation: data.status_validation || status,
+    status_validation: status,
     tanggal_masuk: data.tanggal_masuk || normalizeDate(data.created_at) || new Date().toISOString().slice(0, 10),
   }
 }
@@ -1240,12 +1254,29 @@ const injectMasterBarangControls = (dialog) => {
   })
 }
 
-const updateIncomingDialogStatus = (dialog, invalid, totalSj, totalActual) => {
+const updateIncomingDialogStatus = (dialog, invalid, shortage, totalSj, totalActual) => {
   const statusField = Array.from(dialog.querySelectorAll('.q-field')).find((field) => getFieldLabel(field) === 'Status Validasi')
   const statusInput = statusField?.querySelector('input')
   if (!statusInput) return
-  const nextStatus = invalid ? STATUS_DATA_TIDAK_SESUAI : totalSj === totalActual ? 'VALIDASI_SELESAI' : 'PARTIAL'
+  const nextStatus = invalid ? STATUS_DATA_TIDAK_SESUAI : shortage ? STATUS_DATANG : totalSj === totalActual ? 'VALIDASI_SELESAI' : 'PARTIAL'
   if (statusInput.value !== nextStatus) statusInput.value = nextStatus
+}
+
+const updateIncomingDialogShortageWarning = (dialog, shortage) => {
+  const statusField = Array.from(dialog.querySelectorAll('.q-field')).find((field) => getFieldLabel(field) === 'Status Validasi')
+  const statusColumn = statusField?.closest('.col-12')
+  if (!statusColumn) return
+  let badge = statusColumn.querySelector('.incoming-shortage-warning-badge')
+  if (!shortage) {
+    badge?.remove()
+    return
+  }
+  if (!badge) {
+    badge = document.createElement('div')
+    badge.className = 'incoming-shortage-warning-badge'
+    badge.textContent = 'Menunggu Kekurangan Material'
+    statusColumn.appendChild(badge)
+  }
 }
 
 const updateIncomingDialogSaveButtons = (dialog, invalid) => {
@@ -1273,6 +1304,7 @@ const validateIncomingDialogQty = () => {
   if (!dialog) return
 
   let invalid = false
+  let shortage = false
   let totalSj = 0
   let totalActual = 0
 
@@ -1284,11 +1316,13 @@ const validateIncomingDialogQty = () => {
     const qtySj = parseQtyInput(qtySjInput?.value)
     const qtyActual = parseQtyInput(qtyActualInput?.value)
     const isOverflow = qtyActual > qtySj
+    const isShortage = qtyActual < qtySj
     const selisih = qtySj || qtyActual ? qtyActual - qtySj : 0
 
     totalSj += qtySj
     totalActual += qtyActual
     invalid = invalid || isOverflow
+    shortage = shortage || isShortage
     qtyActualField?.classList.toggle('qty-actual-overflow-field', isOverflow)
     if (selisihBadge) {
       const selisihLabel = formatNumber(selisih)
@@ -1298,7 +1332,8 @@ const validateIncomingDialogQty = () => {
   })
 
   incomingQtyInvalid.value = invalid
-  updateIncomingDialogStatus(dialog, invalid, totalSj, totalActual)
+  updateIncomingDialogStatus(dialog, invalid, shortage, totalSj, totalActual)
+  updateIncomingDialogShortageWarning(dialog, shortage)
   updateIncomingDialogSaveButtons(dialog, invalid)
 
   if (invalid && !incomingDialogWarningShown) {
@@ -1366,9 +1401,12 @@ const buildPayload = (form) => {
   const material = form.nama_barang || form.material || form.nama_material || ''
   const checker = form.checker_qc || form.qc_checker || form.checker || currentUserName.value
   const hasQtyActualOverflow = items.some((item) => toSafeNumber(item.qty_actual) > toSafeNumber(item.qty_surat_jalan))
+  const hasQtyActualShortage = items.some((item) => toSafeNumber(item.qty_actual) < toSafeNumber(item.qty_surat_jalan))
   const autoStatus = hasQtyActualOverflow
     ? STATUS_DATA_TIDAK_SESUAI
-    : form.status_incoming || form.status_validation || STATUS_DATANG
+    : hasQtyActualShortage
+      ? STATUS_DATANG
+      : form.status_incoming || form.status_validation || STATUS_DATANG
 
   return {
     ...form,
@@ -1391,7 +1429,15 @@ const buildPayload = (form) => {
     status: autoStatus,
     status_incoming: autoStatus,
     status_validation: autoStatus,
-    status_validasi: hasQtyActualOverflow ? STATUS_DATA_TIDAK_SESUAI : qtyActual === qtySj ? 'Sesuai' : 'Selisih',
+    status_validasi: hasQtyActualOverflow
+      ? STATUS_DATA_TIDAK_SESUAI
+      : hasQtyActualShortage
+        ? 'Menunggu Kekurangan Material'
+        : qtyActual === qtySj
+          ? 'Sesuai'
+          : 'Selisih',
+    material_shortage: hasQtyActualShortage,
+    shortage_warning: hasQtyActualShortage ? 'Menunggu Kekurangan Material' : '',
     company_logo: companyLogo.value,
     company_logo_base64: getCompanyLogoSrc(),
     checker_signature: checkerSignature.value,
@@ -1461,12 +1507,12 @@ const saveIncoming = async ({ form }) => {
 
 const canSendToQc = (row) => {
   if (!row?.id) return false
-  return getStatus(row) === STATUS_DATANG
+  return getStatus(row) === STATUS_DATANG && !hasMaterialShortage(row)
 }
 
 const canDistributeMaterial = (row) => {
   if (!row?.id) return false
-  return getStatus(row) === STATUS_QC_APPROVED
+  return getStatus(row) === STATUS_QC_APPROVED && !hasMaterialShortage(row)
 }
 
 const openQcPage = () => {
@@ -1474,6 +1520,10 @@ const openQcPage = () => {
 }
 
 const sendToQc = (row) => {
+  if (hasMaterialShortage(row)) {
+    $q.notify({ type: 'warning', message: 'Menunggu Kekurangan Material' })
+    return
+  }
   if (!canSendToQc(row)) return
   $q.dialog({
     title: 'Kirim ke QC',
@@ -1508,6 +1558,10 @@ const deleteIncoming = (row) => {
 }
 
 const distribusiMaterial = (row) => {
+  if (hasMaterialShortage(row)) {
+    $q.notify({ type: 'warning', message: 'Menunggu Kekurangan Material' })
+    return
+  }
   if (!canDistributeMaterial(row)) return
   $q.dialog({
     title: 'Distribusi Material',
@@ -1525,6 +1579,10 @@ const distribusiMaterial = (row) => {
 }
 
 const updateWorkflow = async (row, status, note, extraPayload = {}) => {
+  if (hasMaterialShortage(row) && isWorkflowBlockedByShortage(status)) {
+    $q.notify({ type: 'warning', message: 'Menunggu Kekurangan Material' })
+    return
+  }
   try {
     await updateDoc(doc(db, COLLECTION_NAME, row.id), {
       status,
@@ -1835,6 +1893,22 @@ onUnmounted(() => {
   font-weight: 900;
   letter-spacing: 0.35px;
   padding: 5px 10px;
+}
+
+.shortage-warning-badge,
+:global(.incoming-dialog .incoming-shortage-warning-badge) {
+  align-items: center;
+  background: #fff7ed;
+  border: 1px solid #fdba74;
+  border-radius: 999px;
+  color: #c2410c;
+  display: inline-flex;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.25px;
+  margin-top: 6px;
+  padding: 4px 9px;
+  text-transform: uppercase;
 }
 
 :global(.incoming-detail-summary .document-title-block) {
