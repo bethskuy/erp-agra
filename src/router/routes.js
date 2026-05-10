@@ -203,6 +203,11 @@ const routes = [
         component: () => import('pages/manufaktur/Produksi/IncomingMaterialPage.vue'),
       },
       {
+        path: 'produksi/proses-produksi/incoming/qc',
+        name: 'manufaktur-qc-incoming',
+        component: () => import('pages/manufaktur/Produksi/QCIncomingPage.vue'),
+      },
+      {
         path: 'produksi/proses-produksi/incoming/table',
         name: 'incoming-table',
         component: () => import('pages/manufaktur/Produksi/IncomingTablePage.vue'),
@@ -314,6 +319,17 @@ const routes = [
         meta: {
           requiresAuth: true,
           title: 'Incoming Material',
+          module: 'manufaktur',
+        },
+      },
+
+      {
+        path: '/manufaktur/produksi/proses-produksi/incoming/qc',
+        name: 'qc-incoming',
+        component: () => import('pages/manufaktur/Produksi/QCIncomingPage.vue'),
+        meta: {
+          requiresAuth: true,
+          title: 'QC Incoming',
           module: 'manufaktur',
         },
       },

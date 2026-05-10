@@ -443,12 +443,8 @@ const props = defineProps({
   satuanMaterialOptions: {
     type: Array,
     default: () => [
-      { label: 'PCS', value: 'PCS' },
       { label: 'KG', value: 'KG' },
-      { label: 'METER', value: 'METER' },
-      { label: 'LITER', value: 'LITER' },
-      { label: 'BOX', value: 'BOX' },
-      { label: 'ROLL', value: 'ROLL' },
+      { label: 'M3', value: 'M3' },
     ],
   },
 })
@@ -468,6 +464,7 @@ const kondisiOptions = [
 const kategoriOptions = computed(() => props.kategoriMaterialOptions)
 const satuanOptions = computed(() => props.satuanMaterialOptions)
 const isSubmitting = computed(() => props.submitting || localSubmitting.value)
+const defaultSatuan = () => satuanOptions.value[0]?.value || ''
 
 const today = () => new Date().toISOString().slice(0, 10)
 
@@ -475,7 +472,7 @@ const createItem = (overrides = {}) => ({
   uid: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
   nama_barang: '',
   kategori_material: 'RAW_MATERIAL',
-  satuan: 'PCS',
+  satuan: defaultSatuan(),
   qty_surat_jalan: null,
   qty_actual: null,
   kondisi_barang: 'BAIK',
@@ -644,7 +641,7 @@ const normalizeItem = (item = {}) =>
   createItem({
     nama_barang: item.nama_barang || item.nama_material || item.material || '',
     kategori_material: item.kategori_material || item.tipe_material || 'RAW_MATERIAL',
-    satuan: item.satuan || 'PCS',
+    satuan: item.satuan || defaultSatuan(),
     qty_surat_jalan: Number(item.qty_surat_jalan ?? item.qtySJ ?? item.qty ?? 0),
     qty_actual: Number(item.qty_actual ?? item.qtyActual ?? item.quantity ?? 0),
     kondisi_barang: item.kondisi_barang || (item.status_qc === 'NG' ? 'RUSAK' : 'BAIK'),
@@ -659,7 +656,7 @@ const getRowItems = (row) => {
     normalizeItem({
       nama_barang: row.nama_barang || row.nama_material || row.tipe_material || '',
       kategori_material: row.kategori_material || row.tipe_material || 'RAW_MATERIAL',
-      satuan: row.satuan || 'PCS',
+      satuan: row.satuan || defaultSatuan(),
       qty_surat_jalan: Number(row.qty_surat_jalan ?? row.qtySJ ?? row.qty ?? 0),
       qty_actual: Number(row.qty_actual ?? row.qtyActual ?? row.quantity ?? 0),
       kondisi_barang: row.kondisi_barang || (row.status_incoming === 'INCOMING_REJECT' ? 'RUSAK' : 'BAIK'),

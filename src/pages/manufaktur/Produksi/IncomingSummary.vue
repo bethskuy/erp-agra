@@ -24,33 +24,48 @@
       />
     </div>
 
-    <q-card ref="detailPdfRef" flat bordered class="detail-summary-card rounded-20 shadow-1 bg-white">
+    <q-card ref="detailPdfRef" flat bordered class="detail-summary-card rounded-20 bg-white">
       <q-card-section class="detail-header-compact">
-        <div class="row items-center q-col-gutter-md">
-          <div class="col-12 col-md">
-            <div class="text-caption text-grey-7 text-weight-bold uppercase">Surat Jalan</div>
-            <div class="detail-doc-number">{{ getSuratJalan(activeRow) }}</div>
-            <div class="text-caption text-grey-7 q-mt-xs">{{ getSupplier(activeRow) }}</div>
+        <div class="document-company-row">
+          <div class="document-brand">
+            <div class="company-logo-frame">
+              <img v-if="companyLogoSrc" :src="companyLogoSrc" :alt="companyLogoAlt" class="company-logo-img" />
+              <div v-else class="company-logo-fallback">LOGO</div>
+            </div>
+            <div class="company-identity">
+              <div class="company-name">{{ companyName }}</div>
+              <div class="company-subtitle">Dokumen Penerimaan Material</div>
+            </div>
           </div>
-          <div class="col-12 col-md-auto">
+          <div class="detail-status-wrap">
             <q-badge :color="statusTone(activeRow)" class="detail-status-badge">
               {{ statusLabel(getStatus(activeRow)) }}
             </q-badge>
           </div>
         </div>
+
+        <div class="document-title-block">
+          <div class="document-title">SURAT PENERIMAAN MATERIAL</div>
+          <div class="document-meta-grid">
+            <div class="document-meta-cell">
+              <div class="document-meta-label">Nomor Surat Jalan</div>
+              <div class="document-number">{{ getSuratJalan(activeRow) }}</div>
+            </div>
+            <div class="document-meta-cell document-meta-cell--right">
+              <div class="document-meta-label">Tanggal Masuk</div>
+              <div class="document-date">{{ incomingDateLabel }}</div>
+            </div>
+          </div>
+        </div>
       </q-card-section>
 
-      <q-separator />
+      <div class="clean-divider"></div>
 
-      <q-card-section class="q-pa-md">
-        <div class="detail-info-grid">
+      <q-card-section class="detail-section">
+        <div class="document-info-grid">
           <div class="detail-info-cell">
             <div class="detail-info-label">Supplier</div>
             <div class="detail-info-value">{{ getSupplier(activeRow) }}</div>
-          </div>
-          <div class="detail-info-cell">
-            <div class="detail-info-label">Material Utama</div>
-            <div class="detail-info-value">{{ getMaterial(activeRow) }}</div>
           </div>
           <div class="detail-info-cell">
             <div class="detail-info-label">Checker QC</div>
@@ -60,35 +75,21 @@
             <div class="detail-info-label">Status Incoming</div>
             <div class="detail-info-value">{{ statusLabel(getStatus(activeRow)) }}</div>
           </div>
-        </div>
-      </q-card-section>
-
-      <q-card-section class="q-pt-none">
-        <div class="section-heading">Ringkasan Incoming</div>
-        <div class="row q-col-gutter-md">
-          <div v-for="item in detailCards" :key="item.label" class="col-12 col-sm-6 col-md-3">
-            <q-card flat bordered class="detail-metric-card">
-              <q-card-section class="q-pa-md">
-                <div class="row items-center no-wrap">
-                  <div class="summary-icon summary-icon--green q-mr-sm">
-                    <q-icon :name="item.icon" size="20px" />
-                  </div>
-                  <div class="col min-width-0">
-                    <div class="summary-label">{{ item.label }}</div>
-                    <div class="detail-metric-value">{{ item.value }}</div>
-                  </div>
-                </div>
-              </q-card-section>
-            </q-card>
+          <div class="detail-info-cell">
+            <div class="detail-info-label">Material Utama</div>
+            <div class="detail-info-value">{{ getMaterial(activeRow) }}</div>
           </div>
         </div>
       </q-card-section>
 
-      <q-card-section class="q-pt-sm">
+      <div class="clean-divider clean-divider--inset"></div>
+
+      <q-card-section class="detail-section">
         <div class="section-heading">Daftar Material</div>
         <q-markup-table flat dense class="pdf-items-table">
           <thead>
             <tr>
+              <th class="text-center">No</th>
               <th class="text-left">Nama Barang</th>
               <th class="text-left">Kategori</th>
               <th class="text-right">Qty SJ</th>
@@ -100,6 +101,7 @@
           </thead>
           <tbody>
             <tr v-for="(item, index) in activeItems" :key="`${item.nama_barang}-${index}`">
+              <td class="text-center">{{ index + 1 }}</td>
               <td class="text-weight-bold">{{ item.nama_barang || '-' }}</td>
               <td>{{ item.kategori_material || '-' }}</td>
               <td class="text-right">{{ formatNumber(item.qty_surat_jalan) }} {{ item.satuan || 'PCS' }}</td>
@@ -112,16 +114,17 @@
         </q-markup-table>
       </q-card-section>
 
-      <q-card-section class="q-pt-sm">
+      <div class="clean-divider clean-divider--inset"></div>
+
+      <q-card-section class="detail-section">
         <div class="section-heading">Approval Incoming</div>
         <div class="approval-strip">
           <div v-for="approval in approvalColumns" :key="approval.role" class="approval-column">
             <div class="approval-role">{{ approval.role }}</div>
+            <div class="approval-signature-line"></div>
             <div class="approval-name">{{ approval.name }}</div>
             <div class="approval-position">{{ approval.position }}</div>
             <div class="approval-timestamp">{{ approval.timestamp }}</div>
-            <div class="approval-signature-line"></div>
-            <div class="approval-signature-note">Tanda tangan</div>
           </div>
         </div>
       </q-card-section>
@@ -238,6 +241,21 @@ const getItems = (row) => {
 
 const activeRow = computed(() => props.activeRow)
 const activeItems = computed(() => (activeRow.value ? getItems(activeRow.value) : []))
+const companyLogo = computed(
+  () => activeRow.value?.company_logo || activeRow.value?.company_logo_base64 || activeRow.value?.logo_perusahaan || null,
+)
+const companyLogoSrc = computed(() => (typeof companyLogo.value === 'string' ? companyLogo.value : companyLogo.value?.base64 || companyLogo.value?.url || ''))
+const companyLogoAlt = computed(() => (typeof companyLogo.value === 'object' && companyLogo.value?.name ? companyLogo.value.name : 'Logo perusahaan'))
+const companyName = computed(
+  () =>
+    activeRow.value?.company_name ||
+    activeRow.value?.nama_perusahaan ||
+    activeRow.value?.perusahaan ||
+    'PT AGRA',
+)
+const incomingDateLabel = computed(() =>
+  formatDateTime(activeRow.value?.tanggal_masuk || activeRow.value?.incoming_timestamp || activeRow.value?.created_at),
+)
 const getMaterial = (row) => {
   const items = getItems(row)
   if (items.length > 1) return `${items[0]?.nama_barang || '-'} +${items.length - 1} item`
@@ -308,7 +326,6 @@ const formatDateTime = (value) => {
   })
 }
 
-const activeTotalQty = computed(() => activeItems.value.reduce((sum, item) => sum + Number(item.qty_actual || 0), 0))
 const validationTimestamp = computed(
   () =>
     activeRow.value?.last_status_at ||
@@ -359,13 +376,6 @@ const approvalColumns = computed(() => {
     },
   ]
 })
-
-const detailCards = computed(() => [
-  { label: 'Total Item', value: formatNumber(activeItems.value.length), icon: 'format_list_numbered' },
-  { label: 'Total Qty', value: formatNumber(activeTotalQty.value), icon: 'bar_chart' },
-  { label: 'Status QC', value: statusLabel(getStatus(activeRow.value)), icon: 'fact_check' },
-  { label: 'Timestamp Validasi', value: formatDateTime(validationTimestamp.value), icon: 'schedule' },
-])
 
 const pdfFilename = computed(() => `Incoming-${getSuratJalan(activeRow.value).replace(/[\\/]/g, '-')}.pdf`)
 
@@ -483,159 +493,416 @@ const cards = computed(() => [
 }
 
 .detail-summary-card {
-  border-color: #dfe8df;
+  border: 1px solid #d6e2d8;
+  border-radius: 12px;
+  box-shadow: 0 10px 26px rgba(27, 94, 32, 0.08);
+  color: #18231d;
+  font-family:
+    'Times New Roman',
+    Georgia,
+    serif;
   overflow: hidden;
 }
 
 .detail-header-compact {
-  background: #fbfffc;
-  padding: 14px 16px;
+  background: #ffffff;
+  padding: 24px 28px 18px;
 }
 
-.detail-doc-number {
-  color: #1b5e20;
-  font-size: 22px;
+.document-company-row {
+  align-items: center;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.document-brand {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  min-width: 0;
+}
+
+.company-identity {
+  min-width: 0;
+}
+
+.company-name {
+  color: #123d1e;
+  font-family:
+    'Inter',
+    Arial,
+    sans-serif;
+  font-size: 20px;
   font-weight: 950;
+  letter-spacing: 0.4px;
   line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.company-subtitle {
+  color: #5f6f65;
+  font-family:
+    'Inter',
+    Arial,
+    sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  margin-top: 4px;
+}
+
+.detail-status-wrap {
+  align-items: center;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.document-title-block {
+  border-top: 2px solid #1b5e20;
+  margin-top: 18px;
+  padding-top: 15px;
+}
+
+.document-title {
+  color: #123d1e;
+  font-family:
+    'Inter',
+    Arial,
+    sans-serif;
+  font-size: 21px;
+  font-weight: 950;
+  letter-spacing: 1.4px;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.document-meta-grid {
+  border: 1px solid #c8d8ca;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  margin-top: 16px;
+}
+
+.document-meta-cell {
+  padding: 10px 12px;
+}
+
+.document-meta-cell + .document-meta-cell {
+  border-left: 1px solid #c8d8ca;
+}
+
+.document-meta-cell--right {
+  text-align: right;
+}
+
+.document-meta-label {
+  color: #5f6f65;
+  font-family:
+    'Inter',
+    Arial,
+    sans-serif;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.document-number,
+.document-date {
+  color: #14241a;
+  font-family:
+    'Inter',
+    Arial,
+    sans-serif;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.25;
+  margin-top: 5px;
+}
+
+.clean-divider {
+  background: #c8d8ca;
+  height: 1px;
+}
+
+.clean-divider--inset {
+  margin: 0 28px;
+}
+
+.detail-section {
+  padding: 18px 28px;
+}
+
+.detail-section--compact {
+  padding-top: 8px;
+}
+
+.company-logo-frame {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #c8d8ca;
+  border-radius: 4px;
+  box-shadow: none;
+  display: flex;
+  height: 72px;
+  justify-content: center;
+  overflow: hidden;
+  width: 104px;
+}
+
+.company-logo-img {
+  display: block;
+  height: 100%;
+  object-fit: contain;
+  padding: 6px;
+  width: 100%;
+}
+
+.company-logo-fallback {
+  align-items: center;
+  background: #f4f8f5;
+  color: #1b5e20;
+  display: flex;
+  font-size: 12px;
+  font-weight: 950;
+  height: 100%;
+  justify-content: center;
+  letter-spacing: 0.8px;
+  width: 100%;
 }
 
 .detail-status-badge {
   align-items: center;
-  border-radius: 999px;
+  border-radius: 3px;
   display: inline-flex;
-  font-size: 12px;
+  box-shadow: none;
+  font-family:
+    'Inter',
+    Arial,
+    sans-serif;
+  font-size: 10px;
   font-weight: 900;
-  letter-spacing: 0.3px;
-  min-height: 30px;
-  padding: 8px 12px;
+  letter-spacing: 0.45px;
+  min-height: 28px;
+  padding: 6px 10px;
   text-transform: uppercase;
 }
 
-.detail-info-grid {
+.document-info-grid {
   display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid #c8d8ca;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .detail-info-cell {
-  background: #f7fbf8;
-  border: 1px solid #dfe8df;
-  border-radius: 10px;
-  padding: 10px 12px;
+  background: #ffffff;
+  border-bottom: 1px solid #c8d8ca;
+  min-height: 66px;
+  padding: 12px 14px;
+}
+
+.detail-info-cell:nth-child(odd) {
+  border-right: 1px solid #c8d8ca;
+}
+
+.detail-info-cell:nth-last-child(-n + 2) {
+  border-bottom: 0;
 }
 
 .detail-info-label {
-  color: #667085;
+  color: #5f6f65;
+  font-family:
+    'Inter',
+    Arial,
+    sans-serif;
   font-size: 10px;
-  font-weight: 900;
-  letter-spacing: 0.4px;
+  font-weight: 850;
+  letter-spacing: 0.55px;
+  line-height: 1.2;
   text-transform: uppercase;
 }
 
 .detail-info-value {
-  color: #1f2a24;
-  font-size: 13px;
-  font-weight: 850;
-  line-height: 1.25;
-  margin-top: 4px;
+  color: #18231d;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+  margin-top: 7px;
 }
 
 .section-heading {
+  align-items: center;
   color: #1b5e20;
+  display: flex;
+  font-family:
+    'Inter',
+    Arial,
+    sans-serif;
   font-size: 12px;
   font-weight: 950;
-  letter-spacing: 0.5px;
-  margin-bottom: 10px;
+  gap: 10px;
+  letter-spacing: 0.65px;
+  margin-bottom: 14px;
   text-transform: uppercase;
 }
 
+.section-heading::after {
+  background: #dfe8df;
+  content: '';
+  flex: 1;
+  height: 1px;
+}
+
 .detail-metric-card {
-  border-color: #dfe8df;
+  border-color: rgba(27, 94, 32, 0.12);
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(27, 94, 32, 0.06);
   height: 100%;
+  min-height: 104px;
+  transition:
+    box-shadow 0.18s ease,
+    transform 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.detail-metric-card:hover {
+  border-color: rgba(27, 94, 32, 0.24);
+  box-shadow: 0 12px 26px rgba(27, 94, 32, 0.11);
+  transform: translateY(-1px);
+}
+
+.detail-metric-content {
+  align-items: stretch;
+  display: flex;
+  height: 100%;
+  padding: 16px;
+}
+
+.detail-metric-row {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  min-width: 0;
+  width: 100%;
+}
+
+.detail-metric-row .summary-icon {
+  margin-right: 0;
 }
 
 .detail-metric-value {
   color: #1b5e20;
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 950;
-  line-height: 1.2;
-  margin-top: 4px;
+  line-height: 1.15;
+  margin-top: 7px;
+  overflow-wrap: anywhere;
 }
 
 .pdf-items-table {
-  border: 1px solid #dfe8df;
-  border-radius: 10px;
+  border: 1px solid #213d29;
+  border-radius: 0;
+  box-shadow: none;
   overflow: hidden;
 }
 
 .pdf-items-table :deep(thead tr th) {
   background: #1b5e20;
+  border: 1px solid #213d29;
   color: #ffffff;
+  font-family:
+    'Inter',
+    Arial,
+    sans-serif;
   font-size: 10px;
   font-weight: 900;
-  letter-spacing: 0.4px;
-  padding: 9px 8px;
+  letter-spacing: 0.55px;
+  padding: 11px 10px;
   text-transform: uppercase;
 }
 
 .pdf-items-table :deep(tbody td) {
+  border: 1px solid #c8d8ca;
   color: #1f2a24;
-  font-size: 11.5px;
-  padding: 8px;
-  vertical-align: top;
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 10px;
+  vertical-align: middle;
+}
+
+.pdf-items-table :deep(tbody tr:nth-child(even)) {
+  background: #f8fbf8;
+}
+
+.pdf-items-table :deep(tbody tr:hover) {
+  background: #ffffff;
 }
 
 .approval-strip {
   display: grid;
-  gap: 18px;
+  gap: 28px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding-top: 10px;
 }
 
 .approval-column {
-  min-height: 118px;
-  padding: 0 2px;
+  background: #ffffff;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  min-height: 152px;
+  padding: 0;
+  text-align: center;
 }
 
 .approval-role {
   color: #1b5e20;
+  font-family:
+    'Inter',
+    Arial,
+    sans-serif;
   font-size: 10px;
   font-weight: 900;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.55px;
   line-height: 1.2;
-  margin-bottom: 2px;
+  margin-bottom: 8px;
   text-transform: uppercase;
 }
 
 .approval-name {
   color: #1f2a24;
-  font-size: 11px;
-  font-weight: 950;
-  line-height: 1.25;
-  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.3;
+  min-height: 18px;
 }
 
 .approval-position,
 .approval-timestamp,
 .approval-signature-note {
   color: #667085;
+  font-family:
+    'Inter',
+    Arial,
+    sans-serif;
   font-size: 9.5px;
   font-weight: 700;
-  line-height: 1.3;
-  margin-top: 1px;
+  line-height: 1.35;
+  margin-top: 3px;
 }
 
 .approval-signature-line {
-  border-bottom: 1px solid #8d9b90;
-  height: 22px;
-  margin-top: 10px;
-}
-
-.approval-signature-note {
-  color: #8b9499;
-  font-size: 9px;
-  letter-spacing: 0.2px;
-  margin-top: 4px;
-  text-transform: uppercase;
+  align-items: flex-end;
+  border-bottom: 1px solid #18231d;
+  display: flex;
+  flex: 1;
+  margin: 22px auto 10px;
+  min-height: 54px;
+  width: min(180px, 100%);
 }
 
 .summary-card {
@@ -732,12 +999,39 @@ const cards = computed(() => [
 }
 
 @media (max-width: 1023px) {
-  .detail-info-grid {
+  .detail-header-compact {
+    padding: 20px;
+  }
+
+  .document-company-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .detail-status-wrap {
+    justify-content: flex-start;
+  }
+
+  .detail-section {
+    padding: 18px 20px;
+  }
+
+  .clean-divider--inset {
+    margin-left: 20px;
+    margin-right: 20px;
+  }
+
+  .document-info-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .approval-strip {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .approval-column {
+    min-height: 164px;
+    padding: 13px;
   }
 
   .summary-value {
@@ -746,8 +1040,63 @@ const cards = computed(() => [
 }
 
 @media (max-width: 599px) {
-  .detail-info-grid {
+  .document-brand {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .document-meta-grid {
     grid-template-columns: 1fr;
+  }
+
+  .document-meta-cell + .document-meta-cell {
+    border-left: 0;
+    border-top: 1px solid #c8d8ca;
+  }
+
+  .document-meta-cell--right {
+    text-align: left;
+  }
+
+  .document-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-info-cell,
+  .detail-info-cell:nth-child(odd),
+  .detail-info-cell:nth-last-child(-n + 2) {
+    border-bottom: 1px solid #c8d8ca;
+    border-right: 0;
+  }
+
+  .detail-info-cell:last-child {
+    border-bottom: 0;
+  }
+
+  .approval-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .company-logo-frame {
+    width: 112px;
+  }
+}
+
+@media print {
+  .detail-summary-card {
+    border-color: #1f3325;
+    box-shadow: none;
+  }
+
+  .detail-header-compact,
+  .detail-section {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .pdf-items-table :deep(thead tr th) {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }
 </style>
