@@ -6,7 +6,8 @@
       <!-- ========================================== -->
       <div class="row q-col-gutter-lg q-mb-lg" v-if="!showCamera">
         <!-- WIDGET 1: PROFIL KARYAWAN -->
-        <div class="col-12 col-md-7 col-lg-8">
+        <!-- Ditambahkan class 'hide-on-mobile' agar HANYA hilang di HP -->
+        <div class="col-12 col-md-7 col-lg-8 hide-on-mobile">
           <q-card flat class="bento-card bg-white full-height relative-position overflow-hidden">
             <div class="decor-circle-1"></div>
             <q-card-section
@@ -14,7 +15,6 @@
             >
               <div class="row items-center">
                 <div class="col-auto q-mr-lg q-mb-sm relative-position">
-                  <!-- BUG FIXED: Foto Profil Terintegrasi Dinamis -->
                   <q-avatar
                     size="84px"
                     :color="getRandomColor(userData.nama)"
@@ -37,7 +37,6 @@
                   >
                     Selamat Datang Kembali,
                   </div>
-                  <!-- Nama otomatis turun baris jika kepanjangan -->
                   <div
                     class="text-h5 text-md-h4 text-weight-bolder text-blue-grey-10 text-capitalize line-height-tight"
                     style="word-wrap: break-word; word-break: break-word"
@@ -104,9 +103,11 @@
       <!-- ========================================== -->
       <!-- BAGIAN TENGAH: RADAR LOKASI & ACTION       -->
       <!-- ========================================== -->
-      <div class="row q-col-gutter-lg q-mb-lg" v-if="!showCamera">
+      <!-- Diberikan class 'flex' untuk memastikan order CSS berfungsi optimal -->
+      <div class="row q-col-gutter-lg q-mb-lg flex" v-if="!showCamera">
         <!-- WIDGET 3: RADAR GPS -->
-        <div class="col-12 col-md-6">
+        <!-- Ditambahkan class responsive order: mobile di bawah (2), desktop di kiri (1) -->
+        <div class="col-12 col-md-6 mobile-order-2 desktop-order-1">
           <q-card flat class="bento-card bg-white full-height">
             <q-card-section class="q-pa-lg">
               <div class="row items-center q-mb-lg">
@@ -183,7 +184,8 @@
         </div>
 
         <!-- WIDGET 4: TOMBOL AKSI -->
-        <div class="col-12 col-md-6">
+        <!-- Ditambahkan class responsive order: mobile di atas (1), desktop di kanan (2) -->
+        <div class="col-12 col-md-6 mobile-order-1 desktop-order-2">
           <q-card flat class="bento-card bg-white full-height flex column justify-center">
             <q-card-section class="q-pa-lg">
               <div class="row items-center q-mb-lg">
@@ -361,17 +363,34 @@
       </div>
 
       <!-- ========================================== -->
-      <!-- TAMPILAN KAMERA (BENTO FULL WIDTH)           -->
+      <!-- TAMPILAN KAMERA (RESPONSIVE FIX)           -->
       <!-- ========================================== -->
       <q-slide-transition>
         <div v-if="showCamera" class="row justify-center">
           <div class="col-12 col-xl-10">
-            <q-card flat class="bento-card bg-white overflow-hidden">
-              <div class="row no-wrap">
+            <q-card flat class="bento-card bg-white overflow-hidden shadow-soft">
+              <!-- Header -->
+              <div
+                class="bg-blue-grey-9 text-white row items-center q-pa-md z-top relative-position"
+              >
+                <q-btn
+                  icon="arrow_back"
+                  flat
+                  round
+                  dense
+                  @click="stopCamera"
+                  class="bg-blue-grey-8 transition-smooth hover-scale"
+                />
+                <div class="text-subtitle1 text-weight-bold q-ml-md letter-spacing-1">
+                  VERIFIKASI ABSENSI
+                </div>
+              </div>
+
+              <div class="row">
                 <!-- Kiri: Kamera Scanner Sci-Fi -->
                 <div
                   class="col-12 col-md-7 bg-black relative-position flex flex-center"
-                  style="min-height: 500px"
+                  style="min-height: 350px"
                 >
                   <video ref="video" autoplay playsinline class="video-stream"></video>
                   <canvas ref="canvas" class="hidden"></canvas>
@@ -384,7 +403,7 @@
                       <div class="corner b-r"></div>
                       <div class="scan-laser"></div>
                     </div>
-                    <div class="absolute-bottom text-center q-pb-xl">
+                    <div class="absolute-bottom text-center q-pb-md q-pb-lg-xl">
                       <q-chip
                         color="teal-9"
                         text-color="teal-2"
@@ -403,97 +422,86 @@
                 </div>
 
                 <!-- Kanan: Panel Konfirmasi -->
-                <div class="col-12 col-md-5 column">
-                  <q-card-section class="bg-blue-grey-9 text-white row items-center q-pa-md">
-                    <q-btn
-                      icon="arrow_back"
-                      flat
-                      round
-                      dense
-                      @click="stopCamera"
-                      class="bg-blue-grey-8"
-                    />
-                    <div class="text-subtitle1 text-weight-bold q-ml-md letter-spacing-1">
-                      VERIFIKASI ABSENSI
+                <div
+                  class="col-12 col-md-5 q-pa-lg q-pa-md-xl bg-grey-1 flex column justify-center"
+                >
+                  <div class="bg-white q-pa-lg rounded-16 border-grey shadow-sm q-mb-lg q-mb-md-xl">
+                    <div
+                      class="text-caption text-blue-grey-5 text-weight-bold uppercase letter-spacing-1 q-mb-md"
+                    >
+                      Informasi Check-In
                     </div>
-                  </q-card-section>
 
-                  <q-card-section class="col flex column justify-center q-pa-xl bg-grey-1">
-                    <div class="bg-white q-pa-lg rounded-16 border-grey shadow-sm q-mb-xl">
+                    <div class="row items-center q-mb-md">
+                      <q-avatar
+                        size="40px"
+                        color="blue-1"
+                        text-color="primary"
+                        icon="person"
+                        class="q-mr-md"
+                      />
                       <div
-                        class="text-caption text-blue-grey-5 text-weight-bold uppercase letter-spacing-1 q-mb-md"
+                        class="text-weight-bold text-blue-grey-10 text-subtitle1"
+                        style="word-wrap: break-word"
                       >
-                        Informasi Check-In
+                        {{ userData.nama }}
                       </div>
+                    </div>
 
-                      <div class="row items-center q-mb-md">
-                        <q-avatar
-                          size="40px"
-                          color="blue-1"
-                          text-color="primary"
-                          icon="person"
-                          class="q-mr-md"
-                        />
-                        <div class="text-weight-bold text-blue-grey-10 text-subtitle1">
-                          {{ userData.nama }}
+                    <div class="row items-start q-mb-md">
+                      <q-avatar
+                        size="40px"
+                        color="teal-1"
+                        text-color="teal-7"
+                        icon="place"
+                        class="q-mr-md"
+                      />
+                      <div class="col">
+                        <div class="text-weight-bold text-blue-grey-9 text-subtitle2">
+                          {{ locationData.matchedLocationName }}
+                        </div>
+                        <div class="text-caption text-blue-grey-6 line-height-tight q-mt-xs">
+                          {{ locationData.address }}
                         </div>
                       </div>
-
-                      <div class="row items-start q-mb-md">
-                        <q-avatar
-                          size="40px"
-                          color="teal-1"
-                          text-color="teal-7"
-                          icon="place"
-                          class="q-mr-md"
-                        />
-                        <div>
-                          <div class="text-weight-bold text-blue-grey-9 text-subtitle2">
-                            {{ locationData.matchedLocationName }}
-                          </div>
-                          <div class="text-caption text-blue-grey-6 line-height-tight q-mt-xs">
-                            {{ locationData.address }}
-                          </div>
-                        </div>
-                      </div>
-
-                      <q-badge
-                        color="blue-grey-8"
-                        class="q-px-sm q-py-xs text-weight-bold rounded-6 font-mono full-width justify-center"
-                      >
-                        LAT: {{ locationData.lat }} | LNG: {{ locationData.lng }}
-                      </q-badge>
                     </div>
 
-                    <div v-if="!capturedImage">
-                      <q-btn
-                        unelevated
-                        color="primary"
-                        icon="camera"
-                        label="AMBIL FOTO WAJAH"
-                        class="full-width rounded-12 q-py-md text-weight-bolder shadow-soft-primary text-subtitle1 transition-smooth"
-                        @click="takePhoto"
-                      />
-                    </div>
+                    <q-badge
+                      color="blue-grey-8"
+                      class="q-px-sm q-py-xs text-weight-bold rounded-6 font-mono full-width justify-center"
+                    >
+                      LAT: {{ locationData.lat }} | LNG: {{ locationData.lng }}
+                    </q-badge>
+                  </div>
 
-                    <div v-else class="column q-gutter-y-md">
-                      <q-btn
-                        unelevated
-                        color="teal-6"
-                        label="KONFIRMASI & KIRIM"
-                        class="full-width rounded-12 q-py-md text-weight-bolder shadow-glow-positive transition-smooth text-subtitle1"
-                        icon="send"
-                        @click="saveAbsensi"
-                      />
-                      <q-btn
-                        outline
-                        color="blue-grey-6"
-                        label="ULANGI FOTO"
-                        class="full-width rounded-12 q-py-sm text-weight-bold bg-white"
-                        @click="capturedImage = null"
-                      />
-                    </div>
-                  </q-card-section>
+                  <div v-if="!capturedImage">
+                    <q-btn
+                      unelevated
+                      color="primary"
+                      icon="camera"
+                      label="AMBIL FOTO WAJAH"
+                      class="full-width rounded-12 q-py-md text-weight-bolder shadow-soft-primary text-subtitle1 transition-smooth"
+                      @click="takePhoto"
+                    />
+                  </div>
+
+                  <div v-else class="column q-gutter-y-md">
+                    <q-btn
+                      unelevated
+                      color="teal-6"
+                      label="KONFIRMASI & KIRIM"
+                      class="full-width rounded-12 q-py-md text-weight-bolder shadow-glow-positive transition-smooth text-subtitle1"
+                      icon="send"
+                      @click="saveAbsensi"
+                    />
+                    <q-btn
+                      outline
+                      color="blue-grey-6"
+                      label="ULANGI FOTO"
+                      class="full-width rounded-12 q-py-sm text-weight-bold bg-white transition-smooth hover-scale"
+                      @click="capturedImage = null"
+                    />
+                  </div>
                 </div>
               </div>
             </q-card>
@@ -772,6 +780,7 @@ onMounted(() => {
     detectLocation()
   })
 
+  // Perbarui deteksi tiap 30 detik agar lebih responsif
   locationTimer = setInterval(detectLocation, 30000)
 
   // 1. SINKRON USER LOCALSTORAGE & AMBIL FOTO
@@ -1239,5 +1248,30 @@ onUnmounted(() => {
 }
 .bg-opacity-80 {
   background: rgba(0, 77, 64, 0.8) !important;
+}
+
+/* HIDE ON MOBILE: Hanya Tampil di Layar Desktop/Laptop (min-width: 1024px) */
+@media (max-width: 1023px) {
+  .hide-on-mobile {
+    display: none !important;
+  }
+}
+
+/* RESPONSIVE ORDERING UNTUK MOBILE SWAP WIDGET */
+@media (max-width: 1023px) {
+  .mobile-order-1 {
+    order: 1 !important;
+  }
+  .mobile-order-2 {
+    order: 2 !important;
+  }
+}
+@media (min-width: 1024px) {
+  .desktop-order-1 {
+    order: 1 !important;
+  }
+  .desktop-order-2 {
+    order: 2 !important;
+  }
 }
 </style>
