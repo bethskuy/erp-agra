@@ -296,13 +296,11 @@
             <q-td key="status" class="text-center">
               <q-chip
                 dense
-                :color="isOverdue(props.row) ? 'red-2' : getStatusColor(props.row.status).bg"
-                :text-color="
-                  isOverdue(props.row) ? 'red-10' : getStatusColor(props.row.status).text
-                "
+                :color="isOverdue(props.row) ? 'red-2' : getDisplayStatus(props.row).bg"
+                :text-color="isOverdue(props.row) ? 'red-10' : getDisplayStatus(props.row).text"
                 class="text-weight-bold font-10 uppercase q-ma-none shadow-sm q-px-sm"
               >
-                {{ isOverdue(props.row) ? 'JATUH TEMPO' : props.row.status }}
+                {{ isOverdue(props.row) ? 'JATUH TEMPO' : getDisplayStatus(props.row).label }}
               </q-chip>
             </q-td>
 
@@ -710,7 +708,7 @@
                       class="bg-indigo-1 q-py-sm text-indigo-10 text-weight-bold flex items-center border-bottom"
                     >
                       <q-icon name="account_balance" class="q-mr-xs" size="sm" /> 4. INSTRUKSI
-                      PEMBAYARAN & STATUS
+                      PEMBAYARAN
                     </q-card-section>
                     <q-card-section class="q-pa-lg">
                       <div class="row q-col-gutter-md q-mb-md">
@@ -753,30 +751,6 @@
                             placeholder="Misal: Pembayaran harap ditransfer secara full amount."
                           />
                         </div>
-                      </div>
-                      <q-separator class="q-my-md border-subtle" />
-                      <div>
-                        <div class="label-req q-mb-xs">Status Invoice</div>
-                        <q-select
-                          outlined
-                          dense
-                          v-model="form.status"
-                          :options="['Draft', 'Terkirim', 'Dibayar Sebagian', 'Lunas']"
-                          bg-color="white"
-                          class="text-weight-bold"
-                          style="max-width: 300px"
-                        >
-                          <template v-slot:selected>
-                            <q-chip
-                              dense
-                              :color="getStatusColor(form.status).bg"
-                              :text-color="getStatusColor(form.status).text"
-                              class="text-weight-bold q-ma-none uppercase font-10"
-                            >
-                              {{ form.status }}
-                            </q-chip>
-                          </template>
-                        </q-select>
                       </div>
                     </q-card-section>
                   </q-card>
@@ -1090,8 +1064,38 @@
               </div>
 
               <div class="col-5 text-center flex column justify-between items-center pt-lg">
-                <div class="text-weight-bold q-mb-xl" style="font-size: 11.5px">Hormat Kami,</div>
-                <div style="height: 50px"></div>
+                <div class="text-weight-bold q-mb-sm" style="font-size: 11.5px">Hormat Kami,</div>
+
+                <!-- TANDA TANGAN DARI APPROVAL -->
+                <div
+                  class="final-sign-space flex flex-center"
+                  style="
+                    height: 60px;
+                    position: relative;
+                    width: 100%;
+                    margin-top: -30px;
+                    margin-bottom: 10px;
+                  "
+                >
+                  <img
+                    v-if="selectedInv.signatureUrl"
+                    :src="selectedInv.signatureUrl"
+                    style="
+                      max-height: 70px;
+                      max-width: 200px;
+                      object-fit: contain;
+                      mix-blend-mode: multiply;
+                    "
+                  />
+                  <div
+                    v-else
+                    style="height: 60px"
+                    class="flex flex-center text-grey-4 italic font-8"
+                  >
+                    -
+                  </div>
+                </div>
+
                 <div
                   class="text-weight-bold uppercase q-px-xl q-pb-xs"
                   style="color: #2b579a; border-bottom: 1px solid #2b579a; font-size: 11.5px"
@@ -1430,14 +1434,19 @@ const simpanInvoice = async () => {
       rek_nomor: form.value.rek_nomor,
       rek_nama: form.value.rek_nama,
       keterangan: form.value.keterangan,
-      status: form.value.status,
+      status: form.value.status || 'Draft',
       updatedAt: serverTimestamp(),
     }
 
     if (isEditMode.value) {
+      if (form.value.approval_status === 'Rejected') {
+        payload.approval_status = 'Pending'
+      }
       await updateDoc(doc(db, 'finance_invoice_customer', form.value.id), payload)
     } else {
       payload.createdAt = serverTimestamp()
+      payload.approval_status = 'Pending'
+      payload.status = 'Draft'
       await addDoc(collection(db, 'finance_invoice_customer'), payload)
     }
 
@@ -1494,6 +1503,21 @@ const getStatusColor = (status) => {
     default:
       return { bg: 'grey-3', text: 'grey-8' }
   }
+}
+
+const getDisplayStatus = (row) => {
+  // Jika invoice terkirim dan sudah mendapatkan Approval, tampilkan sebagai "Approved"
+  if (row.status === 'Terkirim' && row.approval_status === 'Approved') {
+    return { label: 'Approved', bg: 'green-2', text: 'green-9' }
+  }
+  // Jika ditolak, tampilkan label Ditolak/Rejected
+  if (row.status === 'Draft' && row.approval_status === 'Rejected') {
+    return { label: 'Rejected', bg: 'red-2', text: 'red-9' }
+  }
+
+  // Jika tidak, tampilkan status asli
+  const base = getStatusColor(row.status)
+  return { label: row.status, bg: base.bg, text: base.text }
 }
 
 // Algoritma Terbilang Rupiah

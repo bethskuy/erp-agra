@@ -16,13 +16,14 @@
           />
           <div>
             <div class="text-h4 text-weight-bolder text-indigo-10 leading-tight">
-              Monitoring Tagihan
+              Monitoring Keuangan Proyek
               <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
-                >Account Payable Dashboard</span
+                >Project Financial Dashboard</span
               >
             </div>
             <div class="text-subtitle1 text-grey-7 q-mt-sm">
-              Pantau seluruh invoice masuk, status pembayaran, dan sisa hutang (outstanding) vendor.
+              Pantau seluruh nilai kontrak proyek, status pekerjaan, dan progress penagihan dari
+              Master Proyek.
             </div>
           </div>
         </div>
@@ -33,7 +34,7 @@
         </div>
         <q-badge color="positive" class="q-px-md q-py-xs text-weight-bold shadow-2 rounded-12">
           <q-icon name="cloud_done" size="xs" class="q-mr-sm" />
-          REAL-TIME CONNECTED
+          MASTER PROYEK CONNECTED
         </q-badge>
       </div>
     </div>
@@ -42,38 +43,38 @@
          SUMMARY CARDS / KPI FINANCE
          ===================================================================================== -->
     <div class="row q-col-gutter-lg q-mb-lg animate-fade-up no-print">
-      <!-- Tagihan Aktif -->
+      <!-- Proyek Aktif -->
       <div class="col-12 col-sm-6 col-md-3">
         <q-card flat class="rounded-20 border-subtle bg-white transition-all hover-shadow">
           <q-card-section class="row items-center no-wrap q-pa-md">
             <div class="col">
               <div class="text-overline text-grey-6 leading-none text-weight-bold tracking-widest">
-                TAGIHAN AKTIF
+                PROYEK AKTIF
               </div>
               <div class="text-h4 text-weight-bolder q-mt-xs text-indigo-10">
-                {{ tagihanAktif.length }} <span class="text-subtitle1 text-weight-medium">INV</span>
+                {{ tagihanAktif.length }} <span class="text-subtitle1 text-weight-medium">PRJ</span>
               </div>
             </div>
             <div
               class="bg-indigo-1 q-pa-md rounded-borders"
               style="min-width: 56px; text-align: center"
             >
-              <q-icon name="receipt_long" color="indigo-10" size="28px" />
+              <q-icon name="foundation" color="indigo-10" size="28px" />
             </div>
           </q-card-section>
         </q-card>
       </div>
 
-      <!-- Tagihan Lunas -->
+      <!-- Proyek Selesai/Lunas -->
       <div class="col-12 col-sm-6 col-md-3">
         <q-card flat class="rounded-20 border-subtle bg-white transition-all hover-shadow">
           <q-card-section class="row items-center no-wrap q-pa-md">
             <div class="col">
               <div class="text-overline text-grey-6 leading-none text-weight-bold tracking-widest">
-                INVOICE LUNAS
+                PROYEK LUNAS
               </div>
               <div class="text-h4 text-weight-bolder q-mt-xs text-positive">
-                {{ tagihanLunas.length }} <span class="text-subtitle1 text-weight-medium">INV</span>
+                {{ tagihanLunas.length }} <span class="text-subtitle1 text-weight-medium">PRJ</span>
               </div>
             </div>
             <div
@@ -86,7 +87,7 @@
         </q-card>
       </div>
 
-      <!-- Tagihan Jatuh Tempo -->
+      <!-- Proyek Jatuh Tempo -->
       <div class="col-12 col-sm-6 col-md-3">
         <q-card flat class="rounded-20 border-subtle bg-white transition-all hover-shadow">
           <q-card-section class="row items-center no-wrap q-pa-md">
@@ -96,7 +97,7 @@
               </div>
               <div class="text-h4 text-weight-bolder q-mt-xs text-negative">
                 {{ tagihanOverdue.length }}
-                <span class="text-subtitle1 text-weight-medium">INV</span>
+                <span class="text-subtitle1 text-weight-medium">PRJ</span>
               </div>
             </div>
             <div
@@ -109,7 +110,7 @@
         </q-card>
       </div>
 
-      <!-- Sisa Hutang Keseluruhan -->
+      <!-- Total Nilai Proyek Keseluruhan -->
       <div class="col-12 col-sm-6 col-md-3">
         <q-card
           flat
@@ -120,7 +121,7 @@
               <div
                 class="text-overline text-indigo-2 leading-none text-weight-bold tracking-widest"
               >
-                TOTAL OUTSTANDING
+                TOTAL VALUASI
               </div>
               <div class="text-h5 text-weight-bolder q-mt-xs">
                 Rp {{ formatCompact(totalOutstanding) }}
@@ -149,7 +150,7 @@
               outlined
               dense
               rounded
-              placeholder="Cari No. Invoice, Supplier, atau Proyek..."
+              placeholder="Cari Nama Proyek, SPK, atau Klien..."
               bg-color="white"
               class="search-input"
             >
@@ -170,7 +171,7 @@
               class="bg-grey-1 text-weight-bold"
               :options="[
                 { label: 'Semua', value: 'ALL' },
-                { label: 'Belum Lunas', value: 'OUTSTANDING' },
+                { label: 'Proyek Aktif', value: 'AKTIF' },
                 { label: 'Jatuh Tempo', value: 'OVERDUE' },
                 { label: 'Lunas', value: 'LUNAS' },
               ]"
@@ -181,7 +182,7 @@
     </q-card>
 
     <!-- =====================================================================================
-         MAIN TABLE DATA
+         MAIN TABLE DATA (MURNI DATA PROYEK)
          ===================================================================================== -->
     <q-card
       flat
@@ -217,54 +218,70 @@
             class="hover-bg transition-all cursor-pointer"
             @click="openDetail(props.row)"
           >
-            <q-td key="invoice">
-              <div class="text-weight-bold text-indigo-10 text-subtitle2 leading-none q-mb-xs">
-                {{ props.row.nomor_invoice }}
-              </div>
-              <div class="text-caption text-blue-grey-8 font-10 uppercase text-weight-bold">
-                {{ props.row.supplier_nama }}
-              </div>
-            </q-td>
-
+            <!-- IDENTITAS PROYEK -->
             <q-td key="proyek">
-              <div class="text-weight-bold text-blue-grey-9 uppercase font-11">
-                {{ props.row.proyek_nama || 'NON PROYEK' }}
-              </div>
-              <div class="text-caption text-grey-6 font-10" v-if="props.row.po_nomor">
-                Ref PO: {{ props.row.po_nomor }}
+              <div class="row items-center no-wrap">
+                <q-avatar
+                  size="36px"
+                  color="indigo-1"
+                  text-color="indigo-10"
+                  icon="foundation"
+                  class="q-mr-md shadow-sm rounded-12"
+                />
+                <div>
+                  <div
+                    class="text-weight-bold text-indigo-10 text-subtitle2 leading-none q-mb-xs uppercase"
+                  >
+                    {{ props.row.nama_proyek }}
+                  </div>
+                  <div class="text-caption text-blue-grey-8 font-10 uppercase text-weight-bold">
+                    KLIEN: {{ props.row.konsumen }}
+                  </div>
+                </div>
               </div>
             </q-td>
 
+            <!-- REFERENSI SPK -->
+            <q-td key="spk">
+              <div class="text-weight-bold text-blue-grey-9 uppercase font-11">
+                {{ props.row.nomor_spk }}
+              </div>
+            </q-td>
+
+            <!-- TIMELINE -->
             <q-td key="timeline">
               <div class="text-caption text-grey-8 font-11">
-                Tgl:
-                <span class="text-weight-bold">{{
-                  formatDateIndo(props.row.tanggal_invoice)
-                }}</span>
+                Tgl Mulai:
+                <span class="text-weight-bold">{{ formatDateIndo(props.row.tgl_mulai) }}</span>
               </div>
               <div
                 class="text-caption font-11"
-                :class="isOverdue(props.row) ? 'text-negative text-weight-bold' : 'text-grey-8'"
+                :class="
+                  props.row.status === 'Jatuh Tempo'
+                    ? 'text-negative text-weight-bold'
+                    : 'text-grey-8'
+                "
               >
                 Tempo:
                 <span class="text-weight-bold">{{ formatDateIndo(props.row.jatuh_tempo) }}</span>
               </div>
             </q-td>
 
+            <!-- NILAI PROYEK (GRAND TOTAL) -->
             <q-td key="nominal" class="text-right">
               <div class="text-weight-bolder text-indigo-10 text-subtitle2">
-                Rp {{ (props.row.grand_total || 0).toLocaleString() }}
+                Rp {{ (props.row.grand_total || 0).toLocaleString('id-ID') }}
               </div>
-              <div class="text-caption text-grey-6 font-10">Total Tagihan</div>
+              <div class="text-caption text-grey-6 font-10">Total Valuasi</div>
             </q-td>
 
-            <!-- PROGRESS BAR PEMBAYARAN -->
+            <!-- PROGRESS PEMBAYARAN -->
             <q-td key="progress" style="width: 250px">
               <div class="full-width">
                 <div class="row items-center justify-between q-mb-xs font-10">
                   <span class="text-weight-bold text-primary">Telah Dibayar</span>
                   <span class="text-weight-bolder text-indigo-10"
-                    >Rp {{ (props.row.total_dibayar || 0).toLocaleString() }}</span
+                    >Rp {{ (props.row.total_dibayar || 0).toLocaleString('id-ID') }}</span
                   >
                 </div>
                 <q-linear-progress
@@ -284,25 +301,27 @@
                 >
                   Sisa: Rp
                   {{
-                    ((props.row.grand_total || 0) - (props.row.total_dibayar || 0)).toLocaleString()
+                    ((props.row.grand_total || 0) - (props.row.total_dibayar || 0)).toLocaleString(
+                      'id-ID',
+                    )
                   }}
                 </div>
               </div>
             </q-td>
 
+            <!-- STATUS -->
             <q-td key="status" class="text-center">
               <q-chip
                 dense
-                :color="isOverdue(props.row) ? 'red-2' : getStatusColor(props.row.status).bg"
-                :text-color="
-                  isOverdue(props.row) ? 'red-10' : getStatusColor(props.row.status).text
-                "
+                :color="getStatusColor(props.row.status).bg"
+                :text-color="getStatusColor(props.row.status).text"
                 class="text-weight-bold font-10 uppercase q-ma-none shadow-sm q-px-sm"
               >
-                {{ isOverdue(props.row) ? 'OVERDUE' : props.row.status }}
+                {{ props.row.status }}
               </q-chip>
             </q-td>
 
+            <!-- AKSI DETAIL -->
             <q-td key="aksi" class="text-center" @click.stop>
               <q-btn
                 flat
@@ -312,7 +331,7 @@
                 size="sm"
                 @click="openDetail(props.row)"
               >
-                <q-tooltip>Lihat Detail Tagihan</q-tooltip>
+                <q-tooltip>Lihat Rincian Keuangan</q-tooltip>
               </q-btn>
             </q-td>
           </q-tr>
@@ -320,17 +339,15 @@
 
         <template v-slot:no-data>
           <div class="full-width row flex-center q-pa-xl text-grey-5">
-            <q-icon name="receipt_long" size="64px" class="q-mb-md" />
-            <div class="text-h6 full-width text-center">
-              Bagus! Tidak ada data tagihan yang sesuai.
-            </div>
+            <q-icon name="foundation" size="64px" class="q-mb-md" />
+            <div class="text-h6 full-width text-center">Belum ada data proyek di Master Data.</div>
           </div>
         </template>
       </q-table>
     </q-card>
 
     <!-- =====================================================================================
-         DIALOG DETAIL TAGIHAN (FULLSCREEN)
+         DIALOG DETAIL KEUANGAN PROYEK (FULLSCREEN WITH PDF PREVIEW)
          ===================================================================================== -->
     <q-dialog
       v-model="showDetail"
@@ -344,9 +361,9 @@
           <q-btn flat round dense icon="arrow_back" v-close-popup />
           <q-toolbar-title>
             <div class="text-weight-bold uppercase tracking-widest font-11">
-              Rincian Dokumen Tagihan
+              Rincian Keuangan Proyek
             </div>
-            <div class="text-caption opacity-70">Invoice: {{ selectedTagihan?.nomor_invoice }}</div>
+            <div class="text-caption opacity-70">Proyek: {{ selectedProject?.nama_proyek }}</div>
           </q-toolbar-title>
 
           <q-btn
@@ -364,37 +381,24 @@
           <div class="row justify-center">
             <div class="col-12 col-xl-10">
               <!-- PDF TARGET CONTAINER -->
-              <div id="invoice-pdf-target" class="pdf-container shadow-24" v-if="selectedTagihan">
+              <div id="invoice-pdf-target" class="pdf-container shadow-24" v-if="selectedProject">
                 <div class="row justify-between items-end q-mb-lg border-bottom-subtle q-pb-md">
                   <div>
                     <div class="text-h3 text-weight-black text-indigo-10 tracking-widest uppercase">
-                      DETAIL TAGIHAN
+                      DETAIL KEUANGAN
                     </div>
                     <div class="text-subtitle1 text-grey-7 font-bold q-mt-xs">
-                      Vendor: {{ selectedTagihan.supplier_nama }}
+                      Klien: {{ selectedProject.konsumen }}
                     </div>
                   </div>
                   <div class="text-right">
                     <q-chip
-                      :color="
-                        isOverdue(selectedTagihan)
-                          ? 'red-2'
-                          : getStatusColor(selectedTagihan.status).bg
-                      "
-                      :text-color="
-                        isOverdue(selectedTagihan)
-                          ? 'red-10'
-                          : getStatusColor(selectedTagihan.status).text
-                      "
+                      :color="getStatusColor(selectedProject.status).bg"
+                      :text-color="getStatusColor(selectedProject.status).text"
                       class="text-weight-bold font-11 uppercase shadow-sm"
                       size="md"
                     >
-                      STATUS:
-                      {{
-                        isOverdue(selectedTagihan)
-                          ? 'JATUH TEMPO (OVERDUE)'
-                          : selectedTagihan.status
-                      }}
+                      STATUS: {{ selectedProject.status }}
                     </q-chip>
                   </div>
                 </div>
@@ -403,37 +407,43 @@
                   <!-- INFO KIRI -->
                   <div class="col-12 col-md-6">
                     <div class="text-overline text-grey-6 text-bold tracking-widest q-mb-xs">
-                      INFORMASI DOKUMEN
+                      INFORMASI PROYEK & KONTRAK
                     </div>
                     <table class="info-table full-width">
                       <tr>
-                        <td width="130" class="text-grey-8">No. Invoice</td>
-                        <td class="text-weight-bold text-indigo-10">
-                          : {{ selectedTagihan.nomor_invoice }}
+                        <td width="130" class="text-grey-8">Nama Proyek</td>
+                        <td class="text-weight-bold text-indigo-10 uppercase">
+                          : {{ selectedProject.nama_proyek }}
                         </td>
                       </tr>
                       <tr>
-                        <td class="text-grey-8">Tanggal Terbit</td>
-                        <td class="text-weight-bold">
-                          : {{ formatDateIndo(selectedReq?.tanggal_invoice) }}
+                        <td class="text-grey-8">Nomor SPK</td>
+                        <td class="text-weight-bold uppercase">
+                          : {{ selectedProject.nomor_spk }}
                         </td>
                       </tr>
                       <tr>
-                        <td class="text-grey-8">Jatuh Tempo</td>
-                        <td class="text-weight-bold text-negative">
-                          : {{ formatDateIndo(selectedReq?.jatuh_tempo) }}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td class="text-grey-8">Referensi PO</td>
-                        <td class="text-weight-bold">
-                          : {{ selectedTagihan.po_nomor || 'Tanpa PO' }}
+                        <td colspan="2">
+                          <div style="border-bottom: 1px solid #e0e0e0; margin: 12px 0"></div>
                         </td>
                       </tr>
                       <tr>
                         <td class="text-grey-8">Lokasi Proyek</td>
-                        <td class="text-weight-bold uppercase">
-                          : {{ selectedTagihan.proyek_nama || 'Non-Proyek' }}
+                        <td class="text-weight-bold">: {{ selectedProject.alamat }}</td>
+                      </tr>
+                      <tr>
+                        <td class="text-grey-8">Mulai Proyek</td>
+                        <td class="text-weight-bold">
+                          : {{ formatDateIndo(selectedProject.tgl_mulai) }}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="text-grey-8">Target Selesai</td>
+                        <td
+                          class="text-weight-bold"
+                          :class="selectedProject.status === 'Jatuh Tempo' ? 'text-negative' : ''"
+                        >
+                          : {{ formatDateIndo(selectedProject.jatuh_tempo) }}
                         </td>
                       </tr>
                     </table>
@@ -446,32 +456,40 @@
                       class="bg-indigo-1 rounded-12 border-indigo-thin h-full flex column justify-center q-pa-lg"
                     >
                       <div class="text-overline text-indigo-10 text-bold tracking-widest q-mb-sm">
-                        SUMMARY HUTANG (IDR)
+                        SUMMARY KEUANGAN (IDR)
                       </div>
                       <div class="row justify-between items-center q-mb-xs">
-                        <span class="text-grey-8">Total Nilai Tagihan</span>
+                        <span class="text-grey-8">Total Nilai Kontrak</span>
                         <span class="text-weight-bold text-subtitle1"
-                          >Rp {{ (selectedTagihan.grand_total || 0).toLocaleString() }}</span
+                          >Rp {{ (selectedProject.grand_total || 0).toLocaleString('id-ID') }}</span
                         >
                       </div>
                       <div class="row justify-between items-center q-mb-md">
-                        <span class="text-grey-8">Telah Dibayar (Paid)</span>
+                        <span class="text-grey-8">Telah Dibayar (Termin Masuk)</span>
                         <span class="text-weight-bold text-positive"
-                          >- Rp {{ (selectedTagihan.total_dibayar || 0).toLocaleString() }}</span
+                          >Rp
+                          {{ (selectedProject.total_dibayar || 0).toLocaleString('id-ID') }}</span
                         >
                       </div>
                       <q-separator class="bg-indigo-2 q-mb-sm" />
                       <div class="row justify-between items-center">
                         <span class="text-indigo-10 text-weight-bold uppercase"
-                          >Sisa Outstanding</span
+                          >Sisa Piutang (Sisa Tagihan)</span
                         >
-                        <span class="text-weight-black text-h5 text-negative">
+                        <span
+                          class="text-weight-black text-h5"
+                          :class="
+                            selectedProject.grand_total - selectedProject.total_dibayar > 0
+                              ? 'text-negative'
+                              : 'text-positive'
+                          "
+                        >
                           Rp
                           {{
                             (
-                              (selectedTagihan.grand_total || 0) -
-                              (selectedTagihan.total_dibayar || 0)
-                            ).toLocaleString()
+                              (selectedProject.grand_total || 0) -
+                              (selectedProject.total_dibayar || 0)
+                            ).toLocaleString('id-ID')
                           }}
                         </span>
                       </div>
@@ -479,96 +497,60 @@
                   </div>
                 </div>
 
-                <!-- TAX & NOMINAL BREAKDOWN -->
+                <!-- NOMINAL BREAKDOWN (BILL OF QUANTITY) -->
                 <div
                   class="text-h6 text-indigo-10 text-weight-bold uppercase tracking-widest q-mb-sm"
                 >
-                  Rincian Pajak & Perhitungan
+                  Rincian Bill of Quantity (BOQ) Proyek
                 </div>
                 <table class="pdf-table full-width q-mb-xl">
                   <thead>
                     <tr class="bg-blue-grey-10 text-white">
-                      <th class="text-left">URAIAN / KETERANGAN</th>
-                      <th class="text-right" width="200">NILAI NOMINAL</th>
+                      <th class="text-center" width="50">NO</th>
+                      <th class="text-left">URAIAN PEKERJAAN (BOQ)</th>
+                      <th class="text-center" width="80">VOL</th>
+                      <th class="text-right" width="150">HARGA SATUAN</th>
+                      <th class="text-right" width="180">TOTAL</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td class="text-left font-bold text-blue-grey-9">
-                        {{ selectedTagihan.keterangan || 'Tagihan Vendor' }}
+                    <tr v-for="(item, i) in selectedProject.items" :key="i">
+                      <td class="text-center font-bold">{{ i + 1 }}</td>
+                      <td class="text-left font-bold text-blue-grey-9 uppercase">
+                        {{ item.deskripsi || item.nama_barang || '-' }}
+                      </td>
+                      <td class="text-center">
+                        {{ item.volume || item.qty || 0 }} {{ item.satuan || '' }}
                       </td>
                       <td class="text-right">
-                        Rp {{ (selectedTagihan.nilai_dpp || 0).toLocaleString() }}
+                        Rp {{ (item.harga_satuan || 0).toLocaleString('id-ID') }}
+                      </td>
+                      <td class="text-right text-weight-bold text-indigo-10">
+                        Rp
+                        {{
+                          (
+                            (item.volume || item.qty || 0) * (item.harga_satuan || 0)
+                          ).toLocaleString('id-ID')
+                        }}
                       </td>
                     </tr>
-                    <tr v-if="selectedTagihan.ppn_persen > 0">
-                      <td class="text-right italic text-grey-8">
-                        Pajak Pertambahan Nilai (PPN) {{ selectedTagihan.ppn_persen }}%
-                      </td>
-                      <td class="text-right">
-                        + Rp {{ (selectedTagihan.ppn_nominal || 0).toLocaleString() }}
-                      </td>
-                    </tr>
-                    <tr v-if="selectedTagihan.pph_persen > 0">
-                      <td class="text-right italic text-grey-8">
-                        Pajak Penghasilan (PPh) {{ selectedTagihan.pph_persen }}%
-                      </td>
-                      <td class="text-right text-negative">
-                        - Rp {{ (selectedTagihan.pph_nominal || 0).toLocaleString() }}
+                    <tr v-if="!selectedProject.items || selectedProject.items.length === 0">
+                      <td colspan="5" class="text-center text-grey-6 italic">
+                        Tidak ada rincian item BOQ di dalam master SPK. (Hanya Total Nilai)
                       </td>
                     </tr>
                   </tbody>
                   <tfoot>
                     <tr class="bg-grey-2">
-                      <td class="text-right text-weight-black uppercase">GRAND TOTAL INVOICE</td>
+                      <td colspan="4" class="text-right text-weight-black uppercase">
+                        GRAND TOTAL VALUASI PROYEK
+                      </td>
                       <td class="text-right text-weight-black text-h6 text-indigo-10">
-                        Rp {{ (selectedTagihan.grand_total || 0).toLocaleString() }}
+                        Rp {{ (selectedProject.grand_total || 0).toLocaleString('id-ID') }}
                       </td>
                     </tr>
                   </tfoot>
                 </table>
-
-                <!-- LAMPIRAN (Di UI Saja, disembunyikan saat PDF) -->
-                <div class="no-print" v-if="selectedTagihan.lampiran?.length > 0">
-                  <div
-                    class="text-h6 text-indigo-10 text-weight-bold uppercase tracking-widest q-mb-sm"
-                  >
-                    Dokumen Pendukung (Faktur/Surat Jalan)
-                  </div>
-                  <div class="row q-col-gutter-md">
-                    <div
-                      class="col-12 col-sm-6 col-md-4"
-                      v-for="(lamp, i) in selectedTagihan.lampiran"
-                      :key="i"
-                    >
-                      <q-card
-                        flat
-                        bordered
-                        class="rounded-12 bg-white hover-shadow transition-all border-subtle"
-                      >
-                        <q-card-section class="q-pa-md text-center">
-                          <q-icon
-                            name="description"
-                            size="48px"
-                            color="blue-grey-4"
-                            class="q-mb-sm"
-                          />
-                          <div class="text-weight-bold text-blue-grey-10 ellipsis">
-                            {{ lamp.label || 'Dokumen ' + (i + 1) }}
-                          </div>
-                          <q-btn
-                            outline
-                            color="primary"
-                            label="Buka Dokumen"
-                            size="sm"
-                            class="q-mt-md rounded-borders full-width"
-                            @click="openLink(lamp.url || lamp.base64)"
-                          />
-                        </q-card-section>
-                      </q-card>
-                    </div>
-                  </div>
-                </div>
               </div>
               <!-- End PDF Container -->
             </div>
@@ -582,46 +564,38 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { db } from 'src/boot/firebase'
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore'
+import { collection, onSnapshot } from 'firebase/firestore'
 import { useQuasar } from 'quasar'
 import html2pdf from 'html2pdf.js'
 
 const $q = useQuasar()
 
-// State
-const rows = ref([])
+// State Data Master
+const masterProyek = ref([])
+const masterSpk = ref([])
+
+// State UI
 const loading = ref(true)
 const searchQuery = ref('')
 const statusFilter = ref('ALL')
 const showDetail = ref(false)
-const selectedTagihan = ref(null)
+const selectedProject = ref(null)
 
-let unsubTagihan = null
+let unsubProyek = null
+let unsubSpk = null
 
-// Columns
+// Columns Setup (Sesuai dengan keinginan Anda: Identitas, Referensi, Timeline, Nominal, Progress, Status, Aksi)
 const columns = [
   {
-    name: 'invoice',
+    name: 'proyek',
     align: 'left',
-    label: 'NO. INVOICE & VENDOR',
-    field: 'nomor_invoice',
+    label: 'IDENTITAS PROYEK & KLIEN',
+    field: 'nama_proyek',
     sortable: true,
   },
-  {
-    name: 'referensi',
-    align: 'left',
-    label: 'PROYEK & REFF',
-    field: 'proyek_nama',
-    sortable: true,
-  },
-  {
-    name: 'timeline',
-    align: 'left',
-    label: 'TANGGAL & TEMPO',
-    field: 'tanggal_invoice',
-    sortable: true,
-  },
-  { name: 'nominal', align: 'right', label: 'GRAND TOTAL', field: 'grand_total', sortable: true },
+  { name: 'spk', align: 'left', label: 'REFERENSI SPK', field: 'nomor_spk', sortable: true },
+  { name: 'timeline', align: 'left', label: 'TIMELINE PROYEK', field: 'tgl_mulai', sortable: true },
+  { name: 'nominal', align: 'right', label: 'NILAI KONTRAK', field: 'grand_total', sortable: true },
   {
     name: 'progress',
     align: 'left',
@@ -633,60 +607,130 @@ const columns = [
   { name: 'aksi', align: 'center', label: 'DETAIL', field: 'id' },
 ]
 
-// Computed Data & KPI
-const tagihanAktif = computed(() =>
-  rows.value.filter((r) => r.status === 'Menunggu Pembayaran' || r.status === 'Dibayar Sebagian'),
-)
-const tagihanLunas = computed(() => rows.value.filter((r) => r.status === 'Lunas'))
+// Computed Data Mapping - Murni Tarikan dari `proyek` dan di-JOIN dengan `spk_customer`
+const mappedRows = computed(() => {
+  return masterProyek.value
+    .map((proj) => {
+      // Tarik SPK yang sesuai dengan ID proyek ini
+      const spks = masterSpk.value.filter((s) => s.projectId === proj.id)
 
-const tagihanOverdue = computed(() => {
-  const today = new Date().toISOString().substr(0, 10)
-  return rows.value.filter((r) => r.jatuh_tempo < today && r.status !== 'Lunas')
+      let nomor_spk = '-'
+      let grand_total = 0
+      let total_dibayar = proj.total_dibayar || 0 // Default 0
+      let tgl_mulai = '-'
+      let jatuh_tempo = '-'
+      let items = []
+
+      if (spks.length > 0) {
+        nomor_spk =
+          spks
+            .map((s) => s.nomor_spk)
+            .filter(Boolean)
+            .join(', ') || '-'
+        grand_total = spks.reduce((sum, s) => sum + (Number(s.nilai_total) || 0), 0)
+        total_dibayar = spks.reduce((sum, s) => sum + (Number(s.total_dibayar) || 0), 0) // Jika suatu saat ada input total_dibayar
+
+        // Ambil Timeline (Paling awal s/d Paling Akhir)
+        const starts = spks
+          .map((s) => s.tgl_mulai)
+          .filter(Boolean)
+          .sort()
+        if (starts.length) tgl_mulai = starts[0]
+
+        const ends = spks
+          .map((s) => s.tgl_akhir)
+          .filter(Boolean)
+          .sort()
+          .reverse()
+        if (ends.length) jatuh_tempo = ends[0]
+
+        // Kumpulkan item BOQ untuk PDF
+        spks.forEach((s) => {
+          if (s.groups) {
+            s.groups.forEach((g) => {
+              if (g.items) {
+                g.items.forEach((i) => {
+                  if (!i.is_header) items.push(i)
+                })
+              }
+            })
+          }
+        })
+      }
+
+      // Kalkulasi Status Proyek
+      let status = 'Aktif'
+      const today = new Date().toISOString().substr(0, 10)
+      if (grand_total > 0 && total_dibayar >= grand_total) {
+        status = 'Lunas'
+      } else if (jatuh_tempo !== '-' && jatuh_tempo < today) {
+        status = 'Jatuh Tempo'
+      }
+
+      return {
+        id: proj.id,
+        nama_proyek: proj.nama || 'Tanpa Nama',
+        konsumen: proj.konsumen || '-',
+        alamat: proj.alamat || '-',
+        nomor_spk,
+        tgl_mulai,
+        jatuh_tempo,
+        grand_total,
+        total_dibayar,
+        status,
+        items,
+        // Search string untuk mempermudah pencarian
+        search_string: `${proj.nama} ${nomor_spk} ${proj.konsumen}`.toLowerCase(),
+      }
+    })
+    .sort((a, b) => b.grand_total - a.grand_total)
 })
+
+// KPI Computed
+const tagihanAktif = computed(() => mappedRows.value.filter((r) => r.status === 'Aktif'))
+const tagihanLunas = computed(() => mappedRows.value.filter((r) => r.status === 'Lunas'))
+const tagihanOverdue = computed(() => mappedRows.value.filter((r) => r.status === 'Jatuh Tempo'))
 
 const totalOutstanding = computed(() => {
-  return tagihanAktif.value.reduce(
-    (sum, r) => sum + ((r.grand_total || 0) - (r.total_dibayar || 0)),
-    0,
-  )
+  return mappedRows.value.reduce((sum, r) => sum + r.grand_total, 0)
 })
 
+// Filtered List for Table
 const filteredRows = computed(() => {
-  let result = rows.value
+  let result = mappedRows.value
 
   // Status Filter
-  if (statusFilter.value === 'OUTSTANDING')
-    result = result.filter(
-      (r) => r.status === 'Menunggu Pembayaran' || r.status === 'Dibayar Sebagian',
-    )
+  if (statusFilter.value === 'OUTSTANDING') result = result.filter((r) => r.status === 'Aktif')
   else if (statusFilter.value === 'LUNAS') result = result.filter((r) => r.status === 'Lunas')
-  else if (statusFilter.value === 'OVERDUE') result = result.filter((r) => isOverdue(r))
+  else if (statusFilter.value === 'OVERDUE')
+    result = result.filter((r) => r.status === 'Jatuh Tempo')
 
   // Search Filter
   if (searchQuery.value) {
     const lower = searchQuery.value.toLowerCase()
-    result = result.filter(
-      (r) =>
-        r.nomor_invoice?.toLowerCase().includes(lower) ||
-        r.supplier_nama?.toLowerCase().includes(lower) ||
-        r.proyek_nama?.toLowerCase().includes(lower),
-    )
+    result = result.filter((r) => r.search_string.includes(lower))
   }
   return result
 })
 
-// Fetch Data
+// Fetch Data (MURNI DARI MASTER PROYEK DAN SPK SAJA - TIDAK ADA PURCHASE ORDER/TAGIHAN PO)
 const fetchData = () => {
   loading.value = true
-  const q = query(collection(db, 'finance_tagihan'), orderBy('createdAt', 'desc'))
-  unsubTagihan = onSnapshot(
-    q,
+
+  // 1. Tarik Data SPK Kontrak
+  unsubSpk = onSnapshot(collection(db, 'spk_customer'), (snap) => {
+    masterSpk.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+  })
+
+  // 2. Tarik Data Master Proyek Utama
+  unsubProyek = onSnapshot(
+    collection(db, 'proyek'),
     (snap) => {
-      rows.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+      masterProyek.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
       loading.value = false
     },
     (err) => {
-      console.error('Listen Error:', err)
+      console.error('Listen Error Proyek:', err)
       loading.value = false
     },
   )
@@ -694,23 +738,13 @@ const fetchData = () => {
 
 // Logic Actions
 const openDetail = (row) => {
-  selectedTagihan.value = row
+  selectedProject.value = row
   showDetail.value = true
-}
-
-const openLink = (url) => {
-  if (url) window.open(url, '_blank')
-}
-
-const isOverdue = (row) => {
-  if (row.status === 'Lunas') return false
-  const today = new Date().toISOString().substr(0, 10)
-  return row.jatuh_tempo < today
 }
 
 // Utils
 const formatDateIndo = (d) => {
-  if (!d) return '-'
+  if (!d || d === '-') return '-'
   const date = new Date(d)
   return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
 }
@@ -724,22 +758,20 @@ const formatCompact = (num) => {
 
 const getStatusColor = (status) => {
   switch (status) {
-    case 'Draft':
-      return { bg: 'grey-3', text: 'grey-8' }
-    case 'Menunggu Pembayaran':
-      return { bg: 'orange-2', text: 'orange-9' }
-    case 'Dibayar Sebagian':
-      return { bg: 'blue-2', text: 'blue-9' }
+    case 'Aktif':
+      return { bg: 'blue-1', text: 'blue-10' }
     case 'Lunas':
-      return { bg: 'green-2', text: 'green-9' }
+      return { bg: 'green-2', text: 'green-10' }
+    case 'Jatuh Tempo':
+      return { bg: 'red-2', text: 'red-10' }
     default:
-      return { bg: 'grey-3', text: 'grey-8' }
+      return { bg: 'grey-2', text: 'grey-8' }
   }
 }
 
 const exportToPDF = () => {
   const element = document.getElementById('invoice-pdf-target')
-  const fileName = `Monitoring_INV_${selectedTagihan.value.nomor_invoice.replace(/\//g, '-')}.pdf`
+  const fileName = `Valuasi_Proyek_${selectedProject.value.nama_proyek.replace(/\s+/g, '_')}.pdf`
 
   const opt = {
     margin: 10,
@@ -764,7 +796,8 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  if (unsubTagihan) unsubTagihan()
+  if (unsubProyek) unsubProyek()
+  if (unsubSpk) unsubSpk()
 })
 </script>
 

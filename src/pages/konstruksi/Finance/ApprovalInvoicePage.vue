@@ -392,37 +392,26 @@
           <!-- KERTAS PDF INVOICE (IDENTIK DENGAN SCREENSHOT REFERENSI GAMBAR PERTAMA) -->
           <div id="invoice-pdf-area" class="letter-paper shadow-24" v-if="selectedInv">
             <!-- HEADER (Logo & PT Name ONLY) -->
-            <div class="row no-wrap items-center justify-between q-mb-sm">
-              <div class="row no-wrap items-center col-7">
-                <img :src="config.kopUrl || 'icons/logo-agra.png'" class="final-kop-img q-mr-md" />
-                <div>
-                  <div
-                    class="text-weight-bolder uppercase"
-                    style="color: #2b579a; font-size: 20px; letter-spacing: 0.5px"
-                  >
-                    {{ config.nama_pt || 'PT. AGRA ABHINAYA PERKASA' }}
-                  </div>
-                  <div
-                    style="font-size: 9px; color: #555"
-                    class="q-mt-xs text-uppercase text-weight-bold"
-                  >
-                    {{ config.slogan_pt || 'GENERAL CONSTRUCTION AND GENERAL SUPPLY' }}
-                  </div>
-                  <div style="font-size: 9px; color: #777" class="q-mt-xs">
-                    {{
-                      config.alamat_pt ||
-                      'Jl. Tegal Danas No. 9A, Sertajaya, Cikarang Timur, Kabupaten Bekasi, Jawa Barat 17530'
-                    }}
-                  </div>
-                </div>
-              </div>
-              <div class="col-5 text-right flex column justify-center">
-                <!-- INVOICE TEXT BOLD DI KANAN ATAS -->
+            <div class="row no-wrap items-center q-mb-md">
+              <img :src="config.kopUrl || 'icons/logo-agra.png'" class="final-kop-img q-mr-md" />
+              <div>
                 <div
-                  class="text-weight-bolder text-italic"
-                  style="color: #111; font-size: 40px; letter-spacing: 2px; line-height: 1"
+                  class="text-weight-bolder uppercase"
+                  style="color: #2b579a; font-size: 20px; letter-spacing: 0.5px"
                 >
-                  INVOICE
+                  {{ config.nama_pt || 'PT. AGRA ABHINAYA PERKASA' }}
+                </div>
+                <div
+                  style="font-size: 9px; color: #555"
+                  class="q-mt-xs text-uppercase text-weight-bold"
+                >
+                  {{ config.slogan_pt || 'GENERAL CONSTRUCTION AND GENERAL SUPPLY' }}
+                </div>
+                <div style="font-size: 9px; color: #777" class="q-mt-xs">
+                  {{
+                    config.alamat_pt ||
+                    'Jl. Tegal Danas No. 9A, Sertajaya, Cikarang Timur, Kabupaten Bekasi, Jawa Barat 17530'
+                  }}
                 </div>
               </div>
             </div>
@@ -434,10 +423,10 @@
 
             <!-- INFO NOMOR, TANGGAL & KLIEN (Layout Rapi) -->
             <div class="row q-col-gutter-lg q-mb-xl">
-              <!-- KIRI: Tagihan Kepada -->
-              <div class="col-6">
+              <!-- KIRI: Tagihan Kepada, Proyek -->
+              <div class="col-7">
                 <div
-                  class="text-grey-5 text-bold tracking-widest uppercase q-mb-md"
+                  class="text-grey-6 text-bold tracking-widest uppercase q-mb-sm"
                   style="font-size: 10px"
                 >
                   TAGIHAN KEPADA :
@@ -448,56 +437,53 @@
                 >
                   {{ selectedInv.customer_nama }}
                 </div>
-                <div class="text-grey-8 q-mt-sm" style="font-size: 12px; line-height: 1.6">
+                <div class="text-grey-9 q-mb-lg" style="font-size: 12px; line-height: 1.4">
                   {{ selectedInv.customer_alamat }}
                 </div>
-              </div>
 
-              <!-- KANAN: Nomor, Tanggal, Referensi -->
-              <div class="col-6">
-                <!-- Pindah Nomor Invoice ke Sini -->
-                <div
-                  class="text-weight-bold text-grey-9 q-mb-md text-right"
-                  style="font-size: 13px"
-                >
-                  # {{ selectedInv.nomor_invoice }}
-                </div>
-
-                <table
-                  class="meta-info-table text-grey-8"
-                  style="font-size: 11px; margin-left: auto"
-                >
+                <table class="text-grey-9 text-left" style="font-size: 11px; width: 100%">
                   <tr>
-                    <td width="80" class="text-left">Tanggal</td>
-                    <td width="15" class="text-center">:</td>
-                    <td class="text-weight-bold text-black text-left">
-                      {{ formatDateIndo(selectedInv.tanggal) }}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="text-left">Jatuh Tempo</td>
-                    <td class="text-center">:</td>
-                    <td class="text-weight-bold text-negative text-left">
-                      {{ formatDateIndo(selectedInv.jatuh_tempo) }}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td colspan="3">
-                      <div style="border-bottom: 1px solid #e0e0e0; margin: 12px 0"></div>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="text-left">Proyek</td>
-                    <td class="text-center">:</td>
-                    <td class="text-weight-bold text-black uppercase text-left">
+                    <td width="90" class="q-pb-xs">Proyek</td>
+                    <td width="15" class="text-center q-pb-xs">:</td>
+                    <td class="text-weight-bold uppercase q-pb-xs">
                       {{ selectedInv.proyek_nama || '-' }}
                     </td>
                   </tr>
                   <tr>
-                    <td class="text-left">SPK / PO Ref</td>
-                    <td class="text-center">:</td>
-                    <td class="text-weight-bold text-black uppercase text-left">
+                    <td class="q-pb-xs">SPK / PO Ref</td>
+                    <td class="q-pb-xs">:</td>
+                    <td class="text-weight-bold uppercase q-pb-xs">
                       {{ selectedInv.spk_nomor || '-' }}
+                    </td>
+                  </tr>
+                </table>
+              </div>
+
+              <!-- KANAN: Title, Nomor, Tanggal -->
+              <div class="col-5 text-right flex column items-end">
+                <div
+                  class="text-weight-900 text-italic"
+                  style="color: #2b579a; font-size: 36px; letter-spacing: 2px; line-height: 1"
+                >
+                  INVOICE
+                </div>
+                <div class="text-weight-bold text-grey-9 q-mt-sm q-mb-lg" style="font-size: 14px">
+                  # {{ selectedInv.nomor_invoice }}
+                </div>
+
+                <table class="text-grey-9" style="font-size: 11px; margin-left: auto">
+                  <tr>
+                    <td width="80" class="text-left q-pb-xs">Tanggal</td>
+                    <td width="15" class="text-center q-pb-xs">:</td>
+                    <td class="text-weight-bold text-black text-left q-pb-xs">
+                      {{ formatDateIndo(selectedInv.tanggal) }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="text-left q-pb-xs">Jatuh Tempo</td>
+                    <td class="text-center q-pb-xs">:</td>
+                    <td class="text-weight-bold text-negative text-left q-pb-xs">
+                      {{ formatDateIndo(selectedInv.jatuh_tempo) }}
                     </td>
                   </tr>
                 </table>
@@ -680,12 +666,18 @@
               </div>
 
               <div class="col-5 text-center flex column justify-between items-center pt-lg">
-                <div class="text-weight-bold q-mb-sm" style="font-size: 11.5px">Hormat Kami,</div>
+                <div class="text-weight-bold q-mb-xl" style="font-size: 11.5px">Hormat Kami,</div>
 
-                <!-- AREA TANDA TANGAN -->
+                <!-- TANDA TANGAN (KHUSUS UNTUK HALAMAN APPROVAL) -->
                 <div
                   class="final-sign-space flex flex-center"
-                  style="height: 60px; position: relative; width: 100%"
+                  style="
+                    height: 60px;
+                    position: relative;
+                    width: 100%;
+                    margin-top: -30px;
+                    margin-bottom: 10px;
+                  "
                 >
                   <img
                     v-if="selectedInv.signatureUrl"
@@ -707,7 +699,7 @@
                 </div>
 
                 <div
-                  class="text-weight-bold uppercase q-px-xl q-pb-xs q-mt-sm"
+                  class="text-weight-bold uppercase q-px-xl q-pb-xs"
                   style="color: #2b579a; border-bottom: 1px solid #2b579a; font-size: 11.5px"
                 >
                   {{ config.nama_pt || 'PT AGRA ABHINAYA PERKASA' }}
@@ -960,22 +952,8 @@ const uploadSignatureFile = (file) => {
 
 // Approval Actions
 const handleApprove = (row) => {
-  if (!row.signatureUrl) {
-    $q.notify({
-      type: 'warning',
-      message: 'Silakan bubuhkan tanda tangan terlebih dahulu sebelum menyetujui invoice!',
-      position: 'top',
-    })
-    return
-  }
-
-  $q.dialog({
-    title: '<span class="text-positive text-weight-bold">Konfirmasi Approval</span>',
-    message: `Anda akan <b>MENYETUJUI</b> penerbitan Invoice ${row.nomor_invoice}. Invoice ini akan diubah statusnya menjadi <b>Terkirim</b>. Lanjutkan?`,
-    html: true,
-    cancel: { label: 'Batal', flat: true },
-    ok: { label: 'Ya, Setujui', color: 'positive', rounded: true, unelevated: true },
-  }).onOk(async () => {
+  // Fungsi Helper untuk memproses approval
+  const processApproval = async () => {
     isProcessing.value = true
     try {
       await updateDoc(doc(db, 'finance_invoice_customer', row.id), {
@@ -985,14 +963,34 @@ const handleApprove = (row) => {
       })
       selectedInv.value.approval_status = 'Approved'
       $q.notify({ type: 'positive', message: 'Invoice berhasil disetujui!' })
-      // Keep the dialog open or let user see it's approved.
     } catch (e) {
       console.error(e)
       $q.notify({ type: 'negative', message: 'Gagal memproses approval.' })
     } finally {
       isProcessing.value = false
     }
-  })
+  }
+
+  // Cek apakah tanda tangan ada
+  if (!row.signatureUrl) {
+    // Jika tidak ada tanda tangan: Tampilkan Dialog Warning
+    $q.dialog({
+      title: '<span class="text-warning text-weight-bold">Approval Tanpa Tanda Tangan</span>',
+      message: `Anda belum membubuhkan tanda tangan. Apakah Anda yakin menyetujui penerbitan Invoice <b>${row.nomor_invoice}</b> tanpa tanda tangan?`,
+      html: true,
+      cancel: { label: 'Batal', flat: true },
+      ok: { label: 'Ya, Setujui', color: 'warning', rounded: true, unelevated: true },
+    }).onOk(processApproval)
+  } else {
+    // Jika sudah ada tanda tangan: Tampilkan Dialog Success Normal
+    $q.dialog({
+      title: '<span class="text-positive text-weight-bold">Konfirmasi Approval</span>',
+      message: `Anda akan <b>MENYETUJUI</b> penerbitan Invoice <b>${row.nomor_invoice}</b>. Invoice ini akan diubah statusnya menjadi <b>Terkirim</b>. Lanjutkan?`,
+      html: true,
+      cancel: { label: 'Batal', flat: true },
+      ok: { label: 'Ya, Setujui', color: 'positive', rounded: true, unelevated: true },
+    }).onOk(processApproval)
+  }
 }
 
 const handleReject = (row) => {
