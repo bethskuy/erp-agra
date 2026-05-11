@@ -99,6 +99,14 @@ const routes = [
       },
       // --- TAMBAHAN ROUTE FINANCE ---
       {
+        path: 'finance/invoice',
+        component: () => import('pages/konstruksi/Finance/InvoiceCustomerPage.vue'),
+      },
+      {
+        path: 'finance/approval-invoice',
+        component: () => import('pages/konstruksi/Finance/ApprovalInvoicePage.vue'),
+      },
+      {
         path: 'finance/tagihan',
         component: () => import('pages/konstruksi/Finance/MonitoringTagihanPage.vue'),
       },

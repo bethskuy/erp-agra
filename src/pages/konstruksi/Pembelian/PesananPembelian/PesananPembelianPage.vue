@@ -112,6 +112,7 @@
             </template>
 
             <template v-slot:body="props">
+              <!-- Event @click di sini yang akan memanggil preview dokumen -->
               <q-tr
                 :props="props"
                 class="hover-bg transition-all cursor-pointer"
@@ -148,6 +149,7 @@
                     {{ props.row.status }}
                   </q-chip>
                 </q-td>
+                <!-- @click.stop mencegah klik di area tombol membuka preview -->
                 <q-td key="aksi" class="text-center" @click.stop>
                   <div class="row justify-center q-gutter-xs">
                     <template v-if="props.row.status === 'Pending'">
@@ -265,6 +267,7 @@
               </template>
 
               <template v-slot:body="props">
+                <!-- Event @click pada baris PO untuk buka preview PO -->
                 <q-tr
                   :props="props"
                   class="hover-bg transition-all cursor-pointer"
@@ -288,6 +291,7 @@
                     <span class="text-caption text-grey-6 q-mr-xs">IDR</span>
                     {{ (props.row.grand_total || 0).toLocaleString() }}
                   </q-td>
+                  <!-- @click.stop mencegah overlap trigger preview saat klik tombol aksi -->
                   <q-td key="aksi" class="text-center" @click.stop>
                     <div class="row justify-center q-gutter-xs">
                       <q-btn
@@ -828,7 +832,8 @@
                 <div class="row no-wrap justify-end">
                   <div class="text-bold q-mr-md">Tanggal</div>
                   <div class="text-weight-bold">
-                    : {{ selectedData.kota }}, {{ formatIndoDate(selectedData.tanggal) }}
+                    <!-- FIX: Mengganti formatIndoDate menjadi formatDateIndo yang benar dari script -->
+                    : {{ selectedData.kota }}, {{ formatDateIndo(selectedData.tanggal) }}
                   </div>
                 </div>
               </div>
@@ -840,22 +845,22 @@
             <table class="final-pro-table full-width">
               <thead>
                 <tr>
-                  <th width="40">NO</th>
-                  <th>ITEM DESCRIPTION</th>
-                  <th width="60">QTY</th>
-                  <th width="60">UNIT</th>
-                  <th width="120">est UNIT PRICE</th>
-                  <th width="140">est AMOUNT</th>
+                  <th width="5%">NO</th>
+                  <th class="text-left" width="45%">ITEM DESCRIPTION</th>
+                  <th width="10%">QTY</th>
+                  <th width="10%">UNIT</th>
+                  <th class="text-right" width="15%">est UNIT PRICE</th>
+                  <th class="text-right" width="15%">est AMOUNT</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="(it, i) in selectedData.items" :key="i">
-                  <td class="text-center font-bold text-grey-7">{{ i + 1 }}</td>
-                  <td class="text-left uppercase text-weight-medium">{{ it.nama_barang }}</td>
+                  <td class="text-center font-bold text-grey-8">{{ i + 1 }}</td>
+                  <td class="text-left uppercase text-weight-bold">{{ it.nama_barang }}</td>
                   <td class="text-center font-bold">{{ it.qty }}</td>
-                  <td class="text-center uppercase text-caption text-bold">{{ it.satuan }}</td>
+                  <td class="text-center uppercase text-weight-bold">{{ it.satuan }}</td>
                   <td class="text-right">Rp {{ (it.estimasi_harga || 0).toLocaleString() }}</td>
-                  <td class="text-right text-weight-bolder text-indigo-10 bg-indigo-0">
+                  <td class="text-right text-weight-bolder text-indigo-10">
                     Rp {{ (it.total || 0).toLocaleString() }}
                   </td>
                 </tr>
@@ -868,10 +873,14 @@
                   </td>
                 </tr>
                 <tr class="row-grand-total">
-                  <td colspan="5" class="text-right text-bold text-h6 uppercase tracking-widest">
-                    Grand Total Amount
+                  <td
+                    colspan="5"
+                    class="text-right text-weight-bolder uppercase tracking-widest"
+                    style="font-size: 13px"
+                  >
+                    GRAND TOTAL AMOUNT
                   </td>
-                  <td class="text-right text-white text-bold text-h5">
+                  <td class="text-right text-white text-weight-bolder" style="font-size: 13px">
                     IDR {{ (selectedData.total_estimasi || 0).toLocaleString() }}
                   </td>
                 </tr>
@@ -1692,7 +1701,7 @@ onUnmounted(() => {
   cursor: crosshair;
 }
 
-/* PREVIEW DOC FOR PR (OLD) */
+/* PREVIEW DOC FOR PR */
 .letter-paper {
   background: white;
   width: 210mm;
@@ -1780,42 +1789,77 @@ onUnmounted(() => {
   color: #444;
   font-weight: 700;
 }
+
+/* --- NEW PR PRINT TABLE STYLES --- */
+.final-pro-table {
+  border-collapse: collapse;
+  width: 100%;
+  border: 1px solid #ccc;
+  margin-top: 10px;
+}
+.final-pro-table th {
+  background: #1a237e !important;
+  color: white !important;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 10px 8px;
+  border: 1px solid #1a237e;
+  text-transform: uppercase;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.final-pro-table td {
+  padding: 8px 8px;
+  font-size: 11px;
+  border: 1px solid #ccc;
+  color: #000 !important;
+}
 .row-calculation {
   background: #f9fafb !important;
 }
 .row-calculation td {
-  padding: 6px 12px !important;
-  border: 1px solid #ddd !important;
-  font-size: 10.5px;
+  padding: 8px 12px !important;
+  border: 1px solid #ccc !important;
+  font-size: 11px;
 }
 .row-grand-total {
   background: #1a237e !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 .row-grand-total td {
   padding: 12px 12px !important;
   color: white !important;
   border: 1px solid #1a237e !important;
-  background: #1a237e;
+  background: #1a237e !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 .terms-container {
-  border: 1.5px solid #1a237e;
+  border: 1.5px solid #1a237e !important;
   margin-top: 20px;
   border-radius: 4px;
   overflow: hidden;
+  page-break-inside: avoid;
 }
 .terms-header {
-  background: #1a237e;
-  padding: 6px 12px;
+  background: #1a237e !important;
+  padding: 8px 12px;
   font-weight: 900;
-  color: white;
-  font-size: 10.5px;
+  color: white !important;
+  font-size: 11px;
   letter-spacing: 1px;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  text-transform: uppercase;
 }
 .terms-content-box {
-  padding: 8px 12px;
-  font-size: 10.5px;
-  color: #333;
+  padding: 10px 12px;
+  font-size: 11px;
+  color: #000 !important;
 }
+/* --------------------------------- */
+
 .signature-container {
   margin-top: auto;
   padding-top: 30px;

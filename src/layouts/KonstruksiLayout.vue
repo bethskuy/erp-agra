@@ -439,6 +439,8 @@
             <q-expansion-item
               v-if="
                 hasSectionAccess([
+                  'finance/invoice',
+                  'finance/approval-invoice',
                   'finance/tagihan',
                   'finance/tagihan-supplier',
                   'finance/pengeluaran',
@@ -453,6 +455,32 @@
               header-class="text-weight-bold"
             >
               <q-list>
+                <!-- Invoice Customer / Klien -->
+                <q-item
+                  v-if="checkPermission('finance/invoice')"
+                  clickable
+                  v-ripple
+                  to="/konstruksi/finance/invoice"
+                  class="level-2-item"
+                  active-class="sub-menu-item-active"
+                >
+                  <q-item-section avatar><q-icon name="receipt_long" size="20px" /></q-item-section>
+                  <q-item-section>Pembuatan Invoice</q-item-section>
+                </q-item>
+
+                <!-- Approval Invoice -->
+                <q-item
+                  v-if="checkPermission('finance/approval-invoice')"
+                  clickable
+                  v-ripple
+                  to="/konstruksi/finance/approval-invoice"
+                  class="level-2-item"
+                  active-class="sub-menu-item-active"
+                >
+                  <q-item-section avatar><q-icon name="fact_check" size="20px" /></q-item-section>
+                  <q-item-section>Approval Invoice</q-item-section>
+                </q-item>
+
                 <!-- Monitoring Tagihan -->
                 <q-item
                   v-if="checkPermission('finance/tagihan')"
@@ -532,7 +560,7 @@
                   <q-item-section avatar
                     ><q-icon name="account_balance" size="20px"
                   /></q-item-section>
-                  <q-item-section>Monitoring Balansheet</q-item-section>
+                  <q-item-section><i>Monitoring Balansheet</i></q-item-section>
                 </q-item>
               </q-list>
             </q-expansion-item>
