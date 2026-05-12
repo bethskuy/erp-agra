@@ -313,6 +313,93 @@
           <q-expansion-item
             v-if="
               hasSectionAccess([
+                'ppic/planning-produksi',
+                'ppic/work-order',
+                'ppic/jadwal-produksi',
+                'ppic/material-requirement',
+                'ppic/monitoring-ppic',
+              ])
+            "
+            icon="assignment"
+            label="PPIC"
+            header-class="nav-group"
+            expand-icon-class="nav-expand-icon"
+          >
+            <q-item
+              v-if="checkPermission('ppic/planning-produksi')"
+              clickable
+              v-ripple
+              to="/manufaktur/ppic/planning-produksi"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="assignment" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Planning Produksi</q-item-section>
+            </q-item>
+            <q-item
+              v-if="checkPermission('ppic/work-order')"
+              clickable
+              v-ripple
+              to="/manufaktur/ppic/work-order"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="description" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">SPK Produksi</q-item-section>
+            </q-item>
+            <q-item
+              v-if="checkPermission('ppic/jadwal-produksi')"
+              clickable
+              v-ripple
+              to="/manufaktur/ppic/jadwal-produksi"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="event_note" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Jadwal Produksi</q-item-section>
+            </q-item>
+            <q-item
+              v-if="checkPermission('ppic/material-requirement')"
+              clickable
+              v-ripple
+              to="/manufaktur/ppic/material-requirement"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="inventory" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Material Requirement</q-item-section>
+            </q-item>
+            <q-item
+              v-if="checkPermission('ppic/monitoring-ppic')"
+              clickable
+              v-ripple
+              to="/manufaktur/ppic/monitoring-ppic"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="monitoring" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Monitoring PPIC</q-item-section>
+            </q-item>
+          </q-expansion-item>
+
+          <q-expansion-item
+            v-if="
+              hasSectionAccess([
                 'produksi/planning-produksi',
                 'produksi/line-produksi',
                 'produksi/monitoring-produksi',
@@ -353,7 +440,7 @@
               <q-item-section avatar class="submenu-icon"
                 ><q-icon name="precision_manufacturing" size="xs"
               /></q-item-section>
-              <q-item-section class="submenu-text">Line Produksi</q-item-section>
+              <q-item-section class="submenu-text">Proses Fabrikasi</q-item-section>
             </q-item>
             <q-item
               v-if="checkPermission('produksi/monitoring-produksi')"

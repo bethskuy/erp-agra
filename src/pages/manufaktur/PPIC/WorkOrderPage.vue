@@ -1,0 +1,929 @@
+<template>
+  <q-page class="work-order-page bg-grey-2 q-pa-md q-pa-lg-lg font-pro">
+    <div class="row items-center justify-between q-mb-xl">
+      <div class="col-12 col-md-8">
+        <div class="text-h4 text-weight-bolder text-green-10 leading-tight">
+          SPK Produksi
+          <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs">
+            Kendali PPIC ke Proses Produksi
+          </span>
+        </div>
+        <div class="text-subtitle1 text-grey-7 q-mt-sm">
+          Monitoring SPK Produksi dari release PPIC, proses fabrikasi, PIC produksi, status
+          pekerjaan, dan kebutuhan material.
+        </div>
+      </div>
+
+      <div class="col-12 col-md-auto q-mt-md q-mt-md-none">
+        <q-btn
+          unelevated
+          rounded
+          color="green-10"
+          icon="add_circle"
+          label="Buat WO"
+          no-caps
+          class="q-px-lg shadow-premium"
+          @click="openCreateDialog"
+        />
+      </div>
+    </div>
+
+    <div class="row q-col-gutter-md q-mb-lg">
+      <div v-for="card in summaryCards" :key="card.title" class="col-12 col-sm-6 col-lg">
+        <q-card flat bordered class="summary-card bg-white">
+          <q-card-section class="row items-center no-wrap">
+            <q-avatar :color="card.color" text-color="white" :icon="card.icon" size="46px" />
+            <div class="q-ml-md col">
+              <div class="summary-label">{{ card.title }}</div>
+              <div class="summary-value">{{ card.value }}</div>
+            </div>
+          </q-card-section>
+        </q-card>
+      </div>
+    </div>
+
+    <q-card flat bordered class="filter-card bg-white q-mb-lg">
+      <q-card-section class="q-py-md">
+        <div class="row q-col-gutter-md items-center">
+          <div class="col-12 col-md-5">
+            <q-input
+              v-model="search"
+              outlined
+              dense
+              rounded
+              debounce="250"
+              placeholder="Cari nomor WO, customer, produk, line, atau PIC..."
+              bg-color="white"
+            >
+              <template #prepend>
+                <q-icon name="search" color="green-10" />
+              </template>
+            </q-input>
+          </div>
+
+          <div class="col-12 col-md-3">
+            <q-select
+              v-model="statusFilter"
+              :options="statusFilterOptions"
+              outlined
+              dense
+              rounded
+              emit-value
+              map-options
+              label="Filter Status WO"
+              bg-color="white"
+            />
+          </div>
+
+          <div class="col-12 col-md-2">
+            <q-select
+              v-model="priorityFilter"
+              :options="priorityFilterOptions"
+              outlined
+              dense
+              rounded
+              emit-value
+              map-options
+              label="Prioritas"
+              bg-color="white"
+            />
+          </div>
+
+          <div class="col-12 col-md-auto">
+            <q-btn
+              flat
+              round
+              color="green-10"
+              icon="refresh"
+              :loading="loading"
+              @click="loadWorkOrders"
+            />
+          </div>
+        </div>
+      </q-card-section>
+    </q-card>
+
+    <q-card flat bordered class="table-card bg-white">
+      <q-table
+        :rows="filteredRows"
+        :columns="columns"
+        row-key="id"
+        flat
+        binary-state-sort
+        :loading="loading"
+        :pagination="{ rowsPerPage: 10 }"
+        class="work-order-table"
+      >
+        <template #header="props">
+          <q-tr :props="props" class="bg-green-10 text-white">
+            <q-th
+              v-for="col in props.cols"
+              :key="col.name"
+              :props="props"
+              class="text-weight-bold uppercase table-head"
+            >
+              {{ col.label }}
+            </q-th>
+          </q-tr>
+        </template>
+
+        <template #body="props">
+          <q-tr :props="props" class="work-order-row">
+            <q-td key="nomor_wo" :props="props" class="text-weight-bolder text-green-10">
+              {{ props.row.nomor_wo }}
+              <div class="text-caption text-grey-6">{{ formatDate(props.row.deadline) }}</div>
+            </q-td>
+            <q-td key="produk" :props="props">
+              <div class="text-weight-bold text-green-10">{{ props.row.produk }}</div>
+              <div class="text-caption text-grey-6">{{ props.row.customer }}</div>
+            </q-td>
+            <q-td key="qty_target" :props="props" class="text-right text-weight-bold">
+              {{ formatNumber(props.row.qty_target) }}
+            </q-td>
+            <q-td key="line_produksi" :props="props">{{ props.row.line_produksi || '-' }}</q-td>
+            <q-td key="prioritas" :props="props">
+              <q-chip
+                dense
+                square
+                text-color="white"
+                :color="priorityColor(props.row.prioritas)"
+                class="priority-chip"
+              >
+                {{ props.row.prioritas }}
+              </q-chip>
+            </q-td>
+            <q-td key="pic_produksi" :props="props">{{ props.row.pic_produksi || '-' }}</q-td>
+            <q-td key="material" :props="props">
+              <div class="material-cell">
+                <q-linear-progress
+                  rounded
+                  size="9px"
+                  :value="materialReadyRatio(props.row)"
+                  :color="materialReadyRatio(props.row) >= 1 ? 'green-10' : 'orange-9'"
+                  track-color="green-1"
+                />
+                <div class="text-caption text-grey-7 q-mt-xs">
+                  {{ materialReadyCount(props.row) }}/{{ props.row.materials.length }} material siap
+                </div>
+              </div>
+            </q-td>
+            <q-td key="status_wo" :props="props">
+              <q-chip
+                dense
+                square
+                text-color="white"
+                :color="statusColor(props.row.status_wo)"
+                class="status-chip"
+              >
+                {{ statusLabel(props.row.status_wo) }}
+              </q-chip>
+            </q-td>
+            <q-td key="aksi" :props="props" class="text-center">
+              <div class="row justify-center q-gutter-xs no-wrap">
+                <q-btn
+                  flat
+                  round
+                  dense
+                  color="green-10"
+                  icon="visibility"
+                  @click="openDetailDialog(props.row)"
+                >
+                  <q-tooltip>Detail material requirement</q-tooltip>
+                </q-btn>
+                <q-btn
+                  flat
+                  round
+                  dense
+                  color="blue-grey-7"
+                  icon="edit"
+                  @click="openEditDialog(props.row)"
+                >
+                  <q-tooltip>Edit Work Order</q-tooltip>
+                </q-btn>
+              </div>
+            </q-td>
+          </q-tr>
+        </template>
+
+        <template #no-data>
+          <div class="full-width row flex-center text-grey-7 q-pa-xl">
+            <q-icon name="description" size="28px" class="q-mr-sm" />
+            Belum ada work order.
+          </div>
+        </template>
+      </q-table>
+    </q-card>
+
+    <q-dialog v-model="showFormDialog" persistent>
+      <q-card class="work-order-dialog">
+        <q-card-section class="dialog-header row items-center">
+          <div>
+            <div class="text-h6 text-weight-bold">{{ formModeLabel }} SPK Produksi</div>
+            <div class="text-caption">Lengkapi data SPK untuk release ke produksi.</div>
+          </div>
+          <q-space />
+          <q-btn flat round dense icon="close" v-close-popup />
+        </q-card-section>
+
+        <q-form @submit.prevent="saveWorkOrder">
+          <q-card-section class="q-pa-lg">
+            <div class="row q-col-gutter-md">
+              <div class="col-12 col-md-6">
+                <q-input
+                  v-model="form.nomor_wo"
+                  outlined
+                  dense
+                  label="Nomor WO"
+                  :rules="[(val) => !!val || 'Nomor WO wajib diisi']"
+                />
+              </div>
+              <div class="col-12 col-md-6">
+                <q-input
+                  v-model="form.customer"
+                  outlined
+                  dense
+                  label="Customer"
+                  :rules="[(val) => !!val || 'Customer wajib diisi']"
+                />
+              </div>
+              <div class="col-12 col-md-6">
+                <q-input
+                  v-model="form.produk"
+                  outlined
+                  dense
+                  label="Produk"
+                  :rules="[(val) => !!val || 'Produk wajib diisi']"
+                />
+              </div>
+              <div class="col-12 col-md-6">
+                <q-input
+                  v-model.number="form.qty_target"
+                  outlined
+                  dense
+                  type="number"
+                  min="1"
+                  label="Qty Target"
+                  :rules="[(val) => Number(val) > 0 || 'Qty target wajib lebih dari 0']"
+                />
+              </div>
+              <div class="col-12 col-md-6">
+                <q-input
+                  v-model="form.deadline"
+                  outlined
+                  dense
+                  type="date"
+                  label="Deadline"
+                  :rules="[(val) => !!val || 'Deadline wajib diisi']"
+                />
+              </div>
+              <div class="col-12 col-md-6">
+                <q-select
+                  v-model="form.line_produksi"
+                  :options="lineOptions"
+                  outlined
+                  dense
+                  label="Line Produksi"
+                  :rules="[(val) => !!val || 'Line produksi wajib dipilih']"
+                />
+              </div>
+              <div class="col-12 col-md-6">
+                <q-select
+                  v-model="form.prioritas"
+                  :options="priorityOptions"
+                  outlined
+                  dense
+                  label="Prioritas"
+                  :rules="[(val) => !!val || 'Prioritas wajib dipilih']"
+                />
+              </div>
+              <div class="col-12 col-md-6">
+                <q-input
+                  v-model="form.pic_produksi"
+                  outlined
+                  dense
+                  label="PIC Produksi"
+                  :rules="[(val) => !!val || 'PIC produksi wajib diisi']"
+                />
+              </div>
+              <div class="col-12 col-md-6">
+                <q-select
+                  v-model="form.status_wo"
+                  :options="statusOptions"
+                  outlined
+                  dense
+                  emit-value
+                  map-options
+                  label="Status WO"
+                  :rules="[(val) => !!val || 'Status WO wajib dipilih']"
+                />
+              </div>
+            </div>
+
+            <q-separator class="q-my-lg" />
+
+            <div class="row items-center justify-between q-mb-md">
+              <div>
+                <div class="text-subtitle1 text-weight-bold text-green-10">
+                  Detail Material Requirement
+                </div>
+                <div class="text-caption text-grey-7">
+                  Kebutuhan material untuk menjaga kesiapan WO sebelum produksi.
+                </div>
+              </div>
+              <q-btn
+                flat
+                dense
+                color="green-10"
+                icon="add"
+                label="Tambah Material"
+                no-caps
+                @click="addMaterialRow"
+              />
+            </div>
+
+            <div class="material-form-list">
+              <div
+                v-for="(material, index) in form.materials"
+                :key="index"
+                class="material-form-row"
+              >
+                <div class="row q-col-gutter-sm items-start">
+                  <div class="col-12 col-md-4">
+                    <q-input v-model="material.nama" outlined dense label="Material" />
+                  </div>
+                  <div class="col-6 col-md-2">
+                    <q-input
+                      v-model.number="material.qty"
+                      outlined
+                      dense
+                      type="number"
+                      min="0"
+                      label="Qty"
+                    />
+                  </div>
+                  <div class="col-6 col-md-2">
+                    <q-input v-model="material.satuan" outlined dense label="Satuan" />
+                  </div>
+                  <div class="col-12 col-md-3">
+                    <q-select
+                      v-model="material.status"
+                      :options="materialStatusOptions"
+                      outlined
+                      dense
+                      label="Status Material"
+                    />
+                  </div>
+                  <div class="col-12 col-md-1 text-right">
+                    <q-btn
+                      flat
+                      round
+                      dense
+                      color="negative"
+                      icon="delete"
+                      @click="removeMaterialRow(index)"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </q-card-section>
+
+          <q-card-actions align="right" class="bg-grey-1 q-pa-md">
+            <q-btn flat color="grey-7" label="Batal" no-caps v-close-popup />
+            <q-btn
+              unelevated
+              rounded
+              color="green-10"
+              icon="save"
+              label="Simpan WO"
+              no-caps
+              type="submit"
+              :loading="submitting"
+            />
+          </q-card-actions>
+        </q-form>
+      </q-card>
+    </q-dialog>
+
+    <q-dialog v-model="showDetailDialog">
+      <q-card class="detail-dialog">
+        <q-card-section class="dialog-header row items-center">
+          <div>
+            <div class="text-h6 text-weight-bold">{{ selectedRow?.nomor_wo }}</div>
+            <div class="text-caption">{{ selectedRow?.produk }} - {{ selectedRow?.customer }}</div>
+          </div>
+          <q-space />
+          <q-btn flat round dense icon="close" v-close-popup />
+        </q-card-section>
+
+        <q-card-section class="q-pa-lg">
+          <div class="row q-col-gutter-md q-mb-lg">
+            <div class="col-12 col-sm-4">
+              <div class="detail-label">Status WO</div>
+              <q-chip
+                dense
+                square
+                text-color="white"
+                :color="statusColor(selectedRow?.status_wo)"
+                class="status-chip q-mt-xs"
+              >
+                {{ statusLabel(selectedRow?.status_wo) }}
+              </q-chip>
+            </div>
+            <div class="col-12 col-sm-4">
+              <div class="detail-label">Line Produksi</div>
+              <div class="detail-value">{{ selectedRow?.line_produksi || '-' }}</div>
+            </div>
+            <div class="col-12 col-sm-4">
+              <div class="detail-label">PIC Produksi</div>
+              <div class="detail-value">{{ selectedRow?.pic_produksi || '-' }}</div>
+            </div>
+          </div>
+
+          <q-markup-table flat bordered class="material-table">
+            <thead class="bg-green-10 text-white">
+              <tr>
+                <th class="text-left">Material</th>
+                <th class="text-right">Qty</th>
+                <th class="text-left">Satuan</th>
+                <th class="text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(material, index) in selectedRow?.materials || []" :key="index">
+                <td class="text-weight-bold">{{ material.nama || '-' }}</td>
+                <td class="text-right">{{ formatNumber(material.qty) }}</td>
+                <td>{{ material.satuan || '-' }}</td>
+                <td class="text-center">
+                  <q-chip
+                    dense
+                    square
+                    text-color="white"
+                    :color="materialStatusColor(material.status)"
+                    class="material-status-chip"
+                  >
+                    {{ material.status || 'Belum Dicek' }}
+                  </q-chip>
+                </td>
+              </tr>
+              <tr v-if="!selectedRow?.materials?.length">
+                <td colspan="4" class="text-center text-grey-7 q-pa-lg">
+                  Material requirement belum diisi.
+                </td>
+              </tr>
+            </tbody>
+          </q-markup-table>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+  </q-page>
+</template>
+
+<script setup>
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useQuasar } from 'quasar'
+import {
+  addDoc,
+  collection,
+  doc,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  updateDoc,
+} from 'firebase/firestore'
+import { db } from 'src/boot/firebase'
+
+const COLLECTION_NAME = 'work_order_manufaktur'
+const statusOptions = [
+  { label: 'DRAFT', value: 'DRAFT' },
+  { label: 'RELEASED', value: 'RELEASED' },
+  { label: 'ON PRODUCTION', value: 'ON_PRODUCTION' },
+  { label: 'QC PROCESS', value: 'QC_PROCESS' },
+  { label: 'FINISHED', value: 'FINISHED' },
+  { label: 'CLOSED', value: 'CLOSED' },
+]
+const statusFilterOptions = [
+  { label: 'Semua Status', value: 'all' },
+  ...statusOptions,
+]
+const priorityOptions = ['Low', 'Normal', 'High', 'Urgent']
+const priorityFilterOptions = [
+  { label: 'Semua Prioritas', value: 'all' },
+  ...priorityOptions.map((priority) => ({ label: priority, value: priority })),
+]
+const lineOptions = ['Line A', 'Line B', 'Line C', 'Line D']
+const materialStatusOptions = ['Belum Dicek', 'Ready', 'Parsial', 'Kurang']
+
+const $q = useQuasar()
+const rows = ref([])
+const loading = ref(false)
+const submitting = ref(false)
+const search = ref('')
+const statusFilter = ref('all')
+const priorityFilter = ref('all')
+const showFormDialog = ref(false)
+const showDetailDialog = ref(false)
+const selectedRow = ref(null)
+const editingId = ref(null)
+let unsubscribeWorkOrders = null
+
+const defaultForm = () => ({
+  nomor_wo: generateWorkOrderNumber(),
+  customer: '',
+  produk: '',
+  qty_target: null,
+  deadline: '',
+  line_produksi: '',
+  prioritas: 'Normal',
+  pic_produksi: '',
+  status_wo: 'DRAFT',
+  materials: [
+    { nama: '', qty: null, satuan: 'pcs', status: 'Belum Dicek' },
+    { nama: '', qty: null, satuan: 'pcs', status: 'Belum Dicek' },
+  ],
+})
+
+const form = ref(defaultForm())
+
+const columns = [
+  { name: 'nomor_wo', align: 'left', label: 'Nomor WO', field: 'nomor_wo', sortable: true },
+  { name: 'produk', align: 'left', label: 'Produk / Customer', field: 'produk', sortable: true },
+  { name: 'qty_target', align: 'right', label: 'Qty Target', field: 'qty_target', sortable: true },
+  { name: 'line_produksi', align: 'left', label: 'Line Produksi', field: 'line_produksi' },
+  { name: 'prioritas', align: 'center', label: 'Prioritas', field: 'prioritas', sortable: true },
+  { name: 'pic_produksi', align: 'left', label: 'PIC Produksi', field: 'pic_produksi' },
+  { name: 'material', align: 'left', label: 'Material Requirement' },
+  { name: 'status_wo', align: 'center', label: 'Status WO', field: 'status_wo', sortable: true },
+  { name: 'aksi', align: 'center', label: 'Aksi' },
+]
+
+const filteredRows = computed(() => {
+  const keyword = search.value.trim().toLowerCase()
+  return rows.value.filter((row) => {
+    const matchesStatus = statusFilter.value === 'all' || row.status_wo === statusFilter.value
+    const matchesPriority = priorityFilter.value === 'all' || row.prioritas === priorityFilter.value
+    const matchesSearch =
+      !keyword ||
+      [
+        row.nomor_wo,
+        row.customer,
+        row.produk,
+        row.line_produksi,
+        row.prioritas,
+        row.pic_produksi,
+        row.status_wo,
+      ]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(keyword))
+
+    return matchesStatus && matchesPriority && matchesSearch
+  })
+})
+
+const summaryCards = computed(() => [
+  {
+    title: 'Total SPK',
+    value: rows.value.length,
+    icon: 'description',
+    color: 'green-10',
+  },
+  {
+    title: 'Released',
+    value: rows.value.filter((row) => row.status_wo === 'RELEASED').length,
+    icon: 'assignment_turned_in',
+    color: 'blue-grey-7',
+  },
+  {
+    title: 'On Production',
+    value: rows.value.filter((row) => row.status_wo === 'ON_PRODUCTION').length,
+    icon: 'precision_manufacturing',
+    color: 'orange-9',
+  },
+  {
+    title: 'QC Process',
+    value: rows.value.filter((row) => row.status_wo === 'QC_PROCESS').length,
+    icon: 'fact_check',
+    color: 'deep-purple-6',
+  },
+  {
+    title: 'Finished',
+    value: rows.value.filter((row) => ['FINISHED', 'CLOSED'].includes(row.status_wo)).length,
+    icon: 'verified',
+    color: 'positive',
+  },
+])
+
+const formModeLabel = computed(() => (editingId.value ? 'Edit' : 'Buat'))
+
+function generateWorkOrderNumber() {
+  const date = new Date()
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const suffix = String(Date.now()).slice(-4)
+  return `WO-${year}${month}${day}-${suffix}`
+}
+
+const normalizeMaterials = (materials) =>
+  (materials || [])
+    .map((material) => ({
+      nama: material.nama || '',
+      qty: Number(material.qty || 0),
+      satuan: material.satuan || '',
+      status: material.status || 'Belum Dicek',
+    }))
+    .filter((material) => material.nama || material.qty || material.satuan)
+
+const statusLabel = (status) => {
+  const option = statusOptions.find((item) => item.value === status)
+  return option?.label || status || '-'
+}
+
+const statusColor = (status) => {
+  const colors = {
+    DRAFT: 'grey-7',
+    RELEASED: 'blue-grey-7',
+    ON_PRODUCTION: 'orange-9',
+    QC_PROCESS: 'deep-purple-6',
+    FINISHED: 'green-10',
+    CLOSED: 'positive',
+  }
+  return colors[status] || 'grey-6'
+}
+
+const priorityColor = (priority) => {
+  const colors = {
+    Low: 'blue-grey-5',
+    Normal: 'green-8',
+    High: 'orange-9',
+    Urgent: 'negative',
+  }
+  return colors[priority] || 'grey-6'
+}
+
+const materialStatusColor = (status) => {
+  const colors = {
+    Ready: 'green-10',
+    Parsial: 'orange-9',
+    Kurang: 'negative',
+    'Belum Dicek': 'blue-grey-6',
+  }
+  return colors[status] || 'grey-6'
+}
+
+const materialReadyCount = (row) =>
+  (row.materials || []).filter((material) => material.status === 'Ready').length
+
+const materialReadyRatio = (row) => {
+  const total = row.materials?.length || 0
+  if (!total) return 0
+  return materialReadyCount(row) / total
+}
+
+const formatNumber = (value) => Number(value || 0).toLocaleString('id-ID')
+
+const formatDate = (value) => {
+  if (!value) return '-'
+  return new Date(value).toLocaleDateString('id-ID', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
+const openCreateDialog = () => {
+  editingId.value = null
+  form.value = defaultForm()
+  showFormDialog.value = true
+}
+
+const openEditDialog = (row) => {
+  editingId.value = row.id
+  form.value = {
+    nomor_wo: row.nomor_wo || '',
+    customer: row.customer || '',
+    produk: row.produk || '',
+    qty_target: Number(row.qty_target || 0),
+    deadline: row.deadline || '',
+    line_produksi: row.line_produksi || '',
+    prioritas: row.prioritas || 'Normal',
+    pic_produksi: row.pic_produksi || '',
+    status_wo: row.status_wo || 'DRAFT',
+    materials: row.materials?.length
+      ? row.materials.map((material) => ({ ...material }))
+      : [{ nama: '', qty: null, satuan: 'pcs', status: 'Belum Dicek' }],
+  }
+  showFormDialog.value = true
+}
+
+const openDetailDialog = (row) => {
+  selectedRow.value = row
+  showDetailDialog.value = true
+}
+
+const addMaterialRow = () => {
+  form.value.materials.push({ nama: '', qty: null, satuan: 'pcs', status: 'Belum Dicek' })
+}
+
+const removeMaterialRow = (index) => {
+  form.value.materials.splice(index, 1)
+}
+
+const saveWorkOrder = async () => {
+  submitting.value = true
+  try {
+    const payload = {
+      ...form.value,
+      qty_target: Number(form.value.qty_target || 0),
+      materials: normalizeMaterials(form.value.materials),
+      updated_at: serverTimestamp(),
+    }
+
+    if (editingId.value) {
+      await updateDoc(doc(db, COLLECTION_NAME, editingId.value), payload)
+      $q.notify({ type: 'positive', message: 'Work order berhasil diperbarui' })
+    } else {
+      await addDoc(collection(db, COLLECTION_NAME), {
+        ...payload,
+        created_at: serverTimestamp(),
+      })
+      $q.notify({ type: 'positive', message: 'Work order berhasil dibuat' })
+    }
+
+    showFormDialog.value = false
+  } catch (error) {
+    console.error(error)
+    $q.notify({ type: 'negative', message: 'Gagal menyimpan work order' })
+  } finally {
+    submitting.value = false
+  }
+}
+
+const loadWorkOrders = () => {
+  loading.value = true
+  if (unsubscribeWorkOrders) unsubscribeWorkOrders()
+
+  const workOrderQuery = query(collection(db, COLLECTION_NAME), orderBy('updated_at', 'desc'))
+  unsubscribeWorkOrders = onSnapshot(
+    workOrderQuery,
+    (snapshot) => {
+      rows.value = snapshot.docs.map((workOrderDoc) => ({
+        id: workOrderDoc.id,
+        materials: [],
+        ...workOrderDoc.data(),
+      }))
+      loading.value = false
+    },
+    (error) => {
+      console.error(error)
+      loading.value = false
+      $q.notify({ type: 'negative', message: 'Gagal memuat work order' })
+    },
+  )
+}
+
+onMounted(loadWorkOrders)
+
+onUnmounted(() => {
+  if (unsubscribeWorkOrders) unsubscribeWorkOrders()
+})
+</script>
+
+<style scoped>
+.font-pro {
+  font-family:
+    'Inter',
+    -apple-system,
+    sans-serif;
+}
+
+.leading-tight {
+  line-height: 1.15;
+}
+
+.shadow-premium {
+  box-shadow: 0 10px 30px rgba(27, 94, 32, 0.15);
+}
+
+.summary-card,
+.filter-card,
+.table-card,
+.work-order-dialog,
+.detail-dialog {
+  border-color: #dfe8df;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.summary-label {
+  color: #667085;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.summary-value {
+  color: #1b5e20;
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
+  margin-top: 5px;
+}
+
+.work-order-table :deep(thead tr th) {
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  padding: 14px 16px;
+}
+
+.table-head {
+  text-transform: uppercase;
+}
+
+.work-order-row {
+  transition:
+    background-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.work-order-row:hover {
+  background: rgba(27, 94, 32, 0.04);
+}
+
+.material-cell {
+  min-width: 170px;
+}
+
+.status-chip,
+.priority-chip,
+.material-status-chip {
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  justify-content: center;
+}
+
+.status-chip {
+  min-width: 118px;
+}
+
+.priority-chip {
+  min-width: 72px;
+}
+
+.material-status-chip {
+  min-width: 88px;
+}
+
+.dialog-header {
+  background: #1b5e20;
+  color: #ffffff;
+  padding: 16px 20px;
+}
+
+.work-order-dialog {
+  max-width: 95vw;
+  width: 920px;
+}
+
+.detail-dialog {
+  max-width: 95vw;
+  width: 760px;
+}
+
+.material-form-list {
+  display: grid;
+  gap: 10px;
+}
+
+.material-form-row {
+  background: #f8fbf8;
+  border: 1px solid #dfe8df;
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.detail-label {
+  color: #667085;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.detail-value {
+  color: #1b5e20;
+  font-size: 16px;
+  font-weight: 800;
+  margin-top: 4px;
+}
+
+.material-table {
+  border-color: #dfe8df;
+  border-radius: 12px;
+  overflow: hidden;
+}
+</style>
