@@ -236,6 +236,36 @@ const routes = [
         component: () => import('pages/manufaktur/sales/POCustomerPage.vue'),
       },
       {
+        path: 'produksi/planning-produksi',
+        name: 'manufaktur-planning-produksi',
+        component: () => import('pages/manufaktur/Produksi/PlanningProduksiPage.vue'),
+      },
+      {
+        path: 'produksi/line-produksi',
+        name: 'manufaktur-line-produksi',
+        component: () => import('pages/manufaktur/Produksi/LineProduksiPage.vue'),
+      },
+      {
+        path: 'produksi/monitoring-produksi',
+        name: 'manufaktur-monitoring-produksi',
+        component: () => import('pages/manufaktur/Produksi/MonitoringProduksiPage.vue'),
+      },
+      {
+        path: 'produksi/qc-produksi',
+        name: 'manufaktur-qc-produksi',
+        component: () => import('pages/manufaktur/Produksi/QCProduksiPage.vue'),
+      },
+      {
+        path: 'produksi/packing-produksi',
+        name: 'manufaktur-packing-produksi',
+        component: () => import('pages/manufaktur/Produksi/PackingProduksiPage.vue'),
+      },
+      {
+        path: 'produksi/ready-delivery',
+        name: 'manufaktur-ready-delivery',
+        component: () => import('pages/manufaktur/Produksi/ReadyDeliveryPage.vue'),
+      },
+      {
         path: 'produksi/proses-produksi/incoming',
         name: 'manufaktur-incoming-material',
         component: () => import('pages/manufaktur/Produksi/IncomingMaterialPage.vue'),

@@ -311,12 +311,106 @@
           </q-expansion-item>
 
           <q-expansion-item
-            v-if="hasSectionAccess(['produksi/proses-produksi/incoming'])"
+            v-if="
+              hasSectionAccess([
+                'produksi/planning-produksi',
+                'produksi/line-produksi',
+                'produksi/monitoring-produksi',
+                'produksi/qc-produksi',
+                'produksi/packing-produksi',
+                'produksi/ready-delivery',
+                'produksi/proses-produksi/incoming',
+              ])
+            "
             icon="precision_manufacturing"
             label="Produksi"
             header-class="nav-group"
             expand-icon-class="nav-expand-icon"
           >
+            <q-item
+              v-if="checkPermission('produksi/planning-produksi')"
+              clickable
+              v-ripple
+              to="/manufaktur/produksi/planning-produksi"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="assignment" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Planning Produksi</q-item-section>
+            </q-item>
+            <q-item
+              v-if="checkPermission('produksi/line-produksi')"
+              clickable
+              v-ripple
+              to="/manufaktur/produksi/line-produksi"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="precision_manufacturing" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Line Produksi</q-item-section>
+            </q-item>
+            <q-item
+              v-if="checkPermission('produksi/monitoring-produksi')"
+              clickable
+              v-ripple
+              to="/manufaktur/produksi/monitoring-produksi"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="monitoring" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Monitoring Produksi</q-item-section>
+            </q-item>
+            <q-item
+              v-if="checkPermission('produksi/qc-produksi')"
+              clickable
+              v-ripple
+              to="/manufaktur/produksi/qc-produksi"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="fact_check" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">QC Produksi</q-item-section>
+            </q-item>
+            <q-item
+              v-if="checkPermission('produksi/packing-produksi')"
+              clickable
+              v-ripple
+              to="/manufaktur/produksi/packing-produksi"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="inventory_2" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Packing Produksi</q-item-section>
+            </q-item>
+            <q-item
+              v-if="checkPermission('produksi/ready-delivery')"
+              clickable
+              v-ripple
+              to="/manufaktur/produksi/ready-delivery"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="local_shipping" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Ready Delivery</q-item-section>
+            </q-item>
             <q-item
               v-if="checkPermission('produksi/proses-produksi/incoming')"
               clickable
