@@ -143,21 +143,27 @@
         </div>
       </div>
 
-      <!-- SEARCH & FILTER AREA -->
+      <!-- ==========================================
+           SEARCH & FILTER AREA (DENGAN PERIODE TGL & PROYEK)
+           ========================================== -->
       <q-card
         flat
         bordered
         class="q-mb-lg shadow-1 rounded-20 bg-white no-print border-indigo-thin"
       >
-        <q-card-section class="q-py-md">
-          <div class="row items-center q-col-gutter-md">
-            <div class="col-12 col-md-5">
+        <q-card-section class="q-pa-lg">
+          <!-- Row 1: Search & Status -->
+          <div class="row items-center q-col-gutter-md q-mb-lg">
+            <div class="col-12 col-md-6">
+              <div class="text-caption text-grey-7 q-mb-xs text-weight-bold uppercase font-10">
+                Pencarian Cepat
+              </div>
               <q-input
                 v-model="searchQuery"
                 outlined
                 dense
                 rounded
-                placeholder="Cari Kode, BAP, SPK atau Proyek..."
+                placeholder="Cari Kode, BAP, SPK atau Nama Proyek..."
                 bg-color="white"
                 class="search-input"
               >
@@ -169,6 +175,11 @@
             </div>
             <q-space />
             <div class="col-12 col-md-auto">
+              <div
+                class="text-caption text-grey-7 q-mb-xs text-weight-bold uppercase font-10 text-right"
+              >
+                Filter Pembayaran
+              </div>
               <q-btn-toggle
                 v-model="statusFilter"
                 flat
@@ -181,6 +192,47 @@
                   { label: 'Belum Lunas', value: 'OUTSTANDING' },
                   { label: 'Lunas', value: 'LUNAS' },
                 ]"
+              />
+            </div>
+          </div>
+
+          <!-- Row 2: Date Range & Project Filter -->
+          <div class="row items-end q-col-gutter-md">
+            <div class="col-12 col-sm-6 col-md-2">
+              <div class="text-subtitle2 q-mb-xs text-weight-bold">Tanggal Awal</div>
+              <q-input outlined dense type="date" v-model="filterStartDate" bg-color="white" />
+            </div>
+            <div class="col-12 col-sm-6 col-md-2">
+              <div class="text-subtitle2 q-mb-xs text-weight-bold">Tanggal Akhir</div>
+              <q-input outlined dense type="date" v-model="filterEndDate" bg-color="white" />
+            </div>
+            <div class="col-12 col-sm-12 col-md-6">
+              <div class="text-subtitle2 q-mb-xs text-weight-bold">Filter Berdasarkan Proyek</div>
+              <q-select
+                outlined
+                dense
+                v-model="filterSelectedProyek"
+                :options="optProyekFilter"
+                option-label="nama"
+                placeholder="Semua Proyek..."
+                bg-color="white"
+                clearable
+                use-input
+                @filter="filterProyekDropdown"
+              >
+                <template v-slot:prepend>
+                  <q-icon name="apartment" color="indigo-10" />
+                </template>
+              </q-select>
+            </div>
+            <div class="col-12 col-md-2">
+              <q-btn
+                flat
+                color="grey-7"
+                icon="restart_alt"
+                label="Reset Filter"
+                class="full-width rounded-12 text-weight-bold"
+                @click="resetFilters"
               />
             </div>
           </div>
@@ -238,7 +290,7 @@
 
               <q-td key="proyek_spk">
                 <div
-                  class="text-weight-bold text-blue-grey-10 uppercase"
+                  class="text-weight-bold text-blue-grey-10 uppercase font-11"
                   :title="props.row.proyek_nama"
                 >
                   {{ truncateString(props.row.proyek_nama, 25) }}
@@ -269,25 +321,25 @@
               </q-td>
 
               <q-td key="tgl_invoice">
-                <div class="text-weight-bold text-grey-9">
+                <div class="text-weight-bold text-grey-9 font-11">
                   {{ formatDateIndo(props.row.tanggal_invoice) }}
                 </div>
               </q-td>
 
               <q-td key="tgl_submit">
-                <div class="text-weight-bold text-grey-9">
+                <div class="text-weight-bold text-grey-9 font-11">
                   {{ formatDateIndo(props.row.tanggal_submit) }}
                 </div>
               </q-td>
 
               <q-td key="jatuh_tempo">
-                <div class="text-weight-bold text-grey-9">
+                <div class="text-weight-bold text-grey-9 font-11">
                   {{ formatDateIndo(props.row.jatuh_tempo) }}
                 </div>
               </q-td>
 
               <q-td key="tenor" class="text-center">
-                <div class="text-weight-bold" :class="calculateTenor(props.row).color">
+                <div class="text-weight-bold font-10" :class="calculateTenor(props.row).color">
                   {{ calculateTenor(props.row).text }}
                 </div>
               </q-td>
@@ -296,13 +348,13 @@
                 <div class="text-weight-bold text-indigo-10">
                   {{ props.row.progress_persen || 0 }}%
                 </div>
-                <div class="text-caption text-grey-6 uppercase">
+                <div class="text-caption text-grey-6 uppercase font-10">
                   {{ truncateString(props.row.tahap_ke || props.row.termin, 10) }}
                 </div>
               </q-td>
 
               <q-td key="nominal" class="text-right">
-                <div class="text-weight-bold text-indigo-10 text-subtitle1">
+                <div class="text-weight-bold text-indigo-10 text-subtitle2">
                   Rp {{ (props.row.net_amount || 0).toLocaleString('id-ID') }}
                 </div>
               </q-td>
@@ -358,7 +410,9 @@
           <template v-slot:no-data>
             <div class="full-width row flex-center q-pa-xl text-grey-5">
               <q-icon name="receipt" size="48px" class="q-mb-md" />
-              <div class="text-h6 full-width text-center">Belum ada tagihan yang diregistrasi.</div>
+              <div class="text-h6 full-width text-center">
+                Data tidak ditemukan dengan kriteria filter tersebut.
+              </div>
             </div>
           </template>
         </q-table>
@@ -1328,6 +1382,12 @@ const paymentForm = ref({
   bukti_file: null,
 })
 
+// --- STATE FILTER BARU ---
+const filterStartDate = ref('')
+const filterEndDate = ref('')
+const filterSelectedProyek = ref(null)
+const optProyekFilter = ref([])
+
 // State Dropdown
 const optProyek = ref([])
 const optSpkFiltered = ref([])
@@ -1516,22 +1576,48 @@ const totalOutstanding = computed(() =>
   ),
 )
 
-// Pencarian
+// --- LOGIKA FILTER TERPADU (DENGAN TGL & PROYEK) ---
 const filteredTagihan = computed(() => {
   let result = mappedTagihan.value
 
-  if (statusFilter.value === 'OUTSTANDING')
+  // 1. Filter Status Lunas / Belum Lunas
+  if (statusFilter.value === 'OUTSTANDING') {
     result = result.filter(
       (r) => r.status === 'Menunggu Pembayaran' || r.status === 'Dibayar Sebagian',
     )
-  else if (statusFilter.value === 'LUNAS') result = result.filter((r) => r.status === 'Lunas')
+  } else if (statusFilter.value === 'LUNAS') {
+    result = result.filter((r) => r.status === 'Lunas')
+  }
 
+  // 2. Filter Pencarian Teks
   if (searchQuery.value) {
     const lower = searchQuery.value.toLowerCase()
     result = result.filter((r) => r.search_string.includes(lower))
   }
+
+  // 3. Filter Periode Tanggal (berdasarkan tanggal_invoice)
+  if (filterStartDate.value) {
+    result = result.filter((r) => r.tanggal_invoice >= filterStartDate.value)
+  }
+  if (filterEndDate.value) {
+    result = result.filter((r) => r.tanggal_invoice <= filterEndDate.value)
+  }
+
+  // 4. Filter Berdasarkan Proyek
+  if (filterSelectedProyek.value) {
+    result = result.filter((r) => r.proyek_id === filterSelectedProyek.value.id)
+  }
+
   return result
 })
+
+const resetFilters = () => {
+  searchQuery.value = ''
+  statusFilter.value = 'ALL'
+  filterStartDate.value = ''
+  filterEndDate.value = ''
+  filterSelectedProyek.value = null
+}
 
 // Menghitung Invoice Customer yang tersedia (Belum pernah digunakan di Tagihan manapun)
 const availableInvoiceCust = computed(() => {
@@ -1552,6 +1638,13 @@ const filterProyek = (val, update) => {
   update(() => {
     const needle = val.toLowerCase()
     optProyek.value = masterProyek.value.filter((v) => v.nama?.toLowerCase().includes(needle))
+  })
+}
+
+const filterProyekDropdown = (val, update) => {
+  update(() => {
+    const needle = val.toLowerCase()
+    optProyekFilter.value = masterProyek.value.filter((v) => v.nama?.toLowerCase().includes(needle))
   })
 }
 
@@ -1638,6 +1731,7 @@ const fetchData = () => {
   unsubProyek = onSnapshot(collection(db, 'proyek'), (snap) => {
     masterProyek.value = snap.docs.map((d) => ({ ...d.data(), id: d.id }))
     optProyek.value = [...masterProyek.value]
+    optProyekFilter.value = [...masterProyek.value]
   })
 
   unsubSpk = onSnapshot(collection(db, 'spk_customer'), (snap) => {
@@ -1926,8 +2020,6 @@ const getStatusColor = (status) => {
 }
 
 const exportToPDF = () => {
-  // Hanya menampilkan pesan notifikasi untuk tampilan dashboard, bukan eksport langsung
-  // karena PDF biasanya mengeksport format lembar kertas (seperti InvoiceCustomerPage).
   $q.notify({
     type: 'info',
     message: 'Gunakan fitur cetak browser (Ctrl+P) untuk menyimpan tampilan dashboard.',

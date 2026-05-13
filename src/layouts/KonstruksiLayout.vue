@@ -507,21 +507,6 @@
                   <q-item-section>Tagihan Supplier / Labour</q-item-section>
                 </q-item>
 
-                <!-- Monitoring Pengeluaran -->
-                <q-item
-                  v-if="checkPermission('finance/pengeluaran')"
-                  clickable
-                  v-ripple
-                  to="/konstruksi/finance/pengeluaran"
-                  class="level-2-item"
-                  active-class="sub-menu-item-active"
-                >
-                  <q-item-section avatar
-                    ><q-icon name="trending_down" size="20px"
-                  /></q-item-section>
-                  <q-item-section>Monitoring Pengeluaran</q-item-section>
-                </q-item>
-
                 <!-- Pengajuan Pembayaran -->
                 <q-item
                   v-if="checkPermission('finance/pembayaran')"
@@ -546,6 +531,21 @@
                 >
                   <q-item-section avatar><q-icon name="gavel" size="20px" /></q-item-section>
                   <q-item-section>Approval Pembayaran</q-item-section>
+                </q-item>
+
+                <!-- Monitoring Pengeluaran -->
+                <q-item
+                  v-if="checkPermission('finance/pengeluaran')"
+                  clickable
+                  v-ripple
+                  to="/konstruksi/finance/pengeluaran"
+                  class="level-2-item"
+                  active-class="sub-menu-item-active"
+                >
+                  <q-item-section avatar
+                    ><q-icon name="trending_down" size="20px"
+                  /></q-item-section>
+                  <q-item-section>Monitoring Pengeluaran</q-item-section>
                 </q-item>
 
                 <!-- Monitoring Balansheet (Paling Bawah & Selalu Hijau Tua) -->
