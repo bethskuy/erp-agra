@@ -1,10 +1,6 @@
 <template>
   <q-page class="bg-grey-2 q-pa-md q-pa-lg-lg font-pro">
-    <!-- =====================================================================================
-         VIEW 1: LIST TAGIHAN SUPPLIER
-         ===================================================================================== -->
     <div v-if="viewMode === 'list'" class="animate-fade">
-      <!-- HEADER SECTION -->
       <div class="row items-center justify-between q-mb-xl no-print">
         <div class="col-12 col-md-6">
           <div class="row items-center no-wrap">
@@ -64,9 +60,7 @@
         </div>
       </div>
 
-      <!-- SUMMARY CARDS / KPI FINANCE -->
       <div class="row q-col-gutter-lg q-mb-lg animate-fade-up no-print">
-        <!-- Total Tagihan Terdaftar -->
         <div class="col-12 col-sm-6 col-md-3">
           <q-card flat class="rounded-20 border-subtle bg-white transition-all hover-shadow">
             <q-card-section class="row items-center no-wrap q-pa-md">
@@ -90,7 +84,6 @@
           </q-card>
         </div>
 
-        <!-- Tagihan Belum Dibayar (Outstanding) -->
         <div class="col-12 col-sm-6 col-md-3">
           <q-card flat class="rounded-20 border-subtle bg-white transition-all hover-shadow">
             <q-card-section class="row items-center no-wrap q-pa-md">
@@ -114,7 +107,6 @@
           </q-card>
         </div>
 
-        <!-- Tagihan Jatuh Tempo (Overdue) -->
         <div class="col-12 col-sm-6 col-md-3">
           <q-card flat class="rounded-20 border-subtle bg-white transition-all hover-shadow">
             <q-card-section class="row items-center no-wrap q-pa-md">
@@ -138,7 +130,6 @@
           </q-card>
         </div>
 
-        <!-- Total Hutang Valuasi -->
         <div class="col-12 col-sm-6 col-md-3">
           <q-card
             flat
@@ -166,10 +157,8 @@
         </div>
       </div>
 
-      <!-- SEARCH & FILTER AREA -->
       <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print">
         <q-card-section class="q-pa-lg">
-          <!-- Row 1: Search & Status -->
           <div class="row items-center q-col-gutter-md q-mb-lg">
             <div class="col-12 col-md-6">
               <div class="text-caption text-grey-7 q-mb-xs text-weight-bold uppercase font-10">
@@ -213,7 +202,6 @@
             </div>
           </div>
 
-          <!-- Row 2: Date Range & Project & Vendor Filter -->
           <div class="row items-end q-col-gutter-md">
             <div class="col-12 col-sm-6 col-md-2">
               <div class="text-subtitle2 q-mb-xs text-weight-bold">Tanggal Awal</div>
@@ -283,7 +271,6 @@
         </q-card-section>
       </q-card>
 
-      <!-- MAIN TABLE DATA -->
       <q-card flat bordered class="rounded-20 shadow-sm overflow-hidden bg-white no-print">
         <q-table
           :rows="filteredRows"
@@ -348,6 +335,9 @@
                 </div>
                 <div class="text-caption text-grey-6" v-if="props.row.po_nomor">
                   Ref PO: {{ props.row.po_nomor }}
+                </div>
+                <div class="text-caption text-grey-6" v-if="props.row.spk_nomor">
+                  SPK: {{ props.row.spk_nomor }}
                 </div>
               </q-td>
 
@@ -462,11 +452,7 @@
       </q-card>
     </div>
 
-    <!-- =====================================================================================
-         VIEW 2: DETAIL TAGIHAN SUPPLIER (INFORMATIF)
-         ===================================================================================== -->
     <div v-else-if="viewMode === 'detail' && selectedTagihan" class="animate-fade q-pb-xl">
-      <!-- Top Action Bar -->
       <div class="row items-center justify-between q-mb-xl no-print">
         <div class="row items-center no-wrap">
           <q-btn
@@ -499,9 +485,7 @@
         </div>
       </div>
 
-      <!-- MAIN CONTENT WRAPPER -->
       <div id="invoice-pdf-target" class="bg-transparent">
-        <!-- HEADER RINCIAN & STATUS -->
         <div class="row items-center justify-between q-mb-lg">
           <div>
             <div
@@ -526,9 +510,7 @@
         </div>
 
         <div class="row q-col-gutter-lg">
-          <!-- KOLOM KIRI: REFERENSI & TIMELINE -->
           <div class="col-12 col-md-7">
-            <!-- CARD 1: REFERENSI DOKUMEN & PROYEK -->
             <q-card flat bordered class="rounded-20 shadow-sm q-mb-lg bg-white border-indigo-thin">
               <q-card-section class="bg-indigo-50 text-indigo-10 q-py-sm border-bottom-subtle">
                 <div class="text-weight-bold uppercase tracking-widest font-11 flex items-center">
@@ -557,7 +539,7 @@
                       {{ selectedTagihan.proyek_nama || '-' }}
                     </div>
                   </div>
-                  <div class="col-12 col-sm-6">
+                  <div class="col-12 col-sm-4">
                     <div
                       class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
                     >
@@ -567,7 +549,17 @@
                       {{ selectedTagihan.po_nomor || '-' }}
                     </div>
                   </div>
-                  <div class="col-12 col-sm-6">
+                  <div class="col-12 col-sm-4">
+                    <div
+                      class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
+                    >
+                      NOMOR SPK
+                    </div>
+                    <div class="text-subtitle1 text-weight-bold uppercase">
+                      {{ selectedTagihan.spk_nomor || '-' }}
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-4">
                     <div
                       class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
                     >
@@ -581,7 +573,6 @@
               </q-card-section>
             </q-card>
 
-            <!-- CARD 2: DESKRIPSI & TIMELINE -->
             <q-card flat bordered class="rounded-20 shadow-sm q-mb-lg bg-white border-indigo-thin">
               <q-card-section class="bg-indigo-50 text-indigo-10 q-py-sm border-bottom-subtle">
                 <div class="text-weight-bold uppercase tracking-widest font-11 flex items-center">
@@ -637,7 +628,6 @@
               </q-card-section>
             </q-card>
 
-            <!-- CARD 4 (DIPINDAH KE KIRI): LAMPIRAN (NON-PRINT) -->
             <q-card
               v-if="selectedTagihan?.lampiran && selectedTagihan.lampiran.length > 0"
               flat
@@ -676,9 +666,7 @@
             </q-card>
           </div>
 
-          <!-- KOLOM KANAN: FINANCIAL SUMMARY -->
           <div class="col-12 col-md-5">
-            <!-- CARD 3: KEUANGAN -->
             <q-card
               flat
               bordered
@@ -774,7 +762,6 @@
               </q-card-section>
             </q-card>
 
-            <!-- CARD 5: RIWAYAT PEMBAYARAN TRACKER (NON-PRINT) -->
             <q-card
               flat
               bordered
@@ -836,11 +823,7 @@
       </div>
     </div>
 
-    <!-- =====================================================================================
-         VIEW 3: FORM ENTRY / EDIT TAGIHAN (VIEW SWITCHER)
-         ===================================================================================== -->
     <div v-else-if="viewMode === 'form'" class="animate-fade">
-      <!-- HEADER FORM -->
       <div class="row items-center justify-between q-mb-xl no-print">
         <div class="col-12 col-md-8">
           <div class="row items-center no-wrap">
@@ -876,11 +859,9 @@
         </div>
       </div>
 
-      <!-- MAIN FORM CONTENT -->
       <div class="row justify-center">
         <div class="col-12 col-xl-10">
           <div class="row q-col-gutter-lg">
-            <!-- KOLOM KIRI (REFERENSI PO & SUPPLIER) -->
             <div class="col-12 col-md-5">
               <q-card flat bordered class="rounded-20 q-mb-lg bg-white shadow-1">
                 <q-card-section
@@ -889,7 +870,6 @@
                   <q-icon name="receipt_long" class="q-mr-xs" size="sm" /> REFERENSI PO & SUPPLIER
                 </q-card-section>
                 <q-card-section class="q-pa-lg q-gutter-y-md">
-                  <!-- 1. Kode Tagihan Supplier -->
                   <div>
                     <div class="label-req q-mb-xs">Kode Tagihan Supplier (Auto Generate)</div>
                     <q-input
@@ -902,7 +882,6 @@
                     />
                   </div>
 
-                  <!-- 2. Data Purchase Order -->
                   <div>
                     <div class="label-req q-mb-xs text-primary">Data Purchase Order (Opsional)</div>
                     <q-select
@@ -932,7 +911,6 @@
                     </q-select>
                   </div>
 
-                  <!-- 3. Tanggal PO -->
                   <div>
                     <div class="label-req q-mb-xs">Tanggal PO</div>
                     <q-input
@@ -945,7 +923,6 @@
                     />
                   </div>
 
-                  <!-- 4. Supplier / Penagih -->
                   <div>
                     <div class="label-req q-mb-xs">Supplier / Penagih *</div>
                     <q-select
@@ -960,7 +937,6 @@
                     />
                   </div>
 
-                  <!-- 5. Nominal PO -->
                   <div>
                     <div class="label-req q-mb-xs">Nominal PO</div>
                     <q-input
@@ -975,16 +951,34 @@
                     />
                   </div>
 
-                  <!-- Proyek -->
-                  <div v-if="form.proyek">
-                    <div class="label-req q-mb-xs">Dialokasikan Ke Proyek</div>
-                    <q-input outlined dense v-model="form.proyek.nama" readonly bg-color="grey-2" />
+                  <div class="row q-col-gutter-md">
+                    <div class="col-12 col-md-6">
+                      <div class="label-req q-mb-xs">Referensi Proyek</div>
+                      <q-input
+                        outlined
+                        dense
+                        v-model="form.proyek_nama"
+                        readonly
+                        bg-color="grey-2"
+                        placeholder="Otomatis dari PO..."
+                      />
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <div class="label-req q-mb-xs">Nomor SPK</div>
+                      <q-input
+                        outlined
+                        dense
+                        v-model="form.spk_nomor"
+                        readonly
+                        bg-color="grey-2"
+                        placeholder="Otomatis dari PO..."
+                      />
+                    </div>
                   </div>
                 </q-card-section>
               </q-card>
             </div>
 
-            <!-- KOLOM KANAN (RINCIAN TAGIHAN & LAMPIRAN) -->
             <div class="col-12 col-md-7">
               <q-card flat bordered class="rounded-20 bg-white shadow-1 overflow-hidden">
                 <q-card-section
@@ -994,7 +988,6 @@
                 </q-card-section>
 
                 <q-card-section class="q-pa-lg q-gutter-y-md">
-                  <!-- 6. Nomer Invoice Supplier -->
                   <div>
                     <div class="label-req q-mb-xs">Nomor Invoice Supplier *</div>
                     <q-input
@@ -1008,7 +1001,6 @@
                   </div>
 
                   <div class="row q-col-gutter-md">
-                    <!-- 7. Tgl Invoice -->
                     <div class="col-12 col-md-6">
                       <div class="label-req q-mb-xs">Tgl Invoice *</div>
                       <q-input
@@ -1019,7 +1011,6 @@
                         bg-color="white"
                       />
                     </div>
-                    <!-- 8. Nominal Invoice -->
                     <div class="col-12 col-md-6">
                       <div class="label-req q-mb-xs">Nominal Invoice (Rp) *</div>
                       <q-input
@@ -1035,7 +1026,6 @@
                   </div>
 
                   <div class="row q-col-gutter-md">
-                    <!-- 9. Jatuh Tempo -->
                     <div class="col-12 col-md-6">
                       <div class="label-req q-mb-xs">Tgl Jatuh Tempo *</div>
                       <q-input
@@ -1048,7 +1038,6 @@
                     </div>
                   </div>
 
-                  <!-- 10. Deskripsi Tagihan -->
                   <div>
                     <div class="label-req q-mb-xs">Deskripsi Tagihan</div>
                     <q-input
@@ -1064,7 +1053,6 @@
 
                   <q-separator class="q-my-lg border-subtle" />
 
-                  <!-- DOKUMEN LAMPIRAN -->
                   <div>
                     <div class="row items-center justify-between q-mb-sm">
                       <div class="label-req">DOKUMEN LAMPIRAN</div>
@@ -1130,7 +1118,6 @@
 
                   <q-separator class="q-my-lg border-subtle" />
 
-                  <!-- Kalkulasi Pajak -->
                   <div class="row q-col-gutter-md">
                     <div class="col-6">
                       <div class="label-req q-mb-xs">PPN (%)</div>
@@ -1198,9 +1185,6 @@
       <div class="q-py-xl"></div>
     </div>
 
-    <!-- =====================================================================================
-         DIALOG UPDATE PEMBAYARAN (TRACKER CICILAN) - FULL SCREEN (MAXIMIZED)
-         ===================================================================================== -->
     <q-dialog
       v-model="showPaymentDialog"
       maximized
@@ -1209,7 +1193,6 @@
       transition-hide="slide-down"
     >
       <q-card class="bg-grey-2 column no-wrap">
-        <!-- HEADER DIALOG FULLSCREEN -->
         <q-toolbar class="bg-indigo-10 text-white q-py-md shadow-4 shrink">
           <q-btn flat round dense icon="close" v-close-popup />
           <q-toolbar-title class="text-weight-black uppercase"> UPDATE PEMBAYARAN </q-toolbar-title>
@@ -1307,7 +1290,6 @@
       </q-card>
     </q-dialog>
 
-    <!-- HIDDEN AREA FOR TABLE PDF EXPORT -->
     <div style="position: absolute; top: -9999px; left: -9999px; width: 1122px; z-index: -1">
       <div id="table-pdf-export" class="bg-white q-pa-lg">
         <div class="row items-center q-mb-lg border-bottom-subtle q-pb-md">
@@ -1467,7 +1449,9 @@ const formDefault = {
   nominal_invoice: 0,
   jatuh_tempo: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().substr(0, 10),
   keterangan: '',
-  proyek: null,
+  proyek_id: null,
+  proyek_nama: '',
+  spk_nomor: '',
   ppn_persen: 0,
   pph_persen: 0,
   status: 'Menunggu Pembayaran',
@@ -1653,19 +1637,15 @@ const openEditDialog = (row) => {
   form.value = {
     ...JSON.parse(JSON.stringify(row)),
     supplier: row.supplier_id ? { id: row.supplier_id, nama: row.supplier_nama } : null,
-    proyek: row.proyek_id ? { id: row.proyek_id, nama: row.proyek_nama } : null,
+    proyek_id: row.proyek_id || null,
+    proyek_nama: row.proyek_nama || '',
+    spk_nomor: row.spk_nomor || '',
     po_ref: row.po_nomor ? { nomor: row.po_nomor } : null,
     nominal_po: row.nominal_po || 0,
   }
   if (!form.value.kode_tagihan) form.value.kode_tagihan = generateKodeTagihan()
   if (!form.value.nominal_invoice) form.value.nominal_invoice = form.value.nilai_dpp || 0
   viewMode.value = 'form'
-}
-
-// eslint-disable-next-line no-unused-vars
-const getChartRatio = (val, max) => {
-  if (max === 0 || !val) return 0
-  return val / max
 }
 
 // Export Logics
@@ -1784,6 +1764,7 @@ const onPoSelect = (poObj) => {
     form.value.nominal_po = poObj.grand_total || 0
     form.value.nominal_invoice = poObj.grand_total || 0
     form.value.keterangan = `Tagihan berdasarkan PO: ${poObj.nomor}`
+    form.value.spk_nomor = poObj.nomor_spk || poObj.spk_nomor || '-'
 
     // Auto fill supplier
     const matchedSupp = allSupplier.value.find(
@@ -1792,11 +1773,9 @@ const onPoSelect = (poObj) => {
     if (matchedSupp) form.value.supplier = { id: matchedSupp.id, nama: matchedSupp.nama }
     else form.value.supplier = { id: null, nama: poObj.kepada_yth }
 
-    // Auto fill proyek
-    const matchedProj = optProyek.value.find(
-      (p) => p.nama.toLowerCase() === poObj.proyek_nama?.toLowerCase(),
-    )
-    if (matchedProj) form.value.proyek = matchedProj
+    // Auto fill proyek (sebagai readonly data sekarang)
+    form.value.proyek_nama = poObj.proyek_nama || '-'
+    form.value.proyek_id = poObj.proyek_id || null
   } else {
     form.value.po_nomor = ''
     form.value.po_tanggal = ''
@@ -1804,7 +1783,9 @@ const onPoSelect = (poObj) => {
     form.value.nominal_invoice = 0
     form.value.keterangan = ''
     form.value.supplier = null
-    form.value.proyek = null
+    form.value.proyek_nama = ''
+    form.value.proyek_id = null
+    form.value.spk_nomor = ''
   }
 }
 
@@ -1867,8 +1848,9 @@ const simpanTagihan = async () => {
       jatuh_tempo: form.value.jatuh_tempo,
       supplier_id: form.value.supplier?.id || null,
       supplier_nama: form.value.supplier?.nama || '',
-      proyek_id: form.value.proyek?.id || null,
-      proyek_nama: form.value.proyek?.nama || '',
+      proyek_id: form.value.proyek_id || null,
+      proyek_nama: form.value.proyek_nama || '',
+      spk_nomor: form.value.spk_nomor || '',
       po_nomor: form.value.po_nomor || '',
       po_tanggal: form.value.po_tanggal || '',
       nominal_po: form.value.nominal_po || 0,
