@@ -228,39 +228,67 @@
                 <div class="text-weight-bold text-indigo-10 text-subtitle2">
                   {{ props.row.kode_tagihan }}
                 </div>
-                <div class="text-caption text-blue-grey-8 uppercase font-bold">
-                  BAP: {{ props.row.bap_number || '-' }}
+                <div
+                  class="text-caption text-blue-grey-8 uppercase font-bold"
+                  :title="props.row.bap_number"
+                >
+                  BAP: {{ truncateString(props.row.bap_number, 12) }}
                 </div>
               </q-td>
 
               <q-td key="proyek_spk">
-                <div class="text-weight-bold text-blue-grey-10 uppercase">
-                  {{ props.row.proyek_nama || '-' }}
+                <div
+                  class="text-weight-bold text-blue-grey-10 uppercase"
+                  :title="props.row.proyek_nama"
+                >
+                  {{ truncateString(props.row.proyek_nama, 25) }}
                 </div>
-                <div class="text-caption text-grey-7">SPK: {{ props.row.nomor_spk || '-' }}</div>
+                <div class="text-caption text-grey-7" :title="props.row.nomor_spk">
+                  SPK: {{ truncateString(props.row.nomor_spk, 20) }}
+                </div>
               </q-td>
 
               <q-td key="invoice_ar">
-                <div class="text-weight-bold text-primary uppercase">
-                  {{
+                <div
+                  class="text-weight-bold text-primary uppercase"
+                  :title="
                     typeof props.row.nomor_invoice_customer === 'object'
                       ? props.row.nomor_invoice_customer?.nomor_invoice
-                      : props.row.nomor_invoice_customer || '-'
+                      : props.row.nomor_invoice_customer
+                  "
+                >
+                  {{
+                    typeof props.row.nomor_invoice_customer === 'object'
+                      ? truncateString(props.row.nomor_invoice_customer?.nomor_invoice, 18)
+                      : truncateString(props.row.nomor_invoice_customer, 18)
                   }}
                 </div>
-                <div class="text-caption text-grey-7">
+                <div class="text-caption text-grey-7" v-if="props.row.tanggal_faktur">
                   Faktur: {{ formatDateIndo(props.row.tanggal_faktur) }}
                 </div>
               </q-td>
 
-              <q-td key="timeline">
-                <div class="text-caption text-grey-8">
-                  Inv:
-                  <span class="text-bold">{{ formatDateIndo(props.row.tanggal_invoice) }}</span>
+              <q-td key="tgl_invoice">
+                <div class="text-weight-bold text-grey-9">
+                  {{ formatDateIndo(props.row.tanggal_invoice) }}
                 </div>
-                <div class="text-caption text-grey-8">
-                  Submit:
-                  <span class="text-bold">{{ formatDateIndo(props.row.tanggal_submit) }}</span>
+              </q-td>
+
+              <q-td key="tgl_submit">
+                <div class="text-weight-bold text-grey-9">
+                  {{ formatDateIndo(props.row.tanggal_submit) }}
+                </div>
+              </q-td>
+
+              <q-td key="jatuh_tempo">
+                <div class="text-weight-bold text-grey-9">
+                  {{ formatDateIndo(props.row.jatuh_tempo) }}
+                </div>
+              </q-td>
+
+              <q-td key="tenor" class="text-center">
+                <div class="text-weight-bold" :class="calculateTenor(props.row).color">
+                  {{ calculateTenor(props.row).text }}
                 </div>
               </q-td>
 
@@ -269,7 +297,7 @@
                   {{ props.row.progress_persen || 0 }}%
                 </div>
                 <div class="text-caption text-grey-6 uppercase">
-                  {{ props.row.tahap_ke || props.row.termin || '-' }}
+                  {{ truncateString(props.row.tahap_ke || props.row.termin, 10) }}
                 </div>
               </q-td>
 
@@ -277,7 +305,6 @@
                 <div class="text-weight-bold text-indigo-10 text-subtitle1">
                   Rp {{ (props.row.net_amount || 0).toLocaleString('id-ID') }}
                 </div>
-                <div class="text-caption text-grey-6">Net Amount</div>
               </q-td>
 
               <q-td key="status" class="text-center">
@@ -361,6 +388,17 @@
               Kode: {{ selectedTagihan.kode_tagihan }}
             </div>
           </div>
+        </div>
+        <div class="row items-center q-gutter-md">
+          <q-btn
+            unelevated
+            color="white"
+            text-color="indigo-10"
+            icon="picture_as_pdf"
+            label="EXPORT PDF"
+            class="rounded-12 text-weight-bold shadow-2"
+            @click="exportToPDF"
+          />
         </div>
       </div>
 
@@ -615,10 +653,20 @@
                   </div>
                 </div>
 
-                <div
-                  class="q-mt-xl text-weight-bold text-indigo-10 q-mb-md uppercase tracking-widest font-11"
-                >
-                  STATUS PEMBAYARAN
+                <div class="row justify-between items-center q-mt-xl q-mb-sm no-print">
+                  <div class="text-weight-bold text-indigo-10 uppercase tracking-widest font-11">
+                    STATUS PEMBAYARAN
+                  </div>
+                  <q-btn
+                    v-if="selectedTagihan.status !== 'Lunas'"
+                    outline
+                    rounded
+                    size="sm"
+                    color="indigo-10"
+                    icon="add"
+                    label="Update Pembayaran"
+                    @click="openPaymentDialog"
+                  />
                 </div>
                 <div class="row justify-between items-center q-mb-sm">
                   <div class="text-grey-7 font-bold">Telah Dibayar</div>
@@ -684,6 +732,64 @@
                     </q-item-section>
                   </q-item>
                 </q-list>
+              </q-card-section>
+            </q-card>
+
+            <!-- CARD 5: RIWAYAT PEMBAYARAN TRACKER (NON-PRINT) -->
+            <q-card
+              flat
+              bordered
+              class="rounded-20 shadow-sm bg-white border-indigo-thin q-mt-lg no-print"
+            >
+              <q-card-section class="bg-indigo-50 text-indigo-10 q-py-sm border-bottom-subtle">
+                <div class="text-weight-bold uppercase tracking-widest font-11 flex items-center">
+                  <q-icon name="history" size="sm" class="q-mr-sm" /> RIWAYAT PEMBAYARAN
+                </div>
+              </q-card-section>
+              <q-card-section class="q-pa-md">
+                <q-list
+                  separator
+                  v-if="
+                    selectedTagihan.riwayat_pembayaran &&
+                    selectedTagihan.riwayat_pembayaran.length > 0
+                  "
+                >
+                  <q-item v-for="(hist, idx) in selectedTagihan.riwayat_pembayaran" :key="idx">
+                    <q-item-section avatar>
+                      <q-avatar color="green-1" text-color="positive" icon="payments" />
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label class="text-weight-bold text-indigo-10"
+                        >Rp {{ (hist.nominal || 0).toLocaleString('id-ID') }}</q-item-label
+                      >
+                      <q-item-label caption>{{
+                        hist.catatan || 'Pembayaran Tagihan'
+                      }}</q-item-label>
+                    </q-item-section>
+                    <q-item-section side>
+                      <div class="row items-center q-gutter-x-sm">
+                        <div class="text-caption text-weight-bold text-grey-8">
+                          {{ formatDateIndo(hist.tanggal) }}
+                        </div>
+                        <q-btn
+                          v-if="hist.bukti_url"
+                          flat
+                          round
+                          dense
+                          icon="receipt"
+                          color="primary"
+                          size="sm"
+                          @click.stop="openLink(hist.bukti_url)"
+                        >
+                          <q-tooltip>Lihat Bukti Pembayaran</q-tooltip>
+                        </q-btn>
+                      </div>
+                    </q-item-section>
+                  </q-item>
+                </q-list>
+                <div v-else class="text-center text-grey-6 italic q-py-lg">
+                  Belum ada riwayat pembayaran yang tercatat.
+                </div>
               </q-card-section>
             </q-card>
           </div>
@@ -1058,38 +1164,117 @@
                     />
                   </div>
                 </div>
+              </q-card>
+            </div>
+          </div>
+        </q-scroll-area>
+      </q-card>
+    </q-dialog>
 
-                <!-- SECTION 5: STATUS PEMBAYARAN (Hanya Edit Mode) -->
-                <template v-if="isEditTagihanMode">
-                  <q-separator class="q-my-xl border-subtle" />
-                  <div class="text-overline text-indigo-10 text-bold tracking-widest q-mb-sm">
-                    5. STATUS PEMBAYARAN
-                  </div>
-                  <div class="row q-col-gutter-md">
-                    <q-select
-                      class="col-12 col-md-6"
+    <!-- =====================================================================================
+         DIALOG UPDATE PEMBAYARAN (TRACKER CICILAN)
+         ===================================================================================== -->
+    <q-dialog
+      v-model="showPaymentDialog"
+      maximized
+      persistent
+      transition-show="slide-up"
+      transition-hide="slide-down"
+    >
+      <q-card class="bg-grey-2 column no-wrap">
+        <!-- HEADER DIALOG FULLSCREEN -->
+        <q-toolbar class="bg-indigo-10 text-white q-py-md shadow-4 shrink">
+          <q-btn flat round dense icon="close" v-close-popup />
+          <q-toolbar-title class="text-weight-black uppercase">
+            UPDATE PEMBAYARAN TAGIHAN
+          </q-toolbar-title>
+          <q-btn
+            unelevated
+            color="white"
+            text-color="indigo-10"
+            label="SIMPAN PEMBAYARAN"
+            @click="savePayment"
+            :loading="savingPayment"
+            rounded
+            class="q-px-xl text-weight-black shadow-2"
+          />
+        </q-toolbar>
+
+        <q-scroll-area class="col q-pa-md q-pa-lg-xl">
+          <div class="row justify-center">
+            <div class="col-12 col-md-8 col-xl-6">
+              <q-card flat bordered class="rounded-20 bg-white shadow-1 q-pa-lg q-pa-md-xl">
+                <div class="text-overline text-indigo-10 text-bold tracking-widest q-mb-sm">
+                  RINCIAN PEMBAYARAN
+                </div>
+                <div class="row q-col-gutter-md q-mb-lg">
+                  <q-input
+                    class="col-12 col-md-6"
+                    outlined
+                    dense
+                    type="date"
+                    v-model="paymentForm.tanggal"
+                    label="Tanggal Pembayaran *"
+                    stack-label
+                    bg-color="white"
+                  />
+                  <q-input
+                    class="col-12 col-md-6"
+                    outlined
+                    dense
+                    type="number"
+                    v-model.number="paymentForm.nominal"
+                    label="Nominal Dibayar (Rp) *"
+                    prefix="Rp"
+                    input-class="text-weight-bold text-indigo-10"
+                    bg-color="white"
+                  />
+                  <q-input
+                    class="col-12"
+                    outlined
+                    dense
+                    type="textarea"
+                    rows="3"
+                    v-model="paymentForm.catatan"
+                    label="Catatan / Keterangan (Opsional)"
+                    placeholder="Contoh: DP 50% Termin 1..."
+                    bg-color="white"
+                  />
+                </div>
+
+                <q-separator class="q-my-lg border-subtle" />
+
+                <div class="text-overline text-indigo-10 text-bold tracking-widest q-mb-sm">
+                  BUKTI PEMBAYARAN / TRANSFER
+                </div>
+                <div class="row q-col-gutter-md">
+                  <div class="col-12">
+                    <q-file
                       outlined
                       dense
-                      v-model="formTagihan.status"
-                      :options="['Menunggu Pembayaran', 'Dibayar Sebagian', 'Lunas']"
-                      label="Update Status"
+                      v-model="paymentForm.bukti_file"
+                      label="Upload Bukti Pembayaran (Foto/PDF)"
+                      accept="image/*, .pdf"
                       bg-color="white"
-                    />
-                    <q-input
-                      v-if="
-                        formTagihan.status === 'Dibayar Sebagian' || formTagihan.status === 'Lunas'
-                      "
-                      class="col-12 col-md-6"
-                      outlined
-                      dense
-                      type="number"
-                      v-model.number="formTagihan.total_dibayar"
-                      label="Nominal Telah Dibayar"
-                      prefix="Rp"
-                      bg-color="white"
-                    />
+                      class="bg-indigo-50"
+                    >
+                      <template v-slot:prepend>
+                        <q-icon name="cloud_upload" color="indigo-10" />
+                      </template>
+                      <template v-slot:append v-if="paymentForm.bukti_file">
+                        <q-icon
+                          name="close"
+                          @click.stop.prevent="paymentForm.bukti_file = null"
+                          class="cursor-pointer"
+                        />
+                      </template>
+                    </q-file>
+                    <div class="text-caption text-grey-6 q-mt-xs">
+                      Format yang didukung: JPG, PNG, PDF. File akan otomatis tersimpan di Cloud
+                      Storage.
+                    </div>
                   </div>
-                </template>
+                </div>
               </q-card>
             </div>
           </div>
@@ -1110,6 +1295,7 @@ import {
   deleteDoc,
   doc,
   serverTimestamp,
+  arrayUnion,
 } from 'firebase/firestore'
 import { ref as sRef, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { useQuasar } from 'quasar'
@@ -1131,6 +1317,16 @@ const showTagihanDialog = ref(false)
 const isEditTagihanMode = ref(false)
 const savingTagihan = ref(false)
 const selectedTagihan = ref(null)
+
+// Payment Tracking State
+const showPaymentDialog = ref(false)
+const savingPayment = ref(false)
+const paymentForm = ref({
+  tanggal: new Date().toISOString().substr(0, 10),
+  nominal: 0,
+  catatan: '',
+  bukti_file: null,
+})
 
 // State Dropdown
 const optProyek = ref([])
@@ -1170,6 +1366,7 @@ const formTagihan = ref({
   status: 'Menunggu Pembayaran',
   total_dibayar: 0,
   dokumen_lampiran: [],
+  riwayat_pembayaran: [],
 })
 
 // Auto-calculate Kalkulasi Pajak & Net Amount berdasarkan Nominal Invoice (Kotor)
@@ -1208,15 +1405,40 @@ const generateKodeTagihan = () => {
   return `TG/${year}${month}/${padded}`
 }
 
+// Helper: Truncate Text
+const truncateString = (str, num) => {
+  if (!str) return '-'
+  if (str.length <= num) return str
+  return str.slice(0, num) + '...'
+}
+
+// Helper: Hitung Tenor & Warna
+const calculateTenor = (row) => {
+  if (row.status === 'Lunas') return { text: 'LUNAS', color: 'text-positive' }
+
+  if (!row.jatuh_tempo || row.jatuh_tempo === '-') return { text: '-', color: 'text-grey-6' }
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const jtDate = new Date(row.jatuh_tempo)
+  jtDate.setHours(0, 0, 0, 0)
+
+  const diffTime = jtDate - today
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+  if (diffDays < 0) {
+    return { text: `Telat ${Math.abs(diffDays)} Hari`, color: 'text-negative' }
+  } else if (diffDays === 0) {
+    return { text: 'Hari Ini', color: 'text-orange-9' }
+  } else {
+    return { text: `${diffDays} Hari Lagi`, color: 'text-positive' }
+  }
+}
+
 // Columns List Tagihan
 const columnsTagihan = [
-  {
-    name: 'kode',
-    align: 'left',
-    label: 'KODE TAGIHAN & BAP',
-    field: 'kode_tagihan',
-    sortable: true,
-  },
+  { name: 'kode', align: 'left', label: 'KODE & BAP', field: 'kode_tagihan', sortable: true },
   {
     name: 'proyek_spk',
     align: 'left',
@@ -1224,23 +1446,33 @@ const columnsTagihan = [
     field: 'proyek_nama',
     sortable: true,
   },
+  { name: 'invoice_ar', align: 'left', label: 'INVOICE & FAKTUR', field: 'nomor_invoice_customer' },
   {
-    name: 'invoice_ar',
+    name: 'tgl_invoice',
     align: 'left',
-    label: 'INVOICE (AR) & FAKTUR',
-    field: 'nomor_invoice_customer',
-  },
-  {
-    name: 'timeline',
-    align: 'left',
-    label: 'TGL INV & SUBMIT',
+    label: 'TGL INVOICE',
     field: 'tanggal_invoice',
     sortable: true,
   },
   {
+    name: 'tgl_submit',
+    align: 'left',
+    label: 'TGL SUBMIT',
+    field: 'tanggal_submit',
+    sortable: true,
+  },
+  {
+    name: 'jatuh_tempo',
+    align: 'left',
+    label: 'JATUH TEMPO',
+    field: 'jatuh_tempo',
+    sortable: true,
+  },
+  { name: 'tenor', align: 'center', label: 'TENOR', field: 'jatuh_tempo', sortable: true },
+  {
     name: 'progress',
     align: 'center',
-    label: 'PROGRESS & TAHAP',
+    label: 'PROGRESS',
     field: 'progress_persen',
     sortable: true,
   },
@@ -1404,7 +1636,7 @@ const fetchData = () => {
   loading.value = true
 
   unsubProyek = onSnapshot(collection(db, 'proyek'), (snap) => {
-    masterProyek.value = snap.docs.map((d) => ({ ...d.data(), id: d.id })) // PERBAIKAN: id.d.id di akhir
+    masterProyek.value = snap.docs.map((d) => ({ ...d.data(), id: d.id }))
     optProyek.value = [...masterProyek.value]
   })
 
@@ -1463,6 +1695,7 @@ const openAddTagihanDialog = () => {
     proyek_obj: null,
     spk_obj: null,
     dokumen_lampiran: [],
+    riwayat_pembayaran: [],
   }
   showTagihanDialog.value = true
 }
@@ -1477,6 +1710,7 @@ const openEditTagihanDialog = (row) => {
     pph_persen: row.pph_persen !== undefined ? row.pph_persen : 0,
     pph_nominal: row.pph_nominal || row.pph || 0,
     dokumen_lampiran: row.dokumen_lampiran || [],
+    riwayat_pembayaran: row.riwayat_pembayaran || [],
   }
 
   // Set Proyek Select
@@ -1494,7 +1728,7 @@ const openEditTagihanDialog = (row) => {
     if (spk) formTagihan.value.spk_obj = spk
   }
 
-  // Set Invoice Customer Select
+  // Set Invoice Customer Select (Dari data AR yang tersedia / miliknya sendiri)
   if (typeof row.nomor_invoice_customer === 'string') {
     const inv = masterInvoiceCust.value.find((i) => i.nomor_invoice === row.nomor_invoice_customer)
     if (inv) formTagihan.value.nomor_invoice_customer = inv
@@ -1515,8 +1749,8 @@ const simpanTagihan = async () => {
       updatedAt: serverTimestamp(),
     }
 
-    // CLEANUP PAYLOAD SEBELUM DISIMPAN KE FIREBASE
-    delete payload.id // <--- MENCEGAH ID FIREBASE TERTIMPA NULL
+    // CLEANUP PAYLOAD SEBELUM DISIMPAN
+    delete payload.id
     delete payload.proyek_obj
     delete payload.spk_obj
 
@@ -1582,6 +1816,87 @@ const deleteTagihan = (row) => {
 }
 
 // ============================================================================
+// LOGIKA PEMBAYARAN (CICILAN / PELUNASAN)
+// ============================================================================
+const openPaymentDialog = () => {
+  paymentForm.value = {
+    tanggal: new Date().toISOString().substr(0, 10),
+    nominal: 0,
+    catatan: '',
+    bukti_file: null,
+  }
+  showPaymentDialog.value = true
+}
+
+const savePayment = async () => {
+  if (!paymentForm.value.nominal || paymentForm.value.nominal <= 0) {
+    return $q.notify({ type: 'warning', message: 'Nominal pembayaran harus lebih besar dari 0' })
+  }
+
+  savingPayment.value = true
+  let buktiUrl = ''
+
+  try {
+    // 1. Upload Bukti Pembayaran (Jika Ada)
+    if (paymentForm.value.bukti_file) {
+      $q.loading.show({ message: 'Mengunggah bukti pembayaran...' })
+      const file = paymentForm.value.bukti_file
+      const fRef = sRef(storage, `monitoring_tagihan_pembayaran/${Date.now()}_${file.name}`)
+      await uploadBytes(fRef, file)
+      buktiUrl = await getDownloadURL(fRef)
+      $q.loading.hide()
+    }
+
+    // 2. Kalkulasi Status & Total
+    const newNominal = Number(paymentForm.value.nominal) || 0
+    const currentTotal = Number(selectedTagihan.value.total_dibayar) || 0
+    const netAmount = Number(selectedTagihan.value.net_amount) || 0
+
+    const newTotal = currentTotal + newNominal
+    let newStatus = 'Menunggu Pembayaran'
+    if (newTotal >= netAmount) {
+      newStatus = 'Lunas'
+    } else if (newTotal > 0) {
+      newStatus = 'Dibayar Sebagian'
+    }
+
+    const paymentRecord = {
+      id: Date.now().toString(),
+      tanggal: paymentForm.value.tanggal,
+      nominal: newNominal,
+      catatan: paymentForm.value.catatan,
+      bukti_url: buktiUrl,
+      createdAt: new Date().toISOString(),
+    }
+
+    // 3. Simpan ke Firestore
+    await updateDoc(doc(db, 'monitoring_tagihan_spk', selectedTagihan.value.id), {
+      total_dibayar: newTotal,
+      status: newStatus,
+      riwayat_pembayaran: arrayUnion(paymentRecord),
+      updatedAt: serverTimestamp(),
+    })
+
+    // 4. Update local state untuk reaktif UI (tanpa refresh)
+    if (!selectedTagihan.value.riwayat_pembayaran) {
+      selectedTagihan.value.riwayat_pembayaran = []
+    }
+    selectedTagihan.value.total_dibayar = newTotal
+    selectedTagihan.value.status = newStatus
+    selectedTagihan.value.riwayat_pembayaran.push(paymentRecord)
+
+    $q.notify({ type: 'positive', message: 'Pembayaran berhasil dicatat!' })
+    showPaymentDialog.value = false
+  } catch (err) {
+    console.error(err)
+    $q.notify({ type: 'negative', message: 'Gagal mencatat pembayaran.' })
+    $q.loading.hide()
+  } finally {
+    savingPayment.value = false
+  }
+}
+
+// ============================================================================
 // UTILITIES
 // ============================================================================
 const formatDateIndo = (d) => {
@@ -1608,6 +1923,16 @@ const getStatusColor = (status) => {
     default:
       return { bg: 'grey-2', text: 'grey-8' }
   }
+}
+
+const exportToPDF = () => {
+  // Hanya menampilkan pesan notifikasi untuk tampilan dashboard, bukan eksport langsung
+  // karena PDF biasanya mengeksport format lembar kertas (seperti InvoiceCustomerPage).
+  $q.notify({
+    type: 'info',
+    message: 'Gunakan fitur cetak browser (Ctrl+P) untuk menyimpan tampilan dashboard.',
+  })
+  window.print()
 }
 
 onMounted(() => {
@@ -1711,5 +2036,14 @@ onUnmounted(() => {
 }
 .tracking-widest {
   letter-spacing: 0.15em;
+}
+
+@media print {
+  body {
+    background: white !important;
+  }
+  .no-print {
+    display: none !important;
+  }
 }
 </style>
