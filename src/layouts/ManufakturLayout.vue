@@ -313,7 +313,93 @@
           <q-expansion-item
             v-if="
               hasSectionAccess([
-                'produksi/planning-produksi',
+                'ppic/planning-produksi',
+                'ppic/work-order',
+                'ppic/jadwal-produksi',
+                'ppic/material-requirement',
+                'ppic/monitoring-ppic',
+              ])
+            "
+            icon="assignment"
+            label="PPIC"
+            header-class="nav-group"
+            expand-icon-class="nav-expand-icon"
+          >
+            <q-item
+              v-if="checkPermission('ppic/planning-produksi')"
+              clickable
+              v-ripple
+              to="/manufaktur/ppic/planning-produksi"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="assignment" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Planning Produksi</q-item-section>
+            </q-item>
+            <q-item
+              v-if="checkPermission('ppic/work-order')"
+              clickable
+              v-ripple
+              to="/manufaktur/ppic/work-order"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="description" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">SPK Produksi</q-item-section>
+            </q-item>
+            <q-item
+              v-if="checkPermission('ppic/jadwal-produksi')"
+              clickable
+              v-ripple
+              to="/manufaktur/ppic/jadwal-produksi"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="event_note" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Jadwal Produksi</q-item-section>
+            </q-item>
+            <q-item
+              v-if="checkPermission('ppic/material-requirement')"
+              clickable
+              v-ripple
+              to="/manufaktur/ppic/material-requirement"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="inventory" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Material Requirement</q-item-section>
+            </q-item>
+            <q-item
+              v-if="checkPermission('ppic/monitoring-ppic')"
+              clickable
+              v-ripple
+              to="/manufaktur/ppic/monitoring-ppic"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="monitoring" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Monitoring PPIC</q-item-section>
+            </q-item>
+          </q-expansion-item>
+
+          <q-expansion-item
+            v-if="
+              hasSectionAccess([
                 'produksi/line-produksi',
                 'produksi/monitoring-produksi',
                 'produksi/qc-produksi',
@@ -328,20 +414,6 @@
             expand-icon-class="nav-expand-icon"
           >
             <q-item
-              v-if="checkPermission('produksi/planning-produksi')"
-              clickable
-              v-ripple
-              to="/manufaktur/produksi/planning-produksi"
-              active-class="active-menu"
-              class="submenu-item"
-              dense
-            >
-              <q-item-section avatar class="submenu-icon"
-                ><q-icon name="assignment" size="xs"
-              /></q-item-section>
-              <q-item-section class="submenu-text">Planning Produksi</q-item-section>
-            </q-item>
-            <q-item
               v-if="checkPermission('produksi/line-produksi')"
               clickable
               v-ripple
@@ -353,7 +425,7 @@
               <q-item-section avatar class="submenu-icon"
                 ><q-icon name="precision_manufacturing" size="xs"
               /></q-item-section>
-              <q-item-section class="submenu-text">Line Produksi</q-item-section>
+              <q-item-section class="submenu-text">Proses Fabrikasi</q-item-section>
             </q-item>
             <q-item
               v-if="checkPermission('produksi/monitoring-produksi')"
@@ -424,93 +496,6 @@
                 ><q-icon name="inventory_2" size="xs"
               /></q-item-section>
               <q-item-section class="submenu-text">Incoming Material</q-item-section>
-            </q-item>
-          </q-expansion-item>
-
-          <q-expansion-item
-            v-if="
-              hasSectionAccess([
-                'proses-packing/check-hole',
-                'proses-packing/check-pin',
-                'proses-packing/check-tapping',
-                'proses-packing/packing-final',
-                'proses-packing/visual-check',
-              ])
-            "
-            icon="inventory_2"
-            label="Proses Packing"
-            header-class="nav-group"
-            expand-icon-class="nav-expand-icon"
-          >
-            <q-item
-              v-if="checkPermission('proses-packing/check-hole')"
-              clickable
-              v-ripple
-              to="/manufaktur/proses-packing/check-hole"
-              active-class="active-menu"
-              class="submenu-item"
-              dense
-            >
-              <q-item-section avatar class="submenu-icon"
-                ><q-icon name="radio_button_unchecked" size="xs"
-              /></q-item-section>
-              <q-item-section class="submenu-text">Check Hole</q-item-section>
-            </q-item>
-            <q-item
-              v-if="checkPermission('proses-packing/check-pin')"
-              clickable
-              v-ripple
-              to="/manufaktur/proses-packing/check-pin"
-              active-class="active-menu"
-              class="submenu-item"
-              dense
-            >
-              <q-item-section avatar class="submenu-icon"
-                ><q-icon name="rule" size="xs"
-              /></q-item-section>
-              <q-item-section class="submenu-text">Check Pin GoNoGo</q-item-section>
-            </q-item>
-            <q-item
-              v-if="checkPermission('proses-packing/check-tapping')"
-              clickable
-              v-ripple
-              to="/manufaktur/proses-packing/check-tapping"
-              active-class="active-menu"
-              class="submenu-item"
-              dense
-            >
-              <q-item-section avatar class="submenu-icon"
-                ><q-icon name="settings_input_component" size="xs"
-              /></q-item-section>
-              <q-item-section class="submenu-text">Check Tapping</q-item-section>
-            </q-item>
-            <q-item
-              v-if="checkPermission('proses-packing/packing-final')"
-              clickable
-              v-ripple
-              to="/manufaktur/proses-packing/packing-final"
-              active-class="active-menu"
-              class="submenu-item"
-              dense
-            >
-              <q-item-section avatar class="submenu-icon"
-                ><q-icon name="inventory_2" size="xs"
-              /></q-item-section>
-              <q-item-section class="submenu-text">Packing Final</q-item-section>
-            </q-item>
-            <q-item
-              v-if="checkPermission('proses-packing/visual-check')"
-              clickable
-              v-ripple
-              to="/manufaktur/proses-packing/visual-check"
-              active-class="active-menu"
-              class="submenu-item"
-              dense
-            >
-              <q-item-section avatar class="submenu-icon"
-                ><q-icon name="visibility" size="xs"
-              /></q-item-section>
-              <q-item-section class="submenu-text">Visual Check</q-item-section>
             </q-item>
           </q-expansion-item>
 

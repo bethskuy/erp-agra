@@ -3,14 +3,14 @@
     <div class="row items-center justify-between q-mb-xl">
       <div class="col-12 col-md-8">
         <div class="text-h4 text-weight-bolder text-green-10 leading-tight">
-          Line Produksi
+          Proses Fabrikasi
           <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs">
-            Monitoring Alur Produksi per Line
+            Monitoring Alur Proses Fabrikasi
           </span>
         </div>
         <div class="text-subtitle1 text-grey-7 q-mt-sm">
-          Pantau SPK aktif, operator, quantity selesai, reject, progress, dan status setiap line
-          produksi secara realtime.
+          Pantau SPK aktif, operator, quantity selesai, reject, progress, dan status setiap proses
+          fabrikasi secara realtime.
         </div>
       </div>
 
@@ -277,7 +277,7 @@ const finishedRows = computed(() => rows.value.filter((row) => row.status === 'F
 
 const summaryCards = computed(() => [
   {
-    title: 'Line Aktif',
+    title: 'Proses Aktif',
     value: activeLines.value,
     icon: 'precision_manufacturing',
     color: 'green-10',

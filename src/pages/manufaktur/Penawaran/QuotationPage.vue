@@ -904,6 +904,8 @@ import { useAuthStore } from 'src/stores/auth'
 
 const $q = useQuasar()
 const authStore = useAuthStore()
+const FONNTE_TOKEN = 'F7DnXR9G9tfsse19hEym'
+const DIRECTOR_WA = '081398354196'
 
 const allRows = ref([])
 const loading = ref(true)
@@ -980,6 +982,47 @@ const calculateRowTotal = (row, type = 'grand') => {
   if (type === 'subtotal') return sub
   if (type === 'tax') return tax
   return row.grand_total > 0 && type === 'grand' ? row.grand_total : grand
+}
+
+const sendQuotationWhatsAppNotification = async (quotation) => {
+  try {
+    const message = `[AGRA ERP]
+
+Quotation Baru Dibuat
+
+No Quotation:
+${quotation.nomor}
+
+Customer:
+${quotation.nama_customer}
+
+Total:
+IDR ${Number(quotation.grand_total || 0).toLocaleString('id-ID')}
+
+Status:
+Pending Approval`
+
+    const body = new FormData()
+    body.append('target', DIRECTOR_WA)
+    body.append('message', message)
+
+    const response = await fetch('https://api.fonnte.com/send', {
+      method: 'POST',
+      headers: {
+        Authorization: FONNTE_TOKEN,
+      },
+      body,
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      throw new Error(`Fonnte notification failed: ${response.status} ${errorText}`)
+    }
+
+    console.log('WhatsApp notification sent successfully')
+  } catch (err) {
+    console.error('Failed to send WhatsApp notification', err)
+  }
 }
 
 const getStatusColor = (s) => {
@@ -1095,6 +1138,8 @@ const saveNewQuotation = async () => {
       updatedAt: serverTimestamp(),
     }
     await addDoc(collection(db, 'penawaran_manufaktur'), finalData)
+    console.log('CALLING WHATSAPP NOTIFICATION')
+    await sendQuotationWhatsAppNotification(finalData)
     showCreateModal.value = false
     $q.notify({ type: 'positive', message: 'Berhasil disimpan!' })
   } catch (err) {

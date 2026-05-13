@@ -1,3 +1,19 @@
+import { h, resolveComponent } from 'vue'
+
+const createManufakturPlaceholderPage = (title) => ({
+  render() {
+    const QPage = resolveComponent('q-page')
+    const QCard = resolveComponent('q-card')
+
+    return h(QPage, { class: 'q-pa-lg' }, () =>
+      h(QCard, { flat: true, bordered: true, class: 'q-pa-lg' }, () => [
+        h('div', { class: 'text-h5 text-weight-bold' }, title),
+        h('div', { class: 'text-body2 text-grey-7 q-mt-sm' }, `Halaman ${title} sedang disiapkan.`),
+      ]),
+    )
+  },
+})
+
 const routes = [
   {
     path: '/',
@@ -127,6 +143,10 @@ const routes = [
         component: () => import('pages/konstruksi/Finance/ApprovalPembayaranPage.vue'),
       },
       {
+        path: 'finance/realisasi-pembayaran',
+        component: () => import('pages/konstruksi/Finance/RealisasiPembayaranPage.vue'),
+      },
+      {
         path: 'finance/balansheet',
         component: () => import('pages/konstruksi/Finance/MonitoringBalansheetPage.vue'),
       },
@@ -239,6 +259,31 @@ const routes = [
         path: 'sales/po-customer',
         name: 'manufaktur-po-customer',
         component: () => import('pages/manufaktur/sales/POCustomerPage.vue'),
+      },
+      {
+        path: 'ppic/planning-produksi',
+        name: 'manufaktur-ppic-planning-produksi',
+        component: () => import('pages/manufaktur/PPIC/PlanningProduksiPage.vue'),
+      },
+      {
+        path: 'ppic/work-order',
+        name: 'manufaktur-ppic-work-order',
+        component: () => import('pages/manufaktur/PPIC/WorkOrderPage.vue'),
+      },
+      {
+        path: 'ppic/jadwal-produksi',
+        name: 'manufaktur-ppic-jadwal-produksi',
+        component: () => import('pages/manufaktur/PPIC/JadwalProduksiPage.vue'),
+      },
+      {
+        path: 'ppic/material-requirement',
+        name: 'manufaktur-ppic-material-requirement',
+        component: () => import('pages/manufaktur/PPIC/MaterialRequirementPage.vue'),
+      },
+      {
+        path: 'ppic/monitoring-ppic',
+        name: 'manufaktur-ppic-monitoring-ppic',
+        component: createManufakturPlaceholderPage('Monitoring PPIC'),
       },
       {
         path: 'produksi/planning-produksi',
