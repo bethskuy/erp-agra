@@ -446,6 +446,7 @@
                   'finance/pengeluaran',
                   'finance/pembayaran',
                   'finance/approval-pembayaran',
+                  'finance/realisasi-pembayaran',
                   'finance/balansheet',
                 ])
               "
@@ -531,6 +532,19 @@
                 >
                   <q-item-section avatar><q-icon name="gavel" size="20px" /></q-item-section>
                   <q-item-section>Approval Pembayaran</q-item-section>
+                </q-item>
+
+                <!-- Realisasi Pembayaran -->
+                <q-item
+                  v-if="checkPermission('finance/realisasi-pembayaran')"
+                  clickable
+                  v-ripple
+                  to="/konstruksi/finance/realisasi-pembayaran"
+                  class="level-2-item"
+                  active-class="sub-menu-item-active"
+                >
+                  <q-item-section avatar><q-icon name="price_check" size="20px" /></q-item-section>
+                  <q-item-section>Realisasi Pembayaran</q-item-section>
                 </q-item>
 
                 <!-- Monitoring Pengeluaran -->

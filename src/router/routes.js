@@ -127,6 +127,10 @@ const routes = [
         component: () => import('pages/konstruksi/Finance/ApprovalPembayaranPage.vue'),
       },
       {
+        path: 'finance/realisasi-pembayaran',
+        component: () => import('pages/konstruksi/Finance/RealisasiPembayaranPage.vue'),
+      },
+      {
         path: 'finance/balansheet',
         component: () => import('pages/konstruksi/Finance/MonitoringBalansheetPage.vue'),
       },
