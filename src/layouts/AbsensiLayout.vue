@@ -231,7 +231,8 @@ const menuListFiltered = computed(() => {
   if (isSuperAdmin.value) {
     return [
       { label: 'DASHBOARD ADMIN', icon: 'admin_panel_settings', path: '/absensi/admin/dashboard' },
-      { label: 'PENGATURAN ABSENSI', icon: 'settings_suggest', path: '/absensi/admin/pengaturan' }, // <-- INI DIA BOS!
+      { label: 'PENGATURAN ABSENSI', icon: 'settings_suggest', path: '/absensi/admin/pengaturan' },
+      { label: 'CATATAN ABSENSI', icon: 'fact_check', path: '/absensi/admin/catatan' }, // <-- MENU BARU
       { label: 'DASHBOARD KARYAWAN', icon: 'dashboard', path: '/absensi/dashboard' },
       { label: 'PROFIL', icon: 'account_circle', path: '/absensi/profil' },
       { label: 'RIWAYAT ABSENSI', icon: 'history', path: '/absensi/riwayat' },

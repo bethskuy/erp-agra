@@ -148,6 +148,11 @@ const routes = [
         component: () => import('pages/absensi/adminabsensi/PengaturanAbsensiPage.vue'),
       },
       {
+        path: 'admin/catatan',
+        name: 'absensi-admin-catatan',
+        component: () => import('pages/absensi/adminabsensi/CatatanAbsensiPage.vue'),
+      },
+      {
         path: 'profil',
         name: 'absensi-profil',
         component: () => import('pages/absensi/ProfilPage.vue'),

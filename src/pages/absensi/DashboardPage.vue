@@ -514,7 +514,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import { db } from 'src/boot/firebase'
+import { db, storage } from 'src/boot/firebase'
 import {
   collection,
   addDoc,
@@ -528,6 +528,7 @@ import {
   where,
   Timestamp,
 } from 'firebase/firestore'
+import { ref as storageRef, uploadString, getDownloadURL } from 'firebase/storage'
 import { useQuasar, date } from 'quasar'
 
 const $q = useQuasar()
@@ -703,17 +704,26 @@ const stopCamera = () => {
   showCamera.value = false
 }
 
-// SIMPAN KE FIRESTORE
+// SIMPAN KE FIRESTORE & UPLOAD FOTO
 const saveAbsensi = async () => {
   if (!locationData.value.inRange) {
     $q.notify({ color: 'negative', message: 'Tindakan Ilegal. Sistem Mendeteksi Lokasi Luar.' })
     return
   }
 
-  $q.loading.show()
+  $q.loading.show({ message: 'Menyinkronkan data & foto ke server...' })
   try {
     const formattedName = (userData.value.nama || 'USER').toUpperCase()
 
+    // 1. PROSES UPLOAD FOTO KE FIREBASE STORAGE
+    let fotoUrl = null
+    if (capturedImage.value) {
+      const fRef = storageRef(storage, `absensi/${formattedName}_IN_${Date.now()}.jpg`)
+      await uploadString(fRef, capturedImage.value, 'data_url')
+      fotoUrl = await getDownloadURL(fRef)
+    }
+
+    // 2. SIMPAN DATA ABSENSI BESERTA LINK FOTO
     await addDoc(collection(db, 'absensi'), {
       nama_karyawan: formattedName,
       waktu_masuk: serverTimestamp(),
@@ -723,7 +733,9 @@ const saveAbsensi = async () => {
       nama_tempat: locationData.value.matchedLocationName,
       alamat_lengkap: locationData.value.address,
       koordinat: `${locationData.value.lat}, ${locationData.value.lng}`,
+      foto_masuk: fotoUrl, // <--- INI KUNCI AGAR FOTO TAMPIL DI ADMIN
     })
+
     $q.notify({
       color: 'positive',
       message: 'Clock-In Sukses! Selamat bekerja.',
@@ -731,6 +743,7 @@ const saveAbsensi = async () => {
       icon: 'check_circle',
     })
     stopCamera()
+    capturedImage.value = null // Reset foto setelah berhasil
   } catch (e) {
     console.error('Gagal Clock-in:', e)
     $q.notify({ color: 'negative', message: 'Koneksi gagal, coba lagi.' })
