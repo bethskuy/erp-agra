@@ -1,558 +1,1335 @@
 <template>
   <q-page class="bg-grey-2 q-pa-md q-pa-lg-lg font-pro">
     <!-- =====================================================================================
-         HEADER SECTION
+         VIEW 1: LIST DAFTAR TAGIHAN UTAMA
          ===================================================================================== -->
-    <div class="row items-center justify-between q-mb-xl animate-fade no-print">
-      <div class="col-12 col-md-8">
+    <div v-if="viewMode === 'list_proyek'" class="animate-fade">
+      <!-- HEADER SECTION -->
+      <div class="row items-center justify-between q-mb-xl animate-fade no-print">
+        <div class="col-12 col-md-8">
+          <div class="row items-center no-wrap">
+            <q-btn
+              flat
+              round
+              color="indigo-10"
+              icon="arrow_back"
+              @click="$router.back()"
+              class="q-mr-md bg-white shadow-1"
+            />
+            <div>
+              <div class="text-h4 text-weight-bolder text-indigo-10 leading-tight">
+                Monitoring Tagihan
+                <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
+                  >Daftar Seluruh Tagihan Proyek</span
+                >
+              </div>
+              <div class="text-subtitle1 text-grey-7 q-mt-sm">
+                Kelola seluruh tagihan masuk, pantau progress pembayaran, dan integrasi dengan
+                Master Proyek & AR.
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 col-md-auto q-mt-md q-mt-md-none text-right">
+          <q-btn
+            unelevated
+            color="indigo-10"
+            icon="add_box"
+            label="BUAT TAGIHAN BARU"
+            @click="openAddTagihanDialog"
+            class="rounded-20 q-px-xl text-weight-bold shadow-premium"
+          />
+        </div>
+      </div>
+
+      <!-- SUMMARY CARDS / KPI FINANCE -->
+      <div class="row q-col-gutter-lg q-mb-lg animate-fade-up no-print">
+        <div class="col-12 col-sm-6 col-md-3">
+          <q-card flat class="rounded-20 border-subtle bg-white transition-all hover-shadow">
+            <q-card-section class="row items-center no-wrap q-pa-md">
+              <div class="col">
+                <div
+                  class="text-overline text-grey-6 leading-none text-weight-bold tracking-widest"
+                >
+                  TAGIHAN AKTIF
+                </div>
+                <div class="text-h4 text-weight-bolder q-mt-xs text-indigo-10">
+                  {{ tagihanAktif.length }}
+                  <span class="text-subtitle1 text-weight-medium">Data</span>
+                </div>
+              </div>
+              <div
+                class="bg-indigo-1 q-pa-md rounded-borders"
+                style="min-width: 56px; text-align: center"
+              >
+                <q-icon name="receipt_long" color="indigo-10" size="28px" />
+              </div>
+            </q-card-section>
+          </q-card>
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-3">
+          <q-card flat class="rounded-20 border-subtle bg-white transition-all hover-shadow">
+            <q-card-section class="row items-center no-wrap q-pa-md">
+              <div class="col">
+                <div
+                  class="text-overline text-grey-6 leading-none text-weight-bold tracking-widest"
+                >
+                  TAGIHAN LUNAS
+                </div>
+                <div class="text-h4 text-weight-bolder q-mt-xs text-positive">
+                  {{ tagihanLunas.length }}
+                  <span class="text-subtitle1 text-weight-medium">Data</span>
+                </div>
+              </div>
+              <div
+                class="bg-green-1 q-pa-md rounded-borders"
+                style="min-width: 56px; text-align: center"
+              >
+                <q-icon name="task_alt" color="positive" size="28px" />
+              </div>
+            </q-card-section>
+          </q-card>
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-3">
+          <q-card flat class="rounded-20 border-subtle bg-white transition-all hover-shadow">
+            <q-card-section class="row items-center no-wrap q-pa-md">
+              <div class="col">
+                <div
+                  class="text-overline text-grey-6 leading-none text-weight-bold tracking-widest"
+                >
+                  JATUH TEMPO
+                </div>
+                <div class="text-h4 text-weight-bolder q-mt-xs text-negative">
+                  {{ tagihanOverdue.length }}
+                  <span class="text-subtitle1 text-weight-medium">Data</span>
+                </div>
+              </div>
+              <div
+                class="bg-red-1 q-pa-md rounded-borders"
+                style="min-width: 56px; text-align: center"
+              >
+                <q-icon name="warning" color="negative" size="28px" />
+              </div>
+            </q-card-section>
+          </q-card>
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-3">
+          <q-card
+            flat
+            class="rounded-20 border-subtle bg-indigo-10 text-white transition-all hover-shadow"
+          >
+            <q-card-section class="row items-center no-wrap q-pa-md">
+              <div class="col">
+                <div
+                  class="text-overline text-indigo-2 leading-none text-weight-bold tracking-widest"
+                >
+                  TOTAL OUTSTANDING
+                </div>
+                <div class="text-h5 text-weight-bolder q-mt-xs">
+                  Rp {{ formatCompact(totalOutstanding) }}
+                </div>
+              </div>
+              <div
+                class="bg-white q-pa-md rounded-borders shadow-2"
+                style="min-width: 56px; text-align: center"
+              >
+                <q-icon name="account_balance_wallet" color="indigo-10" size="28px" />
+              </div>
+            </q-card-section>
+          </q-card>
+        </div>
+      </div>
+
+      <!-- ==========================================
+           SEARCH & FILTER AREA (DENGAN PERIODE TGL & PROYEK)
+           ========================================== -->
+      <q-card
+        flat
+        bordered
+        class="q-mb-lg shadow-1 rounded-20 bg-white no-print border-indigo-thin"
+      >
+        <q-card-section class="q-pa-lg">
+          <!-- Row 1: Search & Status -->
+          <div class="row items-center q-col-gutter-md q-mb-lg">
+            <div class="col-12 col-md-6">
+              <div class="text-caption text-grey-7 q-mb-xs text-weight-bold uppercase font-10">
+                Pencarian Cepat
+              </div>
+              <q-input
+                v-model="searchQuery"
+                outlined
+                dense
+                rounded
+                placeholder="Cari Kode, BAP, SPK atau Nama Proyek..."
+                bg-color="white"
+                class="search-input"
+              >
+                <template v-slot:prepend><q-icon name="search" color="primary" /></template>
+                <template v-slot:append v-if="searchQuery">
+                  <q-icon name="close" @click="searchQuery = ''" class="cursor-pointer" />
+                </template>
+              </q-input>
+            </div>
+            <q-space />
+            <div class="col-12 col-md-auto">
+              <div
+                class="text-caption text-grey-7 q-mb-xs text-weight-bold uppercase font-10 text-right"
+              >
+                Filter Pembayaran
+              </div>
+              <q-btn-toggle
+                v-model="statusFilter"
+                flat
+                rounded
+                toggle-color="indigo-10"
+                color="grey-7"
+                class="bg-grey-1 text-weight-bold"
+                :options="[
+                  { label: 'Semua', value: 'ALL' },
+                  { label: 'Belum Lunas', value: 'OUTSTANDING' },
+                  { label: 'Lunas', value: 'LUNAS' },
+                ]"
+              />
+            </div>
+          </div>
+
+          <!-- Row 2: Date Range & Project Filter -->
+          <div class="row items-end q-col-gutter-md">
+            <div class="col-12 col-sm-6 col-md-2">
+              <div class="text-subtitle2 q-mb-xs text-weight-bold">Tanggal Awal</div>
+              <q-input outlined dense type="date" v-model="filterStartDate" bg-color="white" />
+            </div>
+            <div class="col-12 col-sm-6 col-md-2">
+              <div class="text-subtitle2 q-mb-xs text-weight-bold">Tanggal Akhir</div>
+              <q-input outlined dense type="date" v-model="filterEndDate" bg-color="white" />
+            </div>
+            <div class="col-12 col-sm-12 col-md-6">
+              <div class="text-subtitle2 q-mb-xs text-weight-bold">Filter Berdasarkan Proyek</div>
+              <q-select
+                outlined
+                dense
+                v-model="filterSelectedProyek"
+                :options="optProyekFilter"
+                option-label="nama"
+                placeholder="Semua Proyek..."
+                bg-color="white"
+                clearable
+                use-input
+                @filter="filterProyekDropdown"
+              >
+                <template v-slot:prepend>
+                  <q-icon name="apartment" color="indigo-10" />
+                </template>
+              </q-select>
+            </div>
+            <div class="col-12 col-md-2">
+              <q-btn
+                flat
+                color="grey-7"
+                icon="restart_alt"
+                label="Reset Filter"
+                class="full-width rounded-12 text-weight-bold"
+                @click="resetFilters"
+              />
+            </div>
+          </div>
+        </q-card-section>
+      </q-card>
+
+      <!-- MAIN TABLE DATA (DAFTAR TAGIHAN) -->
+      <q-card
+        flat
+        bordered
+        class="rounded-20 shadow-sm overflow-hidden bg-white border-indigo-thin animate-fade"
+      >
+        <q-table
+          :rows="filteredTagihan"
+          :columns="columnsTagihan"
+          row-key="id"
+          flat
+          :loading="loading"
+          :pagination="{ rowsPerPage: 15 }"
+          class="finance-table"
+        >
+          <template v-slot:header="props">
+            <q-tr :props="props" class="bg-blue-grey-10 text-white">
+              <q-th width="40" class="text-center text-weight-bold font-11">NO</q-th>
+              <q-th
+                v-for="col in props.cols"
+                :key="col.name"
+                :props="props"
+                class="text-weight-bold uppercase font-11 tracking-widest"
+              >
+                {{ col.label }}
+              </q-th>
+            </q-tr>
+          </template>
+
+          <template v-slot:body="props">
+            <q-tr
+              :props="props"
+              class="hover-bg transition-all cursor-pointer"
+              @click="openDetail(props.row)"
+            >
+              <q-td class="text-center font-bold text-grey-7">{{ props.rowIndex + 1 }}</q-td>
+
+              <q-td key="kode">
+                <div class="text-weight-bold text-indigo-10 text-subtitle2">
+                  {{ props.row.kode_tagihan }}
+                </div>
+                <div
+                  class="text-caption text-blue-grey-8 uppercase font-bold"
+                  :title="props.row.bap_number"
+                >
+                  BAP: {{ truncateString(props.row.bap_number, 12) }}
+                </div>
+              </q-td>
+
+              <q-td key="proyek_spk">
+                <div
+                  class="text-weight-bold text-blue-grey-10 uppercase font-11"
+                  :title="props.row.proyek_nama"
+                >
+                  {{ truncateString(props.row.proyek_nama, 25) }}
+                </div>
+                <div class="text-caption text-grey-7" :title="props.row.nomor_spk">
+                  SPK: {{ truncateString(props.row.nomor_spk, 20) }}
+                </div>
+              </q-td>
+
+              <q-td key="invoice_ar">
+                <div
+                  class="text-weight-bold text-primary uppercase"
+                  :title="
+                    typeof props.row.nomor_invoice_customer === 'object'
+                      ? props.row.nomor_invoice_customer?.nomor_invoice
+                      : props.row.nomor_invoice_customer
+                  "
+                >
+                  {{
+                    typeof props.row.nomor_invoice_customer === 'object'
+                      ? truncateString(props.row.nomor_invoice_customer?.nomor_invoice, 18)
+                      : truncateString(props.row.nomor_invoice_customer, 18)
+                  }}
+                </div>
+                <div class="text-caption text-grey-7" v-if="props.row.tanggal_faktur">
+                  Faktur: {{ formatDateIndo(props.row.tanggal_faktur) }}
+                </div>
+              </q-td>
+
+              <q-td key="tgl_invoice">
+                <div class="text-weight-bold text-grey-9 font-11">
+                  {{ formatDateIndo(props.row.tanggal_invoice) }}
+                </div>
+              </q-td>
+
+              <q-td key="tgl_submit">
+                <div class="text-weight-bold text-grey-9 font-11">
+                  {{ formatDateIndo(props.row.tanggal_submit) }}
+                </div>
+              </q-td>
+
+              <q-td key="jatuh_tempo">
+                <div class="text-weight-bold text-grey-9 font-11">
+                  {{ formatDateIndo(props.row.jatuh_tempo) }}
+                </div>
+              </q-td>
+
+              <q-td key="tenor" class="text-center">
+                <div class="text-weight-bold font-10" :class="calculateTenor(props.row).color">
+                  {{ calculateTenor(props.row).text }}
+                </div>
+              </q-td>
+
+              <q-td key="progress" class="text-center">
+                <div class="text-weight-bold text-indigo-10">
+                  {{ props.row.progress_persen || 0 }}%
+                </div>
+                <div class="text-caption text-grey-6 uppercase font-10">
+                  {{ truncateString(props.row.tahap_ke || props.row.termin, 10) }}
+                </div>
+              </q-td>
+
+              <q-td key="nominal" class="text-right">
+                <div class="text-weight-bold text-indigo-10 text-subtitle2">
+                  Rp {{ (props.row.net_amount || 0).toLocaleString('id-ID') }}
+                </div>
+              </q-td>
+
+              <q-td key="status" class="text-center">
+                <q-chip
+                  dense
+                  :color="getStatusColor(props.row.status).bg"
+                  :text-color="getStatusColor(props.row.status).text"
+                  class="text-weight-bold font-10 uppercase q-px-sm shadow-sm"
+                >
+                  {{ props.row.status }}
+                </q-chip>
+              </q-td>
+
+              <q-td key="aksi" class="text-center" @click.stop>
+                <div class="row justify-center q-gutter-xs">
+                  <q-btn
+                    flat
+                    round
+                    color="indigo-10"
+                    icon="visibility"
+                    size="sm"
+                    @click.stop="openDetail(props.row)"
+                  >
+                    <q-tooltip>Lihat Detail Tagihan</q-tooltip>
+                  </q-btn>
+                  <q-btn
+                    flat
+                    round
+                    color="blue-8"
+                    icon="edit"
+                    size="sm"
+                    @click.stop="openEditTagihanDialog(props.row)"
+                  >
+                    <q-tooltip>Edit Tagihan</q-tooltip>
+                  </q-btn>
+                  <q-btn
+                    flat
+                    round
+                    color="negative"
+                    icon="delete"
+                    size="sm"
+                    @click.stop="deleteTagihan(props.row)"
+                  >
+                    <q-tooltip>Hapus Tagihan</q-tooltip>
+                  </q-btn>
+                </div>
+              </q-td>
+            </q-tr>
+          </template>
+
+          <template v-slot:no-data>
+            <div class="full-width row flex-center q-pa-xl text-grey-5">
+              <q-icon name="receipt" size="48px" class="q-mb-md" />
+              <div class="text-h6 full-width text-center">
+                Data tidak ditemukan dengan kriteria filter tersebut.
+              </div>
+            </div>
+          </template>
+        </q-table>
+      </q-card>
+    </div>
+
+    <!-- =====================================================================================
+         VIEW 2: DETAIL TAGIHAN (DASHBOARD LAYOUT / VIEW SWITCHER)
+         ===================================================================================== -->
+    <div v-else-if="viewMode === 'detail_tagihan' && selectedTagihan" class="animate-fade q-pb-xl">
+      <!-- Top Action Bar -->
+      <div class="row items-center justify-between q-mb-xl no-print">
         <div class="row items-center no-wrap">
           <q-btn
             flat
             round
             color="indigo-10"
             icon="arrow_back"
-            @click="$router.back()"
+            @click="viewMode = 'list_proyek'"
             class="q-mr-md bg-white shadow-1"
           />
           <div>
-            <div class="text-h4 text-weight-bolder text-indigo-10 leading-tight">
-              Monitoring Keuangan Proyek
-              <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
-                >Project Financial Dashboard</span
-              >
+            <div class="text-overline text-grey-6 text-bold tracking-widest q-mb-xs leading-none">
+              INFORMASI DETAIL TAGIHAN PROYEK
             </div>
-            <div class="text-subtitle1 text-grey-7 q-mt-sm">
-              Pantau seluruh nilai kontrak proyek, status pekerjaan, dan progress penagihan dari
-              Master Proyek.
+            <div class="text-h5 text-weight-bolder text-indigo-10 leading-tight uppercase">
+              Kode: {{ selectedTagihan.kode_tagihan }}
             </div>
           </div>
         </div>
-      </div>
-      <div class="col-12 col-md-auto q-mt-md q-mt-md-none text-right">
-        <div class="text-caption text-grey-6 q-mb-xs uppercase tracking-widest font-bold">
-          Status Sinkronisasi
-        </div>
-        <q-badge color="positive" class="q-px-md q-py-xs text-weight-bold shadow-2 rounded-12">
-          <q-icon name="cloud_done" size="xs" class="q-mr-sm" />
-          MASTER PROYEK CONNECTED
-        </q-badge>
-      </div>
-    </div>
-
-    <!-- =====================================================================================
-         SUMMARY CARDS / KPI FINANCE
-         ===================================================================================== -->
-    <div class="row q-col-gutter-lg q-mb-lg animate-fade-up no-print">
-      <!-- Proyek Aktif -->
-      <div class="col-12 col-sm-6 col-md-3">
-        <q-card flat class="rounded-20 border-subtle bg-white transition-all hover-shadow">
-          <q-card-section class="row items-center no-wrap q-pa-md">
-            <div class="col">
-              <div class="text-overline text-grey-6 leading-none text-weight-bold tracking-widest">
-                PROYEK AKTIF
-              </div>
-              <div class="text-h4 text-weight-bolder q-mt-xs text-indigo-10">
-                {{ tagihanAktif.length }} <span class="text-subtitle1 text-weight-medium">PRJ</span>
-              </div>
-            </div>
-            <div
-              class="bg-indigo-1 q-pa-md rounded-borders"
-              style="min-width: 56px; text-align: center"
-            >
-              <q-icon name="foundation" color="indigo-10" size="28px" />
-            </div>
-          </q-card-section>
-        </q-card>
-      </div>
-
-      <!-- Proyek Selesai/Lunas -->
-      <div class="col-12 col-sm-6 col-md-3">
-        <q-card flat class="rounded-20 border-subtle bg-white transition-all hover-shadow">
-          <q-card-section class="row items-center no-wrap q-pa-md">
-            <div class="col">
-              <div class="text-overline text-grey-6 leading-none text-weight-bold tracking-widest">
-                PROYEK LUNAS
-              </div>
-              <div class="text-h4 text-weight-bolder q-mt-xs text-positive">
-                {{ tagihanLunas.length }} <span class="text-subtitle1 text-weight-medium">PRJ</span>
-              </div>
-            </div>
-            <div
-              class="bg-green-1 q-pa-md rounded-borders"
-              style="min-width: 56px; text-align: center"
-            >
-              <q-icon name="task_alt" color="positive" size="28px" />
-            </div>
-          </q-card-section>
-        </q-card>
-      </div>
-
-      <!-- Proyek Jatuh Tempo -->
-      <div class="col-12 col-sm-6 col-md-3">
-        <q-card flat class="rounded-20 border-subtle bg-white transition-all hover-shadow">
-          <q-card-section class="row items-center no-wrap q-pa-md">
-            <div class="col">
-              <div class="text-overline text-grey-6 leading-none text-weight-bold tracking-widest">
-                JATUH TEMPO
-              </div>
-              <div class="text-h4 text-weight-bolder q-mt-xs text-negative">
-                {{ tagihanOverdue.length }}
-                <span class="text-subtitle1 text-weight-medium">PRJ</span>
-              </div>
-            </div>
-            <div
-              class="bg-red-1 q-pa-md rounded-borders"
-              style="min-width: 56px; text-align: center"
-            >
-              <q-icon name="warning" color="negative" size="28px" />
-            </div>
-          </q-card-section>
-        </q-card>
-      </div>
-
-      <!-- Total Nilai Proyek Keseluruhan -->
-      <div class="col-12 col-sm-6 col-md-3">
-        <q-card
-          flat
-          class="rounded-20 border-subtle bg-indigo-10 text-white transition-all hover-shadow"
-        >
-          <q-card-section class="row items-center no-wrap q-pa-md">
-            <div class="col">
-              <div
-                class="text-overline text-indigo-2 leading-none text-weight-bold tracking-widest"
-              >
-                TOTAL VALUASI
-              </div>
-              <div class="text-h5 text-weight-bolder q-mt-xs">
-                Rp {{ formatCompact(totalOutstanding) }}
-              </div>
-            </div>
-            <div
-              class="bg-white q-pa-md rounded-borders shadow-2"
-              style="min-width: 56px; text-align: center"
-            >
-              <q-icon name="account_balance_wallet" color="indigo-10" size="28px" />
-            </div>
-          </q-card-section>
-        </q-card>
-      </div>
-    </div>
-
-    <!-- =====================================================================================
-         SEARCH & FILTER AREA
-         ===================================================================================== -->
-    <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print border-indigo-thin">
-      <q-card-section class="q-py-md">
-        <div class="row items-center q-col-gutter-md">
-          <div class="col-12 col-md-4">
-            <q-input
-              v-model="searchQuery"
-              outlined
-              dense
-              rounded
-              placeholder="Cari Nama Proyek, SPK, atau Klien..."
-              bg-color="white"
-              class="search-input"
-            >
-              <template v-slot:prepend><q-icon name="search" color="primary" /></template>
-              <template v-slot:append v-if="searchQuery">
-                <q-icon name="close" @click="searchQuery = ''" class="cursor-pointer" />
-              </template>
-            </q-input>
-          </div>
-          <q-space />
-          <div class="col-12 col-md-auto">
-            <q-btn-toggle
-              v-model="statusFilter"
-              flat
-              rounded
-              toggle-color="indigo-10"
-              color="grey-7"
-              class="bg-grey-1 text-weight-bold"
-              :options="[
-                { label: 'Semua', value: 'ALL' },
-                { label: 'Proyek Aktif', value: 'AKTIF' },
-                { label: 'Jatuh Tempo', value: 'OVERDUE' },
-                { label: 'Lunas', value: 'LUNAS' },
-              ]"
-            />
-          </div>
-        </div>
-      </q-card-section>
-    </q-card>
-
-    <!-- =====================================================================================
-         MAIN TABLE DATA (MURNI DATA PROYEK)
-         ===================================================================================== -->
-    <q-card
-      flat
-      bordered
-      class="rounded-20 shadow-sm overflow-hidden bg-white no-print border-indigo-thin"
-    >
-      <q-table
-        :rows="filteredRows"
-        :columns="columns"
-        row-key="id"
-        flat
-        :loading="loading"
-        binary-state-sort
-        class="finance-table"
-        :pagination="{ rowsPerPage: 15 }"
-      >
-        <template v-slot:header="props">
-          <q-tr :props="props" class="bg-blue-grey-10 text-white">
-            <q-th
-              v-for="col in props.cols"
-              :key="col.name"
-              :props="props"
-              class="text-weight-bold uppercase font-11 tracking-widest"
-            >
-              {{ col.label }}
-            </q-th>
-          </q-tr>
-        </template>
-
-        <template v-slot:body="props">
-          <q-tr
-            :props="props"
-            class="hover-bg transition-all cursor-pointer"
-            @click="openDetail(props.row)"
-          >
-            <!-- IDENTITAS PROYEK -->
-            <q-td key="proyek">
-              <div class="row items-center no-wrap">
-                <q-avatar
-                  size="36px"
-                  color="indigo-1"
-                  text-color="indigo-10"
-                  icon="foundation"
-                  class="q-mr-md shadow-sm rounded-12"
-                />
-                <div>
-                  <div
-                    class="text-weight-bold text-indigo-10 text-subtitle2 leading-none q-mb-xs uppercase"
-                  >
-                    {{ props.row.nama_proyek }}
-                  </div>
-                  <div class="text-caption text-blue-grey-8 font-10 uppercase text-weight-bold">
-                    KLIEN: {{ props.row.konsumen }}
-                  </div>
-                </div>
-              </div>
-            </q-td>
-
-            <!-- REFERENSI SPK -->
-            <q-td key="spk">
-              <div class="text-weight-bold text-blue-grey-9 uppercase font-11">
-                {{ props.row.nomor_spk }}
-              </div>
-            </q-td>
-
-            <!-- TIMELINE -->
-            <q-td key="timeline">
-              <div class="text-caption text-grey-8 font-11">
-                Tgl Mulai:
-                <span class="text-weight-bold">{{ formatDateIndo(props.row.tgl_mulai) }}</span>
-              </div>
-              <div
-                class="text-caption font-11"
-                :class="
-                  props.row.status === 'Jatuh Tempo'
-                    ? 'text-negative text-weight-bold'
-                    : 'text-grey-8'
-                "
-              >
-                Tempo:
-                <span class="text-weight-bold">{{ formatDateIndo(props.row.jatuh_tempo) }}</span>
-              </div>
-            </q-td>
-
-            <!-- NILAI PROYEK (GRAND TOTAL) -->
-            <q-td key="nominal" class="text-right">
-              <div class="text-weight-bolder text-indigo-10 text-subtitle2">
-                Rp {{ (props.row.grand_total || 0).toLocaleString('id-ID') }}
-              </div>
-              <div class="text-caption text-grey-6 font-10">Total Valuasi</div>
-            </q-td>
-
-            <!-- PROGRESS PEMBAYARAN -->
-            <q-td key="progress" style="width: 250px">
-              <div class="full-width">
-                <div class="row items-center justify-between q-mb-xs font-10">
-                  <span class="text-weight-bold text-primary">Telah Dibayar</span>
-                  <span class="text-weight-bolder text-indigo-10"
-                    >Rp {{ (props.row.total_dibayar || 0).toLocaleString('id-ID') }}</span
-                  >
-                </div>
-                <q-linear-progress
-                  :value="(props.row.total_dibayar || 0) / (props.row.grand_total || 1)"
-                  size="8px"
-                  rounded
-                  :color="
-                    (props.row.total_dibayar || 0) >= (props.row.grand_total || 0)
-                      ? 'positive'
-                      : 'primary'
-                  "
-                  track-color="blue-1"
-                />
-                <div
-                  class="text-right q-mt-xs font-10 text-negative text-weight-bold"
-                  v-if="(props.row.grand_total || 0) > (props.row.total_dibayar || 0)"
-                >
-                  Sisa: Rp
-                  {{
-                    ((props.row.grand_total || 0) - (props.row.total_dibayar || 0)).toLocaleString(
-                      'id-ID',
-                    )
-                  }}
-                </div>
-              </div>
-            </q-td>
-
-            <!-- STATUS -->
-            <q-td key="status" class="text-center">
-              <q-chip
-                dense
-                :color="getStatusColor(props.row.status).bg"
-                :text-color="getStatusColor(props.row.status).text"
-                class="text-weight-bold font-10 uppercase q-ma-none shadow-sm q-px-sm"
-              >
-                {{ props.row.status }}
-              </q-chip>
-            </q-td>
-
-            <!-- AKSI DETAIL -->
-            <q-td key="aksi" class="text-center" @click.stop>
-              <q-btn
-                flat
-                round
-                color="indigo-10"
-                icon="visibility"
-                size="sm"
-                @click="openDetail(props.row)"
-              >
-                <q-tooltip>Lihat Rincian Keuangan</q-tooltip>
-              </q-btn>
-            </q-td>
-          </q-tr>
-        </template>
-
-        <template v-slot:no-data>
-          <div class="full-width row flex-center q-pa-xl text-grey-5">
-            <q-icon name="foundation" size="64px" class="q-mb-md" />
-            <div class="text-h6 full-width text-center">Belum ada data proyek di Master Data.</div>
-          </div>
-        </template>
-      </q-table>
-    </q-card>
-
-    <!-- =====================================================================================
-         DIALOG DETAIL KEUANGAN PROYEK (FULLSCREEN WITH PDF PREVIEW)
-         ===================================================================================== -->
-    <q-dialog
-      v-model="showDetail"
-      maximized
-      transition-show="slide-up"
-      transition-hide="slide-down"
-      backdrop-filter="blur(8px)"
-    >
-      <q-card class="bg-grey-2 column no-wrap">
-        <q-toolbar class="bg-indigo-10 text-white q-py-md shadow-4 shrink no-print">
-          <q-btn flat round dense icon="arrow_back" v-close-popup />
-          <q-toolbar-title>
-            <div class="text-weight-bold uppercase tracking-widest font-11">
-              Rincian Keuangan Proyek
-            </div>
-            <div class="text-caption opacity-70">Proyek: {{ selectedProject?.nama_proyek }}</div>
-          </q-toolbar-title>
-
+        <div class="row items-center q-gutter-md">
           <q-btn
             unelevated
             color="white"
             text-color="indigo-10"
             icon="picture_as_pdf"
             label="EXPORT PDF"
-            class="q-mr-md text-weight-black rounded-12 shadow-2"
+            class="rounded-12 text-weight-bold shadow-2"
             @click="exportToPDF"
+          />
+        </div>
+      </div>
+
+      <!-- MAIN CONTENT WRAPPER -->
+      <div id="invoice-pdf-target" class="bg-transparent">
+        <!-- HEADER RINCIAN & STATUS -->
+        <div class="row items-center justify-between q-mb-lg">
+          <div>
+            <div
+              class="text-h4 text-weight-bolder text-indigo-10 uppercase tracking-widest letter-spacing-1"
+            >
+              RINCIAN TAGIHAN
+            </div>
+            <div class="text-subtitle1 text-grey-7 font-bold q-mt-xs">
+              {{ selectedTagihan.kode_tagihan }}
+            </div>
+          </div>
+          <div>
+            <q-chip
+              :color="getStatusColor(selectedTagihan.status).bg"
+              :text-color="getStatusColor(selectedTagihan.status).text"
+              class="text-weight-bolder font-11 uppercase shadow-sm q-px-md q-py-sm"
+              size="16px"
+            >
+              STATUS: {{ selectedTagihan.status }}
+            </q-chip>
+          </div>
+        </div>
+
+        <div class="row q-col-gutter-lg">
+          <!-- KOLOM KIRI: REFERENSI & TIMELINE -->
+          <div class="col-12 col-md-7">
+            <!-- CARD 1: REFERENSI DOKUMEN & PROYEK -->
+            <q-card flat bordered class="rounded-20 shadow-sm q-mb-lg bg-white border-indigo-thin">
+              <q-card-section class="bg-indigo-50 text-indigo-10 q-py-sm border-bottom-subtle">
+                <div class="text-weight-bold uppercase tracking-widest font-11 flex items-center">
+                  <q-icon name="dataset" size="sm" class="q-mr-sm" /> REFERENSI DOKUMEN & PROYEK
+                </div>
+              </q-card-section>
+              <q-card-section class="q-pa-lg">
+                <div class="row q-col-gutter-y-lg q-col-gutter-x-md">
+                  <div class="col-12 col-sm-6">
+                    <div
+                      class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
+                    >
+                      PROYEK TERKAIT
+                    </div>
+                    <div class="text-subtitle1 text-weight-bold text-indigo-10 uppercase">
+                      {{ selectedTagihan.proyek_nama || '-' }}
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-6">
+                    <div
+                      class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
+                    >
+                      NOMOR SPK
+                    </div>
+                    <div class="text-subtitle1 text-weight-bold">
+                      {{ selectedTagihan.nomor_spk || '-' }}
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-6">
+                    <div
+                      class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
+                    >
+                      NO. BAP
+                    </div>
+                    <div class="text-subtitle1 text-weight-bold">
+                      {{ selectedTagihan.bap_number || '-' }}
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-6">
+                    <div
+                      class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
+                    >
+                      REF. INVOICE CUSTOMER
+                    </div>
+                    <div class="text-subtitle1 text-weight-bold text-primary uppercase">
+                      {{
+                        typeof selectedTagihan.nomor_invoice_customer === 'object'
+                          ? selectedTagihan.nomor_invoice_customer?.nomor_invoice
+                          : selectedTagihan.nomor_invoice_customer || '-'
+                      }}
+                    </div>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+
+            <!-- CARD 2: DESKRIPSI PEKERJAAN & TIMELINE -->
+            <q-card flat bordered class="rounded-20 shadow-sm q-mb-lg bg-white border-indigo-thin">
+              <q-card-section class="bg-indigo-50 text-indigo-10 q-py-sm border-bottom-subtle">
+                <div class="text-weight-bold uppercase tracking-widest font-11 flex items-center">
+                  <q-icon name="timeline" size="sm" class="q-mr-sm" /> DESKRIPSI PEKERJAAN &
+                  TIMELINE
+                </div>
+              </q-card-section>
+              <q-card-section class="q-pa-lg">
+                <div class="row q-col-gutter-y-lg q-col-gutter-x-md">
+                  <div class="col-12 col-sm-3">
+                    <div
+                      class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
+                    >
+                      TGL INVOICE
+                    </div>
+                    <div class="text-subtitle1 text-weight-bold">
+                      {{ formatDateIndo(selectedTagihan.tanggal_invoice) }}
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-3">
+                    <div
+                      class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
+                    >
+                      JATUH TEMPO
+                    </div>
+                    <div class="text-subtitle1 text-weight-bold text-orange-9">
+                      {{ formatDateIndo(selectedTagihan.jatuh_tempo) }}
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-3">
+                    <div
+                      class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
+                    >
+                      TGL FAKTUR
+                    </div>
+                    <div class="text-subtitle1 text-weight-bold">
+                      {{ formatDateIndo(selectedTagihan.tanggal_faktur) }}
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-3">
+                    <div
+                      class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
+                    >
+                      TGL SUBMIT
+                    </div>
+                    <div class="text-subtitle1 text-weight-bold text-negative">
+                      {{ formatDateIndo(selectedTagihan.tanggal_submit) }}
+                    </div>
+                  </div>
+
+                  <div class="col-12">
+                    <q-separator class="border-subtle" />
+                  </div>
+
+                  <div class="col-12 col-sm-4">
+                    <div
+                      class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
+                    >
+                      JENIS PEKERJAAN
+                    </div>
+                    <div class="text-subtitle1 text-weight-bold">
+                      {{ selectedTagihan.jenis_pekerjaan || '-' }}
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-4">
+                    <div
+                      class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
+                    >
+                      TAHAP / TERMIN
+                    </div>
+                    <div class="text-subtitle1 text-weight-bold">
+                      {{ selectedTagihan.tahap_ke || selectedTagihan.termin || '-' }}
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-4">
+                    <div
+                      class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
+                    >
+                      PROGRESS AKTUAL
+                    </div>
+                    <div class="text-subtitle1 text-weight-bold text-indigo-10">
+                      {{ selectedTagihan.progress_persen || 0 }}%
+                    </div>
+                  </div>
+
+                  <div class="col-12">
+                    <div
+                      class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
+                    >
+                      DESKRIPSI PROYEK
+                    </div>
+                    <div class="text-body2 text-grey-9">
+                      {{ selectedTagihan.deskripsi_proyek || '-' }}
+                    </div>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+
+          <!-- KOLOM KANAN: FINANCIAL SUMMARY & LAMPIRAN -->
+          <div class="col-12 col-md-5">
+            <!-- CARD 3: KEUANGAN -->
+            <q-card
+              flat
+              bordered
+              class="rounded-20 shadow-sm bg-white border-indigo-thin overflow-hidden"
+            >
+              <div class="bg-indigo-10 text-white q-pa-lg text-center">
+                <div class="text-overline text-indigo-2 text-bold tracking-widest uppercase">
+                  NET AMOUNT TAGIHAN
+                </div>
+                <div class="text-h3 text-weight-black q-mt-sm">
+                  Rp {{ (selectedTagihan.net_amount || 0).toLocaleString('id-ID') }}
+                </div>
+              </div>
+
+              <q-card-section class="q-pa-lg">
+                <div
+                  class="text-weight-bold text-indigo-10 q-mb-md uppercase tracking-widest font-11"
+                >
+                  RINCIAN KALKULASI PAJAK
+                </div>
+
+                <div class="row justify-between items-center q-mb-sm">
+                  <div class="text-grey-7 font-bold">Nominal (Kotor)</div>
+                  <div class="text-weight-bold text-subtitle1">
+                    Rp {{ (selectedTagihan.nominal_invoice || 0).toLocaleString('id-ID') }}
+                  </div>
+                </div>
+                <q-separator class="q-my-sm border-subtle" />
+                <div class="row justify-between items-center q-mb-sm">
+                  <div class="text-grey-7 font-bold">DPP</div>
+                  <div class="text-weight-bold text-subtitle1">
+                    Rp {{ (selectedTagihan.dpp || 0).toLocaleString('id-ID') }}
+                  </div>
+                </div>
+                <div class="row justify-between items-center q-mb-sm">
+                  <div class="text-grey-7 font-bold">
+                    PPN ({{ selectedTagihan.ppn_persen || 0 }}%)
+                  </div>
+                  <div class="text-weight-bold text-subtitle1 text-positive">
+                    + Rp
+                    {{
+                      (selectedTagihan.ppn_nominal || selectedTagihan.ppn || 0).toLocaleString(
+                        'id-ID',
+                      )
+                    }}
+                  </div>
+                </div>
+                <div class="row justify-between items-center q-mb-md">
+                  <div class="text-grey-7 font-bold">
+                    PPh Potongan ({{ selectedTagihan.pph_persen || 0 }}%)
+                  </div>
+                  <div class="text-weight-bold text-subtitle1 text-negative">
+                    - Rp
+                    {{
+                      (selectedTagihan.pph_nominal || selectedTagihan.pph || 0).toLocaleString(
+                        'id-ID',
+                      )
+                    }}
+                  </div>
+                </div>
+
+                <div class="row justify-between items-center q-mt-xl q-mb-sm no-print">
+                  <div class="text-weight-bold text-indigo-10 uppercase tracking-widest font-11">
+                    STATUS PEMBAYARAN
+                  </div>
+                  <q-btn
+                    v-if="selectedTagihan.status !== 'Lunas'"
+                    outline
+                    rounded
+                    size="sm"
+                    color="indigo-10"
+                    icon="add"
+                    label="Update Pembayaran"
+                    @click="openPaymentDialog"
+                  />
+                </div>
+                <div class="row justify-between items-center q-mb-sm">
+                  <div class="text-grey-7 font-bold">Telah Dibayar</div>
+                  <div class="text-weight-bold text-subtitle1 text-primary">
+                    Rp {{ (selectedTagihan.total_dibayar || 0).toLocaleString('id-ID') }}
+                  </div>
+                </div>
+                <div class="row justify-between items-center">
+                  <div class="text-grey-7 font-bold">Sisa Tagihan</div>
+                  <div
+                    class="text-weight-bold text-subtitle1"
+                    :class="
+                      (selectedTagihan.net_amount || 0) - (selectedTagihan.total_dibayar || 0) > 0
+                        ? 'text-negative'
+                        : 'text-positive'
+                    "
+                  >
+                    Rp
+                    {{
+                      (
+                        (selectedTagihan.net_amount || 0) - (selectedTagihan.total_dibayar || 0)
+                      ).toLocaleString('id-ID')
+                    }}
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+
+            <!-- CARD 4: LAMPIRAN (NON-PRINT) -->
+            <q-card
+              v-if="
+                selectedTagihan?.dokumen_lampiran && selectedTagihan.dokumen_lampiran.length > 0
+              "
+              flat
+              bordered
+              class="rounded-20 shadow-sm bg-white border-indigo-thin q-mt-lg no-print"
+            >
+              <q-card-section class="bg-indigo-50 text-indigo-10 q-py-sm border-bottom-subtle">
+                <div class="text-weight-bold uppercase tracking-widest font-11 flex items-center">
+                  <q-icon name="attachment" size="sm" class="q-mr-sm" /> LAMPIRAN DOKUMEN
+                </div>
+              </q-card-section>
+              <q-card-section class="q-pa-md">
+                <q-list separator class="rounded-12">
+                  <q-item
+                    v-for="(doc, dIdx) in selectedTagihan.dokumen_lampiran"
+                    :key="dIdx"
+                    clickable
+                    v-ripple
+                    @click="openLink(doc.url)"
+                  >
+                    <q-item-section avatar>
+                      <q-avatar color="indigo-1" text-color="indigo-10" icon="description" />
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label class="text-weight-bold">{{
+                        doc.label || 'Dokumen ' + (dIdx + 1)
+                      }}</q-item-label>
+                      <q-item-label caption>Klik untuk melihat berkas lampiran</q-item-label>
+                    </q-item-section>
+                    <q-item-section side>
+                      <q-icon name="open_in_new" color="grey-6" />
+                    </q-item-section>
+                  </q-item>
+                </q-list>
+              </q-card-section>
+            </q-card>
+
+            <!-- CARD 5: RIWAYAT PEMBAYARAN TRACKER (NON-PRINT) -->
+            <q-card
+              flat
+              bordered
+              class="rounded-20 shadow-sm bg-white border-indigo-thin q-mt-lg no-print"
+            >
+              <q-card-section class="bg-indigo-50 text-indigo-10 q-py-sm border-bottom-subtle">
+                <div class="text-weight-bold uppercase tracking-widest font-11 flex items-center">
+                  <q-icon name="history" size="sm" class="q-mr-sm" /> RIWAYAT PEMBAYARAN
+                </div>
+              </q-card-section>
+              <q-card-section class="q-pa-md">
+                <q-list
+                  separator
+                  v-if="
+                    selectedTagihan.riwayat_pembayaran &&
+                    selectedTagihan.riwayat_pembayaran.length > 0
+                  "
+                >
+                  <q-item v-for="(hist, idx) in selectedTagihan.riwayat_pembayaran" :key="idx">
+                    <q-item-section avatar>
+                      <q-avatar color="green-1" text-color="positive" icon="payments" />
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label class="text-weight-bold text-indigo-10"
+                        >Rp {{ (hist.nominal || 0).toLocaleString('id-ID') }}</q-item-label
+                      >
+                      <q-item-label caption>{{
+                        hist.catatan || 'Pembayaran Tagihan'
+                      }}</q-item-label>
+                    </q-item-section>
+                    <q-item-section side>
+                      <div class="row items-center q-gutter-x-sm">
+                        <div class="text-caption text-weight-bold text-grey-8">
+                          {{ formatDateIndo(hist.tanggal) }}
+                        </div>
+                        <q-btn
+                          v-if="hist.bukti_url"
+                          flat
+                          round
+                          dense
+                          icon="receipt"
+                          color="primary"
+                          size="sm"
+                          @click.stop="openLink(hist.bukti_url)"
+                        >
+                          <q-tooltip>Lihat Bukti Pembayaran</q-tooltip>
+                        </q-btn>
+                      </div>
+                    </q-item-section>
+                  </q-item>
+                </q-list>
+                <div v-else class="text-center text-grey-6 italic q-py-lg">
+                  Belum ada riwayat pembayaran yang tercatat.
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =====================================================================================
+         DIALOG BUAT / EDIT TAGIHAN BARU (FULLSCREEN)
+         ===================================================================================== -->
+    <q-dialog
+      v-model="showTagihanDialog"
+      maximized
+      persistent
+      transition-show="slide-up"
+      transition-hide="slide-down"
+    >
+      <q-card class="bg-grey-2 column no-wrap">
+        <!-- HEADER DIALOG FULLSCREEN -->
+        <q-toolbar class="bg-indigo-10 text-white q-py-md shadow-4 shrink">
+          <q-btn flat round dense icon="close" v-close-popup />
+          <q-toolbar-title class="text-weight-black uppercase">
+            {{ isEditTagihanMode ? 'EDIT DATA TAGIHAN SPK' : 'REGISTRASI TAGIHAN SPK BARU' }}
+          </q-toolbar-title>
+          <q-btn
+            unelevated
+            color="white"
+            text-color="indigo-10"
+            label="SIMPAN DOKUMEN"
+            @click="simpanTagihan"
+            :loading="savingTagihan"
+            rounded
+            class="q-px-xl text-weight-black shadow-2"
           />
         </q-toolbar>
 
         <q-scroll-area class="col q-pa-md q-pa-lg-xl">
           <div class="row justify-center">
-            <div class="col-12 col-xl-10">
-              <!-- PDF TARGET CONTAINER -->
-              <div id="invoice-pdf-target" class="pdf-container shadow-24" v-if="selectedProject">
-                <div class="row justify-between items-end q-mb-lg border-bottom-subtle q-pb-md">
-                  <div>
-                    <div class="text-h3 text-weight-black text-indigo-10 tracking-widest uppercase">
-                      DETAIL KEUANGAN
-                    </div>
-                    <div class="text-subtitle1 text-grey-7 font-bold q-mt-xs">
-                      Klien: {{ selectedProject.konsumen }}
-                    </div>
-                  </div>
-                  <div class="text-right">
-                    <q-chip
-                      :color="getStatusColor(selectedProject.status).bg"
-                      :text-color="getStatusColor(selectedProject.status).text"
-                      class="text-weight-bold font-11 uppercase shadow-sm"
-                      size="md"
+            <div class="col-12 col-md-10 col-xl-8">
+              <q-card flat bordered class="rounded-20 bg-white shadow-1 q-pa-lg q-pa-md-xl">
+                <!-- SECTION 1: REFERENSI PROYEK & KONTRAK -->
+                <div class="text-overline text-indigo-10 text-bold tracking-widest q-mb-sm">
+                  1. REFERENSI PROYEK & KONTRAK
+                </div>
+                <div class="row q-col-gutter-md q-mb-xl">
+                  <q-input
+                    class="col-12 col-md-6"
+                    outlined
+                    dense
+                    v-model="formTagihan.kode_tagihan"
+                    label="Kode Tagihan (Auto Generate)"
+                    readonly
+                    bg-color="grey-2"
+                  />
+
+                  <q-select
+                    class="col-12 col-md-6"
+                    outlined
+                    dense
+                    v-model="formTagihan.proyek_obj"
+                    :options="optProyek"
+                    option-label="nama"
+                    label="Pilih Data Proyek"
+                    clearable
+                    use-input
+                    @filter="filterProyek"
+                    @update:model-value="onProyekSelect"
+                    bg-color="blue-50"
+                  >
+                    <template v-slot:no-option>
+                      <q-item
+                        ><q-item-section class="text-grey italic"
+                          >Proyek tidak ditemukan</q-item-section
+                        ></q-item
+                      >
+                    </template>
+                  </q-select>
+
+                  <q-select
+                    class="col-12 col-md-6"
+                    outlined
+                    dense
+                    v-model="formTagihan.spk_obj"
+                    :options="optSpkFiltered"
+                    option-label="nomor_spk"
+                    label="Pilih No SPK Proyek"
+                    clearable
+                    bg-color="blue-50"
+                    :disable="!formTagihan.proyek_id"
+                    @update:model-value="onSpkSelect"
+                  >
+                    <template v-slot:no-option>
+                      <q-item
+                        ><q-item-section class="text-grey italic"
+                          >Tidak ada SPK pada proyek ini</q-item-section
+                        ></q-item
+                      >
+                    </template>
+                  </q-select>
+
+                  <q-input
+                    class="col-12 col-md-6"
+                    outlined
+                    dense
+                    v-model="formTagihan.bap_number"
+                    label="BAP Number"
+                    bg-color="white"
+                  />
+
+                  <q-select
+                    class="col-12"
+                    outlined
+                    dense
+                    v-model="formTagihan.nomor_invoice_customer"
+                    :options="optInvoiceCustomer"
+                    option-label="nomor_invoice"
+                    label="Tarik Referensi No. Invoice Customer (AR)"
+                    clearable
+                    use-input
+                    @filter="filterInvoiceCust"
+                    @update:model-value="onInvoiceSelect"
+                    bg-color="blue-50"
+                  >
+                    <template v-slot:no-option>
+                      <q-item
+                        ><q-item-section class="text-grey italic"
+                          >Invoice tidak ditemukan atau sudah digunakan</q-item-section
+                        ></q-item
+                      >
+                    </template>
+                  </q-select>
+                </div>
+
+                <!-- SECTION 2: DETAIL PEKERJAAN & TIMELINE -->
+                <div class="text-overline text-indigo-10 text-bold tracking-widest q-mb-sm">
+                  2. DETAIL PEKERJAAN & TIMELINE
+                </div>
+                <div class="row q-col-gutter-md q-mb-xl">
+                  <q-input
+                    class="col-12 col-md-3"
+                    outlined
+                    dense
+                    type="date"
+                    v-model="formTagihan.tanggal_invoice"
+                    label="Tanggal Invoice"
+                    stack-label
+                    bg-color="white"
+                  />
+                  <q-input
+                    class="col-12 col-md-3"
+                    outlined
+                    dense
+                    type="date"
+                    v-model="formTagihan.jatuh_tempo"
+                    label="Jatuh Tempo"
+                    stack-label
+                    bg-color="white"
+                  />
+                  <q-input
+                    class="col-12 col-md-3"
+                    outlined
+                    dense
+                    type="date"
+                    v-model="formTagihan.tanggal_faktur"
+                    label="Tanggal Faktur"
+                    stack-label
+                    bg-color="white"
+                  />
+                  <q-input
+                    class="col-12 col-md-3"
+                    outlined
+                    dense
+                    type="date"
+                    v-model="formTagihan.tanggal_submit"
+                    label="Tgl Submit ke Customer"
+                    stack-label
+                    bg-color="white"
+                  />
+
+                  <q-input
+                    class="col-12 col-md-6"
+                    outlined
+                    dense
+                    v-model="formTagihan.jenis_pekerjaan"
+                    label="Jenis Pekerjaan"
+                    bg-color="white"
+                  />
+                  <q-input
+                    class="col-12 col-md-6"
+                    outlined
+                    dense
+                    type="number"
+                    v-model.number="formTagihan.progress_persen"
+                    label="Persentasi Tagihan (%)"
+                    bg-color="white"
+                    suffix="%"
+                  />
+
+                  <q-input
+                    class="col-12"
+                    outlined
+                    dense
+                    type="textarea"
+                    rows="2"
+                    v-model="formTagihan.deskripsi_proyek"
+                    label="Deskripsi Pekerjaan / Proyek"
+                    bg-color="white"
+                  />
+                </div>
+
+                <!-- SECTION 3: NILAI TAGIHAN & PAJAK -->
+                <div class="text-overline text-indigo-10 text-bold tracking-widest q-mb-sm">
+                  3. NILAI TAGIHAN & PAJAK
+                </div>
+                <div class="row q-col-gutter-md q-mb-md">
+                  <q-input
+                    class="col-12"
+                    outlined
+                    dense
+                    v-model="formTagihan.tahap_ke"
+                    label="Tahap Ke (Termin)"
+                    bg-color="white"
+                    placeholder="Contoh: Tahap 1 / Termin 30%"
+                  />
+
+                  <!-- NOMINAL INVOICE KOTOR -->
+                  <q-input
+                    class="col-12"
+                    outlined
+                    dense
+                    type="number"
+                    v-model.number="formTagihan.nominal_invoice"
+                    label="Nominal Invoice / Kuitansi (Kotor)"
+                    prefix="Rp"
+                    bg-color="white"
+                    input-class="text-weight-bold"
+                  />
+
+                  <!-- DPP OTOMATIS -->
+                  <q-input
+                    class="col-12"
+                    outlined
+                    dense
+                    type="number"
+                    v-model.number="formTagihan.dpp"
+                    label="DPP (Dasar Pengenaan Pajak)"
+                    prefix="Rp"
+                    readonly
+                    bg-color="grey-2"
+                  />
+
+                  <!-- Kalkulasi Otomatis PPN -->
+                  <q-input
+                    class="col-12 col-md-4"
+                    outlined
+                    dense
+                    type="number"
+                    v-model.number="formTagihan.ppn_persen"
+                    label="Persentase PPN (%)"
+                    suffix="%"
+                    bg-color="white"
+                  />
+                  <q-input
+                    class="col-12 col-md-8"
+                    outlined
+                    dense
+                    type="number"
+                    v-model.number="formTagihan.ppn_nominal"
+                    label="Nominal PPN"
+                    prefix="Rp"
+                    readonly
+                    bg-color="grey-2"
+                  />
+
+                  <!-- Kalkulasi Otomatis PPh -->
+                  <q-input
+                    class="col-12 col-md-4"
+                    outlined
+                    dense
+                    type="number"
+                    v-model.number="formTagihan.pph_persen"
+                    label="Persentase PPh (%)"
+                    suffix="%"
+                    bg-color="white"
+                  />
+                  <q-input
+                    class="col-12 col-md-8"
+                    outlined
+                    dense
+                    type="number"
+                    v-model.number="formTagihan.pph_nominal"
+                    label="Nominal PPh (Potongan)"
+                    prefix="Rp"
+                    readonly
+                    bg-color="grey-2"
+                  />
+
+                  <!-- Net Amount -->
+                  <q-input
+                    class="col-12 q-mt-sm"
+                    outlined
+                    dense
+                    type="number"
+                    v-model.number="formTagihan.net_amount"
+                    label="Net Amount (DPP + PPN - PPh)"
+                    prefix="Rp"
+                    readonly
+                    bg-color="green-1"
+                    input-class="text-weight-bold text-h5 text-green-10"
+                  />
+                </div>
+
+                <!-- SECTION 4: LAMPIRAN DOKUMEN DINAMIS -->
+                <q-separator class="q-my-lg border-subtle" />
+                <div class="text-overline text-indigo-10 text-bold tracking-widest q-mb-sm">
+                  4. LAMPIRAN DOKUMEN (OPSIONAL)
+                </div>
+                <div class="row q-col-gutter-md">
+                  <div class="col-12">
+                    <div
+                      v-for="(doc, dIdx) in formTagihan.dokumen_lampiran"
+                      :key="dIdx"
+                      class="bg-indigo-50 q-pa-md q-mb-sm rounded-12 border-dashed"
                     >
-                      STATUS: {{ selectedProject.status }}
-                    </q-chip>
-                  </div>
-                </div>
-
-                <div class="row q-col-gutter-xl q-mb-xl">
-                  <!-- INFO KIRI -->
-                  <div class="col-12 col-md-6">
-                    <div class="text-overline text-grey-6 text-bold tracking-widest q-mb-xs">
-                      INFORMASI PROYEK & KONTRAK
+                      <div class="row items-center q-col-gutter-md">
+                        <div class="col-12 col-md-5">
+                          <q-input
+                            outlined
+                            dense
+                            v-model="doc.label"
+                            placeholder="Nama / Judul Dokumen (Contoh: Bukti BAP)..."
+                            bg-color="white"
+                          />
+                        </div>
+                        <div class="col-12 col-md-6">
+                          <q-file
+                            outlined
+                            dense
+                            v-model="doc.fileRaw"
+                            label="Pilih File (PDF/IMG)"
+                            @update:model-value="processFile(doc)"
+                            bg-color="white"
+                          >
+                            <template v-slot:append><q-icon name="cloud_upload" /></template>
+                          </q-file>
+                          <div
+                            v-if="doc.url"
+                            class="text-caption text-positive q-mt-xs text-weight-bold"
+                          >
+                            <q-icon name="check_circle" /> Dokumen berhasil diunggah
+                          </div>
+                        </div>
+                        <div class="col-12 col-md-1 flex flex-center">
+                          <q-btn
+                            flat
+                            round
+                            color="negative"
+                            icon="delete"
+                            size="sm"
+                            @click="formTagihan.dokumen_lampiran.splice(dIdx, 1)"
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <table class="info-table full-width">
-                      <tr>
-                        <td width="130" class="text-grey-8">Nama Proyek</td>
-                        <td class="text-weight-bold text-indigo-10 uppercase">
-                          : {{ selectedProject.nama_proyek }}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td class="text-grey-8">Nomor SPK</td>
-                        <td class="text-weight-bold uppercase">
-                          : {{ selectedProject.nomor_spk }}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td colspan="2">
-                          <div style="border-bottom: 1px solid #e0e0e0; margin: 12px 0"></div>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td class="text-grey-8">Lokasi Proyek</td>
-                        <td class="text-weight-bold">: {{ selectedProject.alamat }}</td>
-                      </tr>
-                      <tr>
-                        <td class="text-grey-8">Mulai Proyek</td>
-                        <td class="text-weight-bold">
-                          : {{ formatDateIndo(selectedProject.tgl_mulai) }}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td class="text-grey-8">Target Selesai</td>
-                        <td
-                          class="text-weight-bold"
-                          :class="selectedProject.status === 'Jatuh Tempo' ? 'text-negative' : ''"
-                        >
-                          : {{ formatDateIndo(selectedProject.jatuh_tempo) }}
-                        </td>
-                      </tr>
-                    </table>
+                    <q-btn
+                      outline
+                      color="indigo-10"
+                      icon="add"
+                      label="TAMBAH DOKUMEN LAMPIRAN"
+                      class="full-width q-mt-sm rounded-12 text-weight-bold dashed-btn"
+                      @click="addDocumentRow"
+                    />
                   </div>
+                </div>
+              </q-card>
+            </div>
+          </div>
+        </q-scroll-area>
+      </q-card>
+    </q-dialog>
 
-                  <!-- INFO KANAN (FINANCIAL BOX) -->
-                  <div class="col-12 col-md-6">
-                    <q-card
-                      flat
-                      class="bg-indigo-1 rounded-12 border-indigo-thin h-full flex column justify-center q-pa-lg"
+    <!-- =====================================================================================
+         DIALOG UPDATE PEMBAYARAN (TRACKER CICILAN)
+         ===================================================================================== -->
+    <q-dialog
+      v-model="showPaymentDialog"
+      maximized
+      persistent
+      transition-show="slide-up"
+      transition-hide="slide-down"
+    >
+      <q-card class="bg-grey-2 column no-wrap">
+        <!-- HEADER DIALOG FULLSCREEN -->
+        <q-toolbar class="bg-indigo-10 text-white q-py-md shadow-4 shrink">
+          <q-btn flat round dense icon="close" v-close-popup />
+          <q-toolbar-title class="text-weight-black uppercase">
+            UPDATE PEMBAYARAN TAGIHAN
+          </q-toolbar-title>
+          <q-btn
+            unelevated
+            color="white"
+            text-color="indigo-10"
+            label="SIMPAN PEMBAYARAN"
+            @click="savePayment"
+            :loading="savingPayment"
+            rounded
+            class="q-px-xl text-weight-black shadow-2"
+          />
+        </q-toolbar>
+
+        <q-scroll-area class="col q-pa-md q-pa-lg-xl">
+          <div class="row justify-center">
+            <div class="col-12 col-md-8 col-xl-6">
+              <q-card flat bordered class="rounded-20 bg-white shadow-1 q-pa-lg q-pa-md-xl">
+                <div class="text-overline text-indigo-10 text-bold tracking-widest q-mb-sm">
+                  RINCIAN PEMBAYARAN
+                </div>
+                <div class="row q-col-gutter-md q-mb-lg">
+                  <q-input
+                    class="col-12 col-md-6"
+                    outlined
+                    dense
+                    type="date"
+                    v-model="paymentForm.tanggal"
+                    label="Tanggal Pembayaran *"
+                    stack-label
+                    bg-color="white"
+                  />
+                  <q-input
+                    class="col-12 col-md-6"
+                    outlined
+                    dense
+                    type="number"
+                    v-model.number="paymentForm.nominal"
+                    label="Nominal Dibayar (Rp) *"
+                    prefix="Rp"
+                    input-class="text-weight-bold text-indigo-10"
+                    bg-color="white"
+                  />
+                  <q-input
+                    class="col-12"
+                    outlined
+                    dense
+                    type="textarea"
+                    rows="3"
+                    v-model="paymentForm.catatan"
+                    label="Catatan / Keterangan (Opsional)"
+                    placeholder="Contoh: DP 50% Termin 1..."
+                    bg-color="white"
+                  />
+                </div>
+
+                <q-separator class="q-my-lg border-subtle" />
+
+                <div class="text-overline text-indigo-10 text-bold tracking-widest q-mb-sm">
+                  BUKTI PEMBAYARAN / TRANSFER
+                </div>
+                <div class="row q-col-gutter-md">
+                  <div class="col-12">
+                    <q-file
+                      outlined
+                      dense
+                      v-model="paymentForm.bukti_file"
+                      label="Upload Bukti Pembayaran (Foto/PDF)"
+                      accept="image/*, .pdf"
+                      bg-color="white"
+                      class="bg-indigo-50"
                     >
-                      <div class="text-overline text-indigo-10 text-bold tracking-widest q-mb-sm">
-                        SUMMARY KEUANGAN (IDR)
-                      </div>
-                      <div class="row justify-between items-center q-mb-xs">
-                        <span class="text-grey-8">Total Nilai Kontrak</span>
-                        <span class="text-weight-bold text-subtitle1"
-                          >Rp {{ (selectedProject.grand_total || 0).toLocaleString('id-ID') }}</span
-                        >
-                      </div>
-                      <div class="row justify-between items-center q-mb-md">
-                        <span class="text-grey-8">Telah Dibayar (Termin Masuk)</span>
-                        <span class="text-weight-bold text-positive"
-                          >Rp
-                          {{ (selectedProject.total_dibayar || 0).toLocaleString('id-ID') }}</span
-                        >
-                      </div>
-                      <q-separator class="bg-indigo-2 q-mb-sm" />
-                      <div class="row justify-between items-center">
-                        <span class="text-indigo-10 text-weight-bold uppercase"
-                          >Sisa Piutang (Sisa Tagihan)</span
-                        >
-                        <span
-                          class="text-weight-black text-h5"
-                          :class="
-                            selectedProject.grand_total - selectedProject.total_dibayar > 0
-                              ? 'text-negative'
-                              : 'text-positive'
-                          "
-                        >
-                          Rp
-                          {{
-                            (
-                              (selectedProject.grand_total || 0) -
-                              (selectedProject.total_dibayar || 0)
-                            ).toLocaleString('id-ID')
-                          }}
-                        </span>
-                      </div>
-                    </q-card>
+                      <template v-slot:prepend>
+                        <q-icon name="cloud_upload" color="indigo-10" />
+                      </template>
+                      <template v-slot:append v-if="paymentForm.bukti_file">
+                        <q-icon
+                          name="close"
+                          @click.stop.prevent="paymentForm.bukti_file = null"
+                          class="cursor-pointer"
+                        />
+                      </template>
+                    </q-file>
+                    <div class="text-caption text-grey-6 q-mt-xs">
+                      Format yang didukung: JPG, PNG, PDF. File akan otomatis tersimpan di Cloud
+                      Storage.
+                    </div>
                   </div>
                 </div>
-
-                <!-- NOMINAL BREAKDOWN (BILL OF QUANTITY) -->
-                <div
-                  class="text-h6 text-indigo-10 text-weight-bold uppercase tracking-widest q-mb-sm"
-                >
-                  Rincian Bill of Quantity (BOQ) Proyek
-                </div>
-                <table class="pdf-table full-width q-mb-xl">
-                  <thead>
-                    <tr class="bg-blue-grey-10 text-white">
-                      <th class="text-center" width="50">NO</th>
-                      <th class="text-left">URAIAN PEKERJAAN (BOQ)</th>
-                      <th class="text-center" width="80">VOL</th>
-                      <th class="text-right" width="150">HARGA SATUAN</th>
-                      <th class="text-right" width="180">TOTAL</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="(item, i) in selectedProject.items" :key="i">
-                      <td class="text-center font-bold">{{ i + 1 }}</td>
-                      <td class="text-left font-bold text-blue-grey-9 uppercase">
-                        {{ item.deskripsi || item.nama_barang || '-' }}
-                      </td>
-                      <td class="text-center">
-                        {{ item.volume || item.qty || 0 }} {{ item.satuan || '' }}
-                      </td>
-                      <td class="text-right">
-                        Rp {{ (item.harga_satuan || 0).toLocaleString('id-ID') }}
-                      </td>
-                      <td class="text-right text-weight-bold text-indigo-10">
-                        Rp
-                        {{
-                          (
-                            (item.volume || item.qty || 0) * (item.harga_satuan || 0)
-                          ).toLocaleString('id-ID')
-                        }}
-                      </td>
-                    </tr>
-                    <tr v-if="!selectedProject.items || selectedProject.items.length === 0">
-                      <td colspan="5" class="text-center text-grey-6 italic">
-                        Tidak ada rincian item BOQ di dalam master SPK. (Hanya Total Nilai)
-                      </td>
-                    </tr>
-                  </tbody>
-                  <tfoot>
-                    <tr class="bg-grey-2">
-                      <td colspan="4" class="text-right text-weight-black uppercase">
-                        GRAND TOTAL VALUASI PROYEK
-                      </td>
-                      <td class="text-right text-weight-black text-h6 text-indigo-10">
-                        Rp {{ (selectedProject.grand_total || 0).toLocaleString('id-ID') }}
-                      </td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-              <!-- End PDF Container -->
+              </q-card>
             </div>
           </div>
         </q-scroll-area>
@@ -562,187 +1339,660 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { db } from 'src/boot/firebase'
-import { collection, onSnapshot } from 'firebase/firestore'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
+import { db, storage } from 'src/boot/firebase'
+import {
+  collection,
+  onSnapshot,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  serverTimestamp,
+  arrayUnion,
+} from 'firebase/firestore'
+import { ref as sRef, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { useQuasar } from 'quasar'
-import html2pdf from 'html2pdf.js'
 
 const $q = useQuasar()
 
-// State Data Master
+// State Data Master (Koleksi Firebase)
 const masterProyek = ref([])
 const masterSpk = ref([])
+const masterTagihan = ref([])
+const masterInvoiceCust = ref([])
 
-// State UI
+// State UI General
+const viewMode = ref('list_proyek')
 const loading = ref(true)
 const searchQuery = ref('')
 const statusFilter = ref('ALL')
-const showDetail = ref(false)
-const selectedProject = ref(null)
+const showTagihanDialog = ref(false)
+const isEditTagihanMode = ref(false)
+const savingTagihan = ref(false)
+const selectedTagihan = ref(null)
+
+// Payment Tracking State
+const showPaymentDialog = ref(false)
+const savingPayment = ref(false)
+const paymentForm = ref({
+  tanggal: new Date().toISOString().substr(0, 10),
+  nominal: 0,
+  catatan: '',
+  bukti_file: null,
+})
+
+// --- STATE FILTER BARU ---
+const filterStartDate = ref('')
+const filterEndDate = ref('')
+const filterSelectedProyek = ref(null)
+const optProyekFilter = ref([])
+
+// State Dropdown
+const optProyek = ref([])
+const optSpkFiltered = ref([])
+const optInvoiceCustomer = ref([])
 
 let unsubProyek = null
 let unsubSpk = null
+let unsubTagihan = null
+let unsubInvoiceCust = null
 
-// Columns Setup (Sesuai dengan keinginan Anda: Identitas, Referensi, Timeline, Nominal, Progress, Status, Aksi)
-const columns = [
+// Form State Lengkap
+const formTagihan = ref({
+  id: null,
+  kode_tagihan: '',
+  proyek_id: null,
+  proyek_nama: '',
+  spk_id: null,
+  nomor_spk: '',
+  bap_number: '',
+  nomor_invoice_customer: null,
+  tanggal_invoice: new Date().toISOString().substr(0, 10),
+  jatuh_tempo: '',
+  tanggal_faktur: '',
+  tanggal_submit: '',
+  jenis_pekerjaan: '',
+  deskripsi_proyek: '',
+  progress_persen: 0,
+  tahap_ke: '',
+  nominal_invoice: 0,
+  dpp: 0,
+  ppn_persen: 11,
+  ppn_nominal: 0,
+  pph_persen: 0,
+  pph_nominal: 0,
+  net_amount: 0,
+  status: 'Menunggu Pembayaran',
+  total_dibayar: 0,
+  dokumen_lampiran: [],
+  riwayat_pembayaran: [],
+})
+
+// Auto-calculate Kalkulasi Pajak & Net Amount berdasarkan Nominal Invoice (Kotor)
+watch(
+  () => [
+    formTagihan.value.nominal_invoice,
+    formTagihan.value.ppn_persen,
+    formTagihan.value.pph_persen,
+  ],
+  ([nominal, ppn, pph]) => {
+    const valNominal = Number(nominal) || 0
+    const valPpnPersen = Number(ppn) || 0
+    const valPphPersen = Number(pph) || 0
+
+    // Menghitung DPP dari Nominal Kotor (Kotor = DPP + PPN)
+    let valDpp = valNominal
+    if (valPpnPersen > 0) {
+      valDpp = valNominal / (1 + valPpnPersen / 100)
+    }
+
+    const valPpn = (valDpp * valPpnPersen) / 100
+    const valPph = (valDpp * valPphPersen) / 100
+
+    formTagihan.value.dpp = Math.round(valDpp)
+    formTagihan.value.ppn_nominal = Math.round(valPpn)
+    formTagihan.value.pph_nominal = Math.round(valPph)
+    formTagihan.value.net_amount = Math.round(valDpp + valPpn - valPph)
+  },
+)
+
+const generateKodeTagihan = () => {
+  const count = masterTagihan.value.length + 1
+  const padded = count.toString().padStart(3, '0')
+  const year = new Date().getFullYear()
+  const month = ('0' + (new Date().getMonth() + 1)).slice(-2)
+  return `TG/${year}${month}/${padded}`
+}
+
+// Helper: Truncate Text
+const truncateString = (str, num) => {
+  if (!str) return '-'
+  if (str.length <= num) return str
+  return str.slice(0, num) + '...'
+}
+
+// Helper: Hitung Tenor & Warna
+const calculateTenor = (row) => {
+  if (row.status === 'Lunas') return { text: 'LUNAS', color: 'text-positive' }
+
+  if (!row.jatuh_tempo || row.jatuh_tempo === '-') return { text: '-', color: 'text-grey-6' }
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const jtDate = new Date(row.jatuh_tempo)
+  jtDate.setHours(0, 0, 0, 0)
+
+  const diffTime = jtDate - today
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+  if (diffDays < 0) {
+    return { text: `Telat ${Math.abs(diffDays)} Hari`, color: 'text-negative' }
+  } else if (diffDays === 0) {
+    return { text: 'Hari Ini', color: 'text-orange-9' }
+  } else {
+    return { text: `${diffDays} Hari Lagi`, color: 'text-positive' }
+  }
+}
+
+// Columns List Tagihan
+const columnsTagihan = [
+  { name: 'kode', align: 'left', label: 'KODE & BAP', field: 'kode_tagihan', sortable: true },
   {
-    name: 'proyek',
+    name: 'proyek_spk',
     align: 'left',
-    label: 'IDENTITAS PROYEK & KLIEN',
-    field: 'nama_proyek',
+    label: 'PROYEK & SPK',
+    field: 'proyek_nama',
     sortable: true,
   },
-  { name: 'spk', align: 'left', label: 'REFERENSI SPK', field: 'nomor_spk', sortable: true },
-  { name: 'timeline', align: 'left', label: 'TIMELINE PROYEK', field: 'tgl_mulai', sortable: true },
-  { name: 'nominal', align: 'right', label: 'NILAI KONTRAK', field: 'grand_total', sortable: true },
+  { name: 'invoice_ar', align: 'left', label: 'INVOICE & FAKTUR', field: 'nomor_invoice_customer' },
+  {
+    name: 'tgl_invoice',
+    align: 'left',
+    label: 'TGL INVOICE',
+    field: 'tanggal_invoice',
+    sortable: true,
+  },
+  {
+    name: 'tgl_submit',
+    align: 'left',
+    label: 'TGL SUBMIT',
+    field: 'tanggal_submit',
+    sortable: true,
+  },
+  {
+    name: 'jatuh_tempo',
+    align: 'left',
+    label: 'JATUH TEMPO',
+    field: 'jatuh_tempo',
+    sortable: true,
+  },
+  { name: 'tenor', align: 'center', label: 'TENOR', field: 'jatuh_tempo', sortable: true },
   {
     name: 'progress',
-    align: 'left',
-    label: 'PROGRESS PEMBAYARAN',
-    field: 'total_dibayar',
+    align: 'center',
+    label: 'PROGRESS',
+    field: 'progress_persen',
     sortable: true,
   },
+  { name: 'nominal', align: 'right', label: 'NET AMOUNT', field: 'net_amount', sortable: true },
   { name: 'status', align: 'center', label: 'STATUS', field: 'status', sortable: true },
-  { name: 'aksi', align: 'center', label: 'DETAIL', field: 'id' },
+  { name: 'aksi', align: 'center', label: 'AKSI', field: 'id' },
 ]
 
-// Computed Data Mapping - Murni Tarikan dari `proyek` dan di-JOIN dengan `spk_customer`
-const mappedRows = computed(() => {
-  return masterProyek.value
-    .map((proj) => {
-      // Tarik SPK yang sesuai dengan ID proyek ini
-      const spks = masterSpk.value.filter((s) => s.projectId === proj.id)
-
-      let nomor_spk = '-'
-      let grand_total = 0
-      let total_dibayar = proj.total_dibayar || 0 // Default 0
-      let tgl_mulai = '-'
-      let jatuh_tempo = '-'
-      let items = []
-
-      if (spks.length > 0) {
-        nomor_spk =
-          spks
-            .map((s) => s.nomor_spk)
-            .filter(Boolean)
-            .join(', ') || '-'
-        grand_total = spks.reduce((sum, s) => sum + (Number(s.nilai_total) || 0), 0)
-        total_dibayar = spks.reduce((sum, s) => sum + (Number(s.total_dibayar) || 0), 0) // Jika suatu saat ada input total_dibayar
-
-        // Ambil Timeline (Paling awal s/d Paling Akhir)
-        const starts = spks
-          .map((s) => s.tgl_mulai)
-          .filter(Boolean)
-          .sort()
-        if (starts.length) tgl_mulai = starts[0]
-
-        const ends = spks
-          .map((s) => s.tgl_akhir)
-          .filter(Boolean)
-          .sort()
-          .reverse()
-        if (ends.length) jatuh_tempo = ends[0]
-
-        // Kumpulkan item BOQ untuk PDF
-        spks.forEach((s) => {
-          if (s.groups) {
-            s.groups.forEach((g) => {
-              if (g.items) {
-                g.items.forEach((i) => {
-                  if (!i.is_header) items.push(i)
-                })
-              }
-            })
-          }
-        })
-      }
-
-      // Kalkulasi Status Proyek
-      let status = 'Aktif'
-      const today = new Date().toISOString().substr(0, 10)
-      if (grand_total > 0 && total_dibayar >= grand_total) {
-        status = 'Lunas'
-      } else if (jatuh_tempo !== '-' && jatuh_tempo < today) {
-        status = 'Jatuh Tempo'
-      }
-
+// ============================================================================
+// COMPUTED MAPPINGS (Murni Daftar Tagihan Berbentuk Tabel Tunggal)
+// ============================================================================
+const mappedTagihan = computed(() => {
+  return masterTagihan.value
+    .map((t) => {
       return {
-        id: proj.id,
-        nama_proyek: proj.nama || 'Tanpa Nama',
-        konsumen: proj.konsumen || '-',
-        alamat: proj.alamat || '-',
-        nomor_spk,
-        tgl_mulai,
-        jatuh_tempo,
-        grand_total,
-        total_dibayar,
-        status,
-        items,
-        // Search string untuk mempermudah pencarian
-        search_string: `${proj.nama} ${nomor_spk} ${proj.konsumen}`.toLowerCase(),
+        ...t,
+        search_string:
+          `${t.kode_tagihan} ${t.bap_number} ${t.proyek_nama} ${t.nomor_spk} ${typeof t.nomor_invoice_customer === 'object' ? t.nomor_invoice_customer?.nomor_invoice : t.nomor_invoice_customer}`.toLowerCase(),
       }
     })
-    .sort((a, b) => b.grand_total - a.grand_total)
+    .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
 })
 
 // KPI Computed
-const tagihanAktif = computed(() => mappedRows.value.filter((r) => r.status === 'Aktif'))
-const tagihanLunas = computed(() => mappedRows.value.filter((r) => r.status === 'Lunas'))
-const tagihanOverdue = computed(() => mappedRows.value.filter((r) => r.status === 'Jatuh Tempo'))
-
-const totalOutstanding = computed(() => {
-  return mappedRows.value.reduce((sum, r) => sum + r.grand_total, 0)
+const tagihanAktif = computed(() =>
+  mappedTagihan.value.filter(
+    (r) => r.status === 'Menunggu Pembayaran' || r.status === 'Dibayar Sebagian',
+  ),
+)
+const tagihanLunas = computed(() => mappedTagihan.value.filter((r) => r.status === 'Lunas'))
+const tagihanOverdue = computed(() => {
+  const today = new Date().toISOString().substr(0, 10)
+  return mappedTagihan.value.filter(
+    (r) => r.jatuh_tempo && r.jatuh_tempo < today && r.status !== 'Lunas',
+  )
 })
+const totalOutstanding = computed(() =>
+  tagihanAktif.value.reduce(
+    (sum, r) => sum + ((Number(r.net_amount) || 0) - (Number(r.total_dibayar) || 0)),
+    0,
+  ),
+)
 
-// Filtered List for Table
-const filteredRows = computed(() => {
-  let result = mappedRows.value
+// --- LOGIKA FILTER TERPADU (DENGAN TGL & PROYEK) ---
+const filteredTagihan = computed(() => {
+  let result = mappedTagihan.value
 
-  // Status Filter
-  if (statusFilter.value === 'OUTSTANDING') result = result.filter((r) => r.status === 'Aktif')
-  else if (statusFilter.value === 'LUNAS') result = result.filter((r) => r.status === 'Lunas')
-  else if (statusFilter.value === 'OVERDUE')
-    result = result.filter((r) => r.status === 'Jatuh Tempo')
+  // 1. Filter Status Lunas / Belum Lunas
+  if (statusFilter.value === 'OUTSTANDING') {
+    result = result.filter(
+      (r) => r.status === 'Menunggu Pembayaran' || r.status === 'Dibayar Sebagian',
+    )
+  } else if (statusFilter.value === 'LUNAS') {
+    result = result.filter((r) => r.status === 'Lunas')
+  }
 
-  // Search Filter
+  // 2. Filter Pencarian Teks
   if (searchQuery.value) {
     const lower = searchQuery.value.toLowerCase()
     result = result.filter((r) => r.search_string.includes(lower))
   }
+
+  // 3. Filter Periode Tanggal (berdasarkan tanggal_invoice)
+  if (filterStartDate.value) {
+    result = result.filter((r) => r.tanggal_invoice >= filterStartDate.value)
+  }
+  if (filterEndDate.value) {
+    result = result.filter((r) => r.tanggal_invoice <= filterEndDate.value)
+  }
+
+  // 4. Filter Berdasarkan Proyek
+  if (filterSelectedProyek.value) {
+    result = result.filter((r) => r.proyek_id === filterSelectedProyek.value.id)
+  }
+
   return result
 })
 
-// Fetch Data (MURNI DARI MASTER PROYEK DAN SPK SAJA - TIDAK ADA PURCHASE ORDER/TAGIHAN PO)
+const resetFilters = () => {
+  searchQuery.value = ''
+  statusFilter.value = 'ALL'
+  filterStartDate.value = ''
+  filterEndDate.value = ''
+  filterSelectedProyek.value = null
+}
+
+// Menghitung Invoice Customer yang tersedia (Belum pernah digunakan di Tagihan manapun)
+const availableInvoiceCust = computed(() => {
+  const usedInvoices = masterTagihan.value
+    .filter((t) => (isEditTagihanMode.value ? t.id !== formTagihan.value.id : true))
+    .map((t) =>
+      typeof t.nomor_invoice_customer === 'object'
+        ? t.nomor_invoice_customer?.nomor_invoice
+        : t.nomor_invoice_customer,
+    )
+    .filter(Boolean)
+
+  return masterInvoiceCust.value.filter((inv) => !usedInvoices.includes(inv.nomor_invoice))
+})
+
+// Dropdown Filters
+const filterProyek = (val, update) => {
+  update(() => {
+    const needle = val.toLowerCase()
+    optProyek.value = masterProyek.value.filter((v) => v.nama?.toLowerCase().includes(needle))
+  })
+}
+
+const filterProyekDropdown = (val, update) => {
+  update(() => {
+    const needle = val.toLowerCase()
+    optProyekFilter.value = masterProyek.value.filter((v) => v.nama?.toLowerCase().includes(needle))
+  })
+}
+
+const onProyekSelect = (val) => {
+  if (val) {
+    formTagihan.value.proyek_id = val.id
+    formTagihan.value.proyek_nama = val.nama
+    optSpkFiltered.value = masterSpk.value.filter((s) => s.projectId === val.id)
+  } else {
+    formTagihan.value.proyek_id = null
+    formTagihan.value.proyek_nama = ''
+    optSpkFiltered.value = []
+  }
+  formTagihan.value.spk_id = null
+  formTagihan.value.nomor_spk = ''
+}
+
+const onSpkSelect = (val) => {
+  if (val) {
+    formTagihan.value.spk_id = val.id
+    formTagihan.value.nomor_spk = val.nomor_spk
+  } else {
+    formTagihan.value.spk_id = null
+    formTagihan.value.nomor_spk = ''
+  }
+}
+
+const filterInvoiceCust = (val, update) => {
+  update(() => {
+    const needle = val.toLowerCase()
+    optInvoiceCustomer.value = availableInvoiceCust.value.filter(
+      (v) =>
+        v.nomor_invoice?.toLowerCase().includes(needle) ||
+        v.customer_nama?.toLowerCase().includes(needle),
+    )
+  })
+}
+
+const onInvoiceSelect = (val) => {
+  if (val) {
+    if (val.tanggal) formTagihan.value.tanggal_invoice = val.tanggal
+    if (val.jatuh_tempo) formTagihan.value.jatuh_tempo = val.jatuh_tempo
+  } else {
+    formTagihan.value.tanggal_invoice = new Date().toISOString().substr(0, 10)
+    formTagihan.value.jatuh_tempo = ''
+  }
+}
+
+// ============================================================================
+// LOGIKA DOKUMEN LAMPIRAN (FILE UPLOAD)
+// ============================================================================
+const addDocumentRow = () => {
+  if (!formTagihan.value.dokumen_lampiran) formTagihan.value.dokumen_lampiran = []
+  formTagihan.value.dokumen_lampiran.push({ label: '', fileRaw: null, url: '' })
+}
+
+const processFile = async (docObj) => {
+  const file = docObj.fileRaw
+  if (!file) return
+  $q.loading.show({ message: 'Mengunggah dokumen...' })
+  try {
+    const fRef = sRef(storage, `monitoring_tagihan_docs/${Date.now()}_${file.name}`)
+    await uploadBytes(fRef, file)
+    docObj.url = await getDownloadURL(fRef)
+    $q.notify({ type: 'positive', message: 'Dokumen berhasil diunggah' })
+  } catch (err) {
+    console.error(err)
+    $q.notify({ type: 'negative', message: 'Gagal mengunggah dokumen' })
+  } finally {
+    $q.loading.hide()
+  }
+}
+
+const openLink = (url) => {
+  if (url) window.open(url, '_blank')
+}
+
+// ============================================================================
+// FIREBASE DATA FETCHING
+// ============================================================================
 const fetchData = () => {
   loading.value = true
 
-  // 1. Tarik Data SPK Kontrak
-  unsubSpk = onSnapshot(collection(db, 'spk_customer'), (snap) => {
-    masterSpk.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+  unsubProyek = onSnapshot(collection(db, 'proyek'), (snap) => {
+    masterProyek.value = snap.docs.map((d) => ({ ...d.data(), id: d.id }))
+    optProyek.value = [...masterProyek.value]
+    optProyekFilter.value = [...masterProyek.value]
   })
 
-  // 2. Tarik Data Master Proyek Utama
-  unsubProyek = onSnapshot(
-    collection(db, 'proyek'),
-    (snap) => {
-      masterProyek.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
-      loading.value = false
-    },
-    (err) => {
-      console.error('Listen Error Proyek:', err)
-      loading.value = false
-    },
-  )
+  unsubSpk = onSnapshot(collection(db, 'spk_customer'), (snap) => {
+    masterSpk.value = snap.docs.map((d) => ({ ...d.data(), id: d.id }))
+  })
+
+  unsubTagihan = onSnapshot(collection(db, 'monitoring_tagihan_spk'), (snap) => {
+    masterTagihan.value = snap.docs.map((d) => ({ ...d.data(), id: d.id }))
+    loading.value = false
+  })
+
+  unsubInvoiceCust = onSnapshot(collection(db, 'finance_invoice_customer'), (snap) => {
+    masterInvoiceCust.value = snap.docs.map((d) => ({ ...d.data(), id: d.id }))
+    optInvoiceCustomer.value = availableInvoiceCust.value
+  })
 }
 
-// Logic Actions
+// ============================================================================
+// ADD / EDIT / DETAIL TAGIHAN LOGIC
+// ============================================================================
 const openDetail = (row) => {
-  selectedProject.value = row
-  showDetail.value = true
+  selectedTagihan.value = row
+  viewMode.value = 'detail_tagihan'
+  window.scrollTo(0, 0)
 }
 
-// Utils
+const openAddTagihanDialog = () => {
+  isEditTagihanMode.value = false
+  formTagihan.value = {
+    id: null,
+    kode_tagihan: generateKodeTagihan(),
+    proyek_id: null,
+    proyek_nama: '',
+    spk_id: null,
+    nomor_spk: '',
+    bap_number: '',
+    nomor_invoice_customer: null,
+    tanggal_invoice: new Date().toISOString().substr(0, 10),
+    jatuh_tempo: '',
+    tanggal_faktur: '',
+    tanggal_submit: '',
+    jenis_pekerjaan: '',
+    deskripsi_proyek: '',
+    progress_persen: 0,
+    tahap_ke: '',
+    nominal_invoice: 0,
+    dpp: 0,
+    ppn_persen: 11,
+    ppn_nominal: 0,
+    pph_persen: 0,
+    pph_nominal: 0,
+    net_amount: 0,
+    status: 'Menunggu Pembayaran',
+    total_dibayar: 0,
+    proyek_obj: null,
+    spk_obj: null,
+    dokumen_lampiran: [],
+    riwayat_pembayaran: [],
+  }
+  showTagihanDialog.value = true
+}
+
+const openEditTagihanDialog = (row) => {
+  isEditTagihanMode.value = true
+  formTagihan.value = {
+    ...row,
+    tahap_ke: row.tahap_ke || row.termin || '',
+    ppn_persen: row.ppn_persen !== undefined ? row.ppn_persen : 11,
+    ppn_nominal: row.ppn_nominal || row.ppn || 0,
+    pph_persen: row.pph_persen !== undefined ? row.pph_persen : 0,
+    pph_nominal: row.pph_nominal || row.pph || 0,
+    dokumen_lampiran: row.dokumen_lampiran || [],
+    riwayat_pembayaran: row.riwayat_pembayaran || [],
+  }
+
+  // Set Proyek Select
+  if (row.proyek_id) {
+    const proj = masterProyek.value.find((p) => p.id === row.proyek_id)
+    if (proj) {
+      formTagihan.value.proyek_obj = proj
+      optSpkFiltered.value = masterSpk.value.filter((s) => s.projectId === proj.id)
+    }
+  }
+
+  // Set SPK Select
+  if (row.spk_id) {
+    const spk = masterSpk.value.find((s) => s.id === row.spk_id)
+    if (spk) formTagihan.value.spk_obj = spk
+  }
+
+  // Set Invoice Customer Select (Dari data AR yang tersedia / miliknya sendiri)
+  if (typeof row.nomor_invoice_customer === 'string') {
+    const inv = masterInvoiceCust.value.find((i) => i.nomor_invoice === row.nomor_invoice_customer)
+    if (inv) formTagihan.value.nomor_invoice_customer = inv
+  }
+
+  showTagihanDialog.value = true
+}
+
+const simpanTagihan = async () => {
+  if (!formTagihan.value.proyek_nama) {
+    return $q.notify({ type: 'warning', message: 'Data proyek wajib diisi' })
+  }
+
+  savingTagihan.value = true
+  try {
+    const payload = {
+      ...formTagihan.value,
+      updatedAt: serverTimestamp(),
+    }
+
+    // CLEANUP PAYLOAD SEBELUM DISIMPAN
+    delete payload.id
+    delete payload.proyek_obj
+    delete payload.spk_obj
+
+    if (payload.dokumen_lampiran) {
+      payload.dokumen_lampiran.forEach((d) => delete d.fileRaw)
+    }
+
+    if (payload.nomor_invoice_customer && payload.nomor_invoice_customer.nomor_invoice) {
+      payload.nomor_invoice_customer = payload.nomor_invoice_customer.nomor_invoice
+    }
+
+    if (payload.status === 'Lunas') {
+      payload.total_dibayar = payload.net_amount
+    }
+
+    if (isEditTagihanMode.value) {
+      if (!formTagihan.value.id) {
+        $q.notify({ type: 'negative', message: 'Gagal memperbarui: ID tidak ditemukan.' })
+        return
+      }
+      await updateDoc(doc(db, 'monitoring_tagihan_spk', formTagihan.value.id), payload)
+      $q.notify({ type: 'positive', message: 'Tagihan berhasil diperbarui' })
+    } else {
+      payload.createdAt = serverTimestamp()
+      await addDoc(collection(db, 'monitoring_tagihan_spk'), payload)
+      $q.notify({ type: 'positive', message: 'Tagihan berhasil ditambahkan' })
+    }
+    showTagihanDialog.value = false
+  } catch (e) {
+    console.error(e)
+    $q.notify({ type: 'negative', message: 'Terjadi kesalahan' })
+  } finally {
+    savingTagihan.value = false
+  }
+}
+
+const deleteTagihan = (row) => {
+  if (!row || !row.id) {
+    $q.notify({ type: 'negative', message: 'ID Dokumen tidak valid atau rusak.' })
+    return
+  }
+
+  $q.dialog({
+    title: 'Konfirmasi Hapus',
+    message: `Apakah Anda yakin ingin menghapus tagihan ${row.kode_tagihan} secara permanen?`,
+    cancel: true,
+    ok: { color: 'negative', unelevated: true, label: 'Ya, Hapus' },
+  }).onOk(async () => {
+    $q.loading.show({ message: 'Menghapus data tagihan...' })
+    try {
+      await deleteDoc(doc(db, 'monitoring_tagihan_spk', row.id))
+      $q.notify({ type: 'positive', message: 'Data tagihan berhasil dihapus!' })
+    } catch (e) {
+      console.error('Error saat menghapus: ', e)
+      $q.notify({
+        type: 'negative',
+        message: 'Gagal menghapus data. Periksa koneksi atau izin akses.',
+      })
+    } finally {
+      $q.loading.hide()
+    }
+  })
+}
+
+// ============================================================================
+// LOGIKA PEMBAYARAN (CICILAN / PELUNASAN)
+// ============================================================================
+const openPaymentDialog = () => {
+  paymentForm.value = {
+    tanggal: new Date().toISOString().substr(0, 10),
+    nominal: 0,
+    catatan: '',
+    bukti_file: null,
+  }
+  showPaymentDialog.value = true
+}
+
+const savePayment = async () => {
+  if (!paymentForm.value.nominal || paymentForm.value.nominal <= 0) {
+    return $q.notify({ type: 'warning', message: 'Nominal pembayaran harus lebih besar dari 0' })
+  }
+
+  savingPayment.value = true
+  let buktiUrl = ''
+
+  try {
+    // 1. Upload Bukti Pembayaran (Jika Ada)
+    if (paymentForm.value.bukti_file) {
+      $q.loading.show({ message: 'Mengunggah bukti pembayaran...' })
+      const file = paymentForm.value.bukti_file
+      const fRef = sRef(storage, `monitoring_tagihan_pembayaran/${Date.now()}_${file.name}`)
+      await uploadBytes(fRef, file)
+      buktiUrl = await getDownloadURL(fRef)
+      $q.loading.hide()
+    }
+
+    // 2. Kalkulasi Status & Total
+    const newNominal = Number(paymentForm.value.nominal) || 0
+    const currentTotal = Number(selectedTagihan.value.total_dibayar) || 0
+    const netAmount = Number(selectedTagihan.value.net_amount) || 0
+
+    const newTotal = currentTotal + newNominal
+    let newStatus = 'Menunggu Pembayaran'
+    if (newTotal >= netAmount) {
+      newStatus = 'Lunas'
+    } else if (newTotal > 0) {
+      newStatus = 'Dibayar Sebagian'
+    }
+
+    const paymentRecord = {
+      id: Date.now().toString(),
+      tanggal: paymentForm.value.tanggal,
+      nominal: newNominal,
+      catatan: paymentForm.value.catatan,
+      bukti_url: buktiUrl,
+      createdAt: new Date().toISOString(),
+    }
+
+    // 3. Simpan ke Firestore
+    await updateDoc(doc(db, 'monitoring_tagihan_spk', selectedTagihan.value.id), {
+      total_dibayar: newTotal,
+      status: newStatus,
+      riwayat_pembayaran: arrayUnion(paymentRecord),
+      updatedAt: serverTimestamp(),
+    })
+
+    // 4. Update local state untuk reaktif UI (tanpa refresh)
+    if (!selectedTagihan.value.riwayat_pembayaran) {
+      selectedTagihan.value.riwayat_pembayaran = []
+    }
+    selectedTagihan.value.total_dibayar = newTotal
+    selectedTagihan.value.status = newStatus
+    selectedTagihan.value.riwayat_pembayaran.push(paymentRecord)
+
+    $q.notify({ type: 'positive', message: 'Pembayaran berhasil dicatat!' })
+    showPaymentDialog.value = false
+  } catch (err) {
+    console.error(err)
+    $q.notify({ type: 'negative', message: 'Gagal mencatat pembayaran.' })
+    $q.loading.hide()
+  } finally {
+    savingPayment.value = false
+  }
+}
+
+// ============================================================================
+// UTILITIES
+// ============================================================================
 const formatDateIndo = (d) => {
   if (!d || d === '-') return '-'
   const date = new Date(d)
@@ -758,37 +2008,23 @@ const formatCompact = (num) => {
 
 const getStatusColor = (status) => {
   switch (status) {
-    case 'Aktif':
+    case 'Menunggu Pembayaran':
+      return { bg: 'orange-1', text: 'orange-10' }
+    case 'Dibayar Sebagian':
       return { bg: 'blue-1', text: 'blue-10' }
     case 'Lunas':
       return { bg: 'green-2', text: 'green-10' }
-    case 'Jatuh Tempo':
-      return { bg: 'red-2', text: 'red-10' }
     default:
       return { bg: 'grey-2', text: 'grey-8' }
   }
 }
 
 const exportToPDF = () => {
-  const element = document.getElementById('invoice-pdf-target')
-  const fileName = `Valuasi_Proyek_${selectedProject.value.nama_proyek.replace(/\s+/g, '_')}.pdf`
-
-  const opt = {
-    margin: 10,
-    filename: fileName,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2.5, useCORS: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-  }
-
-  $q.loading.show({ message: 'Generating Professional PDF...' })
-  html2pdf()
-    .set(opt)
-    .from(element)
-    .save()
-    .then(() => {
-      $q.loading.hide()
-    })
+  $q.notify({
+    type: 'info',
+    message: 'Gunakan fitur cetak browser (Ctrl+P) untuk menyimpan tampilan dashboard.',
+  })
+  window.print()
 }
 
 onMounted(() => {
@@ -798,6 +2034,8 @@ onMounted(() => {
 onUnmounted(() => {
   if (unsubProyek) unsubProyek()
   if (unsubSpk) unsubSpk()
+  if (unsubTagihan) unsubTagihan()
+  if (unsubInvoiceCust) unsubInvoiceCust()
 })
 </script>
 
@@ -818,6 +2056,12 @@ onUnmounted(() => {
 }
 .border-subtle {
   border: 1px solid rgba(0, 0, 0, 0.05);
+}
+.border-dashed {
+  border: 2px dashed #1a237e;
+}
+.dashed-btn {
+  border: 2px dashed #1a237e;
 }
 .border-indigo-thin {
   border: 1px solid rgba(26, 35, 126, 0.1);
@@ -847,7 +2091,7 @@ onUnmounted(() => {
 }
 
 .animate-fade {
-  animation: fadeIn 0.8s ease-out;
+  animation: fadeIn 0.4s ease-out;
 }
 .animate-fade-up {
   animation: fadeUp 0.6s ease-out both;
@@ -855,7 +2099,7 @@ onUnmounted(() => {
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(5px);
   }
   to {
     opacity: 1;
@@ -885,43 +2129,6 @@ onUnmounted(() => {
 .tracking-widest {
   letter-spacing: 0.15em;
 }
-.opacity-80 {
-  opacity: 0.8;
-}
-.opacity-70 {
-  opacity: 0.7;
-}
-.h-full {
-  height: 100%;
-}
-
-/* PDF Target Styling (Perfectionist Paper) */
-.pdf-container {
-  background: white;
-  width: 100%;
-  max-width: 210mm;
-  min-height: 200mm;
-  padding: 40px;
-  margin: 0 auto;
-  color: black;
-  box-sizing: border-box;
-}
-
-.info-table td {
-  padding: 4px 0;
-  font-size: 13.5px;
-}
-
-.pdf-table {
-  border-collapse: collapse;
-  border: 1px solid #ddd;
-}
-.pdf-table th,
-.pdf-table td {
-  padding: 12px 15px;
-  border: 1px solid #ddd;
-  font-size: 13.5px;
-}
 
 @media print {
   body {
@@ -929,12 +2136,6 @@ onUnmounted(() => {
   }
   .no-print {
     display: none !important;
-  }
-  .pdf-container {
-    box-shadow: none !important;
-    margin: 0 !important;
-    width: 210mm !important;
-    padding: 15mm !important;
   }
 }
 </style>
