@@ -63,6 +63,10 @@ const routes = [
         path: 'master/proyek-kategori',
         component: () => import('pages/konstruksi/Master/DataProyek/KategoriProyekPage.vue'),
       },
+      {
+        path: 'master/proyek-monitoring',
+        component: () => import('pages/konstruksi/Master/DataProyek/MonitoringProyekPage.vue'),
+      },
 
       // --- GRUP NAVIGASI GUDANG & LOGISTIK ---
       {
@@ -104,6 +108,43 @@ const routes = [
         path: 'pembelian/pesanan',
         component: () =>
           import('pages/konstruksi/Pembelian/PesananPembelian/PesananPembelianPage.vue'),
+      },
+      // --- TAMBAHAN ROUTE FINANCE ---
+      {
+        path: 'finance/invoice',
+        component: () => import('pages/konstruksi/Finance/InvoiceCustomerPage.vue'),
+      },
+      {
+        path: 'finance/approval-invoice',
+        component: () => import('pages/konstruksi/Finance/ApprovalInvoicePage.vue'),
+      },
+      {
+        path: 'finance/tagihan',
+        component: () => import('pages/konstruksi/Finance/MonitoringTagihanPage.vue'),
+      },
+      {
+        path: 'finance/tagihan-supplier',
+        component: () => import('pages/konstruksi/Finance/TagihanSupplierPage.vue'),
+      },
+      {
+        path: 'finance/pengeluaran',
+        component: () => import('pages/konstruksi/Finance/MonitoringPengeluaranPage.vue'),
+      },
+      {
+        path: 'finance/pembayaran',
+        component: () => import('pages/konstruksi/Finance/PengajuanPembayaranPage.vue'),
+      },
+      {
+        path: 'finance/approval-pembayaran',
+        component: () => import('pages/konstruksi/Finance/ApprovalPembayaranPage.vue'),
+      },
+      {
+        path: 'finance/realisasi-pembayaran',
+        component: () => import('pages/konstruksi/Finance/RealisasiPembayaranPage.vue'),
+      },
+      {
+        path: 'finance/balansheet',
+        component: () => import('pages/konstruksi/Finance/MonitoringBalansheetPage.vue'),
       },
     ],
   },
