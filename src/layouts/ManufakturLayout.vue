@@ -420,7 +420,6 @@
                 'produksi/qc-produksi',
                 'produksi/packing-produksi',
                 'produksi/ready-delivery',
-                'produksi/proses-produksi/incoming',
               ])
             "
             icon="precision_manufacturing"
@@ -498,11 +497,23 @@
               /></q-item-section>
               <q-item-section class="submenu-text">Ready Delivery</q-item-section>
             </q-item>
+          </q-expansion-item>
+
+          <q-separator class="sidebar-separator" />
+          <q-item-label header class="section-title">LOGISTIK & FINANCE</q-item-label>
+
+          <q-expansion-item
+            v-if="hasSectionAccess(['warehouse/incoming-material', 'warehouse/outgoing-check'])"
+            icon="warehouse"
+            label="Warehouse"
+            header-class="nav-group"
+            expand-icon-class="nav-expand-icon"
+          >
             <q-item
-              v-if="checkPermission('produksi/proses-produksi/incoming')"
+              v-if="checkPermission('warehouse/incoming-material')"
               clickable
               v-ripple
-              to="/manufaktur/produksi/proses-produksi/incoming"
+              to="/manufaktur/warehouse/incoming-material"
               active-class="active-menu"
               class="submenu-item"
               dense
@@ -512,19 +523,8 @@
               /></q-item-section>
               <q-item-section class="submenu-text">Incoming Material</q-item-section>
             </q-item>
-          </q-expansion-item>
-
-          <q-separator class="sidebar-separator" />
-          <q-item-label header class="section-title">LOGISTIK & FINANCE</q-item-label>
-
-          <q-expansion-item
-            v-if="checkPermission('warehouse/outgoing-check')"
-            icon="warehouse"
-            label="Warehouse"
-            header-class="nav-group"
-            expand-icon-class="nav-expand-icon"
-          >
             <q-item
+              v-if="checkPermission('warehouse/outgoing-check')"
               clickable
               v-ripple
               to="/manufaktur/warehouse/outgoing-check"

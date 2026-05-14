@@ -9,7 +9,8 @@
           </span>
         </div>
         <div class="text-subtitle1 text-grey-7 q-mt-sm">
-          Monitoring barang datang, cek surat jalan, validasi quantity actual, dan pengecekan awal incoming.
+          Monitoring barang datang, cek surat jalan, validasi quantity actual, dan pengecekan awal
+          incoming.
         </div>
       </div>
 
@@ -71,21 +72,35 @@
       <div id="incoming-monitoring" class="section-title-row q-mb-sm">
         <div>
           <div class="text-overline text-green-10 text-weight-black">Summary Incoming</div>
-          <div class="text-caption text-grey-7">Ringkasan dokumen, barang datang, status QC, dan quantity actual.</div>
+          <div class="text-caption text-grey-7">
+            Ringkasan dokumen, barang datang, status QC, dan quantity actual.
+          </div>
         </div>
       </div>
 
       <incoming-summary :rows="incomingRows" :loading="loading" />
 
-      <q-card flat bordered class="workflow-card-main q-mb-lg shadow-1 rounded-20 bg-white no-print">
+      <q-card
+        flat
+        bordered
+        class="workflow-card-main q-mb-lg shadow-1 rounded-20 bg-white no-print"
+      >
         <q-card-section class="bg-green-10 text-white q-py-sm">
-          <div class="text-caption text-weight-bold uppercase tracking-widest">Workflow Status Produksi</div>
+          <div class="text-caption text-weight-bold uppercase tracking-widest">
+            Workflow Status Produksi
+          </div>
         </q-card-section>
         <q-card-section class="q-pa-md">
           <div class="workflow-strip row q-col-gutter-sm">
             <div v-for="step in workflowSteps" :key="step.status" class="col-12 col-sm-6 col-lg">
               <div class="workflow-step">
-                <q-avatar size="34px" color="green-1" text-color="green-10" :icon="step.icon" class="q-mr-sm" />
+                <q-avatar
+                  size="34px"
+                  color="green-1"
+                  text-color="green-10"
+                  :icon="step.icon"
+                  class="q-mr-sm"
+                />
                 <div class="col min-width-0">
                   <div class="workflow-label">{{ step.label }}</div>
                   <div class="workflow-caption">{{ step.caption }}</div>
@@ -100,7 +115,9 @@
       <div class="section-title-row q-mb-sm">
         <div>
           <div class="text-overline text-green-10 text-weight-black">Monitoring Incoming</div>
-          <div class="text-caption text-grey-7">Search, filter, validasi awal, dan riwayat incoming material.</div>
+          <div class="text-caption text-grey-7">
+            Search, filter, validasi awal, dan riwayat incoming material.
+          </div>
         </div>
       </div>
 
@@ -127,13 +144,20 @@
       @save="saveIncoming"
     />
 
-    <q-dialog v-model="showDetailDialog" maximized transition-show="slide-up" transition-hide="slide-down">
+    <q-dialog
+      v-model="showDetailDialog"
+      maximized
+      transition-show="slide-up"
+      transition-hide="slide-down"
+    >
       <q-card class="detail-card column bg-grey-2">
         <q-toolbar class="detail-header shrink">
           <div class="row items-center no-wrap">
             <q-icon name="inventory_2" size="24px" class="q-mr-sm" />
             <div class="col">
-              <div class="text-subtitle1 text-weight-bolder uppercase tracking-widest">Riwayat Incoming</div>
+              <div class="text-subtitle1 text-weight-bolder uppercase tracking-widest">
+                Riwayat Incoming
+              </div>
               <div class="text-caption">{{ selectedRow?.nomor_surat_jalan || '-' }}</div>
             </div>
             <q-btn flat round dense icon="close" v-close-popup />
@@ -143,246 +167,281 @@
         <q-card-section v-if="selectedRow" class="col scroll q-pa-md q-pa-md-xl">
           <div class="row justify-center">
             <div class="col-12 detail-paper-shell">
-          <div class="row q-col-gutter-md">
-            <div class="col-12">
-              <div class="incoming-detail-summary q-mb-lg">
-                <div class="row justify-end q-gutter-sm q-mb-sm no-print detail-pdf-actions">
-                  <q-btn
-                    unelevated
-                    rounded
-                    color="white"
-                    text-color="green-10"
-                    icon="print"
-                    label="Cetak PDF"
-                    no-caps
-                    class="shadow-1 q-px-md"
-                    @click="printDetailPdf"
-                  />
-                  <q-btn
-                    unelevated
-                    rounded
-                    color="green-10"
-                    icon="download"
-                    label="Download PDF"
-                    no-caps
-                    class="shadow-1 q-px-md"
-                    @click="downloadDetailPdf"
-                  />
+              <div class="row q-col-gutter-md">
+                <div class="col-12">
+                  <div class="incoming-detail-summary q-mb-lg">
+                    <div class="row justify-end q-gutter-sm q-mb-sm no-print detail-pdf-actions">
+                      <q-btn
+                        unelevated
+                        rounded
+                        color="white"
+                        text-color="green-10"
+                        icon="print"
+                        label="Cetak PDF"
+                        no-caps
+                        class="shadow-1 q-px-md"
+                        @click="printDetailPdf"
+                      />
+                      <q-btn
+                        unelevated
+                        rounded
+                        color="green-10"
+                        icon="download"
+                        label="Download PDF"
+                        no-caps
+                        class="shadow-1 q-px-md"
+                        @click="downloadDetailPdf"
+                      />
+                    </div>
+
+                    <q-card
+                      ref="detailPdfRef"
+                      flat
+                      bordered
+                      class="detail-summary-card rounded-20 bg-white"
+                    >
+                      <q-card-section class="detail-header-compact">
+                        <div class="document-company-row">
+                          <div class="document-brand">
+                            <div class="company-logo-frame">
+                              <img
+                                v-if="detailCompanyLogoSrc"
+                                :src="detailCompanyLogoSrc"
+                                :alt="detailCompanyName"
+                                class="company-logo-img"
+                              />
+                              <div v-else class="company-logo-fallback">LOGO</div>
+                            </div>
+                            <div class="company-identity">
+                              <div class="company-name">{{ detailCompanyName }}</div>
+                              <div class="company-subtitle">Dokumen Penerimaan Material</div>
+                            </div>
+                          </div>
+                          <div class="detail-status-wrap">
+                            <incoming-status-badge :status="getStatus(selectedRow)" dense />
+                            <q-badge
+                              v-if="detailHasMaterialShortage"
+                              color="orange-8"
+                              class="shortage-warning-badge q-ml-sm"
+                            >
+                              Menunggu Kekurangan Material
+                            </q-badge>
+                          </div>
+                        </div>
+
+                        <div class="document-title-block">
+                          <div class="document-title">SURAT PENERIMAAN MATERIAL</div>
+                          <div class="document-meta-grid">
+                            <div class="document-meta-cell">
+                              <div class="document-meta-label">Nomor Surat Jalan</div>
+                              <div class="document-number">
+                                {{ selectedRow.nomor_surat_jalan || '-' }}
+                              </div>
+                            </div>
+                            <div class="document-meta-cell document-meta-cell--right">
+                              <div class="document-meta-label">Tanggal Masuk</div>
+                              <div class="document-date">{{ detailIncomingDate }}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </q-card-section>
+
+                      <div class="clean-divider"></div>
+
+                      <q-card-section class="detail-section">
+                        <div class="document-info-grid">
+                          <div class="detail-info-cell">
+                            <div class="detail-info-label">Nomor Surat Jalan</div>
+                            <div class="detail-info-value">
+                              {{ selectedRow.nomor_surat_jalan || '-' }}
+                            </div>
+                          </div>
+                          <div class="detail-info-cell">
+                            <div class="detail-info-label">Customer</div>
+                            <div class="detail-info-value">{{ detailCustomerName }}</div>
+                          </div>
+                          <div class="detail-info-cell">
+                            <div class="detail-info-label">Checker QC</div>
+                            <div class="detail-info-value">{{ detailCheckerName }}</div>
+                          </div>
+                          <div class="detail-info-cell">
+                            <div class="detail-info-label">Tanggal Masuk</div>
+                            <div class="detail-info-value">{{ detailIncomingDate }}</div>
+                          </div>
+                          <div class="detail-info-cell">
+                            <div class="detail-info-label">Status Incoming</div>
+                            <div class="detail-info-value">
+                              {{ statusLabel(getStatus(selectedRow)) }}
+                            </div>
+                          </div>
+                          <div class="detail-info-cell">
+                            <div class="detail-info-label">Material Utama</div>
+                            <div class="detail-info-value">{{ detailMainMaterial }}</div>
+                          </div>
+                        </div>
+                      </q-card-section>
+
+                      <div class="clean-divider clean-divider--inset"></div>
+
+                      <q-card-section class="detail-section">
+                        <div class="section-heading">Daftar Material</div>
+                        <q-markup-table flat dense class="pdf-items-table">
+                          <thead>
+                            <tr>
+                              <th class="text-center">No</th>
+                              <th class="text-left">Nama Barang</th>
+                              <th class="text-left">Kategori</th>
+                              <th class="text-left">Satuan</th>
+                              <th class="text-right">Qty SJ</th>
+                              <th class="text-right">Qty Actual</th>
+                              <th class="text-right">Selisih</th>
+                              <th class="text-left">Catatan</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr
+                              v-for="(item, index) in detailItems"
+                              :key="`doc-${item.nama_barang}-${index}`"
+                            >
+                              <td class="text-center">{{ index + 1 }}</td>
+                              <td class="text-weight-bold">{{ item.nama_barang || '-' }}</td>
+                              <td>{{ item.kategori_material || '-' }}</td>
+                              <td>{{ item.satuan || 'PCS' }}</td>
+                              <td class="text-right">{{ formatNumber(item.qty_surat_jalan) }}</td>
+                              <td class="text-right">{{ formatNumber(item.qty_actual) }}</td>
+                              <td class="text-right" :class="detailSelisihClass(item.selisih_qty)">
+                                {{ formatNumber(item.selisih_qty) }}
+                              </td>
+                              <td>{{ item.catatan || '-' }}</td>
+                            </tr>
+                          </tbody>
+                        </q-markup-table>
+                      </q-card-section>
+
+                      <div class="clean-divider clean-divider--inset"></div>
+
+                      <q-card-section class="detail-section">
+                        <div class="section-heading">Approval Incoming</div>
+                        <div class="approval-strip">
+                          <div class="approval-column">
+                            <div class="approval-role">Dibuat Oleh</div>
+                            <div class="approval-signature-line"></div>
+                            <div class="approval-name">{{ detailCreatedBy }}</div>
+                            <div class="approval-position">Warehouse</div>
+                            <div class="approval-timestamp">{{ detailCreatedAt }}</div>
+                          </div>
+                          <div class="approval-column">
+                            <div class="approval-role">Checker QC</div>
+                            <div class="approval-signature-line">
+                              <img
+                                v-if="detailCheckerSignatureSrc"
+                                :src="detailCheckerSignatureSrc"
+                                alt="Tanda tangan checker"
+                                class="incoming-detail-checker-signature-img"
+                              />
+                            </div>
+                            <div class="approval-name">{{ detailCheckerName }}</div>
+                            <div class="approval-position">Quality Control</div>
+                            <div class="approval-timestamp">{{ detailValidationAt }}</div>
+                          </div>
+                          <div class="approval-column">
+                            <div class="approval-role">Disetujui Oleh</div>
+                            <div class="approval-signature-line"></div>
+                            <div class="approval-name">{{ detailApprovedBy }}</div>
+                            <div class="approval-position">Supervisor / Manager</div>
+                            <div class="approval-timestamp">{{ detailApprovedAt }}</div>
+                          </div>
+                        </div>
+                      </q-card-section>
+                    </q-card>
+                  </div>
                 </div>
 
-                <q-card ref="detailPdfRef" flat bordered class="detail-summary-card rounded-20 bg-white">
-                  <q-card-section class="detail-header-compact">
-                    <div class="document-company-row">
-                      <div class="document-brand">
-                        <div class="company-logo-frame">
-                          <img
-                            v-if="detailCompanyLogoSrc"
-                            :src="detailCompanyLogoSrc"
-                            :alt="detailCompanyName"
-                            class="company-logo-img"
-                          />
-                          <div v-else class="company-logo-fallback">LOGO</div>
-                        </div>
-                        <div class="company-identity">
-                          <div class="company-name">{{ detailCompanyName }}</div>
-                          <div class="company-subtitle">Dokumen Penerimaan Material</div>
-                        </div>
-                      </div>
-                      <div class="detail-status-wrap">
-                        <incoming-status-badge :status="getStatus(selectedRow)" dense />
-                        <q-badge v-if="detailHasMaterialShortage" color="orange-8" class="shortage-warning-badge q-ml-sm">
-                          Menunggu Kekurangan Material
-                        </q-badge>
-                      </div>
-                    </div>
+                <div class="col-12">
+                  <q-card flat bordered class="detail-section-card rounded-20 bg-white">
+                    <q-card-section class="detail-section-head">
+                      <q-icon name="table_rows" size="16px" class="q-mr-sm" />
+                      Detail Item Material
+                    </q-card-section>
+                    <q-separator />
+                    <q-card-section class="q-pa-none">
+                      <q-markup-table flat dense class="detail-items-table">
+                        <thead>
+                          <tr>
+                            <th class="text-left">Nama Barang</th>
+                            <th class="text-left">Kategori</th>
+                            <th class="text-left">Satuan</th>
+                            <th class="text-right">Qty SJ</th>
+                            <th class="text-right">Qty Actual</th>
+                            <th class="text-right">Selisih</th>
+                            <th class="text-left">Kondisi Awal</th>
+                            <th class="text-left">Status Incoming</th>
+                            <th class="text-left">Catatan</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr
+                            v-for="(item, index) in detailItems"
+                            :key="`${item.nama_barang}-${index}`"
+                          >
+                            <td class="text-weight-bold text-green-10">
+                              {{ item.nama_barang || '-' }}
+                            </td>
+                            <td>{{ item.kategori_material || '-' }}</td>
+                            <td>{{ item.satuan || 'PCS' }}</td>
+                            <td class="text-right">{{ formatNumber(item.qty_surat_jalan) }}</td>
+                            <td class="text-right">{{ formatNumber(item.qty_actual) }}</td>
+                            <td class="text-right" :class="selisihQtyClass(item.selisih_qty)">
+                              {{ formatNumber(item.selisih_qty) }}
+                            </td>
+                            <td>{{ item.kondisi_barang || '-' }}</td>
+                            <td>{{ item.status_qc || '-' }}</td>
+                            <td>{{ item.catatan || '-' }}</td>
+                          </tr>
+                        </tbody>
+                      </q-markup-table>
+                    </q-card-section>
+                  </q-card>
+                </div>
 
-                    <div class="document-title-block">
-                      <div class="document-title">SURAT PENERIMAAN MATERIAL</div>
-                      <div class="document-meta-grid">
-                        <div class="document-meta-cell">
-                          <div class="document-meta-label">Nomor Surat Jalan</div>
-                          <div class="document-number">{{ selectedRow.nomor_surat_jalan || '-' }}</div>
-                        </div>
-                        <div class="document-meta-cell document-meta-cell--right">
-                          <div class="document-meta-label">Tanggal Masuk</div>
-                          <div class="document-date">{{ detailIncomingDate }}</div>
-                        </div>
+                <div class="col-12">
+                  <q-card flat bordered class="workflow-card rounded-20 shadow-1">
+                    <q-card-section>
+                      <div class="text-weight-bolder text-green-10 q-mb-sm">
+                        Workflow Incoming & QC
                       </div>
-                    </div>
-                  </q-card-section>
-
-                  <div class="clean-divider"></div>
-
-                  <q-card-section class="detail-section">
-                    <div class="document-info-grid">
-                      <div class="detail-info-cell">
-                        <div class="detail-info-label">Nomor Surat Jalan</div>
-                        <div class="detail-info-value">{{ selectedRow.nomor_surat_jalan || '-' }}</div>
-                      </div>
-                      <div class="detail-info-cell">
-                        <div class="detail-info-label">Customer</div>
-                        <div class="detail-info-value">{{ detailCustomerName }}</div>
-                      </div>
-                      <div class="detail-info-cell">
-                        <div class="detail-info-label">Checker QC</div>
-                        <div class="detail-info-value">{{ detailCheckerName }}</div>
-                      </div>
-                      <div class="detail-info-cell">
-                        <div class="detail-info-label">Tanggal Masuk</div>
-                        <div class="detail-info-value">{{ detailIncomingDate }}</div>
-                      </div>
-                      <div class="detail-info-cell">
-                        <div class="detail-info-label">Status Incoming</div>
-                        <div class="detail-info-value">{{ statusLabel(getStatus(selectedRow)) }}</div>
-                      </div>
-                      <div class="detail-info-cell">
-                        <div class="detail-info-label">Material Utama</div>
-                        <div class="detail-info-value">{{ detailMainMaterial }}</div>
-                      </div>
-                    </div>
-                  </q-card-section>
-
-                  <div class="clean-divider clean-divider--inset"></div>
-
-                  <q-card-section class="detail-section">
-                    <div class="section-heading">Daftar Material</div>
-                    <q-markup-table flat dense class="pdf-items-table">
-                      <thead>
-                        <tr>
-                          <th class="text-center">No</th>
-                          <th class="text-left">Nama Barang</th>
-                          <th class="text-left">Kategori</th>
-                          <th class="text-left">Satuan</th>
-                          <th class="text-right">Qty SJ</th>
-                          <th class="text-right">Qty Actual</th>
-                          <th class="text-right">Selisih</th>
-                          <th class="text-left">Catatan</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr v-for="(item, index) in detailItems" :key="`doc-${item.nama_barang}-${index}`">
-                          <td class="text-center">{{ index + 1 }}</td>
-                          <td class="text-weight-bold">{{ item.nama_barang || '-' }}</td>
-                          <td>{{ item.kategori_material || '-' }}</td>
-                          <td>{{ item.satuan || 'PCS' }}</td>
-                          <td class="text-right">{{ formatNumber(item.qty_surat_jalan) }}</td>
-                          <td class="text-right">{{ formatNumber(item.qty_actual) }}</td>
-                          <td class="text-right" :class="detailSelisihClass(item.selisih_qty)">
-                            {{ formatNumber(item.selisih_qty) }}
-                          </td>
-                          <td>{{ item.catatan || '-' }}</td>
-                        </tr>
-                      </tbody>
-                    </q-markup-table>
-                  </q-card-section>
-
-                  <div class="clean-divider clean-divider--inset"></div>
-
-                  <q-card-section class="detail-section">
-                    <div class="section-heading">Approval Incoming</div>
-                    <div class="approval-strip">
-                      <div class="approval-column">
-                        <div class="approval-role">Dibuat Oleh</div>
-                        <div class="approval-signature-line"></div>
-                        <div class="approval-name">{{ detailCreatedBy }}</div>
-                        <div class="approval-position">Warehouse</div>
-                        <div class="approval-timestamp">{{ detailCreatedAt }}</div>
-                      </div>
-                      <div class="approval-column">
-                        <div class="approval-role">Checker QC</div>
-                        <div class="approval-signature-line">
-                          <img
-                            v-if="detailCheckerSignatureSrc"
-                            :src="detailCheckerSignatureSrc"
-                            alt="Tanda tangan checker"
-                            class="incoming-detail-checker-signature-img"
-                          />
-                        </div>
-                        <div class="approval-name">{{ detailCheckerName }}</div>
-                        <div class="approval-position">Quality Control</div>
-                        <div class="approval-timestamp">{{ detailValidationAt }}</div>
-                      </div>
-                      <div class="approval-column">
-                        <div class="approval-role">Disetujui Oleh</div>
-                        <div class="approval-signature-line"></div>
-                        <div class="approval-name">{{ detailApprovedBy }}</div>
-                        <div class="approval-position">Supervisor / Manager</div>
-                        <div class="approval-timestamp">{{ detailApprovedAt }}</div>
-                      </div>
-                    </div>
-                  </q-card-section>
-                </q-card>
+                      <q-timeline color="green-10" layout="dense">
+                        <q-timeline-entry
+                          v-for="entry in workflowHistory"
+                          :key="`${entry.status}-${entry.at}`"
+                          :title="statusLabel(entry.status)"
+                          :subtitle="`${formatDateTime(entry.at)} oleh ${entry.by || '-'}`"
+                          :icon="entry.icon"
+                        >
+                          <div class="text-caption text-grey-7">{{ entry.note || '-' }}</div>
+                        </q-timeline-entry>
+                      </q-timeline>
+                    </q-card-section>
+                  </q-card>
+                </div>
               </div>
-            </div>
-
-            <div class="col-12">
-              <q-card flat bordered class="detail-section-card rounded-20 bg-white">
-                <q-card-section class="detail-section-head">
-                  <q-icon name="table_rows" size="16px" class="q-mr-sm" />
-                  Detail Item Material
-                </q-card-section>
-                <q-separator />
-                <q-card-section class="q-pa-none">
-                  <q-markup-table flat dense class="detail-items-table">
-                    <thead>
-                      <tr>
-                        <th class="text-left">Nama Barang</th>
-                        <th class="text-left">Kategori</th>
-                        <th class="text-left">Satuan</th>
-                        <th class="text-right">Qty SJ</th>
-                        <th class="text-right">Qty Actual</th>
-                        <th class="text-right">Selisih</th>
-                        <th class="text-left">Kondisi Awal</th>
-                        <th class="text-left">Status Incoming</th>
-                        <th class="text-left">Catatan</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="(item, index) in detailItems" :key="`${item.nama_barang}-${index}`">
-                        <td class="text-weight-bold text-green-10">{{ item.nama_barang || '-' }}</td>
-                        <td>{{ item.kategori_material || '-' }}</td>
-                        <td>{{ item.satuan || 'PCS' }}</td>
-                        <td class="text-right">{{ formatNumber(item.qty_surat_jalan) }}</td>
-                        <td class="text-right">{{ formatNumber(item.qty_actual) }}</td>
-                        <td class="text-right" :class="selisihQtyClass(item.selisih_qty)">
-                          {{ formatNumber(item.selisih_qty) }}
-                        </td>
-                        <td>{{ item.kondisi_barang || '-' }}</td>
-                        <td>{{ item.status_qc || '-' }}</td>
-                        <td>{{ item.catatan || '-' }}</td>
-                      </tr>
-                    </tbody>
-                  </q-markup-table>
-                </q-card-section>
-              </q-card>
-            </div>
-
-            <div class="col-12">
-              <q-card flat bordered class="workflow-card rounded-20 shadow-1">
-                <q-card-section>
-                  <div class="text-weight-bolder text-green-10 q-mb-sm">Workflow Incoming & QC</div>
-                  <q-timeline color="green-10" layout="dense">
-                    <q-timeline-entry
-                      v-for="entry in workflowHistory"
-                      :key="`${entry.status}-${entry.at}`"
-                      :title="statusLabel(entry.status)"
-                      :subtitle="`${formatDateTime(entry.at)} oleh ${entry.by || '-'}`"
-                      :icon="entry.icon"
-                    >
-                      <div class="text-caption text-grey-7">{{ entry.note || '-' }}</div>
-                    </q-timeline-entry>
-                  </q-timeline>
-                </q-card-section>
-              </q-card>
-            </div>
-          </div>
             </div>
           </div>
         </q-card-section>
 
-        <q-card-actions align="right" class="bg-white q-pa-md shadow-2 shrink detail-actions no-print">
+        <q-card-actions
+          align="right"
+          class="bg-white q-pa-md shadow-2 shrink detail-actions no-print"
+        >
           <q-btn flat color="grey-7" label="Tutup" no-caps v-close-popup />
-          <q-btn flat color="green-10" icon="edit_note" label="Edit" no-caps @click="openEditDialog(selectedRow)" />
+          <q-btn
+            flat
+            color="green-10"
+            icon="edit_note"
+            label="Edit"
+            no-caps
+            @click="openEditDialog(selectedRow)"
+          />
           <q-btn
             v-if="!hasMaterialShortage(selectedRow)"
             unelevated
@@ -393,16 +452,16 @@
             :disable="!canSendToQc(selectedRow)"
             @click="sendToQc(selectedRow)"
           />
-      <q-btn
-        v-if="!hasMaterialShortage(selectedRow)"
-        unelevated
-        color="green-10"
-        icon="send"
-        label="Distribusi Material"
-        no-caps
-        :disable="!canDistributeMaterial(selectedRow)"
-        @click="distribusiMaterial(selectedRow)"
-      />
+          <q-btn
+            v-if="!hasMaterialShortage(selectedRow)"
+            unelevated
+            color="green-10"
+            icon="send"
+            label="Distribusi Material"
+            no-caps
+            :disable="!canDistributeMaterial(selectedRow)"
+            @click="distribusiMaterial(selectedRow)"
+          />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -415,9 +474,19 @@ import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import html2pdf from 'html2pdf.js'
 import { auth, db } from 'src/boot/firebase'
-import { addDoc, collection, doc, deleteDoc, onSnapshot, orderBy, query, serverTimestamp, updateDoc } from 'firebase/firestore'
+import {
+  addDoc,
+  collection,
+  doc,
+  deleteDoc,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  updateDoc,
+} from 'firebase/firestore'
 import { useAuthStore } from 'src/stores/auth'
-import IncomingDialog from './IncomingDialog.vue'
+import IncomingDialog from '../warehouse/IncomingDialog.vue'
 import IncomingSummary from './IncomingSummary.vue'
 import IncomingTablePage from './IncomingTablePage.vue'
 import IncomingStatusBadge from './IncomingStatusBadge.vue'
@@ -533,7 +602,9 @@ const satuanMaterialOptions = computed(() =>
 
 const detailItems = computed(() => (selectedRow.value ? getIncomingItems(selectedRow.value) : []))
 const detailHasMaterialShortage = computed(() => hasMaterialShortage(selectedRow.value))
-const detailCustomerName = computed(() => selectedRow.value?.supplier || selectedRow.value?.asal || '-')
+const detailCustomerName = computed(
+  () => selectedRow.value?.supplier || selectedRow.value?.asal || '-',
+)
 const detailCompanyName = computed(
   () =>
     selectedRow.value?.company_name ||
@@ -543,40 +614,72 @@ const detailCompanyName = computed(
     'Customer',
 )
 const detailCompanyLogoSrc = computed(() => getCompanyLogoSrc(getCompanyLogo(selectedRow.value)))
-const detailCheckerSignatureSrc = computed(() => getCheckerSignatureSrc(getCheckerSignature(selectedRow.value)))
+const detailCheckerSignatureSrc = computed(() =>
+  getCheckerSignatureSrc(getCheckerSignature(selectedRow.value)),
+)
 const detailCheckerName = computed(
-  () => selectedRow.value?.checker_qc || selectedRow.value?.qc_checker || selectedRow.value?.checker || selectedRow.value?.checker_gudang || '-',
+  () =>
+    selectedRow.value?.checker_qc ||
+    selectedRow.value?.qc_checker ||
+    selectedRow.value?.checker ||
+    selectedRow.value?.checker_gudang ||
+    '-',
 )
 const detailMainMaterial = computed(() => {
   const items = detailItems.value
-  if (!items.length) return selectedRow.value?.nama_barang || selectedRow.value?.nama_material || '-'
+  if (!items.length)
+    return selectedRow.value?.nama_barang || selectedRow.value?.nama_material || '-'
   if (items.length > 1) return `${items[0]?.nama_barang || '-'} +${items.length - 1} item`
   return items[0]?.nama_barang || '-'
 })
 const detailIncomingDate = computed(() =>
-  formatDateOnly(selectedRow.value?.tanggal_masuk || selectedRow.value?.incoming_timestamp || selectedRow.value?.created_at),
+  formatDateOnly(
+    selectedRow.value?.tanggal_masuk ||
+      selectedRow.value?.incoming_timestamp ||
+      selectedRow.value?.created_at,
+  ),
 )
-const detailCreatedBy = computed(() => getPersonName(selectedRow.value?.created_by || selectedRow.value?.createdBy, selectedRow.value?.created_by_name || '-'))
+const detailCreatedBy = computed(() =>
+  getPersonName(
+    selectedRow.value?.created_by || selectedRow.value?.createdBy,
+    selectedRow.value?.created_by_name || '-',
+  ),
+)
 const detailApprovedBy = computed(() =>
   getPersonName(
     selectedRow.value?.approved_by || selectedRow.value?.approve_by || selectedRow.value?.approver,
     selectedRow.value?.approved_by_name || selectedRow.value?.approve_nama || '-',
   ),
 )
-const detailCreatedAt = computed(() => formatDateTime(selectedRow.value?.created_at || selectedRow.value?.incoming_timestamp))
+const detailCreatedAt = computed(() =>
+  formatDateTime(selectedRow.value?.created_at || selectedRow.value?.incoming_timestamp),
+)
 const detailValidationAt = computed(() =>
-  formatDateTime(selectedRow.value?.validated_at || selectedRow.value?.updated_at || selectedRow.value?.incoming_timestamp || selectedRow.value?.created_at),
+  formatDateTime(
+    selectedRow.value?.validated_at ||
+      selectedRow.value?.updated_at ||
+      selectedRow.value?.incoming_timestamp ||
+      selectedRow.value?.created_at,
+  ),
 )
 const detailApprovedAt = computed(() =>
-  formatDateTime(selectedRow.value?.approved_at || selectedRow.value?.approve_at || selectedRow.value?.approval_at),
+  formatDateTime(
+    selectedRow.value?.approved_at ||
+      selectedRow.value?.approve_at ||
+      selectedRow.value?.approval_at,
+  ),
 )
-const detailPdfFilename = computed(() => `Incoming-${String(selectedRow.value?.nomor_surat_jalan || 'material').replace(/[\\/]/g, '-')}.pdf`)
+const detailPdfFilename = computed(
+  () =>
+    `Incoming-${String(selectedRow.value?.nomor_surat_jalan || 'material').replace(/[\\/]/g, '-')}.pdf`,
+)
 
 const workflowHistory = computed(() => {
   const row = selectedRow.value
   if (!row) return []
   const history = Array.isArray(row.history) ? row.history : []
-  if (history.length) return history.map((entry) => ({ ...entry, icon: workflowIcon(entry.status) }))
+  if (history.length)
+    return history.map((entry) => ({ ...entry, icon: workflowIcon(entry.status) }))
 
   return [
     {
@@ -589,7 +692,8 @@ const workflowHistory = computed(() => {
   ]
 })
 
-const getStatus = (row) => row?.status_incoming || row?.status_validation || row?.status || STATUS_DATANG
+const getStatus = (row) =>
+  row?.status_incoming || row?.status_validation || row?.status || STATUS_DATANG
 const statusLabel = (status) => STATUS_LABEL[status] || String(status || '-').replace(/_/g, ' ')
 const workflowIcon = (status) => {
   const icons = {
@@ -641,14 +745,25 @@ const getIncomingItems = (row) => {
   ]
 }
 
-const getQtySj = (row) => getIncomingItems(row).reduce((sum, item) => sum + toSafeNumber(item.qty_surat_jalan), 0)
-const getQtyActual = (row) => getIncomingItems(row).reduce((sum, item) => sum + toSafeNumber(item.qty_actual), 0)
+const getQtySj = (row) =>
+  getIncomingItems(row).reduce((sum, item) => sum + toSafeNumber(item.qty_surat_jalan), 0)
+const getQtyActual = (row) =>
+  getIncomingItems(row).reduce((sum, item) => sum + toSafeNumber(item.qty_actual), 0)
 const hasMaterialShortage = (row) =>
-  getIncomingItems(row).some((item) => toSafeNumber(item.qty_surat_jalan) > toSafeNumber(item.qty_actual))
+  getIncomingItems(row).some(
+    (item) => toSafeNumber(item.qty_surat_jalan) > toSafeNumber(item.qty_actual),
+  )
 const isWorkflowBlockedByShortage = (status) =>
-  ['VALIDASI_SELESAI', STATUS_SEND_TO_QC, STATUS_QC_PROCESS, STATUS_QC_APPROVED, STATUS_DISTRIBUSI].includes(status)
+  [
+    'VALIDASI_SELESAI',
+    STATUS_SEND_TO_QC,
+    STATUS_QC_PROCESS,
+    STATUS_QC_APPROVED,
+    STATUS_DISTRIBUSI,
+  ].includes(status)
 const formatNumber = (value) => Number(value || 0).toLocaleString('id-ID')
-const selisihQtyClass = (value) => (toSafeNumber(value) < 0 ? 'text-orange-10 text-weight-bold' : '')
+const selisihQtyClass = (value) =>
+  toSafeNumber(value) < 0 ? 'text-orange-10 text-weight-bold' : ''
 const detailSelisihClass = (value) => {
   const selisih = toSafeNumber(value)
   if (selisih < 0) return 'incoming-detail-selisih-minus'
@@ -705,11 +820,13 @@ const normalizeIncomingRow = (id, data) => {
   const items = getIncomingItems(data)
   const qtySj = getQtySj({ ...data, items })
   const qtyActual = getQtyActual({ ...data, items })
-  const material = data.material || data.nama_barang || data.nama_material || data.tipe_material || ''
+  const material =
+    data.material || data.nama_barang || data.nama_material || data.tipe_material || ''
   const checker = data.checker_qc || data.qc_checker || data.checker || data.checker_gudang || ''
   const shortage = hasMaterialShortage({ ...data, items })
   const currentStatus = getStatus(data)
-  const status = shortage && isWorkflowBlockedByShortage(currentStatus) ? STATUS_DATANG : currentStatus
+  const status =
+    shortage && isWorkflowBlockedByShortage(currentStatus) ? STATUS_DATANG : currentStatus
 
   return {
     id,
@@ -731,7 +848,8 @@ const normalizeIncomingRow = (id, data) => {
     status: status,
     status_incoming: status,
     status_validation: status,
-    tanggal_masuk: data.tanggal_masuk || normalizeDate(data.created_at) || new Date().toISOString().slice(0, 10),
+    tanggal_masuk:
+      data.tanggal_masuk || normalizeDate(data.created_at) || new Date().toISOString().slice(0, 10),
   }
 }
 
@@ -742,7 +860,9 @@ const loadIncoming = () => {
   unsubIncoming = onSnapshot(
     query(collection(db, COLLECTION_NAME), orderBy('created_at', 'desc')),
     (snapshot) => {
-      incomingRows.value = snapshot.docs.map((docSnap) => normalizeIncomingRow(docSnap.id, docSnap.data()))
+      incomingRows.value = snapshot.docs.map((docSnap) =>
+        normalizeIncomingRow(docSnap.id, docSnap.data()),
+      )
       loading.value = false
     },
     (error) => {
@@ -777,35 +897,50 @@ const openDetail = (row) => {
 }
 
 const scrollToMonitoring = () => {
-  document.getElementById('incoming-monitoring')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  document
+    .getElementById('incoming-monitoring')
+    ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 const getIncomingDialog = () => document.querySelector('.incoming-dialog')
 const getFieldLabel = (field) => field?.querySelector('.q-field__label')?.textContent?.trim() || ''
-const getCompanyLogo = (row) => row?.company_logo || row?.company_logo_base64 || row?.logo_perusahaan || null
-const getCompanyLogoSrc = (logo = companyLogo.value) => (typeof logo === 'string' ? logo : logo?.base64 || logo?.url || '')
+const getCompanyLogo = (row) =>
+  row?.company_logo || row?.company_logo_base64 || row?.logo_perusahaan || null
+const getCompanyLogoSrc = (logo = companyLogo.value) =>
+  typeof logo === 'string' ? logo : logo?.base64 || logo?.url || ''
 const getCheckerSignature = (row) =>
   row?.checker_signature || row?.checker_signature_base64 || row?.tanda_tangan_checker || null
 const getCheckerSignatureSrc = (signature = checkerSignature.value) =>
   typeof signature === 'string' ? signature : signature?.base64 || signature?.url || ''
-const getMasterBarangName = (item = {}) => item.nama || item.nama_barang || item.nama_material || item.material || ''
+const getMasterBarangName = (item = {}) =>
+  item.nama || item.nama_barang || item.nama_material || item.material || ''
 const resolveMasterName = (rows, value) => {
   const raw = String(value || '').trim()
   if (!raw) return ''
-  const matched = rows.find((row) => row.id === raw || String(row.nama || '').toLowerCase() === raw.toLowerCase())
+  const matched = rows.find(
+    (row) => row.id === raw || String(row.nama || '').toLowerCase() === raw.toLowerCase(),
+  )
   return matched?.nama || raw
 }
 const getMasterBarangCategory = (item = {}) =>
-  resolveMasterName(masterKategoriRows.value, item.kategori || item.kategori_barang || item.kategori_material || item.category)
+  resolveMasterName(
+    masterKategoriRows.value,
+    item.kategori || item.kategori_barang || item.kategori_material || item.category,
+  )
 const getMasterBarangUnit = (item = {}) =>
-  resolveMasterName(masterSatuanRows.value, item.unit || item.satuan || item.satuan_barang || item.uom)
+  resolveMasterName(
+    masterSatuanRows.value,
+    item.unit || item.satuan || item.satuan_barang || item.uom,
+  )
 const getMasterBarangLabel = (item = {}) => {
   const code = item.kode || item.kode_barang || item.sku || ''
   const name = getMasterBarangName(item)
   return [code, name].filter(Boolean).join(' - ') || '-'
 }
 const findMasterBarang = (value) => {
-  const normalized = String(value || '').trim().toLowerCase()
+  const normalized = String(value || '')
+    .trim()
+    .toLowerCase()
   if (!normalized) return null
   return masterBarangRows.value.find((item) =>
     [getMasterBarangLabel(item), getMasterBarangName(item), item.kode, item.kode_barang, item.sku]
@@ -822,7 +957,10 @@ const loadMasterReferences = () => {
   unsubMasterBarang = onSnapshot(
     query(collection(db, 'manufactur_master_barang'), orderBy('nama', 'asc')),
     (snapshot) => {
-      masterBarangRows.value = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
+      masterBarangRows.value = snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...docSnap.data(),
+      }))
       nextTick(() => {
         const dialog = getIncomingDialog()
         if (dialog) injectMasterBarangControls(dialog)
@@ -837,7 +975,10 @@ const loadMasterReferences = () => {
   unsubMasterKategori = onSnapshot(
     query(collection(db, 'manufactur_master_kategori_barang'), orderBy('nama', 'asc')),
     (snapshot) => {
-      masterKategoriRows.value = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
+      masterKategoriRows.value = snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...docSnap.data(),
+      }))
     },
     (error) => {
       console.error(error)
@@ -847,7 +988,10 @@ const loadMasterReferences = () => {
   unsubMasterSatuan = onSnapshot(
     query(collection(db, 'manufactur_master_satuan'), orderBy('nama', 'asc')),
     (snapshot) => {
-      masterSatuanRows.value = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }))
+      masterSatuanRows.value = snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...docSnap.data(),
+      }))
     },
     (error) => {
       console.error(error)
@@ -877,7 +1021,8 @@ const relabelIncomingDialog = (dialog) => {
     if (text === 'Supplier') label.textContent = 'Customer'
   })
   Array.from(dialog.querySelectorAll('input')).forEach((input) => {
-    if (input.placeholder?.includes('Supplier')) input.placeholder = input.placeholder.replace(/Supplier/g, 'Customer')
+    if (input.placeholder?.includes('Supplier'))
+      input.placeholder = input.placeholder.replace(/Supplier/g, 'Customer')
   })
   dialog.querySelectorAll('.incoming-logo-label').forEach((label) => {
     label.textContent = 'Logo Customer'
@@ -1082,9 +1227,15 @@ const bindCheckerSignaturePad = () => {
   canvas.addEventListener('pointerup', stopCheckerSignatureDraw)
   canvas.addEventListener('pointerleave', stopCheckerSignatureDraw)
   canvas.addEventListener('pointercancel', stopCheckerSignatureDraw)
-  document.getElementById('incoming-checker-signature-clear')?.addEventListener('click', clearCheckerSignaturePad)
-  document.getElementById('incoming-checker-signature-save')?.addEventListener('click', saveCheckerSignaturePad)
-  document.getElementById('incoming-checker-signature-edit')?.addEventListener('click', editCheckerSignaturePad)
+  document
+    .getElementById('incoming-checker-signature-clear')
+    ?.addEventListener('click', clearCheckerSignaturePad)
+  document
+    .getElementById('incoming-checker-signature-save')
+    ?.addEventListener('click', saveCheckerSignaturePad)
+  document
+    .getElementById('incoming-checker-signature-edit')
+    ?.addEventListener('click', editCheckerSignaturePad)
   setCheckerSignaturePreview()
   syncCheckerSignaturePadState()
 }
@@ -1096,9 +1247,15 @@ const unbindCheckerSignaturePad = () => {
   canvas?.removeEventListener('pointerup', stopCheckerSignatureDraw)
   canvas?.removeEventListener('pointerleave', stopCheckerSignatureDraw)
   canvas?.removeEventListener('pointercancel', stopCheckerSignatureDraw)
-  document.getElementById('incoming-checker-signature-clear')?.removeEventListener('click', clearCheckerSignaturePad)
-  document.getElementById('incoming-checker-signature-save')?.removeEventListener('click', saveCheckerSignaturePad)
-  document.getElementById('incoming-checker-signature-edit')?.removeEventListener('click', editCheckerSignaturePad)
+  document
+    .getElementById('incoming-checker-signature-clear')
+    ?.removeEventListener('click', clearCheckerSignaturePad)
+  document
+    .getElementById('incoming-checker-signature-save')
+    ?.removeEventListener('click', saveCheckerSignaturePad)
+  document
+    .getElementById('incoming-checker-signature-edit')
+    ?.removeEventListener('click', editCheckerSignaturePad)
   if (canvas) canvas.dataset.bound = 'false'
   checkerSignatureCanvas = null
   checkerSignatureDrawing = false
@@ -1110,7 +1267,9 @@ const injectCompanyLogoUploader = (dialog) => {
     return
   }
 
-  const documentSection = dialog.querySelector('.form-section-card .q-card__section:last-child .row')
+  const documentSection = dialog.querySelector(
+    '.form-section-card .q-card__section:last-child .row',
+  )
   if (!documentSection) return
 
   const wrapper = document.createElement('div')
@@ -1133,7 +1292,9 @@ const injectCompanyLogoUploader = (dialog) => {
     </div>
   `
   documentSection.appendChild(wrapper)
-  wrapper.querySelector('#incoming-company-logo-input')?.addEventListener('change', handleCompanyLogoSelected)
+  wrapper
+    .querySelector('#incoming-company-logo-input')
+    ?.addEventListener('change', handleCompanyLogoSelected)
   setCompanyLogoPreview()
 }
 
@@ -1244,10 +1405,14 @@ const injectMasterBarangControls = (dialog) => {
     const searchInput = picker.querySelector('.incoming-master-barang-search')
     const dataList = picker.querySelector('datalist')
     const currentBarang = findMasterBarang(namaInput.value)
-    if (searchInput && !searchInput.value && currentBarang) searchInput.value = getMasterBarangLabel(currentBarang)
+    if (searchInput && !searchInput.value && currentBarang)
+      searchInput.value = getMasterBarangLabel(currentBarang)
     if (dataList) {
       const optionsHtml = masterBarangRows.value
-        .map((barang) => `<option value="${getMasterBarangLabel(barang).replace(/"/g, '&quot;')}"></option>`)
+        .map(
+          (barang) =>
+            `<option value="${getMasterBarangLabel(barang).replace(/"/g, '&quot;')}"></option>`,
+        )
         .join('')
       if (dataList.innerHTML !== optionsHtml) dataList.innerHTML = optionsHtml
     }
@@ -1255,15 +1420,25 @@ const injectMasterBarangControls = (dialog) => {
 }
 
 const updateIncomingDialogStatus = (dialog, invalid, shortage, totalSj, totalActual) => {
-  const statusField = Array.from(dialog.querySelectorAll('.q-field')).find((field) => getFieldLabel(field) === 'Status Validasi')
+  const statusField = Array.from(dialog.querySelectorAll('.q-field')).find(
+    (field) => getFieldLabel(field) === 'Status Validasi',
+  )
   const statusInput = statusField?.querySelector('input')
   if (!statusInput) return
-  const nextStatus = invalid ? STATUS_DATA_TIDAK_SESUAI : shortage ? STATUS_DATANG : totalSj === totalActual ? 'VALIDASI_SELESAI' : 'PARTIAL'
+  const nextStatus = invalid
+    ? STATUS_DATA_TIDAK_SESUAI
+    : shortage
+      ? STATUS_DATANG
+      : totalSj === totalActual
+        ? 'VALIDASI_SELESAI'
+        : 'PARTIAL'
   if (statusInput.value !== nextStatus) statusInput.value = nextStatus
 }
 
 const updateIncomingDialogShortageWarning = (dialog, shortage) => {
-  const statusField = Array.from(dialog.querySelectorAll('.q-field')).find((field) => getFieldLabel(field) === 'Status Validasi')
+  const statusField = Array.from(dialog.querySelectorAll('.q-field')).find(
+    (field) => getFieldLabel(field) === 'Status Validasi',
+  )
   const statusColumn = statusField?.closest('.col-12')
   if (!statusColumn) return
   let badge = statusColumn.querySelector('.incoming-shortage-warning-badge')
@@ -1284,9 +1459,12 @@ const updateIncomingDialogSaveButtons = (dialog, invalid) => {
     if (button.textContent?.trim() !== 'Simpan') return
     if (button.disabled !== invalid) button.disabled = invalid
     const ariaDisabled = invalid ? 'true' : 'false'
-    if (button.getAttribute('aria-disabled') !== ariaDisabled) button.setAttribute('aria-disabled', ariaDisabled)
-    if (button.classList.contains('disabled') !== invalid) button.classList.toggle('disabled', invalid)
-    if (button.classList.contains('q-btn--disable') !== invalid) button.classList.toggle('q-btn--disable', invalid)
+    if (button.getAttribute('aria-disabled') !== ariaDisabled)
+      button.setAttribute('aria-disabled', ariaDisabled)
+    if (button.classList.contains('disabled') !== invalid)
+      button.classList.toggle('disabled', invalid)
+    if (button.classList.contains('q-btn--disable') !== invalid)
+      button.classList.toggle('q-btn--disable', invalid)
   })
 }
 
@@ -1374,7 +1552,9 @@ const bindIncomingDialogQtyValidation = () => {
 const cleanupIncomingDialogQtyValidation = () => {
   const dialog = getIncomingDialog()
   dialog?.removeEventListener('input', scheduleIncomingDialogQtyValidation, true)
-  dialog?.querySelector('#incoming-company-logo-input')?.removeEventListener('change', handleCompanyLogoSelected)
+  dialog
+    ?.querySelector('#incoming-company-logo-input')
+    ?.removeEventListener('change', handleCompanyLogoSelected)
   unbindCheckerSignaturePad()
   incomingDialogObserver?.disconnect()
   incomingDialogObserver = null
@@ -1392,16 +1572,21 @@ const buildPayload = (form) => {
     ...item,
     qty_surat_jalan: toSafeNumber(item.qty_surat_jalan),
     qty_actual: toSafeNumber(item.qty_actual),
-    selisih_qty: toSafeNumber(item.qty_surat_jalan) || toSafeNumber(item.qty_actual)
-      ? toSafeNumber(item.qty_actual) - toSafeNumber(item.qty_surat_jalan)
-      : 0,
+    selisih_qty:
+      toSafeNumber(item.qty_surat_jalan) || toSafeNumber(item.qty_actual)
+        ? toSafeNumber(item.qty_actual) - toSafeNumber(item.qty_surat_jalan)
+        : 0,
   }))
   const qtySj = getQtySj({ ...form, items })
   const qtyActual = getQtyActual({ ...form, items })
   const material = form.nama_barang || form.material || form.nama_material || ''
   const checker = form.checker_qc || form.qc_checker || form.checker || currentUserName.value
-  const hasQtyActualOverflow = items.some((item) => toSafeNumber(item.qty_actual) > toSafeNumber(item.qty_surat_jalan))
-  const hasQtyActualShortage = items.some((item) => toSafeNumber(item.qty_actual) < toSafeNumber(item.qty_surat_jalan))
+  const hasQtyActualOverflow = items.some(
+    (item) => toSafeNumber(item.qty_actual) > toSafeNumber(item.qty_surat_jalan),
+  )
+  const hasQtyActualShortage = items.some(
+    (item) => toSafeNumber(item.qty_actual) < toSafeNumber(item.qty_surat_jalan),
+  )
   const autoStatus = hasQtyActualOverflow
     ? STATUS_DATA_TIDAK_SESUAI
     : hasQtyActualShortage
@@ -1414,7 +1599,13 @@ const buildPayload = (form) => {
     nomor_surat_jalan: form.nomor_surat_jalan || '',
     supplier: form.supplier || form.asal || '',
     asal: form.supplier || form.asal || '',
-    company_name: form.company_name || form.nama_perusahaan || form.perusahaan || form.supplier || form.asal || '',
+    company_name:
+      form.company_name ||
+      form.nama_perusahaan ||
+      form.perusahaan ||
+      form.supplier ||
+      form.asal ||
+      '',
     material: material || items[0]?.nama_barang || '',
     nama_barang: material || items[0]?.nama_barang || '',
     nama_material: material || items[0]?.nama_barang || '',
@@ -1454,7 +1645,9 @@ const validatePayload = (payload) => {
   if (!payload.material) return 'Material wajib diisi'
   if (payload.qty_surat_jalan <= 0) return 'Qty surat jalan wajib lebih dari 0'
   if (payload.qty_actual < 0) return 'Qty actual tidak boleh minus'
-  if (payload.items.some((item) => toSafeNumber(item.qty_actual) > toSafeNumber(item.qty_surat_jalan))) {
+  if (
+    payload.items.some((item) => toSafeNumber(item.qty_actual) > toSafeNumber(item.qty_surat_jalan))
+  ) {
     return 'Qty actual melebihi Qty Surat Jalan'
   }
   if (!payload.checker_qc) return 'Checker QC wajib diisi'
@@ -1475,7 +1668,10 @@ const saveIncoming = async ({ form }) => {
     if (selectedRow.value?.id) {
       await updateDoc(doc(db, COLLECTION_NAME, selectedRow.value.id), {
         ...payload,
-        history: [...(selectedRow.value.history || []), buildAuditEntry(payload.status_incoming, 'Incoming diperbarui')],
+        history: [
+          ...(selectedRow.value.history || []),
+          buildAuditEntry(payload.status_incoming, 'Incoming diperbarui'),
+        ],
       })
       $q.notify({ type: 'positive', message: 'Incoming material diperbarui' })
     } else {
@@ -1531,7 +1727,11 @@ const sendToQc = (row) => {
     cancel: true,
     ok: { color: 'green-10', unelevated: true, label: 'Kirim ke QC' },
   }).onOk(async () => {
-    await updateWorkflow(row, STATUS_SEND_TO_QC, 'Incoming dikirim ke QC untuk pengecekan kualitas detail')
+    await updateWorkflow(
+      row,
+      STATUS_SEND_TO_QC,
+      'Incoming dikirim ke QC untuk pengecekan kualitas detail',
+    )
   })
 }
 
@@ -1565,7 +1765,8 @@ const distribusiMaterial = (row) => {
   if (!canDistributeMaterial(row)) return
   $q.dialog({
     title: 'Distribusi Material',
-    message: 'Tandai incoming ini sebagai material yang sudah didistribusikan ke produksi / proyek?',
+    message:
+      'Tandai incoming ini sebagai material yang sudah didistribusikan ke produksi / proyek?',
     cancel: true,
     ok: { color: 'green-10', unelevated: true, label: 'Distribusikan' },
   }).onOk(async () => {
@@ -1600,7 +1801,10 @@ const updateWorkflow = async (row, status, note, extraPayload = {}) => {
                 by: currentUserName.value,
                 status,
                 note,
-                target: extraPayload.distribution_target || row.distribution_target || 'Produksi / Proyek',
+                target:
+                  extraPayload.distribution_target ||
+                  row.distribution_target ||
+                  'Produksi / Proyek',
               },
             ]
           : row.distribution_history || [],
@@ -1870,10 +2074,7 @@ onUnmounted(() => {
 
 :global(.incoming-detail-summary .company-name) {
   color: #123d1e;
-  font-family:
-    'Inter',
-    Arial,
-    sans-serif;
+  font-family: 'Inter', Arial, sans-serif;
   font-size: 18px;
   font-weight: 950;
   line-height: 1.2;
@@ -1919,10 +2120,7 @@ onUnmounted(() => {
 
 :global(.incoming-detail-summary .document-title) {
   color: #123d1e;
-  font-family:
-    'Times New Roman',
-    Georgia,
-    serif;
+  font-family: 'Times New Roman', Georgia, serif;
   font-size: 23px;
   font-weight: 900;
   letter-spacing: 1px;
@@ -1951,10 +2149,7 @@ onUnmounted(() => {
 :global(.incoming-detail-summary .document-meta-label),
 :global(.incoming-detail-summary .detail-info-label) {
   color: #5f6f65;
-  font-family:
-    'Inter',
-    Arial,
-    sans-serif;
+  font-family: 'Inter', Arial, sans-serif;
   font-size: 9.5px;
   font-weight: 900;
   letter-spacing: 0.45px;
@@ -2007,10 +2202,7 @@ onUnmounted(() => {
 
 :global(.incoming-detail-summary .section-heading) {
   color: #123d1e;
-  font-family:
-    'Inter',
-    Arial,
-    sans-serif;
+  font-family: 'Inter', Arial, sans-serif;
   font-size: 12px;
   font-weight: 950;
   letter-spacing: 0.45px;

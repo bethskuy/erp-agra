@@ -269,11 +269,6 @@ const routes = [
         component: () => import('pages/manufaktur/Produksi/LineProduksiPage.vue'),
       },
       {
-        path: 'produksi/proses-produksi/incoming',
-        name: 'manufaktur-incoming-material',
-        component: () => import('pages/manufaktur/Produksi/IncomingMaterialPage.vue'),
-      },
-      {
         path: 'warehouse/outgoing-check',
         name: 'manufaktur-warehouse-oqc',
         component: () => import('pages/manufaktur/warehouse/outgoingcheckOQC.vue'),
@@ -325,78 +320,35 @@ const routes = [
         path: 'gudang/purchase-request/:id',
         component: () => import('pages/manufaktur/Gudang/ManufacturPurchaseRequestPage.vue'),
       },
-      // =====================================================
-      // INCOMING MATERIAL ROUTES
-      // File: src/router/routes.js
-      // =====================================================
-
-      // taruh di children manufaktur
-      // jangan ubah route lain
-
       {
-        path: '/manufaktur/produksi/proses-produksi/incoming',
-        name: 'incoming-material',
-        component: () => import('pages/manufaktur/Produksi/IncomingMaterialPage.vue'),
-        meta: {
-          requiresAuth: true,
-          title: 'Incoming Material',
-          module: 'manufaktur',
-        },
+        path: 'warehouse/incoming-material',
+        name: 'warehouse-incoming-material',
+        component: () => import('pages/manufaktur/warehouse/IncomingMaterialPage.vue'),
       },
-
       {
-        path: '/manufaktur/produksi/proses-produksi/incoming/table',
-        name: 'incoming-table',
-        component: () => import('pages/manufaktur/Produksi/IncomingTablePage.vue'),
-        meta: {
-          requiresAuth: true,
-          title: 'Incoming Table',
-          module: 'manufaktur',
-        },
+        path: 'warehouse/incoming-material/table',
+        name: 'warehouse-incoming-table',
+        component: () => import('pages/manufaktur/warehouse/IncomingTablePage.vue'),
       },
-
       {
-        path: '/manufaktur/produksi/proses-produksi/incoming/dialog',
-        name: 'incoming-dialog',
-        component: () => import('pages/manufaktur/Produksi/IncomingDialog.vue'),
-        meta: {
-          requiresAuth: true,
-          title: 'Incoming Dialog',
-          module: 'manufaktur',
-        },
+        path: 'warehouse/incoming-material/dialog',
+        name: 'warehouse-incoming-dialog',
+        component: () => import('pages/manufaktur/warehouse/IncomingDialog.vue'),
       },
-
       {
-        path: '/manufaktur/produksi/proses-produksi/incoming/summary',
-        name: 'incoming-summary',
-        component: () => import('pages/manufaktur/Produksi/IncomingSummary.vue'),
-        meta: {
-          requiresAuth: true,
-          title: 'Incoming Summary',
-          module: 'manufaktur',
-        },
+        path: 'warehouse/incoming-material/summary',
+        name: 'warehouse-incoming-summary',
+        component: () => import('pages/manufaktur/warehouse/IncomingSummary.vue'),
       },
-
       {
-        path: '/manufaktur/produksi/proses-produksi/incoming/status',
-        name: 'incoming-status',
-        component: () => import('pages/manufaktur/Produksi/IncomingStatusBadge.vue'),
-        meta: {
-          requiresAuth: true,
-          title: 'Incoming Status',
-          module: 'manufaktur',
-        },
+        path: 'warehouse/incoming-material/status',
+        name: 'warehouse-incoming-status',
+        component: () => import('pages/manufaktur/warehouse/IncomingStatusBadge.vue'),
       },
-
       {
-        path: '/manufaktur/produksi/proses-produksi/material',
-        name: 'incoming-material-data',
-        component: () => import('pages/manufaktur/Produksi/IncomingMaterial.vue'),
-        meta: {
-          requiresAuth: true,
-          title: 'Incoming Material Data',
-          module: 'manufaktur',
-        },
+        path: 'warehouse/incoming-material/data',
+        name: 'warehouse-incoming-material-data',
+        component: () => import('pages/manufaktur/warehouse/IncomingMaterial.vue'),
       },
     ],
   },
