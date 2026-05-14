@@ -18,6 +18,7 @@
           label="Export Laporan"
           class="rounded-12 text-weight-bold q-px-md q-py-sm shadow-soft-primary"
           @click="downloadExcel"
+          :loading="isExporting"
         />
       </div>
     </div>
@@ -297,6 +298,7 @@ import { useRouter } from 'vue-router'
 const $q = useQuasar()
 const router = useRouter()
 const loading = ref(false)
+const isExporting = ref(false)
 
 // State Tanggal
 const today = new Date()
@@ -413,14 +415,75 @@ const fetchDataHarian = async () => {
   }
 }
 
-const downloadExcel = () => {
-  $q.notify({
-    color: 'teal',
-    message: 'Fitur Export Laporan (Excel/PDF) sedang dalam pengembangan.',
-    icon: 'auto_graph',
-    position: 'top',
-    classes: 'rounded-12 text-weight-bold',
-  })
+// EXPORT KE EXCEL DENGAN SHEETJS (SAMA SEPERTI CATATAN ABSENSI)
+const downloadExcel = async () => {
+  if (rows.value.length === 0) {
+    $q.notify({
+      color: 'warning',
+      message: 'Tidak ada data absensi untuk diekspor pada tanggal ini.',
+    })
+    return
+  }
+
+  isExporting.value = true
+
+  try {
+    // Inject library secara dinamis
+    if (!window.XLSX) {
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
+        script.onload = resolve
+        script.onerror = reject
+        document.head.appendChild(script)
+      })
+    }
+
+    // Mapping Data agar format rapi
+    const excelData = rows.value.map((row, index) => ({
+      No: index + 1,
+      'Nama Karyawan': row.nama_karyawan,
+      Tanggal: row.tanggal,
+      'Jam Check In': row.waktu_masuk ? formatJam(row.waktu_masuk) : '-',
+      'Jam Check Out': row.waktu_pulang ? formatJam(row.waktu_pulang) : '-',
+      Status: row.waktu_masuk ? 'Hadir' : 'Belum Absen',
+      Lokasi: row.nama_tempat || 'Tidak ada lokasi',
+    }))
+
+    const worksheet = window.XLSX.utils.json_to_sheet(excelData)
+    const workbook = window.XLSX.utils.book_new()
+    window.XLSX.utils.book_append_sheet(workbook, worksheet, 'Laporan Harian')
+
+    // Set lebar kolom Excel (Auto-fit Columns)
+    const colWidths = [
+      { wch: 6 }, // No
+      { wch: 35 }, // Nama
+      { wch: 25 }, // Tanggal
+      { wch: 15 }, // Check In
+      { wch: 15 }, // Check Out
+      { wch: 15 }, // Status
+      { wch: 35 }, // Lokasi
+    ]
+    worksheet['!cols'] = colWidths
+
+    // Eksekusi download file .xlsx
+    window.XLSX.writeFile(workbook, `Laporan_Harian_AGRA_${selectedDate.value}.xlsx`)
+
+    $q.notify({
+      message: 'Berhasil mengunduh Laporan Harian!',
+      color: 'positive',
+      icon: 'check_circle',
+    })
+  } catch (error) {
+    console.error('Gagal mengekspor Excel:', error)
+    $q.notify({
+      message: 'Terjadi kesalahan saat memproses file Excel.',
+      color: 'negative',
+      icon: 'error',
+    })
+  } finally {
+    isExporting.value = false
+  }
 }
 
 // === PENGAMANAN HALAMAN (ROUTE GUARD) ===

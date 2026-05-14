@@ -35,7 +35,6 @@
                 </q-avatar>
               </div>
 
-              <!-- BUG FIXED: Ellipsis dihapus, white-space normal agar nama bisa turun baris -->
               <div class="col q-ml-md" style="max-width: 250px">
                 <div
                   class="text-weight-bolder text-blue-grey-10 text-uppercase letter-spacing-tight"
@@ -236,7 +235,7 @@
                   </q-input>
                 </div>
 
-                <!-- Dokumen & Delegasi -->
+                <!-- Dokumen & Delegasi (FILE UPLOAD BARU) -->
                 <div>
                   <div
                     class="text-caption text-weight-bold text-blue-grey-8 uppercase letter-spacing-1 q-mb-sm"
@@ -244,21 +243,29 @@
                     Opsi Tambahan
                   </div>
                   <div class="row q-col-gutter-md">
+                    <!-- UPLOAD FOTO/FILE -->
                     <div class="col-12 col-sm-6">
-                      <q-input
+                      <q-file
                         outlined
-                        v-model="form.docUrl"
-                        placeholder="Link GDrive Dokumen"
+                        v-model="form.lampiran"
+                        placeholder="Pilih Foto/File Bukti (Opsional)"
                         class="rounded-input bg-grey-1"
                         color="primary"
+                        accept="image/*, .pdf"
+                        clearable
+                        max-file-size="5242880"
+                        @rejected="onFileRejected"
                       >
-                        <template v-slot:prepend
-                          ><q-icon name="link" color="blue-grey-4"
-                        /></template>
-                        <q-tooltip class="bg-blue-grey-9"
-                          >Tautkan surat dokter atau dokumen pendukung</q-tooltip
-                        >
-                      </q-input>
+                        <template v-slot:prepend>
+                          <q-icon name="cloud_upload" color="blue-grey-4" />
+                        </template>
+                        <template v-slot:append>
+                          <q-icon name="attach_file" color="blue-grey-4" />
+                        </template>
+                        <q-tooltip class="bg-blue-grey-9">
+                          Upload surat dokter atau foto bukti (Maks. 5MB)
+                        </q-tooltip>
+                      </q-file>
                     </div>
 
                     <div class="col-12 col-sm-6">
@@ -274,7 +281,7 @@
                           ><q-icon name="person_add" color="blue-grey-4"
                         /></template>
                         <q-tooltip class="bg-blue-grey-9"
-                          >Pilih rekan kerja untuk delegasi tugas</q-tooltip
+                          >Pilih rekan kerja untuk mendelegasikan tugas</q-tooltip
                         >
                       </q-select>
                     </div>
@@ -394,7 +401,7 @@
                       :href="props.row.dokumen_url"
                       target="_blank"
                     >
-                      <q-tooltip>Buka Dokumen</q-tooltip>
+                      <q-tooltip>Lihat Dokumen</q-tooltip>
                     </q-btn>
                     <span v-else class="text-grey-4 font-mono">-</span>
                   </q-td>
@@ -446,7 +453,8 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { db } from 'src/boot/firebase'
+import { db, storage } from 'src/boot/firebase'
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
 import {
   collection,
   query,
@@ -476,7 +484,7 @@ const form = ref({
   jenis: null,
   range: { from: null, to: null },
   alasan: '',
-  docUrl: '',
+  lampiran: null, // DIGANTI JADI OBJECT FILE
   delegasi: null,
 })
 
@@ -511,7 +519,6 @@ const usedDays = computed(() => {
   return total
 })
 
-// MENGUBAH WARNA AGAR COCOK DENGAN CLASS bg-{color}-50 DI TEMPLATE
 const leaveStats = computed(() => [
   {
     label: 'Total Saldo Tahunan',
@@ -532,7 +539,7 @@ const leaveStats = computed(() => [
     label: 'Sisa Saldo Cuti',
     value: Math.max(0, 12 - usedDays.value),
     icon: 'verified',
-    color: 'teal', // Diubah menjadi teal agar selaras dengan warna hijau kebiruan Quasar
+    color: 'teal',
     showProgress: true,
     progress: (12 - usedDays.value) / 12,
     textColor: 'teal-7',
@@ -568,6 +575,15 @@ const getJenisBg = (j) => {
   return 'bg-blue-grey-4'
 }
 
+const onFileRejected = () => {
+  $q.notify({
+    color: 'negative',
+    message: 'File ditolak. Pastikan format berupa Gambar/PDF dan ukuran maksimal 5MB.',
+    icon: 'warning',
+  })
+}
+
+// FUNGSI SUBMIT TERINTEGRASI CLOUD STORAGE
 const onSubmit = async () => {
   submitting.value = true
   try {
@@ -578,13 +594,28 @@ const onSubmit = async () => {
 
     const namaKaryawan = (userData.value.nama || 'USER').toUpperCase()
 
+    // 1. PROSES UPLOAD FILE LAMPIRAN JIKA ADA
+    let finalDocUrl = ''
+    if (form.value.lampiran) {
+      $q.loading.show({ message: 'Mengunggah dokumen bukti ke Cloud...' })
+      const file = form.value.lampiran
+      const extension = file.name.split('.').pop()
+      const fileName = `PENGAJUAN_${namaKaryawan}_${Date.now()}.${extension}`
+
+      const sRef = storageRef(storage, `lampiran_pengajuan/${fileName}`)
+      await uploadBytes(sRef, file)
+      finalDocUrl = await getDownloadURL(sRef)
+      $q.loading.hide()
+    }
+
+    // 2. SIMPAN DATA KE FIRESTORE
     await addDoc(collection(db, 'pengajuan'), {
       nama_karyawan: namaKaryawan,
       jenis_pengajuan: form.value.jenis,
       tanggal_mulai: start,
       tanggal_selesai: end || start,
       alasan: form.value.alasan,
-      dokumen_url: form.value.docUrl,
+      dokumen_url: finalDocUrl, // Ini sekarang adalah Link asli dari file yang diupload!
       delegasi: form.value.delegasi,
       status_approval: 'Pending',
       created_at: serverTimestamp(),
@@ -597,14 +628,17 @@ const onSubmit = async () => {
       icon: 'check_circle',
       classes: 'rounded-12 text-weight-bold',
     })
+
+    // RESET FORM
     form.value = {
       jenis: null,
       range: { from: null, to: null },
       alasan: '',
-      docUrl: '',
+      lampiran: null,
       delegasi: null,
     }
   } catch (e) {
+    if ($q.loading.isActive) $q.loading.hide()
     $q.notify({ color: 'negative', message: e.message, classes: 'rounded-12 text-weight-bold' })
   } finally {
     submitting.value = false

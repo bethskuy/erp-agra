@@ -189,7 +189,7 @@
                     dense
                     color="primary"
                     icon="visibility"
-                    class="bg-blue-50 transition-smooth"
+                    class="bg-blue-50 transition-smooth hover-scale"
                     @click="lihatDetail(props.row)"
                   >
                     <q-tooltip class="bg-primary">Lihat Detail Karyawan</q-tooltip>
@@ -247,7 +247,6 @@
             </q-badge>
           </q-card-section>
 
-          <!-- BUG FIXED: Ditambahkan v-model:pagination dan rows-per-page-options -->
           <q-table
             :rows="detailRows"
             :columns="detailColumns"
@@ -258,7 +257,6 @@
             v-model:pagination="paginationDetail"
             :rows-per-page-options="[5, 10, 15, 20, 31, 0]"
           >
-            <!-- Header Detail -->
             <template v-slot:header="props">
               <q-tr :props="props" class="bg-slate-50">
                 <q-th
@@ -272,7 +270,6 @@
               </q-tr>
             </template>
 
-            <!-- Body Detail -->
             <template v-slot:body="props">
               <q-tr :props="props" class="hover-effect">
                 <q-td key="no" class="text-center text-weight-bold">{{ props.row.no }}</q-td>
@@ -282,7 +279,6 @@
 
                 <q-td key="checkIn" class="text-center font-mono">{{ props.row.checkIn }}</q-td>
                 <q-td key="statusIn" class="text-center">{{ props.row.statusIn }}</q-td>
-                <!-- Avatar Foto Check In -->
                 <q-td key="fotoIn" class="text-center">
                   <q-avatar
                     v-if="props.row.fotoIn"
@@ -299,7 +295,6 @@
 
                 <q-td key="checkOut" class="text-center font-mono">{{ props.row.checkOut }}</q-td>
                 <q-td key="statusOut" class="text-center">{{ props.row.statusOut }}</q-td>
-                <!-- Avatar Foto Check Out -->
                 <q-td key="fotoOut" class="text-center">
                   <q-avatar
                     v-if="props.row.fotoOut"
@@ -325,22 +320,20 @@
                   </q-badge>
                 </q-td>
                 <q-td key="totalJam" class="text-center font-mono">{{ props.row.totalJam }}</q-td>
+
+                <!-- TOMBOL AKSI TAMBAH MANUAL -->
                 <q-td key="aksi" class="text-center">
                   <q-btn
                     flat
                     round
                     dense
-                    icon="add"
-                    color="positive"
+                    icon="edit_calendar"
+                    color="primary"
                     size="sm"
-                    @click="
-                      $q.notify({
-                        color: 'info',
-                        message: 'Fitur edit log manual dalam pengembangan.',
-                      })
-                    "
+                    class="bg-blue-50 transition-smooth hover-scale"
+                    @click="openManualDialog(props.row)"
                   >
-                    <q-tooltip>Tambah/Edit Manual</q-tooltip>
+                    <q-tooltip class="bg-primary">Input Absen Manual</q-tooltip>
                   </q-btn>
                 </q-td>
               </q-tr>
@@ -373,6 +366,162 @@
           />
         </q-card>
       </q-dialog>
+
+      <!-- ========================================== -->
+      <!-- MODAL TAMBAH ABSENSI MANUAL (CLEAN SAAS UI)-->
+      <!-- ========================================== -->
+      <q-dialog v-model="manualDialog" persistent backdrop-filter="blur(5px)">
+        <q-card
+          style="width: 600px; max-width: 95vw"
+          class="rounded-24 bg-white overflow-hidden shadow-soft flex column"
+        >
+          <q-form
+            @submit.prevent="simpanManualAbsensi"
+            class="column full-height"
+            style="margin: 0"
+          >
+            <!-- HEADER MODAL -->
+            <q-card-section class="row items-center q-pb-md q-pt-lg q-px-lg">
+              <div class="row items-center col">
+                <div class="bg-blue-50 text-primary q-pa-sm rounded-8 q-mr-md">
+                  <q-icon name="edit_calendar" size="24px" />
+                </div>
+                <div>
+                  <div class="text-h6 text-weight-bolder text-blue-grey-10 line-height-tight">
+                    Rekam Log Absensi Manual
+                  </div>
+                  <div class="text-caption text-blue-grey-5 font-mono text-weight-bold q-mt-xs">
+                    {{ manualForm.tanggal }}
+                  </div>
+                </div>
+              </div>
+              <q-btn
+                icon="close"
+                flat
+                round
+                dense
+                v-close-popup
+                color="blue-grey-4"
+                class="bg-grey-1 transition-smooth hover-scale"
+              />
+            </q-card-section>
+
+            <!-- BODY MODAL (DIBERI SCROLL AGAR TOMBOL BAWAH TIDAK HILANG) -->
+            <q-card-section class="q-px-lg q-py-sm scroll" style="max-height: 60vh">
+              <!-- SECTION CHECK-IN (BORDER BIRU) -->
+              <div class="q-pa-md rounded-12 q-mb-lg bg-white box-outline-blue relative-position">
+                <div class="row items-center q-mb-md">
+                  <div class="bg-blue-50 text-primary q-pa-xs rounded-6 q-mr-sm">
+                    <q-icon name="login" size="18px" />
+                  </div>
+                  <div
+                    class="text-subtitle2 text-weight-bolder text-primary uppercase tracking-widest"
+                  >
+                    Data Check-In
+                  </div>
+                </div>
+
+                <div class="row q-col-gutter-lg items-center q-mb-md">
+                  <div class="col-12 col-sm-6">
+                    <q-input
+                      outlined
+                      v-model="manualForm.waktuIn"
+                      type="time"
+                      label="Waktu Masuk"
+                      color="primary"
+                      class="rounded-input bg-white"
+                    />
+                  </div>
+                  <div class="col-12 col-sm-6 flex items-center">
+                    <q-toggle
+                      v-model="manualForm.lokasiInValid"
+                      label="Validasi Lokasi Aktif"
+                      color="primary"
+                      class="text-weight-bold text-blue-grey-8"
+                    />
+                  </div>
+                </div>
+                <div class="col-12">
+                  <q-input
+                    outlined
+                    v-model="manualForm.fotoIn"
+                    placeholder="Tautkan URL Foto (Opsional)"
+                    color="primary"
+                    class="rounded-input bg-white"
+                  >
+                    <template v-slot:prepend><q-icon name="link" color="blue-grey-4" /></template>
+                  </q-input>
+                </div>
+              </div>
+
+              <!-- SECTION CHECK-OUT (BORDER ORANYE) -->
+              <div class="q-pa-md rounded-12 bg-white box-outline-orange relative-position">
+                <div class="row items-center q-mb-md">
+                  <div class="bg-orange-50 text-orange-9 q-pa-xs rounded-6 q-mr-sm">
+                    <q-icon name="logout" size="18px" />
+                  </div>
+                  <div
+                    class="text-subtitle2 text-weight-bolder text-orange-9 uppercase tracking-widest"
+                  >
+                    Data Check-Out
+                  </div>
+                </div>
+
+                <div class="row q-col-gutter-lg items-center q-mb-md">
+                  <div class="col-12 col-sm-6">
+                    <q-input
+                      outlined
+                      v-model="manualForm.waktuOut"
+                      type="time"
+                      label="Waktu Pulang"
+                      color="orange-9"
+                      class="rounded-input bg-white"
+                    />
+                  </div>
+                  <div class="col-12 col-sm-6 flex items-center">
+                    <q-toggle
+                      v-model="manualForm.lokasiOutValid"
+                      label="Validasi Lokasi Aktif"
+                      color="orange-9"
+                      class="text-weight-bold text-blue-grey-8"
+                    />
+                  </div>
+                </div>
+                <div class="col-12">
+                  <q-input
+                    outlined
+                    v-model="manualForm.fotoOut"
+                    placeholder="Tautkan URL Foto (Opsional)"
+                    color="orange-9"
+                    class="rounded-input bg-white"
+                  >
+                    <template v-slot:prepend><q-icon name="link" color="blue-grey-4" /></template>
+                  </q-input>
+                </div>
+              </div>
+            </q-card-section>
+
+            <!-- FOOTER MODAL (STICKY DI BAWAH) -->
+            <q-card-actions align="right" class="bg-white q-px-lg q-pb-lg q-pt-md">
+              <q-btn
+                flat
+                label="BATAL"
+                color="blue-grey-6"
+                v-close-popup
+                class="text-weight-bold rounded-8 q-px-md transition-smooth hover-scale"
+              />
+              <q-btn
+                unelevated
+                label="SIMPAN DATA ABSENSI"
+                color="primary"
+                type="submit"
+                class="text-weight-bolder rounded-12 q-px-xl shadow-soft-primary transition-smooth hover-scale q-py-sm"
+                :loading="savingManual"
+              />
+            </q-card-actions>
+          </q-form>
+        </q-card>
+      </q-dialog>
     </div>
   </q-page>
 </template>
@@ -381,12 +530,21 @@
 import { ref, onMounted } from 'vue'
 import { date, useQuasar } from 'quasar'
 import { db } from 'src/boot/firebase'
-import { collection, query, where, getDocs, Timestamp } from 'firebase/firestore'
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  addDoc,
+  updateDoc,
+  doc,
+  Timestamp,
+} from 'firebase/firestore'
 
 const $q = useQuasar()
 
-// State Management
-const viewMode = ref('summary') // 'summary' atau 'detail'
+// State Management Umum
+const viewMode = ref('summary')
 const search = ref('')
 const loading = ref(false)
 const loadingDetail = ref(false)
@@ -397,20 +555,25 @@ const rows = ref([])
 const selectedKaryawan = ref(null)
 const detailRows = ref([])
 
-// BUG FIXED: Menambahkan State Konfigurasi Pagination
-const paginationSummary = ref({
-  page: 1,
-  rowsPerPage: 10, // Bawaan untuk halaman Summary
-})
+const paginationSummary = ref({ page: 1, rowsPerPage: 10 })
+const paginationDetail = ref({ page: 1, rowsPerPage: 5 })
 
-const paginationDetail = ref({
-  page: 1,
-  rowsPerPage: 5, // Default menampilkan 5 data (agar tidak kepanjangan di-scroll)
-})
-
-// State Foto Pop-up
 const photoDialog = ref(false)
 const selectedPhoto = ref(null)
+
+// STATE ABSENSI MANUAL
+const manualDialog = ref(false)
+const savingManual = ref(false)
+const manualForm = ref({
+  absenId: null,
+  tanggal: '',
+  waktuIn: '',
+  waktuOut: '',
+  lokasiInValid: true,
+  lokasiOutValid: true,
+  fotoIn: '',
+  fotoOut: '',
+})
 
 const bukaFoto = (url) => {
   if (!url) return
@@ -418,7 +581,6 @@ const bukaFoto = (url) => {
   photoDialog.value = true
 }
 
-// Definisi Kolom Tabel Ringkasan
 const columns = [
   { name: 'no', label: 'NO', align: 'center', field: 'no', style: 'width: 50px;' },
   { name: 'nik', label: 'NIK', align: 'center', field: 'nik' },
@@ -434,7 +596,6 @@ const columns = [
   { name: 'aksi', label: 'AKSI', align: 'center', field: 'aksi' },
 ]
 
-// Definisi Kolom Tabel Detail
 const detailColumns = [
   { name: 'no', label: 'No', align: 'center' },
   { name: 'tanggal', label: 'Tanggal', align: 'left' },
@@ -451,7 +612,6 @@ const detailColumns = [
   { name: 'aksi', label: 'Aksi', align: 'center' },
 ]
 
-// HELPER: Map Bulan Indonesia
 const getMonthDetails = () => {
   const parts = filterBulan.value.split(' ')
   const monthName = parts[0]
@@ -482,7 +642,6 @@ const getMonthDetails = () => {
   return { year, monthIndex, monthName }
 }
 
-// LOGIKA UTAMA 1: MEREKAP DATA SUMMARY
 const loadDataRekap = async () => {
   loading.value = true
   rows.value = []
@@ -528,7 +687,6 @@ const loadDataRekap = async () => {
   }
 }
 
-// LOGIKA UTAMA 2: GENERATE DETAIL HARIAN
 const lihatDetail = async (row) => {
   selectedKaryawan.value = row
   viewMode.value = 'detail'
@@ -551,7 +709,7 @@ const lihatDetail = async (row) => {
 
     const namaTarget = (row.nama || '').toUpperCase()
     const listAbsensi = absensiSnap.docs
-      .map((doc) => doc.data())
+      .map((doc) => ({ id: doc.id, ...doc.data() }))
       .filter((absen) => absen.nama_karyawan === namaTarget)
 
     const absensiByDate = {}
@@ -585,10 +743,17 @@ const lihatDetail = async (row) => {
         }
 
         generatedRows.push({
+          absenId: dataAbsen.id,
           no: i,
           tanggal: currentDateStr,
           checkIn: checkInTime,
-          statusIn: 'Sesuai Waktu',
+          statusIn: dataAbsen.is_manual ? 'Manual' : 'Sesuai Waktu',
+          fotoInRaw:
+            dataAbsen.foto_masuk ||
+            dataAbsen.foto_in ||
+            dataAbsen.fotoUrl_masuk ||
+            dataAbsen.foto ||
+            null,
           fotoIn:
             dataAbsen.foto_masuk ||
             dataAbsen.foto_in ||
@@ -598,7 +763,13 @@ const lihatDetail = async (row) => {
           lokasiIn: dataAbsen.nama_tempat || 'Tidak ada lokasi',
 
           checkOut: checkOutTime,
-          statusOut: dataAbsen.waktu_pulang ? 'Sesuai Waktu' : 'N/A',
+          statusOut: dataAbsen.waktu_pulang
+            ? dataAbsen.is_manual
+              ? 'Manual'
+              : 'Sesuai Waktu'
+            : 'N/A',
+          fotoOutRaw:
+            dataAbsen.foto_pulang || dataAbsen.foto_out || dataAbsen.fotoUrl_pulang || null,
           fotoOut: dataAbsen.foto_pulang || dataAbsen.foto_out || dataAbsen.fotoUrl_pulang || null,
           lokasiOut: dataAbsen.waktu_pulang
             ? dataAbsen.nama_tempat || 'Tidak ada lokasi'
@@ -610,14 +781,17 @@ const lihatDetail = async (row) => {
         })
       } else {
         generatedRows.push({
+          absenId: null,
           no: i,
           tanggal: currentDateStr,
           checkIn: '-',
           statusIn: 'N/A',
+          fotoInRaw: null,
           fotoIn: null,
           lokasiIn: 'Tidak ada lokasi',
           checkOut: '-',
           statusOut: 'N/A',
+          fotoOutRaw: null,
           fotoOut: null,
           lokasiOut: 'Tidak ada lokasi',
           statusAbsensi: 'Tidak Ada Data',
@@ -636,7 +810,127 @@ const lihatDetail = async (row) => {
   }
 }
 
-// LOGIKA EKSPOR KE EXCEL ASLI (.xlsx) MENGGUNAKAN SHEET.JS
+// BUKA DIALOG MANUAL ABSENSI
+const openManualDialog = (row) => {
+  manualForm.value = {
+    absenId: row.absenId,
+    tanggal: row.tanggal,
+    waktuIn: row.checkIn !== '-' && row.checkIn !== 'N/A' ? row.checkIn : '',
+    waktuOut: row.checkOut !== '-' && row.checkOut !== 'N/A' ? row.checkOut : '',
+    lokasiInValid: row.lokasiIn && row.lokasiIn.includes('Luar') ? false : true,
+    lokasiOutValid: row.lokasiOut && row.lokasiOut.includes('Luar') ? false : true,
+    fotoIn: row.fotoInRaw || '',
+    fotoOut: row.fotoOutRaw || '',
+  }
+  manualDialog.value = true
+}
+
+// SIMPAN MANUAL ABSENSI KE FIRESTORE
+const simpanManualAbsensi = async () => {
+  savingManual.value = true
+  try {
+    const parts = manualForm.value.tanggal.split(' ')
+    const day = parseInt(parts[0])
+    const monthName = parts[1]
+    const year = parseInt(parts[2])
+
+    const monthMap = {
+      Januari: 0,
+      February: 1,
+      Februari: 1,
+      Maret: 2,
+      March: 2,
+      April: 3,
+      Mei: 4,
+      May: 4,
+      Juni: 5,
+      June: 5,
+      Juli: 6,
+      July: 6,
+      Agustus: 7,
+      August: 7,
+      September: 8,
+      Oktober: 9,
+      October: 9,
+      November: 10,
+      Desember: 11,
+      December: 11,
+    }
+    const monthIndex = monthMap[monthName]
+
+    let waktuMasukTs = null
+    let waktuPulangTs = null
+
+    if (manualForm.value.waktuIn) {
+      const [h, m] = manualForm.value.waktuIn.split(':')
+      waktuMasukTs = Timestamp.fromDate(
+        new Date(year, monthIndex, day, parseInt(h), parseInt(m), 0),
+      )
+    }
+    if (manualForm.value.waktuOut) {
+      const [h, m] = manualForm.value.waktuOut.split(':')
+      waktuPulangTs = Timestamp.fromDate(
+        new Date(year, monthIndex, day, parseInt(h), parseInt(m), 0),
+      )
+    }
+
+    if (!waktuMasukTs) {
+      throw new Error('Waktu Check-in wajib diisi jika ingin menambah absensi manual.')
+    }
+
+    const dataToSave = {
+      nama_karyawan: selectedKaryawan.value.nama.toUpperCase(),
+      tanggal: date.formatDate(waktuMasukTs.toDate(), 'dddd, DD MMMM YYYY', {
+        days: ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'],
+        months: [
+          'Januari',
+          'Februari',
+          'Maret',
+          'April',
+          'Mei',
+          'Juni',
+          'Juli',
+          'Agustus',
+          'September',
+          'Oktober',
+          'November',
+          'Desember',
+        ],
+      }),
+      waktu_masuk: waktuMasukTs,
+      waktu_pulang: waktuPulangTs,
+      status: 'Hadir',
+      nama_tempat: manualForm.value.lokasiInValid
+        ? 'MANUAL - LOKASI VALID'
+        : 'MANUAL - LUAR LOKASI',
+      alamat_lengkap: 'Ditambahkan Manual oleh Administrator',
+      koordinat: '0,0',
+      foto_masuk: manualForm.value.fotoIn || null,
+      foto_pulang: manualForm.value.fotoOut || null,
+      is_manual: true,
+    }
+
+    if (manualForm.value.absenId) {
+      await updateDoc(doc(db, 'absensi', manualForm.value.absenId), dataToSave)
+    } else {
+      await addDoc(collection(db, 'absensi'), dataToSave)
+    }
+
+    $q.notify({
+      color: 'positive',
+      message: 'Data absensi manual berhasil disimpan!',
+      icon: 'check_circle',
+    })
+    manualDialog.value = false
+
+    await lihatDetail(selectedKaryawan.value)
+  } catch (e) {
+    $q.notify({ color: 'negative', message: e.message || 'Terjadi kesalahan.', icon: 'error' })
+  } finally {
+    savingManual.value = false
+  }
+}
+
 const exportToExcel = async () => {
   if (rows.value.length === 0) return
   isExporting.value = true
@@ -665,14 +959,7 @@ const exportToExcel = async () => {
     const workbook = window.XLSX.utils.book_new()
     window.XLSX.utils.book_append_sheet(workbook, worksheet, 'Rekap Absensi')
 
-    const colWidths = [
-      { wch: 6 }, // No
-      { wch: 18 }, // NIK
-      { wch: 35 }, // Nama
-      { wch: 30 }, // Email
-      { wch: 20 }, // Periode
-      { wch: 25 }, // Total Kehadiran
-    ]
+    const colWidths = [{ wch: 6 }, { wch: 18 }, { wch: 35 }, { wch: 30 }, { wch: 20 }, { wch: 25 }]
     worksheet['!cols'] = colWidths
 
     window.XLSX.writeFile(
@@ -681,7 +968,7 @@ const exportToExcel = async () => {
     )
 
     $q.notify({
-      message: 'Berhasil mengunduh laporan Excel yang rapi!',
+      message: 'Berhasil mengunduh laporan Excel!',
       color: 'positive',
       icon: 'check_circle',
     })
@@ -701,7 +988,6 @@ onMounted(() => {
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@600;700&display=swap');
 
-/* GLOBAL TYPOGRAPHY */
 .font-inter {
   font-family: 'Inter', sans-serif;
 }
@@ -720,11 +1006,13 @@ onMounted(() => {
 .line-height-normal {
   line-height: 1.4;
 }
+.tracking-wide {
+  letter-spacing: 0.5px;
+}
 .uppercase {
   text-transform: uppercase;
 }
 
-/* LAYOUTING & BENTO GRID */
 .premium-container {
   max-width: 1400px;
 }
@@ -738,20 +1026,41 @@ onMounted(() => {
 .border-bottom-light {
   border-bottom: 1px solid #f8fafc;
 }
+.border-bottom {
+  border-bottom: 1px solid #e2e8f0;
+}
+.border-top {
+  border-top: 1px solid #e2e8f0;
+}
+
+/* Custom box borders matching the screenshot */
+.box-outline-blue {
+  border: 1.5px solid #e0f2fe;
+}
+.box-outline-orange {
+  border: 1.5px solid #ffedd5;
+}
+
 .mx-auto {
   margin-left: auto;
   margin-right: auto;
 }
+.opacity-20 {
+  opacity: 0.2;
+}
 .opacity-50 {
   opacity: 0.5;
 }
+.z-content {
+  position: relative;
+  z-index: 2;
+}
 
-/* SHADOWS & RADIUS */
 .shadow-soft {
   box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.06) !important;
 }
-.shadow-soft-positive {
-  box-shadow: 0 8px 24px -8px rgba(0, 150, 136, 0.5) !important;
+.shadow-soft-primary {
+  box-shadow: 0 8px 24px -8px rgba(25, 118, 210, 0.5) !important;
 }
 .rounded-24 {
   border-radius: 24px;
@@ -769,7 +1078,6 @@ onMounted(() => {
   border-radius: 6px;
 }
 
-/* ANIMATION */
 .transition-smooth {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -777,10 +1085,9 @@ onMounted(() => {
   background-color: #f8fafc !important;
 }
 .hover-scale:hover {
-  transform: scale(1.1);
+  transform: scale(1.05);
 }
 
-/* APPLE-STYLE ICONS */
 .ios-icon-box {
   width: 52px;
   height: 52px;
@@ -795,7 +1102,6 @@ onMounted(() => {
   border-radius: 10px;
 }
 
-/* CUSTOM INPUTS */
 .rounded-input :deep(.q-field__control) {
   border-radius: 12px;
   transition: all 0.3s ease;
@@ -804,7 +1110,6 @@ onMounted(() => {
   border-color: #1976d2;
 }
 
-/* TABLE STYLING: Premium & Detail */
 .premium-table :deep(thead tr th),
 .detail-table :deep(thead tr th) {
   font-size: 12px;
@@ -821,7 +1126,6 @@ onMounted(() => {
   transition: background-color 0.3s ease;
 }
 
-/* Khusus tabel detail untuk teks kecil */
 .detail-table :deep(tbody tr td) {
   font-size: 12px;
 }

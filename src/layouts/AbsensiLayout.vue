@@ -227,12 +227,15 @@ const filteredApps = computed(() => {
   return []
 })
 
+// LOGIKA PENGATURAN MENU DINAMIS BERDASARKAN ROLE
 const menuListFiltered = computed(() => {
+  // Jika Super Admin, tampilkan SELURUH MENU lengkap
   if (isSuperAdmin.value) {
     return [
       { label: 'DASHBOARD ADMIN', icon: 'admin_panel_settings', path: '/absensi/admin/dashboard' },
       { label: 'PENGATURAN ABSENSI', icon: 'settings_suggest', path: '/absensi/admin/pengaturan' },
-      { label: 'CATATAN ABSENSI', icon: 'fact_check', path: '/absensi/admin/catatan' }, // <-- MENU BARU
+      { label: 'CATATAN ABSENSI', icon: 'fact_check', path: '/absensi/admin/catatan' },
+      { label: 'PERSETUJUAN CUTI', icon: 'event_available', path: '/absensi/admin/persetujuan' }, // <-- INI MENU BARUNYA
       { label: 'DASHBOARD KARYAWAN', icon: 'dashboard', path: '/absensi/dashboard' },
       { label: 'PROFIL', icon: 'account_circle', path: '/absensi/profil' },
       { label: 'RIWAYAT ABSENSI', icon: 'history', path: '/absensi/riwayat' },
@@ -240,6 +243,7 @@ const menuListFiltered = computed(() => {
     ]
   }
 
+  // Jika bukan Super Admin (Karyawan Biasa), cek izin
   const absensiModule = userPermissions.value.find((p) => p.id === 'absensi')
   if (!absensiModule || !absensiModule.isActive) return []
 
