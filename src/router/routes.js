@@ -166,6 +166,31 @@ const routes = [
         name: 'manufaktur-dashboard',
         component: () => import('pages/manufaktur/DashboardPage.vue'),
       },
+      {
+        path: 'marketing/customer',
+        name: 'manufaktur-master-customer',
+        component: () => import('pages/manufaktur/Master/Customer/CustomerPage.vue'),
+      },
+      {
+        path: 'master/supplier',
+        name: 'manufaktur-master-supplier',
+        component: () => import('pages/manufaktur/Master/DataSupplier/MasterSupplierPage.vue'),
+      },
+      {
+        path: 'master/barang-list',
+        name: 'manufaktur-master-barang',
+        component: () => import('pages/manufaktur/Master/DataBarang/MasterBarangPage.vue'),
+      },
+      {
+        path: 'master/barang-kategori',
+        name: 'manufaktur-master-barang-kategori',
+        component: () => import('pages/manufaktur/Master/DataBarang/KategoriBarangPage.vue'),
+      },
+      {
+        path: 'master/satuan',
+        name: 'manufaktur-master-satuan',
+        component: () => import('pages/manufaktur/Master/DataSatuan/MasterSatuanPage.vue'),
+      },
       // --- MENU SISTEM PENAWARAN (REVISI SESUAI GAMBAR) ---
       {
         path: 'penawaran',
@@ -185,7 +210,64 @@ const routes = [
         component: () => import('pages/manufaktur/sales/POCustomerPage.vue'),
       },
 
-      // --- SECTION 2: PROSES PRODUKSI (INCOMING) ---
+      // --- SECTION 2: PPIC ---
+      {
+        path: 'ppic/planning-produksi',
+        name: 'manufaktur-ppic-planning-produksi',
+        component: () => import('pages/manufaktur/PPIC/PlanningProduksiPage.vue'),
+      },
+      {
+        path: 'ppic/jadwal-produksi',
+        name: 'manufaktur-ppic-jadwal-produksi',
+        component: () => import('pages/manufaktur/PPIC/JadwalProduksiPage.vue'),
+      },
+      {
+        path: 'ppic/work-order',
+        name: 'manufaktur-ppic-work-order',
+        component: () => import('pages/manufaktur/PPIC/WorkOrderPage.vue'),
+      },
+      {
+        path: 'ppic/material-requirement',
+        name: 'manufaktur-ppic-material-requirement',
+        component: () => import('pages/manufaktur/PPIC/MaterialRequirementPage.vue'),
+      },
+      {
+        path: 'ppic/bill-of-material',
+        name: 'manufaktur-ppic-bill-of-material',
+        component: () => import('pages/manufaktur/PPIC/BillOfMaterialPage.vue'),
+      },
+      {
+        path: 'ppic/routing-produksi',
+        name: 'manufaktur-ppic-routing-produksi',
+        component: () => import('pages/manufaktur/PPIC/RoutingProduksiPage.vue'),
+      },
+
+      // --- SECTION 3: PRODUKSI ---
+      {
+        path: 'produksi/monitoring-produksi',
+        name: 'manufaktur-monitoring-produksi',
+        component: () => import('pages/manufaktur/Produksi/MonitoringProduksiPage.vue'),
+      },
+      {
+        path: 'produksi/qc-produksi',
+        name: 'manufaktur-qc-produksi',
+        component: () => import('pages/manufaktur/Produksi/QCProduksiPage.vue'),
+      },
+      {
+        path: 'produksi/packing-produksi',
+        name: 'manufaktur-packing-produksi',
+        component: () => import('pages/manufaktur/Produksi/PackingProduksiPage.vue'),
+      },
+      {
+        path: 'produksi/ready-delivery',
+        name: 'manufaktur-ready-delivery',
+        component: () => import('pages/manufaktur/Produksi/ReadyDeliveryPage.vue'),
+      },
+      {
+        path: 'produksi/line-produksi',
+        name: 'manufaktur-line-produksi',
+        component: () => import('pages/manufaktur/Produksi/LineProduksiPage.vue'),
+      },
       {
         path: 'produksi/proses-produksi/incoming',
         name: 'manufaktur-incoming-material',

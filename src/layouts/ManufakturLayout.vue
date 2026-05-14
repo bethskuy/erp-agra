@@ -317,6 +317,7 @@
                 'ppic/work-order',
                 'ppic/jadwal-produksi',
                 'ppic/material-requirement',
+                'ppic/routing-produksi',
                 'ppic/monitoring-ppic',
               ])
             "
@@ -380,6 +381,20 @@
                 ><q-icon name="inventory" size="xs"
               /></q-item-section>
               <q-item-section class="submenu-text">Material Requirement</q-item-section>
+            </q-item>
+            <q-item
+              v-if="checkPermission('ppic/routing-produksi')"
+              clickable
+              v-ripple
+              to="/manufaktur/ppic/routing-produksi"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="route" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Tahapan Produksi</q-item-section>
             </q-item>
             <q-item
               v-if="checkPermission('ppic/monitoring-ppic')"
