@@ -135,6 +135,11 @@ const routes = [
         component: () => import('pages/absensi/adminabsensi/PersetujuanCutiPage.vue'),
       },
       {
+        path: 'admin/pemberitahuan',
+        name: 'absensi-admin-pemberitahuan',
+        component: () => import('pages/absensi/adminabsensi/PemberitahuanUmumPage.vue'),
+      },
+      {
         path: 'profil',
         name: 'absensi-profil',
         component: () => import('pages/absensi/ProfilPage.vue'),
@@ -153,6 +158,11 @@ const routes = [
         path: 'pengajuan-izin',
         name: 'absensi-pengajuan',
         component: () => import('pages/absensi/PengajuanIzinPage.vue'),
+      },
+      {
+        path: 'manual',
+        name: 'absensi-manual',
+        component: () => import('pages/absensi/AbsensiManualPage.vue'),
       },
     ],
   },

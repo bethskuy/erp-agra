@@ -229,21 +229,21 @@ const filteredApps = computed(() => {
 
 // LOGIKA PENGATURAN MENU DINAMIS BERDASARKAN ROLE
 const menuListFiltered = computed(() => {
-  // Jika Super Admin, tampilkan SELURUH MENU lengkap
   if (isSuperAdmin.value) {
     return [
       { label: 'DASHBOARD ADMIN', icon: 'admin_panel_settings', path: '/absensi/admin/dashboard' },
       { label: 'PENGATURAN ABSENSI', icon: 'settings_suggest', path: '/absensi/admin/pengaturan' },
       { label: 'CATATAN ABSENSI', icon: 'fact_check', path: '/absensi/admin/catatan' },
-      { label: 'PERSETUJUAN CUTI', icon: 'event_available', path: '/absensi/admin/persetujuan' }, // <-- INI MENU BARUNYA
+      { label: 'PERSETUJUAN CUTI', icon: 'event_available', path: '/absensi/admin/persetujuan' },
+      { label: 'PEMBERITAHUAN UMUM', icon: 'campaign', path: '/absensi/admin/pemberitahuan' },
       { label: 'DASHBOARD KARYAWAN', icon: 'dashboard', path: '/absensi/dashboard' },
       { label: 'PROFIL', icon: 'account_circle', path: '/absensi/profil' },
       { label: 'RIWAYAT ABSENSI', icon: 'history', path: '/absensi/riwayat' },
       { label: 'PENGAJUAN CUTI/IZIN', icon: 'event_note', path: '/absensi/pengajuan-izin' },
+      { label: 'ABSENSI MANUAL', icon: 'history_edu', path: '/absensi/manual' }, // <-- BARU: Absensi Manual
     ]
   }
 
-  // Jika bukan Super Admin (Karyawan Biasa), cek izin
   const absensiModule = userPermissions.value.find((p) => p.id === 'absensi')
   if (!absensiModule || !absensiModule.isActive) return []
 
@@ -267,6 +267,7 @@ const menuListFiltered = computed(() => {
       path: '/absensi/pengajuan-izin',
       key: 'pengajuan',
     },
+    { label: 'ABSENSI MANUAL', icon: 'history_edu', path: '/absensi/manual', key: 'pengajuan' }, // Tampil jika user punya akses pengajuan
   ]
 
   return baseMenus.filter((m) => canSee(m.key))

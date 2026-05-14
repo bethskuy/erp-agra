@@ -101,12 +101,77 @@
       </div>
 
       <!-- ========================================== -->
+      <!-- WIDGET PEMBERITAHUAN UMUM (BARU)           -->
+      <!-- ========================================== -->
+      <q-slide-transition>
+        <div class="row q-mb-lg" v-if="!showCamera && activeAnnouncements.length > 0">
+          <div class="col-12">
+            <q-card
+              flat
+              class="bento-card bg-gradient-indigo text-white overflow-hidden shadow-soft-primary"
+            >
+              <div class="row items-stretch no-wrap">
+                <!-- Sisi Kiri: Ikon -->
+                <div
+                  class="col-auto bg-black bg-opacity-20 flex flex-center q-pa-md"
+                  style="width: 80px"
+                >
+                  <q-icon name="campaign" size="36px" color="white" class="drop-shadow-glow" />
+                </div>
+
+                <!-- Sisi Kanan: Carousel Pengumuman -->
+                <div class="col overflow-hidden relative-position">
+                  <q-carousel
+                    v-model="slidePengumuman"
+                    transition-prev="slide-down"
+                    transition-next="slide-up"
+                    swipeable
+                    animated
+                    autoplay
+                    infinite
+                    :navigation="activeAnnouncements.length > 1"
+                    navigation-position="right"
+                    control-color="white"
+                    height="auto"
+                    class="bg-transparent full-height q-pa-sm"
+                  >
+                    <q-carousel-slide
+                      v-for="(item, index) in activeAnnouncements"
+                      :key="item.id"
+                      :name="index"
+                      class="q-pa-sm flex column justify-center"
+                    >
+                      <div
+                        class="text-caption text-blue-2 text-weight-bold uppercase letter-spacing-1 q-mb-xs"
+                      >
+                        Pengumuman dari {{ item.pembuat || 'HRD' }}
+                      </div>
+                      <div
+                        class="text-subtitle1 text-weight-bolder line-height-tight q-mb-xs text-shadow"
+                        style="word-wrap: break-word; white-space: normal"
+                      >
+                        {{ item.judul }}
+                      </div>
+                      <div
+                        class="text-caption text-blue-1 opacity-80 ellipsis-2-lines"
+                        style="max-width: 95%"
+                      >
+                        {{ item.isi }}
+                      </div>
+                    </q-carousel-slide>
+                  </q-carousel>
+                </div>
+              </div>
+            </q-card>
+          </div>
+        </div>
+      </q-slide-transition>
+
+      <!-- ========================================== -->
       <!-- BAGIAN TENGAH: RADAR LOKASI & ACTION       -->
       <!-- ========================================== -->
-      <!-- Diberikan class 'flex' untuk memastikan order CSS berfungsi optimal -->
       <div class="row q-col-gutter-lg q-mb-lg flex" v-if="!showCamera">
         <!-- WIDGET 3: RADAR GPS -->
-        <!-- Ditambahkan class responsive order: mobile di bawah (2), desktop di kiri (1) -->
         <div class="col-12 col-md-6 mobile-order-2 desktop-order-1">
           <q-card flat class="bento-card bg-white full-height">
             <q-card-section class="q-pa-lg">
@@ -184,7 +249,6 @@
         </div>
 
         <!-- WIDGET 4: TOMBOL AKSI -->
-        <!-- Ditambahkan class responsive order: mobile di atas (1), desktop di kanan (2) -->
         <div class="col-12 col-md-6 mobile-order-1 desktop-order-2">
           <q-card flat class="bento-card bg-white full-height flex column justify-center">
             <q-card-section class="q-pa-lg">
@@ -305,7 +369,7 @@
           </q-card>
         </div>
 
-        <!-- WIDGET 6: STATUS TIM (MEMANFAATKAN dataSeluruhKaryawan) -->
+        <!-- WIDGET 6: STATUS TIM -->
         <div class="col-12 col-md-5">
           <q-card flat class="bento-card bg-white full-height">
             <q-card-section class="q-pa-lg border-bottom row items-center justify-between">
@@ -533,7 +597,7 @@ import { useQuasar, date } from 'quasar'
 
 const $q = useQuasar()
 
-// State Jam Terpisah untuk Animasi Keren
+// State Jam Terpisah
 const currentHours = ref('')
 const currentMinutes = ref('')
 const currentSeconds = ref('')
@@ -542,7 +606,11 @@ const currentDate = ref('')
 const riwayatData = ref([])
 const dataSeluruhKaryawan = ref([])
 
-// State User (Ditambah fotoUrl & foto_profil)
+// State Pemberitahuan Umum
+const activeAnnouncements = ref([])
+const slidePengumuman = ref(0)
+
+// State User
 const userData = ref({
   nama: 'Memuat...',
   jabatan: 'Staff',
@@ -618,7 +686,6 @@ const getAddressName = async (lat, lng) => {
   }
 }
 
-// RUMUS HAVERSINE (TIDAK DIUBAH)
 const calculateDistance = (lat1, lon1, lat2, lon2) => {
   const R = 6371
   const dLat = (lat2 - lat1) * (Math.PI / 180)
@@ -633,7 +700,6 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   return R * c
 }
 
-// LOGIK DETEKSI MULTI-LOKASI
 const detectLocation = () => {
   if (!navigator.geolocation) return
   navigator.geolocation.getCurrentPosition(
@@ -669,7 +735,6 @@ const detectLocation = () => {
   )
 }
 
-// DOUBLE-GUARD LOCK
 const startAbsensi = () => {
   if (!locationData.value.inRange) {
     $q.notify({
@@ -704,7 +769,6 @@ const stopCamera = () => {
   showCamera.value = false
 }
 
-// SIMPAN KE FIRESTORE & UPLOAD FOTO
 const saveAbsensi = async () => {
   if (!locationData.value.inRange) {
     $q.notify({ color: 'negative', message: 'Tindakan Ilegal. Sistem Mendeteksi Lokasi Luar.' })
@@ -715,7 +779,6 @@ const saveAbsensi = async () => {
   try {
     const formattedName = (userData.value.nama || 'USER').toUpperCase()
 
-    // 1. PROSES UPLOAD FOTO KE FIREBASE STORAGE
     let fotoUrl = null
     if (capturedImage.value) {
       const fRef = storageRef(storage, `absensi/${formattedName}_IN_${Date.now()}.jpg`)
@@ -723,7 +786,6 @@ const saveAbsensi = async () => {
       fotoUrl = await getDownloadURL(fRef)
     }
 
-    // 2. SIMPAN DATA ABSENSI BESERTA LINK FOTO
     await addDoc(collection(db, 'absensi'), {
       nama_karyawan: formattedName,
       waktu_masuk: serverTimestamp(),
@@ -733,7 +795,7 @@ const saveAbsensi = async () => {
       nama_tempat: locationData.value.matchedLocationName,
       alamat_lengkap: locationData.value.address,
       koordinat: `${locationData.value.lat}, ${locationData.value.lng}`,
-      foto_masuk: fotoUrl, // <--- INI KUNCI AGAR FOTO TAMPIL DI ADMIN
+      foto_masuk: fotoUrl,
     })
 
     $q.notify({
@@ -743,7 +805,7 @@ const saveAbsensi = async () => {
       icon: 'check_circle',
     })
     stopCamera()
-    capturedImage.value = null // Reset foto setelah berhasil
+    capturedImage.value = null
   } catch (e) {
     console.error('Gagal Clock-in:', e)
     $q.notify({ color: 'negative', message: 'Koneksi gagal, coba lagi.' })
@@ -781,7 +843,7 @@ const absenPulang = async () => {
 
 const formatWaktu = (ts) => (ts ? date.formatDate(ts.toDate(), 'HH:mm') : '--:--')
 
-let timer, unsubMe, unsubAll, unsubUser, unsubLokasi, locationTimer
+let timer, unsubMe, unsubAll, unsubUser, unsubLokasi, unsubPengumuman, locationTimer
 
 onMounted(() => {
   updateTime()
@@ -793,10 +855,25 @@ onMounted(() => {
     detectLocation()
   })
 
-  // Perbarui deteksi tiap 30 detik agar lebih responsif
   locationTimer = setInterval(detectLocation, 30000)
 
-  // 1. SINKRON USER LOCALSTORAGE & AMBIL FOTO
+  // 1. SINKRON PENGUMUMAN UMUM AKTIF
+  const qPengumuman = query(collection(db, 'pemberitahuan'), orderBy('tgl_publikasi', 'desc'))
+  unsubPengumuman = onSnapshot(qPengumuman, (snap) => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    const semuaPengumuman = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+
+    // Filter hanya yang belum kadaluarsa
+    activeAnnouncements.value = semuaPengumuman.filter((p) => {
+      if (!p.tgl_kadaluarsa) return true
+      const expDate = new Date(p.tgl_kadaluarsa)
+      return expDate >= today
+    })
+  })
+
+  // 2. SINKRON USER LOCALSTORAGE & AMBIL FOTO
   const saved = localStorage.getItem('user_data')
   if (saved) {
     try {
@@ -849,7 +926,7 @@ onMounted(() => {
     documentId.value = active ? active.id : null
   })
 
-  // 4. PENARIKAN DATA SELURUH KARYAWAN (Untuk Widget Status Tim)
+  // 4. PENARIKAN DATA SELURUH KARYAWAN
   const startDay = new Date()
   startDay.setHours(0, 0, 0, 0)
   const qAll = query(
@@ -877,6 +954,7 @@ onUnmounted(() => {
   if (unsubAll) unsubAll()
   if (unsubUser) unsubUser()
   if (unsubLokasi) unsubLokasi()
+  if (unsubPengumuman) unsubPengumuman()
 })
 </script>
 
@@ -936,6 +1014,24 @@ onUnmounted(() => {
 .text-xs {
   font-size: 11px;
 }
+.ellipsis-2-lines {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* PEMBERITAHUAN BANNER */
+.bg-gradient-indigo {
+  background: linear-gradient(135deg, #4f46e5 0%, #312e81 100%);
+}
+.bg-opacity-20 {
+  background-color: rgba(0, 0, 0, 0.2) !important;
+}
+.text-shadow {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
 
 /* SHADOWS & RADIUS */
 .shadow-soft {
@@ -955,6 +1051,9 @@ onUnmounted(() => {
 }
 .rounded-12 {
   border-radius: 12px;
+}
+.rounded-8 {
+  border-radius: 8px;
 }
 .rounded-6 {
   border-radius: 6px;
