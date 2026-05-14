@@ -146,7 +146,7 @@ import {
   updateDoc,
 } from 'firebase/firestore'
 import { useAuthStore } from 'src/stores/auth'
-import IncomingDialog from './IncomingDialog.vue'
+import IncomingDialog from '../warehouse/IncomingDialog.vue'
 import IncomingSummary from './IncomingSummary.vue'
 import IncomingTablePage from './IncomingTablePage.vue'
 

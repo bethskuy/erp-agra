@@ -255,8 +255,8 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useQuasar } from 'quasar'
-import IncomingStatusBadge from './IncomingStatusBadge.vue'
-import IncomingSummary from './IncomingSummary.vue'
+import IncomingStatusBadge from '../warehouse/IncomingStatusBadge.vue'
+import IncomingSummary from '../warehouse/IncomingSummary.vue'
 
 const props = defineProps({
   rows: {
