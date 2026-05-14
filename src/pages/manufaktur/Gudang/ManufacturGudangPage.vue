@@ -179,18 +179,6 @@
             <q-item
               clickable
               v-ripple
-              :to="'/manufaktur/gudang/permintaan-antar/' + selectedGudang.id"
-              class="rounded-borders q-mb-xs"
-            >
-              <q-item-section avatar><q-icon name="swap_horiz" color="green-9" /></q-item-section>
-              <q-item-section>
-                <q-item-label class="text-weight-bold">Permintaan Antar Gudang</q-item-label>
-                <q-item-label caption>Request mutasi stok dari gudang lain</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-item
-              clickable
-              v-ripple
               :to="'/manufaktur/gudang/purchase-request/' + selectedGudang.id"
               class="rounded-borders"
             >
