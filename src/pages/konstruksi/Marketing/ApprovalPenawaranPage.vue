@@ -162,16 +162,8 @@
             <q-tooltip>Unduh/Buka Berkas Analisa Pendukung (PDF/Word/Excel)</q-tooltip>
           </q-btn>
 
-          <!-- GROUP TOMBOL CETAK & PDF (RESPONSIVE) -->
+          <!-- GROUP TOMBOL PDF (Cetak dihilangkan, hanya Export PDF) -->
           <q-btn-group unelevated rounded class="q-mr-xs q-mr-md-md shadow-1">
-            <q-btn
-              color="primary"
-              icon="print"
-              :label="$q.screen.gt.sm ? 'Cetak' : ''"
-              @click="printPage"
-            >
-              <q-tooltip v-if="!$q.screen.gt.sm">Cetak Dokumen</q-tooltip>
-            </q-btn>
             <q-btn
               color="red-9"
               icon="picture_as_pdf"
@@ -182,48 +174,13 @@
             </q-btn>
           </q-btn-group>
 
-          <!-- Signature Options -->
-          <q-btn-dropdown
-            v-if="selectedData?.status === 'Pending' && (canAction('approve') || canAction('ubah'))"
-            color="indigo-10"
-            icon="draw"
-            :label="$q.screen.gt.xs ? 'Tanda Tangan' : ''"
-            unelevated
-            rounded
-            class="q-mr-xs q-mr-md-md"
-          >
-            <q-list class="q-pa-sm" style="min-width: 220px">
-              <q-item
-                clickable
-                v-ripple
-                v-close-popup
-                @click="showPad = true"
-                class="rounded-borders"
-              >
-                <q-item-section avatar><q-icon name="gesture" color="primary" /></q-item-section>
-                <q-item-section class="text-weight-medium">Gurat Digital</q-item-section>
-              </q-item>
-              <q-item clickable v-ripple class="rounded-borders relative-position">
-                <q-item-section avatar><q-icon name="upload" color="primary" /></q-item-section>
-                <q-item-section class="text-weight-medium">Upload File</q-item-section>
-                <q-file
-                  v-model="tempFile"
-                  borderless
-                  dense
-                  class="absolute-full opacity-0 cursor-pointer"
-                  accept="image/*"
-                  @update:model-value="uploadSignatureFile"
-                />
-              </q-item>
-            </q-list>
-          </q-btn-dropdown>
-
+          <!-- Action Approve -->
           <template v-if="selectedData?.status === 'Pending'">
             <q-btn
               v-if="canAction('approve')"
               unelevated
               color="positive"
-              :icon="selectedData.signatureUrl ? 'verified' : 'check'"
+              icon="check"
               :label="$q.screen.gt.sm ? 'APPROVE SEKARANG' : $q.screen.gt.xs ? 'APPROVE' : ''"
               @click="handleApproval(selectedData, 'Approved')"
               rounded
@@ -357,17 +314,28 @@
                   <div class="text-weight-bold text-indigo-10 uppercase q-mb-xs">
                     {{ selectedData.nama_pt }}
                   </div>
+
+                  <!-- Area Signature menggunakan absolute positioning fix bug HTML2CANVAS -->
                   <div class="final-sign-space">
+                    <img
+                      v-if="selectedData.stempelUrl"
+                      :src="selectedData.stempelUrl"
+                      class="img-stempel"
+                    />
                     <img
                       v-if="selectedData.signatureUrl"
                       :src="selectedData.signatureUrl"
                       class="img-signature"
-                      alt="Tanda Tangan Digital"
                     />
-                    <div v-else class="text-caption text-grey-4 q-pt-xl italic">
+                    <div
+                      v-if="!selectedData.signatureUrl"
+                      class="text-caption text-grey-4 italic w-full text-center"
+                      style="padding-top: 40px"
+                    >
                       Belum ditandatangani
                     </div>
                   </div>
+
                   <div
                     class="text-signer-final text-weight-bolder underline uppercase text-indigo-10"
                   >
@@ -385,45 +353,12 @@
       </q-card>
     </q-dialog>
 
-    <!-- SIGNATURE PAD DIALOG -->
-    <q-dialog v-model="showPad" persistent backdrop-filter="blur(4px)">
-      <q-card style="width: 500px; max-width: 95vw" class="rounded-20 shadow-24">
-        <q-card-section class="row items-center q-pb-none bg-indigo-10 text-white q-pa-md">
-          <div class="text-h6 text-weight-bold uppercase">Gurat Tanda Tangan</div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
-        </q-card-section>
-
-        <q-card-section class="q-pa-lg">
-          <div class="signature-pad-wrapper shadow-inner">
-            <canvas ref="signatureCanvas" class="signature-canvas"></canvas>
-          </div>
-          <div class="text-caption text-grey-7 q-mt-md text-center italic flex flex-center">
-            <q-icon name="touch_app" class="q-mr-xs" /> Gunakan jari atau pen Anda pada area di
-            atas.
-          </div>
-        </q-card-section>
-
-        <q-card-actions align="right" class="q-pa-md bg-grey-1">
-          <q-btn flat label="Reset" color="grey-7" @click="clearPad" rounded class="q-px-md" />
-          <q-btn
-            unelevated
-            label="Simpan & Pasang"
-            color="indigo-10"
-            @click="saveManualSignature"
-            rounded
-            class="q-px-xl text-weight-bold"
-          />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
     <div class="q-py-xl no-print"></div>
   </q-page>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { db } from 'src/boot/firebase'
 import {
   collection,
@@ -437,7 +372,6 @@ import {
 } from 'firebase/firestore'
 import { useQuasar } from 'quasar'
 import { useAuthStore } from 'src/stores/auth'
-import SignaturePad from 'signature_pad'
 import html2pdf from 'html2pdf.js'
 
 const $q = useQuasar()
@@ -446,16 +380,12 @@ const rows = ref([])
 const loading = ref(true)
 const filter = ref('')
 const showPreview = ref(false)
-const showPad = ref(false)
 const selectedData = ref(null)
-const tempFile = ref(null)
-const signatureCanvas = ref(null)
 const config = ref({ kopUrl: '' })
 const userData = ref(null)
 
 let unsubUser = null
 let unsubApproval = null
-let signaturePad = null
 
 const columns = [
   { name: 'nomor', align: 'left', label: 'REFERENCE NO', field: 'nomor', sortable: true },
@@ -529,65 +459,6 @@ const fetchApprovalData = () => {
   }
 }
 
-watch(showPad, async (val) => {
-  if (val) {
-    await nextTick()
-    const canvas = signatureCanvas.value
-    const ratio = Math.max(window.devicePixelRatio || 1, 1)
-    canvas.width = canvas.offsetWidth * ratio
-    canvas.height = canvas.offsetHeight * ratio
-    canvas.getContext('2d').scale(ratio, ratio)
-
-    signaturePad = new SignaturePad(canvas, {
-      backgroundColor: 'rgba(255, 255, 255, 0)',
-      penColor: '#000000',
-    })
-  }
-})
-
-const saveManualSignature = async () => {
-  if (!signaturePad || signaturePad.isEmpty()) {
-    $q.notify({ type: 'warning', message: 'Silakan goreskan tanda tangan!' })
-    return
-  }
-  try {
-    $q.loading.show({ message: 'Menyimpan tanda tangan digital...' })
-    const base64 = signaturePad.toDataURL('image/png')
-    await updateDoc(doc(db, 'penawaran', selectedData.value.id), {
-      signatureUrl: base64,
-      updatedAt: serverTimestamp(),
-    })
-    selectedData.value.signatureUrl = base64
-    showPad.value = false
-    $q.notify({ type: 'positive', message: 'Tanda tangan berhasil dipasang!' })
-  } catch (e) {
-    console.error(e)
-  } finally {
-    $q.loading.hide()
-  }
-}
-
-const uploadSignatureFile = (file) => {
-  if (!file) return
-  const reader = new FileReader()
-  reader.readAsDataURL(file)
-  reader.onload = async () => {
-    try {
-      $q.loading.show()
-      await updateDoc(doc(db, 'penawaran', selectedData.value.id), {
-        signatureUrl: reader.result,
-        updatedAt: serverTimestamp(),
-      })
-      selectedData.value.signatureUrl = reader.result
-      $q.notify({ type: 'positive', message: 'File tanda tangan berhasil diunggah!' })
-    } catch (e) {
-      console.error(e)
-    } finally {
-      $q.loading.hide()
-    }
-  }
-}
-
 const handleApproval = (row, status, alasan = null) => {
   $q.dialog({
     title: 'Konfirmasi Approval',
@@ -606,6 +477,7 @@ const handleApproval = (row, status, alasan = null) => {
         status: status,
         updatedAt: serverTimestamp(),
         processedAt: serverTimestamp(),
+        marketing_read: false, // Mengaktifkan notifikasi Tanda Terima Baca (Read Receipt) untuk marketing
       }
       if (status === 'Rejected' && alasan) data.alasan_reject = alasan
       await updateDoc(doc(db, 'penawaran', row.id), data)
@@ -636,7 +508,6 @@ const promptReject = (row) => {
 const openPreview = (row) => {
   selectedData.value = row
   showPreview.value = true
-  tempFile.value = null
 }
 
 const openAnalisaFile = (url) => {
@@ -647,24 +518,30 @@ const formatDateIndo = (d) =>
   d
     ? new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
     : ''
-const printPage = () => window.print()
-const clearPad = () => signaturePad?.clear()
 
 const exportToPDF = () => {
-  const element = document.getElementById('quotation-print')
-  const opt = {
-    margin: 0,
-    filename: `Quotation_${selectedData.value.nomor.replace(/\//g, '-')}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2.5, useCORS: true, letterRendering: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-  }
-  $q.loading.show({ message: 'Generating High-Resolution PDF...' })
-  html2pdf()
-    .set(opt)
-    .from(element)
-    .save()
-    .then(() => $q.loading.hide())
+  $q.loading.show({ message: 'Menyiapkan Dokumen PDF...' })
+
+  // Memberi jeda 1 detik agar canvas merender gambar dengan sempurna
+  setTimeout(() => {
+    const element = document.getElementById('quotation-print')
+    const opt = {
+      margin: 0,
+      filename: `Quotation_${selectedData.value?.nomor?.replace(/\//g, '-') || 'Doc'}.pdf`,
+      image: { type: 'jpeg', quality: 1 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    }
+
+    html2pdf()
+      .set(opt)
+      .from(element)
+      .save()
+      .then(() => {
+        $q.loading.hide()
+        $q.notify({ type: 'positive', message: 'PDF Berhasil Diekspor!' })
+      })
+  }, 1000)
 }
 
 onMounted(() => {
@@ -702,9 +579,6 @@ onUnmounted(() => {
 }
 .uppercase {
   text-transform: uppercase;
-}
-.opacity-0 {
-  opacity: 0;
 }
 
 /* Table Styling */
@@ -867,34 +741,33 @@ onUnmounted(() => {
   line-height: 1.5;
 }
 
-/* Signature Area Styles */
-.signature-pad-wrapper {
-  border: 2px dashed #1a237e;
-  background: #fcfdff;
-  border-radius: 12px;
-  height: 250px;
-}
-.signature-canvas {
-  width: 100%;
-  height: 100%;
-  cursor: crosshair;
-}
+/* Signature Area Styles - MATCH WITH PenawaranPage for Safe PDF Export */
 .signature-container {
   margin-top: auto;
   padding-top: 20px;
 }
 .final-sign-space {
-  height: 100px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
   position: relative;
+  height: 120px;
+  width: 250px;
+  margin-left: auto;
+  margin-bottom: 10px;
+}
+.img-stempel {
+  position: absolute;
+  width: 110px;
+  height: auto;
+  right: 70px; /* Geser sedikit ke kiri menimpa TTD */
+  bottom: 5px;
+  z-index: 2;
 }
 .img-signature {
-  max-height: 100px;
-  max-width: 250px;
-  object-fit: contain;
-  mix-blend-mode: multiply;
+  position: absolute;
+  width: 160px;
+  height: auto;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
 }
 .text-signer-final {
   font-size: 14px;

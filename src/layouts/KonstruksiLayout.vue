@@ -16,11 +16,134 @@
 
         <q-space />
 
-        <!-- NOTIFIKASI TOTAL (Penawaran + PR) -->
+        <!-- NOTIFIKASI TOTAL (Penawaran + PR + Rejected/Approved) -->
         <q-btn flat round icon="notifications" class="q-mr-xs">
-          <q-badge color="red" floating v-if="pendingApprovalCount + pendingPrCount > 0">
-            {{ pendingApprovalCount + pendingPrCount }}
+          <q-badge
+            color="red"
+            floating
+            v-if="
+              pendingApprovalCount +
+                pendingPrCount +
+                rejectedPenawaranCount +
+                approvedPenawaranCount >
+              0
+            "
+          >
+            {{
+              pendingApprovalCount +
+              pendingPrCount +
+              rejectedPenawaranCount +
+              approvedPenawaranCount
+            }}
           </q-badge>
+
+          <!-- MENU DROPDOWN NOTIFIKASI DETAIL -->
+          <q-menu
+            auto-close
+            anchor="bottom right"
+            self="top right"
+            :offset="[0, 10]"
+            class="shadow-10 rounded-12"
+          >
+            <q-list style="min-width: 280px" class="q-py-sm">
+              <q-item-label
+                header
+                class="text-weight-bold text-indigo-10 uppercase tracking-widest"
+                style="font-size: 11px"
+              >
+                Notifikasi Sistem
+              </q-item-label>
+
+              <!-- Notifikasi Approval Penawaran -->
+              <q-item
+                v-if="pendingApprovalCount > 0"
+                clickable
+                v-ripple
+                to="/konstruksi/marketing/approval-penawaran"
+              >
+                <q-item-section avatar>
+                  <q-avatar color="orange-1" text-color="orange-9" icon="fact_check" size="md" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label class="text-weight-bold">Approval Penawaran</q-item-label>
+                  <q-item-label caption
+                    >{{ pendingApprovalCount }} dokumen menunggu persetujuan.</q-item-label
+                  >
+                </q-item-section>
+              </q-item>
+
+              <!-- Notifikasi Penawaran Ditolak -->
+              <q-item
+                v-if="rejectedPenawaranCount > 0"
+                clickable
+                v-ripple
+                to="/konstruksi/marketing/penawaran"
+              >
+                <q-item-section avatar>
+                  <q-avatar color="red-1" text-color="negative" icon="cancel" size="md" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label class="text-weight-bold text-negative"
+                    >Penawaran Ditolak</q-item-label
+                  >
+                  <q-item-label caption
+                    >{{ rejectedPenawaranCount }} dokumen membutuhkan revisi.</q-item-label
+                  >
+                </q-item-section>
+              </q-item>
+
+              <!-- Notifikasi Penawaran Disetujui -->
+              <q-item
+                v-if="approvedPenawaranCount > 0"
+                clickable
+                v-ripple
+                to="/konstruksi/marketing/penawaran"
+              >
+                <q-item-section avatar>
+                  <q-avatar color="green-1" text-color="positive" icon="verified" size="md" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label class="text-weight-bold text-positive"
+                    >Penawaran Disetujui</q-item-label
+                  >
+                  <q-item-label caption
+                    >{{ approvedPenawaranCount }} dokumen telah disetujui.</q-item-label
+                  >
+                </q-item-section>
+              </q-item>
+
+              <!-- Notifikasi Purchase Request -->
+              <q-item
+                v-if="pendingPrCount > 0"
+                clickable
+                v-ripple
+                to="/konstruksi/pembelian/pesanan"
+              >
+                <q-item-section avatar>
+                  <q-avatar color="orange-1" text-color="orange-9" icon="shopping_cart" size="md" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label class="text-weight-bold">Purchase Request</q-item-label>
+                  <q-item-label caption>{{ pendingPrCount }} PR menunggu diproses.</q-item-label>
+                </q-item-section>
+              </q-item>
+
+              <!-- Pesan Kosong Jika Tidak Ada Notif -->
+              <q-item
+                v-if="
+                  pendingApprovalCount +
+                    pendingPrCount +
+                    rejectedPenawaranCount +
+                    approvedPenawaranCount ===
+                  0
+                "
+              >
+                <q-item-section class="text-center text-grey-6 q-pa-md text-caption">
+                  <i>Belum ada pemberitahuan baru</i>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-menu>
         </q-btn>
 
         <!-- APP LAUNCHER -->
@@ -148,7 +271,13 @@
           </div>
         </div>
 
-        <q-scroll-area class="col">
+        <!-- Hapus Scrollbar Horizontal (Kanan-Kiri) Secara Paksa -->
+        <q-scroll-area
+          class="col"
+          :horizontal-thumb-style="{ display: 'none' }"
+          :horizontal-bar-style="{ display: 'none' }"
+          content-style="overflow-x: hidden;"
+        >
           <q-list class="q-py-md">
             <div class="q-px-md q-pt-sm q-pb-sm text-overline text-grey-6 tracking-widest">
               UTAMA
@@ -309,6 +438,7 @@
                   <q-item-section>Analisa AHSP</q-item-section>
                 </q-item>
 
+                <!-- MENU PENAWARAN (DENGAN BADGE REJECTED & APPROVED) -->
                 <q-item
                   v-if="checkPermission('marketing/penawaran')"
                   clickable
@@ -321,8 +451,33 @@
                     ><q-icon name="request_quote" size="20px"
                   /></q-item-section>
                   <q-item-section>Penawaran</q-item-section>
+                  <!-- BADGE NOTIFIKASI PENAWARAN -->
+                  <q-item-section
+                    side
+                    v-if="rejectedPenawaranCount > 0 || approvedPenawaranCount > 0"
+                  >
+                    <div class="row items-center q-gutter-x-xs">
+                      <q-badge
+                        v-if="rejectedPenawaranCount > 0"
+                        color="negative"
+                        rounded
+                        class="q-px-sm text-weight-bold"
+                      >
+                        {{ rejectedPenawaranCount }}
+                      </q-badge>
+                      <q-badge
+                        v-if="approvedPenawaranCount > 0"
+                        color="positive"
+                        rounded
+                        class="q-px-sm text-weight-bold"
+                      >
+                        {{ approvedPenawaranCount }}
+                      </q-badge>
+                    </div>
+                  </q-item-section>
                 </q-item>
 
+                <!-- MENU APPROVAL PENAWARAN -->
                 <q-item
                   v-if="checkPermission('marketing/approval-penawaran')"
                   clickable
@@ -334,7 +489,9 @@
                   <q-item-section avatar><q-icon name="fact_check" size="20px" /></q-item-section>
                   <q-item-section>Approval Penawaran</q-item-section>
                   <q-item-section side v-if="pendingApprovalCount > 0">
-                    <q-badge color="orange-9" rounded>{{ pendingApprovalCount }}</q-badge>
+                    <q-badge color="orange-9" rounded class="q-px-sm text-weight-bold">{{
+                      pendingApprovalCount
+                    }}</q-badge>
                   </q-item-section>
                 </q-item>
               </q-list>
@@ -367,7 +524,6 @@
                   <q-item-section>Data Proyek</q-item-section>
                 </q-item>
 
-                <!-- Monitoring Proyek (Baru) -->
                 <q-item
                   v-if="checkPermission('master/proyek-monitoring')"
                   clickable
@@ -425,7 +581,6 @@
                 >
                   <q-item-section avatar><q-icon name="receipt_long" size="20px" /></q-item-section>
                   <q-item-section>Pesanan Pembelian (PO)</q-item-section>
-                  <!-- BADGE NOTIFIKASI PR PENDING -->
                   <q-item-section side v-if="pendingPrCount > 0">
                     <q-badge color="orange-9" rounded class="q-px-sm text-weight-bold">{{
                       pendingPrCount
@@ -456,7 +611,6 @@
               header-class="text-weight-bold"
             >
               <q-list>
-                <!-- Invoice Customer / Klien -->
                 <q-item
                   v-if="checkPermission('finance/invoice')"
                   clickable
@@ -469,7 +623,6 @@
                   <q-item-section>Pembuatan Invoice</q-item-section>
                 </q-item>
 
-                <!-- Approval Invoice -->
                 <q-item
                   v-if="checkPermission('finance/approval-invoice')"
                   clickable
@@ -482,7 +635,6 @@
                   <q-item-section>Approval Invoice</q-item-section>
                 </q-item>
 
-                <!-- Monitoring Tagihan -->
                 <q-item
                   v-if="checkPermission('finance/tagihan')"
                   clickable
@@ -495,7 +647,6 @@
                   <q-item-section>Monitoring Tagihan</q-item-section>
                 </q-item>
 
-                <!-- Tagihan Supplier atau Labour -->
                 <q-item
                   v-if="checkPermission('finance/tagihan-supplier')"
                   clickable
@@ -508,7 +659,6 @@
                   <q-item-section>Tagihan Supplier / Labour</q-item-section>
                 </q-item>
 
-                <!-- Pengajuan Pembayaran -->
                 <q-item
                   v-if="checkPermission('finance/pembayaran')"
                   clickable
@@ -521,7 +671,6 @@
                   <q-item-section>Pengajuan Pembayaran</q-item-section>
                 </q-item>
 
-                <!-- Approval Pembayaran -->
                 <q-item
                   v-if="checkPermission('finance/approval-pembayaran')"
                   clickable
@@ -534,7 +683,6 @@
                   <q-item-section>Approval Pembayaran</q-item-section>
                 </q-item>
 
-                <!-- Realisasi Pembayaran -->
                 <q-item
                   v-if="checkPermission('finance/realisasi-pembayaran')"
                   clickable
@@ -547,7 +695,6 @@
                   <q-item-section>Realisasi Pembayaran</q-item-section>
                 </q-item>
 
-                <!-- Monitoring Pengeluaran -->
                 <q-item
                   v-if="checkPermission('finance/pengeluaran')"
                   clickable
@@ -562,7 +709,6 @@
                   <q-item-section>Monitoring Pengeluaran</q-item-section>
                 </q-item>
 
-                <!-- Monitoring Balansheet (Paling Bawah & Selalu Hijau Tua) -->
                 <q-item
                   v-if="checkPermission('finance/balansheet')"
                   clickable
@@ -615,6 +761,8 @@ const router = useRouter()
 const leftDrawerOpen = ref(false)
 const showProfileDialog = ref(false)
 const pendingApprovalCount = ref(0)
+const rejectedPenawaranCount = ref(0)
+const approvedPenawaranCount = ref(0)
 const pendingPrCount = ref(0)
 const userData = ref(null)
 const apps = ref([])
@@ -622,6 +770,8 @@ const currentAkses = ref([])
 
 let unsubUser = null
 let unsubApproval = null
+let unsubRejectedPenawaran = null
+let unsubApprovedPenawaran = null
 let unsubApps = null
 let unsubPrBadge = null
 
@@ -677,12 +827,10 @@ const handleLogout = () => {
 }
 
 onMounted(() => {
-  // 1. Ambil List Modul
   unsubApps = onSnapshot(collection(db, 'modul'), (snapshot) => {
     apps.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
   })
 
-  // 2. Ambil Data User Aktif
   const userEmail = authStore.user?.email
   if (userEmail) {
     const qUser = query(collection(db, 'karyawan'), where('email', '==', userEmail))
@@ -695,13 +843,25 @@ onMounted(() => {
     })
   }
 
-  // 3. Notifikasi Penawaran Pending
   const qApproval = query(collection(db, 'penawaran'), where('status', '==', 'Pending'))
   unsubApproval = onSnapshot(qApproval, (snapshot) => {
     pendingApprovalCount.value = snapshot.size
   })
 
-  // 4. Notifikasi Purchase Request Pending (Untuk Menu Pembelian)
+  const qRejectedPenawaran = query(collection(db, 'penawaran'), where('status', '==', 'Rejected'))
+  unsubRejectedPenawaran = onSnapshot(qRejectedPenawaran, (snapshot) => {
+    rejectedPenawaranCount.value = snapshot.docs.filter(
+      (d) => d.data().marketing_read === false,
+    ).length
+  })
+
+  const qApprovedPenawaran = query(collection(db, 'penawaran'), where('status', '==', 'Approved'))
+  unsubApprovedPenawaran = onSnapshot(qApprovedPenawaran, (snapshot) => {
+    approvedPenawaranCount.value = snapshot.docs.filter(
+      (d) => d.data().marketing_read === false,
+    ).length
+  })
+
   const qPr = query(
     collection(db, 'permintaan_barang'),
     where('status', '==', 'Pending'),
@@ -715,6 +875,8 @@ onMounted(() => {
 onUnmounted(() => {
   if (unsubUser) unsubUser()
   if (unsubApproval) unsubApproval()
+  if (unsubRejectedPenawaran) unsubRejectedPenawaran()
+  if (unsubApprovedPenawaran) unsubApprovedPenawaran()
   if (unsubApps) unsubApps()
   if (unsubPrBadge) unsubPrBadge()
 })
@@ -798,18 +960,22 @@ onUnmounted(() => {
   }
 }
 
-/* KELAS KHUSUS PERMANEN HIJAU TUA UNTUK BALANSHEET */
+/* Mematikan semua scrollbar bawaan di dalam q-scroll-area agar tampil rapi */
+:deep(.q-scrollarea__content) {
+  overflow-x: hidden !important;
+}
+
 .special-green-item {
-  background-color: #2e7d32 !important; /* Hijau tua permanen */
-  color: #ffffff !important; /* Teks putih permanen */
+  background-color: #2e7d32 !important;
+  color: #ffffff !important;
   font-weight: 700;
 
   .q-icon {
-    color: #ffffff !important; /* Ikon putih permanen */
+    color: #ffffff !important;
   }
 
   &:hover {
-    background-color: #1b5e20 !important; /* Sedikit lebih gelap saat di-hover */
+    background-color: #1b5e20 !important;
   }
 }
 
@@ -817,7 +983,7 @@ onUnmounted(() => {
   color: #ffffff !important;
   font-weight: 800 !important;
   background-color: #1b5e20 !important;
-  border-right: 5px solid #81c784; /* Garis aksen hijau muda */
+  border-right: 5px solid #81c784;
   .q-icon {
     color: #ffffff !important;
   }
