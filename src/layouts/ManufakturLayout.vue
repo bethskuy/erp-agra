@@ -1,21 +1,32 @@
 <template>
-  <q-layout view="lHh Lpr lFf">
-    <q-header elevated class="bg-teal-10 text-white">
-      <q-toolbar class="q-py-sm">
+  <q-layout view="lHh Lpr lFf" class="app-layout app-layout--manufacture">
+    <div class="layout-bg" aria-hidden="true">
+      <div class="layout-glow layout-glow-a"></div>
+      <div class="layout-glow layout-glow-b"></div>
+      <div class="layout-glow layout-glow-c"></div>
+      <div class="layout-grid"></div>
+      <div class="layout-particle layout-particle-1"></div>
+      <div class="layout-particle layout-particle-2"></div>
+      <div class="layout-particle layout-particle-3"></div>
+      <div class="layout-particle layout-particle-4"></div>
+    </div>
+
+    <q-header elevated class="app-header app-header--manufacture text-white">
+      <q-toolbar class="q-py-sm app-toolbar">
         <q-btn flat dense round icon="menu" @click="toggleLeftDrawer" />
-        <q-toolbar-title class="text-weight-bold">
+        <q-toolbar-title class="text-weight-bold app-brand">
           AGRA <span class="text-weight-light">ERP</span>
         </q-toolbar-title>
         <q-space />
 
-        <div class="q-gutter-sm row items-center no-wrap">
-          <q-btn round flat icon="notifications">
+        <div class="q-gutter-sm row items-center no-wrap app-header-actions">
+          <q-btn round flat icon="notifications" class="header-icon-btn">
             <q-badge color="red" floating>2</q-badge>
           </q-btn>
 
-          <q-btn round flat icon="apps">
+          <q-btn round flat icon="apps" class="header-icon-btn">
             <q-menu transition-show="scale" transition-hide="scale" :offset="[0, 15]">
-              <div class="q-pa-md" style="width: 320px">
+              <div class="q-pa-md app-menu-panel" style="width: 320px">
                 <div class="text-overline text-grey-7 q-mb-md">Modul Agra ERP</div>
                 <div class="row q-col-gutter-md">
                   <div class="col-4 text-center">
@@ -87,7 +98,7 @@
             </q-menu>
           </q-btn>
 
-          <q-btn round flat>
+          <q-btn round flat class="header-icon-btn">
             <q-avatar size="32px">
               <img src="https://cdn.quasar.dev/img/boy-avatar.png" />
             </q-avatar>
@@ -101,7 +112,7 @@
       show-if-above
       bordered
       :width="272"
-      class="sidebar-drawer bg-white"
+      class="sidebar-drawer"
     >
       <div class="sidebar-profile row items-center no-wrap border-bottom">
         <q-avatar size="40px" color="teal-10" text-color="white" class="text-weight-bold"
@@ -313,12 +324,10 @@
           <q-expansion-item
             v-if="
               hasSectionAccess([
-                'ppic/planning-produksi',
                 'ppic/work-order',
-                'ppic/jadwal-produksi',
+                'ppic/planning-produksi',
+                'ppic/proses-fabrikasi',
                 'ppic/material-requirement',
-                'ppic/routing-produksi',
-                'ppic/monitoring-ppic',
               ])
             "
             icon="assignment"
@@ -326,20 +335,6 @@
             header-class="nav-group"
             expand-icon-class="nav-expand-icon"
           >
-            <q-item
-              v-if="checkPermission('ppic/planning-produksi')"
-              clickable
-              v-ripple
-              to="/manufaktur/ppic/planning-produksi"
-              active-class="active-menu"
-              class="submenu-item"
-              dense
-            >
-              <q-item-section avatar class="submenu-icon"
-                ><q-icon name="assignment" size="xs"
-              /></q-item-section>
-              <q-item-section class="submenu-text">Planning Produksi</q-item-section>
-            </q-item>
             <q-item
               v-if="checkPermission('ppic/work-order')"
               clickable
@@ -355,18 +350,32 @@
               <q-item-section class="submenu-text">SPK Produksi</q-item-section>
             </q-item>
             <q-item
-              v-if="checkPermission('ppic/jadwal-produksi')"
+              v-if="checkPermission('ppic/planning-produksi')"
               clickable
               v-ripple
-              to="/manufaktur/ppic/jadwal-produksi"
+              to="/manufaktur/ppic/planning-produksi"
               active-class="active-menu"
               class="submenu-item"
               dense
             >
               <q-item-section avatar class="submenu-icon"
-                ><q-icon name="event_note" size="xs"
+                ><q-icon name="assignment" size="xs"
               /></q-item-section>
-              <q-item-section class="submenu-text">Jadwal Produksi</q-item-section>
+              <q-item-section class="submenu-text">Planning Produksi</q-item-section>
+            </q-item>
+            <q-item
+              v-if="checkPermission('ppic/proses-fabrikasi')"
+              clickable
+              v-ripple
+              to="/manufaktur/ppic/proses-fabrikasi"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="precision_manufacturing" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Proses Fabrikasi</q-item-section>
             </q-item>
             <q-item
               v-if="checkPermission('ppic/material-requirement')"
@@ -381,34 +390,6 @@
                 ><q-icon name="inventory" size="xs"
               /></q-item-section>
               <q-item-section class="submenu-text">Material Requirement</q-item-section>
-            </q-item>
-            <q-item
-              v-if="checkPermission('ppic/routing-produksi')"
-              clickable
-              v-ripple
-              to="/manufaktur/ppic/routing-produksi"
-              active-class="active-menu"
-              class="submenu-item"
-              dense
-            >
-              <q-item-section avatar class="submenu-icon"
-                ><q-icon name="route" size="xs"
-              /></q-item-section>
-              <q-item-section class="submenu-text">Tahapan Produksi</q-item-section>
-            </q-item>
-            <q-item
-              v-if="checkPermission('ppic/monitoring-ppic')"
-              clickable
-              v-ripple
-              to="/manufaktur/ppic/monitoring-ppic"
-              active-class="active-menu"
-              class="submenu-item"
-              dense
-            >
-              <q-item-section avatar class="submenu-icon"
-                ><q-icon name="monitoring" size="xs"
-              /></q-item-section>
-              <q-item-section class="submenu-text">Monitoring PPIC</q-item-section>
             </q-item>
           </q-expansion-item>
 
@@ -586,7 +567,7 @@
       </q-scroll-area>
     </q-drawer>
 
-    <q-page-container class="bg-grey-2">
+    <q-page-container class="app-page-container">
       <router-view />
     </q-page-container>
   </q-layout>
@@ -641,28 +622,211 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.bg-teal-10 {
-  background: #004d40 !important;
+.app-layout {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 8% 8%, rgba(16, 185, 129, 0.3), transparent 28%),
+    radial-gradient(circle at 86% 12%, rgba(34, 211, 238, 0.22), transparent 26%),
+    radial-gradient(circle at 50% 102%, rgba(6, 95, 70, 0.22), transparent 34%),
+    linear-gradient(
+      135deg,
+      #07130f 0%,
+      #0a1c21 20%,
+      #102a36 40%,
+      #12352d 58%,
+      #dcefe9 82%,
+      #f7fbfa 100%
+    );
+  background-size: 180% 180%;
+  animation: shellGradientShift 24s ease-in-out infinite;
+}
+.app-layout--manufacture {
+  isolation: isolate;
+}
+.app-layout--manufacture::before {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  content: '';
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.14), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 30%);
+  mix-blend-mode: screen;
+}
+.layout-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.layout-grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.22;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.16) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+  background-size: 76px 76px;
+  mask-image: radial-gradient(circle at center, black 24%, transparent 78%);
+  animation: gridDrift 42s linear infinite;
+}
+.layout-glow,
+.layout-particle {
+  position: absolute;
+  border-radius: 999px;
+}
+.layout-glow {
+  filter: blur(28px);
+  opacity: 0.68;
+  animation: floatBlob 18s ease-in-out infinite;
+}
+.layout-glow-a {
+  width: 440px;
+  height: 440px;
+  top: -150px;
+  left: -110px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.52), rgba(16, 185, 129, 0));
+}
+.layout-glow-b {
+  width: 380px;
+  height: 380px;
+  top: 12%;
+  right: -120px;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.32), rgba(34, 211, 238, 0));
+  animation-delay: -5s;
+}
+.layout-glow-c {
+  width: 540px;
+  height: 540px;
+  bottom: -220px;
+  left: 24%;
+  background: radial-gradient(circle, rgba(5, 150, 105, 0.24), rgba(5, 150, 105, 0));
+  animation-delay: -9s;
+}
+.layout-particle {
+  width: 7px;
+  height: 7px;
+  background: rgba(207, 250, 254, 0.34);
+  box-shadow: 0 0 20px rgba(103, 232, 249, 0.38);
+  animation: floatParticle 12s ease-in-out infinite;
+}
+.layout-particle-1 {
+  top: 20%;
+  left: 12%;
+  animation-delay: 0s;
+}
+.layout-particle-2 {
+  top: 34%;
+  left: 26%;
+  animation-delay: -2s;
+}
+.layout-particle-3 {
+  top: 66%;
+  right: 18%;
+  animation-delay: -4s;
+}
+.layout-particle-4 {
+  bottom: 22%;
+  left: 54%;
+  animation-delay: -6s;
+}
+.app-header {
+  position: relative;
+  z-index: 2;
+  backdrop-filter: blur(16px);
+}
+.app-header--manufacture {
+  background:
+    linear-gradient(135deg, rgba(4, 31, 28, 0.88), rgba(5, 74, 63, 0.84), rgba(8, 47, 73, 0.86)),
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.15), transparent 28%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 18px 42px rgba(3, 20, 28, 0.3);
+  background-size: 220% 220%;
+  animation: gradientMove 18s ease infinite;
+}
+.app-toolbar {
+  min-height: 66px;
+}
+.app-brand {
+  letter-spacing: 1.5px;
+}
+.app-header-actions {
+  padding: 6px 10px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+.header-icon-btn {
+  transition:
+    transform 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+.header-icon-btn:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 22px rgba(0, 0, 0, 0.12);
+}
+.app-menu-panel {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.16);
+  border-radius: 18px;
+}
+.app-page-container {
+  position: relative;
+  z-index: 1;
+}
+.app-page-container :deep(.q-page) {
+  background: transparent !important;
 }
 .border-bottom {
-  border-bottom: 1px solid #edf1f0;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
 }
 .sidebar-drawer {
-  color: #22312f;
+  color: #eafaf4;
   transition:
     width 0.24s ease,
     transform 0.24s ease;
 }
 .sidebar-drawer :deep(.q-drawer) {
+  color: #eafaf4;
+  background: #062f2b;
+  border-right: 1px solid rgba(167, 243, 208, 0.12);
+  box-shadow:
+    20px 0 42px rgba(2, 12, 18, 0.34),
+    inset -1px 0 0 rgba(255, 255, 255, 0.05);
   transition:
     width 0.24s ease,
     transform 0.24s ease;
+}
+.sidebar-drawer :deep(.q-drawer__content) {
+  color: #eafaf4;
+  background: #062f2b;
+}
+.sidebar-drawer :deep(.q-list) {
+  color: #eafaf4;
+}
+.sidebar-drawer :deep(.q-item) {
+  color: #eafaf4;
+}
+.sidebar-drawer :deep(.q-item__label) {
+  color: inherit;
+}
+.sidebar-drawer :deep(.q-icon) {
+  color: inherit;
 }
 .sidebar-profile {
   min-height: 72px;
   padding: 12px 16px;
   gap: 10px;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fbfa 100%);
+  background: #07352f;
 }
 .sidebar-profile__meta {
   min-width: 0;
@@ -671,7 +835,7 @@ onUnmounted(() => {
 .sidebar-profile__name {
   max-width: 184px;
   overflow: hidden;
-  color: #17211f;
+  color: #f0fdf4;
   font-size: 13px;
   font-weight: 700;
   text-overflow: ellipsis;
@@ -679,42 +843,45 @@ onUnmounted(() => {
 }
 .sidebar-profile__role {
   margin-top: 3px;
-  color: #6a7a76;
+  color: rgba(167, 243, 208, 0.62);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.8px;
   text-transform: uppercase;
 }
 .sidebar-scroll {
-  background: #fbfcfc;
+  background: #062f2b;
 }
 .menu-list {
-  padding: 8px 8px 14px;
+  padding: 10px 10px 16px;
 }
 .section-title {
   min-height: auto;
-  padding: 13px 10px 6px;
-  color: #7b8b86;
+  margin: 10px 4px 6px;
+  padding: 0 10px;
+  color: #b8c7c3;
   font-size: 10px;
   font-weight: 800;
-  letter-spacing: 0.9px;
+  letter-spacing: 1.2px;
   line-height: 1;
 }
 .sidebar-separator {
-  margin: 8px 8px 2px;
-  background: #edf1f0;
+  margin: 10px 8px 4px;
+  background: linear-gradient(90deg, transparent, rgba(167, 243, 208, 0.14), transparent);
 }
 .menu-item {
-  min-height: 36px;
-  margin: 1px 4px;
-  padding: 0 10px;
-  border-radius: 8px;
-  color: #354541;
+  min-height: 38px;
+  margin: 3px 2px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  color: #eafaf4;
   font-size: 13px;
   font-weight: 650;
   letter-spacing: 0;
   transition:
-    background-color 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease,
     color 0.18s ease,
     box-shadow 0.18s ease,
     transform 0.18s ease;
@@ -723,12 +890,18 @@ onUnmounted(() => {
 .submenu-item:hover,
 :deep(.submenu-group:hover),
 :deep(.nav-group:hover) {
-  background: #edf7f3;
-  color: #004d40;
+  background: #0b473f;
+  border-color: rgba(110, 231, 183, 0.28);
+  color: #f4fffb;
+  box-shadow:
+    0 12px 26px rgba(2, 12, 18, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 .menu-item:hover,
-.submenu-item:hover {
-  transform: translateX(1px);
+.submenu-item:hover,
+:deep(.submenu-group:hover),
+:deep(.nav-group:hover) {
+  transform: translateX(3px);
 }
 .menu-icon,
 .submenu-icon {
@@ -747,16 +920,18 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 .submenu-item {
-  min-height: 32px;
-  margin: 1px 4px 1px 20px;
-  padding: 0 10px;
-  border-radius: 8px;
-  color: #42524e;
+  min-height: 34px;
+  margin: 2px 2px 2px 18px;
+  padding: 0 11px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  color: #d6f3e9;
   font-size: 12.5px;
   font-weight: 550;
   letter-spacing: 0;
   transition:
-    background-color 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease,
     color 0.18s ease,
     box-shadow 0.18s ease,
     transform 0.18s ease;
@@ -764,22 +939,24 @@ onUnmounted(() => {
 .submenu-icon {
   min-width: 24px;
   padding-right: 7px;
-  color: #7a8a86;
+  color: #9bcfc1;
 }
 .submenu-item:hover .submenu-icon {
-  color: #006b59;
+  color: #a7f3d0;
 }
 :deep(.submenu-group) {
-  min-height: 32px;
-  margin: 1px 4px 1px 20px;
-  padding: 0 10px;
-  border-radius: 8px;
-  color: #42524e;
+  min-height: 34px;
+  margin: 2px 2px 2px 18px;
+  padding: 0 11px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  color: #d6f3e9;
   font-size: 12.5px;
   font-weight: 650;
   letter-spacing: 0;
   transition:
-    background-color 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease,
     color 0.18s ease,
     box-shadow 0.18s ease,
     transform 0.18s ease;
@@ -787,7 +964,7 @@ onUnmounted(() => {
 :deep(.submenu-group .q-item__section--avatar) {
   min-width: 24px;
   padding-right: 7px;
-  color: #7a8a86;
+  color: #9bcfc1;
 }
 :deep(.submenu-group .q-item__label) {
   min-width: 0;
@@ -797,11 +974,12 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 :deep(.q-expansion-item--expanded > .submenu-group) {
-  color: #004d40;
-  background: #f2f8f5;
+  color: #eafaf4;
+  background: #0a3c35;
+  border-color: rgba(110, 231, 183, 0.2);
 }
 :deep(.q-expansion-item--expanded > .submenu-group .q-item__section--avatar) {
-  color: #006b59;
+  color: #a7f3d0;
 }
 .master-child-item {
   margin-left: 20px;
@@ -813,28 +991,32 @@ onUnmounted(() => {
   margin-left: 38px;
 }
 :deep(.nav-group) {
-  min-height: 36px;
-  margin: 1px 4px;
-  padding: 0 10px;
-  border-radius: 8px;
-  color: #263936;
+  min-height: 38px;
+  margin: 3px 2px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  color: #eafaf4;
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0;
   transition:
-    background-color 0.18s ease,
-    color 0.18s ease;
+    background 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
 }
 :deep(.nav-group .q-item__section--avatar) {
   min-width: 30px;
   padding-right: 8px;
-  color: #60716d;
+  color: #b4e5d7;
 }
 :deep(.nav-group .q-item__label) {
   line-height: 1.1;
 }
 :deep(.nav-expand-icon) {
-  color: #8a9894;
+  color: #9bcfc1;
   font-size: 18px;
 }
 :deep(.q-expansion-item__content) {
@@ -844,17 +1026,25 @@ onUnmounted(() => {
     opacity 0.18s ease;
 }
 :deep(.q-expansion-item--expanded > .nav-group) {
-  color: #004d40;
-  background: #f2f8f5;
+  color: #f4fffb;
+  background: #0a3c35;
+  border-color: rgba(110, 231, 183, 0.24);
+  box-shadow:
+    0 12px 26px rgba(2, 12, 18, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 :deep(.q-expansion-item--expanded > .nav-group .q-item__section--avatar) {
-  color: #006b59;
+  color: #a7f3d0;
 }
 .active-menu {
   color: white !important;
-  background: linear-gradient(135deg, #004d40 0%, #00705c 100%) !important;
-  border-radius: 9px !important;
-  box-shadow: 0 8px 20px rgba(0, 77, 64, 0.2);
+  background: #10b981 !important;
+  border-color: rgba(209, 250, 229, 0.44) !important;
+  border-radius: 14px !important;
+  box-shadow:
+    0 0 0 1px rgba(167, 243, 208, 0.08),
+    0 16px 34px rgba(16, 185, 129, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.24);
   font-weight: 750;
 }
 .active-menu .submenu-icon,
@@ -869,6 +1059,56 @@ onUnmounted(() => {
 .animate-bounce {
   animation: bounce 2.2s infinite;
 }
+@keyframes gradientMove {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+@keyframes shellGradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+@keyframes floatBlob {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(18px, 14px, 0) scale(1.08);
+  }
+}
+@keyframes gridDrift {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-76px, -76px, 0);
+  }
+}
+@keyframes floatParticle {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translate3d(0, -18px, 0) scale(1.18);
+    opacity: 0.7;
+  }
+}
 @keyframes bounce {
   0%,
   20%,
@@ -882,6 +1122,21 @@ onUnmounted(() => {
   }
   60% {
     transform: translateY(-2px);
+  }
+}
+
+@media (max-width: 700px) {
+  .app-header-actions {
+    padding: 4px 6px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-layout,
+  .layout-grid,
+  .layout-glow,
+  .layout-particle,
+  .app-header--manufacture {
+    animation: none;
   }
 }
 </style>

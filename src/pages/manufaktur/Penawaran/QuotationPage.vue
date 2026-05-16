@@ -1,50 +1,93 @@
 <template>
-  <q-page class="bg-grey-2 q-pa-md q-pa-md-lg font-pro">
-    <!-- HEADER UTAMA -->
-    <div class="row items-center q-col-gutter-md q-mb-xl animate-fade no-print text-left">
-      <div class="col-12 col-md-6">
-        <div class="text-h4 text-weight-bolder text-teal-10 leading-tight">
-          Manajemen Penawaran
-          <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs">
-            Quotation & Commercial Bidding Manufaktur
-          </span>
-        </div>
-      </div>
+  <q-page class="quotation-page q-pa-md q-pa-md-lg font-pro">
+    <div class="hero-shell no-print q-mb-lg animate-fade">
+      <div class="hero-glow hero-glow-a"></div>
+      <div class="hero-glow hero-glow-b"></div>
 
-      <div class="col-12 col-md-6">
-        <div class="row q-col-gutter-sm justify-end items-center">
-          <div class="col-12 col-sm-7">
-            <!-- KOLOM SEARCH -->
-            <q-input
-              v-model="filter"
-              placeholder="Cari No. Penawaran atau Customer..."
-              outlined
-              dense
-              bg-color="white"
-              color="teal-10"
-              class="rounded-10 shadow-sm"
-            >
-              <template v-slot:append>
-                <q-icon name="search" color="teal-10" />
-              </template>
-            </q-input>
+      <div class="quotation-hero row items-center q-col-gutter-lg">
+        <div class="col-12 col-lg-7">
+          <div class="row items-center no-wrap hero-title-wrap">
+            <div class="lottie-shell q-mr-md">
+              <Vue3Lottie
+                :animation-data="quotationAnimation"
+                :height="104"
+                :width="104"
+                :speed="0.9"
+                loop
+                autoplay
+              />
+            </div>
+            <div>
+              <div class="hero-kicker">Manufacturing Commercial Control</div>
+              <div class="hero-title">Manajemen Penawaran</div>
+              <div class="hero-subtitle">Quotation & commercial bidding manufaktur</div>
+            </div>
           </div>
-          <div class="col-12 col-sm-auto">
-            <q-btn
-              v-if="canAction('buat')"
-              label="Buat Penawaran Baru"
-              icon="add"
-              color="teal-10"
-              class="rounded-10 q-px-md shadow-2 full-width"
-              @click="openAddDialog"
-            />
+        </div>
+
+        <div class="col-12 col-lg-5">
+          <div class="hero-tools row q-col-gutter-sm justify-end items-center">
+            <div class="col-12 col-sm-7">
+              <q-input
+                v-model="filter"
+                placeholder="Cari No. Penawaran atau Customer..."
+                outlined
+                dense
+                color="white"
+                class="enterprise-search"
+              >
+                <template v-slot:prepend>
+                  <q-icon name="manage_search" />
+                </template>
+              </q-input>
+            </div>
+            <div class="col-12 col-sm-auto">
+              <q-btn
+                v-if="canAction('buat')"
+                label="Buat Penawaran Baru"
+                icon="add"
+                class="hero-action-btn full-width"
+                @click="openAddDialog"
+              />
+            </div>
           </div>
         </div>
       </div>
     </div>
 
+    <div class="kpi-grid row q-col-gutter-md q-mb-lg no-print">
+      <div class="col-12 col-sm-6 col-xl-3">
+        <div class="kpi-card kpi-pending">
+          <div class="kpi-label">Quotation Pending</div>
+          <div class="kpi-value">{{ kpiPending }}</div>
+          <div class="kpi-hint">Menunggu approval</div>
+        </div>
+      </div>
+      <div class="col-12 col-sm-6 col-xl-3">
+        <div class="kpi-card kpi-approved">
+          <div class="kpi-label">Approved Count</div>
+          <div class="kpi-value">{{ kpiApproved }}</div>
+          <div class="kpi-hint">Sudah disetujui</div>
+        </div>
+      </div>
+      <div class="col-12 col-sm-6 col-xl-3">
+        <div class="kpi-card kpi-rejected">
+          <div class="kpi-label">Rejected Count</div>
+          <div class="kpi-value">{{ kpiRejected }}</div>
+          <div class="kpi-hint">Ditolak atau dibatalkan</div>
+        </div>
+      </div>
+      <div class="col-12 col-sm-6 col-xl-3">
+        <div class="kpi-card kpi-total">
+          <div class="kpi-label">Total Documents</div>
+          <div class="kpi-value">{{ kpiTotal }}</div>
+          <div class="kpi-hint">Seluruh quotation aktif</div>
+        </div>
+      </div>
+    </div>
+
     <!-- TABEL DAFTAR PENAWARAN -->
-    <q-card flat bordered class="rounded-20 shadow-sm overflow-hidden bg-white no-print">
+    <q-card flat class="quotation-table-card rounded-20 overflow-hidden no-print">
       <q-table
         :rows="allRows"
         :columns="columns"
@@ -53,10 +96,10 @@
         :loading="loading"
         :filter="filter"
         binary-state-sort
-        class="approval-table"
+        class="approval-table modern-table"
       >
         <template v-slot:header="props">
-          <q-tr :props="props" class="bg-teal-10 text-white">
+          <q-tr :props="props" class="table-header-row text-white">
             <q-th
               v-for="col in props.cols"
               :key="col.name"
@@ -71,7 +114,7 @@
         <template v-slot:body="props">
           <q-tr
             :props="props"
-            class="hover-bg transition-all cursor-pointer"
+            class="quotation-row cursor-pointer"
             @click="openApproval(props.row)"
           >
             <q-td key="nomor" class="text-weight-bolder text-teal-10">{{ props.row.nomor }}</q-td>
@@ -886,6 +929,8 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
+import { Vue3Lottie } from 'vue3-lottie'
+import quotationAnimation from 'src/assets/animations/Quotation.json'
 import { db } from 'src/boot/firebase'
 import {
   collection,
@@ -905,7 +950,7 @@ import { useAuthStore } from 'src/stores/auth'
 const $q = useQuasar()
 const authStore = useAuthStore()
 const FONNTE_TOKEN = 'F7DnXR9G9tfsse19hEym'
-const DIRECTOR_WA = '081398354196'
+const DIRECTOR_WA = '081311921434'
 
 const allRows = ref([])
 const loading = ref(true)
@@ -917,6 +962,10 @@ const selectedData = ref(null)
 const userData = ref(null)
 const selectedCustomer = ref(null)
 const customerOptions = ref([])
+const kpiPending = computed(() => allRows.value.filter((row) => row.status === 'Pending').length)
+const kpiApproved = computed(() => allRows.value.filter((row) => row.status === 'Approved').length)
+const kpiRejected = computed(() => allRows.value.filter((row) => row.status === 'Rejected').length)
+const kpiTotal = computed(() => allRows.value.length)
 
 const formDefault = {
   nama_pt: 'PT AGRA ABHINAYA PERKASA',
@@ -1190,6 +1239,212 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.quotation-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(34, 197, 94, 0.12), transparent 28%),
+    radial-gradient(circle at 84% 12%, rgba(16, 185, 129, 0.1), transparent 26%),
+    radial-gradient(circle at 50% 98%, rgba(6, 95, 70, 0.08), transparent 34%),
+    linear-gradient(180deg, #f4fbf7 0%, #eef6f1 46%, #f8fbfa 100%);
+  color: #10231d;
+}
+.hero-shell {
+  position: relative;
+}
+.quotation-hero {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 28px;
+  padding: 28px;
+  background:
+    linear-gradient(120deg, rgba(2, 83, 64, 0.98), rgba(5, 128, 91, 0.96), rgba(22, 163, 117, 0.94)),
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.22), transparent 28%);
+  background-size: 220% 220%;
+  box-shadow: 0 24px 70px rgba(4, 72, 56, 0.24);
+  isolation: isolate;
+  animation: gradientMove 12s ease infinite;
+}
+.quotation-hero::before {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 32%);
+  pointer-events: none;
+}
+.hero-glow {
+  position: absolute;
+  z-index: -1;
+  width: 260px;
+  height: 260px;
+  border-radius: 999px;
+  filter: blur(14px);
+  opacity: 0.44;
+  animation: glowPulse 8s ease-in-out infinite;
+}
+.hero-glow-a {
+  top: -90px;
+  left: -80px;
+  background: rgba(174, 255, 211, 0.8);
+}
+.hero-glow-b {
+  right: 6%;
+  bottom: -130px;
+  background: rgba(45, 212, 191, 0.7);
+  animation-delay: -3s;
+}
+.hero-title-wrap {
+  min-width: 0;
+}
+.lottie-shell {
+  display: flex;
+  width: 104px;
+  min-width: 104px;
+  height: 104px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 20px 42px rgba(0, 0, 0, 0.16);
+  backdrop-filter: blur(12px);
+  animation: floatIcon 4.8s ease-in-out infinite;
+}
+.hero-kicker {
+  color: rgba(220, 252, 231, 0.84);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.hero-title {
+  margin-top: 4px;
+  color: #ffffff;
+  font-size: clamp(1.75rem, 2.6vw, 2.65rem);
+  font-weight: 900;
+  line-height: 1.05;
+  text-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+}
+.hero-subtitle {
+  margin-top: 9px;
+  max-width: 560px;
+  color: rgba(236, 253, 245, 0.86);
+  font-size: 1rem;
+  font-weight: 500;
+}
+.hero-tools {
+  position: relative;
+  z-index: 1;
+}
+.enterprise-search :deep(.q-field__control) {
+  height: 46px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 12px 28px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(12px);
+}
+.enterprise-search :deep(.q-field__native),
+.enterprise-search :deep(.q-field__prepend) {
+  color: #ffffff;
+}
+.enterprise-search :deep(.q-field__native::placeholder) {
+  color: rgba(255, 255, 255, 0.72);
+}
+.enterprise-search :deep(.q-field__control::before),
+.enterprise-search :deep(.q-field__control::after) {
+  border: 0;
+}
+.hero-action-btn {
+  min-height: 46px;
+  border-radius: 16px;
+  color: #064e3b;
+  background: #ecfdf5;
+  font-weight: 800;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.14);
+}
+.kpi-card {
+  position: relative;
+  overflow: hidden;
+  padding: 18px 18px 16px;
+  border: 1px solid rgba(7, 95, 74, 0.1);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.07);
+  backdrop-filter: blur(12px);
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease,
+    border-color 220ms ease;
+}
+.kpi-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 24px 52px rgba(15, 23, 42, 0.11);
+}
+.kpi-label {
+  color: #64748b;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.kpi-value {
+  margin-top: 6px;
+  color: #062f23;
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1;
+}
+.kpi-hint {
+  margin-top: 6px;
+  color: #5e6f6a;
+  font-size: 0.88rem;
+}
+.kpi-pending .kpi-value {
+  color: #b45309;
+}
+.kpi-approved .kpi-value {
+  color: #047857;
+}
+.kpi-rejected .kpi-value {
+  color: #dc2626;
+}
+.quotation-table-card {
+  border: 1px solid rgba(7, 95, 74, 0.12);
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: 0 22px 48px rgba(15, 23, 42, 0.09);
+  backdrop-filter: blur(14px);
+}
+.table-header-row {
+  background: linear-gradient(135deg, #064e3b, #047857);
+}
+.modern-table :deep(.q-table tbody td) {
+  height: 62px;
+}
+.quotation-row {
+  transition:
+    background-color 180ms ease,
+    transform 180ms ease;
+}
+.quotation-row:hover {
+  background: rgba(16, 185, 129, 0.08);
+}
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes glowPulse {
+  0%,
+  100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+@keyframes floatIcon {
+  0%,
+  100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
 .text-teal-10 {
   color: #004d40;
 }

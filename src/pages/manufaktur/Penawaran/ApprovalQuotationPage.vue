@@ -1,47 +1,97 @@
 <template>
-  <q-page class="bg-grey-2 q-pa-md q-pa-md-lg font-pro text-left">
-    <!-- HEADER SECTION -->
-    <div class="row items-center q-col-gutter-md q-mb-xl animate-fade no-print">
-      <div class="col-12 col-md-6">
-        <div class="text-h4 text-weight-bolder text-teal-10 leading-tight">
-          Otorisasi Penawaran (ACC)
-          <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
-            >Persetujuan & Histori Quotation Manufaktur</span
-          >
-        </div>
+  <q-page class="approval-page q-pa-md q-pa-md-lg font-pro text-left">
+    <div class="hero-shell no-print q-mb-lg animate-fade">
+      <div class="hero-glow hero-glow-a"></div>
+      <div class="hero-glow hero-glow-b"></div>
+      <div class="hero-particles">
+        <span v-for="n in 12" :key="n" class="hero-particle"></span>
       </div>
 
-      <div class="col-12 col-md-6">
-        <div class="row q-col-gutter-sm justify-end items-center">
-          <div class="col-12 col-sm-7">
-            <q-input
-              v-model="filter"
-              placeholder="Cari No. Penawaran atau Customer..."
-              outlined
-              dense
-              bg-color="white"
-              color="teal-10"
-              class="rounded-10 shadow-sm"
-            >
-              <template v-slot:append>
-                <q-icon name="search" color="teal-10" />
-              </template>
-            </q-input>
-          </div>
-          <div class="col-12 col-sm-auto text-right">
-            <div class="text-caption text-grey-6 q-mb-xs uppercase text-weight-bold">
-              Total Dokumen
+      <div class="approval-hero row items-center q-col-gutter-lg">
+        <div class="col-12 col-lg-7">
+          <div class="row items-center no-wrap hero-title-wrap">
+            <div class="lottie-shell q-mr-md">
+              <Vue3Lottie
+                :animation-data="approvalAnimation"
+                :height="104"
+                :width="104"
+                :speed="0.9"
+                loop
+                autoplay
+              />
             </div>
-            <q-badge color="teal-10" class="q-px-md q-py-xs text-weight-bold shadow-1">
-              {{ allRows.length }} Dokumen Terdata
-            </q-badge>
+            <div>
+              <div class="hero-kicker">Manufacturing Quotation Control</div>
+              <div class="hero-title">Otorisasi Penawaran (ACC)</div>
+              <div class="hero-subtitle">Persetujuan & histori quotation manufaktur</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-5">
+          <div class="hero-tools row q-col-gutter-sm justify-end items-center">
+            <div class="col-12 col-sm-8">
+              <q-input
+                v-model="filter"
+                placeholder="Cari No. Penawaran atau Customer..."
+                outlined
+                dense
+                color="white"
+                class="enterprise-search"
+              >
+                <template v-slot:prepend>
+                  <q-icon name="manage_search" />
+                </template>
+                <template v-slot:append>
+                  <q-icon name="tune" />
+                </template>
+              </q-input>
+            </div>
+            <div class="col-12 col-sm-auto text-right">
+              <div class="hero-stat-label">Total Dokumen</div>
+              <div class="hero-stat-badge">
+                <span>{{ allRows.length }}</span>
+                <small>Dokumen Terdata</small>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
+    <div class="kpi-grid row q-col-gutter-md q-mb-lg no-print">
+      <div class="col-12 col-sm-6 col-xl-3">
+        <div class="kpi-card kpi-pending">
+          <div class="kpi-label">Quotation Pending</div>
+          <div class="kpi-value">{{ kpiPending }}</div>
+          <div class="kpi-hint">Menunggu proses otorisasi</div>
+        </div>
+      </div>
+      <div class="col-12 col-sm-6 col-xl-3">
+        <div class="kpi-card kpi-approved">
+          <div class="kpi-label">Approved Count</div>
+          <div class="kpi-value">{{ kpiApproved }}</div>
+          <div class="kpi-hint">Sudah disetujui</div>
+        </div>
+      </div>
+      <div class="col-12 col-sm-6 col-xl-3">
+        <div class="kpi-card kpi-rejected">
+          <div class="kpi-label">Rejected Count</div>
+          <div class="kpi-value">{{ kpiRejected }}</div>
+          <div class="kpi-hint">Ditolak atau dibatalkan</div>
+        </div>
+      </div>
+      <div class="col-12 col-sm-6 col-xl-3">
+        <div class="kpi-card kpi-total">
+          <div class="kpi-label">Total Documents</div>
+          <div class="kpi-value">{{ kpiTotal }}</div>
+          <div class="kpi-hint">Seluruh quotation aktif</div>
+        </div>
+      </div>
+    </div>
+
     <!-- TABLE LIST -->
-    <q-card flat bordered class="rounded-20 shadow-sm overflow-hidden bg-white no-print">
+    <q-card flat class="approval-table-card rounded-20 overflow-hidden no-print">
       <q-table
         :rows="allRows"
         :columns="columns"
@@ -50,10 +100,10 @@
         :loading="loading"
         :filter="filter"
         binary-state-sort
-        class="approval-table"
+        class="approval-table modern-table"
       >
         <template v-slot:header="props">
-          <q-tr :props="props" class="bg-teal-10 text-white">
+          <q-tr :props="props" class="table-header-row text-white">
             <q-th
               v-for="col in props.cols"
               :key="col.name"
@@ -68,22 +118,20 @@
         <template v-slot:body="props">
           <q-tr
             :props="props"
-            class="hover-bg transition-all cursor-pointer"
+            class="approval-row cursor-pointer"
             @click="openApproval(props.row)"
           >
-            <q-td key="nomor" class="text-weight-bolder text-teal-10">{{ props.row.nomor }}</q-td>
-            <q-td key="nama_customer" class="text-weight-bold uppercase">{{
-              props.row.nama_customer
-            }}</q-td>
-            <q-td key="total_harga" class="text-right text-weight-bolder">
+            <q-td key="nomor" class="reference-cell">{{ props.row.nomor }}</q-td>
+            <q-td key="nama_customer" class="client-cell uppercase">{{ props.row.nama_customer }}</q-td>
+            <q-td key="total_harga" class="amount-cell text-right">
               IDR {{ calculateRowTotal(props.row).toLocaleString() }}
             </q-td>
             <q-td key="status" class="text-center">
               <q-chip
-                text-color="white"
                 size="sm"
-                class="text-weight-bold"
-                :color="getStatusColor(props.row.status)"
+                class="status-pill"
+                :class="`status-${(props.row.status || 'Pending').toLowerCase()}`"
+                :data-status-color="getStatusColor(props.row.status)"
               >
                 {{ props.row.status }}
               </q-chip>
@@ -92,7 +140,7 @@
               <q-btn
                 flat
                 round
-                color="teal-10"
+                class="action-btn action-view"
                 icon="visibility"
                 size="sm"
                 @click="openApproval(props.row)"
@@ -103,7 +151,7 @@
                 <q-btn
                   flat
                   round
-                  color="positive"
+                  class="action-btn action-approve"
                   icon="check_circle"
                   size="sm"
                   :loading="actionLoading === `${props.row.id}-Approved`"
@@ -114,7 +162,7 @@
                 <q-btn
                   flat
                   round
-                  color="negative"
+                  class="action-btn action-reject"
                   icon="cancel"
                   size="sm"
                   :loading="actionLoading === `${props.row.id}-Rejected`"
@@ -281,6 +329,8 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { Vue3Lottie } from 'vue3-lottie'
+import approvalAnimation from 'src/assets/animations/ApprovalSign.json'
 import { db } from 'src/boot/firebase'
 import {
   collection,
@@ -345,6 +395,10 @@ const normalizeQuotation = (row) => ({
 })
 
 const primarySigner = computed(() => selectedData.value?.signers?.[0] || defaultSigner)
+const kpiPending = computed(() => allRows.value.filter((row) => row.status === 'Pending').length)
+const kpiApproved = computed(() => allRows.value.filter((row) => row.status === 'Approved').length)
+const kpiRejected = computed(() => allRows.value.filter((row) => row.status === 'Rejected').length)
+const kpiTotal = computed(() => allRows.value.length)
 
 const calculateRowTotal = (row, type = 'grand') => {
   if (!row || !row.items) return 0
@@ -504,6 +558,399 @@ onUnmounted(() => {
 .font-pro {
   font-family: 'Inter', sans-serif;
 }
+.approval-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(34, 197, 94, 0.12), transparent 28%),
+    radial-gradient(circle at 84% 12%, rgba(16, 185, 129, 0.1), transparent 26%),
+    radial-gradient(circle at 50% 98%, rgba(6, 95, 70, 0.08), transparent 34%),
+    linear-gradient(180deg, #f4fbf7 0%, #eef6f1 46%, #f8fbfa 100%);
+  color: #10231d;
+}
+.hero-shell {
+  position: relative;
+}
+.approval-hero {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 28px;
+  padding: 28px;
+  background:
+    linear-gradient(120deg, rgba(2, 83, 64, 0.98), rgba(5, 128, 91, 0.96), rgba(22, 163, 117, 0.94)),
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.22), transparent 28%);
+  background-size: 220% 220%;
+  box-shadow: 0 24px 70px rgba(4, 72, 56, 0.24);
+  isolation: isolate;
+  animation: gradientMove 12s ease infinite;
+}
+.approval-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 32%);
+  pointer-events: none;
+}
+.approval-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.13) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: linear-gradient(90deg, rgba(0, 0, 0, 0.58), transparent);
+}
+.hero-glow {
+  position: absolute;
+  z-index: -1;
+  width: 260px;
+  height: 260px;
+  border-radius: 999px;
+  filter: blur(14px);
+  opacity: 0.44;
+  animation: glowPulse 8s ease-in-out infinite;
+}
+.hero-glow-a {
+  left: -80px;
+  top: -90px;
+  background: rgba(174, 255, 211, 0.8);
+}
+.hero-glow-b {
+  right: 6%;
+  bottom: -130px;
+  background: rgba(45, 212, 191, 0.7);
+  animation-delay: -3s;
+}
+.hero-particles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.hero-particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 0 18px rgba(255, 255, 255, 0.35);
+  animation: floatIcon 8s linear infinite;
+}
+.hero-particle:nth-child(1) { left: 8%; top: 20%; animation-delay: 0s; }
+.hero-particle:nth-child(2) { left: 14%; top: 68%; animation-delay: -1s; }
+.hero-particle:nth-child(3) { left: 22%; top: 34%; animation-delay: -2s; }
+.hero-particle:nth-child(4) { left: 34%; top: 78%; animation-delay: -3s; }
+.hero-particle:nth-child(5) { left: 44%; top: 18%; animation-delay: -4s; }
+.hero-particle:nth-child(6) { left: 56%; top: 62%; animation-delay: -5s; }
+.hero-particle:nth-child(7) { left: 66%; top: 28%; animation-delay: -6s; }
+.hero-particle:nth-child(8) { left: 74%; top: 72%; animation-delay: -1.5s; }
+.hero-particle:nth-child(9) { left: 82%; top: 22%; animation-delay: -2.5s; }
+.hero-particle:nth-child(10) { left: 90%; top: 58%; animation-delay: -3.5s; }
+.hero-particle:nth-child(11) { left: 94%; top: 30%; animation-delay: -4.5s; }
+.hero-particle:nth-child(12) { left: 60%; top: 84%; animation-delay: -5.5s; }
+.hero-title-wrap {
+  min-width: 0;
+}
+.lottie-shell {
+  width: 104px;
+  min-width: 104px;
+  height: 104px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 20px 42px rgba(0, 0, 0, 0.16);
+  backdrop-filter: blur(12px);
+  animation: floatIcon 4.8s ease-in-out infinite;
+}
+.hero-kicker {
+  color: rgba(220, 252, 231, 0.84);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.hero-title {
+  margin-top: 4px;
+  color: #ffffff;
+  font-size: clamp(1.75rem, 2.6vw, 2.65rem);
+  font-weight: 900;
+  line-height: 1.05;
+  text-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  animation: fadeInUp 800ms ease both;
+}
+.hero-subtitle {
+  margin-top: 9px;
+  max-width: 560px;
+  color: rgba(236, 253, 245, 0.86);
+  font-size: 1rem;
+  font-weight: 500;
+  animation: fadeInUp 900ms ease both;
+}
+.hero-tools {
+  position: relative;
+  z-index: 1;
+}
+.enterprise-search :deep(.q-field__control) {
+  height: 46px;
+  border-radius: 16px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 12px 28px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(12px);
+}
+.enterprise-search :deep(.q-field__native),
+.enterprise-search :deep(.q-field__prepend),
+.enterprise-search :deep(.q-field__append) {
+  color: #ffffff;
+}
+.enterprise-search :deep(.q-field__native::placeholder) {
+  color: rgba(255, 255, 255, 0.72);
+}
+.enterprise-search :deep(.q-field__control::before),
+.enterprise-search :deep(.q-field__control::after) {
+  border: 0;
+}
+.enterprise-search :deep(.q-field__prepend .q-icon),
+.enterprise-search :deep(.q-field__append .q-icon) {
+  padding: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+}
+.enterprise-search :deep(.q-field__control:hover) {
+  transform: translateY(-1px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 16px 32px rgba(0, 0, 0, 0.16);
+}
+.hero-stat-label {
+  margin-bottom: 6px;
+  color: rgba(220, 252, 231, 0.76);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.hero-stat-badge {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 16px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(12px);
+}
+.hero-stat-badge span {
+  font-size: 1.35rem;
+  font-weight: 900;
+  line-height: 1;
+}
+.hero-stat-badge small {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: rgba(236, 253, 245, 0.82);
+}
+.kpi-grid {
+  position: relative;
+  z-index: 1;
+}
+.kpi-card {
+  position: relative;
+  overflow: hidden;
+  padding: 18px 18px 16px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(7, 95, 74, 0.1);
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.07);
+  backdrop-filter: blur(12px);
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease,
+    border-color 220ms ease;
+  animation: fadeInUp 700ms ease both;
+}
+.kpi-card::after {
+  content: '';
+  position: absolute;
+  inset: auto -30px -40px auto;
+  width: 120px;
+  height: 120px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.14), transparent 68%);
+  pointer-events: none;
+}
+.kpi-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 24px 52px rgba(15, 23, 42, 0.11);
+}
+.kpi-label {
+  color: #64748b;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.kpi-value {
+  margin-top: 6px;
+  color: #062f23;
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1;
+}
+.kpi-hint {
+  margin-top: 6px;
+  color: #5e6f6a;
+  font-size: 0.88rem;
+}
+.kpi-pending {
+  border-color: rgba(245, 158, 11, 0.18);
+}
+.kpi-pending .kpi-value {
+  color: #b45309;
+}
+.kpi-approved {
+  border-color: rgba(16, 185, 129, 0.18);
+}
+.kpi-approved .kpi-value {
+  color: #047857;
+}
+.kpi-rejected {
+  border-color: rgba(239, 68, 68, 0.18);
+}
+.kpi-rejected .kpi-value {
+  color: #b91c1c;
+}
+.kpi-total {
+  border-color: rgba(14, 165, 233, 0.16);
+}
+.kpi-total .kpi-value {
+  color: #0369a1;
+}
+.approval-table-card {
+  position: relative;
+  border: 1px solid rgba(7, 95, 74, 0.1);
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(14px);
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease,
+    border-color 220ms ease;
+  animation: fadeInUp 760ms ease both;
+}
+.approval-table-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(13, 148, 103, 0.22);
+  box-shadow: 0 28px 70px rgba(15, 23, 42, 0.12);
+}
+.modern-table {
+  background: transparent;
+}
+.modern-table :deep(.q-table__top),
+.modern-table :deep(.q-table__bottom) {
+  background: rgba(255, 255, 255, 0.72);
+}
+.modern-table :deep(th) {
+  height: 52px;
+  border-bottom: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+}
+.modern-table :deep(td) {
+  height: 58px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  color: #24352f;
+}
+.table-header-row {
+  background: linear-gradient(90deg, #064e3b, #047857);
+}
+.approval-row {
+  transition:
+    transform 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+.approval-row:hover {
+  transform: translateY(-3px);
+  background: linear-gradient(90deg, rgba(240, 253, 244, 0.9), rgba(255, 255, 255, 0.98));
+  box-shadow: 0 12px 26px rgba(15, 118, 110, 0.08);
+  animation: hoverLift 220ms ease both;
+}
+.reference-cell {
+  color: #075f49;
+  font-weight: 900;
+}
+.client-cell {
+  color: #1f2f2a;
+  font-weight: 800;
+}
+.amount-cell {
+  color: #0f513f;
+  font-weight: 900;
+}
+.status-pill {
+  min-width: 92px;
+  justify-content: center;
+  border-radius: 999px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+  animation: glowPulse 2.8s ease-in-out infinite;
+}
+.status-approved {
+  color: #065f46;
+  background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+  border-color: rgba(16, 185, 129, 0.24);
+}
+.status-rejected {
+  color: #991b1b;
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  border-color: rgba(239, 68, 68, 0.22);
+}
+.status-pending {
+  color: #92400e;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border-color: rgba(245, 158, 11, 0.26);
+}
+.action-btn {
+  margin: 0 2px;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease;
+}
+.action-btn:hover {
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+}
+.action-view {
+  color: #0f766e;
+  background: rgba(13, 148, 136, 0.08);
+}
+.action-approve {
+  color: #047857;
+  background: rgba(16, 185, 129, 0.1);
+}
+.action-reject {
+  color: #b91c1c;
+  background: rgba(239, 68, 68, 0.1);
+}
+.action-view:hover {
+  background: rgba(13, 148, 136, 0.16);
+}
+.action-approve:hover {
+  background: rgba(16, 185, 129, 0.18);
+}
+.action-reject:hover {
+  background: rgba(239, 68, 68, 0.18);
+}
 .rounded-20 {
   border-radius: 20px;
 }
@@ -590,6 +1037,79 @@ onUnmounted(() => {
   line-height: 1.2;
 }
 
+@keyframes gradientMove {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+@keyframes floatIcon {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(1.5deg);
+  }
+}
+@keyframes glowPulse {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(24px, 18px, 0) scale(1.12);
+  }
+}
+@keyframes hoverLift {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (max-width: 700px) {
+  .approval-hero {
+    padding: 22px;
+    border-radius: 22px;
+  }
+  .hero-title-wrap {
+    align-items: flex-start;
+  }
+  .lottie-shell {
+    width: 78px;
+    min-width: 78px;
+    height: 78px;
+    border-radius: 20px;
+  }
+  .hero-subtitle {
+    font-size: 0.9rem;
+  }
+  .hero-stat-badge {
+    width: 100%;
+    justify-content: center;
+  }
+  .kpi-value {
+    font-size: 1.7rem;
+  }
+}
 @media print {
   .no-print {
     display: none !important;

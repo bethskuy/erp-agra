@@ -263,34 +263,24 @@ const routes = [
 
       // --- SECTION 2: PPIC ---
       {
-        path: 'ppic/planning-produksi',
-        name: 'manufaktur-ppic-planning-produksi',
-        component: () => import('pages/manufaktur/PPIC/PlanningProduksiPage.vue'),
-      },
-      {
-        path: 'ppic/jadwal-produksi',
-        name: 'manufaktur-ppic-jadwal-produksi',
-        component: () => import('pages/manufaktur/PPIC/JadwalProduksiPage.vue'),
-      },
-      {
         path: 'ppic/work-order',
         name: 'manufaktur-ppic-work-order',
         component: () => import('pages/manufaktur/PPIC/WorkOrderPage.vue'),
       },
       {
+        path: 'ppic/planning-produksi',
+        name: 'manufaktur-ppic-planning-produksi',
+        component: () => import('pages/manufaktur/PPIC/PlanningProduksiPage.vue'),
+      },
+      {
+        path: 'ppic/proses-fabrikasi',
+        name: 'manufaktur-ppic-proses-fabrikasi',
+        component: () => import('pages/manufaktur/Produksi/LineProduksiPage.vue'),
+      },
+      {
         path: 'ppic/material-requirement',
         name: 'manufaktur-ppic-material-requirement',
         component: () => import('pages/manufaktur/PPIC/MaterialRequirementPage.vue'),
-      },
-      {
-        path: 'ppic/bill-of-material',
-        name: 'manufaktur-ppic-bill-of-material',
-        component: () => import('pages/manufaktur/PPIC/BillOfMaterialPage.vue'),
-      },
-      {
-        path: 'ppic/routing-produksi',
-        name: 'manufaktur-ppic-routing-produksi',
-        component: () => import('pages/manufaktur/PPIC/RoutingProduksiPage.vue'),
       },
 
       // --- SECTION 3: PRODUKSI ---
