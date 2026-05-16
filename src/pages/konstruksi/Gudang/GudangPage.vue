@@ -37,9 +37,33 @@
         <q-card
           flat
           bordered
-          class="gudang-card rounded-20 cursor-pointer transition-all hover-shadow"
+          class="gudang-card rounded-20 cursor-pointer transition-all hover-shadow relative-position"
           @click="selectGudang({ id: 'UTAMA', nama: 'Gudang Utama' })"
         >
+          <!-- NOTIFIKASI GUDANG UTAMA -->
+          <q-badge
+            v-if="notifGudang['UTAMA']?.pending > 0"
+            color="red"
+            floating
+            rounded
+            class="q-pa-sm text-weight-bold shadow-2 z-top animate-bounce"
+            style="top: -5px; right: -5px"
+          >
+            <q-icon name="move_to_inbox" size="14px" class="q-mr-xs" />
+            {{ notifGudang['UTAMA'].pending }} Request Masuk
+          </q-badge>
+          <q-badge
+            v-if="notifGudang['UTAMA']?.approved > 0"
+            color="positive"
+            floating
+            rounded
+            class="q-pa-sm text-weight-bold shadow-2 z-top animate-bounce"
+            style="top: -5px; left: -5px; right: auto"
+          >
+            <q-icon name="local_shipping" size="14px" class="q-mr-xs" />
+            {{ notifGudang['UTAMA'].approved }} Brg Datang
+          </q-badge>
+
           <q-card-section class="q-pa-lg text-center">
             <q-avatar
               size="80px"
@@ -65,9 +89,33 @@
         <q-card
           flat
           bordered
-          class="gudang-card rounded-20 cursor-pointer transition-all hover-shadow"
+          class="gudang-card rounded-20 cursor-pointer transition-all hover-shadow relative-position"
           @click="selectGudang({ id: p.id, nama: 'Gudang ' + (p.nama_proyek || p.nama) })"
         >
+          <!-- NOTIFIKASI GUDANG PROYEK -->
+          <q-badge
+            v-if="notifGudang[p.id]?.pending > 0"
+            color="red"
+            floating
+            rounded
+            class="q-pa-sm text-weight-bold shadow-2 z-top animate-bounce"
+            style="top: -5px; right: -5px"
+          >
+            <q-icon name="move_to_inbox" size="14px" class="q-mr-xs" />
+            {{ notifGudang[p.id].pending }} Request Masuk
+          </q-badge>
+          <q-badge
+            v-if="notifGudang[p.id]?.approved > 0"
+            color="positive"
+            floating
+            rounded
+            class="q-pa-sm text-weight-bold shadow-2 z-top animate-bounce"
+            style="top: -5px; left: -5px; right: auto"
+          >
+            <q-icon name="local_shipping" size="14px" class="q-mr-xs" />
+            {{ notifGudang[p.id].approved }} Brg Datang
+          </q-badge>
+
           <q-card-section class="q-pa-lg text-center">
             <q-avatar
               size="80px"
@@ -115,7 +163,6 @@
           class="shadow-1 q-px-lg"
         >
           <q-list style="min-width: 200px" class="q-pa-sm">
-            <!-- FIX: Navigasi Riwayat Transaksi dengan Context ID agar tidak nyampur -->
             <q-item
               clickable
               v-ripple
@@ -157,7 +204,6 @@
           class="shadow-1 q-px-lg"
         >
           <q-list style="min-width: 280px" class="q-pa-sm">
-            <!-- Navigasi Daftar Permintaan -->
             <q-item
               clickable
               v-ripple
@@ -169,10 +215,29 @@
                 <q-item-label class="text-weight-bold text-indigo-10"
                   >Daftar Permintaan</q-item-label
                 >
-                <q-item-label caption>Pantau antrean request dari gudang lain</q-item-label>
+                <q-item-label caption>Pantau antrean request & mutasi stok</q-item-label>
               </q-item-section>
-              <q-item-section side v-if="pendingRequestCount > 0">
-                <q-badge color="red" rounded label="New" />
+              <q-item-section
+                side
+                v-if="
+                  notifGudang[selectedGudang.id]?.pending > 0 ||
+                  notifGudang[selectedGudang.id]?.approved > 0
+                "
+              >
+                <q-badge
+                  color="red"
+                  rounded
+                  :label="notifGudang[selectedGudang.id].pending + ' New'"
+                  v-if="notifGudang[selectedGudang.id]?.pending > 0"
+                  class="q-mb-xs shadow-1 animate-bounce"
+                />
+                <q-badge
+                  color="positive"
+                  rounded
+                  label="Cek Kiriman"
+                  v-if="notifGudang[selectedGudang.id]?.approved > 0"
+                  class="shadow-1 animate-bounce"
+                />
               </q-item-section>
             </q-item>
             <q-separator spaced />
@@ -221,7 +286,7 @@
       <!-- TABLE INVENTARIS -->
       <q-card flat bordered class="rounded-20 shadow-sm overflow-hidden bg-white">
         <q-table
-          :rows="stokBarang"
+          :rows="stokBarangEnriched"
           :columns="columns"
           row-key="id"
           :filter="filter"
@@ -243,18 +308,60 @@
           </template>
 
           <template v-slot:top-right>
-            <q-input
-              outlined
-              dense
-              rounded
-              v-model="filter"
-              placeholder="Cari item di gudang ini..."
-              class="search-input"
-              style="width: 300px"
-              bg-color="white"
-            >
-              <template v-slot:prepend><q-icon name="search" color="primary" /></template>
-            </q-input>
+            <div class="row items-center q-gutter-sm">
+              <q-input
+                outlined
+                dense
+                rounded
+                v-model="filter"
+                placeholder="Cari item di gudang ini..."
+                class="search-input"
+                style="width: 250px"
+                bg-color="white"
+              >
+                <template v-slot:prepend><q-icon name="search" color="primary" /></template>
+              </q-input>
+
+              <!-- EXPORT DROPDOWN BUTTON FOR GUDANG -->
+              <q-btn-dropdown
+                unelevated
+                rounded
+                color="indigo-10"
+                icon="file_download"
+                label="Export Data"
+                class="shadow-1 font-bold q-px-md"
+              >
+                <q-list style="min-width: 180px">
+                  <q-item clickable v-ripple @click="exportGudangToPDF" class="q-py-md">
+                    <q-item-section avatar>
+                      <q-avatar color="red-1" text-color="red-9" icon="picture_as_pdf" size="sm" />
+                    </q-item-section>
+                    <q-item-section class="text-weight-bold text-red-9">Export PDF</q-item-section>
+                  </q-item>
+                  <q-separator />
+                  <q-item clickable v-ripple @click="exportGudangToExcel" class="q-py-md">
+                    <q-item-section avatar>
+                      <q-avatar color="green-1" text-color="green-9" icon="table_view" size="sm" />
+                    </q-item-section>
+                    <q-item-section class="text-weight-bold text-green-9"
+                      >Export Excel</q-item-section
+                    >
+                  </q-item>
+                </q-list>
+              </q-btn-dropdown>
+            </div>
+          </template>
+
+          <template v-slot:body-cell-kode="props">
+            <q-td :props="props" class="text-left">
+              <q-badge
+                color="grey-2"
+                text-color="blue-grey-9"
+                class="font-mono text-weight-bold shadow-sm q-px-sm q-py-xs"
+              >
+                {{ props.value }}
+              </q-badge>
+            </q-td>
           </template>
 
           <template v-slot:body-cell-stok="props">
@@ -421,12 +528,76 @@
       </q-card>
     </q-dialog>
 
-    <div class="q-py-xl"></div>
+    <!-- HIDDEN TEMPLATE UNTUK EXPORT PDF LAPORAN GUDANG -->
+    <div style="display: none">
+      <div id="stok-print-area" class="report-paper">
+        <div class="report-header">
+          <div class="row no-wrap items-center">
+            <div class="col-auto q-mr-md">
+              <div class="report-icon">
+                <svg
+                  width="28"
+                  height="28"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="white"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+              </div>
+            </div>
+            <div>
+              <h1 class="report-title">LAPORAN STOK INVENTARIS</h1>
+              <div class="report-subtitle">
+                Lokasi: {{ selectedGudang?.nama || 'Semua Gudang' }} | Diekspor pada:
+                {{ new Date().toLocaleString('id-ID') }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th style="width: 40px; text-align: center">NO</th>
+              <th style="width: 120px; text-align: left">KODE ITEM</th>
+              <th style="text-align: left">IDENTITAS MATERIAL</th>
+              <th style="width: 120px; text-align: center">KUANTITAS FISIK</th>
+              <th style="width: 100px; text-align: center">SATUAN</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(row, idx) in stokBarangEnriched" :key="row.id">
+              <td style="text-align: center">{{ idx + 1 }}</td>
+              <td style="font-weight: 800; color: #1a237e">{{ row.kode_barang }}</td>
+              <td style="font-weight: bold">{{ row.nama_barang }}</td>
+              <td style="text-align: center; font-weight: bold; color: #2e7d32">
+                {{ row.jumlah }}
+              </td>
+              <td style="text-align: center; font-weight: bold; text-transform: uppercase">
+                {{ row.satuan }}
+              </td>
+            </tr>
+            <tr v-if="stokBarangEnriched.length === 0">
+              <td colspan="5" style="text-align: center; font-style: italic; color: #888">
+                Gudang ini masih kosong.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="q-py-xl no-print"></div>
   </q-page>
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
 import { db } from 'src/boot/firebase'
 import {
   collection,
@@ -441,6 +612,7 @@ import {
   orderBy,
 } from 'firebase/firestore'
 import { useQuasar } from 'quasar'
+import html2pdf from 'html2pdf.js'
 
 const $q = useQuasar()
 const listProyek = ref([])
@@ -454,14 +626,15 @@ const kategoriOptions = ref([])
 const masterBarang = ref([])
 const filteredBarangOptions = ref([])
 const currentStokValue = ref(0)
-const pendingRequestCount = ref(0)
 
+const notifGudang = ref({}) // Format: { gudangId: { pending: 0, approved: 0 } }
 const formStok = ref({ kategori: null, barang: null, jumlah: null, satuan: '', keterangan: '' })
 
 let unsubPermintaan = null
 let unsubStok = null
 
 const columns = [
+  { name: 'kode', label: 'KODE ITEM', field: 'kode_barang', align: 'left', sortable: true },
   {
     name: 'nama',
     label: 'IDENTITAS MATERIAL',
@@ -472,6 +645,17 @@ const columns = [
   { name: 'stok', label: 'KUANTITAS FISIK', field: 'jumlah', align: 'center', sortable: true },
   { name: 'satuan', label: 'SATUAN', field: 'satuan', align: 'center' },
 ]
+
+// Injecting Kode Barang into Stok List
+const stokBarangEnriched = computed(() => {
+  return stokBarang.value.map((stok) => {
+    const mb = masterBarang.value.find((b) => b.id === stok.id_barang)
+    return {
+      ...stok,
+      kode_barang: mb ? mb.kode : '-',
+    }
+  })
+})
 
 const selectGudang = (gudang) => {
   selectedGudang.value = gudang
@@ -488,11 +672,14 @@ const fetchMasterData = async () => {
       const data = d.data()
       return {
         id: d.id,
+        kode: data.kode || '-',
         nama_barang: data.nama,
         merk: data.merk || '',
         id_kategori: data.kategori,
         satuan: data.unit,
-        display_name: data.nama + (data.merk ? ' - ' + data.merk : ''),
+        display_name: data.kode
+          ? `[${data.kode}] ${data.nama}` + (data.merk ? ' - ' + data.merk : '')
+          : data.nama + (data.merk ? ' - ' + data.merk : ''),
       }
     })
   } catch (err) {
@@ -504,10 +691,125 @@ const fetchProyek = async () => {
   try {
     const snap = await getDocs(collection(db, 'proyek'))
     listProyek.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+    listenNotifikasiGlobal()
   } catch (err) {
     console.error(err)
   }
 }
+
+// LOGIKA NOTIFIKASI MULTI GUDANG
+const listenNotifikasiGlobal = () => {
+  if (unsubPermintaan) unsubPermintaan()
+  unsubPermintaan = onSnapshot(collection(db, 'permintaan_barang'), (snap) => {
+    const counts = { UTAMA: { pending: 0, approved: 0 } }
+    listProyek.value.forEach((p) => (counts[p.id] = { pending: 0, approved: 0 }))
+
+    snap.docs.forEach((doc) => {
+      const data = doc.data()
+      if (data.status === 'Pending' && data.dari_gudang?.id) {
+        if (!counts[data.dari_gudang.id]) counts[data.dari_gudang.id] = { pending: 0, approved: 0 }
+        counts[data.dari_gudang.id].pending++
+      }
+      if (data.status === 'Approved' && data.requester_read === false && data.ke_gudang?.id) {
+        if (!counts[data.ke_gudang.id]) counts[data.ke_gudang.id] = { pending: 0, approved: 0 }
+        counts[data.ke_gudang.id].approved++
+      }
+    })
+    notifGudang.value = counts
+  })
+}
+
+// =============================================================================
+// LOGIKA EXPORT PDF & EXCEL UNTUK GUDANG INVENTARIS
+// =============================================================================
+const exportGudangToPDF = () => {
+  $q.loading.show({ message: 'Generating Professional PDF...' })
+  setTimeout(() => {
+    const element = document.getElementById('stok-print-area')
+    const gdgNama = selectedGudang.value?.nama.replace(/\s+/g, '_') || 'All'
+
+    const opt = {
+      margin: [15, 15, 15, 15],
+      filename: `Laporan_Stok_${gdgNama}_${Date.now()}.pdf`,
+      image: { type: 'jpeg', quality: 1 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    }
+    html2pdf()
+      .set(opt)
+      .from(element)
+      .save()
+      .then(() => {
+        $q.loading.hide()
+        $q.notify({
+          type: 'positive',
+          message: 'Laporan Stok PDF Berhasil Diunduh!',
+          position: 'top',
+        })
+      })
+  }, 500)
+}
+
+const exportGudangToExcel = () => {
+  const now = new Date()
+  const exportDate = now.toLocaleString('id-ID')
+  const gudangName = selectedGudang.value?.nama || 'Semua Gudang'
+
+  let html = `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+    <head>
+    <meta charset="utf-8" />
+    <style>
+      .table-bordered { border-collapse: collapse; width: 100%; font-family: sans-serif; font-size: 12px; }
+      .table-bordered th, .table-bordered td { border: 1px solid #dddddd; padding: 8px; }
+      .header-row th { background-color: #1a237e; color: #ffffff; font-weight: bold; text-align: left; }
+      .title { font-size: 18px; font-weight: bold; color: #1a237e; font-family: sans-serif; }
+      .subtitle { font-size: 12px; color: #666666; font-family: sans-serif; }
+    </style>
+    </head>
+    <body>
+      <div class="title">LAPORAN STOK INVENTARIS - ${gudangName.toUpperCase()}</div>
+      <div class="subtitle">Diekspor pada: ${exportDate}</div>
+      <br>
+      <table class="table-bordered">
+        <tr class="header-row">
+          <th width="50" style="text-align: center;">NO</th>
+          <th width="150">KODE ITEM</th>
+          <th width="300">IDENTITAS MATERIAL</th>
+          <th width="120" style="text-align: center;">KUANTITAS FISIK</th>
+          <th width="120" style="text-align: center;">SATUAN</th>
+        </tr>
+  `
+
+  stokBarangEnriched.value.forEach((row, idx) => {
+    html += `
+      <tr>
+        <td align="center">${idx + 1}</td>
+        <td style="font-weight: bold; color: #1a237e;">${row.kode_barang}</td>
+        <td>${row.nama_barang}</td>
+        <td align="center" style="font-weight: bold; color: #2e7d32;">${row.jumlah}</td>
+        <td align="center" style="text-transform: uppercase;">${row.satuan}</td>
+      </tr>
+    `
+  })
+
+  html += `
+      </table>
+    </body>
+    </html>
+  `
+
+  const blob = new Blob([html], { type: 'application/vnd.ms-excel' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `Laporan_Stok_${gudangName.replace(/ /g, '_')}_${Date.now()}.xls`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+// =============================================================================
 
 const openAddStokDialog = async () => {
   formStok.value = { kategori: null, barang: null, jumlah: null, satuan: '', keterangan: '' }
@@ -595,14 +897,6 @@ const simpanStok = async () => {
   }
 }
 
-const listenPermintaan = () => {
-  if (unsubPermintaan) unsubPermintaan()
-  const q = query(collection(db, 'permintaan_barang'), where('status', '==', 'Pending'))
-  unsubPermintaan = onSnapshot(q, (snap) => {
-    pendingRequestCount.value = snap.size
-  })
-}
-
 watch(selectedGudang, (newVal) => {
   if (unsubStok) unsubStok()
   if (newVal) {
@@ -617,7 +911,7 @@ watch(selectedGudang, (newVal) => {
 
 onMounted(() => {
   fetchProyek()
-  listenPermintaan()
+  fetchMasterData()
 })
 
 onUnmounted(() => {
@@ -632,6 +926,10 @@ onUnmounted(() => {
     'Inter',
     -apple-system,
     sans-serif;
+}
+.font-mono {
+  font-family: 'Courier New', Courier, monospace;
+  letter-spacing: 0.5px;
 }
 .rounded-20 {
   border-radius: 20px;
@@ -686,6 +984,18 @@ onUnmounted(() => {
     transform: translateY(0);
   }
 }
+.animate-bounce {
+  animation: bounce 1.5s infinite;
+}
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
 .tracking-widest {
   letter-spacing: 0.15em;
 }
@@ -697,5 +1007,66 @@ onUnmounted(() => {
 }
 .search-input :deep(.q-field__control) {
   border-radius: 30px;
+}
+.z-top {
+  z-index: 10;
+}
+
+/* REPORT EXPORT STYLES (HIDDEN) */
+.report-paper {
+  font-family: 'Inter', Helvetica, Arial, sans-serif;
+  color: #333;
+  padding: 10px;
+  background: white;
+}
+.report-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 3px solid #1a237e;
+  padding-bottom: 15px;
+}
+.report-icon {
+  background-color: #1a237e;
+  border-radius: 8px;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.report-title {
+  margin: 0;
+  color: #1a237e;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+}
+.report-subtitle {
+  color: #666;
+  font-size: 12px;
+  margin-top: 4px;
+  font-weight: bold;
+}
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.report-table th {
+  background-color: #1a237e;
+  color: white;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+.report-table td {
+  padding: 10px 12px;
+  border: 1px solid #e0e0e0;
+}
+.report-table tr:nth-child(even) {
+  background-color: #f8f9fa;
 }
 </style>

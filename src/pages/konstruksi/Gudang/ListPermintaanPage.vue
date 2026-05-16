@@ -53,7 +53,7 @@
     <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print">
       <q-card-section class="q-py-md">
         <div class="row items-center q-col-gutter-md">
-          <div class="col-12 col-md-6">
+          <div class="col-12 col-md-5">
             <q-input
               v-model="filter"
               outlined
@@ -67,7 +67,7 @@
             </q-input>
           </div>
           <q-space />
-          <div class="col-12 col-md-auto">
+          <div class="col-12 col-md-auto row items-center q-gutter-md">
             <q-select
               v-model="statusFilter"
               :options="['Semua Status', 'Pending', 'Approved', 'Rejected', 'Completed']"
@@ -75,9 +75,37 @@
               dense
               rounded
               bg-color="white"
-              style="min-width: 180px"
+              style="min-width: 160px"
               label="Filter Status"
             />
+
+            <!-- EXPORT DROPDOWN BUTTON -->
+            <q-btn-dropdown
+              unelevated
+              rounded
+              color="indigo-10"
+              icon="file_download"
+              label="Export Laporan"
+              class="shadow-1 font-bold q-px-md"
+            >
+              <q-list style="min-width: 180px">
+                <q-item clickable v-ripple @click="exportListToPDF" class="q-py-md">
+                  <q-item-section avatar>
+                    <q-avatar color="red-1" text-color="red-9" icon="picture_as_pdf" size="sm" />
+                  </q-item-section>
+                  <q-item-section class="text-weight-bold text-red-9">Export PDF</q-item-section>
+                </q-item>
+                <q-separator />
+                <q-item clickable v-ripple @click="exportListToExcel" class="q-py-md">
+                  <q-item-section avatar>
+                    <q-avatar color="green-1" text-color="green-9" icon="table_view" size="sm" />
+                  </q-item-section>
+                  <q-item-section class="text-weight-bold text-green-9"
+                    >Export Excel</q-item-section
+                  >
+                </q-item>
+              </q-list>
+            </q-btn-dropdown>
           </div>
         </div>
       </q-card-section>
@@ -113,9 +141,21 @@
             class="hover-bg transition-all cursor-pointer"
             @click="viewDetail(props.row)"
           >
-            <q-td key="nomor" class="text-weight-bolder text-indigo-10">{{
-              props.row.nomor || 'REQ-' + props.row.id?.slice(0, 5)
-            }}</q-td>
+            <q-td key="nomor" class="text-weight-bolder text-indigo-10">
+              <div class="row items-center q-gutter-xs">
+                <span>{{ props.row.nomor || 'REQ-' + props.row.id?.slice(0, 5) }}</span>
+                <q-badge
+                  v-if="
+                    props.row.status === 'Approved' &&
+                    props.row.requester_read === false &&
+                    props.row.ke_gudang?.id === $route.query.warehouseId
+                  "
+                  color="positive"
+                  class="animate-bounce-subtle"
+                  >NEW</q-badge
+                >
+              </div>
+            </q-td>
             <q-td key="tipe">
               <q-badge
                 :color="props.row.tipe === 'ANTAR_GUDANG' ? 'orange-2' : 'blue-2'"
@@ -297,20 +337,25 @@
                 </div>
               </div>
 
-              <!-- Tabel Barang (Dynamic Rows - MENYESUAIKAN JUMLAH ITEM) -->
+              <!-- Tabel Barang (Dynamic Rows) dengan KODE -->
               <table class="perfectionist-table full-width">
                 <thead>
                   <tr>
-                    <th width="45">NO</th>
+                    <th width="40">NO</th>
+                    <th width="80">KODE</th>
                     <th class="text-left">ITEM DESCRIPTION</th>
-                    <th width="80">Qty</th>
-                    <th width="90">Satuan</th>
+                    <th width="70">Qty</th>
+                    <th width="80">Satuan</th>
                     <th class="text-left">Keterangan</th>
                   </tr>
                 </thead>
                 <tbody>
+                  <!-- MERENDER JUMLAH QTY SESUAI INPUTAN EDITOR -->
                   <tr v-for="(item, i) in selectedRequest.items" :key="i">
                     <td class="text-center font-bold">{{ i + 1 }}</td>
+                    <td class="text-center font-mono font-bold">
+                      {{ getKodeBarang(item.id_barang) }}
+                    </td>
                     <td class="text-weight-black uppercase text-left">{{ item.nama_barang }}</td>
                     <td class="text-center text-weight-black">{{ item.qty }}</td>
                     <td class="text-center uppercase font-bold">{{ item.satuan }}</td>
@@ -321,7 +366,7 @@
                 </tbody>
                 <tfoot>
                   <tr class="bg-grey-1">
-                    <td colspan="2" class="text-right text-weight-black uppercase">
+                    <td colspan="3" class="text-right text-weight-black uppercase">
                       TOTAL ITEM TERKIRIM
                     </td>
                     <td class="text-center text-weight-black text-h6">
@@ -351,7 +396,7 @@
                   <div class="text-weight-black q-mb-xl">Petugas Gudang</div>
                   <div style="height: 60px"></div>
                   <div class="text-weight-black underline text-indigo-10 uppercase">
-                    {{ userData?.nama || 'Petugas' }}
+                    {{ selectedRequest.processedBy || 'Petugas' }}
                   </div>
                   <div class="text-caption text-bold text-grey-8 uppercase">
                     ( Gudang Pengirim )
@@ -381,6 +426,26 @@
           <!-- TAMPILAN EDITOR DI LAYAR (NO-PRINT) -->
           <div class="row justify-center no-print animate-fade">
             <div class="col-12 col-md-11 col-lg-10">
+              <!-- INFO READ RECEIPT PEMINTA -->
+              <div class="text-right q-mb-sm" v-if="selectedRequest.status === 'Approved'">
+                <q-chip
+                  :color="selectedRequest.requester_read ? 'green-1' : 'red-1'"
+                  :text-color="selectedRequest.requester_read ? 'positive' : 'negative'"
+                  class="font-bold shadow-1"
+                >
+                  <q-avatar
+                    :icon="selectedRequest.requester_read ? 'done_all' : 'mark_email_unread'"
+                    :color="selectedRequest.requester_read ? 'positive' : 'negative'"
+                    text-color="white"
+                  />
+                  {{
+                    selectedRequest.requester_read
+                      ? 'Telah dilihat Gudang Peminta'
+                      : 'Gudang Peminta Belum Melihat Ini'
+                  }}
+                </q-chip>
+              </div>
+
               <!-- PANEL KONFIGURASI SURAT JALAN -->
               <q-card
                 flat
@@ -413,6 +478,7 @@
                           accept="image/*"
                           @update:model-value="handleLogoUpload"
                           bg-color="grey-1"
+                          :disable="selectedRequest.status !== 'Pending'"
                         >
                           <template v-slot:prepend
                             ><q-icon name="cloud_upload" color="primary"
@@ -426,6 +492,7 @@
                         label="Nama Perusahaan (Header)"
                         stack-label
                         placeholder="Masukkan Nama PT..."
+                        :readonly="selectedRequest.status !== 'Pending'"
                       />
                       <q-input
                         outlined
@@ -433,6 +500,7 @@
                         label="Slogan / Bidang Usaha"
                         stack-label
                         placeholder="General Contractor..."
+                        :readonly="selectedRequest.status !== 'Pending'"
                       />
 
                       <q-input
@@ -441,6 +509,7 @@
                         label="No. Surat Jalan (Override)"
                         stack-label
                         bg-color="blue-grey-1"
+                        :readonly="selectedRequest.status !== 'Pending'"
                       />
                     </div>
 
@@ -450,12 +519,15 @@
                         v-model="editFields.lokasi"
                         label="Detail Alamat Lokasi Tujuan"
                         stack-label
+                        :readonly="selectedRequest.status !== 'Pending'"
                       />
+                      <!-- FIX: Input untuk Nama UP (Terikat dengan Model editFields) -->
                       <q-input
                         outlined
                         v-model="editFields.up"
                         label="Nama UP / Penerima (Atas Nama)"
                         stack-label
+                        :readonly="selectedRequest.status !== 'Pending'"
                       />
                       <q-input
                         outlined
@@ -463,6 +535,7 @@
                         label="Layanan Ekspedisi"
                         stack-label
                         placeholder="Misal: Driver Internal / JNE..."
+                        :readonly="selectedRequest.status !== 'Pending'"
                       />
                       <q-input
                         outlined
@@ -471,6 +544,7 @@
                         label="Catatan Tambahan Surat Jalan"
                         rows="3"
                         stack-label
+                        :readonly="selectedRequest.status !== 'Pending'"
                       />
                     </div>
                   </div>
@@ -522,12 +596,12 @@
                 </div>
               </div>
 
-              <!-- EDIT KETERANGAN PER ITEM -->
+              <!-- EDIT KETERANGAN & JUMLAH (QTY) ITEM -->
               <div
                 class="text-h6 text-weight-bold text-blue-grey-10 q-mb-md uppercase flex items-center text-left"
               >
-                <q-icon name="edit_note" class="q-mr-sm" color="indigo-10" size="md" /> Edit
-                Keterangan Item Per Baris
+                <q-icon name="edit_note" class="q-mr-sm" color="indigo-10" size="md" /> Sesuaikan
+                Qty & Keterangan Pengiriman
               </div>
               <q-markup-table
                 flat
@@ -537,20 +611,48 @@
               >
                 <thead class="bg-indigo-1">
                   <tr class="text-weight-bold text-white">
+                    <th class="text-left q-pa-md" width="100">KODE</th>
                     <th class="text-left q-pa-md">DESKRIPSI MATERIAL</th>
-                    <th class="text-center" width="100">QTY</th>
+                    <th class="text-center" width="120">QTY DIKIRIM</th>
                     <th class="text-center" width="100">UNIT</th>
                     <th class="text-left">KETERANGAN TAMBAHAN (EDITABLE)</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr v-for="(item, i) in selectedRequest.items" :key="i">
+                    <!-- KOLOM KODE BARANG -->
+                    <td class="text-left q-pa-md">
+                      <q-badge
+                        color="grey-3"
+                        text-color="blue-grey-9"
+                        class="font-mono text-weight-bold shadow-sm q-px-sm q-py-xs"
+                      >
+                        {{ getKodeBarang(item.id_barang) }}
+                      </q-badge>
+                    </td>
+
                     <td class="text-left q-pa-md font-bold text-blue-grey-10 uppercase">
                       {{ item.nama_barang }}
                     </td>
-                    <td class="text-center text-h6 text-weight-black text-indigo-10">
-                      {{ item.qty }}
+
+                    <!-- FITUR BARU: QTY BISA DI EDIT SEBELUM APPROVE -->
+                    <td class="text-center" width="120">
+                      <q-input
+                        v-if="selectedRequest.status === 'Pending'"
+                        v-model.number="selectedRequest.items[i].qty"
+                        type="number"
+                        dense
+                        outlined
+                        bg-color="white"
+                        input-class="text-center text-weight-black text-indigo-10 text-h6"
+                        :rules="[(val) => val > 0 || 'Min 1']"
+                        hide-bottom-space
+                      />
+                      <div v-else class="text-h6 text-weight-black text-indigo-10">
+                        {{ item.qty }}
+                      </div>
                     </td>
+
                     <td class="text-center uppercase text-caption text-weight-bold text-grey-7">
                       {{ item.satuan }}
                     </td>
@@ -562,6 +664,7 @@
                         class="q-px-md full-width"
                         placeholder="Ketik keterangan barang di sini..."
                         bg-color="blue-grey-1"
+                        :readonly="selectedRequest.status !== 'Pending'"
                       />
                     </td>
                   </tr>
@@ -647,6 +750,89 @@
       </q-card>
     </q-dialog>
 
+    <!-- HIDDEN TEMPLATE UNTUK EXPORT PDF LAPORAN PERMINTAAN -->
+    <div style="display: none">
+      <div id="list-print-area" class="report-paper">
+        <div class="report-header">
+          <div class="row no-wrap items-center">
+            <div class="col-auto q-mr-md">
+              <div class="report-icon">
+                <svg
+                  width="28"
+                  height="28"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="white"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                  <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+              </div>
+            </div>
+            <div>
+              <h1 class="report-title">LAPORAN REKAPITULASI PERMINTAAN (REQUEST)</h1>
+              <div class="report-subtitle">
+                Diekspor pada: {{ new Date().toLocaleString('id-ID') }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th style="width: 40px; text-align: center">NO</th>
+              <th style="text-align: left">NO. REQUEST</th>
+              <th style="text-align: left">JENIS PERMINTAAN</th>
+              <th style="text-align: left">PEMOHON & TANGGAL</th>
+              <th style="text-align: left">GUDANG ASAL</th>
+              <th style="text-align: center">STATUS</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(row, idx) in filteredRows" :key="row.id">
+              <td style="text-align: center">{{ idx + 1 }}</td>
+              <td style="font-weight: 800; color: #1a237e">
+                {{ row.nomor || 'REQ-' + row.id?.slice(0, 5) }}
+              </td>
+              <td style="font-weight: bold">
+                {{ row.tipe === 'ANTAR_GUDANG' ? 'MUTASI STOK' : 'PURCHASE REQUEST' }}
+              </td>
+              <td>
+                <div style="font-weight: bold">{{ row.pemohon?.nama || 'Staff' }}</div>
+                <div style="color: #666; font-size: 10px">{{ formatDate(row.timestamp) }}</div>
+              </td>
+              <td style="font-weight: bold">{{ row.dari_gudang?.nama || '-' }}</td>
+              <td
+                style="text-align: center; font-weight: bold; text-transform: uppercase"
+                :style="{
+                  color:
+                    row.status === 'Approved'
+                      ? '#2e7d32'
+                      : row.status === 'Rejected'
+                        ? '#c62828'
+                        : '#e65100',
+                }"
+              >
+                {{ row.status || 'Pending' }}
+              </td>
+            </tr>
+            <tr v-if="filteredRows.length === 0">
+              <td colspan="6" style="text-align: center; font-style: italic; color: #888">
+                Tidak ada data pada filter saat ini.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <div class="q-py-xl no-print"></div>
   </q-page>
 </template>
@@ -687,6 +873,8 @@ const selectedRequest = ref(null)
 const userData = ref(null)
 const customLogoFile = ref(null)
 
+const masterBarang = ref([])
+
 // --- CONFIGURATION SURAT JALAN (FLEKSIBEL) ---
 const editFields = reactive({
   logoUrl: '',
@@ -702,6 +890,24 @@ const editFields = reactive({
 
 let unsubPermintaan = null
 let unsubUser = null
+
+// --- LOGIKA MENDAPATKAN KODE BARANG ---
+const fetchMasterData = async () => {
+  try {
+    const barSnap = await getDocs(query(collection(db, 'master_barang')))
+    masterBarang.value = barSnap.docs.map((d) => ({
+      id: d.id,
+      kode: d.data().kode || '-',
+    }))
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+const getKodeBarang = (idBarang) => {
+  const item = masterBarang.value.find((b) => b.id === idBarang)
+  return item ? item.kode : '-'
+}
 
 // --- LOGIKA OTORISASI ---
 const canApproveThisRequest = computed(() => {
@@ -753,40 +959,174 @@ const fetchCurrentUser = () => {
   })
 }
 
-const viewDetail = (row) => {
-  selectedRequest.value = { ...row }
+// PERBAIKAN: DEEP CLONE AGAR INPUT AMAN DARI REALTIME RESET
+const viewDetail = async (row) => {
+  // Deep clone mengunci data agar tidak ke-reset saat ngetik (Bypass Proxy Vue)
+  selectedRequest.value = JSON.parse(JSON.stringify(row))
+  customLogoFile.value = null
 
-  // Auto Generate Nomor Surat Jalan
-  const now = new Date()
-  const month = (now.getMonth() + 1).toString().padStart(2, '0')
-  const year = now.getFullYear()
-  const random = Math.floor(1000 + Math.random() * 9000)
-  editFields.nomor_sj = 'SJ/AAP/' + month + '/' + year + '/' + random
+  // LOGIKA READ RECEIPT (HILANGKAN NOTIF BARU) -> HANYA UNTUK GUDANG PEMINTA
+  const wId = route.query.warehouseId
+  if (row.status === 'Approved' && row.requester_read === false && row.ke_gudang?.id === wId) {
+    try {
+      await updateDoc(doc(db, 'permintaan_barang', row.id), { requester_read: true })
+      selectedRequest.value.requester_read = true
+    } catch (e) {
+      console.error('Gagal update read receipt', e)
+    }
+  }
 
-  // Reset fields editor
-  editFields.nama_perusahaan = 'PT AGRA ABHINAYA PERKASA'
-  editFields.slogan_perusahaan = 'General Construction & General Supplier'
-  editFields.lokasi = row.ke_gudang?.nama || ''
-  editFields.up = ''
-  editFields.ekspedisi = 'Internal Transfer'
-  editFields.catatan_khusus = ''
-  editFields.itemRemarks = Array(row.items?.length || 0).fill('')
+  // RESTORE CONFIGURASI SURAT JALAN JIKA SUDAH PERNAH DI-APPROVE & DISIMPAN
+  if (row.surat_jalan_data) {
+    // Memuat konfigurasi yang pernah tersimpan
+    Object.assign(editFields, JSON.parse(JSON.stringify(row.surat_jalan_data)))
+  } else {
+    // Generate konfigurasi default baru jika belum pernah di approve
+    const now = new Date()
+    const month = (now.getMonth() + 1).toString().padStart(2, '0')
+    const year = now.getFullYear()
+    const random = Math.floor(1000 + Math.random() * 9000)
+
+    editFields.logoUrl = ''
+    editFields.nama_perusahaan = 'PT AGRA ABHINAYA PERKASA'
+    editFields.slogan_perusahaan = 'General Construction & General Supplier'
+    editFields.nomor_sj = 'SJ/AAP/' + month + '/' + year + '/' + random
+    editFields.lokasi = row.ke_gudang?.nama || ''
+    editFields.up = ''
+    editFields.ekspedisi = 'Internal Transfer'
+    editFields.catatan_khusus = ''
+    editFields.itemRemarks = Array(row.items?.length || 0).fill('')
+  }
 
   showDetail.value = true
 }
 
+// KOMPRESI LOGO AGAR BISA DISIMPAN DI DATABASE (BASE64)
+const resizeImageToBase64 = (file, maxWidth = 400) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = (e) => {
+      const img = new Image()
+      img.src = e.target.result
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        const scaleSize = maxWidth / img.width
+        canvas.width = maxWidth
+        canvas.height = img.height * scaleSize
+        const ctx = canvas.getContext('2d')
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+        resolve(canvas.toDataURL('image/png', 0.8))
+      }
+    }
+    reader.onerror = (error) => reject(error)
+  })
+}
+
 const handleLogoUpload = (file) => {
   if (!file) return
-  const reader = new FileReader()
-  reader.readAsDataURL(file)
-  reader.onload = () => {
-    editFields.logoUrl = reader.result
-  }
+  resizeImageToBase64(file, 300).then((base64) => {
+    editFields.logoUrl = base64
+  })
 }
 
 // =============================================================================
-// LOGIKA EXPORT TO PDF (PERFECTIONIST VERSION)
+// LOGIKA EXPORT TO PDF & EXCEL UNTUK LIST TABLE
 // =============================================================================
+const exportListToPDF = () => {
+  $q.loading.show({ message: 'Generating Professional PDF...' })
+  setTimeout(() => {
+    const element = document.getElementById('list-print-area')
+    const opt = {
+      margin: [15, 15, 15, 15],
+      filename: `Laporan_Permintaan_${Date.now()}.pdf`,
+      image: { type: 'jpeg', quality: 1 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+    }
+    html2pdf()
+      .set(opt)
+      .from(element)
+      .save()
+      .then(() => {
+        $q.loading.hide()
+        $q.notify({ type: 'positive', message: 'Laporan PDF Berhasil Diunduh!', position: 'top' })
+      })
+  }, 500)
+}
+
+const exportListToExcel = () => {
+  const now = new Date()
+  const exportDate = now.toLocaleString('id-ID')
+
+  let html = `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+    <head>
+    <meta charset="utf-8" />
+    <style>
+      .table-bordered { border-collapse: collapse; width: 100%; font-family: sans-serif; font-size: 12px; }
+      .table-bordered th, .table-bordered td { border: 1px solid #dddddd; padding: 8px; }
+      .header-row th { background-color: #1a237e; color: #ffffff; font-weight: bold; text-align: center; }
+      .title { font-size: 18px; font-weight: bold; color: #1a237e; font-family: sans-serif; }
+      .subtitle { font-size: 12px; color: #333333; font-family: sans-serif; }
+      .status-approved { color: #2e7d32; font-weight: bold; }
+      .status-pending { color: #e65100; font-weight: bold; }
+      .status-rejected { color: #c62828; font-weight: bold; }
+    </style>
+    </head>
+    <body>
+      <div class="title">LAPORAN REKAPITULASI PERMINTAAN (REQUEST)</div>
+      <div class="subtitle">Diekspor pada: ${exportDate}</div>
+      <br>
+      <table class="table-bordered">
+        <tr class="header-row">
+          <th width="50">No</th>
+          <th width="150">No. Request</th>
+          <th width="150">Jenis Permintaan</th>
+          <th width="180">Pemohon</th>
+          <th width="150">Tanggal</th>
+          <th width="180">Gudang Asal</th>
+          <th width="120">Status</th>
+        </tr>
+  `
+
+  filteredRows.value.forEach((row, idx) => {
+    const statusClass =
+      row.status === 'Approved'
+        ? 'status-approved'
+        : row.status === 'Rejected'
+          ? 'status-rejected'
+          : 'status-pending'
+    html += `
+      <tr>
+        <td align="center">${idx + 1}</td>
+        <td style="font-weight: bold; color: #1a237e;">${row.nomor || 'REQ-' + row.id?.slice(0, 5)}</td>
+        <td style="font-weight: bold;">${row.tipe === 'ANTAR_GUDANG' ? 'MUTASI STOK' : 'PURCHASE REQUEST'}</td>
+        <td>${row.pemohon?.nama || 'Staff'}</td>
+        <td align="center">${formatDate(row.timestamp)}</td>
+        <td style="font-weight: bold;">${row.dari_gudang?.nama || '-'}</td>
+        <td align="center" class="${statusClass}" style="text-transform: uppercase;">${row.status || 'Pending'}</td>
+      </tr>
+    `
+  })
+
+  html += `
+      </table>
+    </body>
+    </html>
+  `
+
+  const blob = new Blob([html], { type: 'application/vnd.ms-excel' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `Laporan_Permintaan_${Date.now()}.xls`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
 const exportToPDF = () => {
   const element = document.getElementById('sj-export-target')
   const fileName = editFields.nomor_sj.replace(/\//g, '-') + '.pdf'
@@ -848,14 +1188,17 @@ const processApproval = async (status) => {
   }).onOk(async () => {
     $q.loading.show({ message: 'Memproses mutasi stok aman...' })
     try {
-      const req = selectedRequest.value
-      if (status === 'Approved' && req.tipe === 'ANTAR_GUDANG') {
+      // FIX UTAMA: KITA HARUS UNBOX/BERSIHKAN VUE PROXY AGAR FIRESTORE BISA MEMBACA DAN MENYIMPANNYA
+      const plainReq = JSON.parse(JSON.stringify(selectedRequest.value))
+      const plainSuratJalanData = JSON.parse(JSON.stringify(editFields))
+
+      if (status === 'Approved' && plainReq.tipe === 'ANTAR_GUDANG') {
         await runTransaction(db, async (transaction) => {
-          for (const item of req.items) {
+          for (const item of plainReq.items) {
             const idBarang = item.id_barang
-            const qty = Number(item.qty)
-            const sourceGudangId = req.dari_gudang.id
-            const destGudangId = req.ke_gudang.id
+            const qty = Number(item.qty) // Qty yang fix dari form input yang diedit
+            const sourceGudangId = plainReq.dari_gudang.id
+            const destGudangId = plainReq.ke_gudang.id
 
             const sourceRefQuery = query(
               collection(db, 'stok_barang'),
@@ -863,9 +1206,13 @@ const processApproval = async (status) => {
               where('id_barang', '==', idBarang),
             )
             const sourceSnap = await getDocs(sourceRefQuery)
-            if (sourceSnap.empty) throw new Error('Stok tidak ditemukan di gudang sumber!')
+            if (sourceSnap.empty)
+              throw new Error(`Stok ${item.nama_barang} tidak ditemukan di gudang sumber!`)
             const sourceDoc = sourceSnap.docs[0]
-            if (sourceDoc.data().jumlah < qty) throw new Error('Stok kurang!')
+            if (sourceDoc.data().jumlah < qty)
+              throw new Error(
+                `Stok ${item.nama_barang} kurang dari yang disetujui! (Diminta: ${qty}, Sisa: ${sourceDoc.data().jumlah})`,
+              )
 
             const destRefQuery = query(
               collection(db, 'stok_barang'),
@@ -874,10 +1221,12 @@ const processApproval = async (status) => {
             )
             const destSnap = await getDocs(destRefQuery)
 
+            // DECREMENT GUDANG SUMBER BERDASARKAN ANGKA YANG DIEDIT!
             transaction.update(doc(db, 'stok_barang', sourceDoc.id), {
               jumlah: increment(-qty),
               updated_at: serverTimestamp(),
             })
+            // INCREMENT GUDANG TUJUAN
             if (!destSnap.empty) {
               transaction.update(doc(db, 'stok_barang', destSnap.docs[0].id), {
                 jumlah: increment(qty),
@@ -902,8 +1251,8 @@ const processApproval = async (status) => {
               tipe: 'KELUAR',
               jumlah: qty,
               satuan: item.satuan,
-              no_referensi: req.nomor,
-              keterangan: 'Mutasi keluar ke ' + req.ke_gudang.nama,
+              no_referensi: plainReq.nomor,
+              keterangan: 'Mutasi keluar ke ' + plainReq.ke_gudang.nama,
               timestamp: serverTimestamp(),
             })
             const logInRef = doc(collection(db, 'aktivitas'))
@@ -913,19 +1262,24 @@ const processApproval = async (status) => {
               tipe: 'MASUK',
               jumlah: qty,
               satuan: item.satuan,
-              no_referensi: req.nomor,
-              keterangan: 'Penerimaan mutasi dari ' + req.dari_gudang.nama,
+              no_referensi: plainReq.nomor,
+              keterangan: 'Penerimaan mutasi dari ' + plainReq.dari_gudang.nama,
               timestamp: serverTimestamp(),
             })
           }
-          transaction.update(doc(db, 'permintaan_barang', req.id), {
+
+          // UPDATE REQUEST DENGAN STATUS APPROVED, ITEMS TERBARU (YANG DI-EDIT QTY-NYA), DAN CONFIG SURAT JALAN
+          transaction.update(doc(db, 'permintaan_barang', plainReq.id), {
             status: 'Approved',
+            items: plainReq.items, // Ini adalah kunci agar QTY yang dirubah ikut tersimpan!
+            surat_jalan_data: plainSuratJalanData, // Ini menjamin LOGO & Nama UP tersimpan!
+            requester_read: false, // Memunculkan notif di GudangPeminta
             updatedAt: serverTimestamp(),
             processedBy: userData.value?.nama || 'Administrator',
           })
         })
       } else {
-        await updateDoc(doc(db, 'permintaan_barang', req.id), {
+        await updateDoc(doc(db, 'permintaan_barang', plainReq.id), {
           status: status,
           updatedAt: serverTimestamp(),
           processedBy: userData.value?.nama || 'Administrator',
@@ -957,15 +1311,6 @@ const deleteRequest = (row) => {
   })
 }
 
-onMounted(() => {
-  fetchRequests()
-  fetchCurrentUser()
-})
-onUnmounted(() => {
-  if (unsubPermintaan) unsubPermintaan()
-  if (unsubUser) unsubUser()
-})
-
 const columns = [
   { name: 'nomor', align: 'left', label: 'NO. REQUEST', field: 'nomor', sortable: true },
   { name: 'tipe', align: 'left', label: 'JENIS', field: 'tipe', sortable: true },
@@ -976,8 +1321,18 @@ const columns = [
   { name: 'aksi', align: 'center', label: 'KELOLA', field: 'id' },
 ]
 
+// LIST DIFILTER BERDASARKAN GUDANG YANG SEDANG DIBUKA SAJA
+const baseList = computed(() => {
+  let list = rows.value || []
+  const wId = route.query.warehouseId
+  if (wId) {
+    list = list.filter((r) => r.dari_gudang?.id === wId || r.ke_gudang?.id === wId)
+  }
+  return list
+})
+
 const summaryStats = computed(() => {
-  const r = rows.value || []
+  const r = baseList.value
   return [
     { label: 'Total Request', value: r.length, icon: 'list_alt', color: 'indigo' },
     {
@@ -1000,12 +1355,23 @@ const summaryStats = computed(() => {
     },
   ]
 })
+
 const filteredRows = computed(() => {
-  let list = rows.value || []
+  let list = baseList.value
   if (statusFilter.value !== 'Semua Status') {
     list = list.filter((r) => (r.status || 'Pending') === statusFilter.value)
   }
   return list
+})
+
+onMounted(() => {
+  fetchRequests()
+  fetchCurrentUser()
+  fetchMasterData() // Load data master untuk menarik Kode Item
+})
+onUnmounted(() => {
+  if (unsubPermintaan) unsubPermintaan()
+  if (unsubUser) unsubUser()
 })
 </script>
 
@@ -1015,6 +1381,10 @@ const filteredRows = computed(() => {
     'Inter',
     -apple-system,
     sans-serif;
+}
+.font-mono {
+  font-family: 'Courier New', Courier, monospace;
+  letter-spacing: 0.5px;
 }
 .rounded-20 {
   border-radius: 20px;
@@ -1068,7 +1438,65 @@ const filteredRows = computed(() => {
   }
 }
 
-/* PERFECTIONIST PAPER STYLING (TARGET EXPORT PDF) */
+/* REPORT PDF EXPORT STYLES (HIDDEN) */
+.report-paper {
+  font-family: 'Inter', Helvetica, Arial, sans-serif;
+  color: #333;
+  padding: 10px;
+  background: white;
+}
+.report-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 3px solid #1a237e;
+  padding-bottom: 15px;
+}
+.report-icon {
+  background-color: #1a237e;
+  border-radius: 8px;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.report-title {
+  margin: 0;
+  color: #1a237e;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+}
+.report-subtitle {
+  color: #666;
+  font-size: 12px;
+  margin-top: 4px;
+  font-weight: bold;
+}
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.report-table th {
+  background-color: #1a237e;
+  color: white;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+.report-table td {
+  padding: 10px 12px;
+  border: 1px solid #e0e0e0;
+}
+.report-table tr:nth-child(even) {
+  background-color: #f8f9fa;
+}
+
+/* PERFECTIONIST PAPER STYLING (TARGET EXPORT PDF SURAT JALAN) */
 .perfectionist-paper {
   background: white !important;
   width: 210mm;

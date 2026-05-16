@@ -5,14 +5,26 @@
       <!-- HEADER SECTION -->
       <div class="row items-center justify-between q-mb-xl">
         <div class="col-12 col-md-8">
-          <div class="text-h4 text-weight-bolder text-indigo-10 leading-tight">
-            Purchase Request (PR)
-            <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
-              >Permintaan Pengadaan Material Proyek</span
-            >
-          </div>
-          <div class="text-subtitle1 text-grey-7 q-mt-sm">
-            Kelola dan pantau seluruh pengajuan belanja material secara profesional.
+          <div class="row items-center no-wrap">
+            <q-btn
+              flat
+              round
+              color="indigo-10"
+              icon="arrow_back"
+              @click="$router.back()"
+              class="q-mr-md bg-white shadow-1"
+            />
+            <div>
+              <div class="text-h4 text-weight-bolder text-indigo-10 leading-tight">
+                Purchase Request (PR)
+                <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
+                  >Permintaan Pengadaan Material Proyek</span
+                >
+              </div>
+              <div class="text-subtitle1 text-grey-7 q-mt-sm">
+                Kelola dan pantau seluruh pengajuan belanja material secara profesional.
+              </div>
+            </div>
           </div>
         </div>
         <div class="col-12 col-md-auto q-mt-md q-mt-md-none">
@@ -24,13 +36,13 @@
             unelevated
             rounded
             no-caps
-            class="q-px-lg q-py-sm shadow-premium btn-hover"
+            class="q-px-lg q-py-sm shadow-premium btn-hover text-weight-bold"
             @click="openAddDialog"
           />
         </div>
       </div>
 
-      <!-- SEARCH & SUMMARY CARD -->
+      <!-- SEARCH & EXPORT CARD -->
       <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white">
         <q-card-section class="q-py-md">
           <div class="row items-center q-col-gutter-md">
@@ -42,14 +54,48 @@
                 rounded
                 placeholder="Cari nomor PR atau pemohon..."
                 bg-color="white"
+                class="search-input"
               >
                 <template v-slot:prepend><q-icon name="search" color="primary" /></template>
+                <template v-slot:append v-if="filter">
+                  <q-icon name="close" @click="filter = ''" class="cursor-pointer" />
+                </template>
               </q-input>
             </div>
             <q-space />
-            <div class="col-12 col-md-auto text-caption text-grey-6">
-              Total Dokumen:
-              <span class="text-weight-bold text-indigo-10">{{ rows.length }} Record</span>
+            <div class="col-12 col-md-auto row items-center q-gutter-md">
+              <div class="text-caption text-grey-6 border-right q-pr-md hidden sm-block">
+                Total Dokumen:
+                <span class="text-weight-bold text-indigo-10">{{ rows.length }} Record</span>
+              </div>
+
+              <!-- EXPORT DROPDOWN BUTTON -->
+              <q-btn-dropdown
+                unelevated
+                rounded
+                color="indigo-10"
+                icon="file_download"
+                label="Export Laporan"
+                class="shadow-1 font-bold q-px-md btn-hover"
+              >
+                <q-list style="min-width: 180px">
+                  <q-item clickable v-ripple @click="exportListToPDF" class="q-py-md hover-bg">
+                    <q-item-section avatar>
+                      <q-avatar color="red-1" text-color="red-9" icon="picture_as_pdf" size="sm" />
+                    </q-item-section>
+                    <q-item-section class="text-weight-bold text-red-9">Export PDF</q-item-section>
+                  </q-item>
+                  <q-separator />
+                  <q-item clickable v-ripple @click="exportListToExcel" class="q-py-md hover-bg">
+                    <q-item-section avatar>
+                      <q-avatar color="green-1" text-color="green-9" icon="table_view" size="sm" />
+                    </q-item-section>
+                    <q-item-section class="text-weight-bold text-green-9"
+                      >Export Excel</q-item-section
+                    >
+                  </q-item>
+                </q-list>
+              </q-btn-dropdown>
             </div>
           </div>
         </q-card-section>
@@ -66,6 +112,7 @@
           :filter="filter"
           binary-state-sort
           class="pr-table"
+          :pagination="{ rowsPerPage: 10 }"
         >
           <template v-slot:header="props">
             <q-tr :props="props" class="bg-indigo-10 text-white">
@@ -73,7 +120,7 @@
                 v-for="col in props.cols"
                 :key="col.name"
                 :props="props"
-                class="text-weight-bold uppercase font-10"
+                class="text-weight-bold uppercase font-11"
               >
                 {{ col.label }}
               </q-th>
@@ -89,11 +136,13 @@
               <q-td key="nomor" class="text-weight-bolder text-indigo-10">{{
                 props.row.nomor
               }}</q-td>
-              <q-td key="gudang">
-                <div class="text-weight-bold text-blue-grey-9 uppercase">
-                  {{ props.row.proyek_nama }}
+              <q-td key="project">
+                <div class="text-weight-bold text-blue-grey-9 uppercase font-12">
+                  {{ props.row.gudang_nama || props.row.proyek_nama || 'UMUM' }}
                 </div>
-                <div class="text-caption text-grey-6">{{ props.row.pemohon?.nama }}</div>
+                <div class="text-caption text-grey-6">
+                  {{ props.row.requestor_nama || props.row.pemohon?.nama }}
+                </div>
                 <div
                   v-if="props.row.status === 'Rejected' && props.row.alasan_reject"
                   class="text-negative text-caption italic"
@@ -101,8 +150,9 @@
                   <q-icon name="info" size="xs" /> {{ props.row.alasan_reject }}
                 </div>
               </q-td>
-              <q-td key="total" class="text-right text-weight-bold">
-                Rp {{ (props.row.total_estimasi || 0).toLocaleString() }}
+              <q-td key="total" class="text-right text-weight-bolder">
+                <span class="text-caption text-grey-6 q-mr-xs">Rp</span>
+                {{ (props.row.total_estimasi || 0).toLocaleString() }}
               </q-td>
               <q-td key="status" class="text-center">
                 <q-chip
@@ -217,7 +267,12 @@
                         @update:model-value="handleLogoChange"
                         bg-color="white"
                       >
-                        <template v-slot:prepend><q-icon name="cloud_upload" /></template>
+                        <template v-slot:prepend
+                          ><q-icon name="cloud_upload" color="indigo-10"
+                        /></template>
+                        <template v-slot:append v-if="form.logoUrl"
+                          ><q-icon name="check_circle" color="positive"
+                        /></template>
                       </q-file>
                     </div>
                     <div class="col-12 col-md-4">
@@ -230,14 +285,31 @@
                         outlined
                         dense
                         v-model="form.nomor"
-                        bg-color="white"
+                        bg-color="grey-2"
                         :readonly="!isEditMode"
                       />
                     </div>
 
+                    <!-- GUDANG / PROJECT SELECTION -->
                     <div class="col-12 col-md-4">
-                      <div class="label-req q-mb-xs">GUDANG / PROJECT (Contextual) *</div>
+                      <div class="label-req q-mb-xs">GUDANG / PROJECT *</div>
+                      <q-select
+                        v-if="!warehouseIdContext"
+                        outlined
+                        dense
+                        v-model="selectedWarehouseObj"
+                        :options="optGudang"
+                        option-label="nama"
+                        placeholder="Pilih Gudang/Project..."
+                        bg-color="white"
+                        @update:model-value="onGudangChange"
+                      >
+                        <template v-slot:prepend
+                          ><q-icon name="apartment" color="indigo-10"
+                        /></template>
+                      </q-select>
                       <q-input
+                        v-else
                         filled
                         dense
                         v-model="selectedWarehouseName"
@@ -250,19 +322,45 @@
                         /></template>
                       </q-input>
                     </div>
-                    <div class="col-12 col-md-4" v-if="selectedWarehouseObj?.id !== 'UTAMA'">
+
+                    <!-- REFF SPK (DIFILTER BERDASARKAN PROJECT) -->
+                    <div
+                      class="col-12 col-md-4"
+                      v-if="selectedWarehouseObj?.id !== 'UTAMA' && warehouseIdContext !== 'UTAMA'"
+                    >
                       <div class="label-req q-mb-xs">NO. REFF: (SPK PROJECT)</div>
                       <q-select
                         outlined
                         dense
                         v-model="selectedSpk"
-                        :options="optSpk"
+                        :options="filteredSpk"
                         option-label="nomor_spk"
                         placeholder="Pilih Reff SPK..."
                         bg-color="white"
                         :loading="loadingSpk"
-                      />
+                      >
+                        <template v-slot:option="scope">
+                          <q-item v-bind="scope.itemProps">
+                            <q-item-section>
+                              <q-item-label class="text-weight-bold">{{
+                                scope.opt.nomor_spk
+                              }}</q-item-label>
+                              <q-item-label caption class="text-uppercase text-indigo-9">{{
+                                scope.opt.nama_kontrak
+                              }}</q-item-label>
+                            </q-item-section>
+                          </q-item>
+                        </template>
+                        <template v-slot:no-option>
+                          <q-item>
+                            <q-item-section class="text-grey text-caption"
+                              >Tidak ada SPK aktif di project ini.</q-item-section
+                            >
+                          </q-item>
+                        </template>
+                      </q-select>
                     </div>
+
                     <div class="col-12 col-md-2">
                       <div class="label-req q-mb-xs">Lokasi Terbit</div>
                       <q-input
@@ -296,7 +394,7 @@
               <q-card flat bordered class="rounded-12 q-mb-lg bg-white shadow-1 overflow-hidden">
                 <q-card-section class="bg-blue-grey-1 q-py-xs row items-center border-bottom">
                   <q-icon name="list_alt" class="q-mr-xs" size="xs" />
-                  <div class="text-weight-bold text-blue-grey-10 uppercase font-8">
+                  <div class="text-weight-bold text-blue-grey-10 uppercase font-11">
                     RINCIAN MATERIAL PENGAJUAN
                   </div>
                   <q-space />
@@ -315,7 +413,7 @@
                 <q-markup-table flat separator="cell" class="item-entry-table">
                   <thead>
                     <tr class="bg-indigo-1 text-indigo-10">
-                      <th width="50">NO</th>
+                      <th width="40">NO</th>
                       <th class="text-left">DESCRIPTION OF MATERIAL</th>
                       <th width="80">QTY</th>
                       <th width="80">UNIT</th>
@@ -336,6 +434,7 @@
                           option-label="nama"
                           placeholder="Tulis rincian..."
                           use-input
+                          new-value-mode="add-unique"
                           @filter="filterMasterBarang"
                           @update:model-value="(val) => onBarangSelect(val, index)"
                         />
@@ -387,7 +486,7 @@
                   </tbody>
                   <tfoot class="bg-grey-1">
                     <tr>
-                      <td colspan="5" class="text-right text-weight-bold uppercase font-10">
+                      <td colspan="5" class="text-right text-weight-bold uppercase font-11">
                         Total Estimasi Harga
                       </td>
                       <td class="text-right text-weight-bolder text-indigo-10">
@@ -448,28 +547,88 @@
                       <q-editor v-model="form.closing" class="q-mb-md" flat bordered dense />
 
                       <div class="row q-col-gutter-md items-end">
-                        <div class="col-12 col-sm-6">
+                        <div class="col-12 col-sm-12">
                           <div class="text-caption text-bold text-grey-7 q-mb-xs">
                             REQUESTOR (DATA LOGIN)
                           </div>
-                          <q-input
-                            outlined
-                            dense
-                            v-model="form.ttd_nama"
-                            label="Nama Penandatangan"
-                            readonly
-                            bg-color="blue-grey-1"
-                          />
-                          <q-input
-                            outlined
-                            dense
-                            v-model="form.ttd_jabatan"
-                            label="Jabatan"
-                            readonly
-                            bg-color="blue-grey-1"
-                            class="q-mt-sm"
-                          />
+                          <div class="row q-col-gutter-sm">
+                            <div class="col-6">
+                              <q-input
+                                outlined
+                                dense
+                                v-model="form.ttd_nama"
+                                label="Nama Penandatangan"
+                                readonly
+                                bg-color="blue-grey-1"
+                              />
+                            </div>
+                            <div class="col-6">
+                              <q-input
+                                outlined
+                                dense
+                                v-model="form.ttd_jabatan"
+                                label="Jabatan"
+                                readonly
+                                bg-color="blue-grey-1"
+                              />
+                            </div>
+                          </div>
                         </div>
+                      </div>
+
+                      <q-separator class="q-my-md" />
+
+                      <div class="row q-col-gutter-lg items-end">
+                        <!-- KOLOM STEMPEL -->
+                        <div class="col-12 col-sm-6">
+                          <div
+                            class="text-caption text-bold text-indigo-10 q-mb-xs uppercase font-10"
+                          >
+                            STEMPEL DIVISI / PERUSAHAAN
+                          </div>
+                          <q-file
+                            outlined
+                            dense
+                            v-model="tempStempelFile"
+                            label="Upload Stempel"
+                            accept="image/*"
+                            @update:model-value="uploadStempel"
+                            bg-color="white"
+                            class="q-mb-sm"
+                          >
+                            <template v-slot:prepend
+                              ><q-icon name="local_police" color="orange-9"
+                            /></template>
+                          </q-file>
+                          <q-card
+                            v-if="form.stempel_url"
+                            flat
+                            bordered
+                            class="rounded-12 flex flex-center bg-grey-1 relative-position"
+                            style="height: 100px"
+                          >
+                            <q-img :src="form.stempel_url" style="max-height: 80px" fit="contain" />
+                            <q-btn
+                              flat
+                              round
+                              dense
+                              icon="close"
+                              color="red"
+                              size="xs"
+                              class="absolute-top-right q-ma-xs"
+                              @click.stop="form.stempel_url = ''"
+                            />
+                          </q-card>
+                          <div
+                            v-else
+                            class="rounded-12 flex flex-center border-dashed bg-grey-2 text-grey-5 text-caption font-bold"
+                            style="height: 100px"
+                          >
+                            Belum Ada Stempel
+                          </div>
+                        </div>
+
+                        <!-- KOLOM TANDA TANGAN -->
                         <div class="col-12 col-sm-6">
                           <div
                             class="text-caption text-bold text-primary q-mb-xs uppercase font-8 flex items-center justify-between"
@@ -556,7 +715,7 @@
     <q-dialog v-model="showPad" persistent backdrop-filter="blur(4px)">
       <q-card style="width: 500px; max-width: 95vw" class="rounded-20 shadow-24">
         <q-card-section class="row items-center q-pb-none bg-indigo-10 text-white q-pa-md">
-          <div class="text-h6 text-weight-bold uppercase font-10">Tanda Tangan Prepared By</div>
+          <div class="text-h6 text-weight-bold uppercase font-11">Gambar Tanda Tangan</div>
           <q-space />
           <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
@@ -586,15 +745,27 @@
           <q-btn flat round dense icon="arrow_back" v-close-popup />
           <q-toolbar-title class="text-weight-bold">PREVIEW DOKUMEN RESMI PR</q-toolbar-title>
           <q-btn-group unelevated rounded class="shadow-2">
-            <q-btn color="primary" icon="print" label="Cetak" @click="printPage" class="q-px-md" />
-            <q-btn color="red-9" icon="picture_as_pdf" label="PDF" @click="exportToPDF" />
+            <q-btn
+              color="primary"
+              icon="print"
+              label="Cetak"
+              @click="printPage"
+              class="q-px-md font-bold"
+            />
+            <q-btn
+              color="red-9"
+              icon="picture_as_pdf"
+              label="Export PDF"
+              @click="exportToPDF"
+              class="font-bold"
+            />
           </q-btn-group>
         </q-toolbar>
 
         <q-card-section class="col scroll q-pa-md q-pa-md-xl flex flex-center">
           <div id="pr-print-area" class="letter-paper shadow-24" v-if="selectedData">
             <div class="row no-wrap items-center">
-              <div v-if="selectedData.logoUrl" class="col-auto q-mr-xl">
+              <div v-if="selectedData.logoUrl" class="col-auto q-mr-md">
                 <img :src="selectedData.logoUrl" class="final-kop-img" />
               </div>
               <div class="col text-left">
@@ -623,7 +794,7 @@
                     <td class="text-bold label-meta">Gudang / Project</td>
                     <td class="meta-separator">:</td>
                     <td class="text-weight-bold text-indigo-10 uppercase">
-                      {{ selectedData.proyek_nama }}
+                      {{ selectedData.gudang_nama || selectedData.proyek_nama }}
                     </td>
                   </tr>
                   <tr>
@@ -634,7 +805,9 @@
                   <tr>
                     <td class="text-bold label-meta">Requestor</td>
                     <td class="meta-separator">:</td>
-                    <td class="text-weight-medium uppercase">{{ selectedData.pemohon?.nama }}</td>
+                    <td class="text-weight-medium uppercase">
+                      {{ selectedData.requestor_nama || selectedData.pemohon?.nama }}
+                    </td>
                   </tr>
                 </table>
               </div>
@@ -655,7 +828,7 @@
               <thead>
                 <tr>
                   <th width="40">NO</th>
-                  <th>ITEM DESCRIPTION</th>
+                  <th class="text-left">ITEM DESCRIPTION</th>
                   <th width="60">QTY</th>
                   <th width="60">UNIT</th>
                   <th width="120">est UNIT PRICE</th>
@@ -705,25 +878,37 @@
                   <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">
                     Prepared By,
                   </div>
+
+                  <!-- FINAL SIGNATURE & STEMPEL OVERLAY -->
                   <div class="final-sign-space flex flex-center">
+                    <img
+                      v-if="selectedData.stempel_url"
+                      :src="selectedData.stempel_url"
+                      class="img-stempel"
+                    />
                     <img
                       v-if="selectedData.signatureUrl"
                       :src="selectedData.signatureUrl"
                       class="img-signature-clean"
                     />
-                    <div v-else style="height: 100px" class="flex flex-center text-grey-4 italic">
-                      Belum ditandatangani
+                    <div
+                      v-if="!selectedData.signatureUrl && !selectedData.stempel_url"
+                      style="height: 100px"
+                      class="flex flex-center text-grey-4 italic w-full"
+                    >
+                      Belum ada pengesahan
                     </div>
                   </div>
+
                   <div
                     class="text-signer-final text-weight-black underline uppercase text-indigo-10"
                   >
-                    {{ selectedData.ttd_nama }}
+                    {{ selectedData.ttd_nama || selectedData.requestor_nama }}
                   </div>
                   <div
                     class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs"
                   >
-                    {{ selectedData.ttd_jabatan }}
+                    {{ selectedData.ttd_jabatan || selectedData.requestor_jabatan }}
                   </div>
                 </div>
               </div>
@@ -732,11 +917,88 @@
         </q-card-section>
       </q-card>
     </q-dialog>
+
+    <!-- HIDDEN TEMPLATE EXPORT PDF LIST -->
+    <div style="display: none">
+      <div id="pr-list-export" class="report-paper">
+        <div
+          class="report-header"
+          style="background: linear-gradient(90deg, #1a237e 0%, #3949ab 100%)"
+        >
+          <div class="row no-wrap items-center">
+            <div class="col-auto q-mr-md">
+              <div class="report-icon">
+                <svg
+                  width="28"
+                  height="28"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="white"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                  <line x1="3" y1="6" x2="21" y2="6"></line>
+                  <path d="M16 10a4 4 0 0 1-8 0"></path>
+                </svg>
+              </div>
+            </div>
+            <div>
+              <h1 class="report-title">LAPORAN PURCHASE REQUEST (PR)</h1>
+              <div class="report-subtitle">
+                Diekspor pada: {{ new Date().toLocaleString('id-ID') }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th style="width: 40px; text-align: center">NO</th>
+              <th style="text-align: left">REFERENCE NO</th>
+              <th style="text-align: left">PROJECT / GUDANG</th>
+              <th style="text-align: left">REQUESTOR</th>
+              <th style="width: 150px; text-align: right">EST. AMOUNT (RP)</th>
+              <th style="width: 100px; text-align: center">STATUS</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(row, idx) in rows" :key="row.id">
+              <td style="text-align: center">{{ idx + 1 }}</td>
+              <td style="font-weight: 900; color: #1a237e">{{ row.nomor }}</td>
+              <td style="font-weight: bold; text-transform: uppercase">
+                {{ row.gudang_nama || row.proyek_nama || 'UMUM' }}
+              </td>
+              <td>
+                <div style="color: #444">{{ row.requestor_nama || row.pemohon?.nama }}</div>
+              </td>
+              <td style="text-align: right; font-weight: 800">
+                Rp {{ (row.total_estimasi || 0).toLocaleString() }}
+              </td>
+              <td style="text-align: center">
+                <span class="status-badge" :class="'status-' + (row.status || 'Pending')">
+                  {{ row.status || 'Pending' }}
+                </span>
+              </td>
+            </tr>
+            <tr v-if="rows.length === 0">
+              <td colspan="6" style="text-align: center; color: #888; font-style: italic">
+                Belum ada data pengajuan PR.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="q-py-xl no-print"></div>
   </q-page>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 // eslint-disable-next-line no-unused-vars
 import { db, storage } from 'src/boot/firebase'
@@ -768,7 +1030,7 @@ const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const viewMode = ref('LIST')
-const warehouseIdContext = route.params.id
+const warehouseIdContext = route.params.id || route.query.warehouseId // Bersifat fleksibel ambil ID
 const selectedWarehouseName = ref('Memuat...')
 const selectedWarehouseObj = ref(null)
 const showDialog = ref(false)
@@ -787,8 +1049,7 @@ const masterBarang = ref([])
 const allBarang = ref([])
 const selectedData = ref(null)
 const tempKopFile = ref(null)
-// eslint-disable-next-line no-unused-vars
-const analisaFile = ref(null)
+const tempStempelFile = ref(null)
 const tempSignFile = ref(null)
 const signatureCanvas = ref(null)
 let signaturePad = null
@@ -824,6 +1085,7 @@ const formDefault = {
   ttd_nama: '',
   ttd_jabatan: '',
   signatureUrl: '',
+  stempel_url: '',
   approve_nama: 'Wartono',
   approve_jabatan: 'Manager Operasional',
   no_reff: '',
@@ -832,16 +1094,23 @@ const formDefault = {
 }
 const form = ref({ ...formDefault })
 
-// --- PERMISSIONS (Like PenawaranPage) ---
+// --- PERMISSIONS ---
 const canAction = (actionType) => {
   if (authStore.user?.role === 'Super Admin') return true
   if (!userData.value?.permissions_detail) return false
   const modulePerm = userData.value.permissions_detail.find((m) => m.id === 'konstruksi')
   if (!modulePerm || !modulePerm.isActive) return false
-  const targetId = '_konstruksi_gudang_permintaan' // Sesuaikan dengan ID menu gudang/PR lo
+  const targetId = '_konstruksi_gudang_permintaan'
   const menu = modulePerm.menus.find((m) => m.id === targetId)
   return menu ? menu[actionType] || false : false
 }
+
+// MENGHITUNG SPK YANG BERKAITAN DENGAN GUDANG SAJA (MEMORI FILTERING)
+const filteredSpk = computed(() => {
+  const wId = selectedWarehouseObj.value?.id || warehouseIdContext
+  if (!wId || wId === 'UTAMA') return []
+  return optSpk.value.filter((s) => s.projectId === wId)
+})
 
 const fetchData = async () => {
   loading.value = true
@@ -849,14 +1118,21 @@ const fetchData = async () => {
   const configSnap = await getDoc(confRef)
   if (configSnap.exists()) config.value = configSnap.data()
 
+  // FETCH ARRAY (Filter jika masuk dari Gudang/Project tertentu)
   unsubRows = onSnapshot(collection(db, 'permintaan_barang'), (snap) => {
     const all = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
     rows.value = all
       .filter((it) => it.tipe === 'PURCHASE_REQUEST')
+      .filter((it) =>
+        warehouseIdContext
+          ? it.gudang_id === warehouseIdContext || it.proyek_id === warehouseIdContext
+          : true,
+      )
       .sort((a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0))
     loading.value = false
   })
 
+  // AMBIL DATA GUDANG / PROYEK DARI DB
   const projSnap = await getDocs(collection(db, 'proyek'))
   const list = [
     { id: 'UTAMA', nama: 'Gudang Utama Center' },
@@ -872,6 +1148,7 @@ const fetchData = async () => {
     selectedWarehouseName.value = found.nama
   }
 
+  // AMBIL DATA MASTER BARANG
   const barSnap = await getDocs(collection(db, 'master_barang'))
   allBarang.value = barSnap.docs
     .map((d) => ({ id: d.id, nama: d.data().nama, unit: d.data().unit }))
@@ -881,10 +1158,12 @@ const fetchData = async () => {
   // --- MENGAMBIL DATA SPK UNTUK DROPDOWN REFF ---
   loadingSpk.value = true
   try {
-    const spkSnap = await getDocs(collection(db, 'spk_customer')) // PERBAIKAN: Mengubah 'spk' menjadi 'spk_customer'
+    const spkSnap = await getDocs(collection(db, 'spk_customer'))
     optSpk.value = spkSnap.docs.map((d) => ({
       id: d.id,
       nomor_spk: d.data().nomor_spk || d.data().nomor || d.id,
+      projectId: d.data().projectId,
+      nama_kontrak: d.data().nama_kontrak || '-',
       ...d.data(),
     }))
   } catch (err) {
@@ -920,11 +1199,36 @@ const openAddDialog = () => {
     Date.now().toString().slice(-4)
   form.value.logoUrl = config.value.kopUrl || ''
   form.value.nama_pt = config.value.nama_pt || 'PT AGRA ABHINAYA PERKASA'
+
   if (userData.value) {
     form.value.ttd_nama = userData.value.nama
     form.value.ttd_jabatan = userData.value.jabatan
   }
-  selectedSpk.value = null // Reset pilihan SPK ketika buat baru
+
+  // FIX: Preservasi Konteks Jika Dibuat Dari Gudang Tertentu
+  if (warehouseIdContext) {
+    const found = optGudang.value.find((g) => g.id === warehouseIdContext)
+    if (found) {
+      selectedWarehouseObj.value = found
+      selectedWarehouseName.value = found.nama
+    }
+    // Auto select SPK jika ada yang sesuai
+    const relSpk = optSpk.value.filter((s) => s.projectId === warehouseIdContext)
+    if (relSpk.length > 0) {
+      selectedSpk.value = relSpk[0] // otomatis ambil spk pertama
+    } else {
+      selectedSpk.value = null
+    }
+  } else {
+    selectedWarehouseObj.value = null
+    selectedWarehouseName.value = ''
+    selectedSpk.value = null
+  }
+
+  tempKopFile.value = null
+  tempStempelFile.value = null
+  tempSignFile.value = null
+
   showDialog.value = true
 }
 
@@ -932,12 +1236,24 @@ const openEditDialog = (row) => {
   isEditMode.value = true
   form.value = JSON.parse(JSON.stringify(row))
 
-  // Mencocokkan nilai SPK yang sudah ada di referensi form
   if (row.no_reff) {
     selectedSpk.value = optSpk.value.find((s) => s.nomor_spk === row.no_reff) || null
   } else {
     selectedSpk.value = null
   }
+
+  if (row.gudang_id || row.proyek_id) {
+    const found = optGudang.value.find((g) => g.id === (row.gudang_id || row.proyek_id))
+    if (found) {
+      selectedWarehouseObj.value = found
+      selectedWarehouseName.value = found.nama
+    }
+  }
+
+  tempKopFile.value = null
+  tempStempelFile.value = null
+  tempSignFile.value = null
+
   showDialog.value = true
 }
 
@@ -961,7 +1277,7 @@ const ajukanPR = (row) => {
 }
 
 const submitPurchaseRequest = async () => {
-  if (!selectedWarehouseObj.value)
+  if (!selectedWarehouseObj.value && !selectedWarehouseName.value)
     return $q.notify({ type: 'negative', message: 'Gudang tidak terdeteksi!' })
   if (!form.value.signatureUrl)
     return $q.notify({ type: 'warning', message: 'Tanda tangan wajib diisi!' })
@@ -971,22 +1287,41 @@ const submitPurchaseRequest = async () => {
     const payload = {
       ...form.value,
       tipe: 'PURCHASE_REQUEST',
-      proyek_id: selectedWarehouseObj.value.id,
-      proyek_nama: selectedWarehouseObj.value.nama,
+      gudang_id: selectedWarehouseObj.value?.id || warehouseIdContext || '',
+      gudang_nama: selectedWarehouseObj.value?.nama || selectedWarehouseName.value || '',
+      proyek_id: selectedWarehouseObj.value?.id || warehouseIdContext || '',
+      proyek_nama: selectedWarehouseObj.value?.nama || selectedWarehouseName.value || '',
       no_reff: selectedSpk.value?.nomor_spk || form.value.no_reff || '',
-      total_estimasi: calculateTotalPR(),
-      pemohon: { id: authStore.user?.uid, nama: authStore.user?.nama },
+      total_estimasi: calculateTotalPR() || 0,
+      pemohon: {
+        id: authStore.user?.uid || authStore.user?.id || '',
+        nama: authStore.user?.nama || userData.value?.nama || 'Admin',
+      },
       updatedAt: serverTimestamp(),
     }
 
-    payload.items = payload.items.map((it) => ({
-      id_barang: it.id_barang,
-      nama_barang: it.nama_barang,
-      qty: it.qty,
-      satuan: it.satuan,
-      estimasi_harga: it.estimasi_harga,
-      total: it.qty * it.estimasi_harga,
-    }))
+    // FIX UTAMA: Hapus Nilai Undefined pada Root Level Secara Paksa Agar Firebase Tidak Me-Reject (Error) Data
+    Object.keys(payload).forEach((key) => {
+      if (payload[key] === undefined) {
+        payload[key] = ''
+      }
+    })
+
+    // Mencegah Nilai Undefined pada Items Array
+    payload.items = payload.items.map((it) => {
+      let nm = it.nama_barang
+      if (it.barang && typeof it.barang === 'string') nm = it.barang
+      else if (it.barang && it.barang.nama) nm = it.barang.nama
+
+      return {
+        id_barang: it.id_barang || '',
+        nama_barang: nm || it.deskripsi || 'Item Tanpa Nama',
+        qty: Number(it.qty) || 1,
+        satuan: it.satuan || 'ls',
+        estimasi_harga: Number(it.estimasi_harga) || Number(it.est_harga) || 0,
+        total: Number(it.total) || 0,
+      }
+    })
 
     const docId = payload.id
     if (isEditMode.value && docId) {
@@ -1010,7 +1345,61 @@ const submitPurchaseRequest = async () => {
   }
 }
 
-// --- SIGNATURE LOGIC ---
+const onGudangChange = (val) => {
+  if (val) {
+    selectedWarehouseName.value = val.nama
+    // Auto Update SPK Options and Set Value if only one exists
+    const relSpk = optSpk.value.filter((s) => s.projectId === val.id)
+    if (relSpk.length > 0) {
+      selectedSpk.value = relSpk[0]
+    } else {
+      selectedSpk.value = null
+    }
+  }
+}
+
+// --- IMAGE UPLOAD LOGIC ---
+const resizeImageToBase64 = (file, maxWidth = 400) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = (e) => {
+      const img = new Image()
+      img.src = e.target.result
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        const scaleSize = maxWidth / img.width
+        canvas.width = maxWidth
+        canvas.height = img.height * scaleSize
+        const ctx = canvas.getContext('2d')
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+        resolve(canvas.toDataURL('image/png', 0.8))
+      }
+    }
+    reader.onerror = (error) => reject(error)
+  })
+}
+
+const handleLogoChange = async (f) => {
+  if (!f) return
+  resizeImageToBase64(f, 400).then((res) => {
+    form.value.logoUrl = res
+    setDoc(doc(db, 'config', 'perusahaan'), { kopUrl: res }, { merge: true })
+  })
+}
+const uploadStempel = (file) => {
+  if (!file) return
+  resizeImageToBase64(file, 300).then((res) => (form.value.stempel_url = res))
+}
+const uploadSignatureFile = (file) => {
+  if (!file) return
+  resizeImageToBase64(file, 300).then((res) => {
+    form.value.signatureUrl = res
+    $q.notify({ type: 'positive', message: 'Tanda tangan diunggah' })
+  })
+}
+
+// --- SIGNATURE PAD LOGIC ---
 watch(showPad, async (v) => {
   if (v) {
     await nextTick()
@@ -1028,24 +1417,8 @@ const saveManualSignature = () => {
   form.value.signatureUrl = signaturePad.toDataURL()
   showPad.value = false
 }
-const uploadSignatureFile = (file) => {
-  if (!file) return
-  const reader = new FileReader()
-  reader.readAsDataURL(file)
-  reader.onload = () => {
-    form.value.signatureUrl = reader.result
-    $q.notify({ type: 'positive', message: 'Tanda tangan diunggah' })
-  }
-}
-const handleLogoChange = async (f) => {
-  if (!f) return
-  const r = new FileReader()
-  r.readAsDataURL(f)
-  r.onload = async () => {
-    form.value.logoUrl = r.result
-    await setDoc(doc(db, 'config', 'perusahaan'), { kopUrl: r.result }, { merge: true })
-  }
-}
+
+// --- TABLE & CALCULATION LOGIC ---
 const calcRow = (idx) => {
   const it = form.value.items[idx]
   it.total = (it.qty || 0) * (it.estimasi_harga || 0)
@@ -1066,9 +1439,15 @@ const removeItemRow = (idx) => {
 }
 const onBarangSelect = (v, idx) => {
   if (v) {
-    form.value.items[idx].id_barang = v.id
-    form.value.items[idx].nama_barang = v.nama
-    form.value.items[idx].satuan = v.unit
+    if (typeof v === 'string') {
+      form.value.items[idx].id_barang = ''
+      form.value.items[idx].nama_barang = v
+      form.value.items[idx].satuan = 'ls'
+    } else {
+      form.value.items[idx].id_barang = v.id || ''
+      form.value.items[idx].nama_barang = v.nama || ''
+      form.value.items[idx].satuan = v.unit || 'ls'
+    }
     calcRow(idx)
   }
 }
@@ -1078,6 +1457,8 @@ const filterMasterBarang = (v, u) => {
     masterBarang.value = allBarang.value.filter((x) => x.nama.toLowerCase().includes(n))
   })
 }
+
+// --- EXPORT & PDF PREVIEW LOGIC ---
 const getStatusColor = (s) =>
   s === 'Approved'
     ? 'positive'
@@ -1088,35 +1469,152 @@ const getStatusColor = (s) =>
         : s === 'Pending'
           ? 'orange-8'
           : 'blue-grey-6'
+
 const openPreview = (r) => {
   selectedData.value = r
   showPreview.value = true
 }
+
 const printPage = () => window.print()
+
 const exportToPDF = () => {
-  const e = document.getElementById('pr-print-area')
-  const o = {
-    margin: 0,
-    filename: `PR_${selectedData.value.nomor}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2.5, useCORS: true, letterRendering: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-  }
-  html2pdf().set(o).from(e).save()
+  $q.loading.show({ message: 'Generating Professional PDF...' })
+  setTimeout(() => {
+    const e = document.getElementById('pr-print-area')
+    const o = {
+      margin: 0,
+      filename: `PR_${selectedData.value.nomor.replace(/\//g, '-')}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2.5, useCORS: true, letterRendering: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    }
+    html2pdf()
+      .set(o)
+      .from(e)
+      .save()
+      .then(() => {
+        $q.loading.hide()
+        $q.notify({ type: 'positive', message: 'PDF Berhasil Terunduh!', position: 'top' })
+      })
+  }, 800)
 }
+
+const exportListToPDF = () => {
+  $q.loading.show({ message: 'Generating Colorful PDF Report...' })
+  setTimeout(() => {
+    const element = document.getElementById('pr-list-export')
+    const opt = {
+      margin: [15, 15, 15, 15],
+      filename: `Laporan_PR_${Date.now()}.pdf`,
+      image: { type: 'jpeg', quality: 1 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+    }
+    html2pdf()
+      .set(opt)
+      .from(element)
+      .save()
+      .then(() => {
+        $q.loading.hide()
+        $q.notify({ type: 'positive', message: 'Laporan PDF Berhasil Diunduh!', position: 'top' })
+      })
+  }, 800)
+}
+
+const exportListToExcel = () => {
+  const now = new Date()
+  const exportDate = now.toLocaleString('id-ID')
+
+  let html = `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+    <head>
+    <meta charset="utf-8" />
+    <style>
+      .table-bordered { border-collapse: collapse; width: 100%; font-family: sans-serif; font-size: 12px; }
+      .table-bordered th, .table-bordered td { border: 1px solid #dddddd; padding: 10px; vertical-align: middle; }
+      .header-row th { background-color: #1a237e; color: #ffffff; font-weight: bold; text-align: left; }
+      .title { font-size: 18px; font-weight: bold; color: #1a237e; font-family: sans-serif; }
+      .subtitle { font-size: 12px; color: #666666; font-family: sans-serif; }
+      .status-approved { color: #2e7d32; font-weight: bold; background-color: #e8f5e9; }
+      .status-pending { color: #e65100; font-weight: bold; background-color: #fff3e0; }
+      .status-rejected { color: #c62828; font-weight: bold; background-color: #ffebee; }
+    </style>
+    </head>
+    <body>
+      <div class="title">LAPORAN PURCHASE REQUEST (PR) - PENGADAAN MATERIAL</div>
+      <div class="subtitle">Diekspor pada: ${exportDate}</div>
+      <br>
+      <table class="table-bordered">
+        <tr class="header-row">
+          <th width="50" style="text-align: center;">NO</th>
+          <th width="150">REFERENCE NO</th>
+          <th width="250">PROJECT / GUDANG</th>
+          <th width="200">REQUESTOR</th>
+          <th width="150" style="text-align: right;">EST. AMOUNT (RP)</th>
+          <th width="120" style="text-align: center;">STATUS</th>
+        </tr>
+  `
+
+  let totalAmount = 0
+  rows.value.forEach((row, idx) => {
+    totalAmount += row.total_estimasi || 0
+    const statusClass =
+      row.status === 'Approved'
+        ? 'status-approved'
+        : row.status === 'Rejected'
+          ? 'status-rejected'
+          : 'status-pending'
+
+    html += `
+      <tr>
+        <td align="center">${idx + 1}</td>
+        <td style="font-weight: bold; color: #1a237e;">${row.nomor}</td>
+        <td style="text-transform: uppercase;">${row.gudang_nama || row.proyek_nama || 'UMUM'}</td>
+        <td>${row.requestor_nama || row.pemohon?.nama}</td>
+        <td align="right" style="font-weight: bold;">${row.total_estimasi || 0}</td>
+        <td align="center" class="${statusClass}">${row.status || 'Pending'}</td>
+      </tr>
+    `
+  })
+
+  html += `
+        <tr>
+          <td colspan="4" align="right" style="font-weight: bold; background-color: #f5f5f5;">GRAND TOTAL ESTIMASI</td>
+          <td align="right" style="font-weight: bold; color: #1a237e; font-size: 14px; background-color: #f5f5f5;">${totalAmount}</td>
+          <td style="background-color: #f5f5f5;"></td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `
+
+  const blob = new Blob([html], { type: 'application/vnd.ms-excel' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `Laporan_PR_${Date.now()}.xls`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
 const confirmHapus = (r) => {
   $q.dialog({ title: 'Hapus PR?', cancel: true }).onOk(async () => {
     await deleteDoc(doc(db, 'permintaan_barang', r.id))
   })
 }
+
 const formatIndoDate = (d) =>
   d
     ? new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
     : ''
+
 onMounted(() => {
   fetchData()
   fetchCurrentUser()
 })
+
 onUnmounted(() => {
   if (unsubUser) unsubUser()
   if (unsubRows) unsubRows()
@@ -1151,7 +1649,7 @@ const columns = [
   border-radius: 12px;
 }
 .shadow-premium {
-  box-shadow: 0 10px 30px rgba(25, 118, 210, 0.15);
+  box-shadow: 0 10px 30px rgba(26, 35, 126, 0.15);
 }
 .uppercase {
   text-transform: uppercase;
@@ -1338,17 +1836,36 @@ const columns = [
   margin-top: auto;
   padding-top: 30px;
 }
+
+/* FIX STEMPEL & SIGNATURE CSS Absolute Positioning */
 .final-sign-space {
-  height: 90px;
   position: relative;
+  height: 120px;
+  width: 250px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 10px;
+}
+.img-stempel {
+  position: absolute;
+  width: 110px;
+  height: auto;
+  left: 20px; /* Geser ke kiri */
+  bottom: 15px;
+  z-index: 2;
+  opacity: 0.95;
 }
 .img-signature-clean {
-  max-height: 80px;
-  max-width: 200px;
-  object-fit: contain;
+  position: absolute;
+  max-height: 100px;
+  max-width: 180px;
+  right: 10px; /* Tanda tangan di kanan */
+  bottom: 5px;
+  z-index: 1;
   mix-blend-mode: multiply;
   filter: contrast(1.1) brightness(0.95);
 }
+
 .text-signer-final {
   font-size: 14px;
   font-weight: 900;
@@ -1401,6 +1918,90 @@ const columns = [
     transform: translateY(0);
   }
 }
+
+/* HIDDEN EXPORT PDF DESIGN */
+.report-paper {
+  font-family: 'Inter', Helvetica, Arial, sans-serif;
+  color: #333;
+  padding: 10px;
+  background: white;
+}
+.report-header {
+  background: linear-gradient(90deg, #1a237e 0%, #3949ab 100%);
+  color: white;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 25px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+.report-icon {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.report-title {
+  margin: 0;
+  color: white;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+.report-subtitle {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+  margin-top: 4px;
+}
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.report-table th {
+  background-color: #1a237e;
+  color: white;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  text-transform: uppercase;
+  font-weight: 800;
+  font-size: 11px;
+}
+.report-table td {
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  vertical-align: middle;
+}
+.report-table tr:nth-child(even) {
+  background-color: #f8f9fa;
+}
+
+/* Status Badges for PDF */
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+.status-Approved {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+}
+.status-Pending {
+  background-color: #fff3e0;
+  color: #e65100;
+  border: 1px solid #ffe0b2;
+}
+.status-Rejected {
+  background-color: #ffebee;
+  color: #c62828;
+  border: 1px solid #ffcdd2;
+}
+
 @media print {
   @page {
     size: A4;

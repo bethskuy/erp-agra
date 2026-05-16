@@ -123,10 +123,10 @@
                 </q-td>
                 <q-td key="proyek_nama">
                   <div class="text-weight-bold text-blue-grey-9 uppercase">
-                    {{ props.row.proyek_nama }}
+                    {{ props.row.proyek_nama || props.row.gudang_nama }}
                   </div>
                   <div class="text-caption text-grey-6 italic">
-                    Oleh: {{ props.row.pemohon?.nama }}
+                    Oleh: {{ props.row.pemohon?.nama || props.row.requestor_nama }}
                   </div>
                   <div
                     v-if="props.row.status === 'Rejected'"
@@ -522,7 +522,6 @@
                   />
                 </div>
 
-                <!-- TAMBAHAN: AUTO FIELD SPK SAAT PR DIPILIH -->
                 <div v-if="poForm.no_spk">
                   <div class="label-req q-mb-xs">NO. REFF (SPK PROJECT)</div>
                   <q-input
@@ -757,39 +756,45 @@
           <q-space />
           <q-btn
             v-if="selectedData?.status === 'Pending' && canAction('approve')"
-            color="indigo-10"
-            icon="draw"
-            label="Bubuhkan TTD"
-            unelevated
-            rounded
-            class="q-mr-md"
-            @click="showPad = true"
-          />
-          <q-btn
-            v-if="selectedData?.status === 'Pending' && canAction('approve')"
             unelevated
             color="positive"
-            :icon="selectedData.signatureUrl ? 'verified' : 'check_circle'"
-            :label="selectedData.signatureUrl ? 'KONFIRMASI APPROVAL' : 'APPROVE DOKUMEN'"
+            icon="check_circle"
+            label="APPROVE DOKUMEN"
             @click="handleApproval(selectedData, 'Approved')"
             rounded
             class="text-weight-bold shadow-4 q-mr-md"
           />
           <q-btn-group unelevated rounded class="shadow-2">
-            <q-btn color="primary" icon="print" label="Cetak" @click="printPage" class="q-px-md" />
-            <q-btn color="red-9" icon="picture_as_pdf" label="PDF" @click="exportToPDF" />
+            <q-btn
+              color="primary"
+              icon="print"
+              label="Cetak"
+              @click="printPage"
+              class="q-px-md font-bold"
+            />
+            <q-btn
+              color="red-9"
+              icon="picture_as_pdf"
+              label="PDF"
+              @click="exportToPDF"
+              class="font-bold"
+            />
           </q-btn-group>
         </q-toolbar>
 
         <q-card-section class="col scroll q-pa-md q-pa-md-xl flex flex-center preview-container">
           <div id="pr-print-area" class="letter-paper shadow-24" v-if="selectedData">
             <div class="row no-wrap items-center">
-              <div v-if="selectedData.logoUrl" class="col-auto q-mr-xl">
+              <div v-if="selectedData.logoUrl" class="col-auto q-mr-md">
                 <img :src="selectedData.logoUrl" class="final-kop-img" />
               </div>
               <div class="col text-left">
-                <div class="final-pt-name uppercase">{{ selectedData.nama_pt }}</div>
-                <div class="final-pt-tagline italic text-grey-8">{{ selectedData.slogan_pt }}</div>
+                <div class="final-pt-name uppercase">
+                  {{ selectedData.nama_pt || 'PT AGRA ABHINAYA PERKASA' }}
+                </div>
+                <div class="final-pt-tagline italic text-grey-8">
+                  {{ selectedData.slogan_pt || 'General Construction and General Supply' }}
+                </div>
               </div>
             </div>
             <div class="final-divider"></div>
@@ -807,13 +812,15 @@
                   <tr>
                     <td class="text-bold label-meta">Kepada Yth</td>
                     <td class="meta-separator">:</td>
-                    <td class="text-weight-medium">{{ selectedData.kepada_yth }}</td>
+                    <td class="text-weight-medium">
+                      {{ selectedData.kepada_yth || 'Divisi Purchasing / Procurement' }}
+                    </td>
                   </tr>
                   <tr>
                     <td class="text-bold label-meta">Gudang / Project</td>
                     <td class="meta-separator">:</td>
                     <td class="text-weight-bold text-indigo-10 uppercase">
-                      {{ selectedData.proyek_nama }}
+                      {{ selectedData.proyek_nama || selectedData.gudang_nama || 'UMUM' }}
                     </td>
                   </tr>
                   <tr>
@@ -824,7 +831,9 @@
                   <tr>
                     <td class="text-bold label-meta">Requestor</td>
                     <td class="meta-separator">:</td>
-                    <td class="text-weight-medium uppercase">{{ selectedData.pemohon?.nama }}</td>
+                    <td class="text-weight-medium uppercase">
+                      {{ selectedData.requestor_nama || selectedData.pemohon?.nama || 'Admin' }}
+                    </td>
                   </tr>
                 </table>
               </div>
@@ -832,15 +841,18 @@
                 <div class="row no-wrap justify-end">
                   <div class="text-bold q-mr-md">Tanggal</div>
                   <div class="text-weight-bold">
-                    <!-- FIX: Mengganti formatIndoDate menjadi formatDateIndo yang benar dari script -->
-                    : {{ selectedData.kota }}, {{ formatDateIndo(selectedData.tanggal) }}
+                    : {{ selectedData.kota || 'Bekasi' }},
+                    {{ formatDateIndo(selectedData.tanggal || selectedData.timestamp) }}
                   </div>
                 </div>
               </div>
             </div>
             <div
               class="text-body2 q-mb-sm text-left leading-relaxed"
-              v-html="selectedData.introduction"
+              v-html="
+                selectedData.introduction ||
+                'Bersama surat ini kami mengajukan permintaan pengadaan material untuk kebutuhan proyek sebagai berikut:'
+              "
             ></div>
             <table class="final-pro-table full-width">
               <thead>
@@ -856,10 +868,14 @@
               <tbody>
                 <tr v-for="(it, i) in selectedData.items" :key="i">
                   <td class="text-center font-bold text-grey-8">{{ i + 1 }}</td>
-                  <td class="text-left uppercase text-weight-bold">{{ it.nama_barang }}</td>
+                  <td class="text-left uppercase text-weight-bold">
+                    {{ it.nama_barang || it.deskripsi }}
+                  </td>
                   <td class="text-center font-bold">{{ it.qty }}</td>
                   <td class="text-center uppercase text-weight-bold">{{ it.satuan }}</td>
-                  <td class="text-right">Rp {{ (it.estimasi_harga || 0).toLocaleString() }}</td>
+                  <td class="text-right">
+                    Rp {{ (it.estimasi_harga || it.est_harga || 0).toLocaleString() }}
+                  </td>
                   <td class="text-right text-weight-bolder text-indigo-10">
                     Rp {{ (it.total || 0).toLocaleString() }}
                   </td>
@@ -890,72 +906,62 @@
               <div class="terms-header uppercase">Syarat & Kondisi :</div>
               <div
                 class="terms-content-box leading-relaxed font-11"
-                v-html="selectedData.terms"
+                v-html="selectedData.terms || selectedData.syarat || '-'"
               ></div>
             </div>
             <div class="signature-container text-left q-mt-xl">
-              <div class="text-closing-final q-mb-md font-11" v-html="selectedData.closing"></div>
+              <div
+                class="text-closing-final q-mb-md font-11"
+                v-html="
+                  selectedData.closing || 'Demikian permintaan ini kami sampaikan, terima kasih.'
+                "
+              ></div>
               <div class="row q-mt-lg justify-end">
                 <div class="col-5 text-center">
                   <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">
                     Prepared By,
                   </div>
+
+                  <!-- FINAL SIGNATURE & STEMPEL OVERLAY -->
                   <div class="final-sign-space flex flex-center">
+                    <img
+                      v-if="selectedData.stempel_url"
+                      :src="selectedData.stempel_url"
+                      class="img-stempel"
+                    />
                     <img
                       v-if="selectedData.signatureUrl"
                       :src="selectedData.signatureUrl"
                       class="img-signature-clean"
                     />
-                    <div v-else style="height: 100px" class="flex flex-center text-grey-4 italic">
-                      Belum ditandatangani
+                    <div
+                      v-if="!selectedData.signatureUrl && !selectedData.stempel_url"
+                      style="height: 100px"
+                      class="flex flex-center text-grey-4 italic w-full"
+                    >
+                      Belum ada pengesahan
                     </div>
                   </div>
+
                   <div
                     class="text-signer-final text-weight-black underline uppercase text-indigo-10"
                   >
-                    {{ selectedData.ttd_nama }}
+                    {{
+                      selectedData.ttd_nama ||
+                      selectedData.requestor_nama ||
+                      selectedData.pemohon?.nama
+                    }}
                   </div>
                   <div
                     class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs"
                   >
-                    {{ selectedData.ttd_jabatan }}
+                    {{ selectedData.ttd_jabatan || selectedData.requestor_jabatan || 'Staff' }}
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </q-card-section>
-      </q-card>
-    </q-dialog>
-
-    <q-dialog v-model="showPad" persistent backdrop-filter="blur(4px)">
-      <q-card style="width: 500px; max-width: 95vw" class="rounded-20 shadow-24">
-        <q-card-section class="row items-center bg-indigo-10 text-white q-pa-md">
-          <div class="text-h6 text-weight-bold uppercase font-10">
-            Otorisasi Digital (Approved By)
-          </div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
-        </q-card-section>
-        <q-card-section class="q-pa-lg">
-          <div class="signature-pad-wrapper shadow-inner bg-white border-subtle">
-            <canvas ref="signatureCanvas" class="signature-canvas"></canvas>
-          </div>
-          <div class="text-caption text-grey-7 q-mt-md text-center italic">
-            Berikan tanda tangan persetujuan untuk pengadaan ini.
-          </div>
-        </q-card-section>
-        <q-card-actions align="right" class="q-pa-md bg-grey-1">
-          <q-btn flat label="Reset" color="grey-7" @click="clearPad" rounded />
-          <q-btn
-            unelevated
-            label="Gunakan Tanda Tangan"
-            color="indigo-10"
-            @click="saveApproverSignature"
-            rounded
-            class="q-px-xl text-weight-bold"
-          />
-        </q-card-actions>
       </q-card>
     </q-dialog>
 
@@ -1153,7 +1159,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick, watch, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 // eslint-disable-next-line no-unused-vars
 import { db, storage } from 'src/boot/firebase'
 import {
@@ -1172,7 +1178,6 @@ import {
 import { useQuasar } from 'quasar'
 import { useAuthStore } from 'src/stores/auth'
 import html2pdf from 'html2pdf.js'
-import SignaturePad from 'signature_pad'
 
 // --- INITIALIZATION ---
 const $q = useQuasar()
@@ -1187,7 +1192,6 @@ const rows = ref([])
 const loading = ref(true)
 const filter = ref('')
 const showPreview = ref(false)
-const showPad = ref(false)
 const selectedData = ref(null)
 
 // State PO
@@ -1231,8 +1235,6 @@ const poForm = ref({ ...poFormDefault })
 // State Globals
 const userData = ref(null)
 const config = ref({ kopUrl: '', nama_pt: '', slogan_pt: '' })
-const signatureCanvas = ref(null)
-let signaturePad = null
 let unsubUser = null
 let unsubRows = null
 let unsubPoRows = null
@@ -1393,17 +1395,17 @@ const onSupplierSelect = (supp) => {
 
 const onPrSelect = (prData) => {
   if (prData) {
-    poForm.value.proyek_nama = prData.proyek_nama || ''
+    poForm.value.proyek_nama = prData.proyek_nama || prData.gudang_nama || ''
     poForm.value.no_spk = prData.no_reff || '' // SET NO SPK OTOMATIS
-    poForm.value.requested_by = prData.pemohon?.nama || ''
+    poForm.value.requested_by = prData.pemohon?.nama || prData.requestor_nama || ''
 
     poForm.value.items = prData.items.map((it) => ({
       id_barang: it.id_barang,
-      nama_barang: it.nama_barang,
+      nama_barang: it.nama_barang || it.deskripsi,
       desc: '',
       qty: it.qty,
       satuan: it.satuan,
-      harga_satuan: it.estimasi_harga || 0,
+      harga_satuan: it.estimasi_harga || it.est_harga || 0,
     }))
   } else {
     poForm.value.proyek_nama = ''
@@ -1502,12 +1504,8 @@ const exportPoToPDF = () => {
   html2pdf().set(o).from(e).save()
 }
 
-// --- PR APPROVAL HANDLER ---
+// --- PR APPROVAL HANDLER (DISEDERHANAKAN - TANPA TTD MANUAL) ---
 const handleApproval = (row, status, alasan = null) => {
-  if (status === 'Approved' && !row.approve_signature_url && !signaturePad) {
-    $q.notify({ type: 'warning', message: 'Harap bubuhkan tanda tangan persetujuan!' })
-    return
-  }
   $q.dialog({
     title: 'Konfirmasi Approval',
     message: `Lanjutkan proses dokumen ini ke status ${status}?`,
@@ -1527,8 +1525,6 @@ const handleApproval = (row, status, alasan = null) => {
         approve_at: serverTimestamp(),
       }
       if (alasan) data.alasan_reject = alasan
-      if (status === 'Approved' && row.approve_signature_url)
-        data.approve_signature_url = row.approve_signature_url
 
       await updateDoc(doc(db, 'permintaan_barang', row.id), data)
       showPreview.value = false
@@ -1554,41 +1550,34 @@ const openPreview = (row) => {
   showPreview.value = true
 }
 
-// --- SIGNATURE LOGIC ---
-watch(showPad, async (v) => {
-  if (v) {
-    await nextTick()
-    const c = signatureCanvas.value
-    const r = Math.max(window.devicePixelRatio || 1, 1)
-    c.width = c.offsetWidth * r
-    c.height = c.offsetHeight * r
-    c.getContext('2d').scale(r, r)
-    signaturePad = new SignaturePad(c, { penColor: '#000000' })
-  }
-})
-const clearPad = () => signaturePad?.clear()
-const saveApproverSignature = () => {
-  if (!signaturePad || signaturePad.isEmpty()) return
-  selectedData.value.approve_signature_url = signaturePad.toDataURL()
-  showPad.value = false
+const formatDateIndo = (d) => {
+  if (!d) return ''
+  const dateObj = d.toDate ? d.toDate() : new Date(d)
+  return dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
-const formatDateIndo = (d) =>
-  d
-    ? new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
-    : ''
-
 const printPage = () => window.print()
+
 const exportToPDF = () => {
-  const e = document.getElementById('pr-print-area')
-  const o = {
-    margin: 0,
-    filename: `PR_${selectedData.value.nomor}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2.5, useCORS: true, letterRendering: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-  }
-  html2pdf().set(o).from(e).save()
+  $q.loading.show({ message: 'Generating Professional PDF...' })
+  setTimeout(() => {
+    const e = document.getElementById('pr-print-area')
+    const o = {
+      margin: 0,
+      filename: `PR_${selectedData.value.nomor.replace(/\//g, '-')}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2.5, useCORS: true, letterRendering: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    }
+    html2pdf()
+      .set(o)
+      .from(e)
+      .save()
+      .then(() => {
+        $q.loading.hide()
+        $q.notify({ type: 'positive', message: 'PDF Berhasil Terunduh!', position: 'top' })
+      })
+  }, 800)
 }
 
 onMounted(() => {
@@ -1688,19 +1677,6 @@ onUnmounted(() => {
   box-shadow: 0 4px 10px rgba(26, 35, 126, 0.15);
 }
 
-/* SIGNATURE PAD */
-.signature-pad-wrapper {
-  border: 2px dashed #1a237e;
-  border-radius: 12px;
-  height: 200px;
-  width: 100%;
-}
-.signature-canvas {
-  width: 100%;
-  height: 100%;
-  cursor: crosshair;
-}
-
 /* PREVIEW DOC FOR PR */
 .letter-paper {
   background: white;
@@ -1771,26 +1747,8 @@ onUnmounted(() => {
   width: 15px;
   text-align: center;
 }
-.label-grey-pro {
-  color: #888;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 1px;
-  margin-bottom: 4px;
-}
-.client-name-pro {
-  font-size: 18px;
-  font-weight: 900;
-  color: #1a237e;
-  margin-bottom: 2px;
-}
-.text-date-pro {
-  font-size: 12px;
-  color: #444;
-  font-weight: 700;
-}
 
-/* --- NEW PR PRINT TABLE STYLES --- */
+/* PR TABLE STYLING IN PREVIEW */
 .final-pro-table {
   border-collapse: collapse;
   width: 100%;
@@ -1858,23 +1816,40 @@ onUnmounted(() => {
   font-size: 11px;
   color: #000 !important;
 }
-/* --------------------------------- */
 
+/* FIX STEMPEL & SIGNATURE CSS Absolute Positioning (PR Preview) */
 .signature-container {
   margin-top: auto;
   padding-top: 30px;
 }
 .final-sign-space {
-  height: 90px;
   position: relative;
+  height: 120px;
+  width: 250px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 10px;
+}
+.img-stempel {
+  position: absolute;
+  width: 110px;
+  height: auto;
+  left: 20px; /* Geser ke kiri */
+  bottom: 15px;
+  z-index: 2;
+  opacity: 0.95;
 }
 .img-signature-clean {
-  max-height: 80px;
-  max-width: 200px;
-  object-fit: contain;
+  position: absolute;
+  max-height: 100px;
+  max-width: 180px;
+  right: 10px; /* Tanda tangan di kanan */
+  bottom: 5px;
+  z-index: 1;
   mix-blend-mode: multiply;
   filter: contrast(1.1) brightness(0.95);
 }
+
 .text-signer-final {
   font-size: 14px;
   font-weight: 900;
@@ -1890,24 +1865,6 @@ onUnmounted(() => {
   font-weight: 700;
   color: #444;
 }
-.underline {
-  text-decoration: none;
-}
-.bg-indigo-0 {
-  background-color: rgba(26, 35, 126, 0.03);
-}
-.opacity-0 {
-  opacity: 0;
-}
-.pr-table :deep(thead tr th) {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  font-weight: 800;
-  font-size: 11px;
-  letter-spacing: 0.5px;
-  padding: 16px;
-}
 
 /* =======================================================================
    PO PRINT CONTAINER (NEW - PDF EXPORT SPECIFIC FOR PO)
@@ -1919,7 +1876,7 @@ onUnmounted(() => {
   padding: 15mm 20mm;
   margin: 0 auto;
   color: #000 !important;
-  font-family: Arial, Helvetica, sans-serif !important; /* Force clean standard font */
+  font-family: Arial, Helvetica, sans-serif !important;
   line-height: 1.4;
   box-sizing: border-box;
   position: relative;
@@ -2085,10 +2042,28 @@ onUnmounted(() => {
   .no-print {
     display: none !important;
   }
+  .letter-paper {
+    box-shadow: none !important;
+    margin: 0 !important;
+    width: 210mm !important;
+  }
   .po-print-container {
     box-shadow: none !important;
     margin: 0 !important;
     width: 210mm !important;
+  }
+  .final-pro-table th,
+  .row-grand-total,
+  .terms-header {
+    background-color: #1a237e !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .row-calculation {
+    background-color: #f9fafb !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }
 </style>

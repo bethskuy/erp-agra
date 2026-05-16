@@ -1,6 +1,5 @@
 <template>
-  <q-layout view="lHh Lpr lFf" class="bg-grey-2">
-    <!-- Header -->
+  <q-layout view="lHh Lpr lFf" class="bg-grey-2 layout-container">
     <q-header borderless class="bg-indigo-10 text-white shadow-1">
       <q-toolbar class="q-py-xs">
         <q-btn flat dense round icon="menu" @click="leftDrawerOpen = !leftDrawerOpen" />
@@ -16,28 +15,11 @@
 
         <q-space />
 
-        <!-- NOTIFIKASI TOTAL (Penawaran + PR + Rejected/Approved) -->
         <q-btn flat round icon="notifications" class="q-mr-xs">
-          <q-badge
-            color="red"
-            floating
-            v-if="
-              pendingApprovalCount +
-                pendingPrCount +
-                rejectedPenawaranCount +
-                approvedPenawaranCount >
-              0
-            "
-          >
-            {{
-              pendingApprovalCount +
-              pendingPrCount +
-              rejectedPenawaranCount +
-              approvedPenawaranCount
-            }}
+          <q-badge color="red" floating v-if="totalNotifCount > 0" class="shadow-1 font-bold">
+            {{ totalNotifCount }}
           </q-badge>
 
-          <!-- MENU DROPDOWN NOTIFIKASI DETAIL -->
           <q-menu
             auto-close
             anchor="bottom right"
@@ -45,21 +27,22 @@
             :offset="[0, 10]"
             class="shadow-10 rounded-12"
           >
-            <q-list style="min-width: 280px" class="q-py-sm">
+            <q-list style="min-width: 320px" class="q-py-sm">
               <q-item-label
                 header
-                class="text-weight-bold text-indigo-10 uppercase tracking-widest"
+                class="text-weight-bold text-indigo-10 uppercase tracking-widest bg-indigo-1 q-mx-sm q-mb-sm rounded-8"
                 style="font-size: 11px"
               >
-                Notifikasi Sistem
+                Detail Notifikasi Sistem
               </q-item-label>
 
-              <!-- Notifikasi Approval Penawaran -->
+              <!-- NOTIFIKASI MARKETING -->
               <q-item
                 v-if="pendingApprovalCount > 0"
                 clickable
                 v-ripple
                 to="/konstruksi/marketing/approval-penawaran"
+                class="notif-item"
               >
                 <q-item-section avatar>
                   <q-avatar color="orange-1" text-color="orange-9" icon="fact_check" size="md" />
@@ -67,17 +50,17 @@
                 <q-item-section>
                   <q-item-label class="text-weight-bold">Approval Penawaran</q-item-label>
                   <q-item-label caption
-                    >{{ pendingApprovalCount }} dokumen menunggu persetujuan.</q-item-label
+                    >{{ pendingApprovalCount }} dokumen menunggu otorisasi.</q-item-label
                   >
                 </q-item-section>
               </q-item>
 
-              <!-- Notifikasi Penawaran Ditolak -->
               <q-item
                 v-if="rejectedPenawaranCount > 0"
                 clickable
                 v-ripple
                 to="/konstruksi/marketing/penawaran"
+                class="notif-item"
               >
                 <q-item-section avatar>
                   <q-avatar color="red-1" text-color="negative" icon="cancel" size="md" />
@@ -87,17 +70,17 @@
                     >Penawaran Ditolak</q-item-label
                   >
                   <q-item-label caption
-                    >{{ rejectedPenawaranCount }} dokumen membutuhkan revisi.</q-item-label
+                    >{{ rejectedPenawaranCount }} dokumen butuh revisi.</q-item-label
                   >
                 </q-item-section>
               </q-item>
 
-              <!-- Notifikasi Penawaran Disetujui -->
               <q-item
                 v-if="approvedPenawaranCount > 0"
                 clickable
                 v-ripple
                 to="/konstruksi/marketing/penawaran"
+                class="notif-item"
               >
                 <q-item-section avatar>
                   <q-avatar color="green-1" text-color="positive" icon="verified" size="md" />
@@ -107,17 +90,59 @@
                     >Penawaran Disetujui</q-item-label
                   >
                   <q-item-label caption
-                    >{{ approvedPenawaranCount }} dokumen telah disetujui.</q-item-label
+                    >{{ approvedPenawaranCount }} dokumen disetujui (BARU).</q-item-label
                   >
                 </q-item-section>
               </q-item>
 
-              <!-- Notifikasi Purchase Request -->
+              <!-- NOTIFIKASI GUDANG (MUTASI) -->
+              <q-item
+                v-if="pendingMutasiCount > 0"
+                clickable
+                v-ripple
+                to="/konstruksi/gudang"
+                class="notif-item"
+              >
+                <q-item-section avatar>
+                  <q-avatar color="red-1" text-color="negative" icon="move_to_inbox" size="md" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label class="text-weight-bold text-blue-grey-9"
+                    >Permintaan Gudang</q-item-label
+                  >
+                  <q-item-label caption
+                    >{{ pendingMutasiCount }} request mutasi stok masuk.</q-item-label
+                  >
+                </q-item-section>
+              </q-item>
+
+              <q-item
+                v-if="approvedMutasiCount > 0"
+                clickable
+                v-ripple
+                to="/konstruksi/gudang"
+                class="notif-item"
+              >
+                <q-item-section avatar>
+                  <q-avatar color="green-1" text-color="positive" icon="local_shipping" size="md" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label class="text-weight-bold text-blue-grey-9"
+                    >Barang Datang</q-item-label
+                  >
+                  <q-item-label caption
+                    >{{ approvedMutasiCount }} request disetujui (BARU).</q-item-label
+                  >
+                </q-item-section>
+              </q-item>
+
+              <!-- NOTIFIKASI PURCHASE REQUEST (PEMBELIAN) -->
               <q-item
                 v-if="pendingPrCount > 0"
                 clickable
                 v-ripple
                 to="/konstruksi/pembelian/pesanan"
+                class="notif-item"
               >
                 <q-item-section avatar>
                   <q-avatar color="orange-1" text-color="orange-9" icon="shopping_cart" size="md" />
@@ -128,25 +153,41 @@
                 </q-item-section>
               </q-item>
 
-              <!-- Pesan Kosong Jika Tidak Ada Notif -->
               <q-item
-                v-if="
-                  pendingApprovalCount +
-                    pendingPrCount +
-                    rejectedPenawaranCount +
-                    approvedPenawaranCount ===
-                  0
-                "
+                v-if="approvedPrCount > 0"
+                clickable
+                v-ripple
+                to="/konstruksi/pembelian/pesanan"
+                class="notif-item"
               >
+                <q-item-section avatar>
+                  <q-avatar color="green-1" text-color="positive" icon="done_all" size="md" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label class="text-weight-bold text-positive">PR Disetujui</q-item-label>
+                  <q-item-label caption
+                    >{{ approvedPrCount }} PR telah diotorisasi (BARU).</q-item-label
+                  >
+                </q-item-section>
+              </q-item>
+
+              <!-- JIKA KOSONG -->
+              <q-item v-if="totalNotifCount === 0">
                 <q-item-section class="text-center text-grey-6 q-pa-md text-caption">
-                  <i>Belum ada pemberitahuan baru</i>
+                  <q-icon
+                    name="notifications_off"
+                    size="lg"
+                    color="grey-4"
+                    class="q-mx-auto q-mb-sm"
+                  />
+                  <div class="text-weight-medium">Belum ada pemberitahuan baru</div>
+                  <div class="text-caption">Anda sudah membaca semua notifikasi.</div>
                 </q-item-section>
               </q-item>
             </q-list>
           </q-menu>
         </q-btn>
 
-        <!-- APP LAUNCHER -->
         <q-btn flat round icon="apps" class="q-mr-xs">
           <q-menu
             auto-close
@@ -189,7 +230,6 @@
           </q-menu>
         </q-btn>
 
-        <!-- USER PROFILE -->
         <q-btn flat round no-caps class="q-ml-xs">
           <q-avatar
             size="32px"
@@ -249,20 +289,33 @@
       </q-toolbar>
     </q-header>
 
-    <!-- Sidebar / Drawer -->
-    <q-drawer v-model="leftDrawerOpen" show-if-above :width="295" class="bg-white" elevation="10">
-      <div class="column fit">
-        <div class="q-pa-lg bg-indigo-1 text-indigo-10 border-bottom-soft">
+    <q-drawer
+      v-model="leftDrawerOpen"
+      show-if-above
+      :width="300"
+      class="bg-white custom-sidebar hide-horizontal-scroll"
+      elevation="2"
+    >
+      <div class="column fit hide-horizontal-scroll">
+        <div class="q-pa-lg border-bottom-soft bg-profile-header">
           <div class="row items-center q-gutter-md">
-            <q-avatar size="56px" color="indigo-10" text-color="white" class="shadow-2">
+            <q-avatar
+              size="50px"
+              color="indigo-10"
+              text-color="white"
+              class="font-bold text-h6 shadow-1"
+            >
               {{ userData?.nama?.charAt(0) || 'A' }}
             </q-avatar>
             <div class="col overflow-hidden">
-              <div class="text-weight-bold text-subtitle1 ellipsis">
+              <div
+                class="text-weight-bolder text-subtitle1 ellipsis text-indigo-10"
+                style="line-height: 1.2"
+              >
                 {{ userData?.nama || 'Administrator' }}
               </div>
               <div
-                class="text-caption text-grey-7 ellipsis text-uppercase tracking-widest"
+                class="text-caption ellipsis text-uppercase tracking-widest text-grey-6 font-bold q-mt-xs"
                 style="font-size: 10px"
               >
                 {{ authStore.user?.role || 'User' }}
@@ -271,30 +324,29 @@
           </div>
         </div>
 
-        <!-- Hapus Scrollbar Horizontal (Kanan-Kiri) Secara Paksa -->
         <q-scroll-area
-          class="col"
-          :horizontal-thumb-style="{ display: 'none' }"
-          :horizontal-bar-style="{ display: 'none' }"
-          content-style="overflow-x: hidden;"
+          class="col clean-scroll"
+          :thumb-style="thumbStyle"
+          :horizontal-thumb-style="{ display: 'none', width: '0' }"
+          :horizontal-bar-style="{ display: 'none', width: '0' }"
+          content-style="width: 100%; overflow-x: hidden;"
+          content-active-style="width: 100%; overflow-x: hidden;"
         >
-          <q-list class="q-py-md">
-            <div class="q-px-md q-pt-sm q-pb-sm text-overline text-grey-6 tracking-widest">
-              UTAMA
-            </div>
+          <q-list class="q-pb-xl q-pt-sm">
+            <div class="sidebar-section-title">UTAMA</div>
+
             <q-item
               v-if="checkPermission('dashboard')"
               clickable
               v-ripple
               to="/konstruksi/dashboard"
-              class="menu-item q-mb-sm"
+              class="menu-item-clean"
               active-class="menu-item-active"
             >
-              <q-item-section avatar><q-icon name="dashboard" size="22px" /></q-item-section>
-              <q-item-section class="text-weight-bold">DASHBOARD</q-item-section>
+              <q-item-section avatar><q-icon name="space_dashboard" size="22px" /></q-item-section>
+              <q-item-section class="menu-text">DASHBOARD</q-item-section>
             </q-item>
 
-            <!-- DATA MASTER -->
             <q-expansion-item
               v-if="
                 hasSectionAccess([
@@ -305,52 +357,52 @@
                   'master/satuan',
                 ])
               "
-              icon="grid_view"
+              icon="view_cozy"
               label="DATA MASTER"
-              class="menu-expansion q-mb-xs"
-              header-class="text-weight-bold"
+              class="menu-expansion-clean"
+              header-class="menu-expansion-header"
+              expand-icon-class="text-blue-grey-4"
               default-opened
             >
               <q-list>
-                <!-- Rekanan -->
                 <q-expansion-item
                   v-if="hasSectionAccess(['marketing/customer', 'master/supplier'])"
-                  icon="groups"
                   label="Data Rekanan"
-                  header-class="text-blue-grey-9 text-weight-bold"
+                  header-class="sub-expansion-header"
+                  expand-icon-class="text-blue-grey-4"
                   dense
                   class="level-2-expansion"
                 >
-                  <q-list>
+                  <template v-slot:header>
+                    <q-item-section avatar
+                      ><q-icon name="groups" size="22px" class="icon-sub"
+                    /></q-item-section>
+                    <q-item-section>Data Rekanan</q-item-section>
+                  </template>
+                  <q-list class="sub-list-container">
                     <q-item
                       v-if="checkPermission('marketing/customer')"
                       clickable
                       v-ripple
                       to="/konstruksi/marketing/customer"
-                      class="level-3-item"
-                      active-class="sub-menu-item-active"
+                      class="level-3-item-clean"
+                      active-class="sub-item-active"
                     >
-                      <q-item-section avatar
-                        ><q-icon name="person_outline" size="18px"
-                      /></q-item-section>
-                      <q-item-section>Customer</q-item-section>
+                      <q-item-section class="menu-text">Customer / Klien</q-item-section>
                     </q-item>
                     <q-item
                       v-if="checkPermission('master/supplier')"
                       clickable
                       v-ripple
                       to="/konstruksi/master/supplier"
-                      class="level-3-item"
-                      active-class="sub-menu-item-active"
+                      class="level-3-item-clean"
+                      active-class="sub-item-active"
                     >
-                      <q-item-section avatar
-                        ><q-icon name="local_shipping" size="18px"
-                      /></q-item-section>
-                      <q-item-section>Data Supplier</q-item-section>
+                      <q-item-section class="menu-text">Data Supplier</q-item-section>
                     </q-item>
                   </q-list>
                 </q-expansion-item>
-                <!-- Barang -->
+
                 <q-expansion-item
                   v-if="
                     hasSectionAccess([
@@ -359,59 +411,58 @@
                       'master/satuan',
                     ])
                   "
-                  icon="inventory_2"
                   label="Data Barang"
-                  header-class="text-blue-grey-9 text-weight-bold"
+                  header-class="sub-expansion-header"
+                  expand-icon-class="text-blue-grey-4"
                   dense
                   class="level-2-expansion"
                 >
-                  <q-list>
+                  <template v-slot:header>
+                    <q-item-section avatar
+                      ><q-icon name="inventory_2" size="22px" class="icon-sub"
+                    /></q-item-section>
+                    <q-item-section>Data Barang</q-item-section>
+                  </template>
+                  <q-list class="sub-list-container">
                     <q-item
                       v-if="checkPermission('master/barang-list')"
                       clickable
                       v-ripple
                       to="/konstruksi/master/barang-list"
-                      class="level-3-item"
-                      active-class="sub-menu-item-active"
+                      class="level-3-item-clean"
+                      active-class="sub-item-active"
                     >
-                      <q-item-section avatar><q-icon name="list_alt" size="18px" /></q-item-section>
-                      <q-item-section>List Barang</q-item-section>
+                      <q-item-section class="menu-text">List Barang</q-item-section>
                     </q-item>
                     <q-item
                       v-if="checkPermission('master/barang-kategori')"
                       clickable
                       v-ripple
                       to="/konstruksi/master/barang-kategori"
-                      class="level-3-item"
-                      active-class="sub-menu-item-active"
+                      class="level-3-item-clean"
+                      active-class="sub-item-active"
                     >
-                      <q-item-section avatar><q-icon name="category" size="18px" /></q-item-section>
-                      <q-item-section>Kategori Barang</q-item-section>
+                      <q-item-section class="menu-text">Kategori Barang</q-item-section>
                     </q-item>
                     <q-item
                       v-if="checkPermission('master/satuan')"
                       clickable
                       v-ripple
                       to="/konstruksi/master/satuan"
-                      class="level-3-item"
-                      active-class="sub-menu-item-active"
+                      class="level-3-item-clean"
+                      active-class="sub-item-active"
                     >
-                      <q-item-section avatar
-                        ><q-icon name="straighten" size="18px"
-                      /></q-item-section>
-                      <q-item-section>Data Satuan</q-item-section>
+                      <q-item-section class="menu-text">Data Satuan</q-item-section>
                     </q-item>
                   </q-list>
                 </q-expansion-item>
               </q-list>
             </q-expansion-item>
 
-            <q-separator spaced inset class="bg-grey-3 q-my-md" />
-            <div class="q-px-md q-pt-sm q-pb-sm text-overline text-grey-6 tracking-widest">
-              OPERASIONAL
-            </div>
+            <q-separator inset class="bg-grey-2 q-my-md border-separator" />
 
-            <!-- MARKETING -->
+            <div class="sidebar-section-title">OPERASIONAL</div>
+
             <q-expansion-item
               v-if="
                 hasSectionAccess([
@@ -422,36 +473,38 @@
               "
               icon="campaign"
               label="MARKETING"
-              class="menu-expansion q-mb-sm"
-              header-class="text-weight-bold"
+              class="menu-expansion-clean"
+              header-class="menu-expansion-header"
+              expand-icon-class="text-blue-grey-4"
             >
-              <q-list>
+              <q-list class="q-pb-sm">
                 <q-item
                   v-if="checkPermission('marketing/ahsp')"
                   clickable
                   v-ripple
                   to="/konstruksi/marketing/ahsp"
-                  class="level-2-item"
-                  active-class="sub-menu-item-active"
+                  class="level-2-item-clean"
+                  active-class="sub-item-active"
                 >
-                  <q-item-section avatar><q-icon name="calculate" size="20px" /></q-item-section>
-                  <q-item-section>Analisa AHSP</q-item-section>
+                  <q-item-section avatar
+                    ><q-icon name="calculate" size="22px" class="icon-sub"
+                  /></q-item-section>
+                  <q-item-section class="menu-text">Analisa AHSP</q-item-section>
                 </q-item>
 
-                <!-- MENU PENAWARAN (DENGAN BADGE REJECTED & APPROVED) -->
                 <q-item
                   v-if="checkPermission('marketing/penawaran')"
                   clickable
                   v-ripple
                   to="/konstruksi/marketing/penawaran"
-                  class="level-2-item"
-                  active-class="sub-menu-item-active"
+                  class="level-2-item-clean"
+                  active-class="sub-item-active"
                 >
                   <q-item-section avatar
-                    ><q-icon name="request_quote" size="20px"
+                    ><q-icon name="request_quote" size="22px" class="icon-sub"
                   /></q-item-section>
-                  <q-item-section>Penawaran</q-item-section>
-                  <!-- BADGE NOTIFIKASI PENAWARAN -->
+                  <q-item-section class="menu-text">Penawaran</q-item-section>
+
                   <q-item-section
                     side
                     v-if="rejectedPenawaranCount > 0 || approvedPenawaranCount > 0"
@@ -461,7 +514,7 @@
                         v-if="rejectedPenawaranCount > 0"
                         color="negative"
                         rounded
-                        class="q-px-sm text-weight-bold"
+                        class="q-px-sm font-bold shadow-1 animate-bounce"
                       >
                         {{ rejectedPenawaranCount }}
                       </q-badge>
@@ -469,7 +522,7 @@
                         v-if="approvedPenawaranCount > 0"
                         color="positive"
                         rounded
-                        class="q-px-sm text-weight-bold"
+                        class="q-px-sm font-bold shadow-1 animate-bounce"
                       >
                         {{ approvedPenawaranCount }}
                       </q-badge>
@@ -477,27 +530,30 @@
                   </q-item-section>
                 </q-item>
 
-                <!-- MENU APPROVAL PENAWARAN -->
                 <q-item
                   v-if="checkPermission('marketing/approval-penawaran')"
                   clickable
                   v-ripple
                   to="/konstruksi/marketing/approval-penawaran"
-                  class="level-2-item"
-                  active-class="sub-menu-item-active"
+                  class="level-2-item-clean"
+                  active-class="sub-item-active"
                 >
-                  <q-item-section avatar><q-icon name="fact_check" size="20px" /></q-item-section>
-                  <q-item-section>Approval Penawaran</q-item-section>
+                  <q-item-section avatar
+                    ><q-icon name="fact_check" size="22px" class="icon-sub"
+                  /></q-item-section>
+                  <q-item-section class="menu-text">Approval Penawaran</q-item-section>
                   <q-item-section side v-if="pendingApprovalCount > 0">
-                    <q-badge color="orange-9" rounded class="q-px-sm text-weight-bold">{{
-                      pendingApprovalCount
-                    }}</q-badge>
+                    <q-badge
+                      color="orange-9"
+                      rounded
+                      class="q-px-sm font-bold shadow-1 animate-bounce"
+                      >{{ pendingApprovalCount }}</q-badge
+                    >
                   </q-item-section>
                 </q-item>
               </q-list>
             </q-expansion-item>
 
-            <!-- PROYEK -->
             <q-expansion-item
               v-if="
                 hasSectionAccess([
@@ -508,20 +564,23 @@
               "
               icon="foundation"
               label="PROYEK"
-              class="menu-expansion q-mb-sm"
-              header-class="text-weight-bold"
+              class="menu-expansion-clean"
+              header-class="menu-expansion-header"
+              expand-icon-class="text-blue-grey-4"
             >
-              <q-list>
+              <q-list class="q-pb-sm">
                 <q-item
                   v-if="checkPermission('master/proyek-data')"
                   clickable
                   v-ripple
                   to="/konstruksi/master/proyek-data"
-                  class="level-2-item"
-                  active-class="sub-menu-item-active"
+                  class="level-2-item-clean"
+                  active-class="sub-item-active"
                 >
-                  <q-item-section avatar><q-icon name="apartment" size="20px" /></q-item-section>
-                  <q-item-section>Data Proyek</q-item-section>
+                  <q-item-section avatar
+                    ><q-icon name="apartment" size="22px" class="icon-sub"
+                  /></q-item-section>
+                  <q-item-section class="menu-text">Data Proyek</q-item-section>
                 </q-item>
 
                 <q-item
@@ -529,11 +588,13 @@
                   clickable
                   v-ripple
                   to="/konstruksi/master/proyek-monitoring"
-                  class="level-2-item"
-                  active-class="sub-menu-item-active"
+                  class="level-2-item-clean"
+                  active-class="sub-item-active"
                 >
-                  <q-item-section avatar><q-icon name="monitor" size="20px" /></q-item-section>
-                  <q-item-section>Monitoring Proyek</q-item-section>
+                  <q-item-section avatar
+                    ><q-icon name="monitor" size="22px" class="icon-sub"
+                  /></q-item-section>
+                  <q-item-section class="menu-text">Monitoring Proyek</q-item-section>
                 </q-item>
 
                 <q-item
@@ -541,56 +602,91 @@
                   clickable
                   v-ripple
                   to="/konstruksi/master/proyek-kategori"
-                  class="level-2-item"
-                  active-class="sub-menu-item-active"
+                  class="level-2-item-clean"
+                  active-class="sub-item-active"
                 >
-                  <q-item-section avatar><q-icon name="account_tree" size="20px" /></q-item-section>
-                  <q-item-section>Kategori Proyek</q-item-section>
+                  <q-item-section avatar
+                    ><q-icon name="account_tree" size="22px" class="icon-sub"
+                  /></q-item-section>
+                  <q-item-section class="menu-text">Kategori Proyek</q-item-section>
                 </q-item>
               </q-list>
             </q-expansion-item>
 
-            <!-- GUDANG -->
             <q-item
               v-if="checkPermission('gudang')"
               clickable
               v-ripple
               to="/konstruksi/gudang"
-              class="menu-item q-mb-sm"
+              class="menu-item-clean"
               active-class="menu-item-active"
             >
-              <q-item-section avatar><q-icon name="warehouse" size="22px" /></q-item-section>
-              <q-item-section class="text-weight-bold uppercase">GUDANG & LOGISTIK</q-item-section>
+              <q-item-section avatar><q-icon name="warehouse" size="24px" /></q-item-section>
+              <q-item-section class="menu-text">GUDANG & LOGISTIK</q-item-section>
+              <q-item-section side v-if="pendingMutasiCount > 0 || approvedMutasiCount > 0">
+                <div class="row items-center q-gutter-x-xs">
+                  <q-badge
+                    v-if="pendingMutasiCount > 0"
+                    color="negative"
+                    rounded
+                    class="q-px-sm font-bold shadow-1 animate-bounce"
+                  >
+                    {{ pendingMutasiCount }}
+                  </q-badge>
+                  <q-badge
+                    v-if="approvedMutasiCount > 0"
+                    color="positive"
+                    rounded
+                    class="q-px-sm font-bold shadow-1 animate-bounce"
+                  >
+                    {{ approvedMutasiCount }}
+                  </q-badge>
+                </div>
+              </q-item-section>
             </q-item>
 
-            <!-- PEMBELIAN -->
             <q-expansion-item
               v-if="checkPermission('pembelian/pesanan')"
               icon="shopping_cart"
               label="PEMBELIAN"
-              class="menu-expansion q-mb-sm"
-              header-class="text-weight-bold"
+              class="menu-expansion-clean"
+              header-class="menu-expansion-header"
+              expand-icon-class="text-blue-grey-4"
             >
-              <q-list>
+              <q-list class="q-pb-sm">
                 <q-item
                   clickable
                   v-ripple
                   to="/konstruksi/pembelian/pesanan"
-                  class="level-2-item"
-                  active-class="sub-menu-item-active"
+                  class="level-2-item-clean"
+                  active-class="sub-item-active"
                 >
-                  <q-item-section avatar><q-icon name="receipt_long" size="20px" /></q-item-section>
-                  <q-item-section>Pesanan Pembelian (PO)</q-item-section>
-                  <q-item-section side v-if="pendingPrCount > 0">
-                    <q-badge color="orange-9" rounded class="q-px-sm text-weight-bold">{{
-                      pendingPrCount
-                    }}</q-badge>
+                  <q-item-section avatar
+                    ><q-icon name="receipt_long" size="22px" class="icon-sub"
+                  /></q-item-section>
+                  <q-item-section class="menu-text">Pesanan Pembelian</q-item-section>
+                  <q-item-section side v-if="pendingPrCount > 0 || approvedPrCount > 0">
+                    <div class="row items-center q-gutter-x-xs">
+                      <q-badge
+                        v-if="pendingPrCount > 0"
+                        color="orange-9"
+                        rounded
+                        class="q-px-sm font-bold shadow-1 animate-bounce"
+                        >{{ pendingPrCount }}</q-badge
+                      >
+                      <q-badge
+                        v-if="approvedPrCount > 0"
+                        color="positive"
+                        rounded
+                        class="q-px-sm font-bold shadow-1 animate-bounce"
+                        >{{ approvedPrCount }}</q-badge
+                      >
+                    </div>
                   </q-item-section>
                 </q-item>
               </q-list>
             </q-expansion-item>
 
-            <!-- FINANCE -->
             <q-expansion-item
               v-if="
                 hasSectionAccess([
@@ -607,20 +703,23 @@
               "
               icon="account_balance_wallet"
               label="FINANCE"
-              class="menu-expansion q-mb-sm"
-              header-class="text-weight-bold"
+              class="menu-expansion-clean"
+              header-class="menu-expansion-header"
+              expand-icon-class="text-blue-grey-4"
             >
-              <q-list>
+              <q-list class="q-pb-sm">
                 <q-item
                   v-if="checkPermission('finance/invoice')"
                   clickable
                   v-ripple
                   to="/konstruksi/finance/invoice"
-                  class="level-2-item"
-                  active-class="sub-menu-item-active"
+                  class="level-2-item-clean"
+                  active-class="sub-item-active"
                 >
-                  <q-item-section avatar><q-icon name="receipt_long" size="20px" /></q-item-section>
-                  <q-item-section>Pembuatan Invoice</q-item-section>
+                  <q-item-section avatar
+                    ><q-icon name="receipt_long" size="22px" class="icon-sub"
+                  /></q-item-section>
+                  <q-item-section class="menu-text">Pembuatan Invoice</q-item-section>
                 </q-item>
 
                 <q-item
@@ -628,11 +727,13 @@
                   clickable
                   v-ripple
                   to="/konstruksi/finance/approval-invoice"
-                  class="level-2-item"
-                  active-class="sub-menu-item-active"
+                  class="level-2-item-clean"
+                  active-class="sub-item-active"
                 >
-                  <q-item-section avatar><q-icon name="fact_check" size="20px" /></q-item-section>
-                  <q-item-section>Approval Invoice</q-item-section>
+                  <q-item-section avatar
+                    ><q-icon name="fact_check" size="22px" class="icon-sub"
+                  /></q-item-section>
+                  <q-item-section class="menu-text">Approval Invoice</q-item-section>
                 </q-item>
 
                 <q-item
@@ -640,11 +741,13 @@
                   clickable
                   v-ripple
                   to="/konstruksi/finance/tagihan"
-                  class="level-2-item"
-                  active-class="sub-menu-item-active"
+                  class="level-2-item-clean"
+                  active-class="sub-item-active"
                 >
-                  <q-item-section avatar><q-icon name="receipt" size="20px" /></q-item-section>
-                  <q-item-section>Monitoring Tagihan</q-item-section>
+                  <q-item-section avatar
+                    ><q-icon name="receipt" size="22px" class="icon-sub"
+                  /></q-item-section>
+                  <q-item-section class="menu-text">Monitoring Tagihan</q-item-section>
                 </q-item>
 
                 <q-item
@@ -652,11 +755,13 @@
                   clickable
                   v-ripple
                   to="/konstruksi/finance/tagihan-supplier"
-                  class="level-2-item"
-                  active-class="sub-menu-item-active"
+                  class="level-2-item-clean"
+                  active-class="sub-item-active"
                 >
-                  <q-item-section avatar><q-icon name="list_alt" size="20px" /></q-item-section>
-                  <q-item-section>Tagihan Supplier / Labour</q-item-section>
+                  <q-item-section avatar
+                    ><q-icon name="list_alt" size="22px" class="icon-sub"
+                  /></q-item-section>
+                  <q-item-section class="menu-text">Tagihan Supplier</q-item-section>
                 </q-item>
 
                 <q-item
@@ -664,11 +769,13 @@
                   clickable
                   v-ripple
                   to="/konstruksi/finance/pembayaran"
-                  class="level-2-item"
-                  active-class="sub-menu-item-active"
+                  class="level-2-item-clean"
+                  active-class="sub-item-active"
                 >
-                  <q-item-section avatar><q-icon name="payments" size="20px" /></q-item-section>
-                  <q-item-section>Pengajuan Pembayaran</q-item-section>
+                  <q-item-section avatar
+                    ><q-icon name="payments" size="22px" class="icon-sub"
+                  /></q-item-section>
+                  <q-item-section class="menu-text">Pengajuan Pembayaran</q-item-section>
                 </q-item>
 
                 <q-item
@@ -676,11 +783,13 @@
                   clickable
                   v-ripple
                   to="/konstruksi/finance/approval-pembayaran"
-                  class="level-2-item"
-                  active-class="sub-menu-item-active"
+                  class="level-2-item-clean"
+                  active-class="sub-item-active"
                 >
-                  <q-item-section avatar><q-icon name="gavel" size="20px" /></q-item-section>
-                  <q-item-section>Approval Pembayaran</q-item-section>
+                  <q-item-section avatar
+                    ><q-icon name="gavel" size="22px" class="icon-sub"
+                  /></q-item-section>
+                  <q-item-section class="menu-text">Approval Pembayaran</q-item-section>
                 </q-item>
 
                 <q-item
@@ -688,11 +797,13 @@
                   clickable
                   v-ripple
                   to="/konstruksi/finance/realisasi-pembayaran"
-                  class="level-2-item"
-                  active-class="sub-menu-item-active"
+                  class="level-2-item-clean"
+                  active-class="sub-item-active"
                 >
-                  <q-item-section avatar><q-icon name="price_check" size="20px" /></q-item-section>
-                  <q-item-section>Realisasi Pembayaran</q-item-section>
+                  <q-item-section avatar
+                    ><q-icon name="price_check" size="22px" class="icon-sub"
+                  /></q-item-section>
+                  <q-item-section class="menu-text">Realisasi Pembayaran</q-item-section>
                 </q-item>
 
                 <q-item
@@ -700,13 +811,13 @@
                   clickable
                   v-ripple
                   to="/konstruksi/finance/pengeluaran"
-                  class="level-2-item"
-                  active-class="sub-menu-item-active"
+                  class="level-2-item-clean"
+                  active-class="sub-item-active"
                 >
                   <q-item-section avatar
-                    ><q-icon name="trending_down" size="20px"
+                    ><q-icon name="trending_down" size="22px" class="icon-sub"
                   /></q-item-section>
-                  <q-item-section>Monitoring Pengeluaran</q-item-section>
+                  <q-item-section class="menu-text">Monitoring Pengeluaran</q-item-section>
                 </q-item>
 
                 <q-item
@@ -714,25 +825,24 @@
                   clickable
                   v-ripple
                   to="/konstruksi/finance/balansheet"
-                  class="level-2-item special-green-item q-mt-sm"
+                  class="level-2-item-clean special-green-item q-mt-sm"
                   active-class="sub-menu-item-active-green"
                 >
                   <q-item-section avatar
-                    ><q-icon name="account_balance" size="20px"
+                    ><q-icon name="account_balance" size="22px" class="icon-sub"
                   /></q-item-section>
-                  <q-item-section><i>Monitoring Balansheet</i></q-item-section>
+                  <q-item-section class="menu-text">Monitoring Balansheet</q-item-section>
                 </q-item>
               </q-list>
             </q-expansion-item>
 
-            <div style="height: 100px"></div>
+            <div style="height: 120px"></div>
           </q-list>
         </q-scroll-area>
       </div>
     </q-drawer>
 
-    <!-- Page Container -->
-    <q-page-container>
+    <q-page-container class="no-horizontal-scroll">
       <router-view v-slot="{ Component }">
         <transition
           enter-active-class="animated fadeIn"
@@ -760,10 +870,16 @@ const authStore = useAuthStore()
 const router = useRouter()
 const leftDrawerOpen = ref(false)
 const showProfileDialog = ref(false)
+
+// STATE NOTIFIKASI
 const pendingApprovalCount = ref(0)
 const rejectedPenawaranCount = ref(0)
 const approvedPenawaranCount = ref(0)
 const pendingPrCount = ref(0)
+const approvedPrCount = ref(0) // Tambahan untuk Notifikasi PR Approved
+const pendingMutasiCount = ref(0)
+const approvedMutasiCount = ref(0)
+
 const userData = ref(null)
 const apps = ref([])
 const currentAkses = ref([])
@@ -774,6 +890,29 @@ let unsubRejectedPenawaran = null
 let unsubApprovedPenawaran = null
 let unsubApps = null
 let unsubPrBadge = null
+let unsubApprovedPr = null
+let unsubMutasiPending = null
+let unsubMutasiApproved = null
+
+const totalNotifCount = computed(() => {
+  return (
+    pendingApprovalCount.value +
+    pendingPrCount.value +
+    approvedPrCount.value + // Menambahkan count PR Approved ke Badge Lonceng Total
+    rejectedPenawaranCount.value +
+    approvedPenawaranCount.value +
+    pendingMutasiCount.value +
+    approvedMutasiCount.value
+  )
+})
+
+const thumbStyle = {
+  right: '2px',
+  borderRadius: '4px',
+  backgroundColor: '#cbd5e1',
+  width: '5px',
+  opacity: 0.75,
+}
 
 const filteredUniqueApps = computed(() => {
   const uniqueMap = new Map()
@@ -843,6 +982,7 @@ onMounted(() => {
     })
   }
 
+  // Notifikasi Marketing
   const qApproval = query(collection(db, 'penawaran'), where('status', '==', 'Pending'))
   unsubApproval = onSnapshot(qApproval, (snapshot) => {
     pendingApprovalCount.value = snapshot.size
@@ -862,6 +1002,7 @@ onMounted(() => {
     ).length
   })
 
+  // Notifikasi Pembelian (PR Pending)
   const qPr = query(
     collection(db, 'permintaan_barang'),
     where('status', '==', 'Pending'),
@@ -869,6 +1010,37 @@ onMounted(() => {
   )
   unsubPrBadge = onSnapshot(qPr, (snap) => {
     pendingPrCount.value = snap.size
+  })
+
+  // Notifikasi Pembelian (PR Approved)
+  const qApprovedPr = query(
+    collection(db, 'permintaan_barang'),
+    where('status', '==', 'Approved'),
+    where('tipe', '==', 'PURCHASE_REQUEST'),
+  )
+  unsubApprovedPr = onSnapshot(qApprovedPr, (snap) => {
+    // Mengecek PR Approved yang belum dilihat (requester_read == false)
+    approvedPrCount.value = snap.docs.filter((d) => d.data().requester_read === false).length
+  })
+
+  // Notifikasi Gudang (Mutasi Pending)
+  const qMutasiPending = query(
+    collection(db, 'permintaan_barang'),
+    where('status', '==', 'Pending'),
+    where('tipe', '==', 'ANTAR_GUDANG'),
+  )
+  unsubMutasiPending = onSnapshot(qMutasiPending, (snap) => {
+    pendingMutasiCount.value = snap.size
+  })
+
+  // Notifikasi Gudang (Mutasi Approved & Unread)
+  const qMutasiApproved = query(
+    collection(db, 'permintaan_barang'),
+    where('status', '==', 'Approved'),
+    where('tipe', '==', 'ANTAR_GUDANG'),
+  )
+  unsubMutasiApproved = onSnapshot(qMutasiApproved, (snap) => {
+    approvedMutasiCount.value = snap.docs.filter((d) => d.data().requester_read === false).length
   })
 })
 
@@ -879,136 +1051,240 @@ onUnmounted(() => {
   if (unsubApprovedPenawaran) unsubApprovedPenawaran()
   if (unsubApps) unsubApps()
   if (unsubPrBadge) unsubPrBadge()
+  if (unsubApprovedPr) unsubApprovedPr()
+  if (unsubMutasiPending) unsubMutasiPending()
+  if (unsubMutasiApproved) unsubMutasiApproved()
 })
 </script>
 
 <style lang="scss" scoped>
-.app-launcher-menu {
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+/* ================== PENCEGAHAN SCROLLBAR HORIZONTAL GLOBAL ================== */
+:global(body),
+:global(#q-app),
+.layout-container {
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
 }
-.app-btn {
+.no-horizontal-scroll {
+  overflow-x: hidden !important;
+  max-width: 100% !important;
+}
+
+/* ================== GENERAL UTILS ================== */
+.font-bold {
+  font-weight: 700;
+}
+.rounded-8 {
   border-radius: 8px;
-  padding: 12px 4px;
-  transition: all 0.3s ease;
-  min-height: 85px;
-  &:hover {
-    background: #f8f9fa;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  }
 }
-.active-app {
-  background: #e8eaf6;
-  border: 1px solid rgba(26, 35, 126, 0.1);
-  .app-label {
-    font-weight: 700;
-    color: #1a237e;
-  }
+.rounded-12 {
+  border-radius: 12px;
 }
-.app-label {
+.rounded-16 {
+  border-radius: 16px;
+}
+
+/* ================== SIDEBAR STYLING (CORPORATE CLEAN) ================== */
+.bg-profile-header {
+  background-color: #f4f6fc;
+  border-bottom: 1px solid #edf2f7;
+}
+.custom-sidebar {
+  border-right: 1px solid #edf2f7;
+}
+
+.sidebar-section-title {
   font-size: 11px;
-  margin-top: 8px;
-  color: #444;
-  font-weight: 500;
-  line-height: 1.2;
+  font-weight: 800;
+  color: #9aa0ac;
+  letter-spacing: 1.5px;
+  margin: 16px 0 8px 24px;
 }
-.menu-item {
-  border-radius: 0 25px 25px 0;
-  color: #546e7a;
-  margin: 0 12px 4px 0;
-  font-size: 13.5px;
+
+.menu-text {
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+.icon-sub {
+  color: #64748b;
+}
+
+.menu-item-clean,
+.menu-expansion-clean {
+  color: #344767;
+  margin: 2px 12px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+
   &:hover {
-    background-color: rgba(26, 35, 126, 0.04);
+    background-color: #f1f5f9;
     color: #1a237e;
   }
 }
+
+.menu-item-clean {
+  min-height: 48px;
+}
+
 .menu-item-active {
-  background-color: #e8eaf6 !important;
+  background-color: #f1f5f9 !important;
   color: #1a237e !important;
   font-weight: 800 !important;
-  border-right: 5px solid #1a237e;
-}
-.menu-expansion {
-  border-radius: 0 25px 25px 0;
-  margin: 0 12px 4px 0;
-  color: #37474f;
-  :deep(.q-item) {
-    border-radius: 0 25px 25px 0;
-    min-height: 50px;
+  border-left: 4px solid #1a237e;
+  border-radius: 0 8px 8px 0;
+
+  .q-icon {
+    color: #1a237e !important;
+  }
+  .menu-text {
+    font-weight: 800;
   }
 }
+
+.menu-expansion-clean {
+  :deep(.q-item) {
+    border-radius: 8px;
+    min-height: 48px;
+    transition: all 0.2s ease;
+  }
+  :deep(.q-item:hover) {
+    background-color: #f1f5f9;
+    color: #1a237e;
+  }
+}
+
+.menu-expansion-header {
+  font-size: 14px;
+  font-weight: 700;
+}
+.sub-expansion-header {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #475569;
+}
+
 .level-2-expansion {
   margin-bottom: 2px;
   :deep(.q-item) {
-    padding-left: 42px !important;
     min-height: 44px;
-    border-radius: 0 25px 25px 0;
+    border-radius: 8px;
   }
 }
-.level-2-item {
-  border-radius: 0 25px 25px 0;
-  margin-bottom: 2px;
+
+.level-2-item-clean {
+  border-radius: 8px;
+  margin: 2px 8px 2px 16px;
   min-height: 42px;
-  padding-left: 42px;
   font-size: 13.5px;
-  color: #546e7a;
-  transition: all 0.3s ease;
+  color: #475569;
+  transition: all 0.2s ease;
+
   &:hover {
-    background-color: #f5f5f5;
+    background-color: #f1f5f9;
+    color: #1a237e;
   }
 }
 
-/* Mematikan semua scrollbar bawaan di dalam q-scroll-area agar tampil rapi */
-:deep(.q-scrollarea__content) {
-  overflow-x: hidden !important;
+.level-3-item-clean {
+  border-radius: 8px;
+  margin: 2px 8px 2px 32px;
+  min-height: 38px;
+  font-size: 13px;
+  color: #475569;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: #f1f5f9;
+    color: #1a237e;
+  }
 }
 
-.special-green-item {
-  background-color: #2e7d32 !important;
-  color: #ffffff !important;
-  font-weight: 700;
+.sub-item-active {
+  background-color: #f4f6fc !important;
+  color: #1a237e !important;
+  font-weight: 800 !important;
+  border-radius: 8px;
 
   .q-icon {
-    color: #ffffff !important;
+    color: #1a237e !important;
+    opacity: 1;
+  }
+  .menu-text {
+    font-weight: 800;
+  }
+}
+
+.sub-list-container {
+  padding-left: 0;
+  border-left: none;
+}
+
+/* ================== NOTIF DROPDOWN ================== */
+.notif-item {
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  margin: 4px 8px;
+  border: 1px solid transparent;
+  &:hover {
+    background: #f8fafc;
+  }
+}
+
+/* ANIMASI BADGE */
+.animate-bounce {
+  animation: bounce 1.5s infinite;
+}
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+/* ================== KELAS KHUSUS BALANSHEET ================== */
+.special-green-item {
+  background-color: #f0fdf4 !important;
+  color: #2e7d32 !important;
+  border-radius: 8px;
+
+  .q-icon {
+    color: #2e7d32 !important;
+    opacity: 1;
   }
 
   &:hover {
-    background-color: #1b5e20 !important;
+    background-color: #e8f5e9 !important;
   }
 }
 
 .sub-menu-item-active-green {
-  color: #ffffff !important;
+  background-color: #e8f5e9 !important;
+  color: #1b5e20 !important;
   font-weight: 800 !important;
-  background-color: #1b5e20 !important;
-  border-right: 5px solid #81c784;
-  .q-icon {
-    color: #ffffff !important;
-  }
 }
 
-.level-3-item {
-  border-radius: 0 25px 25px 0;
-  margin-bottom: 2px;
-  min-height: 38px;
-  padding-left: 72px;
-  font-size: 13px;
-  color: #607d8b;
+.border-separator {
+  height: 1px;
+  background-color: #edf2f7;
 }
-.sub-menu-item-active {
-  color: #1a237e !important;
-  font-weight: 700;
-  background-color: rgba(26, 35, 126, 0.05) !important;
+
+/* HIDE SCROLLBAR CSS UNTUK SIDEBAR */
+.hide-horizontal-scroll {
+  overflow-x: hidden !important;
 }
-.border-bottom-soft {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+.clean-scroll :deep(.q-scrollarea__content) {
+  overflow-x: hidden !important;
+  width: 100% !important;
 }
-.rounded-20 {
-  border-radius: 20px;
+.clean-scroll :deep(.q-scrollarea) {
+  overflow-x: hidden !important;
 }
-.border-white-3 {
-  border: 3px solid white;
+::-webkit-scrollbar:horizontal {
+  display: none !important;
+  height: 0 !important;
+  width: 0 !important;
 }
 </style>
