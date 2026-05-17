@@ -136,6 +136,33 @@
             </q-td>
             <q-td key="aksi" class="text-center" @click.stop>
               <q-btn
+                v-if="
+                  canAction('ubah') &&
+                  props.row.is_revised &&
+                  props.row.status !== 'Pending' &&
+                  props.row.status !== 'Approved'
+                "
+                flat
+                round
+                color="orange-9"
+                icon="send"
+                size="sm"
+                @click="submitQuotation(props.row)"
+              >
+                <q-tooltip>Ajukan Approval</q-tooltip>
+              </q-btn>
+              <q-btn
+                v-if="props.row.status !== 'Approved' && canAction('ubah')"
+                flat
+                round
+                color="blue-8"
+                icon="edit_note"
+                size="sm"
+                @click="openEditDialog(props.row)"
+              >
+                <q-tooltip>Edit Draft</q-tooltip>
+              </q-btn>
+              <q-btn
                 v-if="canAction('hapus')"
                 flat
                 round
@@ -266,6 +293,7 @@
                         hide-selected
                         fill-input
                         :options="customerOptions"
+                        option-label="nama"
                         placeholder="Cari atau pilih nama klien..."
                         @update:model-value="onCustomerSelect"
                         class="rounded-10"
@@ -651,11 +679,145 @@
                       </tr>
                     </tbody>
                   </q-markup-table>
+
+                  <q-separator class="q-my-md" />
+
+                  <div class="row q-col-gutter-lg items-end">
+                    <div class="col-12 col-sm-6">
+                      <div class="field-label text-teal-10">Stempel Perusahaan</div>
+                      <q-file
+                        v-model="stempelFile"
+                        outlined
+                        dense
+                        label="Upload File Stempel"
+                        accept="image/*"
+                        class="rounded-10 q-mb-sm"
+                      >
+                        <template v-slot:prepend><q-icon name="local_post_office" /></template>
+                        <template v-slot:append v-if="form.stempelUrl">
+                          <q-icon name="check_circle" color="positive" />
+                        </template>
+                      </q-file>
+                      <q-card
+                        v-if="form.stempelUrl"
+                        flat
+                        bordered
+                        class="rounded-10 flex flex-center bg-grey-1 relative-position"
+                        style="height: 100px"
+                      >
+                        <q-img :src="form.stempelUrl" style="max-height: 80px" fit="contain" />
+                        <q-btn
+                          flat
+                          round
+                          dense
+                          icon="close"
+                          color="red"
+                          size="xs"
+                          class="absolute-top-right q-ma-xs"
+                          @click.stop="form.stempelUrl = ''"
+                        />
+                      </q-card>
+                      <div
+                        v-else
+                        class="rounded-10 flex flex-center border-dashed-teal bg-grey-1 text-grey-6 text-caption font-bold"
+                        style="height: 100px"
+                      >
+                        Belum Ada Stempel
+                      </div>
+                    </div>
+
+                    <div class="col-12 col-sm-6">
+                      <div
+                        class="text-caption text-weight-bolder text-teal-10 q-mb-xs uppercase row items-center justify-between"
+                      >
+                        <span>Metode Sign</span>
+                        <q-btn-dropdown
+                          flat
+                          dense
+                          color="teal-10"
+                          icon="settings"
+                          label="Metode"
+                          no-caps
+                          size="sm"
+                          class="rounded-10"
+                        >
+                          <q-list class="q-pa-sm" style="min-width: 180px">
+                            <q-item clickable v-ripple v-close-popup @click="showPad = true">
+                              <q-item-section avatar>
+                                <q-icon name="gesture" color="teal-10" />
+                              </q-item-section>
+                              <q-item-section>Gurat Manual</q-item-section>
+                            </q-item>
+                            <q-item clickable v-ripple class="relative-position">
+                              <q-item-section avatar>
+                                <q-icon name="upload" color="teal-10" />
+                              </q-item-section>
+                              <q-item-section>Upload Gambar</q-item-section>
+                              <q-file
+                                v-model="tempSignFile"
+                                borderless
+                                dense
+                                class="absolute-full opacity-0 cursor-pointer"
+                                accept="image/*"
+                                @update:model-value="uploadSignatureFile"
+                              />
+                            </q-item>
+                          </q-list>
+                        </q-btn-dropdown>
+                      </div>
+                      <q-card
+                        flat
+                        bordered
+                        class="rounded-10 flex flex-center bg-grey-1 cursor-pointer relative-position"
+                        style="height: 100px"
+                        @click="showPad = true"
+                      >
+                        <q-img
+                          v-if="form.signatureUrl"
+                          :src="form.signatureUrl"
+                          style="max-height: 80px"
+                          fit="contain"
+                        />
+                        <div v-else class="column items-center text-grey-6">
+                          <q-icon name="draw" size="md" />
+                          <div class="text-caption font-bold uppercase">Belum Tanda Tangan</div>
+                        </div>
+                        <q-btn
+                          v-if="form.signatureUrl"
+                          flat
+                          round
+                          dense
+                          icon="close"
+                          color="red"
+                          size="xs"
+                          class="absolute-top-right q-ma-xs"
+                          @click.stop="form.signatureUrl = ''"
+                        />
+                      </q-card>
+                    </div>
+                  </div>
                 </q-card>
               </div>
             </div>
           </div>
         </q-card-section>
+      </q-card>
+    </q-dialog>
+
+    <q-dialog v-model="showPad" persistent>
+      <q-card style="width: 500px; max-width: 95vw" class="rounded-20">
+        <q-card-section class="bg-teal-10 text-white q-pa-md">
+          <div class="text-h6 uppercase text-weight-bold">Gurat Tanda Tangan</div>
+        </q-card-section>
+        <q-card-section class="q-pa-lg">
+          <div class="signature-pad-wrapper border-teal">
+            <canvas ref="signatureCanvas" class="signature-canvas"></canvas>
+          </div>
+        </q-card-section>
+        <q-card-actions align="right" class="q-pa-md">
+          <q-btn flat label="Reset" color="grey-7" @click="clearPad" />
+          <q-btn unelevated label="Simpan & Pasang" color="teal-10" @click="saveManualSignature" />
+        </q-card-actions>
       </q-card>
     </q-dialog>
 
@@ -888,6 +1050,18 @@
                   class="text-caption text-blue-grey-10 q-mb-md custom-html-content text-center"
                   v-html="selectedData.ttd_notes"
                 ></div>
+                <div class="final-sign-assets">
+                  <img
+                    v-if="selectedData.stempelUrl"
+                    :src="selectedData.stempelUrl"
+                    class="img-stempel"
+                  />
+                  <img
+                    v-if="selectedData.signatureUrl"
+                    :src="selectedData.signatureUrl"
+                    class="img-signature"
+                  />
+                </div>
                 <div class="row q-col-gutter-md justify-center">
                   <div
                     v-for="(signer, idx) in selectedData.signers"
@@ -928,7 +1102,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, computed, nextTick, onMounted, onUnmounted, watch } from 'vue'
 import { Vue3Lottie } from 'vue3-lottie'
 import quotationAnimation from 'src/assets/animations/Quotation.json'
 import { db } from 'src/boot/firebase'
@@ -939,6 +1113,7 @@ import {
   doc,
   deleteDoc,
   addDoc,
+  updateDoc,
   serverTimestamp,
   orderBy,
   getDocs,
@@ -946,6 +1121,7 @@ import {
 } from 'firebase/firestore'
 import { useQuasar } from 'quasar'
 import { useAuthStore } from 'src/stores/auth'
+import SignaturePad from 'signature_pad'
 
 const $q = useQuasar()
 const authStore = useAuthStore()
@@ -958,10 +1134,15 @@ const submitting = ref(false)
 const filter = ref('')
 const showCreateModal = ref(false)
 const showPreview = ref(false)
+const isEditMode = ref(false)
 const selectedData = ref(null)
 const userData = ref(null)
 const selectedCustomer = ref(null)
 const customerOptions = ref([])
+const showPad = ref(false)
+const signatureCanvas = ref(null)
+const stempelFile = ref(null)
+const tempSignFile = ref(null)
 const kpiPending = computed(() => allRows.value.filter((row) => row.status === 'Pending').length)
 const kpiApproved = computed(() => allRows.value.filter((row) => row.status === 'Approved').length)
 const kpiRejected = computed(() => allRows.value.filter((row) => row.status === 'Rejected').length)
@@ -984,9 +1165,17 @@ const formDefault = {
   ttd_notes: '<p>Hormat Kami,</p><p><b>PT AGRA ABHINAYA PERKASA</b></p>',
   signers: [{ nama: 'DINDIN NAZMUDIN AKHMAD', jabatan: 'Project Director' }],
   items: [{ image: null, deskripsi: '', qty: 1, satuan: 'LS', harga: 0 }],
+  signatureUrl: '',
+  stempelUrl: '',
+  status: 'Draft',
+  is_revised: true,
+  marketing_read: true,
 }
 
 const form = reactive({ ...formDefault })
+const defaultItem = { image: null, deskripsi: '', qty: 1, satuan: 'LS', harga: 0 }
+const defaultSigner = { nama: '', jabatan: '' }
+let signaturePad = null
 
 const columns = [
   { name: 'nomor', align: 'left', label: 'REFERENCE NO', field: 'nomor', sortable: true },
@@ -1031,6 +1220,80 @@ const calculateRowTotal = (row, type = 'grand') => {
   if (type === 'subtotal') return sub
   if (type === 'tax') return tax
   return row.grand_total > 0 && type === 'grand' ? row.grand_total : grand
+}
+
+const normalizeQuotation = (row) => ({
+  ...row,
+  logo: row.logo || null,
+  signatureUrl: row.signatureUrl || '',
+  stempelUrl: row.stempelUrl || '',
+  status: row.status || 'Draft',
+  lokasi: row.lokasi || row.kota || 'Bekasi',
+  items: Array.isArray(row.items) && row.items.length ? row.items : [{ ...defaultItem }],
+  signers:
+    Array.isArray(row.signers) && row.signers.length
+      ? row.signers
+      : [{ nama: row.ttd_nama || defaultSigner.nama, jabatan: row.ttd_jabatan || defaultSigner.jabatan }],
+  subtotal: Number(row.subtotal) || calculateRowTotal(row, 'subtotal'),
+  tax_amount: Number(row.tax_amount) || calculateRowTotal(row, 'tax'),
+  grand_total: Number(row.grand_total) || calculateRowTotal(row, 'grand'),
+  is_revised: row.is_revised ?? true,
+  marketing_read: row.marketing_read ?? true,
+})
+
+watch(showPad, async (visible) => {
+  if (!visible) {
+    signaturePad = null
+    return
+  }
+
+  await nextTick()
+  const canvas = signatureCanvas.value
+  if (!canvas) return
+  const ratio = Math.max(window.devicePixelRatio || 1, 1)
+  canvas.width = canvas.offsetWidth * ratio
+  canvas.height = canvas.offsetHeight * ratio
+  canvas.getContext('2d')?.scale(ratio, ratio)
+  signaturePad = new SignaturePad(canvas, { penColor: '#000000' })
+})
+
+const clearPad = () => signaturePad?.clear()
+
+const saveManualSignature = () => {
+  if (!signaturePad || signaturePad.isEmpty()) return
+  form.signatureUrl = signaturePad.toDataURL('image/png')
+  showPad.value = false
+}
+
+const resizeImageToBase64 = (file, maxWidth = 400) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = (event) => {
+      const img = new Image()
+      img.src = event.target.result
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        const scale = Math.min(1, maxWidth / img.width)
+        canvas.width = img.width * scale
+        canvas.height = img.height * scale
+        const ctx = canvas.getContext('2d')
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+        resolve(canvas.toDataURL('image/png', 0.8))
+      }
+    }
+    reader.onerror = (error) => reject(error)
+  })
+
+const uploadSignatureFile = async (file) => {
+  if (!file) return
+  try {
+    form.signatureUrl = await resizeImageToBase64(file, 400)
+    $q.notify({ type: 'positive', message: 'Tanda tangan berhasil diunggah' })
+  } catch (err) {
+    console.error(err)
+    $q.notify({ type: 'negative', message: 'Gagal mengunggah tanda tangan' })
+  }
 }
 
 const sendQuotationWhatsAppNotification = async (quotation) => {
@@ -1090,19 +1353,28 @@ const canAction = (actionType) => {
 }
 
 const openAddDialog = () => {
+  isEditMode.value = false
   Object.assign(form, JSON.parse(JSON.stringify(formDefault)))
   form.nomor = `${(allRows.value.length + 1).toString().padStart(3, '0')}/AAP-QUOT/IV/2026`
   selectedCustomer.value = null
+  stempelFile.value = null
+  tempSignFile.value = null
   showCreateModal.value = true
 }
 
-const openApproval = (row) => {
-  selectedData.value = row
+const openApproval = async (row) => {
+  const normalized = normalizeQuotation(row)
+  selectedData.value = normalized
   showPreview.value = true
+
+  if (normalized.marketing_read === false) {
+    await updateDoc(doc(db, 'penawaran_manufaktur', normalized.id), { marketing_read: true })
+  }
 }
 
 const onCustomerSelect = (val) => {
-  form.nama_customer = val
+  form.customer_id = val?.id || null
+  form.nama_customer = val?.nama || null
 }
 const addRow = () => {
   form.items.push({ image: null, deskripsi: '', qty: 1, satuan: 'LS', harga: 0 })
@@ -1177,19 +1449,33 @@ const saveNewQuotation = async () => {
   try {
     submitting.value = true
     $q.loading.show()
+    if (stempelFile.value) {
+      form.stempelUrl = await resizeImageToBase64(stempelFile.value, 300)
+    }
     const finalData = {
       ...JSON.parse(JSON.stringify(form)),
       subtotal: Number(subtotal.value),
       tax_amount: Number(taxAmount.value),
       grand_total: Number(grandTotal.value),
-      status: 'Pending',
-      createdAt: serverTimestamp(),
+      total_harga: Number(grandTotal.value),
+      status: form.status || 'Draft',
+      is_revised: true,
+      marketing_read: true,
       updatedAt: serverTimestamp(),
     }
-    await addDoc(collection(db, 'penawaran_manufaktur'), finalData)
-    console.log('CALLING WHATSAPP NOTIFICATION')
-    await sendQuotationWhatsAppNotification(finalData)
+    const docId = form.id
+    delete finalData.id
+
+    if (isEditMode.value && docId) {
+      await updateDoc(doc(db, 'penawaran_manufaktur', docId), finalData)
+    } else {
+      finalData.createdAt = serverTimestamp()
+      await addDoc(collection(db, 'penawaran_manufaktur'), finalData)
+    }
+
     showCreateModal.value = false
+    stempelFile.value = null
+    tempSignFile.value = null
     $q.notify({ type: 'positive', message: 'Berhasil disimpan!' })
   } catch (err) {
     console.error(err)
@@ -1197,6 +1483,50 @@ const saveNewQuotation = async () => {
     submitting.value = false
     $q.loading.hide()
   }
+}
+
+const openEditDialog = async (row) => {
+  const normalized = normalizeQuotation(row)
+  isEditMode.value = true
+  Object.assign(form, JSON.parse(JSON.stringify(normalized)))
+  selectedCustomer.value = customerOptions.value.find((customer) => customer.id === normalized.customer_id) || {
+    id: normalized.customer_id || null,
+    nama: normalized.nama_customer,
+  }
+  stempelFile.value = null
+  tempSignFile.value = null
+  showCreateModal.value = true
+
+  if (normalized.marketing_read === false) {
+    await updateDoc(doc(db, 'penawaran_manufaktur', normalized.id), { marketing_read: true })
+  }
+}
+
+const submitQuotation = (row) => {
+  const normalized = normalizeQuotation(row)
+  $q.dialog({
+    title: 'Konfirmasi Pengajuan',
+    message: 'Ajukan penawaran ini ke pimpinan untuk diperiksa (Pending)?',
+    cancel: true,
+    ok: { color: 'teal-10', unelevated: true, label: 'Ya, Ajukan' },
+  }).onOk(async () => {
+    try {
+      await updateDoc(doc(db, 'penawaran_manufaktur', normalized.id), {
+        status: 'Pending',
+        is_revised: false,
+        marketing_read: true,
+        updatedAt: serverTimestamp(),
+      })
+      await sendQuotationWhatsAppNotification({
+        ...normalized,
+        status: 'Pending',
+      })
+      $q.notify({ type: 'info', message: 'Penawaran sedang menunggu persetujuan.' })
+    } catch (err) {
+      console.error(err)
+      $q.notify({ type: 'negative', message: 'Gagal mengajukan penawaran.' })
+    }
+  })
 }
 
 const deleteQuotation = (row) => {
@@ -1220,7 +1550,7 @@ let unsubUser = null
 onMounted(async () => {
   const q = query(collection(db, 'penawaran_manufaktur'), orderBy('updatedAt', 'desc'))
   unsub = onSnapshot(q, (snap) => {
-    allRows.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+    allRows.value = snap.docs.map((d) => normalizeQuotation({ id: d.id, ...d.data() }))
     loading.value = false
   })
   if (authStore.user?.email) {
@@ -1230,7 +1560,9 @@ onMounted(async () => {
     })
   }
   const cSnap = await getDocs(collection(db, 'customer'))
-  if (!cSnap.empty) customerOptions.value = cSnap.docs.map((d) => d.data().nama)
+  if (!cSnap.empty) {
+    customerOptions.value = cSnap.docs.map((d) => ({ id: d.id, nama: d.data().nama }))
+  }
 })
 onUnmounted(() => {
   if (unsub) unsub()
@@ -1468,6 +1800,39 @@ onUnmounted(() => {
 }
 .border-dashed-teal {
   border: 2px dashed #004d4044;
+}
+.signature-pad-wrapper {
+  height: 250px;
+  border-radius: 8px;
+  background: #fcfdff;
+}
+.signature-canvas {
+  width: 100%;
+  height: 100%;
+}
+.final-sign-assets {
+  position: relative;
+  width: 220px;
+  height: 84px;
+  margin: 0 auto 6px;
+}
+.img-stempel {
+  position: absolute;
+  right: 72px;
+  bottom: 0;
+  max-width: 92px;
+  max-height: 78px;
+  object-fit: contain;
+  opacity: 0.92;
+}
+.img-signature {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  max-width: 150px;
+  max-height: 78px;
+  object-fit: contain;
+  mix-blend-mode: multiply;
 }
 .border-bottom {
   border-bottom: 1px solid #eee;

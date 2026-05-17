@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@quasar/extras": "^1.16.4",
+    "@rive-app/canvas": "^2.37.7",
     "axios": "^1.2.1",
     "firebase": "^12.12.1",
     "html2pdf.js": "^0.14.0",

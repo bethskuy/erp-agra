@@ -299,22 +299,6 @@ const routes = [
         name: 'manufaktur-packing-produksi',
         component: () => import('pages/manufaktur/Produksi/PackingProduksiPage.vue'),
       },
-      {
-        path: 'produksi/ready-delivery',
-        name: 'manufaktur-ready-delivery',
-        component: () => import('pages/manufaktur/Produksi/ReadyDeliveryPage.vue'),
-      },
-      {
-        path: 'produksi/line-produksi',
-        name: 'manufaktur-line-produksi',
-        component: () => import('pages/manufaktur/Produksi/LineProduksiPage.vue'),
-      },
-      {
-        path: 'warehouse/outgoing-check',
-        name: 'manufaktur-warehouse-oqc',
-        component: () => import('pages/manufaktur/warehouse/outgoingcheckOQC.vue'),
-      },
-
       // --- SECTION 5: DELIVERY (SURAT JALAN) ---
       {
         path: 'delivery/surat-jalan',
@@ -365,6 +349,26 @@ const routes = [
         path: 'warehouse/incoming-material',
         name: 'warehouse-incoming-material',
         component: () => import('pages/manufaktur/warehouse/IncomingMaterialPage.vue'),
+      },
+      {
+        path: 'warehouse/finished-goods',
+        name: 'warehouse-finished-goods',
+        component: () => import('pages/manufaktur/warehouse/FinishedGoodsPage.vue'),
+      },
+      {
+        path: 'warehouse/stock-forecast',
+        name: 'warehouse-stock-forecast',
+        component: () => import('pages/manufaktur/warehouse/StockForecastPage.vue'),
+      },
+      {
+        path: 'warehouse/bahan-mentah',
+        name: 'warehouse-bahan-mentah',
+        component: () => import('pages/manufaktur/warehouse/BahanMentahPage.vue'),
+      },
+      {
+        path: 'warehouse/bahan-jadi',
+        name: 'warehouse-bahan-jadi',
+        component: () => import('pages/manufaktur/warehouse/BahanJadiPage.vue'),
       },
       {
         path: 'warehouse/incoming-material/table',

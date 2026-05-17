@@ -1,5 +1,20 @@
 <template>
-  <q-page class="flex flex-center bg-modern-dashboard q-pa-md overflow-hidden">
+  <q-page
+    class="flex flex-center bg-modern-dashboard q-pa-md overflow-hidden"
+    :class="{ 'theme-dark': isDarkMode }"
+  >
+    <div class="theme-toggle-wrap">
+      <q-btn
+        unelevated
+        rounded
+        no-caps
+        class="theme-toggle"
+        :icon="isDarkMode ? 'light_mode' : 'dark_mode'"
+        :label="isDarkMode ? 'Mode Terang' : 'Mode Gelap'"
+        @click="toggleTheme"
+      />
+    </div>
+
     <!-- Konten Utama -->
     <div class="full-width container-modern" style="max-width: 1000px">
       <!-- Header Section: Logo & Greeting -->
@@ -43,7 +58,7 @@
           placeholder="Cari modul aplikasi..."
           class="full-width search-odoo"
           style="max-width: 500px"
-          bg-color="white"
+          :bg-color="isDarkMode ? 'transparent' : 'white'"
         >
           <template v-slot:prepend>
             <q-icon name="search" color="primary" class="q-ml-sm" />
@@ -70,7 +85,15 @@
                 class="app-icon-card flex flex-center transition-all cursor-pointer"
                 :class="`bg-light-${app.bgColor || 'blue'}`"
               >
-                <q-icon :name="app.icon" :color="app.color || 'primary'" size="44px" />
+                <Vue3Lottie
+                  v-if="isManufactureApp(app)"
+                  :animation-data="manufactureAnimation"
+                  :height="64"
+                  :width="64"
+                  loop
+                  autoplay
+                />
+                <q-icon v-else :name="app.icon" :color="app.color || 'primary'" size="44px" />
               </q-card>
               <div class="text-center q-mt-sm">
                 <div
@@ -95,6 +118,8 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { Vue3Lottie } from 'vue3-lottie'
+import manufactureAnimation from '../assets/animations/icon-manufactur.json'
 import { db } from 'src/boot/firebase'
 import { collection, onSnapshot, getDocs, writeBatch, doc, query, where } from 'firebase/firestore'
 import { useAuthStore } from 'src/stores/auth'
@@ -104,7 +129,16 @@ const apps = ref([])
 const searchQuery = ref('')
 const userData = ref(null)
 const currentAkses = ref([])
+const isDarkMode = ref(false)
 let unsubscribeUser = null
+
+const isManufactureApp = (app) => app.name?.toUpperCase() === 'MANUFACTURE'
+const themeStorageKey = 'index-page-theme'
+
+const toggleTheme = () => {
+  isDarkMode.value = !isDarkMode.value
+  localStorage.setItem(themeStorageKey, isDarkMode.value ? 'dark' : 'light')
+}
 
 // Filter Apps agar unik (berdasarkan aksesKey) dan sesuai hak akses
 const filteredApps = computed(() => {
@@ -187,6 +221,7 @@ const setupDefaultModuls = async () => {
 }
 
 onMounted(async () => {
+  isDarkMode.value = localStorage.getItem(themeStorageKey) === 'dark'
   await setupDefaultModuls()
 
   onSnapshot(collection(db, 'modul'), (snapshot) => {
@@ -215,6 +250,31 @@ onUnmounted(() => {
 .bg-modern-dashboard {
   background: linear-gradient(135deg, #f8fafd 0%, #ffffff 100%);
   min-height: 100vh;
+  transition:
+    background 0.3s ease,
+    color 0.3s ease;
+}
+.theme-toggle-wrap {
+  position: absolute;
+  top: 18px;
+  right: 24px;
+  z-index: 2;
+}
+.theme-toggle {
+  min-height: 38px;
+  padding: 0 16px;
+  color: #0f766e;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.1);
+}
+.theme-toggle :deep(.q-icon) {
+  font-size: 18px;
+}
+.theme-toggle :deep(.q-btn__content) {
+  gap: 8px;
+}
+.container-modern {
+  position: relative;
 }
 .logo-container {
   width: 140px;
@@ -271,6 +331,57 @@ onUnmounted(() => {
 .search-odoo {
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
   transition: box-shadow 0.3s ease;
+}
+.bg-modern-dashboard.theme-dark {
+  color: #f8fafc;
+  background:
+    radial-gradient(circle at 82% 14%, rgba(59, 130, 246, 0.16), transparent 28%),
+    linear-gradient(135deg, #05070a 0%, #0b1120 52%, #111827 100%);
+  background-color: #05070a;
+}
+.theme-dark .theme-toggle {
+  color: #f8fafc;
+  background: rgba(8, 47, 73, 0.78);
+  box-shadow: 0 12px 28px rgba(2, 12, 18, 0.28);
+}
+.theme-dark .logo-container {
+  background: rgba(255, 255, 255, 0.94);
+}
+.theme-dark .text-overline {
+  color: #99f6e4 !important;
+}
+.theme-dark .text-blue-grey-10 {
+  color: #f8fafc !important;
+}
+.theme-dark .text-grey-7 {
+  color: rgba(226, 232, 240, 0.76) !important;
+}
+.theme-dark :deep(.q-badge) {
+  color: #ccfbf1 !important;
+  background: rgba(13, 148, 136, 0.2) !important;
+}
+.theme-dark :deep(.q-field__control) {
+  color: #f8fafc;
+  background: rgba(15, 23, 42, 0.68);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+}
+.theme-dark :deep(.q-field__native),
+.theme-dark :deep(.q-field__prepend .q-icon) {
+  color: #f8fafc !important;
+}
+.theme-dark :deep(.q-field__native::placeholder) {
+  color: rgba(226, 232, 240, 0.58) !important;
+}
+.theme-dark .app-icon-card {
+  background: rgba(15, 23, 42, 0.74) !important;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  box-shadow: 0 18px 36px rgba(2, 12, 18, 0.24);
+}
+.theme-dark .bg-light-blue-1,
+.theme-dark .bg-light-green-1,
+.theme-dark .bg-light-teal-1,
+.theme-dark .bg-light-purple-1 {
+  background-color: rgba(15, 23, 42, 0.74) !important;
 }
 @keyframes appAppear {
   from {

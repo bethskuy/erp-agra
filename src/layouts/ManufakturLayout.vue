@@ -1,14 +1,11 @@
 <template>
-  <q-layout view="lHh Lpr lFf" class="app-layout app-layout--manufacture">
-    <div class="layout-bg" aria-hidden="true">
-      <div class="layout-glow layout-glow-a"></div>
-      <div class="layout-glow layout-glow-b"></div>
-      <div class="layout-glow layout-glow-c"></div>
-      <div class="layout-grid"></div>
-      <div class="layout-particle layout-particle-1"></div>
-      <div class="layout-particle layout-particle-2"></div>
-      <div class="layout-particle layout-particle-3"></div>
-      <div class="layout-particle layout-particle-4"></div>
+  <q-layout
+    view="lHh Lpr lFf"
+    class="app-layout app-layout--manufacture"
+    :data-rive-bg-src="backgroundRiveSrc"
+  >
+    <div class="layout-rive-bg" aria-hidden="true">
+      <canvas ref="bgRiveCanvas" class="layout-rive-canvas"></canvas>
     </div>
 
     <q-header elevated class="app-header app-header--manufacture text-white">
@@ -107,13 +104,7 @@
       </q-toolbar>
     </q-header>
 
-    <q-drawer
-      v-model="leftDrawerOpen"
-      show-if-above
-      bordered
-      :width="272"
-      class="sidebar-drawer"
-    >
+    <q-drawer v-model="leftDrawerOpen" show-if-above bordered :width="272" class="sidebar-drawer">
       <div class="sidebar-profile row items-center no-wrap border-bottom">
         <q-avatar size="40px" color="teal-10" text-color="white" class="text-weight-bold"
           >R</q-avatar
@@ -396,11 +387,9 @@
           <q-expansion-item
             v-if="
               hasSectionAccess([
-                'produksi/line-produksi',
                 'produksi/monitoring-produksi',
                 'produksi/qc-produksi',
                 'produksi/packing-produksi',
-                'produksi/ready-delivery',
               ])
             "
             icon="precision_manufacturing"
@@ -408,20 +397,6 @@
             header-class="nav-group"
             expand-icon-class="nav-expand-icon"
           >
-            <q-item
-              v-if="checkPermission('produksi/line-produksi')"
-              clickable
-              v-ripple
-              to="/manufaktur/produksi/line-produksi"
-              active-class="active-menu"
-              class="submenu-item"
-              dense
-            >
-              <q-item-section avatar class="submenu-icon"
-                ><q-icon name="precision_manufacturing" size="xs"
-              /></q-item-section>
-              <q-item-section class="submenu-text">Proses Fabrikasi</q-item-section>
-            </q-item>
             <q-item
               v-if="checkPermission('produksi/monitoring-produksi')"
               clickable
@@ -464,27 +439,21 @@
               /></q-item-section>
               <q-item-section class="submenu-text">Packing Produksi</q-item-section>
             </q-item>
-            <q-item
-              v-if="checkPermission('produksi/ready-delivery')"
-              clickable
-              v-ripple
-              to="/manufaktur/produksi/ready-delivery"
-              active-class="active-menu"
-              class="submenu-item"
-              dense
-            >
-              <q-item-section avatar class="submenu-icon"
-                ><q-icon name="local_shipping" size="xs"
-              /></q-item-section>
-              <q-item-section class="submenu-text">Ready Delivery</q-item-section>
-            </q-item>
           </q-expansion-item>
 
           <q-separator class="sidebar-separator" />
           <q-item-label header class="section-title">LOGISTIK & FINANCE</q-item-label>
 
           <q-expansion-item
-            v-if="hasSectionAccess(['warehouse/incoming-material', 'warehouse/outgoing-check'])"
+            v-if="
+              hasSectionAccess([
+                'warehouse/incoming-material',
+                'warehouse/finished-goods',
+                'warehouse/stock-forecast',
+                'warehouse/bahan-mentah',
+                'warehouse/bahan-jadi',
+              ])
+            "
             icon="warehouse"
             label="Warehouse"
             header-class="nav-group"
@@ -505,18 +474,60 @@
               <q-item-section class="submenu-text">Incoming Material</q-item-section>
             </q-item>
             <q-item
-              v-if="checkPermission('warehouse/outgoing-check')"
+              v-if="checkPermission('warehouse/finished-goods')"
               clickable
               v-ripple
-              to="/manufaktur/warehouse/outgoing-check"
+              to="/manufaktur/warehouse/finished-goods"
               active-class="active-menu"
               class="submenu-item"
               dense
             >
               <q-item-section avatar class="submenu-icon"
-                ><q-icon name="fact_check" size="xs"
+                ><q-icon name="inventory" size="xs"
               /></q-item-section>
-              <q-item-section class="submenu-text">Outgoing Check</q-item-section>
+              <q-item-section class="submenu-text">Finished Goods</q-item-section>
+            </q-item>
+            <q-item
+              v-if="checkPermission('warehouse/stock-forecast')"
+              clickable
+              v-ripple
+              to="/manufaktur/warehouse/stock-forecast"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="query_stats" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Stock Forecast</q-item-section>
+            </q-item>
+            <q-item
+              v-if="checkPermission('warehouse/bahan-mentah')"
+              clickable
+              v-ripple
+              to="/manufaktur/warehouse/bahan-mentah"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="category" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Bahan Mentah</q-item-section>
+            </q-item>
+            <q-item
+              v-if="checkPermission('warehouse/bahan-jadi')"
+              clickable
+              v-ripple
+              to="/manufaktur/warehouse/bahan-jadi"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="inventory_2" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Bahan Jadi</q-item-section>
             </q-item>
           </q-expansion-item>
 
@@ -574,17 +585,22 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
+import { Rive, Layout, Fit, Alignment } from '@rive-app/canvas'
 import { db } from 'src/boot/firebase'
 import { collection, query, where, onSnapshot } from 'firebase/firestore'
 import { useAuthStore } from 'src/stores/auth'
 
 const authStore = useAuthStore()
+const backgroundRiveSrc = '/animations/bg.riv'
+const bgRiveCanvas = ref(null)
 const leftDrawerOpen = ref(false)
 const pendingCount = ref(0)
 const userData = ref(null)
 let unsub = null
 let unsubUser = null
+let bgRive = null
+let bgRivePlaybackTarget = null
 
 const toggleLeftDrawer = () => {
   leftDrawerOpen.value = !leftDrawerOpen.value
@@ -600,7 +616,87 @@ const hasSectionAccess = (menuPaths) => {
   return menuPaths.some((path) => checkPermission(path))
 }
 
+const resizeBgRive = () => {
+  bgRive?.resizeDrawingSurfaceToCanvas()
+}
+
+const startBgRive = () => {
+  if (!bgRive) return
+
+  resizeBgRive()
+
+  const [firstAnimation] = bgRive.animationNames || []
+  const [firstStateMachine] = bgRive.stateMachineNames || []
+  const target = bgRivePlaybackTarget || firstStateMachine || firstAnimation
+
+  bgRive.play(undefined, true)
+
+  if (target) {
+    bgRive.play(target, true)
+  }
+  if (firstStateMachine && firstStateMachine !== target) {
+    bgRive.play(firstStateMachine, true)
+  }
+
+  bgRive.startRendering?.()
+}
+
+const createBackgroundRive = (playback = {}) => {
+  if (!bgRiveCanvas.value || bgRive) return
+
+  bgRive = new Rive({
+    src: '/animations/bg.riv',
+    canvas: bgRiveCanvas.value,
+    animations: playback.animation,
+    stateMachines: playback.stateMachine,
+    autoplay: true,
+    layout: new Layout({
+      fit: Fit.Cover,
+      alignment: Alignment.Center,
+    }),
+    onLoad: () => {
+      if (!bgRive) return
+      resizeBgRive()
+
+      const [firstAnimation] = bgRive.animationNames || []
+      const [firstStateMachine] = bgRive.stateMachineNames || []
+
+      console.log('[bg.riv]', {
+        activeArtboard: bgRive.activeArtboard,
+        animationNames: bgRive.animationNames,
+        stateMachineNames: bgRive.stateMachineNames,
+      })
+
+      if (!playback.animation && !playback.stateMachine && (firstAnimation || firstStateMachine)) {
+        const nextPlayback = firstStateMachine
+          ? { stateMachine: firstStateMachine }
+          : { animation: firstAnimation }
+
+        destroyBackgroundRive()
+        createBackgroundRive(nextPlayback)
+        return
+      }
+
+      const target =
+        playback.stateMachine || playback.animation || firstStateMachine || firstAnimation
+      bgRivePlaybackTarget = target || null
+      startBgRive()
+    },
+  })
+}
+
+const destroyBackgroundRive = () => {
+  window.removeEventListener('resize', resizeBgRive)
+  if (!bgRive) return
+  bgRive.cleanup()
+  bgRive = null
+  bgRivePlaybackTarget = null
+}
+
 onMounted(() => {
+  createBackgroundRive()
+  window.addEventListener('resize', resizeBgRive)
+
   const q = query(collection(db, 'penawaran_manufaktur'), where('status', '==', 'Pending'))
   unsub = onSnapshot(q, (snap) => {
     pendingCount.value = snap.size
@@ -616,6 +712,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  destroyBackgroundRive()
   if (unsub) unsub()
   if (unsubUser) unsubUser()
 })
@@ -627,112 +724,29 @@ onUnmounted(() => {
   min-height: 100vh;
   overflow: hidden;
   background:
-    radial-gradient(circle at 8% 8%, rgba(16, 185, 129, 0.3), transparent 28%),
-    radial-gradient(circle at 86% 12%, rgba(34, 211, 238, 0.22), transparent 26%),
-    radial-gradient(circle at 50% 102%, rgba(6, 95, 70, 0.22), transparent 34%),
-    linear-gradient(
-      135deg,
-      #07130f 0%,
-      #0a1c21 20%,
-      #102a36 40%,
-      #12352d 58%,
-      #dcefe9 82%,
-      #f7fbfa 100%
-    );
-  background-size: 180% 180%;
-  animation: shellGradientShift 24s ease-in-out infinite;
+    radial-gradient(circle at 12% 8%, rgba(16, 185, 129, 0.16), transparent 28%),
+    radial-gradient(circle at 86% 12%, rgba(34, 211, 238, 0.12), transparent 26%),
+    radial-gradient(circle at 50% 102%, rgba(6, 95, 70, 0.14), transparent 34%),
+    linear-gradient(135deg, #041f1d 0%, #062f2b 42%, #0f3d35 100%);
 }
 .app-layout--manufacture {
   isolation: isolate;
 }
-.app-layout--manufacture::before {
+.layout-rive-bg {
   position: fixed;
   inset: 0;
   z-index: 0;
-  pointer-events: none;
-  content: '';
-  background:
-    linear-gradient(115deg, rgba(255, 255, 255, 0.14), transparent 34%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 30%);
-  mix-blend-mode: screen;
-}
-.layout-bg {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
   overflow: hidden;
+  pointer-events: none;
 }
-.layout-grid {
-  position: absolute;
+.layout-rive-canvas {
+  position: fixed;
   inset: 0;
-  opacity: 0.22;
-  background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.16) 1px, transparent 1px),
-    linear-gradient(0deg, rgba(255, 255, 255, 0.12) 1px, transparent 1px);
-  background-size: 76px 76px;
-  mask-image: radial-gradient(circle at center, black 24%, transparent 78%);
-  animation: gridDrift 42s linear infinite;
-}
-.layout-glow,
-.layout-particle {
-  position: absolute;
-  border-radius: 999px;
-}
-.layout-glow {
-  filter: blur(28px);
-  opacity: 0.68;
-  animation: floatBlob 18s ease-in-out infinite;
-}
-.layout-glow-a {
-  width: 440px;
-  height: 440px;
-  top: -150px;
-  left: -110px;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.52), rgba(16, 185, 129, 0));
-}
-.layout-glow-b {
-  width: 380px;
-  height: 380px;
-  top: 12%;
-  right: -120px;
-  background: radial-gradient(circle, rgba(34, 211, 238, 0.32), rgba(34, 211, 238, 0));
-  animation-delay: -5s;
-}
-.layout-glow-c {
-  width: 540px;
-  height: 540px;
-  bottom: -220px;
-  left: 24%;
-  background: radial-gradient(circle, rgba(5, 150, 105, 0.24), rgba(5, 150, 105, 0));
-  animation-delay: -9s;
-}
-.layout-particle {
-  width: 7px;
-  height: 7px;
-  background: rgba(207, 250, 254, 0.34);
-  box-shadow: 0 0 20px rgba(103, 232, 249, 0.38);
-  animation: floatParticle 12s ease-in-out infinite;
-}
-.layout-particle-1 {
-  top: 20%;
-  left: 12%;
-  animation-delay: 0s;
-}
-.layout-particle-2 {
-  top: 34%;
-  left: 26%;
-  animation-delay: -2s;
-}
-.layout-particle-3 {
-  top: 66%;
-  right: 18%;
-  animation-delay: -4s;
-}
-.layout-particle-4 {
-  bottom: 22%;
-  left: 54%;
-  animation-delay: -6s;
+  width: 100vw;
+  height: 100vh;
+  display: block;
+  opacity: 0.16;
+  pointer-events: none;
 }
 .app-header {
   position: relative;
@@ -782,6 +796,7 @@ onUnmounted(() => {
 .app-page-container {
   position: relative;
   z-index: 1;
+  background: transparent;
 }
 .app-page-container :deep(.q-page) {
   background: transparent !important;
@@ -1070,45 +1085,6 @@ onUnmounted(() => {
     background-position: 0% 50%;
   }
 }
-@keyframes shellGradientShift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-@keyframes floatBlob {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  50% {
-    transform: translate3d(18px, 14px, 0) scale(1.08);
-  }
-}
-@keyframes gridDrift {
-  0% {
-    transform: translate3d(0, 0, 0);
-  }
-  100% {
-    transform: translate3d(-76px, -76px, 0);
-  }
-}
-@keyframes floatParticle {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0) scale(1);
-    opacity: 0.35;
-  }
-  50% {
-    transform: translate3d(0, -18px, 0) scale(1.18);
-    opacity: 0.7;
-  }
-}
 @keyframes bounce {
   0%,
   20%,
@@ -1131,10 +1107,6 @@ onUnmounted(() => {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .app-layout,
-  .layout-grid,
-  .layout-glow,
-  .layout-particle,
   .app-header--manufacture {
     animation: none;
   }

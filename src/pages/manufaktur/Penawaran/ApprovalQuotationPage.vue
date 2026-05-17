@@ -116,13 +116,11 @@
         </template>
 
         <template v-slot:body="props">
-          <q-tr
-            :props="props"
-            class="approval-row cursor-pointer"
-            @click="openApproval(props.row)"
-          >
+          <q-tr :props="props" class="approval-row cursor-pointer" @click="openApproval(props.row)">
             <q-td key="nomor" class="reference-cell">{{ props.row.nomor }}</q-td>
-            <q-td key="nama_customer" class="client-cell uppercase">{{ props.row.nama_customer }}</q-td>
+            <q-td key="nama_customer" class="client-cell uppercase">{{
+              props.row.nama_customer
+            }}</q-td>
             <q-td key="total_harga" class="amount-cell text-right">
               IDR {{ calculateRowTotal(props.row).toLocaleString() }}
             </q-td>
@@ -149,6 +147,7 @@
               </q-btn>
               <template v-if="props.row.status === 'Pending'">
                 <q-btn
+                  v-if="canAction('approve')"
                   flat
                   round
                   class="action-btn action-approve"
@@ -160,6 +159,7 @@
                   <q-tooltip>Approve Penawaran</q-tooltip>
                 </q-btn>
                 <q-btn
+                  v-if="canAction('approve') || canAction('ubah')"
                   flat
                   round
                   class="action-btn action-reject"
@@ -189,6 +189,31 @@
             <q-btn color="teal-10" icon="print" label="Cetak" @click="printNow" />
             <q-btn color="red-9" icon="picture_as_pdf" label="Download PDF" @click="exportToPDF" />
           </q-btn-group>
+
+          <template v-if="selectedData?.status === 'Pending'">
+            <q-btn
+              v-if="canAction('approve')"
+              unelevated
+              rounded
+              color="positive"
+              icon="check_circle"
+              label="APPROVE"
+              class="q-mr-sm text-weight-bold"
+              :loading="actionLoading === `${selectedData.id}-Approved`"
+              @click="approveQuotation(selectedData)"
+            />
+            <q-btn
+              v-if="canAction('approve') || canAction('ubah')"
+              outline
+              rounded
+              color="negative"
+              icon="cancel"
+              label="REJECT"
+              class="text-weight-bold"
+              :loading="actionLoading === `${selectedData.id}-Rejected`"
+              @click="rejectQuotation(selectedData)"
+            />
+          </template>
         </q-toolbar>
 
         <q-card-section class="col scroll flex flex-center q-pa-md preview-container">
@@ -335,6 +360,7 @@ import { db } from 'src/boot/firebase'
 import {
   collection,
   query,
+  where,
   doc,
   updateDoc,
   onSnapshot,
@@ -342,10 +368,12 @@ import {
   orderBy,
 } from 'firebase/firestore'
 import { useQuasar } from 'quasar'
+import { useAuthStore } from 'src/stores/auth'
 import SignaturePad from 'signature_pad'
 import html2pdf from 'html2pdf.js'
 
 const $q = useQuasar()
+const authStore = useAuthStore()
 const allRows = ref([])
 const loading = ref(true)
 const filter = ref('')
@@ -354,7 +382,9 @@ const showPad = ref(false)
 const selectedData = ref(null)
 const signatureCanvas = ref(null)
 const actionLoading = ref(null)
+const userData = ref(null)
 
+let unsubUser = null
 let unsubApproval = null
 let signaturePad = null
 
@@ -418,6 +448,18 @@ const formatDateIndo = (d) =>
 const getStatusColor = (s) =>
   s === 'Approved' ? 'positive' : s === 'Rejected' ? 'negative' : 'orange-9'
 
+const canAction = (actionType) => {
+  if (authStore.user?.role === 'Super Admin') return true
+  if (!userData.value?.permissions_detail) return false
+  const modulePerm = userData.value.permissions_detail.find((m) => m.id === 'manufaktur')
+  if (!modulePerm || !modulePerm.isActive) return false
+
+  const approvalMenu = modulePerm.menus.find((m) => m.id === '_manufaktur_penawaran-approval')
+  const penawaranMenu = modulePerm.menus.find((m) => m.id === '_manufaktur_penawaran')
+  const menu = approvalMenu || penawaranMenu
+  return menu ? menu[actionType] || false : false
+}
+
 // --- SIGNATURE PAD LOGIC ---
 watch(showPad, async (val) => {
   if (val) {
@@ -463,8 +505,31 @@ const saveManualSignature = async () => {
 }
 
 // --- APPROVAL & EXPORT LOGIC ---
-const updateStatus = (row, status) => {
-  if (!row?.id) return
+const updateStatus = (row, status, alasan = null) => {
+  if (!row?.id) {
+    $q.notify({ type: 'warning', message: 'Data penawaran tidak valid.' })
+    return
+  }
+  if (!['Approved', 'Rejected'].includes(status)) {
+    $q.notify({ type: 'warning', message: 'Status approval tidak valid.' })
+    return
+  }
+  if (row.status !== 'Pending') {
+    $q.notify({ type: 'warning', message: 'Dokumen ini sudah diproses.' })
+    return
+  }
+  if (status === 'Approved' && !canAction('approve')) {
+    $q.notify({ type: 'negative', message: 'Anda tidak memiliki akses approve penawaran.' })
+    return
+  }
+  if (status === 'Rejected' && !canAction('approve') && !canAction('ubah')) {
+    $q.notify({ type: 'negative', message: 'Anda tidak memiliki akses reject penawaran.' })
+    return
+  }
+  if (status === 'Rejected' && !String(alasan || '').trim()) {
+    $q.notify({ type: 'warning', message: 'Alasan reject wajib diisi.' })
+    return
+  }
   if (status === 'Approved' && !row.signatureUrl) {
     $q.notify({
       type: 'warning',
@@ -478,20 +543,30 @@ const updateStatus = (row, status) => {
 
   $q.dialog({
     title: 'Konfirmasi Otorisasi',
-    message: `Ubah status menjadi ${status}?`,
+    message: `Apakah Anda yakin ingin memproses dokumen ini ke status ${status}?`,
     cancel: true,
-    ok: { color: status === 'Approved' ? 'positive' : 'negative', label: 'Ya, Proses' },
+    ok: {
+      color: status === 'Approved' ? 'positive' : 'negative',
+      unelevated: true,
+      rounded: true,
+      label: 'Ya, Proses',
+    },
   }).onOk(async () => {
     try {
       actionLoading.value = `${row.id}-${status}`
       $q.loading.show()
-      await updateDoc(doc(db, 'penawaran_manufaktur', row.id), {
+      const payload = {
         status: status,
         updatedAt: serverTimestamp(),
+        processedAt: serverTimestamp(),
         approvedAt: status === 'Approved' ? serverTimestamp() : null,
         rejectedAt: status === 'Rejected' ? serverTimestamp() : null,
-      })
-      syncQuotation({ ...row, status })
+        marketing_read: false,
+      }
+      if (status === 'Rejected') payload.alasan_reject = String(alasan || '').trim()
+
+      await updateDoc(doc(db, 'penawaran_manufaktur', row.id), payload)
+      syncQuotation({ ...row, ...payload })
       showPreview.value = false
       $q.notify({ type: 'positive', message: `Status diperbarui menjadi ${status}` })
     } catch (e) {
@@ -505,7 +580,30 @@ const updateStatus = (row, status) => {
 }
 
 const approveQuotation = (row) => updateStatus(normalizeQuotation(row), 'Approved')
-const rejectQuotation = (row) => updateStatus(normalizeQuotation(row), 'Rejected')
+const rejectQuotation = (row) => {
+  const normalized = normalizeQuotation(row)
+  if (normalized.status !== 'Pending') {
+    $q.notify({ type: 'warning', message: 'Dokumen ini sudah diproses.' })
+    return
+  }
+  if (!canAction('approve') && !canAction('ubah')) {
+    $q.notify({ type: 'negative', message: 'Anda tidak memiliki akses reject penawaran.' })
+    return
+  }
+
+  $q.dialog({
+    title: 'Penolakan Penawaran (Reject)',
+    message: 'Berikan alasan singkat atau instruksi revisi untuk marketing:',
+    prompt: {
+      model: '',
+      type: 'textarea',
+      placeholder: 'Contoh: Harga material terlalu tinggi, sesuaikan dengan budget...',
+      isValid: (val) => String(val || '').trim().length > 0,
+    },
+    cancel: true,
+    ok: { color: 'negative', unelevated: true, rounded: true, label: 'Reject Dokumen' },
+  }).onOk((alasan) => updateStatus(normalized, 'Rejected', alasan))
+}
 
 const exportToPDF = () => {
   const element = document.getElementById('quotation-print')
@@ -541,15 +639,43 @@ const openApproval = (row) => {
   showPreview.value = true
 }
 
+const fetchApprovalData = () => {
+  if (unsubApproval) unsubApproval()
+  loading.value = true
+
+  const qApproval = query(collection(db, 'penawaran_manufaktur'), orderBy('updatedAt', 'desc'))
+  unsubApproval = onSnapshot(
+    qApproval,
+    (snap) => {
+      allRows.value = snap.docs.map((d) => normalizeQuotation({ id: d.id, ...d.data() }))
+      if (selectedData.value?.id) {
+        const latest = allRows.value.find((row) => row.id === selectedData.value.id)
+        if (latest) selectedData.value = latest
+      }
+      loading.value = false
+    },
+    (err) => {
+      console.error(err)
+      loading.value = false
+      $q.notify({ type: 'negative', message: 'Gagal memuat data approval penawaran.' })
+    },
+  )
+}
+
 onMounted(() => {
-  const q = query(collection(db, 'penawaran_manufaktur'), orderBy('updatedAt', 'desc'))
-  unsubApproval = onSnapshot(q, (snap) => {
-    allRows.value = snap.docs.map((d) => normalizeQuotation({ id: d.id, ...d.data() }))
-    loading.value = false
-  })
+  const userEmail = authStore.user?.email
+  if (userEmail) {
+    const qUser = query(collection(db, 'karyawan'), where('email', '==', userEmail))
+    unsubUser = onSnapshot(qUser, (snapshot) => {
+      if (!snapshot.empty) userData.value = snapshot.docs[0].data()
+    })
+  }
+
+  fetchApprovalData()
 })
 
 onUnmounted(() => {
+  if (unsubUser) unsubUser()
   if (unsubApproval) unsubApproval()
 })
 </script>
@@ -577,7 +703,12 @@ onUnmounted(() => {
   border-radius: 28px;
   padding: 28px;
   background:
-    linear-gradient(120deg, rgba(2, 83, 64, 0.98), rgba(5, 128, 91, 0.96), rgba(22, 163, 117, 0.94)),
+    linear-gradient(
+      120deg,
+      rgba(2, 83, 64, 0.98),
+      rgba(5, 128, 91, 0.96),
+      rgba(22, 163, 117, 0.94)
+    ),
     radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.22), transparent 28%);
   background-size: 220% 220%;
   box-shadow: 0 24px 70px rgba(4, 72, 56, 0.24);
@@ -638,18 +769,66 @@ onUnmounted(() => {
   box-shadow: 0 0 18px rgba(255, 255, 255, 0.35);
   animation: floatIcon 8s linear infinite;
 }
-.hero-particle:nth-child(1) { left: 8%; top: 20%; animation-delay: 0s; }
-.hero-particle:nth-child(2) { left: 14%; top: 68%; animation-delay: -1s; }
-.hero-particle:nth-child(3) { left: 22%; top: 34%; animation-delay: -2s; }
-.hero-particle:nth-child(4) { left: 34%; top: 78%; animation-delay: -3s; }
-.hero-particle:nth-child(5) { left: 44%; top: 18%; animation-delay: -4s; }
-.hero-particle:nth-child(6) { left: 56%; top: 62%; animation-delay: -5s; }
-.hero-particle:nth-child(7) { left: 66%; top: 28%; animation-delay: -6s; }
-.hero-particle:nth-child(8) { left: 74%; top: 72%; animation-delay: -1.5s; }
-.hero-particle:nth-child(9) { left: 82%; top: 22%; animation-delay: -2.5s; }
-.hero-particle:nth-child(10) { left: 90%; top: 58%; animation-delay: -3.5s; }
-.hero-particle:nth-child(11) { left: 94%; top: 30%; animation-delay: -4.5s; }
-.hero-particle:nth-child(12) { left: 60%; top: 84%; animation-delay: -5.5s; }
+.hero-particle:nth-child(1) {
+  left: 8%;
+  top: 20%;
+  animation-delay: 0s;
+}
+.hero-particle:nth-child(2) {
+  left: 14%;
+  top: 68%;
+  animation-delay: -1s;
+}
+.hero-particle:nth-child(3) {
+  left: 22%;
+  top: 34%;
+  animation-delay: -2s;
+}
+.hero-particle:nth-child(4) {
+  left: 34%;
+  top: 78%;
+  animation-delay: -3s;
+}
+.hero-particle:nth-child(5) {
+  left: 44%;
+  top: 18%;
+  animation-delay: -4s;
+}
+.hero-particle:nth-child(6) {
+  left: 56%;
+  top: 62%;
+  animation-delay: -5s;
+}
+.hero-particle:nth-child(7) {
+  left: 66%;
+  top: 28%;
+  animation-delay: -6s;
+}
+.hero-particle:nth-child(8) {
+  left: 74%;
+  top: 72%;
+  animation-delay: -1.5s;
+}
+.hero-particle:nth-child(9) {
+  left: 82%;
+  top: 22%;
+  animation-delay: -2.5s;
+}
+.hero-particle:nth-child(10) {
+  left: 90%;
+  top: 58%;
+  animation-delay: -3.5s;
+}
+.hero-particle:nth-child(11) {
+  left: 94%;
+  top: 30%;
+  animation-delay: -4.5s;
+}
+.hero-particle:nth-child(12) {
+  left: 60%;
+  top: 84%;
+  animation-delay: -5.5s;
+}
 .hero-title-wrap {
   min-width: 0;
 }
@@ -663,7 +842,9 @@ onUnmounted(() => {
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.16);
   border: 1px solid rgba(255, 255, 255, 0.32);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 20px 42px rgba(0, 0, 0, 0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 20px 42px rgba(0, 0, 0, 0.16);
   backdrop-filter: blur(12px);
   animation: floatIcon 4.8s ease-in-out infinite;
 }
@@ -701,7 +882,9 @@ onUnmounted(() => {
   color: #ffffff;
   background: rgba(255, 255, 255, 0.14);
   border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 12px 28px rgba(0, 0, 0, 0.12);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 12px 28px rgba(0, 0, 0, 0.12);
   backdrop-filter: blur(12px);
 }
 .enterprise-search :deep(.q-field__native),
@@ -724,7 +907,9 @@ onUnmounted(() => {
 }
 .enterprise-search :deep(.q-field__control:hover) {
   transform: translateY(-1px);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 16px 32px rgba(0, 0, 0, 0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 16px 32px rgba(0, 0, 0, 0.16);
 }
 .hero-stat-label {
   margin-bottom: 6px;
