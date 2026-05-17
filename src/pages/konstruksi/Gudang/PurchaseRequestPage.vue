@@ -133,9 +133,19 @@
               class="hover-bg transition-all cursor-pointer"
               @click="openPreview(props.row)"
             >
-              <q-td key="nomor" class="text-weight-bolder text-indigo-10">{{
-                props.row.nomor
-              }}</q-td>
+              <q-td key="nomor" class="text-weight-bolder text-indigo-10">
+                {{ props.row.nomor }}
+                <!-- BADGE BARU UNTUK DOKUMEN YANG BELUM DIBACA -->
+                <q-badge
+                  v-if="
+                    (props.row.status === 'Approved' || props.row.status === 'Rejected') &&
+                    props.row.requester_read === false
+                  "
+                  color="positive"
+                  class="q-ml-sm animate-bounce"
+                  >BARU</q-badge
+                >
+              </q-td>
               <q-td key="project">
                 <div class="text-weight-bold text-blue-grey-9 uppercase font-12">
                   {{ props.row.gudang_nama || props.row.proyek_nama || 'UMUM' }}
@@ -426,13 +436,14 @@
                     <tr v-for="(item, index) in form.items" :key="index">
                       <td class="text-center text-grey-6 text-bold">{{ index + 1 }}</td>
                       <td>
+                        <!-- FIX: Menggunakan Placeholder Dinamis agar tulisan "Tulis rincian..." hilang saat terisi -->
                         <q-select
                           dense
                           borderless
                           v-model="item.barang"
                           :options="masterBarang"
                           option-label="nama"
-                          placeholder="Tulis rincian..."
+                          :placeholder="item.barang ? '' : 'Tulis rincian...'"
                           use-input
                           new-value-mode="add-unique"
                           @filter="filterMasterBarang"
@@ -769,8 +780,12 @@
                 <img :src="selectedData.logoUrl" class="final-kop-img" />
               </div>
               <div class="col text-left">
-                <div class="final-pt-name uppercase">{{ selectedData.nama_pt }}</div>
-                <div class="final-pt-tagline italic text-grey-8">{{ selectedData.slogan_pt }}</div>
+                <div class="final-pt-name uppercase">
+                  {{ selectedData.nama_pt || 'PT AGRA ABHINAYA PERKASA' }}
+                </div>
+                <div class="final-pt-tagline italic text-grey-8">
+                  {{ selectedData.slogan_pt || 'General Construction and General Supply' }}
+                </div>
               </div>
             </div>
             <div class="final-divider"></div>
@@ -788,13 +803,15 @@
                   <tr>
                     <td class="text-bold label-meta">Kepada Yth</td>
                     <td class="meta-separator">:</td>
-                    <td class="text-weight-medium">{{ selectedData.kepada_yth }}</td>
+                    <td class="text-weight-medium">
+                      {{ selectedData.kepada_yth || 'Divisi Purchasing / Procurement' }}
+                    </td>
                   </tr>
                   <tr>
                     <td class="text-bold label-meta">Gudang / Project</td>
                     <td class="meta-separator">:</td>
                     <td class="text-weight-bold text-indigo-10 uppercase">
-                      {{ selectedData.gudang_nama || selectedData.proyek_nama }}
+                      {{ selectedData.proyek_nama || selectedData.gudang_nama || 'UMUM' }}
                     </td>
                   </tr>
                   <tr>
@@ -806,7 +823,7 @@
                     <td class="text-bold label-meta">Requestor</td>
                     <td class="meta-separator">:</td>
                     <td class="text-weight-medium uppercase">
-                      {{ selectedData.requestor_nama || selectedData.pemohon?.nama }}
+                      {{ selectedData.pemohon?.nama || selectedData.requestor_nama }}
                     </td>
                   </tr>
                 </table>
@@ -815,34 +832,42 @@
                 <div class="row no-wrap justify-end">
                   <div class="text-bold q-mr-md">Tanggal</div>
                   <div class="text-weight-bold">
-                    : {{ selectedData.kota }}, {{ formatIndoDate(selectedData.tanggal) }}
+                    : {{ selectedData.kota || 'Bekasi' }},
+                    {{ formatIndoDate(selectedData.tanggal || selectedData.timestamp) }}
                   </div>
                 </div>
               </div>
             </div>
             <div
               class="text-body2 q-mb-sm text-left leading-relaxed"
-              v-html="selectedData.introduction"
+              v-html="
+                selectedData.introduction ||
+                'Bersama surat ini kami mengajukan permintaan pengadaan material untuk kebutuhan proyek sebagai berikut:'
+              "
             ></div>
             <table class="final-pro-table full-width">
               <thead>
                 <tr>
-                  <th width="40">NO</th>
-                  <th class="text-left">ITEM DESCRIPTION</th>
-                  <th width="60">QTY</th>
-                  <th width="60">UNIT</th>
-                  <th width="120">est UNIT PRICE</th>
-                  <th width="140">est AMOUNT</th>
+                  <th width="5%">NO</th>
+                  <th class="text-left" width="45%">ITEM DESCRIPTION</th>
+                  <th width="10%">QTY</th>
+                  <th width="10%">UNIT</th>
+                  <th class="text-right" width="15%">est UNIT PRICE</th>
+                  <th class="text-right" width="15%">est AMOUNT</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="(it, i) in selectedData.items" :key="i">
-                  <td class="text-center font-bold text-grey-7">{{ i + 1 }}</td>
-                  <td class="text-left uppercase text-weight-medium">{{ it.nama_barang }}</td>
+                  <td class="text-center font-bold text-grey-8">{{ i + 1 }}</td>
+                  <td class="text-left uppercase text-weight-bold">
+                    {{ it.nama_barang || it.deskripsi }}
+                  </td>
                   <td class="text-center font-bold">{{ it.qty }}</td>
-                  <td class="text-center uppercase text-caption text-bold">{{ it.satuan }}</td>
-                  <td class="text-right">Rp {{ (it.estimasi_harga || 0).toLocaleString() }}</td>
-                  <td class="text-right text-weight-bolder text-indigo-10 bg-indigo-0">
+                  <td class="text-center uppercase text-weight-bold">{{ it.satuan }}</td>
+                  <td class="text-right">
+                    Rp {{ (it.estimasi_harga || it.est_harga || 0).toLocaleString() }}
+                  </td>
+                  <td class="text-right text-weight-bolder text-indigo-10">
                     Rp {{ (it.total || 0).toLocaleString() }}
                   </td>
                 </tr>
@@ -855,10 +880,14 @@
                   </td>
                 </tr>
                 <tr class="row-grand-total">
-                  <td colspan="5" class="text-right text-bold text-h6 uppercase tracking-widest">
-                    Grand Total Amount
+                  <td
+                    colspan="5"
+                    class="text-right text-weight-bolder uppercase tracking-widest"
+                    style="font-size: 13px"
+                  >
+                    GRAND TOTAL AMOUNT
                   </td>
-                  <td class="text-right text-white text-bold text-h5">
+                  <td class="text-right text-white text-weight-bolder" style="font-size: 13px">
                     IDR {{ (selectedData.total_estimasi || 0).toLocaleString() }}
                   </td>
                 </tr>
@@ -868,11 +897,16 @@
               <div class="terms-header uppercase">Syarat & Kondisi :</div>
               <div
                 class="terms-content-box leading-relaxed font-11"
-                v-html="selectedData.terms"
+                v-html="selectedData.terms || selectedData.syarat || '-'"
               ></div>
             </div>
             <div class="signature-container text-left q-mt-xl">
-              <div class="text-closing-final q-mb-md font-11" v-html="selectedData.closing"></div>
+              <div
+                class="text-closing-final q-mb-md font-11"
+                v-html="
+                  selectedData.closing || 'Demikian permintaan ini kami sampaikan, terima kasih.'
+                "
+              ></div>
               <div class="row q-mt-lg justify-end">
                 <div class="col-5 text-center">
                   <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">
@@ -903,12 +937,16 @@
                   <div
                     class="text-signer-final text-weight-black underline uppercase text-indigo-10"
                   >
-                    {{ selectedData.ttd_nama || selectedData.requestor_nama }}
+                    {{
+                      selectedData.ttd_nama ||
+                      selectedData.requestor_nama ||
+                      selectedData.pemohon?.nama
+                    }}
                   </div>
                   <div
                     class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs"
                   >
-                    {{ selectedData.ttd_jabatan || selectedData.requestor_jabatan }}
+                    {{ selectedData.ttd_jabatan || selectedData.requestor_jabatan || 'Staff' }}
                   </div>
                 </div>
               </div>
@@ -1212,10 +1250,9 @@ const openAddDialog = () => {
       selectedWarehouseObj.value = found
       selectedWarehouseName.value = found.nama
     }
-    // Auto select SPK jika ada yang sesuai
     const relSpk = optSpk.value.filter((s) => s.projectId === warehouseIdContext)
     if (relSpk.length > 0) {
-      selectedSpk.value = relSpk[0] // otomatis ambil spk pertama
+      selectedSpk.value = relSpk[0]
     } else {
       selectedSpk.value = null
     }
@@ -1276,6 +1313,21 @@ const ajukanPR = (row) => {
   })
 }
 
+const openPreview = async (r) => {
+  selectedData.value = r
+  showPreview.value = true
+
+  if ((r.status === 'Approved' || r.status === 'Rejected') && r.requester_read === false) {
+    try {
+      await updateDoc(doc(db, 'permintaan_barang', r.id), { requester_read: true })
+      const idx = rows.value.findIndex((item) => item.id === r.id)
+      if (idx !== -1) rows.value[idx].requester_read = true
+    } catch (e) {
+      console.error('Gagal update status read:', e)
+    }
+  }
+}
+
 const submitPurchaseRequest = async () => {
   if (!selectedWarehouseObj.value && !selectedWarehouseName.value)
     return $q.notify({ type: 'negative', message: 'Gudang tidak terdeteksi!' })
@@ -1296,18 +1348,17 @@ const submitPurchaseRequest = async () => {
       pemohon: {
         id: authStore.user?.uid || authStore.user?.id || '',
         nama: authStore.user?.nama || userData.value?.nama || 'Admin',
+        email: authStore.user?.email || '',
       },
       updatedAt: serverTimestamp(),
     }
 
-    // FIX UTAMA: Hapus Nilai Undefined pada Root Level Secara Paksa Agar Firebase Tidak Me-Reject (Error) Data
     Object.keys(payload).forEach((key) => {
       if (payload[key] === undefined) {
         payload[key] = ''
       }
     })
 
-    // Mencegah Nilai Undefined pada Items Array
     payload.items = payload.items.map((it) => {
       let nm = it.nama_barang
       if (it.barang && typeof it.barang === 'string') nm = it.barang
@@ -1348,7 +1399,6 @@ const submitPurchaseRequest = async () => {
 const onGudangChange = (val) => {
   if (val) {
     selectedWarehouseName.value = val.nama
-    // Auto Update SPK Options and Set Value if only one exists
     const relSpk = optSpk.value.filter((s) => s.projectId === val.id)
     if (relSpk.length > 0) {
       selectedSpk.value = relSpk[0]
@@ -1469,11 +1519,6 @@ const getStatusColor = (s) =>
         : s === 'Pending'
           ? 'orange-8'
           : 'blue-grey-6'
-
-const openPreview = (r) => {
-  selectedData.value = r
-  showPreview.value = true
-}
 
 const printPage = () => window.print()
 

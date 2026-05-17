@@ -153,11 +153,12 @@
                 </q-item-section>
               </q-item>
 
+              <!-- NOTIFIKASI PR APPROVED -->
               <q-item
                 v-if="approvedPrCount > 0"
                 clickable
                 v-ripple
-                to="/konstruksi/pembelian/pesanan"
+                to="/konstruksi/gudang"
                 class="notif-item"
               >
                 <q-item-section avatar>
@@ -166,7 +167,199 @@
                 <q-item-section>
                   <q-item-label class="text-weight-bold text-positive">PR Disetujui</q-item-label>
                   <q-item-label caption
-                    >{{ approvedPrCount }} PR telah diotorisasi (BARU).</q-item-label
+                    >{{ approvedPrCount }} pengajuan PR Anda telah disetujui (BARU).</q-item-label
+                  >
+                </q-item-section>
+              </q-item>
+
+              <!-- NOTIFIKASI PR REJECTED -->
+              <q-item
+                v-if="rejectedPrCount > 0"
+                clickable
+                v-ripple
+                to="/konstruksi/gudang"
+                class="notif-item"
+              >
+                <q-item-section avatar>
+                  <q-avatar color="red-1" text-color="negative" icon="block" size="md" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label class="text-weight-bold text-negative">PR Ditolak</q-item-label>
+                  <q-item-label caption
+                    >{{ rejectedPrCount }} pengajuan PR Anda ditolak pimpinan.</q-item-label
+                  >
+                </q-item-section>
+              </q-item>
+
+              <!-- NOTIFIKASI FINANCE - INVOICE PENDING APPROVAL -->
+              <q-item
+                v-if="pendingInvoiceApprovalCount > 0"
+                clickable
+                v-ripple
+                to="/konstruksi/finance/approval-invoice"
+                class="notif-item"
+              >
+                <q-item-section avatar>
+                  <q-avatar color="orange-1" text-color="orange-9" icon="gavel" size="md" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label class="text-weight-bold">Approval Invoice</q-item-label>
+                  <q-item-label caption
+                    >{{ pendingInvoiceApprovalCount }} invoice baru menunggu
+                    otorisasi.</q-item-label
+                  >
+                </q-item-section>
+              </q-item>
+
+              <!-- NOTIFIKASI FINANCE - INVOICE APPROVED -->
+              <q-item
+                v-if="approvedInvoiceCount > 0"
+                clickable
+                v-ripple
+                to="/konstruksi/finance/invoice"
+                class="notif-item"
+              >
+                <q-item-section avatar>
+                  <q-avatar color="green-1" text-color="positive" icon="receipt_long" size="md" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label class="text-weight-bold text-positive"
+                    >Invoice Disetujui</q-item-label
+                  >
+                  <q-item-label caption
+                    >{{ approvedInvoiceCount }} invoice tagihan disetujui pimpinan
+                    (BARU).</q-item-label
+                  >
+                </q-item-section>
+              </q-item>
+
+              <!-- NOTIFIKASI FINANCE - INVOICE REJECTED -->
+              <q-item
+                v-if="rejectedInvoiceCount > 0"
+                clickable
+                v-ripple
+                to="/konstruksi/finance/invoice"
+                class="notif-item"
+              >
+                <q-item-section avatar>
+                  <q-avatar color="red-1" text-color="negative" icon="block" size="md" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label class="text-weight-bold text-negative"
+                    >Invoice Ditolak</q-item-label
+                  >
+                  <q-item-label caption
+                    >{{ rejectedInvoiceCount }} invoice tagihan Anda ditolak pimpinan.</q-item-label
+                  >
+                </q-item-section>
+              </q-item>
+
+              <!-- NOTIFIKASI OVERDUE INVOICE (JATUH TEMPO) -->
+              <q-item
+                v-if="overdueInvoiceCount > 0"
+                clickable
+                v-ripple
+                to="/konstruksi/finance/tagihan"
+                class="notif-item"
+              >
+                <q-item-section avatar>
+                  <q-avatar color="red-1" text-color="red-10" icon="warning" size="md" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label class="text-weight-bold text-negative"
+                    >Tagihan Jatuh Tempo</q-item-label
+                  >
+                  <q-item-label caption
+                    >{{ overdueInvoiceCount }} tagihan SPK telah melewati batas jatuh
+                    tempo.</q-item-label
+                  >
+                </q-item-section>
+              </q-item>
+
+              <!-- NEW: NOTIFIKASI PENDING APPROVAL PEMBAYARAN -->
+              <q-item
+                v-if="pendingPaymentApprovalCount > 0"
+                clickable
+                v-ripple
+                to="/konstruksi/finance/approval-pembayaran"
+                class="notif-item"
+              >
+                <q-item-section avatar>
+                  <q-avatar color="orange-1" text-color="orange-9" icon="gavel" size="md" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label class="text-weight-bold text-orange-9"
+                    >Approval Pembayaran</q-item-label
+                  >
+                  <q-item-label caption
+                    >{{ pendingPaymentApprovalCount }} pengajuan pembayaran baru menunggu
+                    otorisasi.</q-item-label
+                  >
+                </q-item-section>
+              </q-item>
+
+              <!-- NEW: NOTIFIKASI PEMBAYARAN DISETUJUI / SIAP CAIR -->
+              <q-item
+                v-if="approvedPaymentRequestCount > 0"
+                clickable
+                v-ripple
+                to="/konstruksi/finance/pembayaran"
+                class="notif-item"
+              >
+                <q-item-section avatar>
+                  <q-avatar color="green-1" text-color="positive" icon="check_circle" size="md" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label class="text-weight-bold text-positive"
+                    >Pembayaran Disetujui</q-item-label
+                  >
+                  <q-item-label caption
+                    >{{ approvedPaymentRequestCount }} pengajuan dana Anda telah disetujui
+                    (BARU).</q-item-label
+                  >
+                </q-item-section>
+              </q-item>
+
+              <!-- NEW: NOTIFIKASI KASIR SIAP REALISASI PEMBAYARAN -->
+              <q-item
+                v-if="approvedPaymentRealizationCount > 0"
+                clickable
+                v-ripple
+                to="/konstruksi/finance/realisasi-pembayaran"
+                class="notif-item"
+              >
+                <q-item-section avatar>
+                  <q-avatar color="blue-1" text-color="indigo-9" icon="price_check" size="md" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label class="text-weight-bold text-indigo-9"
+                    >Siap Direalisasi</q-item-label
+                  >
+                  <q-item-label caption
+                    >{{ approvedPaymentRealizationCount }} pengajuan pembayaran disetujui & siap
+                    dicairkan.</q-item-label
+                  >
+                </q-item-section>
+              </q-item>
+
+              <!-- NEW: NOTIFIKASI PEMBAYARAN TEREALISASI (KEMBALI KE APPROVAL SEBAGAI INFORMASI) -->
+              <q-item
+                v-if="realizedPaymentApprovalCount > 0"
+                clickable
+                v-ripple
+                to="/konstruksi/finance/approval-pembayaran"
+                class="notif-item"
+              >
+                <q-item-section avatar>
+                  <q-avatar color="green-1" text-color="positive" icon="done_all" size="md" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label class="text-weight-bold text-positive"
+                    >Pembayaran Cair</q-item-label
+                  >
+                  <q-item-label caption
+                    >{{ realizedPaymentApprovalCount }} transaksi pembayaran berhasil dicairkan oleh
+                    bendahara.</q-item-label
                   >
                 </q-item-section>
               </q-item>
@@ -613,6 +806,7 @@
               </q-list>
             </q-expansion-item>
 
+            <!-- MENU GUDANG & LOGISTIK -->
             <q-item
               v-if="checkPermission('gudang')"
               clickable
@@ -623,14 +817,25 @@
             >
               <q-item-section avatar><q-icon name="warehouse" size="24px" /></q-item-section>
               <q-item-section class="menu-text">GUDANG & LOGISTIK</q-item-section>
-              <q-item-section side v-if="pendingMutasiCount > 0 || approvedMutasiCount > 0">
+              <q-item-section
+                side
+                v-if="
+                  pendingMutasiCount > 0 ||
+                  approvedMutasiCount > 0 ||
+                  approvedPrCount > 0 ||
+                  rejectedPrCount > 0
+                "
+              >
                 <div class="row items-center q-gutter-x-xs">
+                  <!-- Mutasi -->
                   <q-badge
                     v-if="pendingMutasiCount > 0"
                     color="negative"
                     rounded
                     class="q-px-sm font-bold shadow-1 animate-bounce"
+                    title="Permintaan Mutasi Masuk"
                   >
+                    <q-icon name="move_to_inbox" size="10px" class="q-mr-xs" />
                     {{ pendingMutasiCount }}
                   </q-badge>
                   <q-badge
@@ -638,13 +843,35 @@
                     color="positive"
                     rounded
                     class="q-px-sm font-bold shadow-1 animate-bounce"
+                    title="Barang Mutasi Datang"
                   >
+                    <q-icon name="local_shipping" size="10px" class="q-mr-xs" />
                     {{ approvedMutasiCount }}
+                  </q-badge>
+                  <!-- PR -->
+                  <q-badge
+                    v-if="approvedPrCount > 0"
+                    color="positive"
+                    rounded
+                    class="q-px-sm font-bold shadow-1 animate-bounce"
+                    title="Purchase Request Disetujui"
+                  >
+                    <q-icon name="done_all" size="10px" class="q-mr-xs" /> {{ approvedPrCount }}
+                  </q-badge>
+                  <q-badge
+                    v-if="rejectedPrCount > 0"
+                    color="negative"
+                    rounded
+                    class="q-px-sm font-bold shadow-1 animate-bounce"
+                    title="Purchase Request Ditolak"
+                  >
+                    <q-icon name="cancel" size="10px" class="q-mr-xs" /> {{ rejectedPrCount }}
                   </q-badge>
                 </div>
               </q-item-section>
             </q-item>
 
+            <!-- MENU PEMBELIAN -->
             <q-expansion-item
               v-if="checkPermission('pembelian/pesanan')"
               icon="shopping_cart"
@@ -665,21 +892,13 @@
                     ><q-icon name="receipt_long" size="22px" class="icon-sub"
                   /></q-item-section>
                   <q-item-section class="menu-text">Pesanan Pembelian</q-item-section>
-                  <q-item-section side v-if="pendingPrCount > 0 || approvedPrCount > 0">
+                  <q-item-section side v-if="pendingPrCount > 0">
                     <div class="row items-center q-gutter-x-xs">
                       <q-badge
-                        v-if="pendingPrCount > 0"
                         color="orange-9"
                         rounded
                         class="q-px-sm font-bold shadow-1 animate-bounce"
                         >{{ pendingPrCount }}</q-badge
-                      >
-                      <q-badge
-                        v-if="approvedPrCount > 0"
-                        color="positive"
-                        rounded
-                        class="q-px-sm font-bold shadow-1 animate-bounce"
-                        >{{ approvedPrCount }}</q-badge
                       >
                     </div>
                   </q-item-section>
@@ -706,8 +925,10 @@
               class="menu-expansion-clean"
               header-class="menu-expansion-header"
               expand-icon-class="text-blue-grey-4"
+              default-opened
             >
               <q-list class="q-pb-sm">
+                <!-- MENU PEMBUATAN INVOICE (DENGAN BADGES UNTUK CREATOR) -->
                 <q-item
                   v-if="checkPermission('finance/invoice')"
                   clickable
@@ -720,8 +941,33 @@
                     ><q-icon name="receipt_long" size="22px" class="icon-sub"
                   /></q-item-section>
                   <q-item-section class="menu-text">Pembuatan Invoice</q-item-section>
+                  <q-item-section side v-if="approvedInvoiceCount > 0 || rejectedInvoiceCount > 0">
+                    <div class="row items-center q-gutter-x-xs">
+                      <q-badge
+                        v-if="approvedInvoiceCount > 0"
+                        color="positive"
+                        rounded
+                        class="q-px-sm font-bold shadow-1 animate-bounce"
+                        title="Invoice Disetujui"
+                      >
+                        <q-icon name="done_all" size="10px" class="q-mr-xs" />
+                        {{ approvedInvoiceCount }}
+                      </q-badge>
+                      <q-badge
+                        v-if="rejectedInvoiceCount > 0"
+                        color="negative"
+                        rounded
+                        class="q-px-sm font-bold shadow-1 animate-bounce"
+                        title="Invoice Direject"
+                      >
+                        <q-icon name="cancel" size="10px" class="q-mr-xs" />
+                        {{ rejectedInvoiceCount }}
+                      </q-badge>
+                    </div>
+                  </q-item-section>
                 </q-item>
 
+                <!-- MENU APPROVAL INVOICE (DENGAN BADGE UNTUK PENDING) -->
                 <q-item
                   v-if="checkPermission('finance/approval-invoice')"
                   clickable
@@ -734,8 +980,18 @@
                     ><q-icon name="fact_check" size="22px" class="icon-sub"
                   /></q-item-section>
                   <q-item-section class="menu-text">Approval Invoice</q-item-section>
+                  <q-item-section side v-if="pendingInvoiceApprovalCount > 0">
+                    <q-badge
+                      color="orange-9"
+                      rounded
+                      class="q-px-sm font-bold shadow-1 animate-bounce"
+                      title="Invoice Menunggu Approval"
+                      >{{ pendingInvoiceApprovalCount }}</q-badge
+                    >
+                  </q-item-section>
                 </q-item>
 
+                <!-- MONITORING TAGIHAN (DENGAN BADGE JATUH TEMPO REALTIME) -->
                 <q-item
                   v-if="checkPermission('finance/tagihan')"
                   clickable
@@ -748,6 +1004,17 @@
                     ><q-icon name="receipt" size="22px" class="icon-sub"
                   /></q-item-section>
                   <q-item-section class="menu-text">Monitoring Tagihan</q-item-section>
+                  <q-item-section side v-if="overdueInvoiceCount > 0">
+                    <q-badge
+                      color="red"
+                      rounded
+                      class="q-px-sm font-bold shadow-1 animate-bounce"
+                      title="Tagihan Jatuh Tempo"
+                    >
+                      <q-icon name="warning" size="10px" class="q-mr-xs" />
+                      {{ overdueInvoiceCount }}
+                    </q-badge>
+                  </q-item-section>
                 </q-item>
 
                 <q-item
@@ -764,6 +1031,7 @@
                   <q-item-section class="menu-text">Tagihan Supplier</q-item-section>
                 </q-item>
 
+                <!-- NEW: PENGAJUAN PEMBAYARAN (MENERIMA BADGE APPROVED DANA BARU) -->
                 <q-item
                   v-if="checkPermission('finance/pembayaran')"
                   clickable
@@ -776,8 +1044,20 @@
                     ><q-icon name="payments" size="22px" class="icon-sub"
                   /></q-item-section>
                   <q-item-section class="menu-text">Pengajuan Pembayaran</q-item-section>
+                  <q-item-section side v-if="approvedPaymentRequestCount > 0">
+                    <q-badge
+                      color="positive"
+                      rounded
+                      class="q-px-sm font-bold shadow-1 animate-bounce"
+                      title="Pengajuan Disetujui"
+                    >
+                      <q-icon name="check_circle" size="10px" class="q-mr-xs" />
+                      {{ approvedPaymentRequestCount }}
+                    </q-badge>
+                  </q-item-section>
                 </q-item>
 
+                <!-- NEW: APPROVAL PEMBAYARAN (MENERIMA BADGE PENDING BARU & REALISASI SELESAI) -->
                 <q-item
                   v-if="checkPermission('finance/approval-pembayaran')"
                   clickable
@@ -790,8 +1070,34 @@
                     ><q-icon name="gavel" size="22px" class="icon-sub"
                   /></q-item-section>
                   <q-item-section class="menu-text">Approval Pembayaran</q-item-section>
+                  <q-item-section
+                    side
+                    v-if="pendingPaymentApprovalCount > 0 || realizedPaymentApprovalCount > 0"
+                  >
+                    <div class="row items-center q-gutter-x-xs">
+                      <q-badge
+                        v-if="pendingPaymentApprovalCount > 0"
+                        color="orange-9"
+                        rounded
+                        class="q-px-sm font-bold shadow-1 animate-bounce"
+                        title="Menunggu Persetujuan"
+                      >
+                        {{ pendingPaymentApprovalCount }}
+                      </q-badge>
+                      <q-badge
+                        v-if="realizedPaymentApprovalCount > 0"
+                        color="positive"
+                        rounded
+                        class="q-px-sm font-bold shadow-1 animate-bounce"
+                        title="Telah Direalisasi"
+                      >
+                        <q-icon name="done_all" size="10px" />
+                      </q-badge>
+                    </div>
+                  </q-item-section>
                 </q-item>
 
+                <!-- NEW: REALISASI PEMBAYARAN (MENERIMA BADGE ANTRIAN DANA DISETUJUI / SIAP CAIR) -->
                 <q-item
                   v-if="checkPermission('finance/realisasi-pembayaran')"
                   clickable
@@ -804,6 +1110,16 @@
                     ><q-icon name="price_check" size="22px" class="icon-sub"
                   /></q-item-section>
                   <q-item-section class="menu-text">Realisasi Pembayaran</q-item-section>
+                  <q-item-section side v-if="approvedPaymentRealizationCount > 0">
+                    <q-badge
+                      color="primary"
+                      rounded
+                      class="q-px-sm font-bold shadow-1 animate-bounce"
+                      title="Siap Dicairkan"
+                    >
+                      {{ approvedPaymentRealizationCount }}
+                    </q-badge>
+                  </q-item-section>
                 </q-item>
 
                 <q-item
@@ -876,9 +1192,22 @@ const pendingApprovalCount = ref(0)
 const rejectedPenawaranCount = ref(0)
 const approvedPenawaranCount = ref(0)
 const pendingPrCount = ref(0)
-const approvedPrCount = ref(0) // Tambahan untuk Notifikasi PR Approved
+const approvedPrCount = ref(0)
+const rejectedPrCount = ref(0)
 const pendingMutasiCount = ref(0)
 const approvedMutasiCount = ref(0)
+
+// FINANCE INVOICE NOTIFICATION STATES
+const pendingInvoiceApprovalCount = ref(0)
+const approvedInvoiceCount = ref(0)
+const rejectedInvoiceCount = ref(0)
+const overdueInvoiceCount = ref(0) // Tagihan jatuh tempo monitoring_tagihan_spk
+
+// NEW: PENGAJUAN & REALISASI PEMBAYARAN NOTIFICATION STATES
+const pendingPaymentApprovalCount = ref(0) // (Event 1) Antrean pending approval baru
+const approvedPaymentRequestCount = ref(0) // (Event 2) Pencipta dapat notif "Dana Approved"
+const approvedPaymentRealizationCount = ref(0) // (Event 2) Bendahara dapat notif "Siap Cairkan"
+const realizedPaymentApprovalCount = ref(0) // (Event 3) Pimpinan dapat notif "Transaksi Selesai/Cair"
 
 const userData = ref(null)
 const apps = ref([])
@@ -889,20 +1218,30 @@ let unsubApproval = null
 let unsubRejectedPenawaran = null
 let unsubApprovedPenawaran = null
 let unsubApps = null
-let unsubPrBadge = null
-let unsubApprovedPr = null
-let unsubMutasiPending = null
-let unsubMutasiApproved = null
+let unsubPermintaanAll = null
+let unsubInvoiceAll = null
+let unsubMonitoringTagihan = null
+let unsubPembayaranRequests = null // LISTENER NYA
 
 const totalNotifCount = computed(() => {
   return (
     pendingApprovalCount.value +
     pendingPrCount.value +
-    approvedPrCount.value + // Menambahkan count PR Approved ke Badge Lonceng Total
+    approvedPrCount.value +
+    rejectedPrCount.value +
     rejectedPenawaranCount.value +
     approvedPenawaranCount.value +
     pendingMutasiCount.value +
-    approvedMutasiCount.value
+    approvedMutasiCount.value +
+    pendingInvoiceApprovalCount.value +
+    approvedInvoiceCount.value +
+    rejectedInvoiceCount.value +
+    overdueInvoiceCount.value +
+    // NEW COUPLING: PENGAJUAN PEMBAYARAN
+    pendingPaymentApprovalCount.value +
+    approvedPaymentRequestCount.value +
+    approvedPaymentRealizationCount.value +
+    realizedPaymentApprovalCount.value
   )
 })
 
@@ -971,6 +1310,7 @@ onMounted(() => {
   })
 
   const userEmail = authStore.user?.email
+  const userUid = authStore.user?.uid
   if (userEmail) {
     const qUser = query(collection(db, 'karyawan'), where('email', '==', userEmail))
     unsubUser = onSnapshot(qUser, (snapshot) => {
@@ -1002,45 +1342,144 @@ onMounted(() => {
     ).length
   })
 
-  // Notifikasi Pembelian (PR Pending)
-  const qPr = query(
-    collection(db, 'permintaan_barang'),
-    where('status', '==', 'Pending'),
-    where('tipe', '==', 'PURCHASE_REQUEST'),
-  )
-  unsubPrBadge = onSnapshot(qPr, (snap) => {
-    pendingPrCount.value = snap.size
+  // ALL-IN-ONE LISTENER FOR PERMINTAAN BARANG (PR & MUTASI)
+  unsubPermintaanAll = onSnapshot(collection(db, 'permintaan_barang'), (snap) => {
+    let mutPending = 0
+    let mutApproved = 0
+    let prPending = 0
+    let prApproved = 0
+    let prRejected = 0
+
+    const isAdmin = authStore.user?.role === 'Super Admin' || authStore.user?.role === 'Admin'
+
+    snap.docs.forEach((doc) => {
+      const d = doc.data()
+
+      // LOGIKA MUTASI ANTAR GUDANG
+      if (d.tipe === 'ANTAR_GUDANG') {
+        if (d.status === 'Pending') mutPending++
+        if (d.status === 'Approved' && d.requester_read === false) mutApproved++
+      }
+      // LOGIKA PURCHASE REQUEST
+      else if (d.tipe === 'PURCHASE_REQUEST') {
+        if (d.status === 'Pending') prPending++
+
+        // Filter "MILIKNYA"
+        const isMilikku = d.pemohon?.id === userUid || d.pemohon?.email === userEmail || isAdmin
+
+        if (d.status === 'Approved' && d.requester_read === false && isMilikku) {
+          prApproved++
+        }
+        if (d.status === 'Rejected' && d.requester_read === false && isMilikku) {
+          prRejected++
+        }
+      }
+    })
+
+    pendingMutasiCount.value = mutPending
+    approvedMutasiCount.value = mutApproved
+    pendingPrCount.value = prPending
+    approvedPrCount.value = prApproved
+    rejectedPrCount.value = prRejected
   })
 
-  // Notifikasi Pembelian (PR Approved)
-  const qApprovedPr = query(
-    collection(db, 'permintaan_barang'),
-    where('status', '==', 'Approved'),
-    where('tipe', '==', 'PURCHASE_REQUEST'),
-  )
-  unsubApprovedPr = onSnapshot(qApprovedPr, (snap) => {
-    // Mengecek PR Approved yang belum dilihat (requester_read == false)
-    approvedPrCount.value = snap.docs.filter((d) => d.data().requester_read === false).length
+  // REAL-TIME NOTIFICATION LISTENER FOR INVOICE CUSTOMER
+  unsubInvoiceAll = onSnapshot(collection(db, 'finance_invoice_customer'), (snap) => {
+    let pendingApprove = 0
+    let approvedCount = 0
+    let rejectedCount = 0
+
+    const isAdmin = authStore.user?.role === 'Super Admin' || authStore.user?.role === 'Admin'
+
+    snap.docs.forEach((doc) => {
+      const d = doc.data()
+
+      // 1. Pending Approval
+      if (d.approval_status === 'Pending') {
+        pendingApprove++
+      }
+
+      // 2. Approved / Rejected
+      const isMyInvoice = d.creator_id === userUid || d.pemohon?.id === userUid || isAdmin
+      if (d.creator_read === false && isMyInvoice) {
+        if (d.approval_status === 'Approved') {
+          approvedCount++
+        } else if (d.approval_status === 'Rejected') {
+          rejectedCount++
+        }
+      }
+    })
+
+    pendingInvoiceApprovalCount.value = pendingApprove
+    approvedInvoiceCount.value = approvedCount
+    rejectedInvoiceCount.value = rejectedCount
   })
 
-  // Notifikasi Gudang (Mutasi Pending)
-  const qMutasiPending = query(
-    collection(db, 'permintaan_barang'),
-    where('status', '==', 'Pending'),
-    where('tipe', '==', 'ANTAR_GUDANG'),
-  )
-  unsubMutasiPending = onSnapshot(qMutasiPending, (snap) => {
-    pendingMutasiCount.value = snap.size
+  // REAL-TIME NOTIFICATION LISTENER FOR MONITORING TAGIHAN JATUH TEMPO
+  unsubMonitoringTagihan = onSnapshot(collection(db, 'monitoring_tagihan_spk'), (snap) => {
+    let overdueCount = 0
+    const todayStr = new Date().toISOString().substr(0, 10)
+
+    snap.docs.forEach((doc) => {
+      const d = doc.data()
+      if (d.status !== 'Lunas' && d.jatuh_tempo && d.jatuh_tempo < todayStr) {
+        overdueCount++
+      }
+    })
+
+    overdueInvoiceCount.value = overdueCount
   })
 
-  // Notifikasi Gudang (Mutasi Approved & Unread)
-  const qMutasiApproved = query(
-    collection(db, 'permintaan_barang'),
-    where('status', '==', 'Approved'),
-    where('tipe', '==', 'ANTAR_GUDANG'),
-  )
-  unsubMutasiApproved = onSnapshot(qMutasiApproved, (snap) => {
-    approvedMutasiCount.value = snap.docs.filter((d) => d.data().requester_read === false).length
+  // =========================================================================
+  // NEW: REAL-TIME NOTIFICATION LISTENER FOR PENGAJUAN & REALISASI PEMBAYARAN
+  // =========================================================================
+  unsubPembayaranRequests = onSnapshot(collection(db, 'finance_pengajuan_pembayaran'), (snap) => {
+    let pendingApprove = 0
+    let approvedReq = 0
+    let approvedRealize = 0
+    let realizedApprove = 0
+
+    const isAdmin = authStore.user?.role === 'Super Admin' || authStore.user?.role === 'Admin'
+
+    snap.docs.forEach((doc) => {
+      const d = doc.data()
+
+      // 1. PENDING APPROVAL (Belum disetujui / status == 'Pending') -> Memicu Notif di Approval Pembayaran
+      if (d.status === 'Pending' && d.approver_read !== true) {
+        pendingApprove++
+      }
+
+      // 2. APPROVED / CAIR -> Memicu Notif di Pengajuan Pembayaran (untuk kreator) & Realisasi Pembayaran (untuk kasir)
+      if (d.status === 'Cair' || d.status === 'Approved') {
+        // Untuk pencipta (Pengajuan Pembayaran)
+        const isMyRequest =
+          d.creator_id === userUid ||
+          d.pemohon_id === userUid ||
+          d.pemohon?.id === userUid ||
+          d.pemohon?.email === userEmail ||
+          isAdmin
+        if (isMyRequest && d.creator_read !== true) {
+          approvedReq++
+        }
+        // Untuk realizer / bendahara (Realisasi Pembayaran)
+        if (d.realizer_read !== true) {
+          approvedRealize++
+        }
+      }
+
+      // 3. TEREALISASI / SELESAI / CAIR SUKSES -> Memicu Notif di Approval Pembayaran (mengabari pimpinan/approver bahwa dana telah cair)
+      if (
+        (d.status === 'Realisasi' || d.status === 'Selesai' || d.status === 'Cair_Selesai') &&
+        d.realized_approved_read !== true
+      ) {
+        realizedApprove++
+      }
+    })
+
+    pendingPaymentApprovalCount.value = pendingApprove
+    approvedPaymentRequestCount.value = approvedReq
+    approvedPaymentRealizationCount.value = approvedRealize
+    realizedPaymentApprovalCount.value = realizedApprove
   })
 })
 
@@ -1050,10 +1489,10 @@ onUnmounted(() => {
   if (unsubRejectedPenawaran) unsubRejectedPenawaran()
   if (unsubApprovedPenawaran) unsubApprovedPenawaran()
   if (unsubApps) unsubApps()
-  if (unsubPrBadge) unsubPrBadge()
-  if (unsubApprovedPr) unsubApprovedPr()
-  if (unsubMutasiPending) unsubMutasiPending()
-  if (unsubMutasiApproved) unsubMutasiApproved()
+  if (unsubPermintaanAll) unsubPermintaanAll()
+  if (unsubInvoiceAll) unsubInvoiceAll()
+  if (unsubMonitoringTagihan) unsubMonitoringTagihan()
+  if (unsubPembayaranRequests) unsubPembayaranRequests() // Bersihkan listener baru
 })
 </script>
 

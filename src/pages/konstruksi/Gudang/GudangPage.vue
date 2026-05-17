@@ -40,9 +40,9 @@
           class="gudang-card rounded-20 cursor-pointer transition-all hover-shadow relative-position"
           @click="selectGudang({ id: 'UTAMA', nama: 'Gudang Utama' })"
         >
-          <!-- NOTIFIKASI GUDANG UTAMA -->
+          <!-- NOTIFIKASI GUDANG UTAMA (MUTASI) -->
           <q-badge
-            v-if="notifGudang['UTAMA']?.pending > 0"
+            v-if="notifGudang['UTAMA']?.mutasiPending > 0"
             color="red"
             floating
             rounded
@@ -50,10 +50,10 @@
             style="top: -5px; right: -5px"
           >
             <q-icon name="move_to_inbox" size="14px" class="q-mr-xs" />
-            {{ notifGudang['UTAMA'].pending }} Request Masuk
+            {{ notifGudang['UTAMA'].mutasiPending }} Request Masuk
           </q-badge>
           <q-badge
-            v-if="notifGudang['UTAMA']?.approved > 0"
+            v-if="notifGudang['UTAMA']?.mutasiApproved > 0"
             color="positive"
             floating
             rounded
@@ -61,7 +61,31 @@
             style="top: -5px; left: -5px; right: auto"
           >
             <q-icon name="local_shipping" size="14px" class="q-mr-xs" />
-            {{ notifGudang['UTAMA'].approved }} Brg Datang
+            {{ notifGudang['UTAMA'].mutasiApproved }} Brg Datang
+          </q-badge>
+
+          <!-- NOTIFIKASI GUDANG UTAMA (PURCHASE REQUEST) -->
+          <q-badge
+            v-if="notifGudang['UTAMA']?.prApproved > 0"
+            color="positive"
+            floating
+            rounded
+            class="q-pa-sm text-weight-bold shadow-2 z-top animate-bounce"
+            style="bottom: -5px; right: -5px; top: auto"
+          >
+            <q-icon name="done_all" size="14px" class="q-mr-xs" />
+            {{ notifGudang['UTAMA'].prApproved }} PR ACC
+          </q-badge>
+          <q-badge
+            v-if="notifGudang['UTAMA']?.prRejected > 0"
+            color="negative"
+            floating
+            rounded
+            class="q-pa-sm text-weight-bold shadow-2 z-top animate-bounce"
+            style="bottom: -5px; left: -5px; top: auto; right: auto"
+          >
+            <q-icon name="cancel" size="14px" class="q-mr-xs" />
+            {{ notifGudang['UTAMA'].prRejected }} PR Tolak
           </q-badge>
 
           <q-card-section class="q-pa-lg text-center">
@@ -92,9 +116,9 @@
           class="gudang-card rounded-20 cursor-pointer transition-all hover-shadow relative-position"
           @click="selectGudang({ id: p.id, nama: 'Gudang ' + (p.nama_proyek || p.nama) })"
         >
-          <!-- NOTIFIKASI GUDANG PROYEK -->
+          <!-- NOTIFIKASI GUDANG PROYEK (MUTASI) -->
           <q-badge
-            v-if="notifGudang[p.id]?.pending > 0"
+            v-if="notifGudang[p.id]?.mutasiPending > 0"
             color="red"
             floating
             rounded
@@ -102,10 +126,10 @@
             style="top: -5px; right: -5px"
           >
             <q-icon name="move_to_inbox" size="14px" class="q-mr-xs" />
-            {{ notifGudang[p.id].pending }} Request Masuk
+            {{ notifGudang[p.id].mutasiPending }} Request Masuk
           </q-badge>
           <q-badge
-            v-if="notifGudang[p.id]?.approved > 0"
+            v-if="notifGudang[p.id]?.mutasiApproved > 0"
             color="positive"
             floating
             rounded
@@ -113,7 +137,31 @@
             style="top: -5px; left: -5px; right: auto"
           >
             <q-icon name="local_shipping" size="14px" class="q-mr-xs" />
-            {{ notifGudang[p.id].approved }} Brg Datang
+            {{ notifGudang[p.id].mutasiApproved }} Brg Datang
+          </q-badge>
+
+          <!-- NOTIFIKASI GUDANG PROYEK (PURCHASE REQUEST) -->
+          <q-badge
+            v-if="notifGudang[p.id]?.prApproved > 0"
+            color="positive"
+            floating
+            rounded
+            class="q-pa-sm text-weight-bold shadow-2 z-top animate-bounce"
+            style="bottom: -5px; right: -5px; top: auto"
+          >
+            <q-icon name="done_all" size="14px" class="q-mr-xs" />
+            {{ notifGudang[p.id].prApproved }} PR ACC
+          </q-badge>
+          <q-badge
+            v-if="notifGudang[p.id]?.prRejected > 0"
+            color="negative"
+            floating
+            rounded
+            class="q-pa-sm text-weight-bold shadow-2 z-top animate-bounce"
+            style="bottom: -5px; left: -5px; top: auto; right: auto"
+          >
+            <q-icon name="cancel" size="14px" class="q-mr-xs" />
+            {{ notifGudang[p.id].prRejected }} PR Tolak
           </q-badge>
 
           <q-card-section class="q-pa-lg text-center">
@@ -199,11 +247,24 @@
           color="indigo-1"
           text-color="indigo-10"
           icon="shopping_basket"
-          label="Permintaan Barang"
           rounded
           class="shadow-1 q-px-lg"
         >
+          <template v-slot:label>
+            <div class="row items-center no-wrap">
+              <span class="q-mr-xs">Permintaan Barang</span>
+              <!-- Badge Dropdown Utama -->
+              <q-badge
+                color="red"
+                rounded
+                v-if="hasAnyGudangNotif(selectedGudang.id)"
+                class="shadow-1 font-bold"
+              />
+            </div>
+          </template>
+
           <q-list style="min-width: 280px" class="q-pa-sm">
+            <!-- Mutasi Internal -->
             <q-item
               clickable
               v-ripple
@@ -220,22 +281,22 @@
               <q-item-section
                 side
                 v-if="
-                  notifGudang[selectedGudang.id]?.pending > 0 ||
-                  notifGudang[selectedGudang.id]?.approved > 0
+                  notifGudang[selectedGudang.id]?.mutasiPending > 0 ||
+                  notifGudang[selectedGudang.id]?.mutasiApproved > 0
                 "
               >
                 <q-badge
                   color="red"
                   rounded
-                  :label="notifGudang[selectedGudang.id].pending + ' New'"
-                  v-if="notifGudang[selectedGudang.id]?.pending > 0"
+                  :label="notifGudang[selectedGudang.id].mutasiPending + ' New'"
+                  v-if="notifGudang[selectedGudang.id]?.mutasiPending > 0"
                   class="q-mb-xs shadow-1 animate-bounce"
                 />
                 <q-badge
                   color="positive"
                   rounded
                   label="Cek Kiriman"
-                  v-if="notifGudang[selectedGudang.id]?.approved > 0"
+                  v-if="notifGudang[selectedGudang.id]?.mutasiApproved > 0"
                   class="shadow-1 animate-bounce"
                 />
               </q-item-section>
@@ -253,6 +314,8 @@
                 <q-item-label caption>Request mutasi stok dari gudang lain</q-item-label>
               </q-item-section>
             </q-item>
+
+            <!-- PR SECTION -->
             <q-item
               clickable
               v-ripple
@@ -265,6 +328,29 @@
               <q-item-section>
                 <q-item-label class="text-weight-bold">Purchase Request (PR)</q-item-label>
                 <q-item-label caption>Pengajuan pembelian material baru</q-item-label>
+              </q-item-section>
+              <!-- BADGE PR -->
+              <q-item-section
+                side
+                v-if="
+                  notifGudang[selectedGudang.id]?.prApproved > 0 ||
+                  notifGudang[selectedGudang.id]?.prRejected > 0
+                "
+              >
+                <q-badge
+                  color="positive"
+                  rounded
+                  :label="notifGudang[selectedGudang.id].prApproved + ' ACC'"
+                  v-if="notifGudang[selectedGudang.id]?.prApproved > 0"
+                  class="q-mb-xs shadow-1 animate-bounce"
+                />
+                <q-badge
+                  color="negative"
+                  rounded
+                  :label="notifGudang[selectedGudang.id].prRejected + ' Ditolak'"
+                  v-if="notifGudang[selectedGudang.id]?.prRejected > 0"
+                  class="shadow-1 animate-bounce"
+                />
               </q-item-section>
             </q-item>
           </q-list>
@@ -613,8 +699,11 @@ import {
 } from 'firebase/firestore'
 import { useQuasar } from 'quasar'
 import html2pdf from 'html2pdf.js'
+import { useAuthStore } from 'src/stores/auth'
 
 const $q = useQuasar()
+const authStore = useAuthStore()
+
 const listProyek = ref([])
 const selectedGudang = ref(null)
 const stokBarang = ref([])
@@ -627,7 +716,8 @@ const masterBarang = ref([])
 const filteredBarangOptions = ref([])
 const currentStokValue = ref(0)
 
-const notifGudang = ref({}) // Format: { gudangId: { pending: 0, approved: 0 } }
+// Format: { gudangId: { mutasiPending: 0, mutasiApproved: 0, prApproved: 0, prRejected: 0 } }
+const notifGudang = ref({})
 const formStok = ref({ kategori: null, barang: null, jumlah: null, satuan: '', keterangan: '' })
 
 let unsubPermintaan = null
@@ -660,6 +750,12 @@ const stokBarangEnriched = computed(() => {
 const selectGudang = (gudang) => {
   selectedGudang.value = gudang
   window.scrollTo(0, 0)
+}
+
+const hasAnyGudangNotif = (gudangId) => {
+  if (!notifGudang.value[gudangId]) return false
+  const n = notifGudang.value[gudangId]
+  return n.mutasiPending > 0 || n.mutasiApproved > 0 || n.prApproved > 0 || n.prRejected > 0
 }
 
 const fetchMasterData = async () => {
@@ -697,22 +793,60 @@ const fetchProyek = async () => {
   }
 }
 
-// LOGIKA NOTIFIKASI MULTI GUDANG
+// LOGIKA NOTIFIKASI MULTI GUDANG (MENDUKUNG PR APPROVED/REJECTED)
 const listenNotifikasiGlobal = () => {
   if (unsubPermintaan) unsubPermintaan()
   unsubPermintaan = onSnapshot(collection(db, 'permintaan_barang'), (snap) => {
-    const counts = { UTAMA: { pending: 0, approved: 0 } }
-    listProyek.value.forEach((p) => (counts[p.id] = { pending: 0, approved: 0 }))
+    const counts = { UTAMA: { mutasiPending: 0, mutasiApproved: 0, prApproved: 0, prRejected: 0 } }
+    listProyek.value.forEach(
+      (p) => (counts[p.id] = { mutasiPending: 0, mutasiApproved: 0, prApproved: 0, prRejected: 0 }),
+    )
+
+    const myUid = authStore.user?.uid
+    const myEmail = authStore.user?.email
+    const isAdmin = authStore.user?.role === 'Super Admin' || authStore.user?.role === 'Admin'
 
     snap.docs.forEach((doc) => {
       const data = doc.data()
-      if (data.status === 'Pending' && data.dari_gudang?.id) {
-        if (!counts[data.dari_gudang.id]) counts[data.dari_gudang.id] = { pending: 0, approved: 0 }
-        counts[data.dari_gudang.id].pending++
+
+      // LOGIKA MUTASI ANTAR GUDANG
+      if (data.tipe === 'ANTAR_GUDANG') {
+        if (data.status === 'Pending' && data.dari_gudang?.id) {
+          if (!counts[data.dari_gudang.id])
+            counts[data.dari_gudang.id] = {
+              mutasiPending: 0,
+              mutasiApproved: 0,
+              prApproved: 0,
+              prRejected: 0,
+            }
+          counts[data.dari_gudang.id].mutasiPending++
+        }
+        if (data.status === 'Approved' && data.requester_read === false && data.ke_gudang?.id) {
+          if (!counts[data.ke_gudang.id])
+            counts[data.ke_gudang.id] = {
+              mutasiPending: 0,
+              mutasiApproved: 0,
+              prApproved: 0,
+              prRejected: 0,
+            }
+          counts[data.ke_gudang.id].mutasiApproved++
+        }
       }
-      if (data.status === 'Approved' && data.requester_read === false && data.ke_gudang?.id) {
-        if (!counts[data.ke_gudang.id]) counts[data.ke_gudang.id] = { pending: 0, approved: 0 }
-        counts[data.ke_gudang.id].approved++
+
+      // LOGIKA PURCHASE REQUEST
+      if (data.tipe === 'PURCHASE_REQUEST') {
+        const gId = data.gudang_id || data.proyek_id
+        if (gId && counts[gId]) {
+          // Cek apakah ini PR miliknya / dia admin
+          const isMilikku = data.pemohon?.id === myUid || data.pemohon?.email === myEmail || isAdmin
+
+          if (data.status === 'Approved' && data.requester_read === false && isMilikku) {
+            counts[gId].prApproved++
+          }
+          if (data.status === 'Rejected' && data.requester_read === false && isMilikku) {
+            counts[gId].prRejected++
+          }
+        }
       }
     })
     notifGudang.value = counts

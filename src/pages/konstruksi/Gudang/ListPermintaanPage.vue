@@ -351,7 +351,11 @@
                 </thead>
                 <tbody>
                   <!-- MERENDER JUMLAH QTY SESUAI INPUTAN EDITOR -->
-                  <tr v-for="(item, i) in selectedRequest.items" :key="i">
+                  <tr
+                    v-for="(item, i) in selectedRequest.items"
+                    :key="i"
+                    style="page-break-inside: avoid; break-inside: avoid"
+                  >
                     <td class="text-center font-bold">{{ i + 1 }}</td>
                     <td class="text-center font-mono font-bold">
                       {{ getKodeBarang(item.id_barang) }}
@@ -521,7 +525,6 @@
                         stack-label
                         :readonly="selectedRequest.status !== 'Pending'"
                       />
-                      <!-- FIX: Input untuk Nama UP (Terikat dengan Model editFields) -->
                       <q-input
                         outlined
                         v-model="editFields.up"
@@ -620,7 +623,6 @@
                 </thead>
                 <tbody>
                   <tr v-for="(item, i) in selectedRequest.items" :key="i">
-                    <!-- KOLOM KODE BARANG -->
                     <td class="text-left q-pa-md">
                       <q-badge
                         color="grey-3"
@@ -635,7 +637,6 @@
                       {{ item.nama_barang }}
                     </td>
 
-                    <!-- FITUR BARU: QTY BISA DI EDIT SEBELUM APPROVE -->
                     <td class="text-center" width="120">
                       <q-input
                         v-if="selectedRequest.status === 'Pending'"
@@ -750,70 +751,242 @@
       </q-card>
     </q-dialog>
 
-    <!-- HIDDEN TEMPLATE UNTUK EXPORT PDF LAPORAN PERMINTAAN -->
+    <!-- HIDDEN TEMPLATE UNTUK EXPORT PDF LAPORAN PERMINTAAN (SOP: PORTRAIT) -->
     <div style="display: none">
       <div id="list-print-area" class="report-paper">
-        <div class="report-header">
-          <div class="row no-wrap items-center">
-            <div class="col-auto q-mr-md">
-              <div class="report-icon">
-                <svg
-                  width="28"
-                  height="28"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="white"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                  <polyline points="14 2 14 8 20 8"></polyline>
-                  <line x1="16" y1="13" x2="8" y2="13"></line>
-                  <line x1="16" y1="17" x2="8" y2="17"></line>
-                  <polyline points="10 9 9 9 8 9"></polyline>
-                </svg>
-              </div>
-            </div>
-            <div>
-              <h1 class="report-title">LAPORAN REKAPITULASI PERMINTAAN (REQUEST)</h1>
-              <div class="report-subtitle">
-                Diekspor pada: {{ new Date().toLocaleString('id-ID') }}
-              </div>
+        <div
+          class="report-header"
+          style="
+            background: linear-gradient(90deg, #1a237e 0%, #3949ab 100%);
+            padding: 18px;
+            border-radius: 12px;
+            color: white;
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+          "
+        >
+          <div
+            class="report-icon"
+            style="
+              background-color: rgba(255, 255, 255, 0.2);
+              border-radius: 8px;
+              width: 45px;
+              height: 45px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              margin-right: 15px;
+            "
+          >
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="white"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+          </div>
+          <div>
+            <h1
+              class="report-title"
+              style="
+                margin: 0;
+                font-size: 20px;
+                font-weight: 900;
+                letter-spacing: 0.5px;
+                color: white !important;
+              "
+            >
+              LAPORAN REKAPITULASI PERMINTAAN
+            </h1>
+            <div
+              class="report-subtitle"
+              style="
+                font-size: 11px;
+                font-weight: bold;
+                margin-top: 3px;
+                opacity: 0.9;
+                color: white !important;
+              "
+            >
+              Gudang: {{ $route.query.warehouseId ? warehouseName : 'Semua Lokasi' }} | Diekspor
+              pada: {{ new Date().toLocaleString('id-ID') }}
             </div>
           </div>
         </div>
 
-        <table class="report-table">
+        <table
+          class="report-table"
+          style="
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            margin-top: 15px;
+            border: 1px solid #1a237e;
+          "
+        >
           <thead>
             <tr>
-              <th style="width: 40px; text-align: center">NO</th>
-              <th style="text-align: left">NO. REQUEST</th>
-              <th style="text-align: left">JENIS PERMINTAAN</th>
-              <th style="text-align: left">PEMOHON & TANGGAL</th>
-              <th style="text-align: left">GUDANG ASAL</th>
-              <th style="text-align: center">STATUS</th>
+              <th
+                style="
+                  background-color: #1a237e;
+                  color: white;
+                  padding: 12px 6px;
+                  border: 1px solid #1a237e;
+                  text-align: center;
+                  width: 40px;
+                  font-weight: 900;
+                "
+              >
+                NO
+              </th>
+              <th
+                style="
+                  background-color: #1a237e;
+                  color: white;
+                  padding: 12px 6px;
+                  border: 1px solid #1a237e;
+                  text-align: center;
+                  width: 110px;
+                  font-weight: 900;
+                "
+              >
+                NO. REQUEST
+              </th>
+              <th
+                style="
+                  background-color: #1a237e;
+                  color: white;
+                  padding: 12px 6px;
+                  border: 1px solid #1a237e;
+                  text-align: left;
+                  font-weight: 900;
+                "
+              >
+                JENIS PERMINTAAN
+              </th>
+              <th
+                style="
+                  background-color: #1a237e;
+                  color: white;
+                  padding: 12px 6px;
+                  border: 1px solid #1a237e;
+                  text-align: left;
+                  font-weight: 900;
+                "
+              >
+                PEMOHON & TANGGAL
+              </th>
+              <th
+                style="
+                  background-color: #1a237e;
+                  color: white;
+                  padding: 12px 6px;
+                  border: 1px solid #1a237e;
+                  text-align: left;
+                  font-weight: 900;
+                "
+              >
+                GUDANG ASAL
+              </th>
+              <th
+                style="
+                  background-color: #1a237e;
+                  color: white;
+                  padding: 12px 6px;
+                  border: 1px solid #1a237e;
+                  text-align: center;
+                  width: 90px;
+                  font-weight: 900;
+                "
+              >
+                STATUS
+              </th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(row, idx) in filteredRows" :key="row.id">
-              <td style="text-align: center">{{ idx + 1 }}</td>
-              <td style="font-weight: 800; color: #1a237e">
+            <!-- SAKLEK ANTI-POTONG: Ditambahkan style avoid break agar baris no 8, dll tidak terpotong -->
+            <tr
+              v-for="(row, idx) in filteredRows"
+              :key="row.id"
+              :style="
+                (idx % 2 !== 0 ? 'background-color: #f8f9fa;' : '') +
+                ' page-break-inside: avoid; break-inside: avoid;'
+              "
+              class="pdf-row"
+            >
+              <td
+                style="
+                  padding: 10px 6px;
+                  border: 1px solid #e0e0e0;
+                  text-align: center;
+                  font-weight: bold;
+                "
+              >
+                {{ idx + 1 }}
+              </td>
+              <td
+                style="
+                  padding: 10px 6px;
+                  border: 1px solid #e0e0e0;
+                  font-weight: 900;
+                  color: #1a237e;
+                  text-align: center;
+                "
+              >
                 {{ row.nomor || 'REQ-' + row.id?.slice(0, 5) }}
               </td>
-              <td style="font-weight: bold">
+              <td
+                style="
+                  padding: 10px 6px;
+                  border: 1px solid #e0e0e0;
+                  font-weight: bold;
+                  text-transform: uppercase;
+                "
+              >
                 {{ row.tipe === 'ANTAR_GUDANG' ? 'MUTASI STOK' : 'PURCHASE REQUEST' }}
               </td>
-              <td>
-                <div style="font-weight: bold">{{ row.pemohon?.nama || 'Staff' }}</div>
-                <div style="color: #666; font-size: 10px">{{ formatDate(row.timestamp) }}</div>
+              <td style="padding: 10px 6px; border: 1px solid #e0e0e0">
+                <div style="font-weight: bold; text-transform: uppercase; color: #333">
+                  {{ row.pemohon?.nama || 'Staff' }}
+                </div>
+                <div style="color: #666; font-size: 10px; margin-top: 2px">
+                  {{ formatDate(row.timestamp) }}
+                </div>
               </td>
-              <td style="font-weight: bold">{{ row.dari_gudang?.nama || '-' }}</td>
               <td
-                style="text-align: center; font-weight: bold; text-transform: uppercase"
+                style="
+                  padding: 10px 6px;
+                  border: 1px solid #e0e0e0;
+                  font-weight: bold;
+                  text-transform: uppercase;
+                  color: #444;
+                "
+              >
+                {{ row.dari_gudang?.nama || '-' }}
+              </td>
+              <td
+                style="
+                  padding: 10px 6px;
+                  border: 1px solid #e0e0e0;
+                  text-align: center;
+                  font-weight: 900;
+                  text-transform: uppercase;
+                  font-size: 11px;
+                "
                 :style="{
                   color:
-                    row.status === 'Approved'
+                    row.status === 'Approved' || row.status === 'Completed'
                       ? '#2e7d32'
                       : row.status === 'Rejected'
                         ? '#c62828'
@@ -824,16 +997,35 @@
               </td>
             </tr>
             <tr v-if="filteredRows.length === 0">
-              <td colspan="6" style="text-align: center; font-style: italic; color: #888">
+              <td
+                colspan="6"
+                style="
+                  padding: 25px;
+                  border: 1px solid #e0e0e0;
+                  text-align: center;
+                  font-style: italic;
+                  color: #888;
+                "
+              >
                 Tidak ada data pada filter saat ini.
               </td>
             </tr>
           </tbody>
         </table>
+
+        <div
+          style="
+            margin-top: 50px;
+            text-align: center;
+            font-size: 9px;
+            color: #888;
+            font-style: italic;
+          "
+        >
+          Dokumen ini di-generate secara otomatis oleh Sistem AGRA ERP.
+        </div>
       </div>
     </div>
-
-    <div class="q-py-xl no-print"></div>
   </q-page>
 </template>
 
@@ -922,7 +1114,7 @@ const canApproveThisRequest = computed(() => {
 })
 
 const getStatusColor = (status) => {
-  if (status === 'Approved') return 'positive'
+  if (status === 'Approved' || status === 'Completed') return 'positive'
   if (status === 'Rejected') return 'negative'
   if (status === 'Pending') return 'orange-9'
   return 'grey-7'
@@ -961,7 +1153,6 @@ const fetchCurrentUser = () => {
 
 // PERBAIKAN: DEEP CLONE AGAR INPUT AMAN DARI REALTIME RESET
 const viewDetail = async (row) => {
-  // Deep clone mengunci data agar tidak ke-reset saat ngetik (Bypass Proxy Vue)
   selectedRequest.value = JSON.parse(JSON.stringify(row))
   customLogoFile.value = null
 
@@ -978,10 +1169,8 @@ const viewDetail = async (row) => {
 
   // RESTORE CONFIGURASI SURAT JALAN JIKA SUDAH PERNAH DI-APPROVE & DISIMPAN
   if (row.surat_jalan_data) {
-    // Memuat konfigurasi yang pernah tersimpan
     Object.assign(editFields, JSON.parse(JSON.stringify(row.surat_jalan_data)))
   } else {
-    // Generate konfigurasi default baru jika belum pernah di approve
     const now = new Date()
     const month = (now.getMonth() + 1).toString().padStart(2, '0')
     const year = now.getFullYear()
@@ -1001,7 +1190,6 @@ const viewDetail = async (row) => {
   showDetail.value = true
 }
 
-// KOMPRESI LOGO AGAR BISA DISIMPAN DI DATABASE (BASE64)
 const resizeImageToBase64 = (file, maxWidth = 400) => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -1031,18 +1219,24 @@ const handleLogoUpload = (file) => {
 }
 
 // =============================================================================
-// LOGIKA EXPORT TO PDF & EXCEL UNTUK LIST TABLE
+// FIX EXPORT TO PDF & EXCEL UNTUK LIST TABLE (SOP: PORTRAIT & ANTI-CUT)
 // =============================================================================
 const exportListToPDF = () => {
-  $q.loading.show({ message: 'Generating Professional PDF...' })
+  if (filteredRows.value.length === 0) {
+    return $q.notify({ type: 'warning', message: 'Tabel kosong, tidak ada data untuk diekspor.' })
+  }
+
+  $q.loading.show({ message: 'Mengonversi Rekapitulasi (PDF Portrait)...' })
   setTimeout(() => {
     const element = document.getElementById('list-print-area')
     const opt = {
-      margin: [15, 15, 15, 15],
+      margin: [15, 12, 15, 12], // Margin dinamis ramah A4 portrait
       filename: `Laporan_Permintaan_${Date.now()}.pdf`,
       image: { type: 'jpeg', quality: 1 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+      html2canvas: { scale: 2.5, useCORS: true, letterRendering: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, // UBAH JADI PORTRAIT
+      // CEGAH TERPOTONG: Hindari row <tr> pecah di tengah halaman
+      pagebreak: { mode: ['css', 'legacy'], avoid: ['tr', '.pdf-row', 'thead', 'tbody'] },
     }
     html2pdf()
       .set(opt)
@@ -1052,7 +1246,11 @@ const exportListToPDF = () => {
         $q.loading.hide()
         $q.notify({ type: 'positive', message: 'Laporan PDF Berhasil Diunduh!', position: 'top' })
       })
-  }, 500)
+      .catch((err) => {
+        console.error(err)
+        $q.loading.hide()
+      })
+  }, 800)
 }
 
 const exportListToExcel = () => {
@@ -1092,7 +1290,7 @@ const exportListToExcel = () => {
 
   filteredRows.value.forEach((row, idx) => {
     const statusClass =
-      row.status === 'Approved'
+      row.status === 'Approved' || row.status === 'Completed'
         ? 'status-approved'
         : row.status === 'Rejected'
           ? 'status-rejected'
@@ -1143,6 +1341,7 @@ const exportToPDF = () => {
       scrollY: 0,
     },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['css', 'legacy'], avoid: ['tr', '.pdf-row', 'thead', 'tbody'] },
   }
 
   $q.loading.show({ message: 'Generating Professional PDF Document...' })
@@ -1188,7 +1387,6 @@ const processApproval = async (status) => {
   }).onOk(async () => {
     $q.loading.show({ message: 'Memproses mutasi stok aman...' })
     try {
-      // FIX UTAMA: KITA HARUS UNBOX/BERSIHKAN VUE PROXY AGAR FIRESTORE BISA MEMBACA DAN MENYIMPANNYA
       const plainReq = JSON.parse(JSON.stringify(selectedRequest.value))
       const plainSuratJalanData = JSON.parse(JSON.stringify(editFields))
 
@@ -1196,7 +1394,7 @@ const processApproval = async (status) => {
         await runTransaction(db, async (transaction) => {
           for (const item of plainReq.items) {
             const idBarang = item.id_barang
-            const qty = Number(item.qty) // Qty yang fix dari form input yang diedit
+            const qty = Number(item.qty)
             const sourceGudangId = plainReq.dari_gudang.id
             const destGudangId = plainReq.ke_gudang.id
 
@@ -1221,12 +1419,10 @@ const processApproval = async (status) => {
             )
             const destSnap = await getDocs(destRefQuery)
 
-            // DECREMENT GUDANG SUMBER BERDASARKAN ANGKA YANG DIEDIT!
             transaction.update(doc(db, 'stok_barang', sourceDoc.id), {
               jumlah: increment(-qty),
               updated_at: serverTimestamp(),
             })
-            // INCREMENT GUDANG TUJUAN
             if (!destSnap.empty) {
               transaction.update(doc(db, 'stok_barang', destSnap.docs[0].id), {
                 jumlah: increment(qty),
@@ -1268,12 +1464,11 @@ const processApproval = async (status) => {
             })
           }
 
-          // UPDATE REQUEST DENGAN STATUS APPROVED, ITEMS TERBARU (YANG DI-EDIT QTY-NYA), DAN CONFIG SURAT JALAN
           transaction.update(doc(db, 'permintaan_barang', plainReq.id), {
             status: 'Approved',
-            items: plainReq.items, // Ini adalah kunci agar QTY yang dirubah ikut tersimpan!
-            surat_jalan_data: plainSuratJalanData, // Ini menjamin LOGO & Nama UP tersimpan!
-            requester_read: false, // Memunculkan notif di GudangPeminta
+            items: plainReq.items,
+            surat_jalan_data: plainSuratJalanData,
+            requester_read: false,
             updatedAt: serverTimestamp(),
             processedBy: userData.value?.nama || 'Administrator',
           })
@@ -1321,7 +1516,6 @@ const columns = [
   { name: 'aksi', align: 'center', label: 'KELOLA', field: 'id' },
 ]
 
-// LIST DIFILTER BERDASARKAN GUDANG YANG SEDANG DIBUKA SAJA
 const baseList = computed(() => {
   let list = rows.value || []
   const wId = route.query.warehouseId
@@ -1343,7 +1537,7 @@ const summaryStats = computed(() => {
     },
     {
       label: 'Approved',
-      value: r.filter((x) => x.status === 'Approved').length,
+      value: r.filter((x) => x.status === 'Approved' || x.status === 'Completed').length,
       icon: 'check_circle',
       color: 'positive',
     },
@@ -1367,7 +1561,7 @@ const filteredRows = computed(() => {
 onMounted(() => {
   fetchRequests()
   fetchCurrentUser()
-  fetchMasterData() // Load data master untuk menarik Kode Item
+  fetchMasterData()
 })
 onUnmounted(() => {
   if (unsubPermintaan) unsubPermintaan()
@@ -1463,14 +1657,14 @@ onUnmounted(() => {
 }
 .report-title {
   margin: 0;
-  color: #1a237e;
+  color: white !important;
   font-size: 22px;
   font-weight: 900;
   letter-spacing: 0.5px;
   line-height: 1.2;
 }
 .report-subtitle {
-  color: #666;
+  color: rgba(255, 255, 255, 0.95) !important;
   font-size: 12px;
   margin-top: 4px;
   font-weight: bold;
@@ -1478,7 +1672,7 @@ onUnmounted(() => {
 .report-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12px;
+  font-size: 11px;
 }
 .report-table th {
   background-color: #1a237e;
@@ -1494,6 +1688,17 @@ onUnmounted(() => {
 }
 .report-table tr:nth-child(even) {
   background-color: #f8f9fa;
+}
+
+/* SAKLEK ANTI-POTONG: Instruksikan CSS agar tidak memotong baris */
+.report-table tr {
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+  page-break-after: auto !important;
+}
+.pdf-row {
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
 }
 
 /* PERFECTIONIST PAPER STYLING (TARGET EXPORT PDF SURAT JALAN) */

@@ -289,7 +289,22 @@
               @click="openDetail(props.row)"
             >
               <q-td key="request">
-                <div class="text-weight-bold text-indigo-10">{{ props.row.no_request }}</div>
+                <!-- NOTIFIKASI BADGE 'BARU' PADA TABEL UTAMA UNTUK CREATOR -->
+                <div class="row items-center q-gutter-x-xs no-wrap">
+                  <span class="text-weight-bold text-indigo-10">{{ props.row.no_request }}</span>
+                  <q-badge
+                    v-if="
+                      (props.row.status === 'Cair' ||
+                        props.row.status === 'Approved' ||
+                        props.row.status === 'Rejected') &&
+                      props.row.creator_read === false
+                    "
+                    color="positive"
+                    class="animate-bounce q-px-xs"
+                    style="font-size: 9px"
+                    >BARU</q-badge
+                  >
+                </div>
                 <div class="text-caption text-grey-6 uppercase font-10 mt-xs">
                   <q-icon
                     :name="props.row.tipe_pengajuan === 'Manual' ? 'edit' : 'receipt'"
@@ -359,8 +374,8 @@
                   >
                     <q-tooltip>Edit</q-tooltip>
                   </q-btn>
+                  <!-- PERBAIKAN: Tombol Hapus sekarang selalu aktif & muncul untuk semua status (Pending, Approved, Cair/Realisasi, Rejected) -->
                   <q-btn
-                    v-if="props.row.status === 'Pending'"
                     flat
                     round
                     color="negative"
@@ -727,7 +742,7 @@
 
     <!-- =====================================================================================
          VIEW 3: DETAIL PENGAJUAN (READ ONLY / VIEW SWITCHER) - NEW PROFESSIONAL LAYOUT
-         ===================================================================================== -->
+         ==================================================================================== -->
     <div v-else-if="viewMode === 'detail' && selectedData" class="animate-fade q-pb-xl">
       <!-- Top Action Bar -->
       <div class="row items-center justify-between q-mb-xl no-print">
@@ -1190,13 +1205,15 @@ import { db, storage } from 'src/boot/firebase'
 import {
   collection,
   onSnapshot,
-  query,
-  where,
-  doc,
   addDoc,
   updateDoc,
   deleteDoc,
+  doc,
   serverTimestamp,
+  query,
+  where,
+  // eslint-disable-next-line no-unused-vars
+  getDocs,
 } from 'firebase/firestore'
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { useQuasar } from 'quasar'
@@ -1227,33 +1244,6 @@ const selectedData = ref(null)
 let unsubData = null
 let unsubTagihan = null
 
-// Cek Hak Akses Tagihan Supplier
-const hasAccessTagihanSupplier = computed(() => {
-  const user = authStore.user
-  if (!user) return false
-  if (['Super Admin', 'Direktur', 'Finance'].includes(user.role)) return true
-
-  if (!userData.value?.permissions_detail) return false
-  const modulePerm = userData.value.permissions_detail.find((m) => m.id === 'konstruksi')
-  if (!modulePerm || !modulePerm.isActive) return false
-
-  // Mencari akses di menu terkait tagihan supplier
-  const menu = modulePerm.menus.find(
-    (m) => m.id && (m.id.includes('tagihan-supplier') || m.id.includes('tagihan_supplier')),
-  )
-  return menu ? menu.lihat || menu.buat || menu.edit || menu.approve : false
-})
-
-// Dynamic Toggle Options
-const tipePengajuanOptions = computed(() => {
-  const options = []
-  if (hasAccessTagihanSupplier.value) {
-    options.push({ label: 'Tarik Tagihan Supplier (Auto)', value: 'Tagihan Supplier' })
-  }
-  options.push({ label: 'Input Manual', value: 'Manual' })
-  return options
-})
-
 // Form State
 const formDefault = {
   id: null,
@@ -1274,6 +1264,32 @@ const formDefault = {
   lampiran: [],
 }
 const form = ref({ ...formDefault })
+
+// Cek Hak Akses Tagihan Supplier
+const hasAccessTagihanSupplier = computed(() => {
+  const user = authStore.user
+  if (!user) return false
+  if (['Super Admin', 'Direktur', 'Finance'].includes(user.role)) return true
+
+  if (!userData.value?.permissions_detail) return false
+  const modulePerm = userData.value.permissions_detail.find((m) => m.id === 'konstruksi')
+  if (!modulePerm || !modulePerm.isActive) return false
+
+  const menu = modulePerm.menus.find(
+    (m) => m.id && (m.id.includes('tagihan-supplier') || m.id.includes('tagihan_supplier')),
+  )
+  return menu ? menu.lihat || menu.buat || menu.edit || menu.approve : false
+})
+
+// Dynamic Toggle Options
+const tipePengajuanOptions = computed(() => {
+  const options = []
+  if (hasAccessTagihanSupplier.value) {
+    options.push({ label: 'Tarik Tagihan Supplier (Auto)', value: 'Tagihan Supplier' })
+  }
+  options.push({ label: 'Input Manual', value: 'Manual' })
+  return options
+})
 
 // Columns
 const columns = [
@@ -1312,13 +1328,12 @@ const generateNoRequest = () => {
   return `REQ/${year}${month}/${padded}`
 }
 
-// Fetch Data (Dengan Privasi/Filter berdasarkan User)
-const fetchData = () => {
+// Fetch Data
+const fetchData = async () => {
   loading.value = true
   const user = authStore.user
 
-  // STRICT PRIVACY: Semua user (termasuk Admin) HANYA melihat pengajuan yang dibuat oleh dirinya sendiri di halaman ini.
-  // Untuk melihat semua pengajuan, Admin bisa melihatnya di halaman Approval.
+  // Ambil Data Pengajuan Pembayaran (Milik Sendiri)
   const qPengajuan = query(
     collection(db, 'finance_pengajuan_pembayaran'),
     where('pembuat_email', '==', user?.email || 'anonymous'),
@@ -1327,7 +1342,6 @@ const fetchData = () => {
   unsubData = onSnapshot(
     qPengajuan,
     (snap) => {
-      // Jika tidak order by di query karena index, kita sort di client
       let result = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
       result.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
       rows.value = result
@@ -1339,7 +1353,7 @@ const fetchData = () => {
     },
   )
 
-  // 2. Fetch Tagihan Supplier (Hanya yang belum lunas untuk di-Tarik)
+  // Fetch Tagihan Supplier Outstanding
   const qTagihan = query(
     collection(db, 'finance_tagihan'),
     where('status', 'in', ['Menunggu Pembayaran', 'Dibayar Sebagian']),
@@ -1397,9 +1411,8 @@ const onTagihanSelect = (val) => {
     form.value.vendor_nama = val.supplier_nama || ''
     form.value.nominal = val.sisa_tagihan || 0
     form.value.keterangan = `Pembayaran untuk Tagihan Supplier: ${val.nomor_invoice}. Sisa hutang: Rp ${val.sisa_tagihan.toLocaleString('id-ID')}`
-    // Jika ada data bank di tagihan, bisa di-set di sini (jika skema tagihan memilikinya)
   } else {
-    onTipeChange('Manual') // Reset if cleared
+    onTipeChange('Manual')
   }
 }
 
@@ -1434,10 +1447,31 @@ const openEditDialog = (row) => {
   viewMode.value = 'form'
 }
 
-const openDetail = (row) => {
+// SINKRONISASI LOGIKA BACA UNTUK CREATOR SAAT MEMBUKA DETAIL
+const openDetail = async (row) => {
   selectedData.value = row
   viewMode.value = 'detail'
   window.scrollTo(0, 0)
+
+  // --- LOGIK NOTIFIKASI READ RECEIPT (HILANGKAN BADGE NOTIFIKASI) ---
+  if (
+    (row.status === 'Cair' || row.status === 'Approved' || row.status === 'Rejected') &&
+    row.creator_read === false
+  ) {
+    try {
+      await updateDoc(doc(db, 'finance_pengajuan_pembayaran', row.id), {
+        creator_read: true,
+      })
+      // Update local state instant agar badge langsung hilang
+      row.creator_read = true
+      const idx = rows.value.findIndex((item) => item.id === row.id)
+      if (idx !== -1) {
+        rows.value[idx].creator_read = true
+      }
+    } catch (e) {
+      console.error('Gagal mengupdate status baca pengajuan:', e)
+    }
+  }
 }
 
 // Lampiran Logic
@@ -1513,11 +1547,17 @@ const simpanPengajuan = async () => {
       tanggal_dibutuhkan: form.value.tanggal_dibutuhkan,
       keterangan: form.value.keterangan,
       lampiran: form.value.lampiran,
-      status: form.value.status, // Tetap 'Pending' kecuali diubah admin nanti
+      status: form.value.status,
       updatedAt: serverTimestamp(),
+      approver_read: false, // SINKRONISASI: Memicu notifikasi menunggu approval pimpinan
+      creator_read: true, // Kreator tidak butuh notifikasi buatan sendiri
+      realizer_read: false, // Disiapkan untuk antrean bendahara/kasir nanti saat approved
+      realized_approved_read: true, // Belum terealisasi
     }
 
     if (isEditMode.value) {
+      payload.status = 'Pending' // Jika draf penolakan diedit, reset status kembali ke Pending
+      payload.approver_read = false
       await updateDoc(doc(db, 'finance_pengajuan_pembayaran', form.value.id), payload)
     } else {
       payload.createdAt = serverTimestamp()
@@ -1586,7 +1626,6 @@ const openLink = (url) => {
     return
   }
 
-  // Jika URL adalah Base64 (data URI)
   if (url.startsWith('data:')) {
     try {
       const arr = url.split(',')
@@ -1600,7 +1639,6 @@ const openLink = (url) => {
       const blob = new Blob([u8arr], { type: mime })
       const blobUrl = URL.createObjectURL(blob)
 
-      // Menggunakan anchor element untuk mencegah pemblokiran dari popup blocker
       const link = document.createElement('a')
       link.href = blobUrl
       link.target = '_blank'
@@ -1614,7 +1652,6 @@ const openLink = (url) => {
       $q.notify({ type: 'negative', message: 'Gagal membuka dokumen internal.' })
     }
   } else {
-    // Jika URL biasa (HTTP/HTTPS)
     const link = document.createElement('a')
     link.href = url
     link.target = '_blank'
@@ -1625,7 +1662,7 @@ const openLink = (url) => {
 }
 
 // ============================================================================
-// EXPORT METHODS (REVISED TO HTML-TO-XLS)
+// EXPORT METHODS
 // ============================================================================
 const printTable = () => window.print()
 
@@ -1879,7 +1916,7 @@ onUnmounted(() => {
   padding: 16px;
 }
 .hover-bg:hover {
-  background-color: rgba(210, 25, 25, 0.03) !important;
+  background-color: rgba(26, 35, 126, 0.03) !important;
 }
 .transition-all {
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -1896,6 +1933,20 @@ onUnmounted(() => {
 .hover-blue-btn:hover {
   background-color: #e8eaf6 !important;
   color: #1a237e !important;
+}
+
+/* Animasi Kedip Badge BARU */
+.animate-bounce {
+  animation: bounce 1.5s infinite;
+}
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
 }
 
 .animate-fade {

@@ -267,7 +267,6 @@
               </template>
 
               <template v-slot:body="props">
-                <!-- Event @click pada baris PO untuk buka preview PO -->
                 <q-tr
                   :props="props"
                   class="hover-bg transition-all cursor-pointer"
@@ -422,7 +421,7 @@
                     v-model="poForm.supplier"
                     :options="optSupplier"
                     option-label="nama"
-                    placeholder="Pilih Supplier..."
+                    :placeholder="poForm.supplier ? '' : 'Pilih Supplier...'"
                     bg-color="blue-50"
                     use-input
                     @filter="filterSupplier"
@@ -503,7 +502,9 @@
                           <q-item-label class="text-weight-bold">{{
                             scope.opt.nomor
                           }}</q-item-label>
-                          <q-item-label caption>{{ scope.opt.proyek_nama }}</q-item-label>
+                          <q-item-label caption>{{
+                            scope.opt.proyek_nama || scope.opt.gudang_nama
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                     </template>
@@ -542,7 +543,7 @@
         <div class="col-12 col-md-7">
           <q-card flat bordered class="rounded-20 q-mb-lg bg-white shadow-1 overflow-hidden">
             <q-toolbar class="bg-indigo-10 text-white q-py-sm">
-              <q-icon name="list_alt" class="q-mr-md" />
+              <q-icon name="list" class="q-mr-md" />
               <div class="text-weight-bold uppercase">DAFTAR PESANAN BARANG (ITEMS)</div>
               <q-space />
               <q-btn
@@ -922,7 +923,6 @@
                     Prepared By,
                   </div>
 
-                  <!-- FINAL SIGNATURE & STEMPEL OVERLAY -->
                   <div class="final-sign-space flex flex-center">
                     <img
                       v-if="selectedData.stempel_url"
@@ -979,9 +979,7 @@
         </q-toolbar>
 
         <q-card-section class="col scroll q-pa-md q-pa-md-xl flex flex-center preview-container">
-          <!-- AREA CETAK PO -->
           <div id="po-print-area" class="po-print-container" v-if="selectedPo">
-            <!-- Header (Logo & Company) -->
             <div class="row no-wrap items-center">
               <div class="col-auto">
                 <img :src="selectedPo.logoUrl || 'icons/logo-agra.png'" class="po-logo" />
@@ -992,10 +990,8 @@
               </div>
             </div>
 
-            <!-- GARIS INDIGO -->
             <div class="po-divider q-mb-md"></div>
 
-            <!-- Title & PO Number -->
             <div class="text-right q-mb-lg">
               <div class="po-title">PURCHASE ORDER</div>
               <div class="po-no">
@@ -1003,7 +999,6 @@
               </div>
             </div>
 
-            <!-- Meta KEPADA YTH & Date -->
             <div class="row justify-between q-mb-md po-meta">
               <div class="col-7 text-left">
                 <div class="po-meta-label">KEPADA YTH :</div>
@@ -1037,7 +1032,6 @@
               </div>
             </div>
 
-            <!-- TABEL DENGAN GARIS BATAS -->
             <table class="po-table">
               <thead>
                 <tr>
@@ -1504,7 +1498,7 @@ const exportPoToPDF = () => {
   html2pdf().set(o).from(e).save()
 }
 
-// --- PR APPROVAL HANDLER (DISEDERHANAKAN - TANPA TTD MANUAL) ---
+// --- PR APPROVAL HANDLER (DENGAN LOGIKA AUTO-ADD STOK) ---
 const handleApproval = (row, status, alasan = null) => {
   $q.dialog({
     title: 'Konfirmasi Approval',
@@ -1516,9 +1510,11 @@ const handleApproval = (row, status, alasan = null) => {
       label: 'Ya, Proses',
     },
   }).onOk(async () => {
+    $q.loading.show({ message: 'Memproses Approval & Sinkronisasi Stok...' })
     try {
       const data = {
         status: status,
+        requester_read: false,
         updatedAt: serverTimestamp(),
         approve_nama: userData.value?.nama || 'Admin Logistik',
         approve_jabatan: userData.value?.jabatan || 'Manager',
@@ -1527,10 +1523,70 @@ const handleApproval = (row, status, alasan = null) => {
       if (alasan) data.alasan_reject = alasan
 
       await updateDoc(doc(db, 'permintaan_barang', row.id), data)
+
+      // =========================================================================
+      // LOGIKA BARU: JIKA APPROVED, OTOMATIS TAMBAH STOK GUDANG & CATAT AKTIVITAS
+      // =========================================================================
+      if (status === 'Approved') {
+        const gudangId = row.gudang_id || row.proyek_id
+        if (gudangId && row.items && row.items.length > 0) {
+          for (const item of row.items) {
+            const tambahanQty = Number(item.qty) || 0
+            if (tambahanQty > 0) {
+              // Cari apakah barang sudah ada di gudang tersebut
+              const qStok = query(
+                collection(db, 'stok_barang'),
+                where('id_gudang', '==', gudangId),
+                where('id_barang', '==', item.id_barang),
+              )
+              const stokSnap = await getDocs(qStok)
+
+              if (!stokSnap.empty) {
+                // Update stok lama
+                const stokDoc = stokSnap.docs[0]
+                const currentStok = Number(stokDoc.data().jumlah) || 0
+                await updateDoc(doc(db, 'stok_barang', stokDoc.id), {
+                  jumlah: currentStok + tambahanQty,
+                  updated_at: serverTimestamp(),
+                })
+              } else {
+                // Tambah stok baru ke Gudang
+                await addDoc(collection(db, 'stok_barang'), {
+                  id_gudang: gudangId,
+                  id_barang: item.id_barang || '',
+                  nama_barang: item.nama_barang || item.deskripsi || 'Barang PR',
+                  jumlah: tambahanQty,
+                  satuan: item.satuan || 'ls',
+                  created_at: serverTimestamp(),
+                  updated_at: serverTimestamp(),
+                })
+              }
+
+              // Catat Aktivitas Transaksi Barang Masuk
+              await addDoc(collection(db, 'aktivitas'), {
+                id_gudang: gudangId,
+                nama_barang: item.nama_barang || item.deskripsi || 'Barang PR',
+                tipe: 'MASUK',
+                jumlah: tambahanQty,
+                keterangan: `Otomatis dari PR Approved (${row.nomor})`,
+                timestamp: serverTimestamp(),
+              })
+            }
+          }
+        }
+      }
+      // =========================================================================
+
       showPreview.value = false
-      $q.notify({ type: 'positive', message: `PR telah berhasil di-${status.toLowerCase()}` })
+      $q.notify({
+        type: 'positive',
+        message: `PR telah berhasil di-${status.toLowerCase()} dan stok diperbarui.`,
+      })
     } catch (e) {
       console.error(e)
+      $q.notify({ type: 'negative', message: 'Gagal memproses: ' + e.message })
+    } finally {
+      $q.loading.hide()
     }
   })
 }
@@ -1638,9 +1694,8 @@ onUnmounted(() => {
 
 /* PO ENTRY TABLE STYLING */
 .po-entry-table :deep(thead th) {
-  font-weight: 800;
-  font-size: 11px;
   padding: 12px;
+  font-weight: 800;
 }
 .po-entry-table :deep(tbody td) {
   border-bottom: 1px solid #f0f0f0;
@@ -1752,8 +1807,8 @@ onUnmounted(() => {
 .final-pro-table {
   border-collapse: collapse;
   width: 100%;
-  border: 1px solid #ccc;
   margin-top: 10px;
+  border: 1px solid #1a237e;
 }
 .final-pro-table th {
   background: #1a237e !important;
@@ -1876,7 +1931,7 @@ onUnmounted(() => {
   padding: 15mm 20mm;
   margin: 0 auto;
   color: #000 !important;
-  font-family: Arial, Helvetica, sans-serif !important;
+  font-family: Arial, Helvetica, sans-serif !important; /* Force clean standard font */
   line-height: 1.4;
   box-sizing: border-box;
   position: relative;
@@ -2041,11 +2096,6 @@ onUnmounted(() => {
   }
   .no-print {
     display: none !important;
-  }
-  .letter-paper {
-    box-shadow: none !important;
-    margin: 0 !important;
-    width: 210mm !important;
   }
   .po-print-container {
     box-shadow: none !important;

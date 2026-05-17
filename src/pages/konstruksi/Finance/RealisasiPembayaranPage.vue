@@ -249,7 +249,17 @@
               @click="openDetail(props.row)"
             >
               <q-td key="request">
-                <div class="text-weight-bold text-indigo-10">{{ props.row.no_request }}</div>
+                <!-- SINKRONISASI BADGE "BARU" BERKEDIP DI TABEL ANTREAN TRANSFER -->
+                <div class="row items-center q-gutter-x-xs no-wrap">
+                  <span class="text-weight-bold text-indigo-10">{{ props.row.no_request }}</span>
+                  <q-badge
+                    v-if="props.row.status === 'Approved' && props.row.realizer_read === false"
+                    color="positive"
+                    class="animate-bounce q-px-xs"
+                    style="font-size: 9px"
+                    >BARU</q-badge
+                  >
+                </div>
                 <div class="text-caption text-grey-6 font-10 mt-xs">
                   Ref:
                   <span class="text-weight-bold text-blue-grey-8">{{
@@ -1004,7 +1014,6 @@ const columns = [
 // Fetch Data (Hanya ambil yang sudah Approved atau Cair)
 const fetchData = () => {
   loading.value = true
-  // Untuk halaman Realisasi, kita hanya butuh data yang minimal sudah di Approve.
   const qPengajuan = query(
     collection(db, 'finance_pengajuan_pembayaran'),
     where('status', 'in', ['Approved', 'Cair']),
@@ -1014,7 +1023,6 @@ const fetchData = () => {
     qPengajuan,
     (snap) => {
       let result = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
-      // Sort descending by date
       result.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
       rows.value = result
       loading.value = false
@@ -1051,15 +1059,19 @@ const filteredRows = computed(() => {
   return res
 })
 
-// Interaction Handlers
-const openDetail = (row) => {
+// SINKRONISASI LOGIKA BACA UNTUK BENDAHARA SAAT PREVIEW DETAIL DIBUKA
+const openDetail = async (row) => {
   selectedData.value = row
   viewMode.value = 'detail'
   window.scrollTo(0, 0)
+
+  // CATATAN: Notifikasi "BARU" sengaja tidak dihapus dari database ketika detail dibuka
+  // untuk memastikan kasir tidak lupa mengeksekusi transfer. Notifikasi akan hilang secara
+  // saklek ketika kasir berhasil memencet tombol "PROSES REALISASI" (Cair).
 }
 
-// --- REALISASI LOGICS ---
-const triggerRealisasi = (row) => {
+// SINKRONISASI LOGIKA BACA UNTUK BENDAHARA SAAT INGIN CAIR LANGSUNG DARI LIST
+const triggerRealisasi = async (row) => {
   selectedData.value = row
   realisasiForm.value = {
     tanggal: new Date().toISOString().substr(0, 10),
@@ -1068,8 +1080,12 @@ const triggerRealisasi = (row) => {
     bukti_file: null,
   }
   showRealisasiDialog.value = true
+
+  // CATATAN: Notifikasi "BARU" sengaja tidak dihapus saat tombol ditekan, melainkan
+  // saat transaksi mutasi dinyatakan sukses (Cair) di server database.
 }
 
+// Eksekusi Realisasi Pembayaran Kasir
 const processRealisasi = async () => {
   if (!realisasiForm.value.bukti_file) {
     return $q.notify({
@@ -1098,6 +1114,9 @@ const processRealisasi = async () => {
       tanggal_eksekusi: realisasiForm.value.tanggal,
       nominal_eksekusi: realisasiForm.value.nominal,
       catatan_realisasi: realisasiForm.value.catatan,
+      realizer_read: true, // SAKLEK: Ditandai sudah dibaca realizer, sehingga notifikasi di sidebar langsung padam!
+      creator_read: false, // Kreator dapat notifikasi baru bahwa dana telah cair (Event 2 Cair)
+      realized_approved_read: false, // Approver dapat notifikasi bahwa realisasi cair sukses (Event 3)
     }
 
     await updateDoc(doc(db, 'finance_pengajuan_pembayaran', selectedData.value.id), updateData)
@@ -1106,7 +1125,7 @@ const processRealisasi = async () => {
     if (selectedData.value.tagihan_id) {
       await updateDoc(doc(db, 'finance_tagihan', selectedData.value.tagihan_id), {
         status: 'Lunas',
-        total_dibayar: realisasiForm.value.nominal, // Set dibayar sesuai nominal yg dieksekusi
+        total_dibayar: realisasiForm.value.nominal,
       })
     }
 
@@ -1116,11 +1135,12 @@ const processRealisasi = async () => {
       selectedData.value.tanggal_eksekusi = realisasiForm.value.tanggal
       selectedData.value.nominal_eksekusi = realisasiForm.value.nominal
       selectedData.value.catatan_realisasi = realisasiForm.value.catatan
+      selectedData.value.realizer_read = true
     }
 
     $q.notify({ type: 'positive', message: 'Dana berhasil direalisasikan (Cair)!' })
     showRealisasiDialog.value = false
-    viewMode.value = 'list' // Back to list view to see it moving to history
+    viewMode.value = 'list'
   } catch (e) {
     console.error(e)
     $q.notify({ type: 'negative', message: 'Gagal memproses realisasi.' })
@@ -1164,7 +1184,6 @@ const openLink = (url) => {
     return
   }
 
-  // Jika URL adalah Base64 (data URI)
   if (url.startsWith('data:')) {
     try {
       const arr = url.split(',')
@@ -1183,7 +1202,6 @@ const openLink = (url) => {
       $q.notify({ type: 'negative', message: 'Gagal membuka dokumen internal.' })
     }
   } else {
-    // Jika URL biasa (HTTP/HTTPS)
     window.open(url, '_blank')
   }
 }
@@ -1323,7 +1341,7 @@ onUnmounted(() => {
   padding: 16px;
 }
 .hover-bg:hover {
-  background-color: rgba(210, 25, 25, 0.03) !important;
+  background-color: rgba(26, 35, 126, 0.03) !important;
 }
 .transition-all {
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -1335,6 +1353,20 @@ onUnmounted(() => {
 .hover-blue-btn:hover {
   background-color: #e8eaf6 !important;
   color: #1a237e !important;
+}
+
+/* Animasi Kedip Badge BARU */
+.animate-bounce {
+  animation: bounce 1.5s infinite;
+}
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
 }
 
 .animate-fade {
@@ -1378,6 +1410,9 @@ onUnmounted(() => {
 }
 .tracking-widest {
   letter-spacing: 0.15em;
+}
+.leading-relaxed {
+  line-height: 1.6;
 }
 
 /* CSS BARU UNTUK DETAIL TABLE */

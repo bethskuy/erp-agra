@@ -184,10 +184,11 @@
         </template>
 
         <template v-slot:body="props">
+          <!-- FIX: Klik baris (q-tr) akan membuka Ringkasan Executive Detail Proyek -->
           <q-tr
             :props="props"
             class="hover-bg transition-all cursor-pointer"
-            @click="openUpdateDialog(props.row)"
+            @click="openDetailDialog(props.row)"
           >
             <q-td key="proyek">
               <div class="row items-center no-wrap">
@@ -242,11 +243,12 @@
 
             <q-td key="valuasi" class="text-right">
               <div class="text-weight-bolder text-indigo-10 text-subtitle2">
-                Rp {{ formatCompact(props.row.total_omzet) }}
+                Rp {{ (props.row.total_omzet || 0).toLocaleString('id-ID') }}
               </div>
             </q-td>
 
             <q-td key="aksi" class="text-center" @click.stop>
+              <!-- Tombol Update Khusus Progress Fisik -->
               <q-btn
                 unelevated
                 rounded
@@ -271,12 +273,257 @@
     </q-card>
 
     <!-- =====================================================================================
-         DIALOG UPDATE PROGRESS
+         NEW MODAL: DETAIL RINGKASAN EXECUTIVE INFORMATIF (PROYEK PROFILE)
+         ===================================================================================== -->
+    <q-dialog v-model="showDetailDialog" backdrop-filter="blur(6px)">
+      <q-card
+        style="width: 750px; max-width: 95vw"
+        class="rounded-20 shadow-24 bg-grey-1 text-blue-grey-10"
+      >
+        <q-toolbar class="bg-indigo-10 text-white q-py-md">
+          <q-avatar icon="assignment" color="white" text-color="indigo-10" size="md" />
+          <q-toolbar-title
+            class="text-weight-bold text-subtitle1 uppercase tracking-widest q-ml-sm"
+          >
+            Profil Resmi & Kinerja Proyek
+          </q-toolbar-title>
+          <q-btn flat round dense icon="close" v-close-popup color="white" />
+        </q-toolbar>
+
+        <q-card-section
+          class="q-pa-lg scroll"
+          style="max-height: 75vh"
+          v-if="selectedProjectDetail"
+        >
+          <!-- SECTION 1: HEADER SUMMARY -->
+          <div
+            class="row q-col-gutter-md items-center justify-between bg-white q-pa-md rounded-12 shadow-sm q-mb-lg border-subtle"
+          >
+            <div class="col-12 col-sm-8 text-left">
+              <div class="text-h5 text-weight-black text-indigo-10 uppercase leading-none q-mb-sm">
+                {{ selectedProjectDetail.nama }}
+              </div>
+              <div class="text-subtitle2 text-grey-6 uppercase font-bold">
+                KONSUMEN / KLIEN:
+                <span class="text-blue-grey-10">{{
+                  selectedProjectDetail.konsumen || 'INTERNAL'
+                }}</span>
+              </div>
+            </div>
+            <div class="col-12 col-sm-4 text-center text-sm-right">
+              <q-chip
+                dense
+                :color="getStatusColor(selectedProjectDetail.status).bg"
+                :text-color="getStatusColor(selectedProjectDetail.status).text"
+                class="text-weight-bold q-px-md q-py-md text-subtitle2 uppercase shadow-sm"
+              >
+                {{ selectedProjectDetail.status }}
+              </q-chip>
+            </div>
+          </div>
+
+          <!-- SECTION 2: GAUGE PROGRESS DAN TIMELINE -->
+          <div class="row q-col-gutter-lg q-mb-lg">
+            <div class="col-12 col-sm-5 flex flex-center">
+              <q-card
+                flat
+                class="full-width rounded-12 bg-white q-pa-lg text-center shadow-sm border-subtle"
+              >
+                <div class="text-overline text-grey-6 text-weight-bold q-mb-md">
+                  PROGRES PEKERJAAN FISIK
+                </div>
+                <q-circular-progress
+                  show-value
+                  class="text-primary text-weight-black text-h4"
+                  :value="selectedProjectDetail.progress"
+                  size="140px"
+                  :thickness="0.18"
+                  color="primary"
+                  track-color="blue-1"
+                  animation-speed="600"
+                >
+                  {{ selectedProjectDetail.progress }}%
+                </q-circular-progress>
+                <div class="text-caption text-grey-6 q-mt-md">
+                  Kemajuan aktual fisik di lapangan.
+                </div>
+              </q-card>
+            </div>
+
+            <div class="col-12 col-sm-7">
+              <q-card
+                flat
+                class="full-width rounded-12 bg-white q-pa-lg shadow-sm border-subtle h-full column justify-between"
+              >
+                <div class="text-overline text-grey-6 text-weight-bold">
+                  TIMELINE & WAKTU PELAKSANAAN
+                </div>
+
+                <div class="q-my-md text-left">
+                  <div class="row items-center q-mb-sm">
+                    <q-icon name="event_available" color="green-8" size="sm" class="q-mr-sm" />
+                    <div>
+                      <div class="text-caption text-grey-6">Tanggal Mulai Pekerjaan</div>
+                      <div class="text-weight-bold text-subtitle2">
+                        {{
+                          selectedProjectDetail.start_date
+                            ? selectedProjectDetail.start_date.toLocaleDateString('id-ID', {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric',
+                              })
+                            : '-'
+                        }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row items-center">
+                    <q-icon name="event_busy" color="red-8" size="sm" class="q-mr-sm" />
+                    <div>
+                      <div class="text-caption text-grey-6">Tanggal Estimasi Selesai</div>
+                      <div class="text-weight-bold text-subtitle2">
+                        {{
+                          selectedProjectDetail.end_date
+                            ? selectedProjectDetail.end_date.toLocaleDateString('id-ID', {
+                                day: 'numeric',
+                                month: 'long',
+                                year: 'numeric',
+                              })
+                            : '-'
+                        }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <q-separator />
+
+                <div class="row items-center justify-between q-pt-md">
+                  <div class="text-caption text-grey-6 text-weight-bold">SISA HARI PEKERJAAN :</div>
+                  <q-badge
+                    color="indigo-10"
+                    class="q-px-md q-py-xs text-weight-bold text-subtitle2"
+                  >
+                    {{ getDaysRemaining(selectedProjectDetail.end_date) }}
+                  </q-badge>
+                </div>
+              </q-card>
+            </div>
+          </div>
+
+          <!-- SECTION 3: FINANSIAL breakdown -->
+          <div class="row q-col-gutter-md q-mb-lg">
+            <div class="col-12">
+              <q-card flat class="rounded-12 bg-white q-pa-lg shadow-sm border-subtle text-left">
+                <div class="text-overline text-grey-6 text-weight-bold q-mb-md flex items-center">
+                  <q-icon name="monetization_on" color="indigo-10" size="sm" class="q-mr-xs" />
+                  RINCIAN VALUASI REALISASI PROYEK
+                </div>
+
+                <div class="row q-col-gutter-lg">
+                  <!-- Nilai Kontrak / Omzet -->
+                  <div class="col-12 col-sm-4">
+                    <div class="text-caption text-grey-6 font-bold">TOTAL NILAI KONTRAK</div>
+                    <div class="text-h6 text-weight-black text-indigo-10 q-mt-xs">
+                      Rp {{ (selectedProjectDetail.total_omzet || 0).toLocaleString('id-ID') }}
+                    </div>
+                  </div>
+
+                  <!-- Realisasi Progres (Persen ke Rupiah) -->
+                  <div class="col-12 col-sm-4 border-left-gt-xs">
+                    <div class="text-caption text-grey-6 font-bold">REALISASI FISIK (Rp)</div>
+                    <div class="text-h6 text-weight-black text-green-8 q-mt-xs">
+                      Rp
+                      {{
+                        Math.round(
+                          (selectedProjectDetail.progress / 100) *
+                            selectedProjectDetail.total_omzet,
+                        ).toLocaleString('id-ID')
+                      }}
+                    </div>
+                  </div>
+
+                  <!-- Sisa Nilai Pekerjaan -->
+                  <div class="col-12 col-sm-4 border-left-gt-xs">
+                    <div class="text-caption text-grey-6 font-bold">SISA NILAI PEKERJAAN</div>
+                    <div class="text-h6 text-weight-black text-orange-9 q-mt-xs">
+                      Rp
+                      {{
+                        (
+                          selectedProjectDetail.total_omzet -
+                          Math.round(
+                            (selectedProjectDetail.progress / 100) *
+                              selectedProjectDetail.total_omzet,
+                          )
+                        ).toLocaleString('id-ID')
+                      }}
+                    </div>
+                  </div>
+                </div>
+              </q-card>
+            </div>
+          </div>
+
+          <!-- SECTION 4: SPK KONTRAK YANG MENYUSUN VALUASI -->
+          <div class="column">
+            <div class="text-overline text-grey-6 text-weight-bold q-mb-xs text-left">
+              <q-icon name="list_alt" color="primary" class="q-mr-xs" /> DAFTAR SPK KONTRAK YANG
+              TERINTEGRASI
+            </div>
+
+            <q-markup-table
+              flat
+              bordered
+              class="rounded-borders overflow-hidden bg-white shadow-sm border-subtle"
+            >
+              <thead>
+                <tr class="bg-indigo-1 text-indigo-10 text-left">
+                  <th width="40" class="text-center font-bold">NO</th>
+                  <th class="font-bold">NOMOR SPK / RUJUKAN</th>
+                  <th class="font-bold">NAMA KONTRAK PEKERJAAN</th>
+                  <th width="160" class="text-right font-bold">NILAI TOTAL (Rp)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(spk, idx) in relatedSpksDetail" :key="spk.id">
+                  <td class="text-center font-bold text-grey-6">{{ idx + 1 }}</td>
+                  <td class="text-weight-black text-indigo-10 font-mono">{{ spk.nomor_spk }}</td>
+                  <td class="text-weight-bold text-uppercase">{{ spk.nama_kontrak }}</td>
+                  <td class="text-right text-weight-bolder text-primary">
+                    Rp {{ (spk.nilai_total || 0).toLocaleString('id-ID') }}
+                  </td>
+                </tr>
+                <tr v-if="relatedSpksDetail.length === 0">
+                  <td colspan="4" class="text-center q-pa-md italic text-grey-5">
+                    Belum ada SPK kontrak yang terintegrasi di proyek ini.
+                  </td>
+                </tr>
+              </tbody>
+            </q-markup-table>
+          </div>
+        </q-card-section>
+
+        <q-separator />
+        <q-card-actions align="right" class="bg-white q-pa-md">
+          <q-btn
+            flat
+            label="Tutup Detail"
+            color="indigo-10"
+            class="q-px-lg text-weight-bold"
+            v-close-popup
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <!-- =====================================================================================
+         DIALOG UPDATE PROGRESS (MODAL KECIL UNTUK SUNTIK UPDATE)
          ===================================================================================== -->
     <q-dialog v-model="showUpdateDialog" persistent backdrop-filter="blur(4px)">
       <q-card
-        style="width: 500px; max-width: 95vw"
-        class="rounded-20 shadow-24 bg-grey-2 column no-wrap"
+        style="width: 550px; max-width: 95vw"
+        class="rounded-20 shadow-24 bg-grey-2 column no-wrap animate-fade"
       >
         <q-toolbar class="bg-white text-indigo-10 q-py-md shadow-2 shrink">
           <q-btn flat round dense icon="close" v-close-popup color="grey-7" />
@@ -294,7 +541,8 @@
           />
         </q-toolbar>
 
-        <q-card-section class="q-pa-lg">
+        <q-card-section class="q-pa-lg scroll">
+          <!-- CARD UTAMA IDENTITAS PROYEK -->
           <q-card flat bordered class="rounded-12 bg-white shadow-1 border-subtle q-mb-md">
             <q-card-section class="text-center">
               <div class="text-h6 text-weight-black text-indigo-10 leading-tight q-mb-xs">
@@ -306,11 +554,13 @@
             </q-card-section>
           </q-card>
 
+          <!-- CARD INPUT PROGRES & AUTO KALKULASI NOMINAL -->
           <q-card
             flat
             bordered
             class="rounded-12 bg-white shadow-1 border-subtle q-pa-lg q-gutter-y-lg"
           >
+            <!-- PILIH STATUS -->
             <div>
               <div class="label-req q-mb-sm">Status Proyek Saat Ini</div>
               <q-select
@@ -334,20 +584,51 @@
               </q-select>
             </div>
 
-            <div>
-              <div class="row justify-between items-end q-mb-sm">
-                <div class="label-req">Persentase Selesai Fisik</div>
-                <div class="text-h5 text-weight-black text-primary">{{ formUpdate.progress }}%</div>
+            <!-- VALUASI KONTRAK SEKARANG (INFO HARGA ACUAN) -->
+            <div
+              class="q-pa-md bg-indigo-1 text-indigo-10 rounded-borders row justify-between items-center"
+            >
+              <div class="text-caption text-weight-bold">NILAI KONTRAK PROYEK :</div>
+              <div class="text-subtitle1 text-weight-black">
+                Rp {{ (selectedProject?.total_omzet || 0).toLocaleString('id-ID') }}
               </div>
-              <q-slider
-                v-model="formUpdate.progress"
-                :min="0"
-                :max="100"
-                color="primary"
-                track-size="10px"
-                thumb-size="28px"
-                class="q-mt-sm"
+            </div>
+
+            <!-- INPUT PERSEN MANUAL DENGAN VALIDASI DESIMAL -->
+            <div>
+              <div class="label-req q-mb-xs">Persentase Progres Selesai Fisik (%)</div>
+              <q-input
+                outlined
+                dense
+                v-model.number="formUpdate.progress"
+                type="number"
+                step="0.01"
+                min="0"
+                max="100"
+                placeholder="Contoh: 3.5"
+                suffix="%"
+                input-class="text-weight-black text-indigo-10 text-h6"
+                bg-color="white"
+                :rules="[
+                  (val) => val >= 0 || 'Minimal progres 0%',
+                  (val) => val <= 100 || 'Maksimal progres 100%',
+                ]"
               />
+            </div>
+
+            <!-- HASIL KALKULASI FISIK (RUPIAH) -->
+            <div class="q-pa-md bg-green-1 text-green-10 rounded-borders">
+              <div class="row items-center justify-between">
+                <span class="text-caption text-weight-bold"
+                  >ESTIMASI VALUASI FISIK REALISASI (Rp) :</span
+                >
+                <span class="text-caption font-bold font-mono"
+                  >({{ formUpdate.progress || 0 }}%)</span
+                >
+              </div>
+              <div class="text-h5 text-weight-black q-mt-xs">
+                Rp {{ calculatedValuationNominal.toLocaleString('id-ID') }}
+              </div>
             </div>
           </q-card>
         </q-card-section>
@@ -373,10 +654,14 @@ const searchQuery = ref('')
 const rawProjects = ref([])
 const rawSpks = ref([])
 
-// Dialog State
+// Dialog Update Progres State
 const showUpdateDialog = ref(false)
 const selectedProject = ref(null)
 const formUpdate = ref({ status: 'Perencanaan', progress: 0 })
+
+// NEW STATE: Executive Detail Dialog
+const showDetailDialog = ref(false)
+const selectedProjectDetail = ref(null)
 
 let unsubProyek = null
 let unsubSpk = null
@@ -384,7 +669,7 @@ let unsubSpk = null
 const columns = [
   { name: 'proyek', align: 'left', label: 'IDENTITAS PROYEK', field: 'nama', sortable: true },
   {
-    name: 'timeline',
+    name: 'monitoring_timeline',
     align: 'left',
     label: 'TIMELINE PELAKSANAAN',
     field: 'start_date',
@@ -408,6 +693,19 @@ const columns = [
   { name: 'aksi', align: 'center', label: 'UPDATE', field: 'id' },
 ]
 
+// Real-time calculation nominal Rp pada modal update progres
+const calculatedValuationNominal = computed(() => {
+  const contractValue = selectedProject.value?.total_omzet || 0
+  const pct = Number(formUpdate.value.progress) || 0
+  return Math.round((pct / 100) * contractValue)
+})
+
+// Real-time SPK List yang menyusun valuasi proyek terpilih di detail
+const relatedSpksDetail = computed(() => {
+  if (!selectedProjectDetail.value) return []
+  return rawSpks.value.filter((spk) => spk.projectId === selectedProjectDetail.value.id)
+})
+
 // Fetch Data Real-time
 const fetchData = () => {
   loading.value = true
@@ -428,13 +726,9 @@ const fetchData = () => {
 const combinedProjects = computed(() => {
   return rawProjects.value
     .map((proj) => {
-      // Cari semua SPK yang terkait dengan proyek ini
       const relatedSpks = rawSpks.value.filter((spk) => spk.projectId === proj.id)
-
-      // Kalkulasi Total Omzet
       const totalOmzet = relatedSpks.reduce((sum, spk) => sum + (spk.nilai_total || 0), 0)
 
-      // Cari Tgl Mulai Paling Awal & Tgl Selesai Paling Akhir
       let startDate = null
       let endDate = null
       relatedSpks.forEach((spk) => {
@@ -470,6 +764,11 @@ const countByStatus = (status) => {
 }
 
 // Dialog Logic
+const openDetailDialog = (proj) => {
+  selectedProjectDetail.value = proj
+  showDetailDialog.value = true
+}
+
 const openUpdateDialog = (proj) => {
   selectedProject.value = proj
   formUpdate.value = {
@@ -480,12 +779,18 @@ const openUpdateDialog = (proj) => {
 }
 
 const saveProgress = async () => {
+  if (formUpdate.value.progress < 0 || formUpdate.value.progress > 100) {
+    return $q.notify({
+      type: 'warning',
+      message: 'Input persentase progres harus berada di rentang 0 - 100%',
+    })
+  }
   submitting.value = true
   try {
     const projRef = doc(db, 'proyek', selectedProject.value.id)
     await updateDoc(projRef, {
       status: formUpdate.value.status,
-      progress: formUpdate.value.progress,
+      progress: Number(formUpdate.value.progress),
       updatedAt: serverTimestamp(),
     })
     $q.notify({ type: 'positive', message: 'Kemajuan proyek berhasil diperbarui!' })
@@ -505,6 +810,14 @@ const formatTimeline = (proj) => {
   const startStr = proj.start_date ? proj.start_date.toLocaleDateString('id-ID', formatOpt) : '?'
   const endStr = proj.end_date ? proj.end_date.toLocaleDateString('id-ID', formatOpt) : '?'
   return `${startStr} - ${endStr}`
+}
+
+const getDaysRemaining = (endDate) => {
+  if (!endDate) return 'Belum Diatur'
+  const today = new Date()
+  const diffTime = endDate - today
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+  return diffDays > 0 ? `${diffDays} Hari` : 'Waktu Habis / Selesai'
 }
 
 const formatCompact = (num) => {
@@ -637,5 +950,15 @@ onUnmounted(() => {
 }
 .tracking-widest {
   letter-spacing: 0.15em;
+}
+.border-left-gt-xs {
+  border-left: 1px solid #edf2f7;
+}
+@media (max-width: 600px) {
+  .border-left-gt-xs {
+    border-left: none;
+    border-top: 1px solid #edf2f7;
+    padding-top: 16px;
+  }
 }
 </style>

@@ -124,13 +124,14 @@
                 <tr v-for="(item, index) in form.items" :key="index">
                   <td class="text-center text-grey-6">{{ index + 1 }}</td>
                   <td>
+                    <!-- FIX: Menggunakan Placeholder Dinamis agar hilang ketika barang sudah terpilih -->
                     <q-select
                       dense
                       borderless
                       v-model="item.barang"
                       :options="masterBarang"
                       option-label="nama"
-                      placeholder="Pilih material..."
+                      :placeholder="item.barang ? '' : 'Pilih material...'"
                       use-input
                       @filter="filterMasterBarang"
                       @update:model-value="(val) => onBarangSelect(val, index)"
@@ -317,9 +318,6 @@ const submitRequest = async () => {
       tipe: 'ANTAR_GUDANG',
       status: 'Pending',
 
-      // FIX LOGIKA:
-      // dari_gudang = SUMBER (Gudang yang dikurangi stoknya)
-      // ke_gudang = PENERIMA (Gudang kamu saat ini)
       dari_gudang: {
         id: targetWarehouse.value.id,
         nama: targetWarehouse.value.nama,

@@ -76,7 +76,35 @@
 
           <q-space />
 
-          <div class="col-12 col-md-auto text-right">
+          <!-- EXPORT DROPDOWN & BADGE RECORD -->
+          <div class="col-12 col-md-auto row items-center justify-end q-gutter-sm">
+            <q-btn-dropdown
+              unelevated
+              rounded
+              color="indigo-10"
+              icon="file_download"
+              label="Export Laporan"
+              class="shadow-1 font-bold q-px-md btn-hover"
+            >
+              <q-list style="min-width: 180px">
+                <q-item clickable v-ripple @click="exportHistoryToPDF" class="q-py-md hover-bg">
+                  <q-item-section avatar>
+                    <q-avatar color="red-1" text-color="red-9" icon="picture_as_pdf" size="sm" />
+                  </q-item-section>
+                  <q-item-section class="text-weight-bold text-red-9">Export PDF</q-item-section>
+                </q-item>
+                <q-separator />
+                <q-item clickable v-ripple @click="exportHistoryToExcel" class="q-py-md hover-bg">
+                  <q-item-section avatar>
+                    <q-avatar color="green-1" text-color="green-9" icon="table_view" size="sm" />
+                  </q-item-section>
+                  <q-item-section class="text-weight-bold text-green-9"
+                    >Export Excel</q-item-section
+                  >
+                </q-item>
+              </q-list>
+            </q-btn-dropdown>
+
             <q-badge
               color="indigo-10"
               class="q-px-md q-py-xs text-weight-bold shadow-2 animate-fade"
@@ -144,7 +172,6 @@
               >
                 {{ props.row.nama_barang }}
               </div>
-              <!-- SAKLEK! Tampilkan Kode Item asli dari database -->
               <div class="text-caption text-grey-5 q-mt-xs font-mono uppercase">
                 CODE: {{ props.row.kode_barang || 'MATERIAL' }}
               </div>
@@ -291,7 +318,7 @@
                 </q-card-section>
               </q-card>
 
-              <!-- TABLE ITEM (SAKLEK NARIK KODE BARANG ASLI) -->
+              <!-- TABLE ITEM -->
               <div
                 class="text-h6 text-weight-black text-indigo-10 uppercase q-mb-md flex items-center letter-spacing-1"
               >
@@ -317,7 +344,6 @@
                   <tbody class="text-blue-grey-10">
                     <tr v-for="(it, i) in groupedItems" :key="i">
                       <td class="text-center font-black">{{ i + 1 }}</td>
-                      <!-- SAKLEK! Tampilkan Kode asli hasil sinkronisasi -->
                       <td class="text-weight-bold text-grey-7 font-mono uppercase">
                         {{ it.kode_barang || 'MATERIAL' }}
                       </td>
@@ -341,7 +367,7 @@
                 </q-markup-table>
               </q-card>
 
-              <!-- CATATAN UMUM (DI BAWAH TABEL SESUAI PERMINTAAN BOS) -->
+              <!-- CATATAN UMUM -->
               <div class="q-mb-xl">
                 <q-card flat bordered class="rounded-20 bg-white shadow-sm border-subtle">
                   <q-card-section
@@ -433,7 +459,308 @@
     </q-dialog>
 
     <!-- =============================================================================
-         HIDDEN PDF TEMPLATE (IDENTIK KEMBAR 100% DENGAN BARANG KELUAR)
+         HIDDEN PDF TEMPLATE UNTUK EXPORT LIST LAPORAN BERWARNA
+         ============================================================================= -->
+    <div style="display: none">
+      <div id="history-print-area" class="report-paper">
+        <div
+          class="report-header"
+          style="
+            background: linear-gradient(90deg, #1a237e 0%, #3949ab 100%);
+            padding: 20px;
+            border-radius: 12px;
+            color: white;
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+          "
+        >
+          <div
+            class="report-icon"
+            style="
+              background: rgba(255, 255, 255, 0.2);
+              padding: 12px;
+              border-radius: 8px;
+              margin-right: 15px;
+            "
+          >
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="white"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <path d="M12 18v-6"></path>
+              <path d="M9 15l3 3 3-3"></path>
+            </svg>
+          </div>
+          <div>
+            <h1
+              class="report-title"
+              style="
+                margin: 0;
+                font-size: 24px;
+                font-weight: 900;
+                letter-spacing: 1px;
+                text-transform: uppercase;
+              "
+            >
+              LAPORAN RIWAYAT TRANSAKSI
+            </h1>
+            <div
+              class="report-subtitle"
+              style="font-size: 13px; margin-top: 6px; opacity: 0.9; font-weight: bold"
+            >
+              Gudang:
+              {{ warehouseId === 'UTAMA' ? 'Pusat (Utama)' : warehouseName || 'Semua Lokasi' }} |
+              Filter: {{ typeFilter }} | Diekspor pada: {{ new Date().toLocaleString('id-ID') }}
+            </div>
+          </div>
+        </div>
+
+        <table
+          class="report-table"
+          style="
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            margin-top: 15px;
+            border: 1px solid #1a237e;
+          "
+        >
+          <thead style="display: table-header-group">
+            <tr>
+              <th
+                style="
+                  background-color: #1a237e;
+                  color: white;
+                  padding: 12px 8px;
+                  border: 1px solid #1a237e;
+                  text-align: center;
+                  width: 40px;
+                  font-weight: 900;
+                "
+              >
+                NO
+              </th>
+              <th
+                style="
+                  background-color: #1a237e;
+                  color: white;
+                  padding: 12px 8px;
+                  border: 1px solid #1a237e;
+                  text-align: center;
+                  width: 100px;
+                  font-weight: 900;
+                "
+              >
+                TRANSAKSI
+              </th>
+              <th
+                style="
+                  background-color: #1a237e;
+                  color: white;
+                  padding: 12px 8px;
+                  border: 1px solid #1a237e;
+                  text-align: left;
+                  font-weight: 900;
+                "
+              >
+                IDENTITAS MATERIAL
+              </th>
+              <th
+                style="
+                  background-color: #1a237e;
+                  color: white;
+                  padding: 12px 8px;
+                  border: 1px solid #1a237e;
+                  text-align: center;
+                  width: 80px;
+                  font-weight: 900;
+                "
+              >
+                VOL
+              </th>
+              <th
+                style="
+                  background-color: #1a237e;
+                  color: white;
+                  padding: 12px 8px;
+                  border: 1px solid #1a237e;
+                  text-align: left;
+                  width: 120px;
+                  font-weight: 900;
+                "
+              >
+                WAKTU
+              </th>
+              <th
+                style="
+                  background-color: #1a237e;
+                  color: white;
+                  padding: 12px 8px;
+                  border: 1px solid #1a237e;
+                  text-align: left;
+                  width: 120px;
+                  font-weight: 900;
+                "
+              >
+                REFERENSI
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- FIX ROW POTONGAN: Tambahkan style khusus break-inside avoid di setiap TR -->
+            <tr
+              v-for="(row, idx) in filteredRows"
+              :key="idx"
+              :style="
+                (idx % 2 !== 0 ? 'background-color: #f8f9fa;' : '') +
+                ' page-break-inside: avoid; break-inside: avoid;'
+              "
+              class="pdf-row"
+            >
+              <td
+                style="
+                  padding: 10px 8px;
+                  border: 1px solid #e0e0e0;
+                  text-align: center;
+                  font-weight: bold;
+                "
+              >
+                {{ idx + 1 }}
+              </td>
+              <td
+                style="
+                  padding: 10px 8px;
+                  border: 1px solid #e0e0e0;
+                  text-align: center;
+                  font-weight: 900;
+                  text-transform: uppercase;
+                "
+                :style="
+                  row.tipe === 'MASUK'
+                    ? 'color: #2e7d32;'
+                    : row.tipe === 'KELUAR'
+                      ? 'color: #e65100;'
+                      : 'color: #1a237e;'
+                "
+              >
+                {{ row.tipe }}
+              </td>
+              <td
+                style="
+                  padding: 10px 8px;
+                  border: 1px solid #e0e0e0;
+                  font-weight: 900;
+                  text-transform: uppercase;
+                  color: #222;
+                "
+              >
+                {{ row.nama_barang }}
+                <div
+                  style="
+                    font-size: 10px;
+                    color: #666;
+                    font-family: monospace;
+                    font-weight: normal;
+                    margin-top: 2px;
+                  "
+                >
+                  CODE: {{ row.kode_barang || 'MATERIAL' }}
+                </div>
+              </td>
+              <td
+                style="
+                  padding: 10px 8px;
+                  border: 1px solid #e0e0e0;
+                  text-align: center;
+                  font-weight: 900;
+                  font-size: 14px;
+                "
+                :style="
+                  row.tipe === 'MASUK'
+                    ? 'color: #2e7d32;'
+                    : row.tipe === 'KELUAR'
+                      ? 'color: #e65100;'
+                      : 'color: #1a237e;'
+                "
+              >
+                {{ row.tipe === 'KELUAR' ? '-' : row.tipe === 'MASUK' ? '+' : '' }}{{ row.jumlah }}
+                <div
+                  style="
+                    font-size: 9px;
+                    color: #666;
+                    font-weight: bold;
+                    margin-top: 2px;
+                    text-transform: uppercase;
+                  "
+                >
+                  {{ row.satuan || 'UNIT' }}
+                </div>
+              </td>
+              <td
+                style="padding: 10px 8px; border: 1px solid #e0e0e0; font-weight: bold; color: #444"
+              >
+                {{ formatDate(row.timestamp) }}
+                <div style="font-size: 10px; color: #888; font-weight: normal; margin-top: 2px">
+                  {{ formatTime(row.timestamp) }} WIB
+                </div>
+              </td>
+              <td
+                style="
+                  padding: 10px 8px;
+                  border: 1px solid #e0e0e0;
+                  font-weight: bold;
+                  color: #1a237e;
+                "
+              >
+                {{ row.no_referensi || '-' }}
+                <div style="font-size: 10px; color: #666; font-weight: normal; margin-top: 2px">
+                  SPK: {{ row.no_spk || '-' }}
+                </div>
+              </td>
+            </tr>
+            <tr v-if="filteredRows.length === 0">
+              <td
+                colspan="6"
+                style="
+                  padding: 25px;
+                  border: 1px solid #e0e0e0;
+                  text-align: center;
+                  font-style: italic;
+                  color: #888;
+                "
+              >
+                Tidak ada data riwayat transaksi.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div
+          style="
+            margin-top: 50px;
+            text-align: center;
+            font-size: 10px;
+            color: #888;
+            font-style: italic;
+          "
+        >
+          Dokumen ini di-generate secara otomatis oleh Sistem AGRA ERP.
+        </div>
+      </div>
+    </div>
+
+    <!-- =============================================================================
+         HIDDEN PDF TEMPLATE (RE-PRINT SURAT JALAN / BARANG KELUAR)
          ============================================================================= -->
     <div style="position: absolute; left: -9999px; top: -9999px">
       <div id="sj-reprint-target" class="perfectionist-paper">
@@ -529,7 +856,12 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(it, i) in groupedItems" :key="i">
+            <!-- FIX ROW POTONGAN: Tambahkan style khusus break-inside avoid -->
+            <tr
+              v-for="(it, i) in groupedItems"
+              :key="i"
+              style="page-break-inside: avoid; break-inside: avoid"
+            >
               <td class="text-center font-bold">{{ i + 1 }}</td>
               <td class="text-weight-black uppercase text-left">{{ it.nama_barang }}</td>
               <td class="text-center text-weight-black">{{ it.jumlah }}</td>
@@ -683,6 +1015,120 @@ const formatTime = (ts) => {
   return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
 }
 
+// --- LOGIKA EXPORT PDF & EXCEL UNTUK LIST TABLE BERWARNA ---
+const exportHistoryToPDF = () => {
+  if (filteredRows.value.length === 0) {
+    return $q.notify({ type: 'warning', message: 'Tabel kosong, tidak ada data untuk diekspor.' })
+  }
+
+  $q.loading.show({ message: 'Membuat Laporan PDF Berwarna...' })
+  setTimeout(() => {
+    const element = document.getElementById('history-print-area')
+    const gdgName =
+      warehouseId.value === 'UTAMA' ? 'Utama' : warehouseName.value.replace(/\s+/g, '_') || 'All'
+
+    const opt = {
+      margin: [15, 10, 15, 10], // Margin disesuaikan
+      filename: `Riwayat_Transaksi_${gdgName}_${Date.now()}.pdf`,
+      image: { type: 'jpeg', quality: 1 },
+      html2canvas: { scale: 2.5, useCORS: true, letterRendering: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      // FIX POTONGAN: Tambahkan target spesifik untuk dicegah terpotong
+      pagebreak: { mode: ['css', 'legacy'], avoid: ['tr', '.pdf-row', 'thead'] },
+    }
+
+    html2pdf()
+      .set(opt)
+      .from(element)
+      .save()
+      .then(() => {
+        $q.loading.hide()
+        $q.notify({ type: 'positive', message: 'PDF Laporan Berhasil Diunduh!', position: 'top' })
+      })
+      .catch((err) => {
+        console.error(err)
+        $q.loading.hide()
+      })
+  }, 800)
+}
+
+const exportHistoryToExcel = () => {
+  if (filteredRows.value.length === 0) {
+    return $q.notify({ type: 'warning', message: 'Tabel kosong, tidak ada data untuk diekspor.' })
+  }
+
+  const exportDate = new Date().toLocaleString('id-ID')
+  const gdgName =
+    warehouseId.value === 'UTAMA' ? 'Gudang Utama' : warehouseName.value || 'Semua Lokasi'
+
+  let html = `
+    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+    <head>
+    <meta charset="utf-8" />
+    <style>
+      .table-bordered { border-collapse: collapse; width: 100%; font-family: sans-serif; font-size: 13px; margin-top: 15px; border: 1px solid #1a237e; }
+      .table-bordered th, .table-bordered td { border: 1px solid #dddddd; padding: 12px; }
+      .header-row th { background-color: #1a237e; color: #ffffff; font-weight: bold; text-align: center; text-transform: uppercase; font-size: 12px; border: 1px solid #1a237e; }
+      .title { font-size: 22px; font-weight: bold; color: #1a237e; font-family: sans-serif; text-align: center; letter-spacing: 1px; }
+      .subtitle { font-size: 12px; color: #666666; font-family: sans-serif; text-align: center; margin-bottom: 25px; font-weight: bold; }
+    </style>
+    </head>
+    <body>
+      <div class="title">LAPORAN RIWAYAT TRANSAKSI MATERIAL</div>
+      <div class="subtitle">Lokasi: ${gdgName} | Filter: ${typeFilter.value} | Diekspor pada: ${exportDate}</div>
+      <br/>
+      <table class="table-bordered">
+        <tr class="header-row">
+          <th width="50">NO</th>
+          <th width="120">TRANSAKSI</th>
+          <th width="150">KODE BARANG</th>
+          <th width="300" style="text-align: left;">NAMA MATERIAL</th>
+          <th width="100">VOL (QTY)</th>
+          <th width="100">SATUAN</th>
+          <th width="180">WAKTU TRANSAKSI</th>
+          <th width="200">NO REFERENSI</th>
+          <th width="200">NO SPK</th>
+        </tr>
+  `
+
+  filteredRows.value.forEach((row, idx) => {
+    const bgRow = idx % 2 === 0 ? '#ffffff' : '#f8f9fa'
+    const tipeColor =
+      row.tipe === 'MASUK' ? '#2e7d32' : row.tipe === 'KELUAR' ? '#e65100' : '#1a237e'
+    const prefix = row.tipe === 'MASUK' ? '+' : row.tipe === 'KELUAR' ? '-' : ''
+
+    html += `
+      <tr style="background-color: ${bgRow};">
+        <td align="center" style="font-weight: bold;">${idx + 1}</td>
+        <td align="center" style="font-weight: 900; color: ${tipeColor}; text-transform: uppercase;">${row.tipe}</td>
+        <td align="center" style="font-family: monospace; font-weight: bold; color: #555;">${row.kode_barang || 'MATERIAL'}</td>
+        <td align="left" style="font-weight: 900; text-transform: uppercase; color: #222;">${row.nama_barang}</td>
+        <td align="center" style="font-weight: 900; color: ${tipeColor}; font-size: 15px;">${prefix}${row.jumlah}</td>
+        <td align="center" style="text-transform: uppercase; font-weight: bold; color: #444;">${row.satuan || 'UNIT'}</td>
+        <td align="center" style="font-weight: bold; color: #444;">${formatDate(row.timestamp)} ${formatTime(row.timestamp)}</td>
+        <td align="center" style="font-weight: bold; color: #1a237e;">${row.no_referensi || '-'}</td>
+        <td align="center" style="font-weight: bold; color: #1a237e;">${row.no_spk || '-'}</td>
+      </tr>
+    `
+  })
+
+  html += `
+      </table>
+    </body>
+    </html>
+  `
+
+  const blob = new Blob([html], { type: 'application/vnd.ms-excel' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `Riwayat_Transaksi_${gdgName.replace(/\s+/g, '_')}_${Date.now()}.xls`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
 // --- LOGIKA OPEN DETAIL & FETCH SEMUA ITEM DALAM SATU SJ ---
 const openDetail = async (row) => {
   selectedItem.value = row
@@ -734,6 +1180,7 @@ const exportDetailToPDF = () => {
       scrollY: 0,
     },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['css', 'legacy'], avoid: ['tr', 'thead', 'tbody', '.pdf-row'] },
   }
 
   $q.loading.show({ message: 'Menyiapkan salinan resmi Surat Jalan...' })
@@ -967,5 +1414,27 @@ onMounted(() => {
 }
 .search-input :deep(.q-field__control) {
   border-radius: 30px;
+}
+
+/* HIDDEN EXPORT PDF (LIST) DESIGN */
+.report-paper {
+  font-family: 'Inter', Helvetica, Arial, sans-serif;
+  color: #333;
+  padding: 10px;
+  background: white;
+}
+
+/* FIX ROW PDF TERPOTONG: Beri instruksi paksa css dan hindari page-break */
+.report-table {
+  page-break-inside: auto;
+}
+.report-table tr {
+  page-break-inside: avoid !important;
+  page-break-after: auto !important;
+  break-inside: avoid !important;
+}
+.pdf-row {
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
 }
 </style>

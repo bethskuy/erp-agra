@@ -176,7 +176,10 @@
               <!-- UPLOAD BUKTI DINAMIS -->
               <div class="column q-gutter-y-md">
                 <div class="row items-center justify-between">
-                  <div class="label-req">Bukti Penerimaan (Foto/Dokumen Digital)</div>
+                  <div class="label-req">
+                    Bukti Penerimaan (Foto/Dokumen Digital)
+                    <span class="text-negative">* Wajib</span>
+                  </div>
                   <q-btn
                     flat
                     rounded
@@ -228,7 +231,8 @@
                   </div>
                 </div>
                 <div class="text-caption text-grey-6 italic">
-                  Format: JPG, PNG, atau PDF (Maks. 5MB per file)
+                  Format: JPG, PNG, atau PDF (Maks. 5MB per file) - Wajib menyertakan minimal 1
+                  bukti.
                 </div>
               </div>
 
@@ -406,6 +410,24 @@ const onReferenceDocChange = async (docData) => {
 // --- SUBMIT TRANSACTION: AUTOMATIC STOCK TRANSFER ---
 const simpanTransaksiMasuk = async () => {
   if (form.value.items.length === 0) return
+
+  // =========================================================================
+  // FIX: VALIDASI WAJIB UPLOAD BUKTI PENERIMAAN (SOP ANTI-LUPA)
+  // =========================================================================
+  const hasBukti = buktiFiles.value.some((b) => b.file !== null)
+  if (!hasBukti) {
+    $q.notify({
+      type: 'warning',
+      color: 'orange-10',
+      icon: 'warning',
+      message:
+        'PERINGATAN SOP: Harap upload bukti foto/dokumen penerimaan terlebih dahulu sebelum menyimpan data!',
+      position: 'top',
+      timeout: 3500,
+    })
+    return // Batalkan proses simpan
+  }
+  // =========================================================================
 
   $q.loading.show({ message: 'Memproses mutasi dan mengunggah bukti...' })
   submitting.value = true

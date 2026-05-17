@@ -253,9 +253,20 @@
                 />
                 <div>
                   <div
-                    class="text-weight-bold text-blue-grey-10 text-subtitle2 leading-none q-mb-xs"
+                    class="text-weight-bold text-blue-grey-10 text-subtitle2 leading-none q-mb-xs flex items-center"
                   >
-                    {{ props.row.nomor_invoice }}
+                    <span>{{ props.row.nomor_invoice }}</span>
+                    <!-- NEW BADGE UNTUK INVOICE APPROVED/REJECTED YANG BELUM DIBACA OLEH CREATOR -->
+                    <q-badge
+                      v-if="
+                        (props.row.approval_status === 'Approved' ||
+                          props.row.approval_status === 'Rejected') &&
+                        props.row.creator_read === false
+                      "
+                      color="positive"
+                      class="q-ml-sm animate-bounce"
+                      >BARU</q-badge
+                    >
                   </div>
                   <div class="text-caption text-grey-6 uppercase text-weight-medium">
                     KLIEN:
@@ -358,6 +369,7 @@
          ===================================================================================== -->
     <q-dialog
       v-model="showDialog"
+      persistent
       maximized
       transition-show="slide-up"
       transition-hide="slide-down"
@@ -401,13 +413,14 @@
                     <q-card-section class="q-pa-lg q-gutter-y-md">
                       <div>
                         <div class="label-req q-mb-xs text-primary">TARIK DATA MASTER KLIEN</div>
+                        <!-- PLACEHOLDER DINAMIS: Otomatis hilang jika klien telah terpilih -->
                         <q-select
                           outlined
                           dense
                           v-model="form.customer_ref"
                           :options="optCustomer"
                           option-label="nama"
-                          placeholder="Pilih Klien..."
+                          :placeholder="form.customer_ref ? '' : 'Pilih Klien...'"
                           bg-color="blue-50"
                           clearable
                           use-input
@@ -495,13 +508,14 @@
                           KAITKAN KE PROYEK
                           {{ invoiceType === 'kontrak' ? '(WAJIB UNTUK TARIK BOQ)' : '(OPSIONAL)' }}
                         </div>
+                        <!-- PLACEHOLDER DINAMIS: Otomatis hilang jika proyek telah terpilih -->
                         <q-select
                           outlined
                           dense
                           v-model="form.proyek_ref"
                           :options="optProyek"
                           option-label="nama"
-                          placeholder="Pilih Proyek..."
+                          :placeholder="form.proyek_ref ? '' : 'Pilih Proyek...'"
                           bg-color="blue-50"
                           clearable
                           use-input
@@ -1135,9 +1149,11 @@ import {
   serverTimestamp,
 } from 'firebase/firestore'
 import { useQuasar } from 'quasar'
+import { useAuthStore } from 'src/stores/auth'
 import html2pdf from 'html2pdf.js'
 
 const $q = useQuasar()
+const authStore = useAuthStore()
 
 // State
 const rows = ref([])
@@ -1378,7 +1394,6 @@ const openEditDialog = (row) => {
   isEditMode.value = true
   invoiceType.value = 'manual'
   form.value = { ...JSON.parse(JSON.stringify(row)) }
-  // Compatibility check for old data without 'judul'
   form.value.items.forEach((it) => {
     if (!it.judul) it.judul = it.uraian || ''
     if (!it.deskripsi) it.deskripsi = ''
@@ -1386,9 +1401,29 @@ const openEditDialog = (row) => {
   showDialog.value = true
 }
 
-const openPreviewDialog = (row) => {
+// PENGHAPUSAN NOTIFIKASI READ-RECEIPT KETIKA PREVIEW DIBUKA
+const openPreviewDialog = async (row) => {
   selectedInv.value = row
   showPreview.value = true
+
+  // HILANGKAN BADGE NOTIFIKASI (READ RECEIPT) JIKA INVOICE TELAH DIAPPROVE / REJECTED
+  if (
+    (row.approval_status === 'Approved' || row.approval_status === 'Rejected') &&
+    row.creator_read === false
+  ) {
+    try {
+      await updateDoc(doc(db, 'finance_invoice_customer', row.id), {
+        creator_read: true,
+      })
+      // Update local state instant agar badge langsung lenyap
+      const idx = rows.value.findIndex((item) => item.id === row.id)
+      if (idx !== -1) {
+        rows.value[idx].creator_read = true
+      }
+    } catch (e) {
+      console.error('Gagal memperbarui status baca invoice:', e)
+    }
+  }
 }
 
 // Calculator
@@ -1411,7 +1446,7 @@ const simpanInvoice = async () => {
     })
   }
 
-  $q.loading.show({ message: 'Menyimpan Invoice...' })
+  $q.loading.show({ message: 'Menyiapkan berkas pengiriman...' })
   submitting.value = true
 
   try {
@@ -1436,6 +1471,8 @@ const simpanInvoice = async () => {
       keterangan: form.value.keterangan,
       status: form.value.status || 'Draft',
       updatedAt: serverTimestamp(),
+      creator_id: authStore.user?.uid || authStore.user?.id || '', // TAMBAH DATA CREATOR ID
+      creator_read: false, // RESET STATUS BACA NOTIFIKASI
     }
 
     if (isEditMode.value) {
@@ -1506,21 +1543,16 @@ const getStatusColor = (status) => {
 }
 
 const getDisplayStatus = (row) => {
-  // Jika invoice terkirim dan sudah mendapatkan Approval, tampilkan sebagai "Approved"
   if (row.status === 'Terkirim' && row.approval_status === 'Approved') {
     return { label: 'Approved', bg: 'green-2', text: 'green-9' }
   }
-  // Jika ditolak, tampilkan label Ditolak/Rejected
   if (row.status === 'Draft' && row.approval_status === 'Rejected') {
     return { label: 'Rejected', bg: 'red-2', text: 'red-9' }
   }
-
-  // Jika tidak, tampilkan status asli
   const base = getStatusColor(row.status)
   return { label: row.status, bg: base.bg, text: base.text }
 }
 
-// Algoritma Terbilang Rupiah
 const terbilangRupiah = (angka) => {
   if (!angka) return 'Nol'
   const bilangan = [
@@ -1551,7 +1583,6 @@ const terbilangRupiah = (angka) => {
     return 'Angka terlalu besar'
   }
   let str = bagi(Math.floor(angka)).trim()
-  // Capitalize first letter of each word to match corporate style
   return str
     .split(' ')
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
@@ -1708,7 +1739,7 @@ onUnmounted(() => {
 }
 
 /* =======================================================================
-   PDF PREVIEW STYLES (CLEAN & PROFESSIONAL BLUE INVOICE - REVISI IDENTIK)
+   PDF PREVIEW STYLES (CLEAN & PROFESSIONAL BLUE INVOICE)
    ======================================================================= */
 .letter-paper {
   background: white;
@@ -1751,7 +1782,6 @@ onUnmounted(() => {
   color: #111;
 }
 
-/* Border utilities untuk tabel subtotal */
 .border-left-blue {
   border-left: 1px solid #2b579a !important;
 }
