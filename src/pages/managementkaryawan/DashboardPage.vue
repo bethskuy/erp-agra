@@ -111,36 +111,12 @@
         </q-card>
       </div>
 
-      <!-- MODULE ACCESS QUICK LINKS -->
+      <!-- SIDEBAR INFO & STATUS -->
       <div class="col-12 col-md-4">
-        <q-card flat bordered class="rounded-borders shadow-1 bg-white">
-          <q-card-section>
-            <div class="text-h6 text-weight-bold text-blue-grey-10 q-mb-md">Akses Modul Cepat</div>
-            <q-list class="q-gutter-y-sm">
-              <q-item
-                v-for="mod in moduleLinks"
-                :key="mod.id"
-                clickable
-                v-ripple
-                :to="mod.path"
-                class="rounded-borders border-subtle bg-grey-1 overflow-hidden"
-              >
-                <q-item-section avatar>
-                  <q-icon :name="mod.icon" :color="mod.color" size="24px" />
-                </q-item-section>
-                <q-item-section class="text-weight-medium">{{ mod.name }}</q-item-section>
-                <q-item-section side>
-                  <q-icon name="arrow_forward_ios" size="12px" color="grey-4" />
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-card-section>
-        </q-card>
-
         <!-- INFO SYSTEM CARD -->
         <q-card
           flat
-          class="bg-indigo-10 text-white rounded-borders q-mt-lg shadow-6 overflow-hidden relative-position"
+          class="bg-indigo-10 text-white rounded-borders shadow-6 overflow-hidden relative-position"
         >
           <q-card-section class="q-pa-lg">
             <div class="text-h5 text-weight-bold">Status Server</div>
@@ -167,7 +143,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { db } from 'src/boot/firebase'
 import { collection, query, onSnapshot, where } from 'firebase/firestore'
 import { useAuthStore } from 'src/stores/auth'
@@ -177,7 +153,11 @@ const authStore = useAuthStore()
 const router = useRouter()
 const loading = ref(true)
 const recentUsers = ref([])
-const moduleLinks = ref([])
+
+// State untuk integrasi modul dari IndexPage
+const apps = ref([])
+const userData = ref(null)
+const currentAkses = ref([])
 
 // Inisialisasi Statis Data (akan diupdate oleh Firestore)
 const stats = ref([
@@ -208,11 +188,42 @@ const formatDate = (dateStr) => {
       month: 'short',
       year: 'numeric',
     })
-    // eslint-disable-next-line no-unused-vars
-  } catch (e) {
+  } catch (error) {
+    console.error(error)
     return dateStr
   }
 }
+
+// Logika penyaringan akses modul yang sinkron dengan IndexPage.vue
+const canShow = (app) => {
+  if (!authStore.user) return false
+  if (authStore.user.role === 'Super Admin') return true
+  if (app.aksesKey === 'admin')
+    return authStore.user.role === 'Admin' || authStore.user.role === 'Super Admin'
+  return currentAkses.value.includes(app.aksesKey)
+}
+
+// Fungsi untuk menghitung modul aktif secara unik & realtime
+const updateModulAktifCount = () => {
+  const uniqueMap = new Map()
+  apps.value.forEach((app) => {
+    if (!uniqueMap.has(app.aksesKey)) {
+      uniqueMap.set(app.aksesKey, app)
+    }
+  })
+  const uniqueApps = Array.from(uniqueMap.values())
+  const allowedApps = uniqueApps.filter((app) => canShow(app))
+  stats.value[1].value = allowedApps.length.toString()
+}
+
+// Watcher untuk memperbarui nilai counter Modul Aktif saat data Firestore siap
+watch(
+  [apps, currentAkses],
+  () => {
+    updateModulAktifCount()
+  },
+  { deep: true },
+)
 
 onMounted(() => {
   loading.value = true
@@ -231,7 +242,7 @@ onMounted(() => {
         .sort((a, b) => (b.tglMasuk || '').localeCompare(a.tglMasuk || ''))
         .slice(0, 5)
 
-      // Hitung karyawan yang baru masuk bulan ini (contoh logika sederhana)
+      // Hitung karyawan yang baru masuk bulan ini
       const currentMonth = new Date().toISOString().slice(0, 7)
       const newThisMonth = allData.filter(
         (u) => u.tglMasuk && u.tglMasuk.startsWith(currentMonth),
@@ -244,16 +255,12 @@ onMounted(() => {
   )
   unsubscribers.push(unsubKaryawan)
 
-  // 2. Monitor Koleksi Modul
+  // 2. Monitor Koleksi Modul (Menarik seluruh data mentah modul)
   const qModul = query(collection(db, 'modul'))
   const unsubModul = onSnapshot(
     qModul,
     (snap) => {
-      stats.value[1].value = snap.size.toString()
-      moduleLinks.value = snap.docs.map((d) => ({
-        id: d.id,
-        ...d.data(),
-      }))
+      apps.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
     },
     (err) => {
       console.error('Firestore Error Modul:', err)
@@ -261,7 +268,21 @@ onMounted(() => {
   )
   unsubscribers.push(unsubModul)
 
-  // 3. Monitor Koleksi Penawaran (Pending Approval)
+  // 3. Monitor Koleksi Karyawan Aktif untuk Hak Akses Modul
+  const userEmail = authStore.user?.email
+  if (userEmail) {
+    const qUser = query(collection(db, 'karyawan'), where('email', '==', userEmail))
+    const unsubUser = onSnapshot(qUser, (snapshot) => {
+      if (!snapshot.empty) {
+        const data = snapshot.docs[0].data()
+        userData.value = data
+        currentAkses.value = data.akses || []
+      }
+    })
+    unsubscribers.push(unsubUser)
+  }
+
+  // 4. Monitor Koleksi Penawaran (Pending Approval)
   const qApproval = query(collection(db, 'penawaran'), where('status', '==', 'Pending'))
   const unsubApproval = onSnapshot(
     qApproval,

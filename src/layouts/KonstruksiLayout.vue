@@ -485,31 +485,32 @@
     <q-drawer
       v-model="leftDrawerOpen"
       show-if-above
-      :width="300"
-      class="bg-white custom-sidebar hide-horizontal-scroll"
+      :width="330"
+      class="custom-sidebar hide-horizontal-scroll"
       elevation="2"
     >
       <div class="column fit hide-horizontal-scroll">
+        <!-- USER PROFILE HEADER -->
         <div class="q-pa-lg border-bottom-soft bg-profile-header">
           <div class="row items-center q-gutter-md">
             <q-avatar
-              size="50px"
+              size="54px"
               color="indigo-10"
               text-color="white"
-              class="font-bold text-h6 shadow-1"
+              class="font-bold text-h6 shadow-2 profile-avatar"
             >
               {{ userData?.nama?.charAt(0) || 'A' }}
             </q-avatar>
             <div class="col overflow-hidden">
               <div
-                class="text-weight-bolder text-subtitle1 ellipsis text-indigo-10"
-                style="line-height: 1.2"
+                class="text-weight-bolder text-subtitle1 ellipsis text-white"
+                style="line-height: 1.2; font-size: 15px"
               >
                 {{ userData?.nama || 'Administrator' }}
               </div>
               <div
-                class="text-caption ellipsis text-uppercase tracking-widest text-grey-6 font-bold q-mt-xs"
-                style="font-size: 10px"
+                class="text-caption ellipsis text-uppercase tracking-widest text-cyan font-bold q-mt-xs text-glow"
+                style="font-size: 10px; opacity: 0.95"
               >
                 {{ authStore.user?.role || 'User' }}
               </div>
@@ -517,6 +518,7 @@
           </div>
         </div>
 
+        <!-- MAIN SCROLLABLE MENU -->
         <q-scroll-area
           class="col clean-scroll"
           :thumb-style="thumbStyle"
@@ -550,27 +552,29 @@
                   'master/satuan',
                 ])
               "
-              icon="view_cozy"
+              icon="widgets"
               label="DATA MASTER"
               class="menu-expansion-clean"
               header-class="menu-expansion-header"
-              expand-icon-class="text-blue-grey-4"
+              expand-icon-class="text-cyan-4"
               default-opened
             >
               <q-list>
                 <q-expansion-item
                   v-if="hasSectionAccess(['marketing/customer', 'master/supplier'])"
-                  label="Data Rekanan"
                   header-class="sub-expansion-header"
-                  expand-icon-class="text-blue-grey-4"
+                  expand-icon-class="text-cyan-4"
                   dense
                   class="level-2-expansion"
+                  default-opened
                 >
                   <template v-slot:header>
-                    <q-item-section avatar
-                      ><q-icon name="groups" size="22px" class="icon-sub"
-                    /></q-item-section>
-                    <q-item-section>Data Rekanan</q-item-section>
+                    <q-item-section avatar>
+                      <q-icon name="groups" size="22px" class="icon-sub" />
+                    </q-item-section>
+                    <q-item-section class="text-weight-semibold sub-expansion-title"
+                      >Data Rekanan</q-item-section
+                    >
                   </template>
                   <q-list class="sub-list-container">
                     <q-item
@@ -581,6 +585,9 @@
                       class="level-3-item-clean"
                       active-class="sub-item-active"
                     >
+                      <q-item-section avatar>
+                        <q-icon name="badge" size="18px" />
+                      </q-item-section>
                       <q-item-section class="menu-text">Customer / Klien</q-item-section>
                     </q-item>
                     <q-item
@@ -591,6 +598,9 @@
                       class="level-3-item-clean"
                       active-class="sub-item-active"
                     >
+                      <q-item-section avatar>
+                        <q-icon name="storefront" size="18px" />
+                      </q-item-section>
                       <q-item-section class="menu-text">Data Supplier</q-item-section>
                     </q-item>
                   </q-list>
@@ -604,17 +614,19 @@
                       'master/satuan',
                     ])
                   "
-                  label="Data Barang"
                   header-class="sub-expansion-header"
-                  expand-icon-class="text-blue-grey-4"
+                  expand-icon-class="text-cyan-4"
                   dense
                   class="level-2-expansion"
+                  default-opened
                 >
                   <template v-slot:header>
-                    <q-item-section avatar
-                      ><q-icon name="inventory_2" size="22px" class="icon-sub"
-                    /></q-item-section>
-                    <q-item-section>Data Barang</q-item-section>
+                    <q-item-section avatar>
+                      <q-icon name="inventory_2" size="22px" class="icon-sub" />
+                    </q-item-section>
+                    <q-item-section class="text-weight-semibold sub-expansion-title"
+                      >Data Barang</q-item-section
+                    >
                   </template>
                   <q-list class="sub-list-container">
                     <q-item
@@ -625,6 +637,9 @@
                       class="level-3-item-clean"
                       active-class="sub-item-active"
                     >
+                      <q-item-section avatar>
+                        <q-icon name="category" size="18px" />
+                      </q-item-section>
                       <q-item-section class="menu-text">List Barang</q-item-section>
                     </q-item>
                     <q-item
@@ -635,6 +650,9 @@
                       class="level-3-item-clean"
                       active-class="sub-item-active"
                     >
+                      <q-item-section avatar>
+                        <q-icon name="layers" size="18px" />
+                      </q-item-section>
                       <q-item-section class="menu-text">Kategori Barang</q-item-section>
                     </q-item>
                     <q-item
@@ -645,6 +663,9 @@
                       class="level-3-item-clean"
                       active-class="sub-item-active"
                     >
+                      <q-item-section avatar>
+                        <q-icon name="straighten" size="18px" />
+                      </q-item-section>
                       <q-item-section class="menu-text">Data Satuan</q-item-section>
                     </q-item>
                   </q-list>
@@ -652,7 +673,7 @@
               </q-list>
             </q-expansion-item>
 
-            <q-separator inset class="bg-grey-2 q-my-md border-separator" />
+            <q-separator inset class="bg-grey-9 q-my-md border-separator" />
 
             <div class="sidebar-section-title">OPERASIONAL</div>
 
@@ -668,7 +689,7 @@
               label="MARKETING"
               class="menu-expansion-clean"
               header-class="menu-expansion-header"
-              expand-icon-class="text-blue-grey-4"
+              expand-icon-class="text-cyan-4"
             >
               <q-list class="q-pb-sm">
                 <q-item
@@ -679,9 +700,9 @@
                   class="level-2-item-clean"
                   active-class="sub-item-active"
                 >
-                  <q-item-section avatar
-                    ><q-icon name="calculate" size="22px" class="icon-sub"
-                  /></q-item-section>
+                  <q-item-section avatar>
+                    <q-icon name="calculate" size="20px" class="icon-sub" />
+                  </q-item-section>
                   <q-item-section class="menu-text">Analisa AHSP</q-item-section>
                 </q-item>
 
@@ -693,9 +714,9 @@
                   class="level-2-item-clean"
                   active-class="sub-item-active"
                 >
-                  <q-item-section avatar
-                    ><q-icon name="request_quote" size="22px" class="icon-sub"
-                  /></q-item-section>
+                  <q-item-section avatar>
+                    <q-icon name="request_quote" size="20px" class="icon-sub" />
+                  </q-item-section>
                   <q-item-section class="menu-text">Penawaran</q-item-section>
 
                   <q-item-section
@@ -731,9 +752,9 @@
                   class="level-2-item-clean"
                   active-class="sub-item-active"
                 >
-                  <q-item-section avatar
-                    ><q-icon name="fact_check" size="22px" class="icon-sub"
-                  /></q-item-section>
+                  <q-item-section avatar>
+                    <q-icon name="fact_check" size="20px" class="icon-sub" />
+                  </q-item-section>
                   <q-item-section class="menu-text">Approval Penawaran</q-item-section>
                   <q-item-section side v-if="pendingApprovalCount > 0">
                     <q-badge
@@ -755,11 +776,11 @@
                   'master/proyek-kategori',
                 ])
               "
-              icon="foundation"
+              icon="construction"
               label="PROYEK"
               class="menu-expansion-clean"
               header-class="menu-expansion-header"
-              expand-icon-class="text-blue-grey-4"
+              expand-icon-class="text-cyan-4"
             >
               <q-list class="q-pb-sm">
                 <q-item
@@ -770,9 +791,9 @@
                   class="level-2-item-clean"
                   active-class="sub-item-active"
                 >
-                  <q-item-section avatar
-                    ><q-icon name="apartment" size="22px" class="icon-sub"
-                  /></q-item-section>
+                  <q-item-section avatar>
+                    <q-icon name="apartment" size="20px" class="icon-sub" />
+                  </q-item-section>
                   <q-item-section class="menu-text">Data Proyek</q-item-section>
                 </q-item>
 
@@ -784,9 +805,9 @@
                   class="level-2-item-clean"
                   active-class="sub-item-active"
                 >
-                  <q-item-section avatar
-                    ><q-icon name="monitor" size="22px" class="icon-sub"
-                  /></q-item-section>
+                  <q-item-section avatar>
+                    <q-icon name="monitor" size="20px" class="icon-sub" />
+                  </q-item-section>
                   <q-item-section class="menu-text">Monitoring Proyek</q-item-section>
                 </q-item>
 
@@ -798,9 +819,9 @@
                   class="level-2-item-clean"
                   active-class="sub-item-active"
                 >
-                  <q-item-section avatar
-                    ><q-icon name="account_tree" size="22px" class="icon-sub"
-                  /></q-item-section>
+                  <q-item-section avatar>
+                    <q-icon name="account_tree" size="20px" class="icon-sub" />
+                  </q-item-section>
                   <q-item-section class="menu-text">Kategori Proyek</q-item-section>
                 </q-item>
               </q-list>
@@ -815,7 +836,7 @@
               class="menu-item-clean"
               active-class="menu-item-active"
             >
-              <q-item-section avatar><q-icon name="warehouse" size="24px" /></q-item-section>
+              <q-item-section avatar><q-icon name="warehouse" size="22px" /></q-item-section>
               <q-item-section class="menu-text">GUDANG & LOGISTIK</q-item-section>
               <q-item-section
                 side
@@ -878,7 +899,7 @@
               label="PEMBELIAN"
               class="menu-expansion-clean"
               header-class="menu-expansion-header"
-              expand-icon-class="text-blue-grey-4"
+              expand-icon-class="text-cyan-4"
             >
               <q-list class="q-pb-sm">
                 <q-item
@@ -888,9 +909,9 @@
                   class="level-2-item-clean"
                   active-class="sub-item-active"
                 >
-                  <q-item-section avatar
-                    ><q-icon name="receipt_long" size="22px" class="icon-sub"
-                  /></q-item-section>
+                  <q-item-section avatar>
+                    <q-icon name="receipt_long" size="20px" class="icon-sub" />
+                  </q-item-section>
                   <q-item-section class="menu-text">Pesanan Pembelian</q-item-section>
                   <q-item-section side v-if="pendingPrCount > 0">
                     <div class="row items-center q-gutter-x-xs">
@@ -906,6 +927,7 @@
               </q-list>
             </q-expansion-item>
 
+            <!-- MENU FINANCE -->
             <q-expansion-item
               v-if="
                 hasSectionAccess([
@@ -924,11 +946,11 @@
               label="FINANCE"
               class="menu-expansion-clean"
               header-class="menu-expansion-header"
-              expand-icon-class="text-blue-grey-4"
+              expand-icon-class="text-cyan-4"
               default-opened
             >
               <q-list class="q-pb-sm">
-                <!-- MENU PEMBUATAN INVOICE (DENGAN BADGES UNTUK CREATOR) -->
+                <!-- MENU PEMBUATAN INVOICE -->
                 <q-item
                   v-if="checkPermission('finance/invoice')"
                   clickable
@@ -937,9 +959,9 @@
                   class="level-2-item-clean"
                   active-class="sub-item-active"
                 >
-                  <q-item-section avatar
-                    ><q-icon name="receipt_long" size="22px" class="icon-sub"
-                  /></q-item-section>
+                  <q-item-section avatar>
+                    <q-icon name="post_add" size="20px" class="icon-sub" />
+                  </q-item-section>
                   <q-item-section class="menu-text">Pembuatan Invoice</q-item-section>
                   <q-item-section side v-if="approvedInvoiceCount > 0 || rejectedInvoiceCount > 0">
                     <div class="row items-center q-gutter-x-xs">
@@ -967,7 +989,7 @@
                   </q-item-section>
                 </q-item>
 
-                <!-- MENU APPROVAL INVOICE (DENGAN BADGE UNTUK PENDING) -->
+                <!-- MENU APPROVAL INVOICE -->
                 <q-item
                   v-if="checkPermission('finance/approval-invoice')"
                   clickable
@@ -976,9 +998,9 @@
                   class="level-2-item-clean"
                   active-class="sub-item-active"
                 >
-                  <q-item-section avatar
-                    ><q-icon name="fact_check" size="22px" class="icon-sub"
-                  /></q-item-section>
+                  <q-item-section avatar>
+                    <q-icon name="assignment_turned_in" size="20px" class="icon-sub" />
+                  </q-item-section>
                   <q-item-section class="menu-text">Approval Invoice</q-item-section>
                   <q-item-section side v-if="pendingInvoiceApprovalCount > 0">
                     <q-badge
@@ -991,7 +1013,7 @@
                   </q-item-section>
                 </q-item>
 
-                <!-- MONITORING TAGIHAN (DENGAN BADGE JATUH TEMPO REALTIME) -->
+                <!-- MONITORING TAGIHAN -->
                 <q-item
                   v-if="checkPermission('finance/tagihan')"
                   clickable
@@ -1000,9 +1022,9 @@
                   class="level-2-item-clean"
                   active-class="sub-item-active"
                 >
-                  <q-item-section avatar
-                    ><q-icon name="receipt" size="22px" class="icon-sub"
-                  /></q-item-section>
+                  <q-item-section avatar>
+                    <q-icon name="notifications_active" size="20px" class="icon-sub" />
+                  </q-item-section>
                   <q-item-section class="menu-text">Monitoring Tagihan</q-item-section>
                   <q-item-section side v-if="overdueInvoiceCount > 0">
                     <q-badge
@@ -1017,6 +1039,7 @@
                   </q-item-section>
                 </q-item>
 
+                <!-- TAGIHAN SUPPLIER -->
                 <q-item
                   v-if="checkPermission('finance/tagihan-supplier')"
                   clickable
@@ -1025,13 +1048,13 @@
                   class="level-2-item-clean"
                   active-class="sub-item-active"
                 >
-                  <q-item-section avatar
-                    ><q-icon name="list_alt" size="22px" class="icon-sub"
-                  /></q-item-section>
+                  <q-item-section avatar>
+                    <q-icon name="list_alt" size="20px" class="icon-sub" />
+                  </q-item-section>
                   <q-item-section class="menu-text">Tagihan Supplier</q-item-section>
                 </q-item>
 
-                <!-- NEW: PENGAJUAN PEMBAYARAN (MENERIMA BADGE APPROVED DANA BARU) -->
+                <!-- PENGAJUAN PEMBAYARAN -->
                 <q-item
                   v-if="checkPermission('finance/pembayaran')"
                   clickable
@@ -1040,9 +1063,9 @@
                   class="level-2-item-clean"
                   active-class="sub-item-active"
                 >
-                  <q-item-section avatar
-                    ><q-icon name="payments" size="22px" class="icon-sub"
-                  /></q-item-section>
+                  <q-item-section avatar>
+                    <q-icon name="payments" size="20px" class="icon-sub" />
+                  </q-item-section>
                   <q-item-section class="menu-text">Pengajuan Pembayaran</q-item-section>
                   <q-item-section side v-if="approvedPaymentRequestCount > 0">
                     <q-badge
@@ -1057,7 +1080,7 @@
                   </q-item-section>
                 </q-item>
 
-                <!-- NEW: APPROVAL PEMBAYARAN (MENERIMA BADGE PENDING BARU & REALISASI SELESAI) -->
+                <!-- APPROVAL PEMBAYARAN -->
                 <q-item
                   v-if="checkPermission('finance/approval-pembayaran')"
                   clickable
@@ -1066,9 +1089,9 @@
                   class="level-2-item-clean"
                   active-class="sub-item-active"
                 >
-                  <q-item-section avatar
-                    ><q-icon name="gavel" size="22px" class="icon-sub"
-                  /></q-item-section>
+                  <q-item-section avatar>
+                    <q-icon name="gavel" size="20px" class="icon-sub" />
+                  </q-item-section>
                   <q-item-section class="menu-text">Approval Pembayaran</q-item-section>
                   <q-item-section
                     side
@@ -1097,7 +1120,7 @@
                   </q-item-section>
                 </q-item>
 
-                <!-- NEW: REALISASI PEMBAYARAN (MENERIMA BADGE ANTRIAN DANA DISETUJUI / SIAP CAIR) -->
+                <!-- REALISASI PEMBAYARAN -->
                 <q-item
                   v-if="checkPermission('finance/realisasi-pembayaran')"
                   clickable
@@ -1106,9 +1129,9 @@
                   class="level-2-item-clean"
                   active-class="sub-item-active"
                 >
-                  <q-item-section avatar
-                    ><q-icon name="price_check" size="22px" class="icon-sub"
-                  /></q-item-section>
+                  <q-item-section avatar>
+                    <q-icon name="price_check" size="20px" class="icon-sub" />
+                  </q-item-section>
                   <q-item-section class="menu-text">Realisasi Pembayaran</q-item-section>
                   <q-item-section side v-if="approvedPaymentRealizationCount > 0">
                     <q-badge
@@ -1122,6 +1145,7 @@
                   </q-item-section>
                 </q-item>
 
+                <!-- MONITORING PENGELUARAN -->
                 <q-item
                   v-if="checkPermission('finance/pengeluaran')"
                   clickable
@@ -1130,12 +1154,13 @@
                   class="level-2-item-clean"
                   active-class="sub-item-active"
                 >
-                  <q-item-section avatar
-                    ><q-icon name="trending_down" size="22px" class="icon-sub"
-                  /></q-item-section>
+                  <q-item-section avatar>
+                    <q-icon name="trending_down" size="20px" class="icon-sub" />
+                  </q-item-section>
                   <q-item-section class="menu-text">Monitoring Pengeluaran</q-item-section>
                 </q-item>
 
+                <!-- MONITORING BALANSHEET -->
                 <q-item
                   v-if="checkPermission('finance/balansheet')"
                   clickable
@@ -1144,9 +1169,9 @@
                   class="level-2-item-clean special-green-item q-mt-sm"
                   active-class="sub-menu-item-active-green"
                 >
-                  <q-item-section avatar
-                    ><q-icon name="account_balance" size="22px" class="icon-sub"
-                  /></q-item-section>
+                  <q-item-section avatar>
+                    <q-icon name="account_balance" size="20px" class="icon-sub" />
+                  </q-item-section>
                   <q-item-section class="menu-text">Monitoring Balansheet</q-item-section>
                 </q-item>
               </q-list>
@@ -1155,6 +1180,20 @@
             <div style="height: 120px"></div>
           </q-list>
         </q-scroll-area>
+
+        <!-- STICKY BOTTOM LOGOUT BUTTON -->
+        <div class="q-pa-md border-top-soft bg-transparent text-center">
+          <q-btn
+            unelevated
+            class="full-width logout-btn rounded-12 text-weight-bolder"
+            color="red-1"
+            text-color="red-10"
+            icon="logout"
+            label="Keluar Sistem"
+            no-caps
+            @click="handleLogout"
+          />
+        </div>
       </div>
     </q-drawer>
 
@@ -1248,9 +1287,9 @@ const totalNotifCount = computed(() => {
 const thumbStyle = {
   right: '2px',
   borderRadius: '4px',
-  backgroundColor: '#cbd5e1',
+  backgroundColor: '#38bdf8',
   width: '5px',
-  opacity: 0.75,
+  opacity: 0.5,
 }
 
 const filteredUniqueApps = computed(() => {
@@ -1523,139 +1562,289 @@ onUnmounted(() => {
   border-radius: 16px;
 }
 
-/* ================== SIDEBAR STYLING (CORPORATE CLEAN) ================== */
-.bg-profile-header {
-  background-color: #f4f6fc;
-  border-bottom: 1px solid #edf2f7;
+/* ================== FORCE ROYAL BLUE DARK THEME ON SIDEBAR (MEMAKSA WARNA SESUAI GAMBAR) ================== */
+/* CSS specificity tinggi untuk memaksa Quasar Drawer agar menggunakan warna biru royal pekat */
+.custom-sidebar,
+:deep(.q-drawer),
+:deep(.q-drawer__content),
+:deep(.q-navigation-deck) {
+  background: linear-gradient(
+    180deg,
+    #11237a 0%,
+    #07103a 100%
+  ) !important; /* Warna Biru Royal Utama dari Gambar */
+  color: #e2e8f0 !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
-.custom-sidebar {
-  border-right: 1px solid #edf2f7;
+
+.bg-profile-header {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.01) 100%
+  ) !important;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(10px);
+}
+
+.profile-avatar {
+  border: 2px solid #00f2fe;
+  box-shadow: 0 0 15px rgba(0, 242, 254, 0.35);
+}
+
+.text-glow {
+  text-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
 }
 
 .sidebar-section-title {
   font-size: 11px;
   font-weight: 800;
-  color: #9aa0ac;
-  letter-spacing: 1.5px;
-  margin: 16px 0 8px 24px;
+  color: #38bdf8 !important; /* Biru Turquoise Terang */
+  letter-spacing: 2px;
+  margin: 22px 0 10px 24px;
+  text-shadow: 0 0 8px rgba(56, 189, 248, 0.25);
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  &::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #00f2fe;
+    margin-right: 8px;
+    box-shadow: 0 0 8px #00f2fe;
+  }
 }
 
 .menu-text {
   font-weight: 600;
-  letter-spacing: 0.3px;
-}
-.icon-sub {
-  color: #64748b;
+  letter-spacing: 0.1px;
 }
 
-.menu-item-clean,
-.menu-expansion-clean {
-  color: #344767;
-  margin: 2px 12px;
-  border-radius: 8px;
-  transition: all 0.3s ease;
+.icon-sub {
+  color: #38bdf8 !important; /* Turquoise Icons */
+}
+
+/* ITEM MENU LEVEL 1 & 2 UTAMA - SEKARANG BERKONTRAST TINGGI DI ATAS BG GELAP */
+.menu-item-clean {
+  color: #cbd5e1 !important; /* Teks abu-abu terang sangat terbaca */
+  margin: 6px 14px;
+  border-radius: 10px;
+  min-height: 48px;
+  padding: 8px 16px;
+  background-color: rgba(255, 255, 255, 0.03) !important; /* Frosted Glass Semi Transparan */
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  backdrop-filter: blur(12px);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+  :deep(.q-icon) {
+    color: #38bdf8 !important;
+    transition: color 0.25s ease;
+  }
 
   &:hover {
-    background-color: #f1f5f9;
-    color: #1a237e;
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    color: #ffffff !important;
+    transform: translateX(4px);
+    border-color: rgba(0, 242, 254, 0.4) !important;
+    box-shadow: 0 4px 15px rgba(0, 242, 254, 0.1) !important;
+
+    :deep(.q-icon) {
+      color: #00f2fe !important;
+    }
   }
 }
 
-.menu-item-clean {
-  min-height: 48px;
-}
-
 .menu-item-active {
-  background-color: #f1f5f9 !important;
-  color: #1a237e !important;
+  background: linear-gradient(
+    135deg,
+    #00f2fe 0%,
+    #0066ff 100%
+  ) !important; /* Pilar Gradient Cyan Active */
+  color: #ffffff !important;
   font-weight: 800 !important;
-  border-left: 4px solid #1a237e;
-  border-radius: 0 8px 8px 0;
+  border: none !important;
+  box-shadow: 0 8px 24px rgba(0, 242, 254, 0.35) !important;
 
-  .q-icon {
-    color: #1a237e !important;
+  :deep(.q-icon) {
+    color: #ffffff !important;
   }
   .menu-text {
     font-weight: 800;
   }
 }
 
+/* EXPANSION MENU OVERHAUL - KARTU GLASS GELAP UNTUK KATEGORI UTAMA */
 .menu-expansion-clean {
+  background-color: rgba(255, 255, 255, 0.03) !important;
+  border-radius: 10px;
+  margin: 6px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  backdrop-filter: blur(12px);
+  transition: all 0.3s ease;
+
   :deep(.q-item) {
-    border-radius: 8px;
+    border-radius: 10px;
     min-height: 48px;
-    transition: all 0.2s ease;
+    color: #cbd5e1 !important; /* Memperbaiki warna header agar kontras tinggi */
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
+
+  :deep(.q-item__section--avatar .q-icon) {
+    color: #38bdf8 !important;
+  }
+
   :deep(.q-item:hover) {
-    background-color: #f1f5f9;
-    color: #1a237e;
+    background-color: rgba(255, 255, 255, 0.07) !important;
+    color: #ffffff !important;
+    transform: translateX(3px);
+    .q-item__section--avatar .q-icon {
+      color: #00f2fe !important;
+    }
+  }
+
+  &.q-expansion-item--expanded {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(0, 242, 254, 0.25) !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2) !important;
   }
 }
 
 .menu-expansion-header {
   font-size: 14px;
   font-weight: 700;
+  color: #ffffff !important; /* Warna judul card putih tebal */
+  text-shadow: 0 0 6px rgba(255, 255, 255, 0.1);
 }
+
 .sub-expansion-header {
   font-size: 13.5px;
   font-weight: 600;
-  color: #475569;
+  color: #e2e8f0 !important; /* Terbaca jelas */
 }
 
+.sub-expansion-title {
+  color: #e2e8f0 !important; /* Pastikan teks sub-expansion tidak hilang */
+}
+
+/* LEVEL 2 & LEVEL 3 ITEMS */
 .level-2-expansion {
   margin-bottom: 2px;
   :deep(.q-item) {
     min-height: 44px;
     border-radius: 8px;
+    color: #cbd5e1 !important;
   }
 }
 
 .level-2-item-clean {
   border-radius: 8px;
-  margin: 2px 8px 2px 16px;
+  margin: 3px 10px 3px 20px;
   min-height: 42px;
   font-size: 13.5px;
-  color: #475569;
-  transition: all 0.2s ease;
+  color: #cbd5e1 !important; /* Dipastikan sangat terbaca */
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+  .icon-sub {
+    color: #38bdf8 !important;
+  }
 
   &:hover {
-    background-color: #f1f5f9;
-    color: #1a237e;
+    background-color: rgba(255, 255, 255, 0.07) !important;
+    color: #00f2fe !important;
+    transform: translateX(4px);
+    .icon-sub {
+      color: #00f2fe !important;
+    }
   }
 }
 
 .level-3-item-clean {
   border-radius: 8px;
-  margin: 2px 8px 2px 32px;
+  margin: 3px 10px 3px 36px;
   min-height: 38px;
   font-size: 13px;
-  color: #475569;
-  transition: all 0.2s ease;
+  color: #cbd5e1 !important; /* Menghilangkan efek washed-out */
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+  :deep(.q-icon) {
+    color: #38bdf8 !important; /* Menghidupkan icon agar tidak redup */
+    margin-right: 8px;
+    transition: color 0.25s ease;
+  }
 
   &:hover {
-    background-color: #f1f5f9;
-    color: #1a237e;
+    background-color: rgba(255, 255, 255, 0.07) !important;
+    color: #00f2fe !important;
+    transform: translateX(4px);
+    :deep(.q-icon) {
+      color: #00f2fe !important;
+    }
   }
 }
 
 .sub-item-active {
-  background-color: #f4f6fc !important;
-  color: #1a237e !important;
-  font-weight: 800 !important;
+  background-color: rgba(0, 242, 254, 0.12) !important; /* Kapsul Aktif Neon Cyan */
+  color: #00f2fe !important;
+  font-weight: 700 !important;
+  border: 1px solid rgba(0, 242, 254, 0.4) !important;
   border-radius: 8px;
 
-  .q-icon {
-    color: #1a237e !important;
+  :deep(.q-icon),
+  .icon-sub {
+    color: #00f2fe !important;
     opacity: 1;
+    text-shadow: 0 0 8px rgba(0, 242, 254, 0.6);
   }
   .menu-text {
-    font-weight: 800;
+    font-weight: 700;
+  }
+
+  &:hover {
+    background-color: rgba(0, 242, 254, 0.18) !important;
+    color: #00f2fe !important;
   }
 }
 
 .sub-list-container {
   padding-left: 0;
   border-left: none;
+}
+
+/* ================== PREMIUM LOGOUT BUTTON ================== */
+.border-top-soft {
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.bg-slate-50 {
+  background-color: transparent !important;
+}
+
+.logout-btn {
+  font-weight: 700;
+  font-size: 13.5px;
+  background-color: rgba(239, 68, 68, 0.08) !important; /* Frosted Crimson Glass */
+  border: 1px dashed rgba(239, 68, 68, 0.35) !important;
+  color: #f87171 !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 10px 0;
+
+  &:hover {
+    background-color: #ef4444 !important; /* Menyala Merah Solid Saat Hover */
+    color: #ffffff !important;
+    border-style: solid;
+    border-color: #ef4444 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.25) !important;
+  }
+  &:active {
+    transform: translateY(0);
+  }
 }
 
 /* ================== NOTIF DROPDOWN ================== */
@@ -1685,29 +1874,41 @@ onUnmounted(() => {
 
 /* ================== KELAS KHUSUS BALANSHEET ================== */
 .special-green-item {
-  background-color: #f0fdf4 !important;
-  color: #2e7d32 !important;
+  background-color: rgba(34, 197, 94, 0.05) !important;
+  color: #4ade80 !important;
+  border: 1px solid rgba(34, 197, 94, 0.15) !important;
   border-radius: 8px;
 
-  .q-icon {
-    color: #2e7d32 !important;
+  :deep(.q-icon) {
+    color: #4ade80 !important;
     opacity: 1;
   }
 
   &:hover {
-    background-color: #e8f5e9 !important;
+    background-color: rgba(34, 197, 94, 0.12) !important;
+    color: #22c55e !important;
+    border-color: rgba(34, 197, 94, 0.4) !important;
+    :deep(.q-icon) {
+      color: #22c55e !important;
+    }
   }
 }
 
 .sub-menu-item-active-green {
-  background-color: #e8f5e9 !important;
-  color: #1b5e20 !important;
+  background: linear-gradient(135deg, #22c55e 0%, #15803d 100%) !important;
+  color: #ffffff !important;
   font-weight: 800 !important;
+  border: none !important;
+  box-shadow: 0 8px 24px rgba(34, 197, 94, 0.3) !important;
+
+  :deep(.q-icon) {
+    color: #ffffff !important;
+  }
 }
 
 .border-separator {
   height: 1px;
-  background-color: #edf2f7;
+  background-color: rgba(255, 255, 255, 0.06) !important;
 }
 
 /* HIDE SCROLLBAR CSS UNTUK SIDEBAR */
