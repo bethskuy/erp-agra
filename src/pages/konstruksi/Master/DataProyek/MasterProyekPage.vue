@@ -1,871 +1,1023 @@
 <template>
   <q-page class="bg-grey-2 q-pa-md q-pa-md-lg font-pro">
-    <!-- VIEW 1: DAFTAR PROYEK UTAMA -->
-    <div v-if="viewMode === 'list'" class="animate-fade">
-      <div class="row items-center justify-between q-mb-xl">
-        <div class="col">
-          <div class="text-h4 text-weight-bolder text-indigo-10 leading-tight">
-            Manajemen Proyek
-            <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
-              >Daftar Kontrak & Pekerjaan Aktif</span
-            >
+    <!-- =====================================================================================
+         SCREEN 1: LOCK SCREEN JIKA TIDAK MEMILIKI AKSES LIHAT
+         ===================================================================================== -->
+    <template v-if="!canAction('lihat')">
+      <div
+        class="row flex-center q-pa-xl text-center font-pro animate-fade"
+        style="min-height: 70vh"
+      >
+        <div
+          class="col-12 col-sm-8 col-md-6 bg-white q-pa-xl rounded-20 shadow-premium border-indigo-thin"
+        >
+          <q-avatar size="100px" color="red-1" text-color="red-10" icon="lock" class="q-mb-md" />
+          <div class="text-h5 text-weight-bold text-blue-grey-10 q-mb-xs">Akses Terbatas</div>
+          <div class="text-body2 text-grey-7 q-mb-lg leading-relaxed">
+            Maaf, Anda tidak memiliki izin untuk melihat modul Manajemen Proyek. Silakan hubungi
+            Administrator atau Super Admin untuk konfigurasi hak akses Anda.
           </div>
-          <div class="text-subtitle1 text-grey-7 q-mt-sm">
-            Monitoring seluruh portofolio proyek konstruksi PT AGRA secara terpusat.
-          </div>
-        </div>
-        <div class="col-auto">
           <q-btn
-            unelevated
+            label="Kembali ke Beranda"
             color="indigo-10"
-            icon="add_circle"
-            label="Buat Proyek Baru"
-            class="q-px-lg q-py-sm shadow-premium btn-hover rounded-20"
-            @click="openAddDialog"
+            icon="arrow_back"
+            rounded
+            unelevated
+            no-caps
+            @click="$router.push('/')"
           />
         </div>
       </div>
+    </template>
 
-      <!-- SEARCH & SUMMARY CARD -->
-      <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white">
-        <q-card-section class="q-py-md">
-          <div class="row items-center q-col-gutter-md">
-            <div class="col-12 col-md-5">
-              <q-input
-                v-model="filter"
-                outlined
-                dense
-                rounded
-                placeholder="Cari Nama Proyek atau Klien..."
-                bg-color="white"
-                class="search-input"
+    <template v-else>
+      <!-- =====================================================================================
+           VIEW 1: DAFTAR PROYEK UTAMA
+           ===================================================================================== -->
+      <div v-if="viewMode === 'list'" class="animate-fade">
+        <div class="row items-center justify-between q-mb-xl">
+          <div class="col">
+            <div class="text-h4 text-weight-bolder text-indigo-10 leading-tight">
+              Manajemen Proyek
+              <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
+                >Daftar Kontrak & Pekerjaan Aktif</span
               >
-                <template v-slot:prepend>
-                  <q-icon name="search" color="primary" />
-                </template>
-                <template v-slot:append v-if="filter">
-                  <q-icon name="close" @click="filter = ''" class="cursor-pointer" />
-                </template>
-              </q-input>
             </div>
-            <q-space />
-            <div class="col-12 col-md-auto text-caption text-grey-6">
-              Total Proyek:
-              <span class="text-weight-bold text-indigo-10">{{ rows.length }} Record</span>
+            <div class="text-subtitle1 text-grey-7 q-mt-sm">
+              Monitoring seluruh portofolio proyek konstruksi PT AGRA secara terpusat.
             </div>
           </div>
-        </q-card-section>
-      </q-card>
+          <div class="col-auto">
+            <q-btn
+              v-if="canAction('buat')"
+              unelevated
+              color="indigo-10"
+              icon="add_circle"
+              label="Buat Proyek Baru"
+              class="q-px-lg q-py-sm shadow-premium btn-hover rounded-20"
+              @click="openAddDialog"
+            />
+          </div>
+        </div>
 
-      <q-card flat bordered class="rounded-20 shadow-sm overflow-hidden bg-white">
-        <q-table
-          :rows="rows"
-          :columns="columns"
-          row-key="id"
+        <!-- SEARCH & SUMMARY CARD -->
+        <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white">
+          <q-card-section class="q-py-md">
+            <div class="row items-center q-col-gutter-md">
+              <div class="col-12 col-md-5">
+                <q-input
+                  v-model="filter"
+                  outlined
+                  dense
+                  rounded
+                  placeholder="Cari Nama Proyek atau Klien..."
+                  bg-color="white"
+                  class="search-input"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="search" color="primary" />
+                  </template>
+                  <template v-slot:append v-if="filter">
+                    <q-icon name="close" @click="filter = ''" class="cursor-pointer" />
+                  </template>
+                </q-input>
+              </div>
+              <q-space />
+              <div class="col-12 col-md-auto text-caption text-grey-6">
+                Total Proyek:
+                <span class="text-weight-bold text-indigo-10">{{ rows.length }} Record</span>
+              </div>
+            </div>
+          </q-card-section>
+        </q-card>
+
+        <q-card
           flat
-          :loading="loading"
-          :filter="filter"
-          binary-state-sort
-          class="proyek-table"
+          bordered
+          class="rounded-20 shadow-sm overflow-hidden bg-white border-indigo-thin"
         >
-          <!-- Custom Header -->
-          <template v-slot:header="props">
-            <q-tr :props="props" class="bg-indigo-10 text-white">
-              <q-th
-                v-for="col in props.cols"
-                :key="col.name"
-                :props="props"
-                class="text-weight-bold"
-              >
-                {{ col.label }}
-              </q-th>
-            </q-tr>
-          </template>
+          <q-table
+            :rows="rows"
+            :columns="columns"
+            row-key="id"
+            flat
+            :loading="loading"
+            :filter="filter"
+            binary-state-sort
+            class="proyek-table"
+          >
+            <!-- Custom Header -->
+            <template v-slot:header="props">
+              <q-tr :props="props" class="bg-indigo-10 text-white">
+                <q-th
+                  v-for="col in props.cols"
+                  :key="col.name"
+                  :props="props"
+                  class="text-weight-bold"
+                >
+                  {{ col.label }}
+                </q-th>
+              </q-tr>
+            </template>
 
-          <template v-slot:body="props">
-            <q-tr
-              :props="props"
-              class="hover-bg transition-all cursor-pointer"
-              @click="showProjectDetail(null, props.row)"
-            >
-              <q-td key="nama">
-                <div class="row items-center no-wrap">
-                  <q-avatar
-                    size="36px"
-                    color="indigo-1"
-                    text-color="indigo-10"
-                    icon="foundation"
-                    class="q-mr-md shadow-sm"
-                  />
-                  <div class="text-weight-bold text-subtitle1 text-blue-grey-10">
-                    {{ props.row.nama }}
+            <template v-slot:body="props">
+              <q-tr
+                :props="props"
+                class="hover-bg transition-all cursor-pointer"
+                @click="showProjectDetail(null, props.row)"
+              >
+                <q-td key="nama">
+                  <div class="row items-center no-wrap">
+                    <q-avatar
+                      size="36px"
+                      color="indigo-1"
+                      text-color="indigo-10"
+                      icon="foundation"
+                      class="q-mr-md shadow-sm"
+                    />
+                    <div class="text-weight-bold text-subtitle1 text-blue-grey-10">
+                      {{ props.row.nama }}
+                    </div>
                   </div>
-                </div>
-              </q-td>
-              <q-td key="customer" class="text-blue-grey-9 text-weight-medium text-uppercase">
-                {{ props.row.konsumen || '-' }}
-              </q-td>
-              <q-td key="total_kontrak" class="text-right">
-                <div class="text-weight-bolder text-primary text-subtitle1">
-                  Rp {{ formatMoney(props.row.total_omzet || 0) }}
-                </div>
-              </q-td>
-              <q-td key="aksi" class="text-center" @click.stop>
-                <div class="row justify-center q-gutter-xs">
-                  <q-btn
-                    flat
-                    round
-                    color="blue-8"
-                    icon="edit_note"
-                    size="sm"
-                    @click="openEditDialog(props.row)"
-                  >
-                    <q-tooltip>Edit Identitas</q-tooltip>
-                  </q-btn>
-                  <q-btn
-                    flat
-                    round
-                    color="negative"
-                    icon="delete_sweep"
-                    size="sm"
-                    @click="hapusProyek(props.row)"
-                  >
-                    <q-tooltip>Hapus Proyek</q-tooltip>
-                  </q-btn>
-                  <q-btn
-                    flat
-                    round
-                    color="grey-6"
-                    icon="chevron_right"
-                    size="sm"
-                    @click="showProjectDetail(null, props.row)"
-                  />
-                </div>
-              </q-td>
-            </q-tr>
-          </template>
+                </q-td>
+                <q-td key="customer" class="text-blue-grey-9 text-weight-medium text-uppercase">
+                  {{ props.row.konsumen || '-' }}
+                </q-td>
+                <q-td key="total_kontrak" class="text-right">
+                  <div class="text-weight-bolder text-primary text-subtitle1">
+                    Rp {{ formatMoney(props.row.total_omzet || 0) }}
+                  </div>
+                </q-td>
+                <q-td key="aksi" class="text-center" @click.stop>
+                  <div class="row justify-center q-gutter-xs">
+                    <q-btn
+                      v-if="canAction('ubah')"
+                      flat
+                      round
+                      color="blue-8"
+                      icon="edit_note"
+                      size="sm"
+                      @click="openEditDialog(props.row)"
+                    >
+                      <q-tooltip>Edit Identitas</q-tooltip>
+                    </q-btn>
+                    <q-btn
+                      v-if="canAction('hapus')"
+                      flat
+                      round
+                      color="negative"
+                      icon="delete_sweep"
+                      size="sm"
+                      @click="hapusProyek(props.row)"
+                    >
+                      <q-tooltip>Hapus Proyek</q-tooltip>
+                    </q-btn>
+                    <q-btn
+                      flat
+                      round
+                      color="grey-6"
+                      icon="chevron_right"
+                      size="sm"
+                      @click="showProjectDetail(null, props.row)"
+                    />
+                  </div>
+                </q-td>
+              </q-tr>
+            </template>
 
-          <template v-slot:no-data>
-            <div class="full-width row flex-center q-pa-xl text-grey-5">
-              <q-icon name="architecture" size="64px" class="q-mb-md" />
-              <div class="text-h6 full-width text-center">Belum ada proyek yang terdaftar</div>
-            </div>
-          </template>
-        </q-table>
-      </q-card>
-    </div>
-
-    <!-- VIEW 2: DETAIL PROYEK & LIST SPK -->
-    <div v-else-if="viewMode === 'detail' && currentProject" class="animate-fade">
-      <div class="row items-center q-mb-lg">
-        <q-btn
-          flat
-          round
-          icon="arrow_back"
-          color="indigo-10"
-          @click="viewMode = 'list'"
-          class="q-mr-md bg-white shadow-1"
-        />
-        <div class="col">
-          <div class="text-h5 text-weight-bolder text-indigo-10 uppercase letter-spacing-1">
-            Dashboard Proyek
-          </div>
-          <div class="text-caption text-grey-7">{{ currentProject.nama }}</div>
-        </div>
+            <template v-slot:no-data>
+              <div class="full-width row flex-center q-pa-xl text-grey-5">
+                <q-icon name="architecture" size="64px" class="q-mb-md" />
+                <div class="text-h6 full-width text-center">Belum ada proyek yang terdaftar</div>
+              </div>
+            </template>
+          </q-table>
+        </q-card>
       </div>
 
-      <!-- Project Quick Cards -->
-      <q-card
-        flat
-        bordered
-        class="bg-white rounded-20 shadow-premium q-mb-xl overflow-hidden border-indigo-thin"
-      >
-        <div class="row divider-container">
-          <div class="col-12 col-md-4 q-pa-xl border-right-sep text-center">
-            <div class="text-overline text-grey-6 text-bold tracking-widest">KLIEN / KONSUMEN</div>
-            <div class="text-h5 text-indigo-10 text-weight-bolder text-uppercase q-mt-sm">
-              {{ currentProject.konsumen || '-' }}
-            </div>
-          </div>
-          <div class="col-12 col-md-4 q-pa-xl border-right-sep text-center bg-indigo-1">
-            <div class="text-overline text-indigo-10 text-bold tracking-widest">
-              REALISASI OMZET
-            </div>
-            <div class="text-h4 text-primary text-weight-black q-mt-sm">
-              Rp {{ formatMoney(currentProject.total_omzet || 0) }}
-            </div>
-          </div>
-          <div class="col-12 col-md-4 q-pa-xl text-center">
-            <div class="text-overline text-grey-6 text-bold tracking-widest">LOKASI PENGERJAAN</div>
-            <div class="text-body1 text-weight-bold text-blue-grey-9 q-mt-sm leading-relaxed">
-              {{ currentProject.alamat || 'Lokasi belum diatur' }}
-            </div>
-          </div>
-        </div>
-      </q-card>
-
-      <div class="row items-center justify-between q-mb-md">
-        <div
-          class="text-h6 text-indigo-10 text-weight-bold uppercase letter-spacing-1 flex items-center"
-        >
-          <q-icon name="contract" class="q-mr-sm" /> Kontrak & SPK Terkait
-        </div>
-        <q-btn
-          unelevated
-          color="indigo-10"
-          icon="add_box"
-          label="TAMBAHKAN KONTRAK"
-          @click="openAddSpkDialog"
-          class="rounded-20 q-px-lg text-weight-bold shadow-2"
-        />
-      </div>
-
-      <q-card flat bordered class="rounded-20 shadow-sm overflow-hidden bg-white">
-        <q-table :rows="listSpkProject" :columns="spkColumns" flat class="spk-table-premium">
-          <template v-slot:header="props">
-            <q-tr :props="props" class="bg-blue-grey-10 text-white">
-              <q-th
-                v-for="col in props.cols"
-                :key="col.name"
-                :props="props"
-                class="text-weight-bold"
-                >{{ col.label }}</q-th
-              >
-            </q-tr>
-          </template>
-
-          <template v-slot:body="props">
-            <q-tr
-              :props="props"
-              class="hover-bg transition-all cursor-pointer"
-              @click="showSpkDetail(null, props.row)"
-            >
-              <q-td key="no_spk">
-                <div class="text-weight-bold text-primary text-subtitle1">
-                  {{ props.row.nomor_spk }}
-                </div>
-                <div class="text-caption text-grey-7 uppercase text-weight-medium">
-                  {{ props.row.nama_kontrak }}
-                </div>
-              </q-td>
-              <q-td key="nilai" class="text-right">
-                <div class="text-weight-black text-indigo-10 text-h6">
-                  Rp {{ formatMoney(props.row.nilai_total) }}
-                </div>
-              </q-td>
-              <q-td key="aksi" class="text-center" @click.stop>
-                <div class="row justify-center q-gutter-sm">
-                  <q-btn
-                    flat
-                    round
-                    color="blue-8"
-                    icon="edit"
-                    size="sm"
-                    @click="editSpk(props.row)"
-                  />
-                  <q-btn
-                    flat
-                    round
-                    color="negative"
-                    icon="delete_outline"
-                    size="sm"
-                    @click="confirmDeleteSpk(props.row)"
-                  />
-                  <q-btn
-                    flat
-                    round
-                    color="indigo-10"
-                    icon="analytics"
-                    size="sm"
-                    @click="showSpkDetail(null, props.row)"
-                  >
-                    <q-tooltip>Lihat RAB & Margin</q-tooltip>
-                  </q-btn>
-                </div>
-              </q-td>
-            </q-tr>
-          </template>
-        </q-table>
-      </q-card>
-    </div>
-
-    <!-- VIEW 3: DETAIL SPK (BOQ, RAB, BALANCE SHEET) -->
-    <div v-else-if="viewMode === 'spk_detail' && currentSpk" class="animate-fade">
-      <div class="row items-center justify-between q-mb-lg">
-        <div class="row items-center">
+      <!-- =====================================================================================
+           VIEW 2: DETAIL PROYEK & LIST SPK
+           ===================================================================================== -->
+      <div v-else-if="viewMode === 'detail' && currentProject" class="animate-fade">
+        <div class="row items-center q-mb-lg">
           <q-btn
             flat
             round
             icon="arrow_back"
             color="indigo-10"
-            @click="viewMode = 'detail'"
+            @click="viewMode = 'list'"
             class="q-mr-md bg-white shadow-1"
           />
-          <div>
-            <div class="text-h5 text-weight-black text-indigo-10 uppercase letter-spacing-1">
-              Data Teknis Kontrak
+          <div class="col">
+            <div class="text-h5 text-weight-bolder text-indigo-10 uppercase letter-spacing-1">
+              Dashboard Proyek
             </div>
-            <div class="text-subtitle1 text-grey-7">
-              {{ currentSpk.nomor_spk }} • {{ currentSpk.nama_kontrak }}
-            </div>
+            <div class="text-caption text-grey-7">{{ currentProject.nama }}</div>
           </div>
         </div>
-        <q-btn
-          unelevated
-          color="positive"
-          icon="save"
-          label="SIMPAN PERUBAHAN"
-          :loading="savingRab"
-          @click="saveRabModal"
-          class="rounded-20 q-px-xl text-weight-bold shadow-4"
-        />
+
+        <!-- Project Quick Cards -->
+        <q-card
+          flat
+          bordered
+          class="bg-white rounded-20 shadow-premium q-mb-xl overflow-hidden border-indigo-thin"
+        >
+          <div class="row divider-container">
+            <div class="col-12 col-md-4 q-pa-xl border-right-sep text-center">
+              <div class="text-overline text-grey-6 text-bold tracking-widest">
+                KLIEN / KONSUMEN
+              </div>
+              <div class="text-h5 text-indigo-10 text-weight-bolder text-uppercase q-mt-sm">
+                {{ currentProject.konsumen || '-' }}
+              </div>
+            </div>
+            <div class="col-12 col-md-4 q-pa-xl border-right-sep text-center bg-indigo-1">
+              <div class="text-overline text-indigo-10 text-bold tracking-widest">
+                REALISASI OMZET
+              </div>
+              <div class="text-h4 text-primary text-weight-black q-mt-sm">
+                Rp {{ formatMoney(currentProject.total_omzet || 0) }}
+              </div>
+            </div>
+            <div class="col-12 col-md-4 q-pa-xl text-center">
+              <div class="text-overline text-grey-6 text-bold tracking-widest">
+                LOKASI PENGERJAAN
+              </div>
+              <div class="text-body1 text-weight-bold text-blue-grey-9 q-mt-sm leading-relaxed">
+                {{ currentProject.alamat || 'Lokasi belum diatur' }}
+              </div>
+            </div>
+          </div>
+        </q-card>
+
+        <div class="row items-center justify-between q-mb-md">
+          <div
+            class="text-h6 text-indigo-10 text-weight-bold uppercase letter-spacing-1 flex items-center"
+          >
+            <q-icon name="contract" class="q-mr-sm" /> Kontrak & SPK Terkait
+          </div>
+          <q-btn
+            v-if="canAction('buat')"
+            unelevated
+            color="indigo-10"
+            icon="add_box"
+            label="TAMBAHKAN KONTRAK"
+            @click="openAddSpkDialog"
+            class="rounded-20 q-px-lg text-weight-bold shadow-2"
+          />
+        </div>
+
+        <q-card
+          flat
+          bordered
+          class="rounded-20 shadow-sm overflow-hidden bg-white border-indigo-thin"
+        >
+          <q-table :rows="listSpkProject" :columns="spkColumns" flat class="spk-table-premium">
+            <template v-slot:header="props">
+              <q-tr :props="props" class="bg-blue-grey-10 text-white">
+                <q-th
+                  v-for="col in props.cols"
+                  :key="col.name"
+                  :props="props"
+                  class="text-weight-bold"
+                  >{{ col.label }}</q-th
+                >
+              </q-tr>
+            </template>
+
+            <template v-slot:body="props">
+              <q-tr
+                :props="props"
+                class="hover-bg transition-all cursor-pointer"
+                @click="showSpkDetail(null, props.row)"
+              >
+                <q-td key="no_spk">
+                  <div class="row items-center q-gutter-x-sm">
+                    <span class="text-weight-bold text-primary text-subtitle1">
+                      {{ props.row.nomor_spk }}
+                    </span>
+                    <q-badge
+                      v-if="props.row.status === 'Approved'"
+                      color="positive"
+                      class="text-weight-bold"
+                    >
+                      APPROVED
+                    </q-badge>
+                  </div>
+                  <div class="text-caption text-grey-7 uppercase text-weight-medium">
+                    {{ props.row.nama_kontrak }}
+                  </div>
+                </q-td>
+                <q-td key="nilai" class="text-right">
+                  <div class="text-weight-black text-indigo-10 text-h6">
+                    Rp {{ formatMoney(props.row.nilai_total) }}
+                  </div>
+                </q-td>
+                <q-td key="aksi" class="text-center" @click.stop>
+                  <div class="row justify-center q-gutter-xs">
+                    <q-btn
+                      v-if="canAction('ubah')"
+                      flat
+                      round
+                      color="blue-8"
+                      icon="edit"
+                      size="sm"
+                      @click="editSpk(props.row)"
+                    />
+                    <q-btn
+                      v-if="canAction('hapus')"
+                      flat
+                      round
+                      color="negative"
+                      icon="delete_outline"
+                      size="sm"
+                      @click="confirmDeleteSpk(props.row)"
+                    />
+                    <q-btn
+                      flat
+                      round
+                      color="indigo-10"
+                      icon="analytics"
+                      size="sm"
+                      @click="showSpkDetail(null, props.row)"
+                    >
+                      <q-tooltip>Lihat RAB & Margin</q-tooltip>
+                    </q-btn>
+                  </div>
+                </q-td>
+              </q-tr>
+            </template>
+          </q-table>
+        </q-card>
       </div>
 
-      <!-- SPK Info Bar -->
-      <q-card
-        flat
-        bordered
-        class="q-mb-lg bg-white rounded-20 shadow-sm border-indigo-thin overflow-hidden"
-      >
-        <q-card-section class="row q-col-gutter-lg q-pa-lg">
-          <div class="col-12 col-md-3 border-right-sep">
-            <div class="text-overline text-grey-6 text-bold">REFERENSI</div>
-            <div class="text-subtitle1 text-bold text-blue-grey-10">{{ currentSpk.nomor_spk }}</div>
-            <div class="text-caption text-indigo-8 q-mt-xs">
-              Ref Quot: {{ currentSpk.no_quotation || '-' }}
-            </div>
-          </div>
-          <div class="col-12 col-md-3 border-right-sep">
-            <div class="text-overline text-grey-6 text-bold">DURASI KONTRAK</div>
-            <div class="text-subtitle1 text-primary text-bold">{{ currentSpk.durasi || '-' }}</div>
-            <div class="text-caption text-grey-7">
-              {{ currentSpk.tgl_mulai }} s/d {{ currentSpk.tgl_akhir }}
-            </div>
-          </div>
-          <div class="col-12 col-md-6 flex items-center justify-end">
-            <div class="text-right q-mr-lg">
-              <div class="text-overline text-grey-6 text-bold">DOKUMEN LAMPIRAN</div>
-              <div v-if="currentSpk.documents?.length" class="row q-gutter-xs q-mt-xs justify-end">
-                <q-btn
-                  v-for="(doc, dIdx) in currentSpk.documents"
-                  :key="dIdx"
-                  unelevated
-                  color="indigo-1"
-                  text-color="indigo-10"
-                  size="sm"
-                  icon="description"
-                  :label="doc.label"
-                  @click="openInternalPreview(doc.url)"
-                  rounded
-                />
-              </div>
-              <div v-else class="text-caption text-grey-5 italic">Tidak ada lampiran</div>
-            </div>
-          </div>
-        </q-card-section>
-      </q-card>
-
-      <!-- TECHNICAL TABS -->
-      <q-card flat bordered class="rounded-20 bg-white shadow-10 overflow-hidden">
-        <q-tabs
-          v-model="activeTab"
-          dense
-          class="bg-indigo-10 text-white"
-          active-color="white"
-          indicator-color="orange-9"
-          align="left"
-          inline-label
-          style="height: 60px"
+      <!-- =====================================================================================
+           VIEW 3: DETAIL SPK (BOQ, RAB, BALANCE SHEET)
+           ===================================================================================== -->
+      <div v-else-if="viewMode === 'spk_detail' && currentSpk" class="animate-fade">
+        <!-- APPROVED LOCK BANNER -->
+        <div
+          v-if="currentSpk.status === 'Approved'"
+          class="q-mb-md q-pa-md bg-positive text-white rounded-20 flex items-center shadow-sm"
         >
-          <q-tab
-            name="boq"
-            label="1. Bill of Quantity (BOQ)"
-            icon="format_list_numbered"
-            class="q-px-xl"
-          />
-          <q-tab name="budget" label="2. Analisa Modal (RAB)" icon="engineering" class="q-px-xl" />
-          <q-tab name="margin" label="3. Profit & Loss Analysis" icon="insights" class="q-px-xl" />
-        </q-tabs>
+          <q-icon name="verified" size="sm" class="q-mr-md" />
+          <div class="text-weight-bold">
+            Kontrak & Analisa Harga Unit ini telah disetujui (Approved) secara resmi oleh Manajemen.
+            Seluruh perubahan dikunci.
+          </div>
+        </div>
 
-        <q-tab-panels v-model="activeTab" animated class="bg-grey-1">
-          <!-- PANEL BOQ -->
-          <q-tab-panel name="boq" class="q-pa-lg">
-            <div
-              v-for="(group, gIdx) in currentSpk.groups"
-              :key="gIdx"
-              class="q-mb-xl bg-white rounded-20 shadow-sm border-indigo overflow-hidden"
-            >
-              <q-toolbar class="bg-indigo-10 text-white q-py-sm">
-                <q-icon name="list" class="q-mr-md" />
-                <q-input
-                  dark
-                  borderless
-                  dense
-                  v-model="group.title"
-                  class="text-bold text-h6 col"
-                  placeholder="Input Nama Pekerjaan Utama..."
-                />
-                <q-btn
-                  flat
-                  round
-                  icon="delete_outline"
-                  color="red-3"
-                  size="sm"
-                  @click="currentSpk.groups.splice(gIdx, 1)"
-                />
-              </q-toolbar>
-
-              <q-markup-table flat bordered separator="cell" class="excel-grid-blue">
-                <thead>
-                  <tr class="bg-indigo-1 text-indigo-10 text-center uppercase">
-                    <th width="40">H</th>
-                    <th width="50">NO</th>
-                    <th class="text-left">URAIAN PEKERJAAN</th>
-                    <th width="80">VOL</th>
-                    <th width="80">SAT</th>
-                    <th width="150">HARGA JUAL</th>
-                    <th width="180">TOTAL JUAL</th>
-                    <th width="50"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr
-                    v-for="(item, iIdx) in group.items"
-                    :key="iIdx"
-                    :class="item.is_header ? 'bg-indigo-50' : ''"
-                  >
-                    <td class="text-center">
-                      <q-checkbox
-                        v-model="item.is_header"
-                        dense
-                        size="xs"
-                        color="indigo"
-                        @update:model-value="handleBoqHeaderToggle(item)"
-                      />
-                    </td>
-                    <td class="text-center text-grey-6">{{ iIdx + 1 }}</td>
-                    <td class="no-padding">
-                      <q-input
-                        borderless
-                        dense
-                        v-model="item.deskripsi"
-                        class="q-px-md"
-                        :input-class="
-                          item.is_header ? 'text-bold text-indigo-10 text-subtitle2' : ''
-                        "
-                        placeholder="Input rincian item..."
-                      />
-                    </td>
-                    <td class="no-padding">
-                      <q-input
-                        borderless
-                        dense
-                        v-model.number="item.volume"
-                        type="number"
-                        class="text-center"
-                        :disable="item.is_header"
-                      />
-                    </td>
-                    <td class="no-padding">
-                      <q-input
-                        borderless
-                        dense
-                        v-model="item.satuan"
-                        class="text-center uppercase"
-                        :disable="item.is_header"
-                      />
-                    </td>
-                    <td class="no-padding">
-                      <q-input
-                        borderless
-                        dense
-                        v-model.number="item.harga_satuan"
-                        type="number"
-                        class="text-right q-px-md text-weight-bold"
-                        :disable="item.is_header"
-                      />
-                    </td>
-                    <td class="text-right text-weight-bolder text-indigo-10 q-px-md">
-                      Rp {{ formatMoney(item.volume * item.harga_satuan) }}
-                    </td>
-                    <td class="text-center">
-                      <q-btn
-                        flat
-                        round
-                        color="negative"
-                        icon="remove_circle_outline"
-                        size="xs"
-                        @click="group.items.splice(iIdx, 1)"
-                      />
-                    </td>
-                  </tr>
-                </tbody>
-              </q-markup-table>
-              <q-btn
-                flat
-                color="indigo"
-                icon="add"
-                label="TAMBAH RINCIAN BARIS"
-                @click="
-                  group.items.push({
-                    deskripsi: '',
-                    volume: 1,
-                    satuan: 'ls',
-                    harga_satuan: 0,
-                    rab_modal: [],
-                  })
-                "
-                class="full-width bg-indigo-1 text-weight-bold"
-              />
-            </div>
+        <div class="row items-center justify-between q-mb-lg">
+          <div class="row items-center">
             <q-btn
-              unelevated
+              flat
+              round
+              icon="arrow_back"
               color="indigo-10"
-              icon="add_circle"
-              label="TAMBAHKAN KATEGORI PEKERJAAN BARU"
-              @click="addTableGroup(currentSpk)"
-              class="full-width q-py-lg rounded-20 text-weight-black shadow-3"
+              @click="viewMode = 'detail'"
+              class="q-mr-md bg-white shadow-1"
             />
-            <div class="q-mt-xl q-pa-xl bg-indigo-10 text-white rounded-20 text-right shadow-10">
-              <div class="text-overline opacity-80 uppercase tracking-widest">
-                Grand Total Kontrak
+            <div>
+              <div class="text-h5 text-weight-black text-indigo-10 uppercase letter-spacing-1">
+                Data Teknis Kontrak
               </div>
-              <div class="text-h3 text-weight-black">
-                Rp {{ formatMoney(calculateGrandTotalJual(currentSpk)) }}
-              </div>
-            </div>
-          </q-tab-panel>
-
-          <!-- PANEL BUDGET RAB -->
-          <q-tab-panel name="budget" class="q-pa-lg">
-            <div
-              v-for="(group, gIdx) in currentSpk.groups"
-              :key="'r-' + gIdx"
-              class="q-mb-xl bg-white rounded-20 shadow-sm border-orange overflow-hidden"
-            >
-              <q-toolbar class="bg-orange-10 text-white q-py-sm">
-                <q-icon name="calculate" class="q-mr-md" />
-                <div class="text-h6 text-weight-black uppercase">
-                  {{ group.title }} (ANALISA MODAL)
-                </div>
-              </q-toolbar>
-
-              <q-markup-table flat bordered separator="cell" class="excel-grid-orange">
-                <thead>
-                  <tr class="bg-orange-10 text-white text-center">
-                    <th rowspan="2" width="50">NO</th>
-                    <th rowspan="2">URAIAN MODAL & SUMBER DAYA</th>
-                    <th colspan="7">RAB VOLUME & PERHITUNGAN</th>
-                    <th rowspan="2" width="160">ESTIMASI TOTAL</th>
-                  </tr>
-                  <tr class="bg-orange-9 text-white text-caption">
-                    <th width="70">UNIT</th>
-                    <th width="50">SAT</th>
-                    <th width="70">PMK</th>
-                    <th width="50">SAT</th>
-                    <th width="70">DUR</th>
-                    <th width="50">SAT</th>
-                    <th width="130">HARGA SAT</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <template v-for="(item, iIdx) in group.items" :key="'ri-' + iIdx">
-                    <tr :class="item.is_header ? 'bg-orange-2' : 'bg-orange-1'">
-                      <td class="text-center font-bold">{{ iIdx + 1 }}</td>
-                      <td class="q-px-md text-weight-black uppercase text-blue-grey-10">
-                        {{ item.deskripsi }}
-                      </td>
-                      <td colspan="8" class="text-right q-px-lg">
-                        <span class="text-caption text-orange-10 text-bold uppercase q-mr-sm"
-                          >Modal Item:</span
-                        >
-                        <span class="text-h6 text-weight-black text-dark"
-                          >Rp {{ formatMoney(sumRabPerItem(item)) }}</span
-                        >
-                      </td>
-                    </tr>
-                    <template v-if="!item.is_header">
-                      <tr v-for="(rab, rIdx) in item.rab_modal" :key="'rm-' + rIdx">
-                        <td></td>
-                        <td class="no-padding">
-                          <q-input
-                            borderless
-                            dense
-                            v-model="rab.kebutuhan"
-                            class="q-px-xl"
-                            placeholder="Uraian kebutuhan modal (ex: Upah, Material...)"
-                          />
-                        </td>
-                        <td class="no-padding text-center">
-                          <q-input
-                            borderless
-                            dense
-                            v-model.number="rab.unit"
-                            type="number"
-                            input-class="text-center"
-                          />
-                        </td>
-                        <td class="no-padding text-center">
-                          <q-input
-                            borderless
-                            dense
-                            v-model="rab.sat_unit"
-                            input-class="text-center uppercase"
-                          />
-                        </td>
-                        <td class="no-padding text-center">
-                          <q-input
-                            borderless
-                            dense
-                            v-model.number="rab.pemakaian"
-                            type="number"
-                            input-class="text-center"
-                          />
-                        </td>
-                        <td class="no-padding text-center">
-                          <q-input
-                            borderless
-                            dense
-                            v-model="rab.sat_pmk"
-                            input-class="text-center"
-                          />
-                        </td>
-                        <td class="no-padding text-center">
-                          <q-input
-                            borderless
-                            dense
-                            v-model.number="rab.durasi"
-                            type="number"
-                            input-class="text-center"
-                          />
-                        </td>
-                        <td class="no-padding text-center">
-                          <q-input
-                            borderless
-                            dense
-                            v-model="rab.sat_dur"
-                            input-class="text-center"
-                          />
-                        </td>
-                        <td class="no-padding">
-                          <q-input
-                            borderless
-                            dense
-                            v-model.number="rab.harga"
-                            type="number"
-                            class="text-right q-px-md font-bold"
-                            prefix="Rp"
-                          />
-                        </td>
-                        <td class="text-right q-px-md bg-grey-1 text-weight-bolder">
-                          <div class="row no-wrap items-center justify-end">
-                            <span>Rp {{ formatMoney(sumRabRowTotal(rab)) }}</span>
-                            <q-btn
-                              flat
-                              round
-                              color="negative"
-                              icon="close"
-                              size="xs"
-                              class="q-ml-sm"
-                              @click="item.rab_modal.splice(rIdx, 1)"
-                            />
-                          </div>
-                        </td>
-                      </tr>
-                      <tr class="bg-white">
-                        <td></td>
-                        <td colspan="9">
-                          <q-btn
-                            flat
-                            color="orange-10"
-                            icon="add"
-                            label="TAMBAH RINCIAN MODAL"
-                            size="sm"
-                            @click="addRabRowComplex(item)"
-                            class="text-weight-bold"
-                          />
-                        </td>
-                      </tr>
-                    </template>
-                  </template>
-                </tbody>
-              </q-markup-table>
-            </div>
-            <div class="q-pa-xl bg-orange-10 text-white rounded-20 text-right shadow-10">
-              <div class="text-overline opacity-80 uppercase tracking-widest">
-                Total Biaya Produksi (Modal)
-              </div>
-              <div class="text-h3 text-weight-black">
-                Rp {{ formatMoney(calculateGrandTotalModal(currentSpk)) }}
+              <div class="text-subtitle1 text-grey-7">
+                {{ currentSpk.nomor_spk }} • {{ currentSpk.nama_kontrak }}
               </div>
             </div>
-          </q-tab-panel>
+          </div>
 
-          <!-- PANEL MARGIN & BALANCE SHEET -->
-          <q-tab-panel name="margin" class="q-pa-lg">
-            <div class="row q-col-gutter-xl q-mb-xl">
-              <div class="col-12 col-md-4">
-                <q-card flat class="balance-prestige-card bg-white shadow-2">
-                  <div class="card-accent-bar bg-indigo-10"></div>
-                  <q-card-section class="q-pa-xl">
-                    <div class="text-overline text-indigo-10 text-bold uppercase tracking-widest">
-                      Revenue (Harga Jual)
-                    </div>
-                    <div class="text-h4 text-weight-black text-dark q-mt-sm">
-                      Rp {{ formatMoney(calculateGrandTotalJual(currentSpk)) }}
-                    </div>
-                  </q-card-section>
-                </q-card>
+          <div class="row items-center">
+            <!-- Approval Controls (setuju Permission) -->
+            <q-btn
+              v-if="canAction('setuju') && currentSpk.status !== 'Approved'"
+              unelevated
+              color="positive"
+              icon="check_circle"
+              label="SETUJUI KONTRAK"
+              @click="handleApproveSpk('Approved')"
+              class="rounded-20 q-px-lg text-weight-bold shadow-4 q-mr-sm"
+            />
+            <q-btn
+              v-if="canAction('setuju') && currentSpk.status === 'Approved'"
+              unelevated
+              color="warning"
+              icon="undo"
+              label="BATALKAN SETUJU"
+              @click="handleApproveSpk('Pending')"
+              class="rounded-20 q-px-lg text-weight-bold shadow-4 q-mr-sm"
+            />
+
+            <q-btn
+              v-if="isEditable"
+              unelevated
+              color="positive"
+              icon="save"
+              label="SIMPAN PERUBAHAN"
+              :loading="savingRab"
+              @click="saveRabModal"
+              class="rounded-20 q-px-xl text-weight-bold shadow-4"
+            />
+          </div>
+        </div>
+
+        <!-- SPK Info Bar -->
+        <q-card
+          flat
+          bordered
+          class="q-mb-lg bg-white rounded-20 shadow-sm border-indigo-thin overflow-hidden"
+        >
+          <q-card-section class="row q-col-gutter-lg q-pa-lg">
+            <div class="col-12 col-md-3 border-right-sep">
+              <div class="text-overline text-grey-6 text-bold">REFERENSI</div>
+              <div class="text-subtitle1 text-bold text-blue-grey-10">
+                {{ currentSpk.nomor_spk }}
               </div>
-              <div class="col-12 col-md-4">
-                <q-card flat class="balance-prestige-card bg-white shadow-2">
-                  <div class="card-accent-bar bg-orange-10"></div>
-                  <q-card-section class="q-pa-xl">
-                    <div class="text-overline text-orange-10 text-bold uppercase tracking-widest">
-                      Cost of Sales (Modal)
-                    </div>
-                    <div class="text-h4 text-weight-black text-dark q-mt-sm">
-                      Rp {{ formatMoney(calculateGrandTotalModal(currentSpk)) }}
-                    </div>
-                  </q-card-section>
-                </q-card>
+              <div class="text-caption text-indigo-8 q-mt-xs">
+                Ref Quot: {{ currentSpk.no_quotation || '-' }}
               </div>
-              <div class="col-12 col-md-4">
-                <q-card
-                  flat
-                  class="balance-prestige-card shadow-10"
-                  :class="
-                    calculateGrandTotalJual(currentSpk) - calculateGrandTotalModal(currentSpk) < 0
-                      ? 'bg-red-10 text-white'
-                      : 'bg-green-10 text-white'
-                  "
+            </div>
+            <div class="col-12 col-md-3 border-right-sep">
+              <div class="text-overline text-grey-6 text-bold">DURASI KONTRAK</div>
+              <div class="text-subtitle1 text-primary text-bold">
+                {{ currentSpk.durasi || '-' }}
+              </div>
+              <div class="text-caption text-grey-7">
+                {{ currentSpk.tgl_mulai }} s/d {{ currentSpk.tgl_akhir }}
+              </div>
+            </div>
+            <div class="col-12 col-md-6 flex items-center justify-end">
+              <div class="text-right q-mr-lg">
+                <div class="text-overline text-grey-6 text-bold">DOKUMEN LAMPIRAN</div>
+                <div
+                  v-if="currentSpk.documents?.length"
+                  class="row q-gutter-xs q-mt-xs justify-end"
                 >
-                  <q-card-section class="q-pa-xl">
-                    <div class="text-overline opacity-80 text-bold uppercase tracking-widest">
-                      Gross Profit Projection
-                    </div>
-                    <div class="text-h3 text-weight-black q-mt-sm">
-                      Rp
-                      {{
-                        formatMoney(
-                          calculateGrandTotalJual(currentSpk) -
-                            calculateGrandTotalModal(currentSpk),
-                        )
-                      }}
-                    </div>
-                    <div class="margin-badge-white q-mt-lg text-subtitle1">
-                      Margin:
-                      {{
-                        calculateGrandTotalJual(currentSpk) > 0
-                          ? (
-                              ((calculateGrandTotalJual(currentSpk) -
-                                calculateGrandTotalModal(currentSpk)) /
-                                calculateGrandTotalJual(currentSpk)) *
-                              100
-                            ).toFixed(2)
-                          : 0
-                      }}%
-                    </div>
-                  </q-card-section>
-                </q-card>
+                  <q-btn
+                    v-for="(doc, dIdx) in currentSpk.documents"
+                    :key="dIdx"
+                    unelevated
+                    color="indigo-1"
+                    text-color="indigo-10"
+                    size="sm"
+                    icon="description"
+                    :label="doc.label"
+                    @click="openInternalPreview(doc.url)"
+                    rounded
+                  />
+                </div>
+                <div v-else class="text-caption text-grey-5 italic">Tidak ada lampiran</div>
               </div>
             </div>
+          </q-card-section>
+        </q-card>
 
-            <q-card flat bordered class="rounded-20 overflow-hidden shadow-sm bg-white">
-              <div class="q-pa-lg bg-indigo-1 border-bottom row items-center">
-                <q-icon name="summarize" color="indigo-10" size="md" class="q-mr-md" />
-                <div class="text-h6 text-weight-black text-indigo-10 uppercase letter-spacing-1">
-                  Balance Sheet Per Item Pekerjaan
-                </div>
-              </div>
-              <q-markup-table flat bordered separator="cell" class="balance-sheet-table">
-                <thead class="bg-blue-grey-10 text-white text-bold uppercase">
-                  <tr>
-                    <th class="text-left">DESKRIPSI PEKERJAAN</th>
-                    <th class="text-right">JUAL (A)</th>
-                    <th class="text-right">MODAL (B)</th>
-                    <th class="text-right">PROFIT (A-B)</th>
-                    <th class="text-center">%</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <template v-for="(group, gIdx) in currentSpk.groups" :key="'bsg-' + gIdx">
-                    <tr class="bg-indigo-50 text-bold">
-                      <td class="text-left text-weight-black text-indigo-10">{{ group.title }}</td>
-                      <td class="text-right text-indigo-10">
-                        Rp {{ formatMoney(sumGroupJual(group)) }}
+        <!-- TECHNICAL TABS -->
+        <q-card
+          flat
+          bordered
+          class="rounded-20 bg-white shadow-10 overflow-hidden border-indigo-thin"
+        >
+          <q-tabs
+            v-model="activeTab"
+            dense
+            class="bg-indigo-10 text-white"
+            active-color="white"
+            indicator-color="orange-9"
+            align="left"
+            inline-label
+            style="height: 60px"
+          >
+            <q-tab
+              name="boq"
+              label="1. Bill of Quantity (BOQ)"
+              icon="format_list_numbered"
+              class="q-px-xl text-weight-bold"
+            />
+            <q-tab
+              name="budget"
+              label="2. Analisa Modal (RAB)"
+              icon="engineering"
+              class="q-px-xl text-weight-bold"
+            />
+            <q-tab
+              name="margin"
+              label="3. Profit & Loss Analysis"
+              icon="insights"
+              class="q-px-xl text-weight-bold"
+            />
+          </q-tabs>
+
+          <q-tab-panels v-model="activeTab" animated class="bg-grey-1">
+            <!-- PANEL BOQ -->
+            <q-tab-panel name="boq" class="q-pa-lg">
+              <div
+                v-for="(group, gIdx) in currentSpk.groups"
+                :key="gIdx"
+                class="q-mb-xl bg-white rounded-20 shadow-sm border-indigo overflow-hidden"
+              >
+                <q-toolbar class="bg-indigo-10 text-white q-py-sm">
+                  <q-icon name="list" class="q-mr-md" />
+                  <q-input
+                    dark
+                    borderless
+                    dense
+                    v-model="group.title"
+                    class="text-bold text-h6 col"
+                    placeholder="Input Nama Pekerjaan Utama..."
+                    :readonly="!isEditable"
+                  />
+                  <q-btn
+                    v-if="isEditable"
+                    flat
+                    round
+                    icon="delete_outline"
+                    color="red-3"
+                    size="sm"
+                    @click="currentSpk.groups.splice(gIdx, 1)"
+                  />
+                </q-toolbar>
+
+                <q-markup-table flat bordered separator="cell" class="excel-grid-blue">
+                  <thead>
+                    <tr class="bg-indigo-1 text-indigo-10 text-center uppercase">
+                      <th width="40">H</th>
+                      <th width="50">NO</th>
+                      <th class="text-left">URAIAN PEKERJAAN</th>
+                      <th width="80">VOL</th>
+                      <th width="80">SAT</th>
+                      <th width="150">HARGA JUAL</th>
+                      <th width="180">TOTAL JUAL</th>
+                      <th width="50"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      v-for="(item, iIdx) in group.items"
+                      :key="iIdx"
+                      :class="item.is_header ? 'bg-indigo-50' : ''"
+                    >
+                      <td class="text-center">
+                        <q-checkbox
+                          v-model="item.is_header"
+                          dense
+                          size="xs"
+                          color="indigo"
+                          :disable="!isEditable"
+                          @update:model-value="handleBoqHeaderToggle(item)"
+                        />
                       </td>
-                      <td class="text-right text-orange-10">
-                        Rp {{ formatMoney(sumGroupModal(group)) }}
+                      <td class="text-center text-grey-6">{{ iIdx + 1 }}</td>
+                      <td class="no-padding">
+                        <q-input
+                          borderless
+                          dense
+                          v-model="item.deskripsi"
+                          class="q-px-md"
+                          :input-class="
+                            item.is_header ? 'text-bold text-indigo-10 text-subtitle2' : ''
+                          "
+                          placeholder="Input rincian item..."
+                          :readonly="!isEditable"
+                        />
                       </td>
-                      <td
-                        class="text-right"
-                        :class="
-                          sumGroupJual(group) - sumGroupModal(group) < 0
-                            ? 'text-red-10'
-                            : 'text-green-10'
-                        "
-                      >
-                        Rp {{ formatMoney(sumGroupJual(group) - sumGroupModal(group)) }}
+                      <td class="no-padding">
+                        <q-input
+                          borderless
+                          dense
+                          v-model.number="item.volume"
+                          type="number"
+                          class="text-center text-weight-bold"
+                          :disable="item.is_header || !isEditable"
+                        />
+                      </td>
+                      <td class="no-padding">
+                        <q-input
+                          borderless
+                          dense
+                          v-model="item.satuan"
+                          class="text-center uppercase text-weight-bold text-primary"
+                          :disable="item.is_header || !isEditable"
+                        />
+                      </td>
+                      <td class="no-padding">
+                        <q-input
+                          borderless
+                          dense
+                          v-model.number="item.harga_satuan"
+                          type="number"
+                          class="text-right q-px-md text-weight-bold"
+                          :disable="item.is_header || !isEditable"
+                        />
+                      </td>
+                      <td class="text-right text-weight-bolder text-indigo-10 q-px-md">
+                        Rp {{ formatMoney((item.volume || 0) * (item.harga_satuan || 0)) }}
                       </td>
                       <td class="text-center">
-                        <q-badge
-                          :color="
-                            sumGroupJual(group) - sumGroupModal(group) < 0 ? 'red-10' : 'green-10'
+                        <q-btn
+                          v-if="isEditable"
+                          flat
+                          round
+                          color="negative"
+                          icon="remove_circle_outline"
+                          size="xs"
+                          @click="group.items.splice(iIdx, 1)"
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
+                </q-markup-table>
+                <q-btn
+                  v-if="isEditable"
+                  flat
+                  color="indigo"
+                  icon="add"
+                  label="TAMBAH RINCIAN BARIS"
+                  @click="
+                    group.items.push({
+                      deskripsi: '',
+                      volume: 1,
+                      satuan: 'ls',
+                      harga_satuan: 0,
+                      rab_modal: [],
+                    })
+                  "
+                  class="full-width bg-indigo-1 text-weight-bold"
+                />
+              </div>
+              <q-btn
+                v-if="isEditable"
+                unelevated
+                color="indigo-10"
+                icon="add_circle"
+                label="TAMBAHKAN KATEGORI PEKERJAAN BARU"
+                @click="addTableGroup(currentSpk)"
+                class="full-width q-py-lg rounded-20 text-weight-black shadow-3"
+              />
+              <div class="q-mt-xl q-pa-xl bg-indigo-10 text-white rounded-20 text-right shadow-10">
+                <div class="text-overline opacity-80 uppercase tracking-widest text-weight-bold">
+                  Grand Total Kontrak
+                </div>
+                <div class="text-h3 text-weight-black">
+                  Rp {{ formatMoney(calculateGrandTotalJual(currentSpk)) }}
+                </div>
+              </div>
+            </q-tab-panel>
+
+            <!-- PANEL BUDGET RAB -->
+            <q-tab-panel name="budget" class="q-pa-lg">
+              <div
+                v-for="(group, gIdx) in currentSpk.groups"
+                :key="'r-' + gIdx"
+                class="q-mb-xl bg-white rounded-20 shadow-sm border-orange overflow-hidden"
+              >
+                <q-toolbar class="bg-orange-10 text-white q-py-sm">
+                  <q-icon name="calculate" class="q-mr-md" />
+                  <div class="text-h6 text-weight-black uppercase">
+                    {{ group.title }} (ANALISA MODAL)
+                  </div>
+                </q-toolbar>
+
+                <q-markup-table flat bordered separator="cell" class="excel-grid-orange">
+                  <thead>
+                    <tr class="bg-orange-10 text-white text-center text-weight-bold">
+                      <th rowspan="2" width="50">NO</th>
+                      <th rowspan="2">URAIAN MODAL & SUMBER DAYA</th>
+                      <th colspan="7">RAB VOLUME & PERHITUNGAN</th>
+                      <th rowspan="2" width="160">ESTIMASI TOTAL</th>
+                    </tr>
+                    <tr class="bg-orange-9 text-white text-caption">
+                      <th width="70">UNIT</th>
+                      <th width="50">SAT</th>
+                      <th width="70">PMK</th>
+                      <th width="50">SAT</th>
+                      <th width="70">DUR</th>
+                      <th width="50">SAT</th>
+                      <th width="130">HARGA SAT</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <template v-for="(item, iIdx) in group.items" :key="'ri-' + iIdx">
+                      <tr :class="item.is_header ? 'bg-orange-2' : 'bg-orange-1'">
+                        <td class="text-center font-bold">{{ iIdx + 1 }}</td>
+                        <td class="q-px-md text-weight-black uppercase text-blue-grey-10">
+                          {{ item.deskripsi }}
+                        </td>
+                        <td colspan="8" class="text-right q-px-lg">
+                          <span class="text-caption text-orange-10 text-bold uppercase q-mr-sm"
+                            >Modal Item:</span
+                          >
+                          <span class="text-h6 text-weight-black text-dark"
+                            >Rp {{ formatMoney(sumRabPerItem(item)) }}</span
+                          >
+                        </td>
+                      </tr>
+                      <template v-if="!item.is_header">
+                        <tr v-for="(rab, rIdx) in item.rab_modal" :key="'rm-' + rIdx">
+                          <td></td>
+                          <td class="no-padding">
+                            <q-input
+                              borderless
+                              dense
+                              v-model="rab.kebutuhan"
+                              class="q-px-xl text-weight-medium"
+                              placeholder="Uraian kebutuhan modal (ex: Upah, Material...)"
+                              :readonly="!isEditable"
+                            />
+                          </td>
+                          <td class="no-padding text-center">
+                            <q-input
+                              borderless
+                              dense
+                              v-model.number="rab.unit"
+                              type="number"
+                              input-class="text-center text-weight-bold"
+                              :readonly="!isEditable"
+                            />
+                          </td>
+                          <td class="no-padding text-center">
+                            <q-input
+                              borderless
+                              dense
+                              v-model="rab.sat_unit"
+                              input-class="text-center uppercase text-weight-bold text-primary"
+                              :readonly="!isEditable"
+                            />
+                          </td>
+                          <td class="no-padding text-center">
+                            <q-input
+                              borderless
+                              dense
+                              v-model.number="rab.pemakaian"
+                              type="number"
+                              input-class="text-center text-weight-bold"
+                              :readonly="!isEditable"
+                            />
+                          </td>
+                          <td class="no-padding text-center">
+                            <q-input
+                              borderless
+                              dense
+                              v-model="rab.sat_pmk"
+                              input-class="text-center text-weight-bold"
+                              :readonly="!isEditable"
+                            />
+                          </td>
+                          <td class="no-padding text-center">
+                            <q-input
+                              borderless
+                              dense
+                              v-model.number="rab.durasi"
+                              type="number"
+                              input-class="text-center text-weight-bold"
+                              :readonly="!isEditable"
+                            />
+                          </td>
+                          <td class="no-padding text-center">
+                            <q-input
+                              borderless
+                              dense
+                              v-model="rab.sat_dur"
+                              input-class="text-center text-weight-bold"
+                              :readonly="!isEditable"
+                            />
+                          </td>
+                          <td class="no-padding">
+                            <q-input
+                              borderless
+                              dense
+                              v-model.number="rab.harga"
+                              type="number"
+                              class="text-right q-px-md font-bold"
+                              prefix="Rp"
+                              :readonly="!isEditable"
+                            />
+                          </td>
+                          <td class="text-right q-px-md bg-grey-1 text-weight-bolder">
+                            <div class="row no-wrap items-center justify-end">
+                              <span>Rp {{ formatMoney(sumRabRowTotal(rab)) }}</span>
+                              <q-btn
+                                v-if="isEditable"
+                                flat
+                                round
+                                color="negative"
+                                icon="close"
+                                size="xs"
+                                class="q-ml-sm"
+                                @click="item.rab_modal.splice(rIdx, 1)"
+                              />
+                            </div>
+                          </td>
+                        </tr>
+                        <tr class="bg-white" v-if="isEditable">
+                          <td></td>
+                          <td colspan="9">
+                            <q-btn
+                              flat
+                              color="orange-10"
+                              icon="add"
+                              label="TAMBAH RINCIAN MODAL"
+                              size="sm"
+                              @click="addRabRowComplex(item)"
+                              class="text-weight-bold"
+                            />
+                          </td>
+                        </tr>
+                      </template>
+                    </template>
+                  </tbody>
+                </q-markup-table>
+              </div>
+              <div class="q-pa-xl bg-orange-10 text-white rounded-20 text-right shadow-10">
+                <div class="text-overline opacity-80 uppercase tracking-widest text-weight-bold">
+                  Total Biaya Produksi (Modal)
+                </div>
+                <div class="text-h3 text-weight-black">
+                  Rp {{ formatMoney(calculateGrandTotalModal(currentSpk)) }}
+                </div>
+              </div>
+            </q-tab-panel>
+
+            <!-- PANEL MARGIN & BALANCE SHEET -->
+            <q-tab-panel name="margin" class="q-pa-lg">
+              <div class="row q-col-gutter-xl q-mb-xl animate-fade">
+                <div class="col-12 col-md-4">
+                  <q-card flat class="balance-prestige-card bg-white shadow-2">
+                    <div class="card-accent-bar bg-indigo-10"></div>
+                    <q-card-section class="q-pa-xl">
+                      <div class="text-overline text-indigo-10 text-bold uppercase tracking-widest">
+                        Revenue (Harga Jual)
+                      </div>
+                      <div class="text-h4 text-weight-black text-dark q-mt-sm">
+                        Rp {{ formatMoney(calculateGrandTotalJual(currentSpk)) }}
+                      </div>
+                    </q-card-section>
+                  </q-card>
+                </div>
+                <div class="col-12 col-md-4">
+                  <q-card flat class="balance-prestige-card bg-white shadow-2">
+                    <div class="card-accent-bar bg-orange-10"></div>
+                    <q-card-section class="q-pa-xl">
+                      <div class="text-overline text-orange-10 text-bold uppercase tracking-widest">
+                        Cost of Sales (Modal)
+                      </div>
+                      <div class="text-h4 text-weight-black text-dark q-mt-sm">
+                        Rp {{ formatMoney(calculateGrandTotalModal(currentSpk)) }}
+                      </div>
+                    </q-card-section>
+                  </q-card>
+                </div>
+                <div class="col-12 col-md-4">
+                  <q-card
+                    flat
+                    class="balance-prestige-card shadow-10"
+                    :class="
+                      calculateGrandTotalJual(currentSpk) - calculateGrandTotalModal(currentSpk) < 0
+                        ? 'bg-red-10 text-white'
+                        : 'bg-green-10 text-white'
+                    "
+                  >
+                    <q-card-section class="q-pa-xl">
+                      <div class="text-overline opacity-80 text-bold uppercase tracking-widest">
+                        Gross Profit Projection
+                      </div>
+                      <div class="text-h3 text-weight-black q-mt-sm">
+                        Rp
+                        {{
+                          formatMoney(
+                            calculateGrandTotalJual(currentSpk) -
+                              calculateGrandTotalModal(currentSpk),
+                          )
+                        }}
+                      </div>
+                      <div class="margin-badge-white q-mt-lg text-subtitle1 text-weight-bold">
+                        Margin:
+                        {{
+                          calculateGrandTotalJual(currentSpk) > 0
+                            ? (
+                                ((calculateGrandTotalJual(currentSpk) -
+                                  calculateGrandTotalModal(currentSpk)) /
+                                  calculateGrandTotalJual(currentSpk)) *
+                                100
+                              ).toFixed(2)
+                            : 0
+                        }}%
+                      </div>
+                    </q-card-section>
+                  </q-card>
+                </div>
+              </div>
+
+              <q-card
+                flat
+                bordered
+                class="rounded-20 overflow-hidden shadow-sm bg-white border-indigo-thin animate-fade-up"
+              >
+                <div class="q-pa-lg bg-indigo-1 border-bottom row items-center">
+                  <q-icon name="summarize" color="indigo-10" size="md" class="q-mr-md" />
+                  <div class="text-h6 text-weight-black text-indigo-10 uppercase letter-spacing-1">
+                    Balance Sheet Per Item Pekerjaan
+                  </div>
+                </div>
+                <q-markup-table flat bordered separator="cell" class="balance-sheet-table">
+                  <thead class="bg-blue-grey-10 text-white text-bold uppercase">
+                    <tr>
+                      <th class="text-left">DESKRIPSI PEKERJAAN</th>
+                      <th class="text-right">JUAL (A)</th>
+                      <th class="text-right">MODAL (B)</th>
+                      <th class="text-right">PROFIT (A-B)</th>
+                      <th class="text-center">%</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <template v-for="(group, gIdx) in currentSpk.groups" :key="'bsg-' + gIdx">
+                      <tr class="bg-indigo-50 text-bold">
+                        <td class="text-left text-weight-black text-indigo-10">
+                          {{ group.title }}
+                        </td>
+                        <td class="text-right text-indigo-10">
+                          Rp {{ formatMoney(sumGroupJual(group)) }}
+                        </td>
+                        <td class="text-right text-orange-10">
+                          Rp {{ formatMoney(sumGroupModal(group)) }}
+                        </td>
+                        <td
+                          class="text-right"
+                          :class="
+                            sumGroupJual(group) - sumGroupModal(group) < 0
+                              ? 'text-red-10'
+                              : 'text-green-10'
                           "
-                          class="text-bold q-px-sm"
-                          >{{
-                            sumGroupJual(group) > 0
+                        >
+                          Rp {{ formatMoney(sumGroupJual(group) - sumGroupModal(group)) }}
+                        </td>
+                        <td class="text-center">
+                          <q-badge
+                            :color="
+                              sumGroupJual(group) - sumGroupModal(group) < 0 ? 'red-10' : 'green-10'
+                            "
+                            class="text-bold q-px-sm"
+                            >{{
+                              sumGroupJual(group) > 0
+                                ? (
+                                    ((sumGroupJual(group) - sumGroupModal(group)) /
+                                      sumGroupJual(group)) *
+                                    100
+                                  ).toFixed(1)
+                                : 0
+                            }}%</q-badge
+                          >
+                        </td>
+                      </tr>
+                      <tr v-for="(item, iIdx) in group.items" :key="'bsi-' + iIdx">
+                        <td class="q-pl-xl text-blue-grey-9">{{ item.deskripsi }}</td>
+                        <td class="text-right text-grey-6 italic">
+                          Rp {{ formatMoney((item.volume || 0) * (item.harga_satuan || 0)) }}
+                        </td>
+                        <td class="text-right text-grey-6 italic">
+                          Rp {{ formatMoney(sumRabPerItem(item)) }}
+                        </td>
+                        <td
+                          class="text-right font-bold"
+                          :class="
+                            (item.volume || 0) * (item.harga_satuan || 0) - sumRabPerItem(item) < 0
+                              ? 'text-red-6'
+                              : 'text-green-6'
+                          "
+                        >
+                          Rp
+                          {{
+                            formatMoney(
+                              (item.volume || 0) * (item.harga_satuan || 0) - sumRabPerItem(item),
+                            )
+                          }}
+                        </td>
+                        <td class="text-center text-caption text-grey-5 font-bold">
+                          {{
+                            (item.volume || 0) * (item.harga_satuan || 0) > 0
                               ? (
-                                  ((sumGroupJual(group) - sumGroupModal(group)) /
-                                    sumGroupJual(group)) *
+                                  (((item.volume || 0) * (item.harga_satuan || 0) -
+                                    sumRabPerItem(item)) /
+                                    ((item.volume || 0) * (item.harga_satuan || 0))) *
                                   100
                                 ).toFixed(1)
                               : 0
-                          }}%</q-badge
-                        >
-                      </td>
-                    </tr>
-                    <tr v-for="(item, iIdx) in group.items" :key="'bsi-' + iIdx">
-                      <td class="q-pl-xl text-blue-grey-9">{{ item.deskripsi }}</td>
-                      <td class="text-right text-grey-6 italic">
-                        Rp {{ formatMoney(item.volume * item.harga_satuan) }}
-                      </td>
-                      <td class="text-right text-grey-6 italic">
-                        Rp {{ formatMoney(sumRabPerItem(item)) }}
-                      </td>
-                      <td
-                        class="text-right font-bold"
-                        :class="
-                          item.volume * item.harga_satuan - sumRabPerItem(item) < 0
-                            ? 'text-red-6'
-                            : 'text-green-6'
-                        "
-                      >
-                        Rp {{ formatMoney(item.volume * item.harga_satuan - sumRabPerItem(item)) }}
-                      </td>
-                      <td class="text-center text-caption text-grey-5">
-                        {{
-                          item.volume * item.harga_satuan > 0
-                            ? (
-                                ((item.volume * item.harga_satuan - sumRabPerItem(item)) /
-                                  (item.volume * item.harga_satuan)) *
-                                100
-                              ).toFixed(1)
-                            : 0
-                        }}%
-                      </td>
-                    </tr>
-                  </template>
-                </tbody>
-              </q-markup-table>
-            </q-card>
-          </q-tab-panel>
-        </q-tab-panels>
-      </q-card>
-    </div>
+                          }}%
+                        </td>
+                      </tr>
+                    </template>
+                  </tbody>
+                </q-markup-table>
+              </q-card>
+            </q-tab-panel>
+          </q-tab-panels>
+        </q-card>
+      </div>
+    </template>
 
-    <!-- DIALOGS (ADD/EDIT) -->
+    <!-- =====================================================================================
+         DIALOGS (ADD/EDIT & DOKUMEN PREVIEW)
+         ===================================================================================== -->
     <!-- SPK DIALOG -->
     <q-dialog v-model="showAddSpk" persistent maximized transition-show="slide-up">
       <q-card class="bg-grey-2 column no-wrap">
@@ -875,6 +1027,7 @@
             isEditSpkMode ? 'REVISI DATA KONTRAK' : 'REGISTRASI KONTRAK BARU'
           }}</q-toolbar-title>
           <q-btn
+            v-if="canAction('buat') || canAction('ubah')"
             unelevated
             color="white"
             text-color="indigo-10"
@@ -1093,7 +1246,7 @@
                             />
                           </td>
                           <td class="text-right text-bold text-indigo-10 q-px-md">
-                            Rp {{ formatMoney(item.volume * item.harga_satuan) }}
+                            Rp {{ formatMoney((item.volume || 0) * (item.harga_satuan || 0)) }}
                           </td>
                           <td class="text-center">
                             <q-btn
@@ -1188,6 +1341,7 @@
               placeholder="Masukkan alamat lengkap lokasi proyek..."
             />
             <q-btn
+              v-if="canAction('buat') || canAction('ubah')"
               unelevated
               color="indigo-10"
               label="SIMPAN DATA PROYEK"
@@ -1217,7 +1371,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import { db, storage } from 'src/boot/firebase'
 import {
@@ -1234,8 +1388,11 @@ import {
   onSnapshot,
 } from 'firebase/firestore'
 import { ref as sRef, uploadBytes, getDownloadURL } from 'firebase/storage'
+import { useAuthStore } from 'src/stores/auth'
 
 const $q = useQuasar()
+const authStore = useAuthStore()
+
 const viewMode = ref('list')
 const activeTab = ref('boq')
 const rows = ref([])
@@ -1263,12 +1420,46 @@ const formSpk = ref({
   durasi: '',
   groups: [],
   documents: [],
+  status: 'Pending',
 })
 const optionsKonsumen = ref([])
 const optionsKategori = ref([])
 
 let unsubProyek = null
 let unsubSpk = null
+let unsubUser = null
+
+const userData = ref(null)
+
+// ============================================================================
+// INTEGRATED REAL-TIME PERMISSION CONTROL Matrix
+// ============================================================================
+const canAction = (actionType) => {
+  // 1. Super Admin otomatis bypass
+  if (authStore.user?.role === 'Super Admin') return true
+
+  // 2. Safeguard jika profile hak akses belum termuat sempurna
+  if (!userData.value?.permissions_detail) return false
+
+  // 3. Ambil data izin modul 'konstruksi'
+  const modulePerm = userData.value.permissions_detail.find((m) => m.id === 'konstruksi')
+  if (!modulePerm || !modulePerm.isActive) return false
+
+  // 4. Cari sub-menu 'Proyek Data' / 'proyek_data'
+  const menu = modulePerm.menus.find(
+    (m) => m.id.toLowerCase().includes('proyek_data') || m.id.toLowerCase().includes('proyek-data'),
+  )
+  if (!menu) return false
+
+  // 5. Mapping nama parameter pemanggil ke skema matrix AksesPage.vue
+  if (actionType === 'setuju') return menu.approve || false
+  return menu[actionType] || false
+}
+
+// Menentukan apakah SPK / RAB masih bisa diedit oleh pengguna
+const isEditable = computed(() => {
+  return canAction('ubah') && currentSpk.value?.status !== 'Approved'
+})
 
 const formatMoney = (v) => (v ? v.toLocaleString('id-ID') : '0')
 const sumRabRowTotal = (r) => {
@@ -1281,7 +1472,7 @@ const sumRabRowTotal = (r) => {
 const sumRabPerItem = (item) =>
   (item.rab_modal || []).reduce((sum, r) => sum + sumRabRowTotal(r), 0)
 const sumGroupJual = (group) =>
-  (group.items || []).reduce((s, i) => s + i.volume * i.harga_satuan, 0)
+  (group.items || []).reduce((s, i) => s + (i.volume || 0) * (i.harga_satuan || 0), 0)
 const sumGroupModal = (group) => (group.items || []).reduce((s, i) => s + sumRabPerItem(i), 0)
 const calculateGrandTotalJual = (spk) =>
   (spk?.groups || []).reduce((s, g) => s + sumGroupJual(g), 0)
@@ -1365,7 +1556,6 @@ const fetchProyek = () => {
     q,
     async (snap) => {
       const projs = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
-      // Calculate total omzet from SPKs in memory
       const spkSnap = await getDocs(collection(db, 'spk_customer'))
       const allSpks = spkSnap.docs.map((d) => d.data())
 
@@ -1407,21 +1597,36 @@ const showSpkDetail = (evt, row) => {
 }
 
 const editSpk = (row) => {
+  if (!canAction('ubah')) {
+    $q.notify({
+      type: 'negative',
+      message: 'Anda tidak memiliki hak akses untuk merubah data kontrak ini.',
+    })
+    return
+  }
   isEditSpkMode.value = true
   formSpk.value = JSON.parse(JSON.stringify(row))
   showAddSpk.value = true
 }
 
 const confirmDeleteSpk = (row) => {
+  if (!canAction('hapus')) {
+    $q.notify({
+      type: 'negative',
+      message: 'Anda tidak memiliki hak akses untuk menghapus kontrak ini.',
+    })
+    return
+  }
   $q.dialog({
-    title: 'Hapus Kontrak?',
-    message: `Menghapus kontrak ${row.nomor_spk} secara permanen?`,
+    title: '<span class="text-negative text-weight-bold">Hapus Kontrak?</span>',
+    message: `Apakah Anda yakin ingin menghapus kontrak <b>${row.nomor_spk}</b> secara permanen?`,
+    html: true,
     cancel: true,
-    ok: { color: 'negative', unelevated: true, label: 'Ya, Hapus' },
+    ok: { color: 'negative', unelevated: true, label: 'Ya, Hapus', rounded: true },
     persistent: true,
   }).onOk(async () => {
     await deleteDoc(doc(db, 'spk_customer', row.id))
-    $q.notify({ icon: 'delete', message: 'Kontrak dihapus' })
+    $q.notify({ icon: 'delete', message: 'Kontrak berhasil dihapus dari sistem.' })
   })
 }
 
@@ -1441,10 +1646,11 @@ const handleSaveSpk = async () => {
       })
     } else {
       payload.createdAt = serverTimestamp()
+      payload.status = 'Pending'
       await addDoc(collection(db, 'spk_customer'), payload)
     }
     showAddSpk.value = false
-    $q.notify({ type: 'positive', message: 'Kontrak tersimpan' })
+    $q.notify({ type: 'positive', message: 'Data Kontrak tersimpan di sistem' })
   } catch (e) {
     console.error(e)
   } finally {
@@ -1453,6 +1659,13 @@ const handleSaveSpk = async () => {
 }
 
 const saveRabModal = async () => {
+  if (!canAction('ubah')) {
+    $q.notify({
+      type: 'negative',
+      message: 'Anda tidak memiliki hak akses untuk merubah data RAB ini.',
+    })
+    return
+  }
   savingRab.value = true
   try {
     const payload = JSON.parse(JSON.stringify(currentSpk.value))
@@ -1465,6 +1678,45 @@ const saveRabModal = async () => {
     console.error(e)
   } finally {
     savingRab.value = false
+  }
+}
+
+// Handler persetujuan SPK (Approve Action)
+const handleApproveSpk = async (statusVal) => {
+  if (!canAction('setuju')) {
+    $q.notify({
+      type: 'negative',
+      message: 'Anda tidak memiliki hak akses persetujuan untuk kontrak ini.',
+    })
+    return
+  }
+  $q.loading.show({
+    message:
+      statusVal === 'Approved' ? 'Menyetujui Kontrak & RAB...' : 'Membatalkan Persetujuan...',
+  })
+  try {
+    currentSpk.value.status = statusVal
+    const payload = JSON.parse(JSON.stringify(currentSpk.value))
+    payload.nilai_total = calculateGrandTotalJual(payload)
+    const sid = payload.id
+    delete payload.id
+    await updateDoc(doc(db, 'spk_customer', sid), {
+      ...payload,
+      status: statusVal,
+      updatedAt: serverTimestamp(),
+    })
+    $q.notify({
+      type: 'positive',
+      message:
+        statusVal === 'Approved'
+          ? 'Kontrak & RAB disetujui resmi!'
+          : 'Persetujuan resmi dibatalkan.',
+    })
+  } catch (e) {
+    console.error(e)
+    $q.notify({ type: 'negative', message: 'Terjadi kesalahan sistem' })
+  } finally {
+    $q.loading.hide()
   }
 }
 
@@ -1506,6 +1758,7 @@ const openAddSpkDialog = () => {
     tgl_mulai: '',
     tgl_akhir: '',
     durasi: '',
+    status: 'Pending',
     groups: [
       { title: '1. PEKERJAAN PERSIAPAN', items: [] },
       { title: '2. PEKERJAAN UTAMA', items: [] },
@@ -1516,11 +1769,19 @@ const openAddSpkDialog = () => {
 }
 
 const hapusProyek = (row) => {
+  if (!canAction('hapus')) {
+    $q.notify({
+      type: 'negative',
+      message: 'Anda tidak memiliki hak akses untuk menghapus proyek.',
+    })
+    return
+  }
   $q.dialog({
-    title: 'Hapus Proyek?',
-    message: `Data proyek "${row.nama}" akan terhapus selamanya.`,
+    title: '<span class="text-negative text-weight-bold">Hapus Proyek?</span>',
+    message: `Data proyek "<b>${row.nama}</b>" akan terhapus selamanya dari sistem.`,
+    html: true,
     cancel: true,
-    ok: { label: 'Hapus Permanen', color: 'negative', unelevated: true },
+    ok: { label: 'Hapus Permanen', color: 'negative', unelevated: true, rounded: true },
     persistent: true,
   }).onOk(async () => {
     await deleteDoc(doc(db, 'proyek', row.id))
@@ -1536,11 +1797,23 @@ onMounted(() => {
   getDocs(collection(db, 'kategori_proyek')).then(
     (k) => (optionsKategori.value = k.docs.map((d) => d.data().nama)),
   )
+
+  // Real-time listener hak akses user
+  const userEmail = authStore.user?.email
+  if (userEmail) {
+    const qUser = query(collection(db, 'karyawan'), where('email', '==', userEmail))
+    unsubUser = onSnapshot(qUser, (snapshot) => {
+      if (!snapshot.empty) {
+        userData.value = snapshot.docs[0].data()
+      }
+    })
+  }
 })
 
 onUnmounted(() => {
   if (unsubProyek) unsubProyek()
   if (unsubSpk) unsubSpk()
+  if (unsubUser) unsubUser()
 })
 
 const columns = [
@@ -1558,9 +1831,11 @@ const spkColumns = [
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
+
 .font-pro {
   font-family:
-    'Inter',
+    'Plus Jakarta Sans',
     -apple-system,
     sans-serif;
 }
@@ -1674,7 +1949,7 @@ const spkColumns = [
 }
 
 .animate-fade {
-  animation: fadeIn 0.8s ease-out;
+  animation: fadeIn 0.4s ease-out;
 }
 @keyframes fadeIn {
   from {

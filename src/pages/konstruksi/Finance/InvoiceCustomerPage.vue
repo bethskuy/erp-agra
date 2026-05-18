@@ -1,368 +1,404 @@
 <template>
   <q-page class="bg-grey-2 q-pa-md q-pa-lg-lg font-pro">
     <!-- =====================================================================================
-         HEADER SECTION
+         SCREEN 1: LOCK SCREEN JIKA TIDAK MEMILIKI AKSES LIHAT
          ===================================================================================== -->
-    <div class="row items-center justify-between q-mb-xl animate-fade no-print">
-      <div class="col-12 col-md-8">
-        <div class="row items-center no-wrap">
+    <template v-if="!canAction('lihat')">
+      <div
+        class="row flex-center q-pa-xl text-center font-pro animate-fade"
+        style="min-height: 70vh"
+      >
+        <div
+          class="col-12 col-sm-8 col-md-6 bg-white q-pa-xl rounded-20 shadow-premium border-indigo-thin"
+        >
+          <q-avatar size="100px" color="red-1" text-color="red-10" icon="lock" class="q-mb-md" />
+          <div class="text-h5 text-weight-bold text-blue-grey-10 q-mb-xs">Akses Terbatas</div>
+          <div class="text-body2 text-grey-7 q-mb-lg leading-relaxed">
+            Maaf, Anda tidak memiliki izin untuk melihat modul Invoice Customer. Silakan hubungi
+            Administrator atau Super Admin untuk konfigurasi hak akses Anda.
+          </div>
           <q-btn
-            flat
-            round
+            label="Kembali ke Beranda"
             color="indigo-10"
             icon="arrow_back"
-            @click="$router.back()"
-            class="q-mr-md bg-white shadow-1"
+            rounded
+            unelevated
+            no-caps
+            @click="$router.push('/')"
           />
-          <div>
-            <div class="text-h4 text-weight-bolder text-indigo-10 leading-tight">
-              Invoice Customer
-              <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
-                >Account Receivable (Piutang Usaha)</span
-              >
-            </div>
-            <div class="text-subtitle1 text-grey-7 q-mt-sm">
-              Buat dan kelola tagihan (Invoice) kepada Klien berdasarkan termin proyek atau Surat
-              Perintah Kerja (SPK).
+        </div>
+      </div>
+    </template>
+
+    <!-- =====================================================================================
+         SCREEN 2: KONTEN UTAMA JIKA AKSES OK
+         ===================================================================================== -->
+    <template v-else>
+      <!-- HEADER SECTION -->
+      <div class="row items-center justify-between q-mb-xl animate-fade no-print">
+        <div class="col-12 col-md-8">
+          <div class="row items-center no-wrap">
+            <q-btn
+              flat
+              round
+              color="indigo-10"
+              icon="arrow_back"
+              @click="$router.back()"
+              class="q-mr-md bg-white shadow-1"
+            />
+            <div>
+              <div class="text-h4 text-weight-bolder text-indigo-10 leading-tight">
+                Invoice Customer
+                <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
+                  >Account Receivable (Piutang Usaha)</span
+                >
+              </div>
+              <div class="text-subtitle1 text-grey-7 q-mt-sm">
+                Buat dan kelola tagihan (Invoice) kepada Klien berdasarkan termin proyek atau Surat
+                Perintah Kerja (SPK).
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      <div class="col-12 col-md-auto q-mt-md q-mt-md-none">
-        <q-btn-dropdown
-          color="indigo-10"
-          icon="add_circle"
-          label="Buat Invoice Baru"
-          unelevated
-          rounded
-          no-caps
-          class="q-px-md q-py-sm shadow-premium text-weight-bold"
-        >
-          <q-list class="bg-white rounded-borders">
-            <q-item clickable v-close-popup @click="openAddDialog('manual')" class="hover-blue-btn">
-              <q-item-section avatar>
-                <q-avatar color="indigo-1" text-color="indigo-10" icon="edit_document" size="sm" />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label class="text-weight-bold">Buat Invoice Manual</q-item-label>
-                <q-item-label caption>Input deskripsi tagihan manual</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-separator />
-            <q-item
-              clickable
-              v-close-popup
-              @click="openAddDialog('kontrak')"
-              class="hover-blue-btn"
-            >
-              <q-item-section avatar>
-                <q-avatar color="green-1" text-color="green-10" icon="assignment" size="sm" />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label class="text-weight-bold">Buat Invoice Kontrak</q-item-label>
-                <q-item-label caption>Tarik data dari SPK (BOQ)</q-item-label>
-              </q-item-section>
-            </q-item>
-          </q-list>
-        </q-btn-dropdown>
-      </div>
-    </div>
-
-    <!-- =====================================================================================
-         SUMMARY CARDS / KPI FINANCE
-         ===================================================================================== -->
-    <div class="row q-col-gutter-lg q-mb-lg animate-fade-up no-print">
-      <!-- Total Invoice -->
-      <div class="col-12 col-sm-6 col-md-3">
-        <q-card flat class="list-card rounded-20 bg-white">
-          <q-card-section class="row items-center no-wrap q-pa-md">
-            <div class="col">
-              <div
-                class="text-caption text-grey-6 text-bold tracking-widest uppercase font-10 q-mb-xs"
-              >
-                TOTAL INVOICE
-              </div>
-              <div class="text-h5 text-weight-black text-indigo-10">{{ rows.length }}</div>
-            </div>
-            <div class="col-auto">
-              <q-avatar
-                size="48px"
-                color="indigo-1"
-                text-color="indigo-10"
-                icon="receipt_long"
-                class="shadow-sm rounded-12"
-              />
-            </div>
-          </q-card-section>
-        </q-card>
-      </div>
-
-      <!-- Outstanding (Terkirim / Belum Lunas) -->
-      <div class="col-12 col-sm-6 col-md-3">
-        <q-card flat class="list-card rounded-20 bg-white">
-          <q-card-section class="row items-center no-wrap q-pa-md">
-            <div class="col">
-              <div
-                class="text-caption text-grey-6 text-bold tracking-widest uppercase font-10 q-mb-xs"
-              >
-                BELUM DIBAYAR
-              </div>
-              <div class="text-h5 text-weight-black text-orange-9">
-                {{ countByStatus('Terkirim') }}
-              </div>
-            </div>
-            <div class="col-auto">
-              <q-avatar
-                size="48px"
-                color="orange-1"
-                text-color="orange-9"
-                icon="pending_actions"
-                class="shadow-sm rounded-12"
-              />
-            </div>
-          </q-card-section>
-        </q-card>
-      </div>
-
-      <!-- Lunas -->
-      <div class="col-12 col-sm-6 col-md-3">
-        <q-card flat class="list-card rounded-20 bg-white">
-          <q-card-section class="row items-center no-wrap q-pa-md">
-            <div class="col">
-              <div
-                class="text-caption text-grey-6 text-bold tracking-widest uppercase font-10 q-mb-xs"
-              >
-                INVOICE LUNAS
-              </div>
-              <div class="text-h5 text-weight-black text-positive">
-                {{ countByStatus('Lunas') }}
-              </div>
-            </div>
-            <div class="col-auto">
-              <q-avatar
-                size="48px"
-                color="green-1"
-                text-color="positive"
-                icon="task_alt"
-                class="shadow-sm rounded-12"
-              />
-            </div>
-          </q-card-section>
-        </q-card>
-      </div>
-
-      <!-- Total Nilai Piutang (Belum Lunas) -->
-      <div class="col-12 col-sm-6 col-md-3">
-        <q-card flat class="list-card rounded-20 bg-indigo-10 text-white">
-          <q-card-section class="row items-center no-wrap q-pa-md">
-            <div class="col">
-              <div
-                class="text-caption text-indigo-2 text-bold tracking-widest uppercase font-10 q-mb-xs"
-              >
-                TOTAL PIUTANG AKTIF
-              </div>
-              <div class="text-h6 text-weight-black">Rp {{ formatCompact(totalPiutang) }}</div>
-            </div>
-            <div class="col-auto">
-              <q-avatar
-                size="48px"
-                color="white"
-                text-color="indigo-10"
-                icon="account_balance_wallet"
-                class="shadow-2 rounded-12"
-              />
-            </div>
-          </q-card-section>
-        </q-card>
-      </div>
-    </div>
-
-    <!-- =====================================================================================
-         SEARCH & FILTER AREA
-         ===================================================================================== -->
-    <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print">
-      <q-card-section class="q-py-md">
-        <div class="row items-center q-col-gutter-md">
-          <div class="col-12 col-md-5">
-            <q-input
-              v-model="searchQuery"
-              outlined
-              dense
-              rounded
-              placeholder="Cari No. Invoice atau Klien..."
-              bg-color="white"
-              class="search-input"
-            >
-              <template v-slot:prepend><q-icon name="search" color="indigo-10" /></template>
-              <template v-slot:append v-if="searchQuery"
-                ><q-icon name="close" @click="searchQuery = ''" class="cursor-pointer"
-              /></template>
-            </q-input>
-          </div>
-          <q-space />
-          <q-btn flat round icon="refresh" color="indigo-10" @click="fetchData" />
-        </div>
-      </q-card-section>
-    </q-card>
-
-    <!-- =====================================================================================
-         MAIN TABLE DATA
-         ===================================================================================== -->
-    <q-card
-      flat
-      bordered
-      class="rounded-20 shadow-sm overflow-hidden bg-white no-print border-indigo-thin"
-    >
-      <q-table
-        :rows="filteredRows"
-        :columns="columns"
-        row-key="id"
-        flat
-        :loading="loading"
-        binary-state-sort
-        class="finance-table"
-        :pagination="{ rowsPerPage: 10 }"
-      >
-        <template v-slot:header="props">
-          <q-tr :props="props" class="bg-indigo-10 text-white">
-            <q-th
-              v-for="col in props.cols"
-              :key="col.name"
-              :props="props"
-              class="text-weight-bold uppercase font-11 tracking-widest"
-            >
-              {{ col.label }}
-            </q-th>
-          </q-tr>
-        </template>
-
-        <template v-slot:body="props">
-          <q-tr
-            :props="props"
-            class="hover-bg transition-all cursor-pointer"
-            @click="openPreviewDialog(props.row)"
+        <div class="col-12 col-md-auto q-mt-md q-mt-md-none">
+          <q-btn-dropdown
+            color="indigo-10"
+            icon="add_circle"
+            label="Buat Invoice Baru"
+            unelevated
+            rounded
+            no-caps
+            class="q-px-md q-py-sm shadow-premium text-weight-bold"
           >
-            <q-td key="invoice">
-              <div class="row items-center no-wrap">
+            <q-list class="bg-white rounded-borders">
+              <q-item
+                clickable
+                v-close-popup
+                @click="handleCreate('manual')"
+                class="hover-blue-btn"
+              >
+                <q-item-section avatar>
+                  <q-avatar
+                    color="indigo-1"
+                    text-color="indigo-10"
+                    icon="edit_document"
+                    size="sm"
+                  />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label class="text-weight-bold">Buat Invoice Manual</q-item-label>
+                  <q-item-label caption>Input deskripsi tagihan manual</q-item-label>
+                </q-item-section>
+              </q-item>
+              <q-separator />
+              <q-item
+                clickable
+                v-close-popup
+                @click="handleCreate('kontrak')"
+                class="hover-blue-btn"
+              >
+                <q-item-section avatar>
+                  <q-avatar color="green-1" text-color="green-10" icon="assignment" size="sm" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label class="text-weight-bold">Buat Invoice Kontrak</q-item-label>
+                  <q-item-label caption>Tarik data dari SPK (BOQ)</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-btn-dropdown>
+        </div>
+      </div>
+
+      <!-- SUMMARY CARDS / KPI FINANCE -->
+      <div class="row q-col-gutter-lg q-mb-lg animate-fade-up no-print">
+        <!-- Total Invoice -->
+        <div class="col-12 col-sm-6 col-md-3">
+          <q-card flat class="list-card rounded-20 bg-white">
+            <q-card-section class="row items-center no-wrap q-pa-md">
+              <div class="col">
+                <div
+                  class="text-caption text-grey-6 text-bold tracking-widest uppercase font-10 q-mb-xs"
+                >
+                  TOTAL INVOICE
+                </div>
+                <div class="text-h5 text-weight-black text-indigo-10">{{ rows.length }}</div>
+              </div>
+              <div class="col-auto">
                 <q-avatar
-                  size="36px"
+                  size="48px"
                   color="indigo-1"
                   text-color="indigo-10"
                   icon="receipt_long"
-                  class="q-mr-md shadow-sm rounded-12"
+                  class="shadow-sm rounded-12"
                 />
-                <div>
-                  <div
-                    class="text-weight-bold text-blue-grey-10 text-subtitle2 leading-none q-mb-xs flex items-center"
-                  >
-                    <span>{{ props.row.nomor_invoice }}</span>
-                    <!-- NEW BADGE UNTUK INVOICE APPROVED/REJECTED YANG BELUM DIBACA OLEH CREATOR -->
-                    <q-badge
-                      v-if="
-                        (props.row.approval_status === 'Approved' ||
-                          props.row.approval_status === 'Rejected') &&
-                        props.row.creator_read === false
-                      "
-                      color="positive"
-                      class="q-ml-sm animate-bounce"
-                      >BARU</q-badge
-                    >
-                  </div>
-                  <div class="text-caption text-grey-6 uppercase text-weight-medium">
-                    KLIEN:
-                    <span class="text-blue-grey-9 text-bold">{{ props.row.customer_nama }}</span>
-                  </div>
+              </div>
+            </q-card-section>
+          </q-card>
+        </div>
+
+        <!-- Outstanding (Terkirim / Belum Lunas) -->
+        <div class="col-12 col-sm-6 col-md-3">
+          <q-card flat class="list-card rounded-20 bg-white">
+            <q-card-section class="row items-center no-wrap q-pa-md">
+              <div class="col">
+                <div
+                  class="text-caption text-grey-6 text-bold tracking-widest uppercase font-10 q-mb-xs"
+                >
+                  BELUM DIBAYAR
+                </div>
+                <div class="text-h5 text-weight-black text-orange-9">
+                  {{ countByStatus('Terkirim') }}
                 </div>
               </div>
-            </q-td>
+              <div class="col-auto">
+                <q-avatar
+                  size="48px"
+                  color="orange-1"
+                  text-color="orange-9"
+                  icon="pending_actions"
+                  class="shadow-sm rounded-12"
+                />
+              </div>
+            </q-card-section>
+          </q-card>
+        </div>
 
-            <q-td key="proyek">
-              <div class="text-weight-bold text-blue-grey-9 uppercase font-11">
-                {{ props.row.proyek_nama || '-' }}
+        <!-- Lunas -->
+        <div class="col-12 col-sm-6 col-md-3">
+          <q-card flat class="list-card rounded-20 bg-white">
+            <q-card-section class="row items-center no-wrap q-pa-md">
+              <div class="col">
+                <div
+                  class="text-caption text-grey-6 text-bold tracking-widest uppercase font-10 q-mb-xs"
+                >
+                  INVOICE LUNAS
+                </div>
+                <div class="text-h5 text-weight-black text-positive">
+                  {{ countByStatus('Lunas') }}
+                </div>
               </div>
-              <div class="text-caption text-grey-6 font-10">
-                SPK: {{ props.row.spk_nomor || '-' }}
+              <div class="col-auto">
+                <q-avatar
+                  size="48px"
+                  color="green-1"
+                  text-color="positive"
+                  icon="task_alt"
+                  class="shadow-sm rounded-12"
+                />
               </div>
-            </q-td>
+            </q-card-section>
+          </q-card>
+        </div>
 
-            <q-td key="timeline">
-              <div class="text-caption text-grey-8 font-11">
-                Tgl: <span class="text-weight-bold">{{ formatDateIndo(props.row.tanggal) }}</span>
+        <!-- Total Nilai Piutang (Belum Lunas) -->
+        <div class="col-12 col-sm-6 col-md-3">
+          <q-card flat class="list-card rounded-20 bg-indigo-10 text-white">
+            <q-card-section class="row items-center no-wrap q-pa-md">
+              <div class="col">
+                <div
+                  class="text-caption text-indigo-2 text-bold tracking-widest uppercase font-10 q-mb-xs"
+                >
+                  TOTAL PIUTANG AKTIF
+                </div>
+                <div class="text-h6 text-weight-black">Rp {{ formatCompact(totalPiutang) }}</div>
               </div>
-              <div
-                class="text-caption font-11"
-                :class="isOverdue(props.row) ? 'text-negative text-weight-bold' : 'text-grey-8'"
-              >
-                Tempo:
-                <span class="text-weight-bold">{{ formatDateIndo(props.row.jatuh_tempo) }}</span>
+              <div class="col-auto">
+                <q-avatar
+                  size="48px"
+                  color="white"
+                  text-color="indigo-10"
+                  icon="account_balance_wallet"
+                  class="shadow-2 rounded-12"
+                />
               </div>
-            </q-td>
+            </q-card-section>
+          </q-card>
+        </div>
+      </div>
 
-            <q-td key="nominal" class="text-right">
-              <div class="text-weight-bolder text-indigo-10 text-subtitle2">
-                Rp {{ (props.row.grand_total || 0).toLocaleString('id-ID') }}
-              </div>
-            </q-td>
-
-            <q-td key="status" class="text-center">
-              <q-chip
+      <!-- SEARCH & FILTER AREA -->
+      <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print">
+        <q-card-section class="q-py-md">
+          <div class="row items-center q-col-gutter-md">
+            <div class="col-12 col-md-5">
+              <q-input
+                v-model="searchQuery"
+                outlined
                 dense
-                :color="isOverdue(props.row) ? 'red-2' : getDisplayStatus(props.row).bg"
-                :text-color="isOverdue(props.row) ? 'red-10' : getDisplayStatus(props.row).text"
-                class="text-weight-bold font-10 uppercase q-ma-none shadow-sm q-px-sm"
+                rounded
+                placeholder="Cari No. Invoice atau Klien..."
+                bg-color="white"
+                class="search-input"
               >
-                {{ isOverdue(props.row) ? 'JATUH TEMPO' : getDisplayStatus(props.row).label }}
-              </q-chip>
-            </q-td>
-
-            <q-td key="aksi" class="text-center" @click.stop>
-              <div class="row justify-center q-gutter-xs">
-                <q-btn
-                  flat
-                  round
-                  color="indigo-10"
-                  icon="visibility"
-                  size="sm"
-                  @click="openPreviewDialog(props.row)"
-                  class="hover-blue-btn"
-                >
-                  <q-tooltip>Lihat Invoice</q-tooltip>
-                </q-btn>
-                <q-btn
-                  flat
-                  round
-                  color="blue-8"
-                  icon="edit"
-                  size="sm"
-                  @click="openEditDialog(props.row)"
-                  class="hover-blue-btn"
-                >
-                  <q-tooltip>Edit Data</q-tooltip>
-                </q-btn>
-                <q-btn
-                  flat
-                  round
-                  color="negative"
-                  icon="delete_outline"
-                  size="sm"
-                  @click="confirmHapus(props.row)"
-                  class="hover-red-btn"
-                >
-                  <q-tooltip>Hapus</q-tooltip>
-                </q-btn>
-              </div>
-            </q-td>
-          </q-tr>
-        </template>
-
-        <template v-slot:no-data>
-          <div class="full-width row flex-center q-pa-xl text-grey-5">
-            <q-icon name="request_quote" size="64px" class="q-mb-md" />
-            <div class="text-h6 full-width text-center">Data invoice klien belum tersedia.</div>
+                <template v-slot:prepend><q-icon name="search" color="indigo-10" /></template>
+                <template v-slot:append v-if="searchQuery"
+                  ><q-icon name="close" @click="searchQuery = ''" class="cursor-pointer"
+                /></template>
+              </q-input>
+            </div>
+            <q-space />
+            <q-btn flat round icon="refresh" color="indigo-10" @click="fetchData" />
           </div>
-        </template>
-      </q-table>
-    </q-card>
+        </q-card-section>
+      </q-card>
+
+      <!-- TABLE DATA INVOICES -->
+      <q-card
+        flat
+        bordered
+        class="rounded-20 shadow-sm overflow-hidden bg-white no-print border-indigo-thin animate-fade-up"
+      >
+        <q-table
+          :rows="filteredRows"
+          :columns="columns"
+          row-key="id"
+          flat
+          :loading="loading"
+          binary-state-sort
+          class="finance-table"
+          :pagination="{ rowsPerPage: 10 }"
+        >
+          <template v-slot:header="props">
+            <q-tr :props="props" class="bg-indigo-10 text-white">
+              <q-th
+                v-for="col in props.cols"
+                :key="col.name"
+                :props="props"
+                class="text-weight-bold uppercase font-11 tracking-widest"
+              >
+                {{ col.label }}
+              </q-th>
+            </q-tr>
+          </template>
+
+          <template v-slot:body="props">
+            <q-tr
+              :props="props"
+              class="hover-bg transition-all cursor-pointer"
+              @click="openPreviewDialog(props.row)"
+            >
+              <q-td key="invoice">
+                <div class="row items-center no-wrap">
+                  <q-avatar
+                    size="36px"
+                    color="indigo-1"
+                    text-color="indigo-10"
+                    icon="receipt_long"
+                    class="q-mr-md shadow-sm rounded-12"
+                  />
+                  <div>
+                    <div
+                      class="text-weight-bold text-blue-grey-10 text-subtitle2 leading-none q-mb-xs flex items-center"
+                    >
+                      <span>{{ props.row.nomor_invoice }}</span>
+                      <q-badge
+                        v-if="
+                          (props.row.approval_status === 'Approved' ||
+                            props.row.approval_status === 'Rejected') &&
+                          props.row.creator_read === false
+                        "
+                        color="positive"
+                        class="q-ml-sm animate-bounce"
+                        >BARU</q-badge
+                      >
+                    </div>
+                    <div class="text-caption text-grey-6 uppercase text-weight-medium">
+                      KLIEN:
+                      <span class="text-blue-grey-9 text-bold">{{ props.row.customer_nama }}</span>
+                    </div>
+                  </div>
+                </div>
+              </q-td>
+
+              <q-td key="proyek">
+                <div class="text-weight-bold text-blue-grey-9 uppercase font-11">
+                  {{ props.row.proyek_nama || '-' }}
+                </div>
+                <div class="text-caption text-grey-6 font-10">
+                  SPK: {{ props.row.spk_nomor || '-' }}
+                </div>
+              </q-td>
+
+              <q-td key="timeline">
+                <div class="text-caption text-grey-8 font-11">
+                  Tgl: <span class="text-weight-bold">{{ formatDateIndo(props.row.tanggal) }}</span>
+                </div>
+                <div
+                  class="text-caption font-11"
+                  :class="isOverdue(props.row) ? 'text-negative text-weight-bold' : 'text-grey-8'"
+                >
+                  Tempo:
+                  <span class="text-weight-bold">{{ formatDateIndo(props.row.jatuh_tempo) }}</span>
+                </div>
+              </q-td>
+
+              <q-td key="nominal" class="text-right">
+                <div class="text-weight-bolder text-indigo-10 text-subtitle2">
+                  Rp {{ (props.row.grand_total || 0).toLocaleString('id-ID') }}
+                </div>
+              </q-td>
+
+              <q-td key="status" class="text-center">
+                <q-chip
+                  dense
+                  :color="isOverdue(props.row) ? 'red-2' : getDisplayStatus(props.row).bg"
+                  :text-color="isOverdue(props.row) ? 'red-10' : getDisplayStatus(props.row).text"
+                  class="text-weight-bold font-10 uppercase q-ma-none shadow-sm q-px-sm"
+                >
+                  {{ isOverdue(props.row) ? 'JATUH TEMPO' : getDisplayStatus(props.row).label }}
+                </q-chip>
+              </q-td>
+
+              <q-td key="aksi" class="text-center" @click.stop>
+                <div class="row justify-center q-gutter-xs">
+                  <q-btn
+                    flat
+                    round
+                    color="indigo-10"
+                    icon="visibility"
+                    size="sm"
+                    @click="openPreviewDialog(props.row)"
+                    class="hover-blue-btn"
+                  >
+                    <q-tooltip>Lihat Invoice</q-tooltip>
+                  </q-btn>
+                  <q-btn
+                    flat
+                    round
+                    color="blue-8"
+                    icon="edit"
+                    size="sm"
+                    @click.stop="handleEdit(props.row)"
+                    class="hover-blue-btn"
+                  >
+                    <q-tooltip>Edit Data</q-tooltip>
+                  </q-btn>
+                  <q-btn
+                    flat
+                    round
+                    color="negative"
+                    icon="delete_outline"
+                    size="sm"
+                    @click.stop="handleDelete(props.row)"
+                    class="hover-red-btn"
+                  >
+                    <q-tooltip>Hapus</q-tooltip>
+                  </q-btn>
+                </div>
+              </q-td>
+            </q-tr>
+          </template>
+
+          <template v-slot:no-data>
+            <div class="full-width row flex-center q-pa-xl text-grey-5">
+              <q-icon name="request_quote" size="64px" class="q-mb-md" />
+              <div class="text-h6 full-width text-center">Data invoice klien belum tersedia.</div>
+            </div>
+          </template>
+        </q-table>
+      </q-card>
+    </template>
 
     <!-- =====================================================================================
          DIALOG ENTRY / EDIT INVOICE (MAXIMIZED)
@@ -413,7 +449,6 @@
                     <q-card-section class="q-pa-lg q-gutter-y-md">
                       <div>
                         <div class="label-req q-mb-xs text-primary">TARIK DATA MASTER KLIEN</div>
-                        <!-- PLACEHOLDER DINAMIS: Otomatis hilang jika klien telah terpilih -->
                         <q-select
                           outlined
                           dense
@@ -508,7 +543,6 @@
                           KAITKAN KE PROYEK
                           {{ invoiceType === 'kontrak' ? '(WAJIB UNTUK TARIK BOQ)' : '(OPSIONAL)' }}
                         </div>
-                        <!-- PLACEHOLDER DINAMIS: Otomatis hilang jika proyek telah terpilih -->
                         <q-select
                           outlined
                           dense
@@ -789,19 +823,42 @@
           >
           <q-space />
           <q-btn-group unelevated rounded class="shadow-2">
+            <!-- DYNAMIC APPROVAL ACTION ON INVOICE PREVIEW -->
+            <q-btn
+              v-if="canAction('setuju') && selectedInv?.approval_status !== 'Approved'"
+              color="positive"
+              icon="check_circle"
+              label="Setujui Invoice"
+              @click="approveInvoice(selectedInv)"
+              class="q-px-md text-weight-bold"
+            />
+            <q-btn
+              v-if="canAction('setuju') && selectedInv?.approval_status === 'Approved'"
+              color="warning"
+              icon="undo"
+              label="Batalkan Setuju"
+              @click="unapproveInvoice(selectedInv)"
+              class="q-px-md text-weight-bold"
+            />
             <q-btn
               color="primary"
               icon="print"
               label="Cetak"
               @click="printInvoice"
-              class="q-px-md"
+              class="q-px-md text-weight-bold"
             />
-            <q-btn color="red-9" icon="picture_as_pdf" label="Download PDF" @click="exportToPDF" />
+            <q-btn
+              color="red-9"
+              icon="picture_as_pdf"
+              label="Download PDF"
+              @click="exportToPDF"
+              class="text-weight-bold"
+            />
           </q-btn-group>
         </q-toolbar>
 
         <q-card-section class="col scroll q-pa-md q-pa-md-xl flex flex-center preview-container">
-          <!-- KERTAS PDF INVOICE (IDENTIK DENGAN SCREENSHOT REFERENSI GAMBAR PERTAMA) -->
+          <!-- KERTAS PDF INVOICE -->
           <div id="invoice-pdf-area" class="letter-paper shadow-24" v-if="selectedInv">
             <!-- HEADER (Logo & PT Name ONLY) -->
             <div class="row no-wrap items-center q-mb-md">
@@ -833,7 +890,7 @@
               style="height: 3px; background-color: #2b579a; width: 100%; margin-bottom: 25px"
             ></div>
 
-            <!-- INFO NOMOR, TANGGAL & KLIEN (Layout Rapi) -->
+            <!-- INFO NOMOR, TANGGAL & KLIEN -->
             <div class="row q-col-gutter-lg q-mb-xl">
               <!-- KIRI: Tagihan Kepada, Proyek -->
               <div class="col-7">
@@ -912,7 +969,6 @@
                 </tr>
               </thead>
               <tbody>
-                <!-- Item Rows -->
                 <tr v-for="(item, i) in selectedInv.items" :key="i">
                   <td
                     class="text-center text-weight-bold border-bottom-none border-top-none"
@@ -941,7 +997,7 @@
                   </td>
                 </tr>
 
-                <!-- Blank Filler Row (untuk space ke subtotal) -->
+                <!-- Blank Filler Row -->
                 <tr>
                   <td class="border-top-none border-bottom-none" style="height: 15px"></td>
                   <td class="border-top-none border-bottom-none"></td>
@@ -1038,7 +1094,7 @@
               <div># {{ terbilangRupiah(selectedInv.grand_total) }} Rupiah #</div>
             </div>
 
-            <!-- FOOTER INFO (PEMBAYARAN & TTD) -->
+            <!-- FOOTER INFO -->
             <div class="row q-col-gutter-xl text-body2">
               <div class="col-7">
                 <div
@@ -1102,6 +1158,13 @@
                     "
                   />
                   <div
+                    v-else-if="selectedInv.approval_status === 'Approved'"
+                    style="height: 60px"
+                    class="flex flex-center text-grey-7 text-weight-bolder text-uppercase text-italic font-11"
+                  >
+                    [ VERIFIED BY FINANCE ]
+                  </div>
+                  <div
                     v-else
                     style="height: 60px"
                     class="flex flex-center text-grey-4 italic font-8"
@@ -1132,7 +1195,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { db } from 'src/boot/firebase'
 import {
   collection,
@@ -1181,7 +1244,10 @@ const optCustomer = ref([])
 const masterProyek = ref([])
 const optProyek = ref([])
 
+const userData = ref(null)
+
 let unsubInvoice = null
+let unsubUser = null
 
 // Form State
 const formDefault = {
@@ -1205,6 +1271,72 @@ const formDefault = {
   status: 'Draft',
 }
 const form = ref({ ...formDefault })
+
+// ============================================================================
+// INTEGRATED REAL-TIME PERMISSION CONTROL (SOP SINGLE MASTER ROW: INVOICE)
+// ============================================================================
+const canAction = (actionType) => {
+  // 1. Super Admin otomatis bypass
+  if (authStore.user?.role === 'Super Admin') return true
+
+  // 2. Safeguard jika profile karyawan belum termuat
+  if (!userData.value?.permissions_detail) return false
+
+  // 3. Ambil data modul 'konstruksi'
+  const modulePerm = userData.value.permissions_detail.find((m) => m.id === 'konstruksi')
+  if (!modulePerm || !modulePerm.isActive) return false
+
+  // 4. Cari menu dengan ID yang tepat untuk menu INVOICE biasa (bukan approval_invoice)
+  const menu = modulePerm.menus.find((m) => {
+    const idLower = m.id.toLowerCase()
+    return (
+      (idLower.endsWith('_invoice') || idLower === '_konstruksi_invoice') &&
+      !idLower.includes('approval')
+    )
+  })
+  if (!menu) return false
+
+  // 5. Mapping actionType
+  if (actionType === 'setuju') return menu.approve || false
+  return menu[actionType] || false
+}
+
+// Dialog Warning Toast SOP Anti-Bypass
+const showPermissionDenied = () => {
+  $q.notify({
+    type: 'negative',
+    color: 'red-10',
+    icon: 'lock',
+    message: 'Maaf, Hak Akses Operasional Ditutup! Silakan hubungi Super Admin.',
+    position: 'top',
+    timeout: 3000,
+  })
+}
+
+// Intercepts
+const handleCreate = (type) => {
+  if (canAction('buat')) {
+    openAddDialog(type)
+  } else {
+    showPermissionDenied()
+  }
+}
+
+const handleEdit = (row) => {
+  if (canAction('ubah')) {
+    openEditDialog(row)
+  } else {
+    showPermissionDenied()
+  }
+}
+
+const handleDelete = (row) => {
+  if (canAction('hapus')) {
+    confirmHapus(row)
+  } else {
+    showPermissionDenied()
+  }
+}
 
 // Columns
 const columns = [
@@ -1446,6 +1578,18 @@ const simpanInvoice = async () => {
     })
   }
 
+  if (isEditMode.value) {
+    if (!canAction('ubah')) {
+      showPermissionDenied()
+      return
+    }
+  } else {
+    if (!canAction('buat')) {
+      showPermissionDenied()
+      return
+    }
+  }
+
   $q.loading.show({ message: 'Menyiapkan berkas pengiriman...' })
   submitting.value = true
 
@@ -1475,11 +1619,19 @@ const simpanInvoice = async () => {
       creator_read: false, // RESET STATUS BACA NOTIFIKASI
     }
 
-    if (isEditMode.value) {
+    Object.keys(payload).forEach((key) => {
+      if (payload[key] === undefined) {
+        payload[key] = ''
+      }
+    })
+
+    const docId = payload.id
+    if (isEditMode.value && docId) {
+      delete payload.id
       if (form.value.approval_status === 'Rejected') {
         payload.approval_status = 'Pending'
       }
-      await updateDoc(doc(db, 'finance_invoice_customer', form.value.id), payload)
+      await updateDoc(doc(db, 'finance_invoice_customer', docId), payload)
     } else {
       payload.createdAt = serverTimestamp()
       payload.approval_status = 'Pending'
@@ -1498,7 +1650,58 @@ const simpanInvoice = async () => {
   }
 }
 
+// Approval Actions (setuju Permission)
+const approveInvoice = async (row) => {
+  if (!canAction('setuju')) {
+    showPermissionDenied()
+    return
+  }
+  $q.loading.show({ message: 'Menyetujui Invoice...' })
+  try {
+    await updateDoc(doc(db, 'finance_invoice_customer', row.id), {
+      approval_status: 'Approved',
+      status: 'Terkirim', // Auto-set status to Terkirim when approved
+      updatedAt: serverTimestamp(),
+    })
+    selectedInv.value.approval_status = 'Approved'
+    selectedInv.value.status = 'Terkirim'
+    $q.notify({ type: 'positive', message: 'Invoice berhasil disetujui!' })
+  } catch (e) {
+    console.error(e)
+    $q.notify({ type: 'negative', message: 'Gagal menyetujui invoice.' })
+  } finally {
+    $q.loading.hide()
+  }
+}
+
+const unapproveInvoice = async (row) => {
+  if (!canAction('setuju')) {
+    showPermissionDenied()
+    return
+  }
+  $q.loading.show({ message: 'Membatalkan persetujuan...' })
+  try {
+    await updateDoc(doc(db, 'finance_invoice_customer', row.id), {
+      approval_status: 'Pending',
+      status: 'Draft',
+      updatedAt: serverTimestamp(),
+    })
+    selectedInv.value.approval_status = 'Pending'
+    selectedInv.value.status = 'Draft'
+    $q.notify({ type: 'positive', message: 'Persetujuan invoice dibatalkan.' })
+  } catch (e) {
+    console.error(e)
+    $q.notify({ type: 'negative', message: 'Gagal membatalkan persetujuan.' })
+  } finally {
+    $q.loading.hide()
+  }
+}
+
 const confirmHapus = (row) => {
+  if (!canAction('hapus')) {
+    showPermissionDenied()
+    return
+  }
   $q.dialog({
     title: 'Hapus Invoice',
     message: `Hapus invoice ${row.nomor_invoice} secara permanen?`,
@@ -1608,12 +1811,30 @@ const exportToPDF = () => {
     .then(() => $q.loading.hide())
 }
 
+// Real-time listener hak akses user dengan watcher untuk menangani load async secara aman
+watch(
+  () => authStore.user,
+  (newUser) => {
+    if (unsubUser) unsubUser()
+    if (newUser?.email) {
+      const qUser = query(collection(db, 'karyawan'), where('email', '==', newUser.email))
+      unsubUser = onSnapshot(qUser, (snapshot) => {
+        if (!snapshot.empty) {
+          userData.value = snapshot.docs[0].data()
+        }
+      })
+    }
+  },
+  { immediate: true },
+)
+
 onMounted(() => {
   fetchData()
 })
 
 onUnmounted(() => {
   if (unsubInvoice) unsubInvoice()
+  if (unsubUser) unsubUser()
 })
 </script>
 

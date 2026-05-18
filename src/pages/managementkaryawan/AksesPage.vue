@@ -330,7 +330,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+// eslint-disable-next-line no-unused-vars
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { db } from 'src/boot/firebase'
 import { collection, onSnapshot, doc, updateDoc } from 'firebase/firestore'
 import { useQuasar } from 'quasar'
@@ -345,19 +346,24 @@ const loading = ref(false)
 const matrixAkses = ref([])
 
 /**
- * GENERATE MATRIX: Mengambil menu dari routes.js secara otomatis
+ * GENERATE MATRIX: Mengambil menu dari routes.js secara otomatis & Overrides Modul Gudang kotor
  */
 const generateMatrixFromRoutes = () => {
   const modulPaths = ['/konstruksi', '/absensi', '/manufaktur', '/management-karyawan']
   const filteredRoutes = routes.filter((r) => modulPaths.includes(r.path))
 
   return filteredRoutes.map((route) => {
+    const modulId = route.path.replace('/', '')
     const label = route.path.replace('/', '').replace('-', ' ')
     const menus = []
 
     if (route.children) {
       route.children.forEach((child) => {
         if (!child.path || child.path === '') return
+
+        // SINKRONISASI KETAT: Abaikan seluruh rute Gudang mentah bermasalah (:id, list)
+        if (child.path.includes('gudang')) return
+
         const pathParts = child.path.split('/')
         const menuLabel = pathParts[pathParts.length - 1].replace('-', ' ').replace(/\/:id/, '')
 
@@ -374,8 +380,22 @@ const generateMatrixFromRoutes = () => {
       })
     }
 
+    // OVERRIDE: Menyuntikkan 1 baris GUDANG & STOK tunggal yang bersih & fungsional
+    if (modulId === 'konstruksi') {
+      menus.push({
+        id: '_konstruksi_gudang',
+        label: 'GUDANG & STOK',
+        level: 1,
+        lihat: false,
+        buat: false,
+        ubah: false,
+        hapus: false,
+        approve: false,
+      })
+    }
+
     return {
-      id: route.path.replace('/', ''),
+      id: modulId,
       label: label,
       isActive: false,
       menus: menus,
@@ -383,15 +403,21 @@ const generateMatrixFromRoutes = () => {
   })
 }
 
+let unsubKaryawan = null
+
 onMounted(() => {
   matrixAkses.value = generateMatrixFromRoutes()
 
-  onSnapshot(collection(db, 'karyawan'), (snapshot) => {
+  unsubKaryawan = onSnapshot(collection(db, 'karyawan'), (snapshot) => {
     karyawanList.value = snapshot.docs.map((d) => ({
       id: d.id,
       ...d.data(),
     }))
   })
+})
+
+onUnmounted(() => {
+  if (unsubKaryawan) unsubKaryawan()
 })
 
 const handleEditAkses = (karyawan) => {
@@ -471,10 +497,9 @@ export default {
 <style scoped>
 .font-pro {
   font-family:
+    'Plus Jakarta Sans',
     'Inter',
     -apple-system,
-    Helvetica,
-    Arial,
     sans-serif;
 }
 
