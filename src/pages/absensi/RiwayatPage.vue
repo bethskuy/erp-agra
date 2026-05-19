@@ -1,9 +1,6 @@
 <template>
   <q-page class="bg-slate-50 q-pa-md q-pa-lg-xl font-inter">
     <div class="premium-container mx-auto">
-      <!-- ========================================== -->
-      <!-- BAGIAN 1: HEADER & FILTER (CLEAN DESIGN)   -->
-      <!-- ========================================== -->
       <div class="row items-center justify-between q-mb-xl">
         <div class="col-12 col-md-8">
           <div class="row items-center q-mb-xs">
@@ -21,7 +18,6 @@
           </div>
         </div>
 
-        <!-- Filter Bulan Modern -->
         <div class="col-12 col-md-auto q-mt-md q-md-mt-none">
           <q-btn
             unelevated
@@ -44,7 +40,6 @@
               <q-icon name="arrow_drop_down" color="blue-grey-4" size="20px" class="q-ml-sm" />
             </div>
 
-            <!-- Popup Date Picker -->
             <q-popup-proxy cover transition-show="scale" transition-hide="scale">
               <q-date
                 v-model="filterBulan"
@@ -61,11 +56,7 @@
         </div>
       </div>
 
-      <!-- ========================================== -->
-      <!-- BAGIAN 2: STATISTIK BENTO CARDS            -->
-      <!-- ========================================== -->
       <div class="row q-col-gutter-lg q-mb-xl">
-        <!-- Total Kehadiran -->
         <div class="col-12 col-md-4">
           <q-card
             flat
@@ -90,7 +81,6 @@
           </q-card>
         </div>
 
-        <!-- Total Jam Kerja -->
         <div class="col-12 col-md-4">
           <q-card
             flat
@@ -114,7 +104,6 @@
           </q-card>
         </div>
 
-        <!-- Lokasi Utama -->
         <div class="col-12 col-md-4">
           <q-card
             flat
@@ -141,9 +130,6 @@
         </div>
       </div>
 
-      <!-- ========================================== -->
-      <!-- BAGIAN 3: TABEL DATA MODERN (BORDERLESS)   -->
-      <!-- ========================================== -->
       <q-card flat class="bento-card bg-white overflow-hidden q-mb-lg">
         <q-table
           :rows="rows"
@@ -155,7 +141,6 @@
           class="premium-table"
           card-class="bg-transparent"
         >
-          <!-- Header Styling -->
           <template v-slot:header="props">
             <q-tr :props="props" class="bg-slate-100">
               <q-th
@@ -169,14 +154,12 @@
             </q-tr>
           </template>
 
-          <!-- Body Styling -->
           <template v-slot:body="props">
             <q-tr :props="props" class="hover-effect">
               <q-td key="no" class="text-center text-blue-grey-4 text-weight-bold">{{
                 props.rowIndex + 1
               }}</q-td>
 
-              <!-- Kolom Tanggal -->
               <q-td key="tanggal" class="text-left">
                 <div class="row items-center no-wrap">
                   <div class="date-icon-box bg-grey-1 text-blue-grey-5 q-mr-sm">
@@ -188,15 +171,26 @@
                 </div>
               </q-td>
 
-              <!-- Kolom Jam Masuk -->
               <q-td key="jamIn" class="text-center">
-                <div class="time-badge bg-teal-50 text-teal-7 font-mono">
-                  <q-icon name="login" size="14px" class="q-mr-xs" />
-                  {{ formatWaktu(props.row.waktu_masuk) }}
+                <div class="column items-center justify-center">
+                  <div
+                    class="time-badge font-mono"
+                    :class="props.row.is_late ? 'bg-red-50 text-red-7' : 'bg-teal-50 text-teal-7'"
+                  >
+                    <q-icon name="login" size="14px" class="q-mr-xs" />
+                    {{ formatWaktu(props.row.waktu_masuk) }}
+                  </div>
+                  <q-badge
+                    v-if="props.row.is_late"
+                    color="red-5"
+                    class="q-mt-xs text-weight-bold shadow-1"
+                    style="font-size: 9px; padding: 2px 6px"
+                  >
+                    TERLAMBAT
+                  </q-badge>
                 </div>
               </q-td>
 
-              <!-- Kolom Jam Pulang -->
               <q-td key="jamOut" class="text-center">
                 <div
                   class="time-badge font-mono"
@@ -209,7 +203,6 @@
                 </div>
               </q-td>
 
-              <!-- Kolom Area Lokasi -->
               <q-td key="area" class="text-left">
                 <div class="row items-center no-wrap">
                   <q-icon name="explore" color="blue-grey-4" size="14px" class="q-mr-xs" />
@@ -225,7 +218,6 @@
                 </div>
               </q-td>
 
-              <!-- Kolom Durasi Kerja -->
               <q-td key="totalJam" class="text-center">
                 <q-badge
                   rounded
@@ -240,7 +232,6 @@
             </q-tr>
           </template>
 
-          <!-- No Data State -->
           <template v-slot:no-data>
             <div class="full-width column flex-center q-pa-xl text-blue-grey-4">
               <q-icon size="4em" name="event_busy" class="q-mb-md opacity-50" />
@@ -253,7 +244,6 @@
         </q-table>
       </q-card>
 
-      <!-- Footer Info -->
       <div
         class="row items-center justify-center text-blue-grey-5 text-caption text-weight-medium q-mb-xl"
       >

@@ -1,9 +1,6 @@
 <template>
   <q-page class="bg-slate-50 q-pa-md q-pa-lg-xl font-inter">
     <div class="premium-container mx-auto">
-      <!-- ========================================== -->
-      <!-- HEADER SECTION (GLOBAL)                    -->
-      <!-- ========================================== -->
       <div class="row items-center justify-between q-mb-xl">
         <div class="col-12 col-md-7">
           <div class="row items-center q-mb-xs">
@@ -48,16 +45,12 @@
         </div>
       </div>
 
-      <!-- ========================================== -->
-      <!-- MODE 1: RINGKASAN (SUMMARY VIEW)           -->
-      <!-- ========================================== -->
       <q-slide-transition>
         <q-card
           flat
           class="bento-card bg-white overflow-hidden shadow-soft"
           v-if="viewMode === 'summary'"
         >
-          <!-- Filter Toolbar -->
           <q-card-section class="bg-white q-pa-lg border-bottom-light">
             <div class="row q-col-gutter-md items-center justify-between">
               <div class="col-12 col-md-5">
@@ -113,7 +106,6 @@
             </div>
           </q-card-section>
 
-          <!-- Table Ringkasan -->
           <q-table
             :rows="rows"
             :columns="columns"
@@ -217,16 +209,12 @@
         </q-card>
       </q-slide-transition>
 
-      <!-- ========================================== -->
-      <!-- MODE 2: DETAIL HARIAN (DETAIL VIEW)        -->
-      <!-- ========================================== -->
       <q-slide-transition>
         <q-card
           flat
           class="bento-card bg-white overflow-hidden shadow-soft"
           v-if="viewMode === 'detail'"
         >
-          <!-- Toolbar Kembali -->
           <q-card-section
             class="bg-white q-pa-md border-bottom-light row items-center justify-between"
           >
@@ -278,7 +266,24 @@
                 }}</q-td>
 
                 <q-td key="checkIn" class="text-center font-mono">{{ props.row.checkIn }}</q-td>
-                <q-td key="statusIn" class="text-center">{{ props.row.statusIn }}</q-td>
+
+                <q-td key="statusIn" class="text-center">
+                  <q-badge
+                    v-if="props.row.statusIn !== 'N/A'"
+                    :color="
+                      props.row.statusIn === 'Terlambat'
+                        ? 'red-5'
+                        : props.row.statusIn === 'Manual'
+                          ? 'orange-5'
+                          : 'teal-5'
+                    "
+                    class="q-px-sm q-py-xs rounded-6 text-weight-bold shadow-1"
+                  >
+                    {{ props.row.statusIn }}
+                  </q-badge>
+                  <span v-else class="text-caption text-grey-5 font-mono">N/A</span>
+                </q-td>
+
                 <q-td key="fotoIn" class="text-center">
                   <q-avatar
                     v-if="props.row.fotoIn"
@@ -294,7 +299,16 @@
                 <q-td key="lokasiIn" class="text-left text-caption">{{ props.row.lokasiIn }}</q-td>
 
                 <q-td key="checkOut" class="text-center font-mono">{{ props.row.checkOut }}</q-td>
-                <q-td key="statusOut" class="text-center">{{ props.row.statusOut }}</q-td>
+                <q-td key="statusOut" class="text-center">
+                  <q-badge
+                    v-if="props.row.statusOut !== 'N/A'"
+                    :color="props.row.statusOut === 'Manual' ? 'orange-5' : 'teal-5'"
+                    class="q-px-sm q-py-xs rounded-6 text-weight-bold shadow-1"
+                  >
+                    {{ props.row.statusOut }}
+                  </q-badge>
+                  <span v-else class="text-caption text-grey-5 font-mono">N/A</span>
+                </q-td>
                 <q-td key="fotoOut" class="text-center">
                   <q-avatar
                     v-if="props.row.fotoOut"
@@ -321,7 +335,6 @@
                 </q-td>
                 <q-td key="totalJam" class="text-center font-mono">{{ props.row.totalJam }}</q-td>
 
-                <!-- TOMBOL AKSI TAMBAH MANUAL -->
                 <q-td key="aksi" class="text-center">
                   <q-btn
                     flat
@@ -351,9 +364,6 @@
         </q-card>
       </q-slide-transition>
 
-      <!-- ========================================== -->
-      <!-- MODAL LIHAT FOTO                           -->
-      <!-- ========================================== -->
       <q-dialog v-model="photoDialog" backdrop-filter="blur(8px)">
         <q-card style="width: 400px; max-width: 90vw" class="rounded-16 bg-transparent no-shadow">
           <q-img :src="selectedPhoto" class="rounded-16 shadow-24" />
@@ -367,9 +377,6 @@
         </q-card>
       </q-dialog>
 
-      <!-- ========================================== -->
-      <!-- MODAL TAMBAH ABSENSI MANUAL (CLEAN SAAS UI)-->
-      <!-- ========================================== -->
       <q-dialog v-model="manualDialog" persistent backdrop-filter="blur(5px)">
         <q-card
           style="width: 600px; max-width: 95vw"
@@ -380,7 +387,6 @@
             class="column full-height"
             style="margin: 0"
           >
-            <!-- HEADER MODAL -->
             <q-card-section class="row items-center q-pb-md q-pt-lg q-px-lg">
               <div class="row items-center col">
                 <div class="bg-blue-50 text-primary q-pa-sm rounded-8 q-mr-md">
@@ -406,9 +412,7 @@
               />
             </q-card-section>
 
-            <!-- BODY MODAL (DIBERI SCROLL AGAR TOMBOL BAWAH TIDAK HILANG) -->
             <q-card-section class="q-px-lg q-py-sm scroll" style="max-height: 60vh">
-              <!-- SECTION CHECK-IN (BORDER BIRU) -->
               <div class="q-pa-md rounded-12 q-mb-lg bg-white box-outline-blue relative-position">
                 <div class="row items-center q-mb-md">
                   <div class="bg-blue-50 text-primary q-pa-xs rounded-6 q-mr-sm">
@@ -454,7 +458,6 @@
                 </div>
               </div>
 
-              <!-- SECTION CHECK-OUT (BORDER ORANYE) -->
               <div class="q-pa-md rounded-12 bg-white box-outline-orange relative-position">
                 <div class="row items-center q-mb-md">
                   <div class="bg-orange-50 text-orange-9 q-pa-xs rounded-6 q-mr-sm">
@@ -501,7 +504,6 @@
               </div>
             </q-card-section>
 
-            <!-- FOOTER MODAL (STICKY DI BAWAH) -->
             <q-card-actions align="right" class="bg-white q-px-lg q-pb-lg q-pt-md">
               <q-btn
                 flat
@@ -747,7 +749,14 @@ const lihatDetail = async (row) => {
           no: i,
           tanggal: currentDateStr,
           checkIn: checkInTime,
-          statusIn: dataAbsen.is_manual ? 'Manual' : 'Sesuai Waktu',
+
+          // REVISI: Tarik status Terlambat atau Tepat Waktu dari is_late Firebase
+          statusIn: dataAbsen.is_manual
+            ? 'Manual'
+            : dataAbsen.is_late
+              ? 'Terlambat'
+              : 'Tepat Waktu',
+
           fotoInRaw:
             dataAbsen.foto_masuk ||
             dataAbsen.foto_in ||
@@ -766,13 +775,13 @@ const lihatDetail = async (row) => {
           statusOut: dataAbsen.waktu_pulang
             ? dataAbsen.is_manual
               ? 'Manual'
-              : 'Sesuai Waktu'
+              : 'Tepat Waktu'
             : 'N/A',
           fotoOutRaw:
             dataAbsen.foto_pulang || dataAbsen.foto_out || dataAbsen.fotoUrl_pulang || null,
           fotoOut: dataAbsen.foto_pulang || dataAbsen.foto_out || dataAbsen.fotoUrl_pulang || null,
           lokasiOut: dataAbsen.waktu_pulang
-            ? dataAbsen.nama_tempat || 'Tidak ada lokasi'
+            ? dataAbsen.nama_tempat_pulang || dataAbsen.nama_tempat || 'Tidak ada lokasi'
             : 'Tidak ada lokasi',
 
           statusAbsensi: 'Hadir',
@@ -908,6 +917,7 @@ const simpanManualAbsensi = async () => {
       foto_masuk: manualForm.value.fotoIn || null,
       foto_pulang: manualForm.value.fotoOut || null,
       is_manual: true,
+      is_late: false, // Karena di-input manual oleh HRD, dianggap on-time / kebijakan HRD
     }
 
     if (manualForm.value.absenId) {

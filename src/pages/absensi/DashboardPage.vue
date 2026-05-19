@@ -6,7 +6,6 @@
       <!-- ========================================== -->
       <div class="row q-col-gutter-lg q-mb-lg" v-if="!showCamera">
         <!-- WIDGET 1: PROFIL KARYAWAN -->
-        <!-- Ditambahkan class 'hide-on-mobile' agar HANYA hilang di HP -->
         <div class="col-12 col-md-7 col-lg-8 hide-on-mobile">
           <q-card flat class="bento-card bg-white full-height relative-position overflow-hidden">
             <div class="decor-circle-1"></div>
@@ -101,7 +100,7 @@
       </div>
 
       <!-- ========================================== -->
-      <!-- WIDGET PEMBERITAHUAN UMUM (BARU)           -->
+      <!-- WIDGET PEMBERITAHUAN UMUM                  -->
       <!-- ========================================== -->
       <q-slide-transition>
         <div class="row q-mb-lg" v-if="!showCamera && activeAnnouncements.length > 0">
@@ -111,7 +110,6 @@
               class="bento-card bg-gradient-indigo text-white overflow-hidden shadow-soft-primary"
             >
               <div class="row items-stretch no-wrap">
-                <!-- Sisi Kiri: Ikon -->
                 <div
                   class="col-auto bg-black bg-opacity-20 flex flex-center q-pa-md"
                   style="width: 80px"
@@ -119,7 +117,6 @@
                   <q-icon name="campaign" size="36px" color="white" class="drop-shadow-glow" />
                 </div>
 
-                <!-- Sisi Kanan: Carousel Pengumuman -->
                 <div class="col overflow-hidden relative-position">
                   <q-carousel
                     v-model="slidePengumuman"
@@ -175,30 +172,57 @@
         <div class="col-12 col-md-6 mobile-order-2 desktop-order-1">
           <q-card flat class="bento-card bg-white full-height">
             <q-card-section class="q-pa-lg">
-              <div class="row items-center q-mb-lg">
-                <q-icon name="satellite_alt" color="blue-grey-4" size="sm" class="q-mr-sm" />
-                <div class="text-subtitle1 text-weight-bold text-blue-grey-9">
-                  Sistem Radar Lokasi
+              <div class="row items-center justify-between q-mb-lg">
+                <div class="row items-center">
+                  <q-icon name="satellite_alt" color="blue-grey-4" size="sm" class="q-mr-sm" />
+                  <div class="text-subtitle1 text-weight-bold text-blue-grey-9">
+                    Sistem Radar Lokasi
+                  </div>
                 </div>
+                <q-badge
+                  outline
+                  color="indigo-5"
+                  class="q-px-sm q-py-xs rounded-6 font-mono text-weight-bold bg-indigo-50"
+                >
+                  <q-icon name="work_outline" size="12px" class="q-mr-xs" /> SHIFT: 08:00 - 17:00
+                </q-badge>
               </div>
 
               <div
                 class="radar-box q-pa-md rounded-16 relative-position overflow-hidden"
-                :class="locationData.inRange ? 'radar-valid' : 'radar-invalid'"
+                :class="
+                  locationData.inRange && !locationData.securityRisk
+                    ? 'radar-valid'
+                    : 'radar-invalid'
+                "
               >
                 <div class="row items-start no-wrap">
                   <div class="radar-icon-container q-mr-md q-mt-xs">
                     <div
                       class="icon-pulse-ring"
-                      :class="locationData.inRange ? 'pulse-green' : 'pulse-red'"
+                      :class="
+                        locationData.inRange && !locationData.securityRisk
+                          ? 'pulse-green'
+                          : 'pulse-red'
+                      "
                     ></div>
                     <q-avatar
-                      :color="locationData.inRange ? 'teal-1' : 'red-1'"
-                      :text-color="locationData.inRange ? 'teal-6' : 'red-5'"
+                      :color="
+                        locationData.inRange && !locationData.securityRisk ? 'teal-1' : 'red-1'
+                      "
+                      :text-color="
+                        locationData.inRange && !locationData.securityRisk ? 'teal-6' : 'red-5'
+                      "
                       size="48px"
                     >
                       <q-icon
-                        :name="locationData.inRange ? 'verified_user' : 'location_off'"
+                        :name="
+                          locationData.securityRisk
+                            ? 'gavel'
+                            : locationData.inRange
+                              ? 'verified_user'
+                              : 'location_off'
+                        "
                         size="28px"
                       />
                     </q-avatar>
@@ -207,7 +231,11 @@
                   <div class="col">
                     <div
                       class="text-subtitle2 text-weight-bolder q-mb-xs"
-                      :class="locationData.inRange ? 'text-teal-7' : 'text-red-6'"
+                      :class="
+                        locationData.inRange && !locationData.securityRisk
+                          ? 'text-teal-7'
+                          : 'text-red-6'
+                      "
                     >
                       {{ locationData.statusText }}
                     </div>
@@ -226,7 +254,7 @@
 
                 <q-separator class="q-my-md opacity-50" />
 
-                <div class="row items-center justify-between">
+                <div class="row items-center justify-between q-mb-sm">
                   <div
                     class="text-caption text-weight-bold text-blue-grey-6 uppercase letter-spacing-1"
                   >
@@ -243,12 +271,30 @@
                     }}
                   </q-badge>
                 </div>
+
+                <div class="row items-center justify-between">
+                  <div
+                    class="text-caption text-weight-bold text-blue-grey-6 uppercase letter-spacing-1"
+                  >
+                    KEAMANAN SINYAL:
+                  </div>
+                  <q-badge
+                    :color="locationData.securityRisk ? 'red-6' : 'green-6'"
+                    class="text-weight-bold shadow-1"
+                  >
+                    <q-icon
+                      :name="locationData.securityRisk ? 'warning' : 'shield'"
+                      size="xs"
+                      class="q-mr-xs"
+                    />
+                    {{ locationData.securityRisk ? 'FAKE GPS TERDETEKSI' : 'AMAN (ENCRYPTED)' }}
+                  </q-badge>
+                </div>
               </div>
             </q-card-section>
           </q-card>
         </div>
 
-        <!-- WIDGET 4: TOMBOL AKSI -->
         <div class="col-12 col-md-6 mobile-order-1 desktop-order-2">
           <q-card flat class="bento-card bg-white full-height flex column justify-center">
             <q-card-section class="q-pa-lg">
@@ -259,9 +305,8 @@
 
               <div class="row q-col-gutter-md">
                 <div class="col-12 col-sm-6">
-                  <!-- TOMBOL CLOCK IN -->
                   <button
-                    v-if="locationData.inRange"
+                    v-if="locationData.inRange && !locationData.securityRisk"
                     class="btn-premium btn-clock-in full-width"
                     @click="startAbsensi"
                   >
@@ -276,35 +321,47 @@
                 </div>
 
                 <div class="col-12 col-sm-6">
-                  <!-- TOMBOL CLOCK OUT -->
-                  <button class="btn-premium btn-clock-out full-width" @click="absenPulang">
+                  <button
+                    v-if="locationData.inRange && !locationData.securityRisk"
+                    class="btn-premium btn-clock-out full-width"
+                    @click="absenPulang"
+                  >
                     <q-icon name="logout" size="24px" class="q-mb-xs" />
                     <span>CLOCK OUT</span>
+                  </button>
+
+                  <button v-else class="btn-premium btn-locked full-width" @click="absenPulang">
+                    <q-icon name="lock" size="24px" class="q-mb-xs text-blue-grey-4" />
+                    <span class="text-blue-grey-5">OUT TERKUNCI</span>
                   </button>
                 </div>
               </div>
 
-              <!-- Info Text -->
               <div class="row items-center q-mt-md bg-grey-1 q-pa-sm rounded-8 border-grey">
                 <q-icon name="info" color="blue-grey-5" size="16px" class="q-mr-sm" />
                 <div
                   class="text-caption text-blue-grey-7 text-weight-medium"
                   style="font-size: 11px"
                 >
-                  Sistem dikunci oleh <strong>Double-Guard GPS</strong>. Pastikan Anda di area
-                  kantor.
+                  Tombol akan terbuka jika Anda berada di area kantor.
                 </div>
               </div>
+
+              <q-btn
+                flat
+                no-caps
+                color="primary"
+                icon="history_edu"
+                label="Sistem Error? Ajukan Absensi Manual"
+                class="full-width q-mt-sm text-weight-bold rounded-8 transition-smooth hover-bg"
+                @click="manualDialog = true"
+              />
             </q-card-section>
           </q-card>
         </div>
       </div>
 
-      <!-- ========================================== -->
-      <!-- BAGIAN BAWAH: RIWAYAT & STATUS TIM           -->
-      <!-- ========================================== -->
       <div class="row q-col-gutter-lg" v-if="!showCamera">
-        <!-- WIDGET 5: RIWAYAT PRIBADI -->
         <div class="col-12 col-md-7">
           <q-card flat class="bento-card bg-white full-height">
             <q-card-section class="q-pa-lg border-bottom row items-center justify-between">
@@ -351,17 +408,31 @@
                       <span class="text-weight-bold text-blue-grey-7">{{ item.nama_tempat }}</span>
                     </q-item-label>
                   </q-item-section>
+
                   <q-item-section side class="text-right">
-                    <div class="text-weight-bold text-blue-grey-10 font-mono text-body2">
-                      {{ formatWaktu(item.waktu_masuk) }} <span class="text-grey-4 q-mx-xs">━</span>
-                      {{ formatWaktu(item.waktu_pulang) }}
+                    <div class="text-weight-bold font-mono text-body2">
+                      <span :class="item.is_late ? 'text-red-6' : 'text-blue-grey-10'">
+                        {{ formatWaktu(item.waktu_masuk) }}
+                      </span>
+                      <span class="text-grey-4 q-mx-xs">━</span>
+                      <span class="text-blue-grey-10">{{ formatWaktu(item.waktu_pulang) }}</span>
                     </div>
-                    <q-badge
-                      :color="item.status === 'Selesai' ? 'teal-5' : 'orange-5'"
-                      class="q-mt-sm rounded-6 shadow-1 text-weight-bold"
-                    >
-                      {{ item.status.toUpperCase() }}
-                    </q-badge>
+
+                    <div class="row q-gutter-x-xs q-mt-sm justify-end">
+                      <q-badge
+                        v-if="item.is_late"
+                        color="red-5"
+                        class="rounded-6 shadow-1 text-weight-bold"
+                      >
+                        TERLAMBAT
+                      </q-badge>
+                      <q-badge
+                        :color="item.status === 'Selesai' ? 'teal-5' : 'orange-5'"
+                        class="rounded-6 shadow-1 text-weight-bold"
+                      >
+                        {{ item.status.toUpperCase() }}
+                      </q-badge>
+                    </div>
                   </q-item-section>
                 </q-item>
               </q-list>
@@ -369,7 +440,6 @@
           </q-card>
         </div>
 
-        <!-- WIDGET 6: STATUS TIM -->
         <div class="col-12 col-md-5">
           <q-card flat class="bento-card bg-white full-height">
             <q-card-section class="q-pa-lg border-bottom row items-center justify-between">
@@ -426,14 +496,158 @@
         </div>
       </div>
 
-      <!-- ========================================== -->
-      <!-- TAMPILAN KAMERA (RESPONSIVE FIX)           -->
-      <!-- ========================================== -->
+      <q-dialog v-model="manualDialog" persistent backdrop-filter="blur(5px)">
+        <q-card
+          style="width: 550px; max-width: 95vw"
+          class="rounded-24 bg-white overflow-hidden shadow-soft flex column"
+        >
+          <q-form @submit.prevent="submitManualAbsen" class="column full-height" style="margin: 0">
+            <q-card-section class="row items-center q-pb-md q-pt-lg q-px-lg">
+              <div class="row items-center col">
+                <div class="bg-blue-50 text-primary q-pa-sm rounded-8 q-mr-md">
+                  <q-icon name="history_edu" size="24px" />
+                </div>
+                <div>
+                  <div class="text-h6 text-weight-bolder text-blue-grey-10 line-height-tight">
+                    Absensi Manual
+                  </div>
+                  <div class="text-caption text-blue-grey-5 font-mono text-weight-bold q-mt-xs">
+                    Form pengajuan jika sistem error/lupa absen.
+                  </div>
+                </div>
+              </div>
+              <q-btn
+                icon="close"
+                flat
+                round
+                dense
+                v-close-popup
+                color="blue-grey-4"
+                class="bg-grey-1 transition-smooth hover-scale"
+              />
+            </q-card-section>
+
+            <q-card-section class="q-px-lg q-py-sm scroll" style="max-height: 60vh">
+              <div class="q-gutter-y-md">
+                <div>
+                  <div
+                    class="text-caption text-weight-bold text-blue-grey-8 uppercase letter-spacing-1 q-mb-sm"
+                  >
+                    Tanggal Absen
+                  </div>
+                  <q-input
+                    outlined
+                    v-model="manualForm.tanggal"
+                    type="date"
+                    color="primary"
+                    class="rounded-input"
+                    :rules="[(val) => !!val || 'Wajib diisi']"
+                  />
+                </div>
+
+                <div class="row q-col-gutter-md">
+                  <div class="col-12 col-sm-6">
+                    <div
+                      class="text-caption text-weight-bold text-blue-grey-8 uppercase letter-spacing-1 q-mb-sm"
+                    >
+                      Jam Masuk
+                    </div>
+                    <q-input
+                      outlined
+                      v-model="manualForm.waktuIn"
+                      type="time"
+                      color="primary"
+                      class="rounded-input"
+                      :rules="[(val) => !!val || 'Wajib diisi']"
+                    />
+                  </div>
+                  <div class="col-12 col-sm-6">
+                    <div
+                      class="text-caption text-weight-bold text-blue-grey-8 uppercase letter-spacing-1 q-mb-sm"
+                    >
+                      Jam Pulang
+                    </div>
+                    <q-input
+                      outlined
+                      v-model="manualForm.waktuOut"
+                      type="time"
+                      color="primary"
+                      class="rounded-input"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div
+                    class="text-caption text-weight-bold text-blue-grey-8 uppercase letter-spacing-1 q-mb-sm"
+                  >
+                    Alasan Manual
+                  </div>
+                  <q-input
+                    outlined
+                    v-model="manualForm.alasan"
+                    type="textarea"
+                    rows="3"
+                    placeholder="Contoh: Lupa absen pulang, HP error, jaringan hilang, dll."
+                    color="primary"
+                    class="rounded-input"
+                    :rules="[(val) => !!val || 'Wajib diisi']"
+                  />
+                </div>
+
+                <div>
+                  <div
+                    class="text-caption text-weight-bold text-blue-grey-8 uppercase letter-spacing-1 q-mb-sm"
+                  >
+                    Bukti (Opsional)
+                  </div>
+                  <q-file
+                    outlined
+                    v-model="manualForm.lampiran"
+                    placeholder="Upload Foto / Screenshot"
+                    color="primary"
+                    class="rounded-input bg-grey-1"
+                    accept="image/*, .pdf"
+                    clearable
+                    max-file-size="5242880"
+                  >
+                    <template v-slot:prepend
+                      ><q-icon name="cloud_upload" color="blue-grey-4"
+                    /></template>
+                    <q-tooltip class="bg-blue-grey-9"
+                      >Screenshot error atau foto bukti pendukung (Max 5MB)</q-tooltip
+                    >
+                  </q-file>
+                </div>
+              </div>
+            </q-card-section>
+
+            <q-card-actions align="right" class="bg-slate-50 q-px-lg q-pb-lg q-pt-md border-top">
+              <q-btn
+                flat
+                label="BATAL"
+                color="blue-grey-6"
+                v-close-popup
+                class="text-weight-bold rounded-8 q-px-md transition-smooth hover-scale"
+              />
+              <q-btn
+                unelevated
+                label="KIRIM PENGAJUAN"
+                color="primary"
+                type="submit"
+                class="text-weight-bolder rounded-12 q-px-xl shadow-soft-primary transition-smooth hover-scale q-py-sm"
+                :loading="submittingManual"
+                icon="send"
+              />
+            </q-card-actions>
+          </q-form>
+        </q-card>
+      </q-dialog>
+
       <q-slide-transition>
         <div v-if="showCamera" class="row justify-center">
           <div class="col-12 col-xl-10">
             <q-card flat class="bento-card bg-white overflow-hidden shadow-soft">
-              <!-- Header -->
               <div
                 class="bg-blue-grey-9 text-white row items-center q-pa-md z-top relative-position"
               >
@@ -451,7 +665,6 @@
               </div>
 
               <div class="row">
-                <!-- Kiri: Kamera Scanner Sci-Fi -->
                 <div
                   class="col-12 col-md-7 bg-black relative-position flex flex-center"
                   style="min-height: 350px"
@@ -485,7 +698,6 @@
                   />
                 </div>
 
-                <!-- Kanan: Panel Konfirmasi -->
                 <div
                   class="col-12 col-md-5 q-pa-lg q-pa-md-xl bg-grey-1 flex column justify-center"
                 >
@@ -495,7 +707,6 @@
                     >
                       Informasi Check-In
                     </div>
-
                     <div class="row items-center q-mb-md">
                       <q-avatar
                         size="40px"
@@ -511,7 +722,6 @@
                         {{ userData.nama }}
                       </div>
                     </div>
-
                     <div class="row items-start q-mb-md">
                       <q-avatar
                         size="40px"
@@ -529,7 +739,6 @@
                         </div>
                       </div>
                     </div>
-
                     <q-badge
                       color="blue-grey-8"
                       class="q-px-sm q-py-xs text-weight-bold rounded-6 font-mono full-width justify-center"
@@ -592,10 +801,13 @@ import {
   where,
   Timestamp,
 } from 'firebase/firestore'
-import { ref as storageRef, uploadString, getDownloadURL } from 'firebase/storage'
+import { ref as storageRef, uploadString, getDownloadURL, uploadBytes } from 'firebase/storage'
 import { useQuasar, date } from 'quasar'
 
 const $q = useQuasar()
+
+// KONFIGURASI SHIFT KERJA (REVISI 3)
+const LATE_LIMIT = '08:15'
 
 // State Jam Terpisah
 const currentHours = ref('')
@@ -620,6 +832,17 @@ const userData = ref({
   foto_profil: '',
 })
 
+// STATE ABSENSI MANUAL
+const manualDialog = ref(false)
+const submittingManual = ref(false)
+const manualForm = ref({
+  tanggal: date.formatDate(Date.now(), 'YYYY-MM-DD'),
+  waktuIn: '',
+  waktuOut: '',
+  alasan: '',
+  lampiran: null,
+})
+
 const documentId = ref(null)
 const showCamera = ref(false)
 const capturedImage = ref(null)
@@ -635,6 +858,7 @@ const locationData = ref({
   statusText: 'Menghubungkan ke satelit...',
   inRange: false,
   matchedLocationName: 'MENCARI LOKASI',
+  securityRisk: false,
 })
 
 // Helper UI
@@ -702,11 +926,33 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
 
 const detectLocation = () => {
   if (!navigator.geolocation) return
+
+  locationData.value.statusText = 'Memverifikasi Sinyal & Keamanan...'
+
   navigator.geolocation.getCurrentPosition(
     (p) => {
       const lat = p.coords.latitude
       const lng = p.coords.longitude
+      const accuracy = p.coords.accuracy
 
+      const isSuspicious =
+        p.coords.mocked === true ||
+        accuracy === 10 ||
+        accuracy === 5 ||
+        accuracy === 1 ||
+        accuracy === 100
+
+      if (isSuspicious) {
+        locationData.value.securityRisk = true
+        locationData.value.inRange = false
+        locationData.value.lat = lat.toFixed(5)
+        locationData.value.lng = lng.toFixed(5)
+        locationData.value.statusText = 'TERDETEKSI FAKE GPS / LOKASI PALSU'
+        locationData.value.matchedLocationName = 'AKSES DITOLAK'
+        return
+      }
+
+      locationData.value.securityRisk = false
       locationData.value.lat = lat.toFixed(5)
       locationData.value.lng = lng.toFixed(5)
 
@@ -731,11 +977,23 @@ const detectLocation = () => {
     () => {
       locationData.value.statusText = 'IZINKAN AKSES GPS BROWSER!'
     },
-    { enableHighAccuracy: true },
+    { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 },
   )
 }
 
 const startAbsensi = () => {
+  if (locationData.value.securityRisk) {
+    $q.notify({
+      color: 'negative',
+      icon: 'warning',
+      message: 'PERINGATAN KEAMANAN: Matikan Fake GPS / Mock Location untuk bisa absen!',
+      position: 'top',
+      timeout: 4000,
+      classes: 'rounded-12 text-weight-bold',
+    })
+    return
+  }
+
   if (!locationData.value.inRange) {
     $q.notify({
       color: 'negative',
@@ -746,6 +1004,20 @@ const startAbsensi = () => {
       classes: 'rounded-12 text-weight-bold',
     })
     return
+  }
+
+  // Cek Keterlambatan untuk Notifikasi (Revisi 3)
+  const timeStr = `${currentHours.value}:${currentMinutes.value}`
+  if (timeStr > LATE_LIMIT) {
+    $q.notify({
+      color: 'orange-9',
+      icon: 'schedule',
+      message:
+        'Anda terdeteksi masuk di luar batas toleransi shift (08:15). Sistem akan menandai Anda Terlambat.',
+      position: 'top',
+      timeout: 5000,
+      classes: 'rounded-12 text-weight-bold',
+    })
   }
 
   showCamera.value = true
@@ -770,14 +1042,21 @@ const stopCamera = () => {
 }
 
 const saveAbsensi = async () => {
-  if (!locationData.value.inRange) {
-    $q.notify({ color: 'negative', message: 'Tindakan Ilegal. Sistem Mendeteksi Lokasi Luar.' })
+  if (!locationData.value.inRange || locationData.value.securityRisk) {
+    $q.notify({
+      color: 'negative',
+      message: 'Tindakan Ilegal. Sistem Mendeteksi Lokasi Luar/Palsu.',
+    })
     return
   }
 
   $q.loading.show({ message: 'Menyinkronkan data & foto ke server...' })
   try {
     const formattedName = (userData.value.nama || 'USER').toUpperCase()
+
+    // Hitung apakah dia terlambat berdasarkan jam saat tombol diklik (Revisi 3)
+    const timeStr = `${currentHours.value}:${currentMinutes.value}`
+    const isLate = timeStr > LATE_LIMIT
 
     let fotoUrl = null
     if (capturedImage.value) {
@@ -796,6 +1075,7 @@ const saveAbsensi = async () => {
       alamat_lengkap: locationData.value.address,
       koordinat: `${locationData.value.lat}, ${locationData.value.lng}`,
       foto_masuk: fotoUrl,
+      is_late: isLate, // Status Keterlambatan disimpan ke Database
     })
 
     $q.notify({
@@ -814,19 +1094,45 @@ const saveAbsensi = async () => {
   }
 }
 
+// LOGIKA CLOCK OUT DIPERKETAT DENGAN LOKASI (REVISI 5)
 const absenPulang = async () => {
-  if (!documentId.value)
+  if (!documentId.value) {
     return $q.notify({
       color: 'warning',
       message: 'Anda belum melakukan Clock-In hari ini!',
       classes: 'rounded-12 text-weight-bold',
     })
+  }
+
+  if (locationData.value.securityRisk) {
+    return $q.notify({
+      color: 'negative',
+      icon: 'warning',
+      message: 'PERINGATAN: Matikan Fake GPS untuk bisa Clock Out!',
+      position: 'top',
+      classes: 'rounded-12 text-weight-bold',
+    })
+  }
+
+  if (!locationData.value.inRange) {
+    return $q.notify({
+      color: 'negative',
+      icon: 'location_off',
+      message: 'SISTEM TERKUNCI: Anda harus berada di area kantor untuk bisa Clock Out!',
+      position: 'top',
+      classes: 'rounded-12 text-weight-bold',
+    })
+  }
+
   $q.loading.show()
   try {
     await updateDoc(doc(db, 'absensi', documentId.value), {
       waktu_pulang: serverTimestamp(),
       status: 'Selesai',
+      koordinat_pulang: `${locationData.value.lat}, ${locationData.value.lng}`,
+      nama_tempat_pulang: locationData.value.matchedLocationName,
     })
+
     $q.notify({
       color: 'primary',
       message: 'Clock-Out Sukses! Selamat beristirahat.',
@@ -841,6 +1147,65 @@ const absenPulang = async () => {
   }
 }
 
+const submitManualAbsen = async () => {
+  submittingManual.value = true
+  try {
+    const namaKaryawan = (userData.value.nama || 'USER').toUpperCase()
+
+    let finalDocUrl = ''
+    if (manualForm.value.lampiran) {
+      $q.loading.show({ message: 'Mengunggah bukti...' })
+      const file = manualForm.value.lampiran
+      const extension = file.name.split('.').pop()
+      const fileName = `MANUAL_ABSEN_${namaKaryawan}_${Date.now()}.${extension}`
+
+      const sRef = storageRef(storage, `lampiran_pengajuan/${fileName}`)
+      await uploadBytes(sRef, file)
+      finalDocUrl = await getDownloadURL(sRef)
+      $q.loading.hide()
+    }
+
+    const outTime = manualForm.value.waktuOut ? manualForm.value.waktuOut : 'Belum Pulang'
+    const combinedAlasan = `[Jam Masuk: ${manualForm.value.waktuIn} | Jam Pulang: ${outTime}] - Alasan: ${manualForm.value.alasan}`
+
+    await addDoc(collection(db, 'pengajuan'), {
+      nama_karyawan: namaKaryawan,
+      jenis_pengajuan: 'Absensi Manual',
+      tanggal_mulai: manualForm.value.tanggal,
+      tanggal_selesai: manualForm.value.tanggal,
+      alasan: combinedAlasan,
+      dokumen_url: finalDocUrl,
+      status_approval: 'Pending',
+      created_at: serverTimestamp(),
+    })
+
+    $q.notify({
+      color: 'positive',
+      message: 'Pengajuan Absensi Manual Berhasil Dikirim ke HRD!',
+      icon: 'check_circle',
+      classes: 'rounded-12 text-weight-bold',
+    })
+
+    manualDialog.value = false
+    manualForm.value = {
+      tanggal: date.formatDate(Date.now(), 'YYYY-MM-DD'),
+      waktuIn: '',
+      waktuOut: '',
+      alasan: '',
+      lampiran: null,
+    }
+  } catch (e) {
+    if ($q.loading.isActive) $q.loading.hide()
+    $q.notify({
+      color: 'negative',
+      message: e.message || 'Gagal mengirim pengajuan.',
+      classes: 'rounded-12 text-weight-bold',
+    })
+  } finally {
+    submittingManual.value = false
+  }
+}
+
 const formatWaktu = (ts) => (ts ? date.formatDate(ts.toDate(), 'HH:mm') : '--:--')
 
 let timer, unsubMe, unsubAll, unsubUser, unsubLokasi, unsubPengumuman, locationTimer
@@ -849,7 +1214,6 @@ onMounted(() => {
   updateTime()
   timer = setInterval(updateTime, 1000)
 
-  // 0. SINKRON LOKASI KANTOR
   unsubLokasi = onSnapshot(collection(db, 'lokasi_kantor'), (snap) => {
     daftarLokasiKantor.value = snap.docs.map((doc) => doc.data())
     detectLocation()
@@ -857,7 +1221,6 @@ onMounted(() => {
 
   locationTimer = setInterval(detectLocation, 30000)
 
-  // 1. SINKRON PENGUMUMAN UMUM AKTIF
   const qPengumuman = query(collection(db, 'pemberitahuan'), orderBy('tgl_publikasi', 'desc'))
   unsubPengumuman = onSnapshot(qPengumuman, (snap) => {
     const today = new Date()
@@ -865,7 +1228,6 @@ onMounted(() => {
 
     const semuaPengumuman = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
 
-    // Filter hanya yang belum kadaluarsa
     activeAnnouncements.value = semuaPengumuman.filter((p) => {
       if (!p.tgl_kadaluarsa) return true
       const expDate = new Date(p.tgl_kadaluarsa)
@@ -873,7 +1235,6 @@ onMounted(() => {
     })
   })
 
-  // 2. SINKRON USER LOCALSTORAGE & AMBIL FOTO
   const saved = localStorage.getItem('user_data')
   if (saved) {
     try {
@@ -909,7 +1270,6 @@ onMounted(() => {
     }
   }
 
-  // 3. RIWAYAT PRIBADI HARI INI
   const searchName = (userData.value.nama || 'USER').toUpperCase()
   const qMe = query(
     collection(db, 'absensi'),
@@ -926,7 +1286,6 @@ onMounted(() => {
     documentId.value = active ? active.id : null
   })
 
-  // 4. PENARIKAN DATA SELURUH KARYAWAN
   const startDay = new Date()
   startDay.setHours(0, 0, 0, 0)
   const qAll = query(
@@ -1004,6 +1363,9 @@ onUnmounted(() => {
 .border-bottom-light {
   border-bottom: 1px solid #f8fafc;
 }
+.border-top {
+  border-top: 1px solid #f1f5f9;
+}
 .border-grey {
   border: 1px solid #e2e8f0;
 }
@@ -1079,9 +1441,7 @@ onUnmounted(() => {
   border: 3px solid white;
 }
 
-/* =======================================
-   AURORA HOLOGRAPHIC CLOCK CSS
-   ======================================= */
+/* AURORA HOLOGRAPHIC CLOCK CSS */
 .aurora-card {
   background: #0f172a;
 }
@@ -1151,7 +1511,6 @@ onUnmounted(() => {
   font-weight: 500;
   letter-spacing: 0.5px;
 }
-/* ======================================= */
 
 /* RADAR PANEL */
 .radar-box {
@@ -1166,7 +1525,6 @@ onUnmounted(() => {
   background: #fef2f2;
   border-color: #fecaca;
 }
-
 .radar-icon-container {
   position: relative;
 }
@@ -1362,7 +1720,7 @@ onUnmounted(() => {
   background: rgba(0, 77, 64, 0.8) !important;
 }
 
-/* HIDE ON MOBILE: Hanya Tampil di Layar Desktop/Laptop (min-width: 1024px) */
+/* HIDE ON MOBILE */
 @media (max-width: 1023px) {
   .hide-on-mobile {
     display: none !important;
