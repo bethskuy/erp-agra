@@ -330,8 +330,9 @@
                     <q-tooltip>Lihat Detail</q-tooltip>
                   </q-btn>
 
+                  <!-- TOMBOL EKSEKUSI DENGAN PENGECEKAN HAK AKSES -->
                   <q-btn
-                    v-if="props.row.status === 'Approved'"
+                    v-if="props.row.status === 'Approved' && hasRealisasiPermission"
                     unelevated
                     round
                     color="positive"
@@ -427,7 +428,8 @@
             </q-list>
           </q-btn-dropdown>
 
-          <template v-if="selectedData.status === 'Approved'">
+          <!-- PENGECEKAN HAK AKSES UNTUK TOMBOL DI VIEW DETAIL -->
+          <template v-if="selectedData.status === 'Approved' && hasRealisasiPermission">
             <q-btn
               unelevated
               color="positive"
@@ -942,13 +944,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { db, storage } from 'src/boot/firebase'
 import {
   collection,
   onSnapshot,
   query,
   where,
+  limit,
   doc,
   updateDoc,
   serverTimestamp,
@@ -982,6 +985,102 @@ const realisasiForm = ref({
 })
 
 let unsubData = null
+let unsubUser = null // Listener realtime khusus untuk data hak akses user saat ini
+
+// Reaktif state menampung perizinan terbaru dari database langsung
+const currentUserPermissions = ref(null)
+
+// ============================================================================
+// COMPUTED: CEK HAK AKSES REALISASI DARI USER LOGIN (Bisa update instan!)
+// ============================================================================
+const hasRealisasiPermission = computed(() => {
+  // Prioritas utama ambil dari Listener Realtime, jika belum ter-load baru ambil dari authStore
+  const perms = currentUserPermissions.value || authStore.user?.permissions_detail || []
+
+  if (!Array.isArray(perms) || perms.length === 0) return false
+
+  let canApprove = false
+
+  for (const modul of perms) {
+    if (modul.menus && Array.isArray(modul.menus)) {
+      const targetMenu = modul.menus.find((m) => {
+        const lblStr = (m.label || '').toLowerCase()
+        const idStr = (m.id || '').toLowerCase()
+
+        return (
+          lblStr.includes('realisasi pembayaran') ||
+          idStr.includes('realisasi-pembayaran') ||
+          idStr.includes('realisasi_pembayaran')
+        )
+      })
+
+      // Jika menu ditemukan dan status approve = true
+      if (targetMenu && targetMenu.approve === true) {
+        canApprove = true
+        break
+      }
+    }
+  }
+
+  return canApprove
+})
+
+// ============================================================================
+// LISTENER HAK AKSES SECARA REALTIME UNTUK USER SAAT INI
+// ============================================================================
+const fetchRealtimeAccess = (u) => {
+  if (!u) return
+
+  if (unsubUser) {
+    unsubUser()
+    unsubUser = null
+  }
+
+  const processData = (data) => {
+    currentUserPermissions.value = data.permissions_detail || []
+    if (authStore.user) {
+      authStore.user.permissions_detail = data.permissions_detail
+      authStore.user.akses = data.akses
+    }
+  }
+
+  // 1. Prioritas Pertama: Cari berdasarkan Email
+  if (u.email) {
+    const qUser = query(collection(db, 'karyawan'), where('email', '==', u.email), limit(1))
+    unsubUser = onSnapshot(qUser, (snap) => {
+      if (!snap.empty) processData(snap.docs[0].data())
+    })
+    return
+  }
+
+  // 2. Prioritas Kedua: Cari berdasarkan NIK
+  if (u.nik) {
+    const qUser = query(collection(db, 'karyawan'), where('nik', '==', u.nik), limit(1))
+    unsubUser = onSnapshot(qUser, (snap) => {
+      if (!snap.empty) processData(snap.docs[0].data())
+    })
+    return
+  }
+
+  // 3. Prioritas Ketiga: Fallback ID Dokumen
+  const docId = u.id || u.uid || u.id_karyawan
+  if (docId) {
+    unsubUser = onSnapshot(doc(db, 'karyawan', docId), (docSnap) => {
+      if (docSnap.exists()) processData(docSnap.data())
+    })
+  }
+}
+
+// MEMASTIKAN LISTENER BERJALAN MESKI DATA USER MENGALAMI DELAY (VUE REACTIVITY)
+watch(
+  () => authStore.user?.email || authStore.user?.nik || authStore.user?.id || authStore.user?.uid,
+  (identifier) => {
+    if (identifier && authStore.user) {
+      fetchRealtimeAccess(authStore.user)
+    }
+  },
+  { immediate: true },
+)
 
 // Columns
 const columns = [
@@ -1295,6 +1394,7 @@ onMounted(() => {
 })
 onUnmounted(() => {
   if (unsubData) unsubData()
+  if (unsubUser) unsubUser() // Bersihkan listener saat pindah halaman
 })
 </script>
 

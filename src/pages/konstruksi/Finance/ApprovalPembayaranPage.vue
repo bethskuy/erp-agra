@@ -296,8 +296,8 @@
                     <q-tooltip>Lihat Detail</q-tooltip>
                   </q-btn>
 
-                  <!-- TOMBOL APPROVE & REJECT DI TABEL -->
-                  <template v-if="props.row.status === 'Pending'">
+                  <!-- TOMBOL APPROVE & REJECT DI TABEL DENGAN PENGECEKAN HAK AKSES -->
+                  <template v-if="props.row.status === 'Pending' && hasApprovePermission">
                     <q-btn
                       unelevated
                       round
@@ -405,8 +405,10 @@
             </q-list>
           </q-btn-dropdown>
 
+          <!-- PENGECEKAN HAK AKSES UNTUK TOMBOL DI VIEW DETAIL -->
           <template v-if="selectedData.status === 'Pending'">
             <q-btn
+              v-if="hasApprovePermission"
               unelevated
               color="negative"
               icon="cancel"
@@ -415,6 +417,7 @@
               @click="triggerReject(selectedData)"
             />
             <q-btn
+              v-if="hasApprovePermission"
               unelevated
               color="positive"
               icon="check_circle"
@@ -819,7 +822,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { db } from 'src/boot/firebase'
 import {
   collection,
@@ -829,6 +832,8 @@ import {
   doc,
   updateDoc,
   serverTimestamp,
+  where,
+  limit,
 } from 'firebase/firestore'
 import { useQuasar } from 'quasar'
 import { useAuthStore } from 'src/stores/auth'
@@ -849,6 +854,46 @@ const statusFilter = ref('Semua Status')
 const selectedData = ref(null)
 
 let unsubData = null
+let unsubUser = null // Listener realtime khusus untuk data hak akses user saat ini
+
+// Reaktif state menampung perizinan terbaru dari database langsung
+const currentUserPermissions = ref(null)
+
+// ============================================================================
+// COMPUTED: CEK HAK AKSES APPROVE DARI USER LOGIN (Bisa update instan!)
+// ============================================================================
+const hasApprovePermission = computed(() => {
+  // Prioritas utama ambil dari Listener Realtime, jika belum ter-load baru ambil dari authStore
+  const perms = currentUserPermissions.value || authStore.user?.permissions_detail || []
+
+  if (!Array.isArray(perms) || perms.length === 0) return false
+
+  let canApprove = false
+
+  // Melakukan iterasi dan cek dengan aman
+  for (const modul of perms) {
+    if (modul.menus && Array.isArray(modul.menus)) {
+      const targetMenu = modul.menus.find((m) => {
+        const lblStr = (m.label || '').toLowerCase()
+        const idStr = (m.id || '').toLowerCase()
+
+        return (
+          lblStr.includes('approval pembayaran') ||
+          idStr.includes('approval-pembayaran') ||
+          idStr.includes('approval_pembayaran')
+        )
+      })
+
+      // Jika menu ditemukan dan status approve = true
+      if (targetMenu && targetMenu.approve === true) {
+        canApprove = true
+        break // Hentikan perulangan jika ketemu true
+      }
+    }
+  }
+
+  return canApprove
+})
 
 // Columns
 const columns = [
@@ -866,7 +911,66 @@ const columns = [
   { name: 'otorisasi', align: 'center', label: 'OTORISASI', field: 'id' },
 ]
 
-// Fetch Data
+// ============================================================================
+// LISTENER HAK AKSES SECARA REALTIME UNTUK USER SAAT INI
+// ============================================================================
+const fetchRealtimeAccess = (u) => {
+  if (!u) return
+
+  // Bersihkan listener sebelumnya jika ada
+  if (unsubUser) {
+    unsubUser()
+    unsubUser = null
+  }
+
+  const processData = (data) => {
+    currentUserPermissions.value = data.permissions_detail || []
+    // Sinkronkan ke store secara aman tanpa memicu infinite loop
+    if (authStore.user) {
+      authStore.user.permissions_detail = data.permissions_detail
+      authStore.user.akses = data.akses
+    }
+  }
+
+  // 1. Prioritas Pertama: Cari berdasarkan Email (Paling Unik & Akurat)
+  if (u.email) {
+    const qUser = query(collection(db, 'karyawan'), where('email', '==', u.email), limit(1))
+    unsubUser = onSnapshot(qUser, (snap) => {
+      if (!snap.empty) processData(snap.docs[0].data())
+    })
+    return
+  }
+
+  // 2. Prioritas Kedua: Cari berdasarkan NIK
+  if (u.nik) {
+    const qUser = query(collection(db, 'karyawan'), where('nik', '==', u.nik), limit(1))
+    unsubUser = onSnapshot(qUser, (snap) => {
+      if (!snap.empty) processData(snap.docs[0].data())
+    })
+    return
+  }
+
+  // 3. Prioritas Ketiga: Fallback tebak ID Dokumen
+  const docId = u.id || u.uid || u.id_karyawan
+  if (docId) {
+    unsubUser = onSnapshot(doc(db, 'karyawan', docId), (docSnap) => {
+      if (docSnap.exists()) processData(docSnap.data())
+    })
+  }
+}
+
+// MEMASTIKAN LISTENER BERJALAN MESKI DATA USER MENGALAMI DELAY (VUE REACTIVITY)
+watch(
+  () => authStore.user?.email || authStore.user?.nik || authStore.user?.id || authStore.user?.uid,
+  (identifier) => {
+    if (identifier && authStore.user) {
+      fetchRealtimeAccess(authStore.user)
+    }
+  },
+  { immediate: true }, // Akan langsung berjalan saat halaman dimuat
+)
+
+// Fetch Data Antrean Approval
 const fetchData = () => {
   loading.value = true
   const qPengajuan = query(
@@ -1148,9 +1252,11 @@ const exportDetailExcel = () => {
 
 onMounted(() => {
   fetchData()
+  // fetchRealtimeAccess() <-- Baris lama ini DIHAPUS karena sudah di-handle oleh watch() di atas
 })
 onUnmounted(() => {
   if (unsubData) unsubData()
+  if (unsubUser) unsubUser() // Bersihkan listener saat pindah halaman
 })
 </script>
 
