@@ -31,7 +31,9 @@
           </div>
         </div>
         <div class="col-12 col-md-auto q-mt-md q-mt-md-none text-right">
+          <!-- Tombol BUAT hanya muncul jika izin `buat` = true -->
           <q-btn
+            v-if="canCreate"
             unelevated
             color="indigo-10"
             icon="add_box"
@@ -143,16 +145,13 @@
         </div>
       </div>
 
-      <!-- ==========================================
-           SEARCH & FILTER AREA (DENGAN PERIODE TGL & PROYEK)
-           ========================================== -->
+      <!-- SEARCH & FILTER AREA -->
       <q-card
         flat
         bordered
         class="q-mb-lg shadow-1 rounded-20 bg-white no-print border-indigo-thin"
       >
         <q-card-section class="q-pa-lg">
-          <!-- Row 1: Search & Status -->
           <div class="row items-center q-col-gutter-md q-mb-lg">
             <div class="col-12 col-md-6">
               <div class="text-caption text-grey-7 q-mb-xs text-weight-bold uppercase font-10">
@@ -196,7 +195,6 @@
             </div>
           </div>
 
-          <!-- Row 2: Date Range & Project Filter -->
           <div class="row items-end q-col-gutter-md">
             <div class="col-12 col-sm-6 col-md-2">
               <div class="text-subtitle2 q-mb-xs text-weight-bold">Tanggal Awal</div>
@@ -239,7 +237,7 @@
         </q-card-section>
       </q-card>
 
-      <!-- MAIN TABLE DATA (DAFTAR TAGIHAN) -->
+      <!-- MAIN TABLE DATA -->
       <q-card
         flat
         bordered
@@ -247,7 +245,7 @@
       >
         <q-table
           :rows="filteredTagihan"
-          :columns="columnsTagihan"
+          :columns="computedColumns"
           row-key="id"
           flat
           :loading="loading"
@@ -271,8 +269,9 @@
           <template v-slot:body="props">
             <q-tr
               :props="props"
-              class="hover-bg transition-all cursor-pointer"
-              @click="openDetail(props.row)"
+              class="hover-bg transition-all"
+              :class="canView ? 'cursor-pointer' : ''"
+              @click="canView ? openDetail(props.row) : null"
             >
               <q-td class="text-center font-bold text-grey-7">{{ props.rowIndex + 1 }}</q-td>
 
@@ -370,9 +369,12 @@
                 </q-chip>
               </q-td>
 
-              <q-td key="aksi" class="text-center" @click.stop>
+              <!-- Kolom AKSI hanya tampil jika ada minimal 1 izin aksi -->
+              <q-td v-if="hasAnyAction" key="aksi" class="text-center" @click.stop>
                 <div class="row justify-center q-gutter-xs">
+                  <!-- Tombol Lihat: hanya jika canView -->
                   <q-btn
+                    v-if="canView"
                     flat
                     round
                     color="indigo-10"
@@ -382,7 +384,9 @@
                   >
                     <q-tooltip>Lihat Detail Tagihan</q-tooltip>
                   </q-btn>
+                  <!-- Tombol Edit: hanya jika canEdit -->
                   <q-btn
+                    v-if="canEdit"
                     flat
                     round
                     color="blue-8"
@@ -392,7 +396,9 @@
                   >
                     <q-tooltip>Edit Tagihan</q-tooltip>
                   </q-btn>
+                  <!-- Tombol Hapus: hanya jika canDelete -->
                   <q-btn
+                    v-if="canDelete"
                     flat
                     round
                     color="negative"
@@ -420,10 +426,9 @@
     </div>
 
     <!-- =====================================================================================
-         VIEW 2: DETAIL TAGIHAN (DASHBOARD LAYOUT / VIEW SWITCHER)
+         VIEW 2: DETAIL TAGIHAN
          ===================================================================================== -->
     <div v-else-if="viewMode === 'detail_tagihan' && selectedTagihan" class="animate-fade q-pb-xl">
-      <!-- Top Action Bar -->
       <div class="row items-center justify-between q-mb-xl no-print">
         <div class="row items-center no-wrap">
           <q-btn
@@ -456,9 +461,7 @@
         </div>
       </div>
 
-      <!-- MAIN CONTENT WRAPPER -->
       <div id="invoice-pdf-target" class="bg-transparent">
-        <!-- HEADER RINCIAN & STATUS -->
         <div class="row items-center justify-between q-mb-lg">
           <div>
             <div
@@ -483,7 +486,6 @@
         </div>
 
         <div class="row q-col-gutter-lg">
-          <!-- KOLOM KIRI: REFERENSI & TIMELINE -->
           <div class="col-12 col-md-7">
             <!-- CARD 1: REFERENSI DOKUMEN & PROYEK -->
             <q-card flat bordered class="rounded-20 shadow-sm q-mb-lg bg-white border-indigo-thin">
@@ -593,9 +595,7 @@
                     </div>
                   </div>
 
-                  <div class="col-12">
-                    <q-separator class="border-subtle" />
-                  </div>
+                  <div class="col-12"><q-separator class="border-subtle" /></div>
 
                   <div class="col-12 col-sm-4">
                     <div
@@ -643,7 +643,6 @@
             </q-card>
           </div>
 
-          <!-- KOLOM KANAN: FINANCIAL SUMMARY & LAMPIRAN -->
           <div class="col-12 col-md-5">
             <!-- CARD 3: KEUANGAN -->
             <q-card
@@ -711,8 +710,9 @@
                   <div class="text-weight-bold text-indigo-10 uppercase tracking-widest font-11">
                     STATUS PEMBAYARAN
                   </div>
+                  <!-- Tombol Update Pembayaran: hanya jika canApprove -->
                   <q-btn
-                    v-if="selectedTagihan.status !== 'Lunas'"
+                    v-if="canApprove && selectedTagihan.status !== 'Lunas'"
                     outline
                     rounded
                     size="sm"
@@ -749,7 +749,7 @@
               </q-card-section>
             </q-card>
 
-            <!-- CARD 4: LAMPIRAN (NON-PRINT) -->
+            <!-- CARD 4: LAMPIRAN -->
             <q-card
               v-if="
                 selectedTagihan?.dokumen_lampiran && selectedTagihan.dokumen_lampiran.length > 0
@@ -789,7 +789,7 @@
               </q-card-section>
             </q-card>
 
-            <!-- CARD 5: RIWAYAT PEMBAYARAN TRACKER (NON-PRINT) -->
+            <!-- CARD 5: RIWAYAT PEMBAYARAN -->
             <q-card
               flat
               bordered
@@ -852,7 +852,7 @@
     </div>
 
     <!-- =====================================================================================
-         DIALOG BUAT / EDIT TAGIHAN BARU (FULLSCREEN)
+         DIALOG BUAT / EDIT TAGIHAN BARU
          ===================================================================================== -->
     <q-dialog
       v-model="showTagihanDialog"
@@ -862,7 +862,6 @@
       transition-hide="slide-down"
     >
       <q-card class="bg-grey-2 column no-wrap">
-        <!-- HEADER DIALOG FULLSCREEN -->
         <q-toolbar class="bg-indigo-10 text-white q-py-md shadow-4 shrink">
           <q-btn flat round dense icon="close" v-close-popup />
           <q-toolbar-title class="text-weight-black uppercase">
@@ -884,7 +883,7 @@
           <div class="row justify-center">
             <div class="col-12 col-md-10 col-xl-8">
               <q-card flat bordered class="rounded-20 bg-white shadow-1 q-pa-lg q-pa-md-xl">
-                <!-- SECTION 1: REFERENSI PROYEK & KONTRAK -->
+                <!-- SECTION 1 -->
                 <div class="text-overline text-indigo-10 text-bold tracking-widest q-mb-sm">
                   1. REFERENSI PROYEK & KONTRAK
                 </div>
@@ -898,7 +897,6 @@
                     readonly
                     bg-color="grey-2"
                   />
-
                   <q-select
                     class="col-12 col-md-6"
                     outlined
@@ -913,15 +911,14 @@
                     @update:model-value="onProyekSelect"
                     bg-color="blue-50"
                   >
-                    <template v-slot:no-option>
-                      <q-item
+                    <template v-slot:no-option
+                      ><q-item
                         ><q-item-section class="text-grey italic"
                           >Proyek tidak ditemukan</q-item-section
                         ></q-item
-                      >
-                    </template>
+                      ></template
+                    >
                   </q-select>
-
                   <q-select
                     class="col-12 col-md-6"
                     outlined
@@ -935,15 +932,14 @@
                     :disable="!formTagihan.proyek_id"
                     @update:model-value="onSpkSelect"
                   >
-                    <template v-slot:no-option>
-                      <q-item
+                    <template v-slot:no-option
+                      ><q-item
                         ><q-item-section class="text-grey italic"
                           >Tidak ada SPK pada proyek ini</q-item-section
                         ></q-item
-                      >
-                    </template>
+                      ></template
+                    >
                   </q-select>
-
                   <q-input
                     class="col-12 col-md-6"
                     outlined
@@ -952,7 +948,6 @@
                     label="BAP Number"
                     bg-color="white"
                   />
-
                   <q-select
                     class="col-12"
                     outlined
@@ -967,17 +962,17 @@
                     @update:model-value="onInvoiceSelect"
                     bg-color="blue-50"
                   >
-                    <template v-slot:no-option>
-                      <q-item
+                    <template v-slot:no-option
+                      ><q-item
                         ><q-item-section class="text-grey italic"
                           >Invoice tidak ditemukan atau sudah digunakan</q-item-section
                         ></q-item
-                      >
-                    </template>
+                      ></template
+                    >
                   </q-select>
                 </div>
 
-                <!-- SECTION 2: DETAIL PEKERJAAN & TIMELINE -->
+                <!-- SECTION 2 -->
                 <div class="text-overline text-indigo-10 text-bold tracking-widest q-mb-sm">
                   2. DETAIL PEKERJAAN & TIMELINE
                 </div>
@@ -1022,7 +1017,6 @@
                     stack-label
                     bg-color="white"
                   />
-
                   <q-input
                     class="col-12 col-md-6"
                     outlined
@@ -1041,7 +1035,6 @@
                     bg-color="white"
                     suffix="%"
                   />
-
                   <q-input
                     class="col-12"
                     outlined
@@ -1054,7 +1047,7 @@
                   />
                 </div>
 
-                <!-- SECTION 3: NILAI TAGIHAN & PAJAK -->
+                <!-- SECTION 3 -->
                 <div class="text-overline text-indigo-10 text-bold tracking-widest q-mb-sm">
                   3. NILAI TAGIHAN & PAJAK
                 </div>
@@ -1068,8 +1061,6 @@
                     bg-color="white"
                     placeholder="Contoh: Tahap 1 / Termin 30%"
                   />
-
-                  <!-- NOMINAL INVOICE KOTOR -->
                   <q-input
                     class="col-12"
                     outlined
@@ -1081,8 +1072,6 @@
                     bg-color="white"
                     input-class="text-weight-bold"
                   />
-
-                  <!-- DPP OTOMATIS -->
                   <q-input
                     class="col-12"
                     outlined
@@ -1094,8 +1083,6 @@
                     readonly
                     bg-color="grey-2"
                   />
-
-                  <!-- Kalkulasi Otomatis PPN -->
                   <q-input
                     class="col-12 col-md-4"
                     outlined
@@ -1117,8 +1104,6 @@
                     readonly
                     bg-color="grey-2"
                   />
-
-                  <!-- Kalkulasi Otomatis PPh -->
                   <q-input
                     class="col-12 col-md-4"
                     outlined
@@ -1140,8 +1125,6 @@
                     readonly
                     bg-color="grey-2"
                   />
-
-                  <!-- Net Amount -->
                   <q-input
                     class="col-12 q-mt-sm"
                     outlined
@@ -1156,7 +1139,7 @@
                   />
                 </div>
 
-                <!-- SECTION 4: LAMPIRAN DOKUMEN DINAMIS -->
+                <!-- SECTION 4 -->
                 <q-separator class="q-my-lg border-subtle" />
                 <div class="text-overline text-indigo-10 text-bold tracking-widest q-mb-sm">
                   4. LAMPIRAN DOKUMEN (OPSIONAL)
@@ -1174,7 +1157,7 @@
                             outlined
                             dense
                             v-model="doc.label"
-                            placeholder="Nama / Judul Dokumen (Contoh: Bukti BAP)..."
+                            placeholder="Nama / Judul Dokumen..."
                             bg-color="white"
                           />
                         </div>
@@ -1226,7 +1209,7 @@
     </q-dialog>
 
     <!-- =====================================================================================
-         DIALOG UPDATE PEMBAYARAN (TRACKER CICILAN)
+         DIALOG UPDATE PEMBAYARAN
          ===================================================================================== -->
     <q-dialog
       v-model="showPaymentDialog"
@@ -1236,12 +1219,11 @@
       transition-hide="slide-down"
     >
       <q-card class="bg-grey-2 column no-wrap">
-        <!-- HEADER DIALOG FULLSCREEN -->
         <q-toolbar class="bg-indigo-10 text-white q-py-md shadow-4 shrink">
           <q-btn flat round dense icon="close" v-close-popup />
-          <q-toolbar-title class="text-weight-black uppercase">
-            UPDATE PEMBAYARAN TAGIHAN
-          </q-toolbar-title>
+          <q-toolbar-title class="text-weight-black uppercase"
+            >UPDATE PEMBAYARAN TAGIHAN</q-toolbar-title
+          >
           <q-btn
             unelevated
             color="white"
@@ -1312,9 +1294,9 @@
                       bg-color="white"
                       class="bg-indigo-50"
                     >
-                      <template v-slot:prepend>
-                        <q-icon name="cloud_upload" color="indigo-10" />
-                      </template>
+                      <template v-slot:prepend
+                        ><q-icon name="cloud_upload" color="indigo-10"
+                      /></template>
                       <template v-slot:append v-if="paymentForm.bukti_file">
                         <q-icon
                           name="close"
@@ -1341,6 +1323,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { db, storage } from 'src/boot/firebase'
+import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import {
   collection,
   onSnapshot,
@@ -1348,6 +1331,9 @@ import {
   updateDoc,
   deleteDoc,
   doc,
+  query,
+  where,
+  getDocs,
   serverTimestamp,
   arrayUnion,
 } from 'firebase/firestore'
@@ -1356,13 +1342,148 @@ import { useQuasar } from 'quasar'
 
 const $q = useQuasar()
 
-// State Data Master (Koleksi Firebase)
+// ============================================================================
+// HAK AKSES — dibaca dari Firestore koleksi `karyawan` berdasarkan user login
+// ID menu tagihan di AksesPage adalah: _konstruksi_/finance/tagihan
+// atau sesuai path yang didaftarkan di routes.js modul konstruksi.
+// Kita cari menu dengan label "TAGIHAN" di dalam modul "konstruksi".
+// ============================================================================
+const userPermission = ref({
+  lihat: false,
+  buat: false,
+  ubah: false,
+  hapus: false,
+  approve: false,
+})
+
+/**
+ * Cari izin menu TAGIHAN dari permissions_detail karyawan.
+ * Struktur: permissions_detail[].id === 'konstruksi'
+ *           permissions_detail[].menus[].label === 'TAGIHAN' (case-insensitive)
+ */
+const resolvePermission = (karyawanData) => {
+  const detail = karyawanData?.permissions_detail
+  if (!detail || !Array.isArray(detail)) {
+    // Fallback: jika tidak ada permissions_detail, cek field akses lama (hanya lihat)
+    const hasKonstruksi = karyawanData?.akses?.includes('konstruksi') || false
+    userPermission.value = {
+      lihat: hasKonstruksi,
+      buat: false,
+      ubah: false,
+      hapus: false,
+      approve: false,
+    }
+    return
+  }
+
+  // Cari modul konstruksi
+  const modulKonstruksi = detail.find((m) => m.id === 'konstruksi')
+  if (!modulKonstruksi || !modulKonstruksi.isActive) {
+    userPermission.value = { lihat: false, buat: false, ubah: false, hapus: false, approve: false }
+    return
+  }
+
+  // Cari menu dengan label mengandung kata "tagihan" (case-insensitive)
+  // Mengecualikan "tagihan supplier" agar tidak tertukar
+  const menuTagihan = modulKonstruksi.menus?.find((menu) => {
+    const lbl = (menu.label || '').toLowerCase()
+    return lbl.includes('tagihan') && !lbl.includes('supplier')
+  })
+
+  if (!menuTagihan) {
+    userPermission.value = { lihat: false, buat: false, ubah: false, hapus: false, approve: false }
+    return
+  }
+
+  userPermission.value = {
+    lihat: menuTagihan.lihat || false,
+    buat: menuTagihan.buat || false,
+    ubah: menuTagihan.ubah || false,
+    hapus: menuTagihan.hapus || false,
+    approve: menuTagihan.approve || false,
+  }
+}
+
+// Computed izin
+const canView = computed(() => userPermission.value.lihat)
+const canCreate = computed(() => userPermission.value.buat)
+const canEdit = computed(() => userPermission.value.ubah)
+const canDelete = computed(() => userPermission.value.hapus)
+const canApprove = computed(() => userPermission.value.approve)
+
+// Kolom AKSI hanya tampil jika ada minimal 1 aksi yang diizinkan
+const hasAnyAction = computed(() => canView.value || canEdit.value || canDelete.value)
+
+// Kolom tabel: hilangkan kolom AKSI jika tidak ada izin apapun
+const computedColumns = computed(() => {
+  const cols = [...columnsTagihan]
+  if (!hasAnyAction.value) {
+    return cols.filter((c) => c.name !== 'aksi')
+  }
+  return cols
+})
+
+// ============================================================================
+// LOAD USER & FETCH PERMISSION DARI FIRESTORE
+// ============================================================================
+const loadUserPermission = () => {
+  const auth = getAuth()
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      userPermission.value = {
+        lihat: false,
+        buat: false,
+        ubah: false,
+        hapus: false,
+        approve: false,
+      }
+      return
+    }
+
+    try {
+      // Cari karyawan berdasarkan email yang sama dengan akun Firebase Auth
+      const q = query(collection(db, 'karyawan'), where('email', '==', user.email))
+      const snap = await getDocs(q)
+
+      if (!snap.empty) {
+        const karyawanData = snap.docs[0].data()
+        resolvePermission(karyawanData)
+
+        // Real-time listener agar izin terupdate jika admin mengubahnya
+        onSnapshot(doc(db, 'karyawan', snap.docs[0].id), (docSnap) => {
+          if (docSnap.exists()) resolvePermission(docSnap.data())
+        })
+      } else {
+        // Jika tidak ada dokumen karyawan, tidak ada izin
+        userPermission.value = {
+          lihat: false,
+          buat: false,
+          ubah: false,
+          hapus: false,
+          approve: false,
+        }
+      }
+    } catch (err) {
+      console.error('Gagal memuat izin pengguna:', err)
+      userPermission.value = {
+        lihat: false,
+        buat: false,
+        ubah: false,
+        hapus: false,
+        approve: false,
+      }
+    }
+  })
+}
+
+// ============================================================================
+// STATE DATA MASTER
+// ============================================================================
 const masterProyek = ref([])
 const masterSpk = ref([])
 const masterTagihan = ref([])
 const masterInvoiceCust = ref([])
 
-// State UI General
 const viewMode = ref('list_proyek')
 const loading = ref(true)
 const searchQuery = ref('')
@@ -1372,7 +1493,6 @@ const isEditTagihanMode = ref(false)
 const savingTagihan = ref(false)
 const selectedTagihan = ref(null)
 
-// Payment Tracking State
 const showPaymentDialog = ref(false)
 const savingPayment = ref(false)
 const paymentForm = ref({
@@ -1382,13 +1502,10 @@ const paymentForm = ref({
   bukti_file: null,
 })
 
-// --- STATE FILTER BARU ---
 const filterStartDate = ref('')
 const filterEndDate = ref('')
 const filterSelectedProyek = ref(null)
 const optProyekFilter = ref([])
-
-// State Dropdown
 const optProyek = ref([])
 const optSpkFiltered = ref([])
 const optInvoiceCustomer = ref([])
@@ -1398,7 +1515,6 @@ let unsubSpk = null
 let unsubTagihan = null
 let unsubInvoiceCust = null
 
-// Form State Lengkap
 const formTagihan = ref({
   id: null,
   kode_tagihan: '',
@@ -1429,7 +1545,7 @@ const formTagihan = ref({
   riwayat_pembayaran: [],
 })
 
-// Auto-calculate Kalkulasi Pajak & Net Amount berdasarkan Nominal Invoice (Kotor)
+// Auto-calculate pajak
 watch(
   () => [
     formTagihan.value.nominal_invoice,
@@ -1441,11 +1557,8 @@ watch(
     const valPpnPersen = Number(ppn) || 0
     const valPphPersen = Number(pph) || 0
 
-    // Menghitung DPP dari Nominal Kotor (Kotor = DPP + PPN)
     let valDpp = valNominal
-    if (valPpnPersen > 0) {
-      valDpp = valNominal / (1 + valPpnPersen / 100)
-    }
+    if (valPpnPersen > 0) valDpp = valNominal / (1 + valPpnPersen / 100)
 
     const valPpn = (valDpp * valPpnPersen) / 100
     const valPph = (valDpp * valPphPersen) / 100
@@ -1465,38 +1578,27 @@ const generateKodeTagihan = () => {
   return `TG/${year}${month}/${padded}`
 }
 
-// Helper: Truncate Text
 const truncateString = (str, num) => {
   if (!str) return '-'
   if (str.length <= num) return str
   return str.slice(0, num) + '...'
 }
 
-// Helper: Hitung Tenor & Warna
 const calculateTenor = (row) => {
   if (row.status === 'Lunas') return { text: 'LUNAS', color: 'text-positive' }
-
   if (!row.jatuh_tempo || row.jatuh_tempo === '-') return { text: '-', color: 'text-grey-6' }
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-
   const jtDate = new Date(row.jatuh_tempo)
   jtDate.setHours(0, 0, 0, 0)
+  const diffDays = Math.ceil((jtDate - today) / (1000 * 60 * 60 * 24))
 
-  const diffTime = jtDate - today
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-  if (diffDays < 0) {
-    return { text: `Telat ${Math.abs(diffDays)} Hari`, color: 'text-negative' }
-  } else if (diffDays === 0) {
-    return { text: 'Hari Ini', color: 'text-orange-9' }
-  } else {
-    return { text: `${diffDays} Hari Lagi`, color: 'text-positive' }
-  }
+  if (diffDays < 0) return { text: `Telat ${Math.abs(diffDays)} Hari`, color: 'text-negative' }
+  if (diffDays === 0) return { text: 'Hari Ini', color: 'text-orange-9' }
+  return { text: `${diffDays} Hari Lagi`, color: 'text-positive' }
 }
 
-// Columns List Tagihan
 const columnsTagihan = [
   { name: 'kode', align: 'left', label: 'KODE & BAP', field: 'kode_tagihan', sortable: true },
   {
@@ -1542,21 +1644,18 @@ const columnsTagihan = [
 ]
 
 // ============================================================================
-// COMPUTED MAPPINGS (Murni Daftar Tagihan Berbentuk Tabel Tunggal)
+// COMPUTED
 // ============================================================================
-const mappedTagihan = computed(() => {
-  return masterTagihan.value
-    .map((t) => {
-      return {
-        ...t,
-        search_string:
-          `${t.kode_tagihan} ${t.bap_number} ${t.proyek_nama} ${t.nomor_spk} ${typeof t.nomor_invoice_customer === 'object' ? t.nomor_invoice_customer?.nomor_invoice : t.nomor_invoice_customer}`.toLowerCase(),
-      }
-    })
-    .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
-})
+const mappedTagihan = computed(() =>
+  masterTagihan.value
+    .map((t) => ({
+      ...t,
+      search_string:
+        `${t.kode_tagihan} ${t.bap_number} ${t.proyek_nama} ${t.nomor_spk} ${typeof t.nomor_invoice_customer === 'object' ? t.nomor_invoice_customer?.nomor_invoice : t.nomor_invoice_customer}`.toLowerCase(),
+    }))
+    .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)),
+)
 
-// KPI Computed
 const tagihanAktif = computed(() =>
   mappedTagihan.value.filter(
     (r) => r.status === 'Menunggu Pembayaran' || r.status === 'Dibayar Sebagian',
@@ -1576,11 +1675,9 @@ const totalOutstanding = computed(() =>
   ),
 )
 
-// --- LOGIKA FILTER TERPADU (DENGAN TGL & PROYEK) ---
 const filteredTagihan = computed(() => {
   let result = mappedTagihan.value
 
-  // 1. Filter Status Lunas / Belum Lunas
   if (statusFilter.value === 'OUTSTANDING') {
     result = result.filter(
       (r) => r.status === 'Menunggu Pembayaran' || r.status === 'Dibayar Sebagian',
@@ -1589,24 +1686,16 @@ const filteredTagihan = computed(() => {
     result = result.filter((r) => r.status === 'Lunas')
   }
 
-  // 2. Filter Pencarian Teks
   if (searchQuery.value) {
     const lower = searchQuery.value.toLowerCase()
     result = result.filter((r) => r.search_string.includes(lower))
   }
 
-  // 3. Filter Periode Tanggal (berdasarkan tanggal_invoice)
-  if (filterStartDate.value) {
+  if (filterStartDate.value)
     result = result.filter((r) => r.tanggal_invoice >= filterStartDate.value)
-  }
-  if (filterEndDate.value) {
-    result = result.filter((r) => r.tanggal_invoice <= filterEndDate.value)
-  }
-
-  // 4. Filter Berdasarkan Proyek
-  if (filterSelectedProyek.value) {
+  if (filterEndDate.value) result = result.filter((r) => r.tanggal_invoice <= filterEndDate.value)
+  if (filterSelectedProyek.value)
     result = result.filter((r) => r.proyek_id === filterSelectedProyek.value.id)
-  }
 
   return result
 })
@@ -1619,7 +1708,6 @@ const resetFilters = () => {
   filterSelectedProyek.value = null
 }
 
-// Menghitung Invoice Customer yang tersedia (Belum pernah digunakan di Tagihan manapun)
 const availableInvoiceCust = computed(() => {
   const usedInvoices = masterTagihan.value
     .filter((t) => (isEditTagihanMode.value ? t.id !== formTagihan.value.id : true))
@@ -1629,11 +1717,12 @@ const availableInvoiceCust = computed(() => {
         : t.nomor_invoice_customer,
     )
     .filter(Boolean)
-
   return masterInvoiceCust.value.filter((inv) => !usedInvoices.includes(inv.nomor_invoice))
 })
 
-// Dropdown Filters
+// ============================================================================
+// DROPDOWN FILTERS
+// ============================================================================
 const filterProyek = (val, update) => {
   update(() => {
     const needle = val.toLowerCase()
@@ -1694,7 +1783,7 @@ const onInvoiceSelect = (val) => {
 }
 
 // ============================================================================
-// LOGIKA DOKUMEN LAMPIRAN (FILE UPLOAD)
+// LAMPIRAN
 // ============================================================================
 const addDocumentRow = () => {
   if (!formTagihan.value.dokumen_lampiran) formTagihan.value.dokumen_lampiran = []
@@ -1750,15 +1839,21 @@ const fetchData = () => {
 }
 
 // ============================================================================
-// ADD / EDIT / DETAIL TAGIHAN LOGIC
+// CRUD TAGIHAN
 // ============================================================================
 const openDetail = (row) => {
+  if (!canView.value) return
   selectedTagihan.value = row
   viewMode.value = 'detail_tagihan'
   window.scrollTo(0, 0)
 }
 
 const openAddTagihanDialog = () => {
+  if (!canCreate.value)
+    return $q.notify({
+      type: 'negative',
+      message: 'Anda tidak memiliki izin untuk membuat tagihan.',
+    })
   isEditTagihanMode.value = false
   formTagihan.value = {
     id: null,
@@ -1795,6 +1890,11 @@ const openAddTagihanDialog = () => {
 }
 
 const openEditTagihanDialog = (row) => {
+  if (!canEdit.value)
+    return $q.notify({
+      type: 'negative',
+      message: 'Anda tidak memiliki izin untuk mengedit tagihan.',
+    })
   isEditTagihanMode.value = true
   formTagihan.value = {
     ...row,
@@ -1807,7 +1907,6 @@ const openEditTagihanDialog = (row) => {
     riwayat_pembayaran: row.riwayat_pembayaran || [],
   }
 
-  // Set Proyek Select
   if (row.proyek_id) {
     const proj = masterProyek.value.find((p) => p.id === row.proyek_id)
     if (proj) {
@@ -1816,13 +1915,11 @@ const openEditTagihanDialog = (row) => {
     }
   }
 
-  // Set SPK Select
   if (row.spk_id) {
     const spk = masterSpk.value.find((s) => s.id === row.spk_id)
     if (spk) formTagihan.value.spk_obj = spk
   }
 
-  // Set Invoice Customer Select (Dari data AR yang tersedia / miliknya sendiri)
   if (typeof row.nomor_invoice_customer === 'string') {
     const inv = masterInvoiceCust.value.find((i) => i.nomor_invoice === row.nomor_invoice_customer)
     if (inv) formTagihan.value.nomor_invoice_customer = inv
@@ -1836,35 +1933,35 @@ const simpanTagihan = async () => {
     return $q.notify({ type: 'warning', message: 'Data proyek wajib diisi' })
   }
 
+  // Guard permission: cegah simpan jika tidak ada izin
+  if (!isEditTagihanMode.value && !canCreate.value) {
+    return $q.notify({
+      type: 'negative',
+      message: 'Anda tidak memiliki izin untuk membuat tagihan.',
+    })
+  }
+  if (isEditTagihanMode.value && !canEdit.value) {
+    return $q.notify({
+      type: 'negative',
+      message: 'Anda tidak memiliki izin untuk mengedit tagihan.',
+    })
+  }
+
   savingTagihan.value = true
   try {
-    const payload = {
-      ...formTagihan.value,
-      updatedAt: serverTimestamp(),
-    }
-
-    // CLEANUP PAYLOAD SEBELUM DISIMPAN
+    const payload = { ...formTagihan.value, updatedAt: serverTimestamp() }
     delete payload.id
     delete payload.proyek_obj
     delete payload.spk_obj
-
-    if (payload.dokumen_lampiran) {
-      payload.dokumen_lampiran.forEach((d) => delete d.fileRaw)
-    }
-
-    if (payload.nomor_invoice_customer && payload.nomor_invoice_customer.nomor_invoice) {
+    if (payload.dokumen_lampiran) payload.dokumen_lampiran.forEach((d) => delete d.fileRaw)
+    if (payload.nomor_invoice_customer?.nomor_invoice) {
       payload.nomor_invoice_customer = payload.nomor_invoice_customer.nomor_invoice
     }
-
-    if (payload.status === 'Lunas') {
-      payload.total_dibayar = payload.net_amount
-    }
+    if (payload.status === 'Lunas') payload.total_dibayar = payload.net_amount
 
     if (isEditTagihanMode.value) {
-      if (!formTagihan.value.id) {
-        $q.notify({ type: 'negative', message: 'Gagal memperbarui: ID tidak ditemukan.' })
-        return
-      }
+      if (!formTagihan.value.id)
+        return $q.notify({ type: 'negative', message: 'Gagal: ID tidak ditemukan.' })
       await updateDoc(doc(db, 'monitoring_tagihan_spk', formTagihan.value.id), payload)
       $q.notify({ type: 'positive', message: 'Tagihan berhasil diperbarui' })
     } else {
@@ -1882,10 +1979,12 @@ const simpanTagihan = async () => {
 }
 
 const deleteTagihan = (row) => {
-  if (!row || !row.id) {
-    $q.notify({ type: 'negative', message: 'ID Dokumen tidak valid atau rusak.' })
-    return
-  }
+  if (!canDelete.value)
+    return $q.notify({
+      type: 'negative',
+      message: 'Anda tidak memiliki izin untuk menghapus tagihan.',
+    })
+  if (!row?.id) return $q.notify({ type: 'negative', message: 'ID Dokumen tidak valid.' })
 
   $q.dialog({
     title: 'Konfirmasi Hapus',
@@ -1898,11 +1997,8 @@ const deleteTagihan = (row) => {
       await deleteDoc(doc(db, 'monitoring_tagihan_spk', row.id))
       $q.notify({ type: 'positive', message: 'Data tagihan berhasil dihapus!' })
     } catch (e) {
-      console.error('Error saat menghapus: ', e)
-      $q.notify({
-        type: 'negative',
-        message: 'Gagal menghapus data. Periksa koneksi atau izin akses.',
-      })
+      console.error(e)
+      $q.notify({ type: 'negative', message: 'Gagal menghapus data.' })
     } finally {
       $q.loading.hide()
     }
@@ -1910,9 +2006,14 @@ const deleteTagihan = (row) => {
 }
 
 // ============================================================================
-// LOGIKA PEMBAYARAN (CICILAN / PELUNASAN)
+// PEMBAYARAN
 // ============================================================================
 const openPaymentDialog = () => {
+  if (!canApprove.value)
+    return $q.notify({
+      type: 'negative',
+      message: 'Anda tidak memiliki izin untuk mengupdate pembayaran.',
+    })
   paymentForm.value = {
     tanggal: new Date().toISOString().substr(0, 10),
     nominal: 0,
@@ -1923,6 +2024,11 @@ const openPaymentDialog = () => {
 }
 
 const savePayment = async () => {
+  if (!canApprove.value)
+    return $q.notify({
+      type: 'negative',
+      message: 'Anda tidak memiliki izin untuk mengupdate pembayaran.',
+    })
   if (!paymentForm.value.nominal || paymentForm.value.nominal <= 0) {
     return $q.notify({ type: 'warning', message: 'Nominal pembayaran harus lebih besar dari 0' })
   }
@@ -1931,7 +2037,6 @@ const savePayment = async () => {
   let buktiUrl = ''
 
   try {
-    // 1. Upload Bukti Pembayaran (Jika Ada)
     if (paymentForm.value.bukti_file) {
       $q.loading.show({ message: 'Mengunggah bukti pembayaran...' })
       const file = paymentForm.value.bukti_file
@@ -1941,18 +2046,14 @@ const savePayment = async () => {
       $q.loading.hide()
     }
 
-    // 2. Kalkulasi Status & Total
     const newNominal = Number(paymentForm.value.nominal) || 0
     const currentTotal = Number(selectedTagihan.value.total_dibayar) || 0
     const netAmount = Number(selectedTagihan.value.net_amount) || 0
-
     const newTotal = currentTotal + newNominal
+
     let newStatus = 'Menunggu Pembayaran'
-    if (newTotal >= netAmount) {
-      newStatus = 'Lunas'
-    } else if (newTotal > 0) {
-      newStatus = 'Dibayar Sebagian'
-    }
+    if (newTotal >= netAmount) newStatus = 'Lunas'
+    else if (newTotal > 0) newStatus = 'Dibayar Sebagian'
 
     const paymentRecord = {
       id: Date.now().toString(),
@@ -1963,7 +2064,6 @@ const savePayment = async () => {
       createdAt: new Date().toISOString(),
     }
 
-    // 3. Simpan ke Firestore
     await updateDoc(doc(db, 'monitoring_tagihan_spk', selectedTagihan.value.id), {
       total_dibayar: newTotal,
       status: newStatus,
@@ -1971,10 +2071,7 @@ const savePayment = async () => {
       updatedAt: serverTimestamp(),
     })
 
-    // 4. Update local state untuk reaktif UI (tanpa refresh)
-    if (!selectedTagihan.value.riwayat_pembayaran) {
-      selectedTagihan.value.riwayat_pembayaran = []
-    }
+    if (!selectedTagihan.value.riwayat_pembayaran) selectedTagihan.value.riwayat_pembayaran = []
     selectedTagihan.value.total_dibayar = newTotal
     selectedTagihan.value.status = newStatus
     selectedTagihan.value.riwayat_pembayaran.push(paymentRecord)
@@ -1995,8 +2092,11 @@ const savePayment = async () => {
 // ============================================================================
 const formatDateIndo = (d) => {
   if (!d || d === '-') return '-'
-  const date = new Date(d)
-  return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+  return new Date(d).toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
 }
 
 const formatCompact = (num) => {
@@ -2028,6 +2128,7 @@ const exportToPDF = () => {
 }
 
 onMounted(() => {
+  loadUserPermission()
   fetchData()
 })
 
@@ -2084,7 +2185,6 @@ onUnmounted(() => {
 .transition-all {
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
-
 .hover-shadow:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 25px rgba(26, 35, 126, 0.1) !important;

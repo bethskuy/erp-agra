@@ -46,8 +46,9 @@
             class="q-px-md q-py-sm shadow-premium text-weight-bold"
             @click="exportTableExcel"
           />
+          <!-- Tombol Buat: hanya tampil jika canCreate -->
           <q-btn
-            v-if="canAction('buat')"
+            v-if="canCreate"
             color="indigo-10"
             icon="add_card"
             label="Registrasi Tagihan Baru"
@@ -60,6 +61,7 @@
         </div>
       </div>
 
+      <!-- KPI CARDS -->
       <div class="row q-col-gutter-lg q-mb-lg animate-fade-up no-print">
         <div class="col-12 col-sm-6 col-md-3">
           <q-card flat class="rounded-20 border-subtle bg-white transition-all hover-shadow">
@@ -157,6 +159,7 @@
         </div>
       </div>
 
+      <!-- FILTER AREA -->
       <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print">
         <q-card-section class="q-pa-lg">
           <div class="row items-center q-col-gutter-md q-mb-lg">
@@ -229,9 +232,7 @@
                 use-chips
                 @filter="filterVendorDropdown"
               >
-                <template v-slot:prepend>
-                  <q-icon name="storefront" color="indigo-10" />
-                </template>
+                <template v-slot:prepend><q-icon name="storefront" color="indigo-10" /></template>
               </q-select>
             </div>
             <div class="col-12 col-sm-6 col-md-3">
@@ -252,9 +253,7 @@
                 use-chips
                 @filter="filterProyekDropdown"
               >
-                <template v-slot:prepend>
-                  <q-icon name="apartment" color="indigo-10" />
-                </template>
+                <template v-slot:prepend><q-icon name="apartment" color="indigo-10" /></template>
               </q-select>
             </div>
             <div class="col-12 col-md-2">
@@ -271,10 +270,11 @@
         </q-card-section>
       </q-card>
 
+      <!-- MAIN TABLE -->
       <q-card flat bordered class="rounded-20 shadow-sm overflow-hidden bg-white no-print">
         <q-table
           :rows="filteredRows"
-          :columns="columns"
+          :columns="computedColumns"
           row-key="id"
           flat
           :loading="loading"
@@ -298,8 +298,9 @@
           <template v-slot:body="props">
             <q-tr
               :props="props"
-              class="hover-bg transition-all cursor-pointer"
-              @click="openDetail(props.row)"
+              class="hover-bg transition-all"
+              :class="canView ? 'cursor-pointer' : ''"
+              @click="canView ? openDetail(props.row) : null"
             >
               <q-td key="kode">
                 <div class="text-weight-bold text-indigo-10">
@@ -378,9 +379,12 @@
                 </q-chip>
               </q-td>
 
-              <q-td key="aksi" class="text-center" @click.stop>
+              <!-- Kolom AKSI hanya tampil jika ada minimal 1 izin -->
+              <q-td v-if="hasAnyAction" key="aksi" class="text-center" @click.stop>
                 <div class="row justify-center q-gutter-xs">
+                  <!-- Lihat: hanya jika canView -->
                   <q-btn
+                    v-if="canView"
                     flat
                     round
                     color="indigo-10"
@@ -390,7 +394,9 @@
                   >
                     <q-tooltip>Lihat Detail Tagihan</q-tooltip>
                   </q-btn>
+                  <!-- Edit: hanya jika canEdit -->
                   <q-btn
+                    v-if="canEdit"
                     flat
                     round
                     color="blue-8"
@@ -400,8 +406,9 @@
                   >
                     <q-tooltip>Edit Data</q-tooltip>
                   </q-btn>
+                  <!-- Hapus: hanya jika canDelete -->
                   <q-btn
-                    v-if="canAction('hapus')"
+                    v-if="canDelete"
                     flat
                     round
                     color="negative"
@@ -436,7 +443,7 @@
                   Rp {{ totalFilteredOutstanding.toLocaleString('id-ID') }}
                 </div>
               </q-td>
-              <q-td colspan="2"></q-td>
+              <q-td :colspan="hasAnyAction ? 2 : 1"></q-td>
             </q-tr>
           </template>
 
@@ -452,6 +459,9 @@
       </q-card>
     </div>
 
+    <!-- =====================================================================================
+         VIEW DETAIL
+         ===================================================================================== -->
     <div v-else-if="viewMode === 'detail' && selectedTagihan" class="animate-fade q-pb-xl">
       <div class="row items-center justify-between q-mb-xl no-print">
         <div class="row items-center no-wrap">
@@ -497,20 +507,19 @@
               {{ selectedTagihan.kode_tagihan }}
             </div>
           </div>
-          <div>
-            <q-chip
-              :color="getStatusColor(selectedTagihan.status).bg"
-              :text-color="getStatusColor(selectedTagihan.status).text"
-              class="text-weight-bolder font-11 uppercase shadow-sm q-px-md q-py-sm"
-              size="16px"
-            >
-              STATUS: {{ selectedTagihan.status }}
-            </q-chip>
-          </div>
+          <q-chip
+            :color="getStatusColor(selectedTagihan.status).bg"
+            :text-color="getStatusColor(selectedTagihan.status).text"
+            class="text-weight-bolder font-11 uppercase shadow-sm q-px-md q-py-sm"
+            size="16px"
+          >
+            STATUS: {{ selectedTagihan.status }}
+          </q-chip>
         </div>
 
         <div class="row q-col-gutter-lg">
           <div class="col-12 col-md-7">
+            <!-- CARD: REFERENSI DOKUMEN -->
             <q-card flat bordered class="rounded-20 shadow-sm q-mb-lg bg-white border-indigo-thin">
               <q-card-section class="bg-indigo-50 text-indigo-10 q-py-sm border-bottom-subtle">
                 <div class="text-weight-bold uppercase tracking-widest font-11 flex items-center">
@@ -573,6 +582,7 @@
               </q-card-section>
             </q-card>
 
+            <!-- CARD: TIMELINE -->
             <q-card flat bordered class="rounded-20 shadow-sm q-mb-lg bg-white border-indigo-thin">
               <q-card-section class="bg-indigo-50 text-indigo-10 q-py-sm border-bottom-subtle">
                 <div class="text-weight-bold uppercase tracking-widest font-11 flex items-center">
@@ -611,9 +621,7 @@
                       {{ formatDateIndo(selectedTagihan.jatuh_tempo) }}
                     </div>
                   </div>
-                  <div class="col-12">
-                    <q-separator class="border-subtle" />
-                  </div>
+                  <div class="col-12"><q-separator class="border-subtle" /></div>
                   <div class="col-12">
                     <div
                       class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
@@ -628,6 +636,7 @@
               </q-card-section>
             </q-card>
 
+            <!-- CARD: LAMPIRAN -->
             <q-card
               v-if="selectedTagihan?.lampiran && selectedTagihan.lampiran.length > 0"
               flat
@@ -657,9 +666,9 @@
                       }}</q-item-label>
                       <q-item-label caption>Klik untuk melihat berkas lampiran</q-item-label>
                     </q-item-section>
-                    <q-item-section side>
-                      <q-icon name="open_in_new" color="grey-6" />
-                    </q-item-section>
+                    <q-item-section side
+                      ><q-icon name="open_in_new" color="grey-6"
+                    /></q-item-section>
                   </q-item>
                 </q-list>
               </q-card-section>
@@ -667,6 +676,7 @@
           </div>
 
           <div class="col-12 col-md-5">
+            <!-- CARD: KEUANGAN -->
             <q-card
               flat
               bordered
@@ -706,8 +716,7 @@
                     PPN ({{ selectedTagihan.ppn_persen || 0 }}%)
                   </div>
                   <div class="text-weight-bold text-subtitle1 text-positive">
-                    + Rp
-                    {{ (selectedTagihan.ppn_nominal || 0).toLocaleString('id-ID') }}
+                    + Rp {{ (selectedTagihan.ppn_nominal || 0).toLocaleString('id-ID') }}
                   </div>
                 </div>
                 <div class="row justify-between items-center q-mb-md">
@@ -715,8 +724,7 @@
                     PPh Potongan ({{ selectedTagihan.pph_persen || 0 }}%)
                   </div>
                   <div class="text-weight-bold text-subtitle1 text-negative">
-                    - Rp
-                    {{ (selectedTagihan.pph_nominal || 0).toLocaleString('id-ID') }}
+                    - Rp {{ (selectedTagihan.pph_nominal || 0).toLocaleString('id-ID') }}
                   </div>
                 </div>
 
@@ -724,8 +732,9 @@
                   <div class="text-weight-bold text-indigo-10 uppercase tracking-widest font-11">
                     STATUS PEMBAYARAN
                   </div>
+                  <!-- Tombol Update Pembayaran: hanya jika canApprove -->
                   <q-btn
-                    v-if="selectedTagihan.status !== 'Lunas'"
+                    v-if="canApprove && selectedTagihan.status !== 'Lunas'"
                     outline
                     rounded
                     size="sm"
@@ -762,6 +771,7 @@
               </q-card-section>
             </q-card>
 
+            <!-- CARD: RIWAYAT PEMBAYARAN -->
             <q-card
               flat
               bordered
@@ -823,6 +833,9 @@
       </div>
     </div>
 
+    <!-- =====================================================================================
+         VIEW FORM ENTRY / EDIT
+         ===================================================================================== -->
     <div v-else-if="viewMode === 'form'" class="animate-fade">
       <div class="row items-center justify-between q-mb-xl no-print">
         <div class="col-12 col-md-8">
@@ -881,7 +894,6 @@
                       class="text-weight-bold text-indigo-10"
                     />
                   </div>
-
                   <div>
                     <div class="label-req q-mb-xs text-primary">Data Purchase Order (Opsional)</div>
                     <q-select
@@ -910,7 +922,6 @@
                       </template>
                     </q-select>
                   </div>
-
                   <div>
                     <div class="label-req q-mb-xs">Tanggal PO</div>
                     <q-input
@@ -922,7 +933,6 @@
                       bg-color="grey-2"
                     />
                   </div>
-
                   <div>
                     <div class="label-req q-mb-xs">Supplier / Penagih *</div>
                     <q-select
@@ -936,7 +946,6 @@
                       @filter="filterSupplier"
                     />
                   </div>
-
                   <div>
                     <div class="label-req q-mb-xs">Nominal PO</div>
                     <q-input
@@ -950,7 +959,6 @@
                       class="text-weight-bold text-grey-9"
                     />
                   </div>
-
                   <div class="row q-col-gutter-md">
                     <div class="col-12 col-md-6">
                       <div class="label-req q-mb-xs">Referensi Proyek</div>
@@ -999,7 +1007,6 @@
                       class="text-weight-bold"
                     />
                   </div>
-
                   <div class="row q-col-gutter-md">
                     <div class="col-12 col-md-6">
                       <div class="label-req q-mb-xs">Tgl Invoice *</div>
@@ -1024,7 +1031,6 @@
                       />
                     </div>
                   </div>
-
                   <div class="row q-col-gutter-md">
                     <div class="col-12 col-md-6">
                       <div class="label-req q-mb-xs">Tgl Jatuh Tempo *</div>
@@ -1037,7 +1043,6 @@
                       />
                     </div>
                   </div>
-
                   <div>
                     <div class="label-req q-mb-xs">Deskripsi Tagihan</div>
                     <q-input
@@ -1068,7 +1073,6 @@
                     <div class="text-caption text-grey-7 q-mb-md">
                       Upload invoice asli, faktur pajak, surat jalan, atau BAST.
                     </div>
-
                     <div class="bg-indigo-50 q-pa-sm rounded-12 border-dashed">
                       <div
                         v-for="(item, index) in form.lampiran"
@@ -1142,7 +1146,6 @@
                       />
                     </div>
                   </div>
-
                   <div class="row q-col-gutter-md">
                     <div class="col-6">
                       <div class="label-req q-mb-xs">PPh (%)</div>
@@ -1185,6 +1188,9 @@
       <div class="q-py-xl"></div>
     </div>
 
+    <!-- =====================================================================================
+         DIALOG UPDATE PEMBAYARAN
+         ===================================================================================== -->
     <q-dialog
       v-model="showPaymentDialog"
       maximized
@@ -1195,7 +1201,7 @@
       <q-card class="bg-grey-2 column no-wrap">
         <q-toolbar class="bg-indigo-10 text-white q-py-md shadow-4 shrink">
           <q-btn flat round dense icon="close" v-close-popup />
-          <q-toolbar-title class="text-weight-black uppercase"> UPDATE PEMBAYARAN </q-toolbar-title>
+          <q-toolbar-title class="text-weight-black uppercase">UPDATE PEMBAYARAN</q-toolbar-title>
           <q-btn
             unelevated
             color="white"
@@ -1266,9 +1272,9 @@
                       bg-color="white"
                       class="bg-indigo-50"
                     >
-                      <template v-slot:prepend>
-                        <q-icon name="cloud_upload" color="indigo-10" />
-                      </template>
+                      <template v-slot:prepend
+                        ><q-icon name="cloud_upload" color="indigo-10"
+                      /></template>
                       <template v-slot:append v-if="paymentForm.bukti_file">
                         <q-icon
                           name="close"
@@ -1290,6 +1296,7 @@
       </q-card>
     </q-dialog>
 
+    <!-- Hidden PDF Export Table -->
     <div style="position: absolute; top: -9999px; left: -9999px; width: 1122px; z-index: -1">
       <div id="table-pdf-export" class="bg-white q-pa-lg">
         <div class="row items-center q-mb-lg border-bottom-subtle q-pb-md">
@@ -1381,6 +1388,7 @@
 // eslint-disable-next-line no-unused-vars
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { db, storage } from 'src/boot/firebase'
+import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import {
   collection,
   onSnapshot,
@@ -1389,6 +1397,8 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
+  query,
+  where,
   serverTimestamp,
   arrayUnion,
 } from 'firebase/firestore'
@@ -1400,7 +1410,137 @@ import html2pdf from 'html2pdf.js'
 const $q = useQuasar()
 const authStore = useAuthStore()
 
-// State
+// ============================================================================
+// HAK AKSES — dibaca dari Firestore koleksi `karyawan` berdasarkan user login
+// Menu target: label mengandung "tagihan supplier" di dalam modul "konstruksi"
+// ============================================================================
+const userPermission = ref({
+  lihat: false,
+  buat: false,
+  ubah: false,
+  hapus: false,
+  approve: false,
+})
+
+/**
+ * Resolusi izin dari permissions_detail karyawan.
+ * Cari modul konstruksi → menu dengan label "tagihan supplier" (case-insensitive).
+ */
+const resolvePermission = (karyawanData) => {
+  const detail = karyawanData?.permissions_detail
+  if (!detail || !Array.isArray(detail)) {
+    // Fallback ke field akses lama
+    const hasKonstruksi = karyawanData?.akses?.includes('konstruksi') || false
+    userPermission.value = {
+      lihat: hasKonstruksi,
+      buat: false,
+      ubah: false,
+      hapus: false,
+      approve: false,
+    }
+    return
+  }
+
+  // Cari modul konstruksi
+  const modulKonstruksi = detail.find((m) => m.id === 'konstruksi')
+  if (!modulKonstruksi || !modulKonstruksi.isActive) {
+    userPermission.value = { lihat: false, buat: false, ubah: false, hapus: false, approve: false }
+    return
+  }
+
+  // Cari menu dengan label mengandung "tagihan supplier" (case-insensitive)
+  // Berbeda dengan MonitoringTagihan yang exclude "supplier", di sini justru HARUS include "supplier"
+  const menuTagihanSupplier = modulKonstruksi.menus?.find((menu) => {
+    const lbl = (menu.label || '').toLowerCase()
+    return lbl.includes('tagihan') && lbl.includes('supplier')
+  })
+
+  if (!menuTagihanSupplier) {
+    userPermission.value = { lihat: false, buat: false, ubah: false, hapus: false, approve: false }
+    return
+  }
+
+  userPermission.value = {
+    lihat: menuTagihanSupplier.lihat || false,
+    buat: menuTagihanSupplier.buat || false,
+    ubah: menuTagihanSupplier.ubah || false,
+    hapus: menuTagihanSupplier.hapus || false,
+    approve: menuTagihanSupplier.approve || false,
+  }
+}
+
+// Computed izin
+const canView = computed(() => userPermission.value.lihat)
+const canCreate = computed(() => userPermission.value.buat)
+const canEdit = computed(() => userPermission.value.ubah)
+const canDelete = computed(() => userPermission.value.hapus)
+const canApprove = computed(() => userPermission.value.approve)
+
+// Kolom AKSI hanya tampil jika ada minimal 1 izin aksi
+const hasAnyAction = computed(() => canView.value || canEdit.value || canDelete.value)
+
+// Sembunyikan kolom AKSI dari tabel jika tidak ada izin apapun
+const computedColumns = computed(() => {
+  const cols = [...columns]
+  if (!hasAnyAction.value) return cols.filter((c) => c.name !== 'aksi')
+  return cols
+})
+
+// ============================================================================
+// LOAD USER & FETCH PERMISSION DARI FIRESTORE
+// ============================================================================
+const loadUserPermission = () => {
+  const auth = getAuth()
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      userPermission.value = {
+        lihat: false,
+        buat: false,
+        ubah: false,
+        hapus: false,
+        approve: false,
+      }
+      return
+    }
+
+    try {
+      // Cari karyawan berdasarkan email yang sama dengan Firebase Auth
+      const q = query(collection(db, 'karyawan'), where('email', '==', user.email))
+      const snap = await getDocs(q)
+
+      if (!snap.empty) {
+        const karyawanData = snap.docs[0].data()
+        resolvePermission(karyawanData)
+
+        // Real-time listener agar izin langsung terupdate jika admin mengubahnya
+        onSnapshot(doc(db, 'karyawan', snap.docs[0].id), (docSnap) => {
+          if (docSnap.exists()) resolvePermission(docSnap.data())
+        })
+      } else {
+        userPermission.value = {
+          lihat: false,
+          buat: false,
+          ubah: false,
+          hapus: false,
+          approve: false,
+        }
+      }
+    } catch (err) {
+      console.error('Gagal memuat izin pengguna:', err)
+      userPermission.value = {
+        lihat: false,
+        buat: false,
+        ubah: false,
+        hapus: false,
+        approve: false,
+      }
+    }
+  })
+}
+
+// ============================================================================
+// STATE
+// ============================================================================
 const viewMode = ref('list')
 const rows = ref([])
 const loading = ref(true)
@@ -1414,7 +1554,6 @@ const filterSelectedVendor = ref([])
 const isEditMode = ref(false)
 const selectedTagihan = ref(null)
 
-// Payment Tracking State
 const showPaymentDialog = ref(false)
 const savingPayment = ref(false)
 const paymentForm = ref({
@@ -1424,7 +1563,6 @@ const paymentForm = ref({
   bukti_file: null,
 })
 
-// Master Data Lists
 const optSupplier = ref([])
 const allSupplier = ref([])
 const allProyek = ref([])
@@ -1435,7 +1573,6 @@ const optPO = ref([])
 
 let unsubTagihan = null
 
-// Form State
 const formDefault = {
   id: null,
   kode_tagihan: '',
@@ -1459,7 +1596,6 @@ const formDefault = {
 }
 const form = ref({ ...formDefault })
 
-// Columns
 const columns = [
   { name: 'kode', align: 'left', label: 'KODE TAGIHAN', field: 'kode_tagihan', sortable: true },
   {
@@ -1482,7 +1618,9 @@ const columns = [
   { name: 'aksi', align: 'center', label: 'AKSI', field: 'id' },
 ]
 
-// Generate Kode Tagihan
+// ============================================================================
+// FETCH DATA
+// ============================================================================
 const generateKodeTagihan = () => {
   const count = rows.value.length + 1
   const padded = count.toString().padStart(3, '0')
@@ -1491,27 +1629,22 @@ const generateKodeTagihan = () => {
   return `AP/${year}${month}/${padded}`
 }
 
-// Fetch Data
 const fetchData = async () => {
   loading.value = true
 
-  // Ambil Data Master Supplier
   const snapSupp = await getDocs(collection(db, 'suppliers'))
   allSupplier.value = snapSupp.docs.map((d) => ({ id: d.id, ...d.data() }))
   optSupplier.value = [...allSupplier.value]
   optVendorFilter.value = [...allSupplier.value]
 
-  // Ambil Data Proyek
   const snapProj = await getDocs(collection(db, 'proyek'))
   allProyek.value = snapProj.docs.map((d) => ({ id: d.id, nama: d.data().nama }))
   optProyek.value = [...allProyek.value]
   optProyekFilter.value = [...allProyek.value]
 
-  // Ambil Data PO untuk Referensi
   const snapPo = await getDocs(collection(db, 'purchase_order'))
   optPO.value = snapPo.docs.map((d) => ({ id: d.id, ...d.data() }))
 
-  // Listener Tagihan
   unsubTagihan = onSnapshot(collection(db, 'finance_tagihan'), (snap) => {
     rows.value = snap.docs
       .map((d) => ({ id: d.id, ...d.data() }))
@@ -1520,11 +1653,12 @@ const fetchData = async () => {
   })
 }
 
-// Computed Filters & Stats
+// ============================================================================
+// COMPUTED FILTERS & STATS
+// ============================================================================
 const filteredRows = computed(() => {
   let result = rows.value
 
-  // 1. Status Filter
   if (statusFilter.value === 'OUTSTANDING') {
     result = result.filter(
       (r) => r.status === 'Menunggu Pembayaran' || r.status === 'Dibayar Sebagian',
@@ -1533,7 +1667,6 @@ const filteredRows = computed(() => {
     result = result.filter((r) => r.status === 'Lunas')
   }
 
-  // 2. Filter Pencarian Teks
   if (searchQuery.value) {
     const lower = searchQuery.value.toLowerCase()
     result = result.filter(
@@ -1545,21 +1678,15 @@ const filteredRows = computed(() => {
     )
   }
 
-  // 3. Filter Periode Tanggal
-  if (filterStartDate.value) {
+  if (filterStartDate.value)
     result = result.filter((r) => r.tanggal_invoice >= filterStartDate.value)
-  }
-  if (filterEndDate.value) {
-    result = result.filter((r) => r.tanggal_invoice <= filterEndDate.value)
-  }
+  if (filterEndDate.value) result = result.filter((r) => r.tanggal_invoice <= filterEndDate.value)
 
-  // 4. Filter Proyek (Multi-Select)
   if (filterSelectedProyek.value && filterSelectedProyek.value.length > 0) {
     const selectedIds = filterSelectedProyek.value.map((p) => p.id)
     result = result.filter((r) => selectedIds.includes(r.proyek_id))
   }
 
-  // 5. Filter Vendor (Multi-Select)
   if (filterSelectedVendor.value && filterSelectedVendor.value.length > 0) {
     const selectedIds = filterSelectedVendor.value.map((v) => v.id)
     result = result.filter((r) => selectedIds.includes(r.supplier_id))
@@ -1568,15 +1695,15 @@ const filteredRows = computed(() => {
   return result
 })
 
-const totalFilteredNominal = computed(() => {
-  return filteredRows.value.reduce((sum, r) => sum + (Number(r.grand_total) || 0), 0)
-})
+const totalFilteredNominal = computed(() =>
+  filteredRows.value.reduce((sum, r) => sum + (Number(r.grand_total) || 0), 0),
+)
 
-const totalFilteredOutstanding = computed(() => {
-  return filteredRows.value
+const totalFilteredOutstanding = computed(() =>
+  filteredRows.value
     .filter((r) => r.status !== 'Lunas' && r.status !== 'Draft')
-    .reduce((sum, r) => sum + ((Number(r.grand_total) || 0) - (Number(r.total_dibayar) || 0)), 0)
-})
+    .reduce((sum, r) => sum + ((Number(r.grand_total) || 0) - (Number(r.total_dibayar) || 0)), 0),
+)
 
 const resetFilters = () => {
   searchQuery.value = ''
@@ -1608,9 +1735,7 @@ const countOverdue = () => {
   return filteredRows.value.filter((r) => r.jatuh_tempo < today && r.status !== 'Lunas').length
 }
 
-const totalOutstandingValuation = computed(() => {
-  return totalFilteredOutstanding.value
-})
+const totalOutstandingValuation = computed(() => totalFilteredOutstanding.value)
 
 const isOverdue = (dateStr, status) => {
   if (status === 'Lunas') return false
@@ -1618,14 +1743,22 @@ const isOverdue = (dateStr, status) => {
   return dateStr < today
 }
 
-// Dialog & Form Logic
+// ============================================================================
+// DIALOG & FORM LOGIC
+// ============================================================================
 const openDetail = (row) => {
+  if (!canView.value) return
   selectedTagihan.value = row
   viewMode.value = 'detail'
   window.scrollTo(0, 0)
 }
 
 const openAddDialog = () => {
+  if (!canCreate.value)
+    return $q.notify({
+      type: 'negative',
+      message: 'Anda tidak memiliki izin untuk membuat tagihan.',
+    })
   isEditMode.value = false
   form.value = JSON.parse(JSON.stringify(formDefault))
   form.value.kode_tagihan = generateKodeTagihan()
@@ -1633,6 +1766,11 @@ const openAddDialog = () => {
 }
 
 const openEditDialog = (row) => {
+  if (!canEdit.value)
+    return $q.notify({
+      type: 'negative',
+      message: 'Anda tidak memiliki izin untuk mengedit tagihan.',
+    })
   isEditMode.value = true
   form.value = {
     ...JSON.parse(JSON.stringify(row)),
@@ -1648,7 +1786,9 @@ const openEditDialog = (row) => {
   viewMode.value = 'form'
 }
 
-// Export Logics
+// ============================================================================
+// EXPORT
+// ============================================================================
 const exportTablePDF = () => {
   const element = document.getElementById('table-pdf-export')
   const opt = {
@@ -1658,7 +1798,6 @@ const exportTablePDF = () => {
     html2canvas: { scale: 2, useCORS: true },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
   }
-
   $q.loading.show({ message: 'Menyiapkan Laporan PDF...' })
   html2pdf()
     .set(opt)
@@ -1684,50 +1823,17 @@ const exportTableExcel = () => {
       '<p style="margin-top: 0; font-family: sans-serif;">Diekspor pada: ' +
       new Date().toLocaleString('id-ID') +
       '</p><br>'
-    tableHtml += '<table style="border-collapse: collapse; width: 100%; font-family: sans-serif;">'
-    tableHtml += '<thead><tr>'
-    tableHtml += `<th style="${thStyle}">No</th>`
-    tableHtml += `<th style="${thStyle}">Kode Tagihan</th>`
-    tableHtml += `<th style="${thStyle}">No Invoice</th>`
-    tableHtml += `<th style="${thStyle}">Vendor / Supplier</th>`
-    tableHtml += `<th style="${thStyle}">Proyek</th>`
-    tableHtml += `<th style="${thStyle}">Referensi PO</th>`
-    tableHtml += `<th style="${thStyle}">Tgl Invoice</th>`
-    tableHtml += `<th style="${thStyle}">Jatuh Tempo</th>`
-    tableHtml += `<th style="${thStyle}">Grand Total (Rp)</th>`
-    tableHtml += `<th style="${thStyle}">Status</th>`
+    tableHtml +=
+      '<table style="border-collapse: collapse; width: 100%; font-family: sans-serif;"><thead><tr>'
+    tableHtml += `<th style="${thStyle}">No</th><th style="${thStyle}">Kode Tagihan</th><th style="${thStyle}">No Invoice</th><th style="${thStyle}">Vendor / Supplier</th><th style="${thStyle}">Proyek</th><th style="${thStyle}">Referensi PO</th><th style="${thStyle}">Tgl Invoice</th><th style="${thStyle}">Jatuh Tempo</th><th style="${thStyle}">Grand Total (Rp)</th><th style="${thStyle}">Status</th>`
     tableHtml += '</tr></thead><tbody>'
 
     filteredRows.value.forEach((r, index) => {
-      tableHtml += `
-        <tr>
-          <td style="${tdCenterStyle}">${index + 1}</td>
-          <td style="${tdStyle}">${r.kode_tagihan || '-'}</td>
-          <td style="${tdStyle}">${r.nomor_invoice || '-'}</td>
-          <td style="${tdStyle}">${r.supplier_nama || '-'}</td>
-          <td style="${tdStyle}">${r.proyek_nama || '-'}</td>
-          <td style="${tdStyle}">${r.po_nomor || '-'}</td>
-          <td style="${tdCenterStyle}">${formatDateIndo(r.tanggal_invoice)}</td>
-          <td style="${tdCenterStyle}">${formatDateIndo(r.jatuh_tempo)}</td>
-          <td style="${tdNumStyle}">${r.grand_total || 0}</td>
-          <td style="${tdCenterStyle}">${r.status || '-'}</td>
-        </tr>
-      `
+      tableHtml += `<tr><td style="${tdCenterStyle}">${index + 1}</td><td style="${tdStyle}">${r.kode_tagihan || '-'}</td><td style="${tdStyle}">${r.nomor_invoice || '-'}</td><td style="${tdStyle}">${r.supplier_nama || '-'}</td><td style="${tdStyle}">${r.proyek_nama || '-'}</td><td style="${tdStyle}">${r.po_nomor || '-'}</td><td style="${tdCenterStyle}">${formatDateIndo(r.tanggal_invoice)}</td><td style="${tdCenterStyle}">${formatDateIndo(r.jatuh_tempo)}</td><td style="${tdNumStyle}">${r.grand_total || 0}</td><td style="${tdCenterStyle}">${r.status || '-'}</td></tr>`
     })
 
-    tableHtml += `
-        <tr style="background-color: #f5f5f5;">
-          <td colspan="8" style="${tdStyle} text-align: right; font-weight: bold;">TOTAL NILAI TAGIHAN (SESUAI FILTER)</td>
-          <td style="${tdNumStyle} font-weight: bold;">${totalFilteredNominal.value}</td>
-          <td style="${tdStyle}"></td>
-        </tr>
-        <tr style="background-color: #ffebee;">
-          <td colspan="8" style="${tdStyle} text-align: right; font-weight: bold; color: #c62828;">TOTAL SISA HUTANG (SESUAI FILTER)</td>
-          <td style="${tdNumStyle} font-weight: bold; color: #c62828;">${totalFilteredOutstanding.value}</td>
-          <td style="${tdStyle}"></td>
-        </tr>
-    `
-
+    tableHtml += `<tr style="background-color: #f5f5f5;"><td colspan="8" style="${tdStyle} text-align: right; font-weight: bold;">TOTAL NILAI TAGIHAN (SESUAI FILTER)</td><td style="${tdNumStyle} font-weight: bold;">${totalFilteredNominal.value}</td><td style="${tdStyle}"></td></tr>`
+    tableHtml += `<tr style="background-color: #ffebee;"><td colspan="8" style="${tdStyle} text-align: right; font-weight: bold; color: #c62828;">TOTAL SISA HUTANG (SESUAI FILTER)</td><td style="${tdNumStyle} font-weight: bold; color: #c62828;">${totalFilteredOutstanding.value}</td><td style="${tdStyle}"></td></tr>`
     tableHtml += '</tbody></table></body></html>'
 
     const blob = new Blob([tableHtml], { type: 'application/vnd.ms-excel' })
@@ -1737,7 +1843,6 @@ const exportTableExcel = () => {
     link.download = `Data_Tagihan_Supplier_${Date.now()}.xls`
     link.click()
     URL.revokeObjectURL(url)
-
     $q.notify({ type: 'positive', message: 'Data berhasil diekspor ke Excel' })
   } catch (e) {
     console.error(e)
@@ -1745,18 +1850,22 @@ const exportTableExcel = () => {
   }
 }
 
-// Real-time Calculations
-const calculatedPpn = computed(() => {
-  return ((form.value.nominal_invoice || 0) * (form.value.ppn_persen || 0)) / 100
-})
-const calculatedPph = computed(() => {
-  return ((form.value.nominal_invoice || 0) * (form.value.pph_persen || 0)) / 100
-})
-const calculatedGrandTotal = computed(() => {
-  return (form.value.nominal_invoice || 0) + calculatedPpn.value - calculatedPph.value
-})
+// ============================================================================
+// COMPUTED KALKULASI PAJAK
+// ============================================================================
+const calculatedPpn = computed(
+  () => ((form.value.nominal_invoice || 0) * (form.value.ppn_persen || 0)) / 100,
+)
+const calculatedPph = computed(
+  () => ((form.value.nominal_invoice || 0) * (form.value.pph_persen || 0)) / 100,
+)
+const calculatedGrandTotal = computed(
+  () => (form.value.nominal_invoice || 0) + calculatedPpn.value - calculatedPph.value,
+)
 
-// Auto Fill dari PO
+// ============================================================================
+// PO AUTO-FILL
+// ============================================================================
 const onPoSelect = (poObj) => {
   if (poObj) {
     form.value.po_nomor = poObj.nomor
@@ -1765,15 +1874,11 @@ const onPoSelect = (poObj) => {
     form.value.nominal_invoice = poObj.grand_total || 0
     form.value.keterangan = `Tagihan berdasarkan PO: ${poObj.nomor}`
     form.value.spk_nomor = poObj.nomor_spk || poObj.spk_nomor || '-'
-
-    // Auto fill supplier
     const matchedSupp = allSupplier.value.find(
       (s) => s.nama.toLowerCase() === poObj.kepada_yth?.toLowerCase(),
     )
     if (matchedSupp) form.value.supplier = { id: matchedSupp.id, nama: matchedSupp.nama }
     else form.value.supplier = { id: null, nama: poObj.kepada_yth }
-
-    // Auto fill proyek (sebagai readonly data sekarang)
     form.value.proyek_nama = poObj.proyek_nama || '-'
     form.value.proyek_id = poObj.proyek_id || null
   } else {
@@ -1799,7 +1904,9 @@ const filterSupplier = (val, update) => {
 const addDocRow = () => form.value.lampiran.push({ label: '', url: '', base64: '', fileObj: null })
 const removeDocRow = (i) => form.value.lampiran.splice(i, 1)
 
-// Proses Simpan Database
+// ============================================================================
+// SIMPAN TAGIHAN
+// ============================================================================
 const processHybridUpload = async (file, pathName) => {
   if (!file) return null
   if (file.size <= 512000) {
@@ -1816,11 +1923,20 @@ const processHybridUpload = async (file, pathName) => {
 }
 
 const simpanTagihan = async () => {
-  if (!form.value.nomor_invoice || !form.value.supplier) {
+  // Guard permission
+  if (!isEditMode.value && !canCreate.value)
     return $q.notify({
-      type: 'warning',
-      message: 'Nomor Invoice dan Supplier wajib diisi!',
+      type: 'negative',
+      message: 'Anda tidak memiliki izin untuk membuat tagihan.',
     })
+  if (isEditMode.value && !canEdit.value)
+    return $q.notify({
+      type: 'negative',
+      message: 'Anda tidak memiliki izin untuk mengedit tagihan.',
+    })
+
+  if (!form.value.nomor_invoice || !form.value.supplier) {
+    return $q.notify({ type: 'warning', message: 'Nomor Invoice dan Supplier wajib diisi!' })
   }
 
   $q.loading.show({ message: 'Menyimpan dokumen tagihan...' })
@@ -1887,6 +2003,11 @@ const simpanTagihan = async () => {
 }
 
 const confirmHapus = (row) => {
+  if (!canDelete.value)
+    return $q.notify({
+      type: 'negative',
+      message: 'Anda tidak memiliki izin untuk menghapus tagihan.',
+    })
   $q.dialog({
     title: 'Hapus Tagihan',
     message: `Hapus invoice ${row.nomor_invoice} secara permanen?`,
@@ -1899,9 +2020,14 @@ const confirmHapus = (row) => {
 }
 
 // ============================================================================
-// LOGIKA PEMBAYARAN (CICILAN / PELUNASAN)
+// PEMBAYARAN
 // ============================================================================
 const openPaymentDialog = () => {
+  if (!canApprove.value)
+    return $q.notify({
+      type: 'negative',
+      message: 'Anda tidak memiliki izin untuk mengupdate pembayaran.',
+    })
   paymentForm.value = {
     tanggal: new Date().toISOString().substr(0, 10),
     nominal: 0,
@@ -1912,6 +2038,11 @@ const openPaymentDialog = () => {
 }
 
 const savePayment = async () => {
+  if (!canApprove.value)
+    return $q.notify({
+      type: 'negative',
+      message: 'Anda tidak memiliki izin untuk mengupdate pembayaran.',
+    })
   if (!paymentForm.value.nominal || paymentForm.value.nominal <= 0) {
     return $q.notify({ type: 'warning', message: 'Nominal pembayaran harus lebih besar dari 0' })
   }
@@ -1920,7 +2051,6 @@ const savePayment = async () => {
   let buktiUrl = ''
 
   try {
-    // 1. Upload Bukti Pembayaran (Jika Ada)
     if (paymentForm.value.bukti_file) {
       $q.loading.show({ message: 'Mengunggah bukti pembayaran...' })
       const file = paymentForm.value.bukti_file
@@ -1930,18 +2060,14 @@ const savePayment = async () => {
       $q.loading.hide()
     }
 
-    // 2. Kalkulasi Status & Total
     const newNominal = Number(paymentForm.value.nominal) || 0
     const currentTotal = Number(selectedTagihan.value.total_dibayar) || 0
     const grandTotal = Number(selectedTagihan.value.grand_total) || 0
-
     const newTotal = currentTotal + newNominal
+
     let newStatus = 'Menunggu Pembayaran'
-    if (newTotal >= grandTotal) {
-      newStatus = 'Lunas'
-    } else if (newTotal > 0) {
-      newStatus = 'Dibayar Sebagian'
-    }
+    if (newTotal >= grandTotal) newStatus = 'Lunas'
+    else if (newTotal > 0) newStatus = 'Dibayar Sebagian'
 
     const paymentRecord = {
       id: Date.now().toString(),
@@ -1952,7 +2078,6 @@ const savePayment = async () => {
       createdAt: new Date().toISOString(),
     }
 
-    // 3. Simpan ke Firestore
     await updateDoc(doc(db, 'finance_tagihan', selectedTagihan.value.id), {
       total_dibayar: newTotal,
       status: newStatus,
@@ -1960,10 +2085,7 @@ const savePayment = async () => {
       updatedAt: serverTimestamp(),
     })
 
-    // 4. Update local state untuk reaktif UI (tanpa refresh)
-    if (!selectedTagihan.value.riwayat_pembayaran) {
-      selectedTagihan.value.riwayat_pembayaran = []
-    }
+    if (!selectedTagihan.value.riwayat_pembayaran) selectedTagihan.value.riwayat_pembayaran = []
     selectedTagihan.value.total_dibayar = newTotal
     selectedTagihan.value.status = newStatus
     selectedTagihan.value.riwayat_pembayaran.push(paymentRecord)
@@ -1979,14 +2101,12 @@ const savePayment = async () => {
   }
 }
 
-// Utils
+// ============================================================================
+// UTILS
+// ============================================================================
 const formatDateIndo = (d) => {
   if (!d) return '-'
-  return new Date(d).toLocaleDateString('id-ID', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
+  return new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
 const formatCompact = (num) => {
@@ -2023,13 +2143,8 @@ const openLink = (url) => {
   if (url) window.open(url, '_blank')
 }
 
-// eslint-disable-next-line no-unused-vars
-const canAction = (actionType) => {
-  if (authStore.user?.role === 'Super Admin') return true
-  return true
-}
-
 onMounted(() => {
+  loadUserPermission()
   fetchData()
 })
 
@@ -2064,7 +2179,6 @@ onUnmounted(() => {
   border-radius: 12px;
 }
 
-/* Table Styling */
 .finance-table :deep(thead tr th) {
   position: sticky;
   top: 0;
@@ -2079,12 +2193,10 @@ onUnmounted(() => {
 .transition-all {
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
-
 .hover-shadow:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 25px rgba(26, 35, 126, 0.1) !important;
 }
-
 .btn-hover:hover {
   filter: brightness(1.1);
   transform: scale(1.02);
@@ -2152,10 +2264,15 @@ onUnmounted(() => {
 .border-bottom {
   border-bottom: 1px solid #eee;
 }
+.border-bottom-subtle {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+.border-indigo-thin {
+  border: 1px solid rgba(26, 35, 126, 0.1);
+}
 .letter-spacing-1 {
   letter-spacing: 1px;
 }
-
 .line-clamp-1 {
   display: -webkit-box;
   -webkit-line-clamp: 1;
@@ -2173,9 +2290,6 @@ onUnmounted(() => {
   }
 }
 
-/* =======================================================================
-   TABLE PDF EXPORT STYLES
-   ======================================================================= */
 .pdf-export-table {
   width: 100%;
   border-collapse: collapse;
