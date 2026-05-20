@@ -1,35 +1,75 @@
 <template>
-  <q-page class="bg-grey-2 q-pa-md q-pa-md-lg font-pro">
+  <q-page class="bg-page q-pa-md q-pa-md-lg font-pro relative-position" @click="spawnIcon($event)">
+    <!-- EFEK ANIMASI KLIK (SPAWN ICONS) -->
+    <div class="click-spawn-container">
+      <transition-group name="spawn">
+        <div
+          v-for="icon in spawnedIcons"
+          :key="icon.id"
+          class="spawned-icon"
+          :style="{
+            left: icon.x + 'px',
+            top: icon.y + 'px',
+            '--rand-rotate': icon.rotate + 'deg',
+            '--rand-color': icon.color,
+            fontSize: icon.size + 'px',
+          }"
+        >
+          <q-icon :name="icon.name" />
+        </div>
+      </transition-group>
+    </div>
+
+    <!-- EFEK LATAR BELAKANG ANIMASI MENGAMBANG (Warna-Warni Teal/Tosca, Kebureman Tipis & Elegan) -->
+    <div class="bg-animation-container">
+      <q-icon name="engineering" class="floating-icon i-1" />
+      <q-icon name="construction" class="floating-icon i-2" />
+      <q-icon name="architecture" class="floating-icon i-3" />
+      <q-icon name="location_city" class="floating-icon i-4" />
+      <q-icon name="handyman" class="floating-icon i-5" />
+      <q-icon name="apartment" class="floating-icon i-6" />
+      <q-icon name="engineering" class="floating-icon i-7" />
+      <q-icon name="hardware" class="floating-icon i-8" />
+    </div>
+
     <!-- HEADER SECTION -->
-    <div class="row items-center justify-between q-mb-xl animate-fade">
-      <div class="col-12 col-md-8">
-        <div class="text-h4 text-weight-bolder text-indigo-10 leading-tight">
+    <div class="row items-center justify-between q-mb-xl content-relative no-print">
+      <div class="col-12 col-md-8 q-mb-md q-mb-md-none">
+        <div class="text-h4 text-weight-bolder text-brand-primary leading-tight">
           Kategori Barang
-          <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
-            >Klasifikasi & Pengelompokan</span
-          >
+          <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs">
+            Klasifikasi & Pengelompokan
+          </span>
         </div>
         <div class="text-subtitle1 text-grey-7 q-mt-sm">
           Kelola parameter pengelompokan material untuk mempermudah manajemen inventaris proyek.
         </div>
       </div>
-      <div class="col-12 col-md-auto q-mt-md q-mt-md-none">
-        <q-btn
-          v-if="canAction('buat')"
-          color="indigo-10"
-          icon="add_circle_outline"
-          label="Tambah Kategori"
-          unelevated
-          rounded
-          no-caps
-          class="q-px-lg q-py-sm shadow-premium btn-hover"
-          @click="openAddDialog"
-        />
+
+      <!-- RESPONSIVE BUTTONS AREA -->
+      <div class="col-12 col-md-4">
+        <div class="row justify-end">
+          <div class="col-12 col-sm-auto" v-if="canAction('buat')">
+            <q-btn
+              icon="add_box"
+              label="Tambah Kategori"
+              unelevated
+              rounded
+              no-caps
+              class="bg-brand-primary text-white full-width shadow-premium btn-hover text-weight-bold q-py-sm q-px-md"
+              @click="openAddDialog"
+            />
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- SEARCH & SUMMARY CARD -->
-    <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white">
+    <q-card
+      flat
+      bordered
+      class="q-mb-lg shadow-1 rounded-20 bg-white border-subtle content-relative no-print"
+    >
       <q-card-section class="q-py-md">
         <div class="row items-center q-col-gutter-md">
           <div class="col-12 col-md-5">
@@ -43,7 +83,7 @@
               class="search-input"
             >
               <template v-slot:prepend>
-                <q-icon name="search" color="primary" />
+                <q-icon name="search" color="brand-primary" />
               </template>
               <template v-slot:append v-if="filter">
                 <q-icon name="close" @click="filter = ''" class="cursor-pointer" />
@@ -51,16 +91,22 @@
             </q-input>
           </div>
           <q-space />
-          <div class="col-12 col-md-auto text-caption text-grey-6">
+          <div
+            class="col-12 col-md-auto text-caption text-grey-6 text-weight-medium text-right sm-text-left"
+          >
             Total Kategori:
-            <span class="text-weight-bold text-indigo-10">{{ rows.length }} Grup</span>
+            <span class="text-weight-bold text-brand-primary">{{ rows.length }} Grup</span>
           </div>
         </div>
       </q-card-section>
     </q-card>
 
     <!-- TABLE SECTION -->
-    <q-card flat bordered class="rounded-20 shadow-sm overflow-hidden bg-white">
+    <q-card
+      flat
+      bordered
+      class="rounded-20 shadow-sm overflow-hidden bg-white border-subtle content-relative"
+    >
       <q-table
         :rows="rows"
         :columns="columns"
@@ -71,10 +117,15 @@
         binary-state-sort
         class="kategori-table"
       >
-        <!-- Custom Header -->
+        <!-- Custom Header Menggunakan Teal -->
         <template v-slot:header="props">
-          <q-tr :props="props" class="bg-indigo-10 text-white">
-            <q-th v-for="col in props.cols" :key="col.name" :props="props" class="text-weight-bold">
+          <q-tr :props="props" class="bg-brand-primary text-white">
+            <q-th
+              v-for="col in props.cols"
+              :key="col.name"
+              :props="props"
+              class="text-weight-bold uppercase font-11 tracking-widest"
+            >
               {{ col.label }}
             </q-th>
           </q-tr>
@@ -85,12 +136,15 @@
           <q-tr :props="props" class="hover-bg transition-all">
             <q-td key="nama">
               <div class="row items-center no-wrap">
+                <!-- Avatar Warna Warni Berdasarkan Nama -->
                 <q-avatar
                   size="32px"
-                  color="indigo-1"
-                  text-color="indigo-10"
+                  :style="{
+                    backgroundColor: getAvatarColor(props.row.nama).bg,
+                    color: getAvatarColor(props.row.nama).text,
+                  }"
                   icon="folder"
-                  class="q-mr-md"
+                  class="q-mr-md shadow-sm"
                 />
                 <div class="text-weight-bold text-subtitle2 text-blue-grey-10 text-uppercase">
                   {{ props.row.nama }}
@@ -100,7 +154,7 @@
             <q-td key="keterangan" class="text-grey-7">
               {{ props.row.keterangan || '-' }}
             </q-td>
-            <q-td key="aksi" class="text-center">
+            <q-td key="aksi" class="text-center" @click.stop>
               <div class="row justify-center q-gutter-sm">
                 <q-btn
                   v-if="canAction('ubah')"
@@ -154,36 +208,64 @@
       transition-hide="slide-down"
       backdrop-filter="blur(4px)"
     >
-      <q-card class="bg-grey-2 column no-wrap">
-        <q-toolbar class="bg-white text-indigo-10 q-py-md shadow-2">
+      <q-card class="bg-grey-2 column no-wrap relative-position">
+        <!-- Background Animation di dalam Form Dialog -->
+        <div class="bg-animation-container">
+          <q-icon name="engineering" class="floating-icon i-1" />
+          <q-icon name="construction" class="floating-icon i-2" />
+          <q-icon name="architecture" class="floating-icon i-3" />
+          <q-icon name="location_city" class="floating-icon i-4" />
+          <q-icon name="handyman" class="floating-icon i-5" />
+          <q-icon name="apartment" class="floating-icon i-6" />
+          <q-icon name="engineering" class="floating-icon i-7" />
+          <q-icon name="hardware" class="floating-icon i-8" />
+        </div>
+
+        <q-toolbar class="bg-white text-brand-primary q-py-md shadow-2 shrink content-relative">
           <q-btn flat round dense icon="close" v-close-popup color="grey-7" />
-          <q-toolbar-title class="text-weight-bold text-center">
+          <q-toolbar-title class="text-weight-bold text-center uppercase tracking-widest">
             {{ isEditMode ? 'EDIT DATA KATEGORI' : 'TAMBAH KATEGORI BARU' }}
           </q-toolbar-title>
+
+          <!-- Simpan Button untuk Desktop (gt-sm) -->
           <q-btn
             unelevated
-            color="indigo-10"
+            color="brand-primary"
             label="SIMPAN DATA"
             :loading="submitting"
             rounded
-            class="q-px-xl text-weight-bold shadow-3"
+            class="q-px-xl text-weight-bold shadow-3 gt-sm"
             @click="simpanKategori"
           />
         </q-toolbar>
 
-        <q-card-section class="col scroll q-pa-lg q-pa-md-xl">
+        <q-card-section class="col scroll q-pa-lg q-pa-md-xl content-relative">
           <div class="row justify-center">
             <div class="col-12 col-md-8 col-lg-6">
-              <q-card flat bordered class="rounded-20 q-pa-xl bg-white shadow-1">
+              <!-- Tombol Simpan untuk versi Mobile (Membentang Penuh) -->
+              <div class="lt-md q-mb-md">
+                <q-btn
+                  unelevated
+                  color="brand-primary"
+                  label="SIMPAN DATA"
+                  :loading="submitting"
+                  rounded
+                  class="full-width q-py-sm text-weight-bold shadow-3"
+                  @click="simpanKategori"
+                />
+              </div>
+
+              <q-card flat bordered class="rounded-20 q-pa-xl bg-white shadow-1 border-subtle">
+                <!-- Header Tema Brand Light Teal -->
                 <div
-                  class="text-subtitle1 text-indigo-10 text-weight-bolder q-mb-lg flex items-center"
+                  class="text-subtitle1 text-brand-primary text-weight-bolder q-mb-lg flex items-center q-pa-sm rounded-borders bg-brand-light"
                 >
                   <q-icon name="inventory" class="q-mr-sm" /> INFORMASI KATEGORI
                 </div>
 
                 <div class="q-gutter-y-lg">
                   <div>
-                    <div class="label-req">
+                    <div class="label-req font-bold">
                       Nama Kategori Barang <span class="text-negative">*</span>
                     </div>
                     <q-input
@@ -197,7 +279,7 @@
                   </div>
 
                   <div>
-                    <div class="label-req">Keterangan / Deskripsi</div>
+                    <div class="label-req font-bold">Keterangan / Deskripsi</div>
                     <q-input
                       outlined
                       v-model="form.keterangan"
@@ -208,9 +290,13 @@
                     />
                   </div>
 
-                  <q-banner dense class="bg-blue-1 text-blue-9 rounded-borders q-pa-md q-mt-md">
+                  <!-- Banner dengan Soft Teal -->
+                  <q-banner
+                    dense
+                    class="rounded-borders q-pa-md q-mt-md bg-brand-light text-brand-secondary"
+                  >
                     <template v-slot:avatar>
-                      <q-icon name="info" color="blue-9" />
+                      <q-icon name="info" color="brand-primary" />
                     </template>
                     <div class="text-caption leading-relaxed">
                       Kategori ini digunakan untuk mempermudah tim logistik dalam memfilter laporan
@@ -263,6 +349,79 @@ let unsubscribeUser = null
 const formDefault = { nama: '', keterangan: '' }
 const form = ref({ ...formDefault })
 const rows = ref([])
+
+// ==========================================
+// ANIMASI KLIK & MENGAMBANG
+// ==========================================
+const spawnedIcons = ref([])
+let spawnIdCounter = 0
+const clickIcons = [
+  'construction',
+  'engineering',
+  'handyman',
+  'architecture',
+  'foundation',
+  'precision_manufacturing',
+  'carpenter',
+  'plumbing',
+  'electrical_services',
+  'hardware',
+]
+
+const spawnIcon = (e) => {
+  // Cegah animasi muncul bila yang diklik adalah komponen interaktif
+  const target = e.target
+  if (
+    target.closest('button') ||
+    target.closest('.q-btn') ||
+    target.closest('input') ||
+    target.closest('.q-field') ||
+    target.closest('.q-dialog') ||
+    target.closest('.q-table') ||
+    target.closest('.q-card')
+  ) {
+    return
+  }
+
+  const iconName = clickIcons[Math.floor(Math.random() * clickIcons.length)]
+  const colors = ['#36ada3', '#2a8b83', '#56c2b9', '#f29c1f', '#e67e22', '#e74c3c']
+  const randColor = colors[Math.floor(Math.random() * colors.length)]
+  const randRotate = Math.floor(Math.random() * 90) - 45
+  const randSize = Math.floor(Math.random() * 25) + 35
+
+  const newIcon = {
+    id: spawnIdCounter++,
+    x: e.clientX,
+    y: e.clientY,
+    name: iconName,
+    color: randColor,
+    rotate: randRotate,
+    size: randSize,
+  }
+
+  spawnedIcons.value.push(newIcon)
+
+  setTimeout(() => {
+    spawnedIcons.value = spawnedIcons.value.filter((i) => i.id !== newIcon.id)
+  }, 1400)
+}
+
+// Fungsi Cerdas untuk mengacak warna Avatar berdasarkan Palet Pastel khas Teal Theme
+const getAvatarColor = (name) => {
+  if (!name) return { bg: '#e6f5f4', text: '#36ada3' }
+  const colors = [
+    { bg: '#e6f5f4', text: '#2a8b83' }, // Soft Teal
+    { bg: '#FDF5D3', text: '#b39000' }, // Soft Yellow
+    { bg: '#FCE1C6', text: '#c27d38' }, // Soft Peach
+    { bg: '#C0DCF1', text: '#1565c0' }, // Soft Light Blue
+    { bg: '#f3e5f5', text: '#7b1fa2' }, // Soft Purple
+  ]
+  let hash = 0
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  return colors[Math.abs(hash) % colors.length]
+}
 
 const columns = [
   { name: 'nama', align: 'left', label: 'NAMA KATEGORI', field: 'nama', sortable: true },
@@ -344,7 +503,20 @@ const simpanKategori = async () => {
     }
     showDialog.value = false
     fetchKategori()
-    $q.notify({ type: 'positive', message: 'Kategori berhasil diperbarui!', position: 'top' })
+
+    // NOTIFIKASI SIMPAN KATEGORI PREMIUM (HIJAU PREMIUM DENGAN PROGRESS BAR & CLOSE BUTTON)
+    $q.notify({
+      html: true,
+      message:
+        '<div class="text-weight-bold text-subtitle1 q-mb-none leading-none">Sinkronisasi Berhasil!</div><div class="text-caption q-mt-xs" style="opacity: 0.85">Data kategori barang telah tersimpan di database.</div>',
+      color: 'positive',
+      icon: 'task_alt',
+      position: 'top',
+      timeout: 4000,
+      progress: true,
+      classes: 'rounded-12 shadow-premium q-pl-md q-pr-lg q-py-sm border-white-2',
+      actions: [{ icon: 'close', color: 'white', round: true, size: 'sm', dense: true }],
+    })
   } catch (error) {
     console.error(error)
   } finally {
@@ -353,17 +525,46 @@ const simpanKategori = async () => {
 }
 
 const hapusKategori = (data) => {
+  // DIALOG KONFIRMASI PREMIUM SESUAI CONTOH KETIGA (BATAL - OUTLINED GREY, YA, HAPUS - RED FILLED SHADOW)
   $q.dialog({
-    title: 'Konfirmasi Hapus',
-    message: `Apakah Anda yakin ingin menghapus kategori "${data.nama}"? Tindakan ini dapat memengaruhi relasi data barang.`,
-    cancel: { label: 'Batal', flat: true, color: 'grey-7' },
-    ok: { label: 'Hapus', color: 'negative', unelevated: true, rounded: true },
+    title: '<div class="text-h5 text-weight-bolder text-negative q-mb-sm">Konfirmasi Hapus</div>',
+    message: `Apakah Anda yakin ingin menghapus kategori <b>${data.nama}</b>?<br/><span class="text-grey-7 text-caption block q-mt-xs">Tindakan ini dapat memengaruhi relasi data barang.</span>`,
+    html: true,
+    cancel: {
+      label: 'Batal',
+      color: 'grey-7',
+      outline: true,
+      rounded: true,
+      unelevated: true,
+      class: 'q-px-lg text-weight-bold text-uppercase',
+    },
+    ok: {
+      label: 'Ya, Hapus',
+      color: 'negative',
+      unelevated: true,
+      rounded: true,
+      class: 'q-px-lg text-weight-bold text-uppercase shadow-2',
+    },
+    class: 'rounded-20 q-pa-md shadow-premium bg-white',
     persistent: true,
   }).onOk(async () => {
     try {
       await deleteDoc(doc(db, 'kategori_barang', data.id))
       fetchKategori()
-      $q.notify({ icon: 'delete', message: 'Kategori telah dihapus' })
+
+      // NOTIFIKASI HAPUS PREMIUM SESUAI CONTOH KEDUA (MERAH PREMIUM DENGAN PROGRESS BAR & CLOSE BUTTON)
+      $q.notify({
+        html: true,
+        message:
+          '<div class="text-weight-bold text-subtitle1 q-mb-none leading-none">Data Terhapus!</div><div class="text-caption q-mt-xs" style="opacity: 0.85">Kategori barang telah ditarik secara permanen dari sistem.</div>',
+        color: 'negative',
+        icon: 'delete_forever',
+        position: 'top',
+        timeout: 4000,
+        progress: true,
+        classes: 'rounded-12 shadow-premium q-pl-md q-pr-lg q-py-sm border-white-2',
+        actions: [{ icon: 'close', color: 'white', round: true, size: 'sm', dense: true }],
+      })
     } catch (e) {
       console.error(e)
     }
@@ -372,17 +573,203 @@ const hapusKategori = (data) => {
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
+
 .font-pro {
   font-family:
-    'Inter',
+    'Plus Jakarta Sans',
     -apple-system,
     sans-serif;
 }
+.relative-position {
+  position: relative;
+}
+.content-relative {
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== GLOBAL THEME OVERRIDES (SAMA SEPERTI MASTER BARANG) ===== */
+.bg-page {
+  background-color: #f8fcfb;
+}
+.bg-brand-primary,
+:deep(.bg-brand-primary) {
+  background-color: #36ada3 !important;
+}
+.text-brand-primary,
+:deep(.text-brand-primary) {
+  color: #36ada3 !important;
+}
+.bg-brand-light {
+  background-color: #e6f5f4 !important; /* Soft Teal */
+}
+.text-brand-secondary {
+  color: #2a8b83 !important;
+}
+.border-brand-thin {
+  border: 2px solid #b2e5e2 !important; /* Soft Teal border */
+}
+
+/* ===== ANIMASI BACKGROUND (FLOATING TEAL & WARNA PASTEL SEGAR) ===== */
+.bg-animation-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none; /* Supaya ikon di background tidak bisa di-klik */
+}
+
+.floating-icon {
+  position: absolute;
+  bottom: -150px;
+  animation: floatUp infinite linear;
+  filter: blur(1.5px); /* Kebureman tipis dan estetik sesuai contoh */
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+/* Posisi random & Menggunakan warna-warna tosca/teal brand yang segar */
+.i-1 {
+  left: 10%;
+  font-size: 100px;
+  animation-duration: 25s;
+  animation-delay: 0s;
+  color: #36ada3;
+}
+.i-2 {
+  left: 30%;
+  font-size: 70px;
+  animation-duration: 35s;
+  animation-delay: 5s;
+  color: #f29c1f;
+}
+.i-3 {
+  left: 60%;
+  font-size: 120px;
+  animation-duration: 40s;
+  animation-delay: 12s;
+  color: #e74c3c;
+}
+.i-4 {
+  left: 80%;
+  font-size: 85px;
+  animation-duration: 30s;
+  animation-delay: 2s;
+  color: #56c2b9;
+}
+.i-5 {
+  left: 15%;
+  font-size: 90px;
+  animation-duration: 28s;
+  animation-delay: 15s;
+  color: #e67e22;
+}
+.i-6 {
+  left: 45%;
+  font-size: 110px;
+  animation-duration: 45s;
+  animation-delay: 8s;
+  color: #2a8b83;
+}
+.i-7 {
+  left: 75%;
+  font-size: 60px;
+  animation-duration: 22s;
+  animation-delay: 20s;
+  color: #f29c1f;
+}
+.i-8 {
+  left: 25%;
+  font-size: 95px;
+  animation-duration: 32s;
+  animation-delay: 25s;
+  color: #e74c3c;
+}
+
+@keyframes floatUp {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.15; /* Sesuai dengan setelan opacity di floating-icon */
+  }
+  90% {
+    opacity: 0.15;
+  }
+  100% {
+    transform: translateY(-120vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* CLICK SPAWN ICONS */
+.click-spawn-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.spawned-icon {
+  position: absolute;
+  color: var(--rand-color);
+  transform-origin: center;
+  pointer-events: none;
+  animation: spawnBurst 1.4s ease-out forwards;
+}
+
+@keyframes spawnBurst {
+  0% {
+    transform: translate(-50%, -50%) scale(0) rotate(0deg);
+    opacity: 1;
+  }
+  40% {
+    transform: translate(-50%, -100%) scale(1.2) rotate(var(--rand-rotate));
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(-50%, -180%) scale(0.5) rotate(calc(var(--rand-rotate) * 1.5));
+    opacity: 0;
+  }
+}
+
+.spawn-enter-active,
+.spawn-leave-active {
+  transition: all 1.4s ease;
+}
+
+/* GRID TABLE HEADER TEAL */
+.bg-gradient-table {
+  background: linear-gradient(135deg, #36ada3 0%, #2a8b83 100%) !important;
+}
+
 .rounded-20 {
   border-radius: 20px;
 }
+.rounded-12 {
+  border-radius: 12px;
+}
 .shadow-premium {
-  box-shadow: 0 10px 30px rgba(25, 118, 210, 0.15);
+  box-shadow: 0 10px 30px rgba(54, 173, 163, 0.15);
+}
+.border-dashed {
+  border: 2px dashed #e0e0e0;
+}
+.dashed-box {
+  border: 2px dashed #e0e0e0;
+  border-radius: 12px;
+}
+.border-subtle {
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .kategori-table :deep(thead tr th) {
@@ -391,12 +778,12 @@ const hapusKategori = (data) => {
   z-index: 1;
 }
 .btn-hover:hover {
-  filter: brightness(1.1);
+  filter: brightness(1.05);
   transform: scale(1.02);
   transition: 0.3s;
 }
 .hover-bg:hover {
-  background-color: rgba(25, 118, 210, 0.03) !important;
+  background-color: #e6f5f4 !important;
 }
 .transition-all {
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -418,7 +805,6 @@ const hapusKategori = (data) => {
 
 .label-req {
   font-size: 13px;
-  font-weight: 700;
   color: #444;
   margin-bottom: 6px;
   text-transform: uppercase;
@@ -427,10 +813,21 @@ const hapusKategori = (data) => {
 .search-input :deep(.q-field__control) {
   border-radius: 30px;
 }
+.border-white-2 {
+  border: 2px solid rgba(255, 255, 255, 0.4);
+}
 .block {
   display: block;
 }
 .leading-relaxed {
   line-height: 1.6;
+}
+
+/* Responsivitas untuk teks jumlah di HP */
+@media (max-width: 599px) {
+  .sm-text-left {
+    text-align: left !important;
+    margin-top: 8px;
+  }
 }
 </style>

@@ -809,9 +809,7 @@
                   >
                     {{ config.nama_pt || 'PT AGRA ABHINAYA PERKASA' }}
                   </div>
-                  <div class="text-grey-6 text-bold q-mt-xs" style="font-size: 9.5px">
-                    Manajemen Keuangan
-                  </div>
+                  <div class="text-grey-6 text-bold q-mt-xs" style="font-size: 9.5px">Direktur</div>
                 </div>
               </div>
 

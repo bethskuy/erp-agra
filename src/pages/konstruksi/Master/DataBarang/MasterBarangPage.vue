@@ -20,7 +20,7 @@
       </transition-group>
     </div>
 
-    <!-- EFEK LATAR BELAKANG ANIMASI MENGAMBANG (Warna-Warni & Dari Bawah ke Atas) -->
+    <!-- EFEK LATAR BELAKANG ANIMASI MENGAMBANG (Warna-Warni, Kebureman Tipis & Elegan Sesuai Contoh) -->
     <div class="bg-animation-container">
       <q-icon name="engineering" class="floating-icon i-1" />
       <q-icon name="construction" class="floating-icon i-2" />
@@ -33,7 +33,7 @@
     </div>
 
     <!-- HEADER SECTION -->
-    <div class="row items-center justify-between q-mb-xl no-print">
+    <div class="row items-center justify-between q-mb-xl no-print content-relative">
       <div class="col-12 col-sm-8">
         <div class="text-h4 text-weight-bolder text-brand-primary leading-tight">
           Master Barang & Material
@@ -63,7 +63,7 @@
     </div>
 
     <!-- SEARCH & SUMMARY CARD -->
-    <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print">
+    <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print content-relative">
       <q-card-section class="q-py-md">
         <div class="row items-center q-col-gutter-md">
           <div class="col-12 col-md-5">
@@ -96,7 +96,11 @@
     </q-card>
 
     <!-- TABLE SECTION -->
-    <q-card flat bordered class="rounded-20 shadow-sm overflow-hidden bg-white no-print">
+    <q-card
+      flat
+      bordered
+      class="rounded-20 shadow-sm overflow-hidden bg-white no-print content-relative"
+    >
       <q-table
         :rows="rows"
         :columns="columns"
@@ -216,8 +220,25 @@
       transition-show="slide-up"
       transition-hide="slide-down"
     >
-      <q-card class="bg-grey-2 column no-wrap print-fixed-card" v-if="selectedItem">
-        <q-toolbar class="bg-brand-primary text-white q-py-md shadow-2 shrink no-print">
+      <q-card
+        class="bg-grey-2 column no-wrap print-fixed-card relative-position"
+        v-if="selectedItem"
+      >
+        <!-- Background Animation di dalam Detail Dialog -->
+        <div class="bg-animation-container">
+          <q-icon name="engineering" class="floating-icon i-1" />
+          <q-icon name="construction" class="floating-icon i-2" />
+          <q-icon name="architecture" class="floating-icon i-3" />
+          <q-icon name="location_city" class="floating-icon i-4" />
+          <q-icon name="handyman" class="floating-icon i-5" />
+          <q-icon name="apartment" class="floating-icon i-6" />
+          <q-icon name="engineering" class="floating-icon i-7" />
+          <q-icon name="hardware" class="floating-icon i-8" />
+        </div>
+
+        <q-toolbar
+          class="bg-brand-primary text-white q-py-md shadow-2 shrink no-print content-relative"
+        >
           <q-btn flat round dense icon="arrow_back" v-close-popup />
           <q-toolbar-title class="text-weight-bold uppercase tracking-widest"
             >Profil Detail Material</q-toolbar-title
@@ -236,7 +257,7 @@
           />
         </q-toolbar>
 
-        <q-card-section class="col scroll q-pa-md q-pa-md-xl print-content-area">
+        <q-card-section class="col scroll q-pa-md q-pa-md-xl print-content-area content-relative">
           <div id="material-detail-print" class="row justify-center print-container">
             <div class="col-12 col-lg-10">
               <div class="row q-col-gutter-xl print-row-fix">
@@ -393,7 +414,7 @@
     </q-dialog>
 
     <!-- ============================================== -->
-    <!-- VIEW 3: FORM TAMBAH/EDIT ( DIALOG ORIGINAL )   -->
+    <!-- VIEW 3: DIALOG FORM (TAMBAH/EDIT)              -->
     <!-- ============================================== -->
     <q-dialog
       v-model="showDialog"
@@ -403,8 +424,20 @@
       transition-hide="slide-down"
       backdrop-filter="blur(4px)"
     >
-      <q-card class="bg-grey-2 column no-wrap">
-        <q-toolbar class="bg-white text-brand-primary q-py-md shadow-2 shrink">
+      <q-card class="bg-grey-2 column no-wrap relative-position">
+        <!-- Background Animation di dalam Form Dialog -->
+        <div class="bg-animation-container">
+          <q-icon name="engineering" class="floating-icon i-1" />
+          <q-icon name="construction" class="floating-icon i-2" />
+          <q-icon name="architecture" class="floating-icon i-3" />
+          <q-icon name="location_city" class="floating-icon i-4" />
+          <q-icon name="handyman" class="floating-icon i-5" />
+          <q-icon name="apartment" class="floating-icon i-6" />
+          <q-icon name="engineering" class="floating-icon i-7" />
+          <q-icon name="hardware" class="floating-icon i-8" />
+        </div>
+
+        <q-toolbar class="bg-white text-brand-primary q-py-md shadow-2 shrink content-relative">
           <q-btn flat round dense icon="close" v-close-popup color="grey-7" />
           <q-toolbar-title class="text-weight-bold text-center uppercase tracking-widest">
             {{ isEditMode ? 'Pembaruan Data Barang' : 'Registrasi Barang Baru' }}
@@ -420,7 +453,7 @@
           />
         </q-toolbar>
 
-        <q-card-section class="col scroll q-pa-lg q-pa-md-xl">
+        <q-card-section class="col scroll q-pa-lg q-pa-md-xl content-relative">
           <div class="row justify-center">
             <div class="col-12 col-lg-11">
               <div class="row q-col-gutter-xl">
@@ -661,7 +694,6 @@
               </div>
             </div>
           </div>
-          <div class="q-py-xl"></div>
         </q-card-section>
       </q-card>
     </q-dialog>
@@ -1001,15 +1033,18 @@ const simpanBarang = async () => {
 
     showDialog.value = false
 
+    // NOTIFIKASI SIMPAN BARANG SESUAI GAMBAR PERTAMA (HIJAU PREMIUM DENGAN CLOSE BUTTON & PROGRESS BAR)
     $q.notify({
-      message: '<div class="text-weight-bold text-subtitle1">Berhasil Disimpan!</div>',
-      caption: 'Data katalog telah berhasil diperbarui di sistem.',
       html: true,
-      icon: 'check_circle',
+      message:
+        '<div class="text-weight-bold text-subtitle1 q-mb-none leading-none">Sinkronisasi Berhasil!</div><div class="text-caption q-mt-xs" style="opacity: 0.85">Data katalog barang telah tersimpan di database.</div>',
       color: 'positive',
-      position: 'top-right',
-      timeout: 3000,
-      classes: 'q-pa-md text-subtitle1 rounded-10 shadow-4',
+      icon: 'task_alt',
+      position: 'top',
+      timeout: 4000,
+      progress: true,
+      classes: 'rounded-12 shadow-premium q-pl-md q-pr-lg q-py-sm border-white-2',
+      actions: [{ icon: 'close', color: 'white', round: true, size: 'sm', dense: true }],
     })
   } catch (e) {
     console.error(e)
@@ -1021,39 +1056,44 @@ const simpanBarang = async () => {
 }
 
 const hapusBarang = (data) => {
+  // DIALOG KONFIRMASI HAPUS DIPERBAGUS SESUAI GAMBAR KETIGA (BATAL - OUTLINED GREY, YA, HAPUS - RED FILLED SHADOW)
   $q.dialog({
-    title:
-      '<div class="text-h6 text-negative text-weight-bolder flex items-center q-mb-sm"><q-icon name="warning" size="md" class="q-mr-sm"/> Konfirmasi Hapus</div>',
-    message: `Apakah Anda yakin ingin menghapus <b>${data.nama}</b>?<br/><span class="text-grey-7 text-caption block q-mt-sm">Data yang dihapus tidak dapat dikembalikan lagi.</span>`,
+    title: '<div class="text-h5 text-weight-bolder text-negative q-mb-sm">Konfirmasi Hapus</div>',
+    message: `Apakah Anda yakin ingin menghapus <b>${data.nama}</b>?<br/><span class="text-grey-7 text-caption block q-mt-xs">Data yang dihapus tidak dapat dikembalikan lagi.</span>`,
     html: true,
     cancel: {
       label: 'Batal',
       color: 'grey-7',
       outline: true,
       rounded: true,
-      class: 'q-px-md text-weight-bold',
+      unelevated: true,
+      class: 'q-px-lg text-weight-bold text-uppercase',
     },
     ok: {
       label: 'Ya, Hapus',
       color: 'negative',
       unelevated: true,
       rounded: true,
-      class: 'q-px-md shadow-3 text-weight-bold',
+      class: 'q-px-lg text-weight-bold text-uppercase shadow-2',
     },
-    class: 'rounded-20 shadow-premium',
+    class: 'rounded-20 q-pa-md shadow-premium bg-white',
     persistent: true,
   }).onOk(async () => {
     try {
       await deleteDoc(doc(db, 'master_barang', data.id))
+
+      // NOTIFIKASI HAPUS BARANG SESUAI GAMBAR KEDUA (MERAH PREMIUM DENGAN CLOSE BUTTON & PROGRESS BAR)
       $q.notify({
-        message: '<div class="text-weight-bold text-subtitle1">Data Dihapus</div>',
-        caption: 'Item telah berhasil dihapus secara permanen.',
         html: true,
-        icon: 'delete_forever',
+        message:
+          '<div class="text-weight-bold text-subtitle1 q-mb-none leading-none">Data Terhapus!</div><div class="text-caption q-mt-xs" style="opacity: 0.85">Informasi barang telah ditarik secara permanen dari sistem.</div>',
         color: 'negative',
-        position: 'top-right',
-        timeout: 3000,
-        classes: 'q-pa-md text-subtitle1 rounded-10 shadow-4',
+        icon: 'delete_forever',
+        position: 'top',
+        timeout: 4000,
+        progress: true,
+        classes: 'rounded-12 shadow-premium q-pl-md q-pr-lg q-py-sm border-white-2',
+        actions: [{ icon: 'close', color: 'white', round: true, size: 'sm', dense: true }],
       })
     } catch (e) {
       console.error(e)
@@ -1071,12 +1111,15 @@ const hapusBarang = (data) => {
 
 .font-pro {
   font-family:
-    'Inter',
+    'Plus Jakarta Sans',
     -apple-system,
     sans-serif;
 }
 .rounded-20 {
   border-radius: 20px;
+}
+.rounded-12 {
+  border-radius: 12px;
 }
 .shadow-premium {
   box-shadow: 0 10px 30px rgba(54, 173, 163, 0.15); /* Disesuaikan dengan brand color (Teal) */
@@ -1086,6 +1129,9 @@ const hapusBarang = (data) => {
 }
 .border-subtle {
   border: 1px solid rgba(0, 0, 0, 0.05);
+}
+.border-white-2 {
+  border: 2px solid rgba(255, 255, 255, 0.4);
 }
 
 /* OVERRIDE WARNA LAMA (INDIGO) MENJADI BRAND COLOR BARU (TEAL) */
@@ -1145,12 +1191,13 @@ const hapusBarang = (data) => {
   position: absolute;
   bottom: -150px; /* Memulai posisi dari bawah layar */
   animation: floatUp linear infinite;
-  opacity: 0.35; /* Mengatur ketebalan tembus pandang untuk semua ikon melayang */
+  opacity: 0.15; /* Sesuai contoh visual image_e62dcf.png */
+  filter: blur(1.5px); /* Kebureman dikurangi dari 4px menjadi 1.5px (Tipis, tajam tapi lembut) */
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
 }
 
-/* Memberikan Warna-Warni pada masing-masing Ikon Melayang
-  Menggunakan Palet Warna: Teal, Orange, Red, Yellow
-*/
+/* Memberikan Warna-Warni pada masing-masing Ikon Melayang */
 .i-1 {
   left: 10%;
   font-size: 100px;
@@ -1215,10 +1262,10 @@ const hapusBarang = (data) => {
     opacity: 0;
   }
   10% {
-    opacity: 1; /* Opacity maksimalnya dikendalikan dari .floating-icon yang diset 0.35 */
+    opacity: 0.15; /* Sesuai dengan setelan opacity di floating-icon */
   }
   90% {
-    opacity: 1;
+    opacity: 0.15;
   }
   100% {
     transform: translateY(-120vh) rotate(360deg);
@@ -1338,5 +1385,9 @@ const hapusBarang = (data) => {
 
 .shrink {
   flex: 0 0 auto;
+}
+.content-relative {
+  position: relative;
+  z-index: 1;
 }
 </style>
