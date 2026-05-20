@@ -91,78 +91,11 @@
                 <span class="time-ss text-blue-3">{{ currentSeconds }}</span>
               </div>
 
-              <div class="date-chip q-mt-md shadow-2">
-                {{ currentDate }}
-              </div>
+              <div class="date-chip q-mt-md shadow-2">{{ currentDate }}</div>
             </q-card-section>
           </q-card>
         </div>
       </div>
-
-      <!-- ========================================== -->
-      <!-- WIDGET PEMBERITAHUAN UMUM                  -->
-      <!-- ========================================== -->
-      <q-slide-transition>
-        <div class="row q-mb-lg" v-if="!showCamera && activeAnnouncements.length > 0">
-          <div class="col-12">
-            <q-card
-              flat
-              class="bento-card bg-gradient-indigo text-white overflow-hidden shadow-soft-primary"
-            >
-              <div class="row items-stretch no-wrap">
-                <div
-                  class="col-auto bg-black bg-opacity-20 flex flex-center q-pa-md"
-                  style="width: 80px"
-                >
-                  <q-icon name="campaign" size="36px" color="white" class="drop-shadow-glow" />
-                </div>
-
-                <div class="col overflow-hidden relative-position">
-                  <q-carousel
-                    v-model="slidePengumuman"
-                    transition-prev="slide-down"
-                    transition-next="slide-up"
-                    swipeable
-                    animated
-                    autoplay
-                    infinite
-                    :navigation="activeAnnouncements.length > 1"
-                    navigation-position="right"
-                    control-color="white"
-                    height="auto"
-                    class="bg-transparent full-height q-pa-sm"
-                  >
-                    <q-carousel-slide
-                      v-for="(item, index) in activeAnnouncements"
-                      :key="item.id"
-                      :name="index"
-                      class="q-pa-sm flex column justify-center"
-                    >
-                      <div
-                        class="text-caption text-blue-2 text-weight-bold uppercase letter-spacing-1 q-mb-xs"
-                      >
-                        Pengumuman dari {{ item.pembuat || 'HRD' }}
-                      </div>
-                      <div
-                        class="text-subtitle1 text-weight-bolder line-height-tight q-mb-xs text-shadow"
-                        style="word-wrap: break-word; white-space: normal"
-                      >
-                        {{ item.judul }}
-                      </div>
-                      <div
-                        class="text-caption text-blue-1 opacity-80 ellipsis-2-lines"
-                        style="max-width: 95%"
-                      >
-                        {{ item.isi }}
-                      </div>
-                    </q-carousel-slide>
-                  </q-carousel>
-                </div>
-              </div>
-            </q-card>
-          </div>
-        </div>
-      </q-slide-transition>
 
       <!-- ========================================== -->
       <!-- BAGIAN TENGAH: RADAR LOKASI & ACTION       -->
@@ -295,6 +228,7 @@
           </q-card>
         </div>
 
+        <!-- WIDGET 4: TOMBOL AKSI & ABSEN MANUAL -->
         <div class="col-12 col-md-6 mobile-order-1 desktop-order-2">
           <q-card flat class="bento-card bg-white full-height flex column justify-center">
             <q-card-section class="q-pa-lg">
@@ -313,7 +247,6 @@
                     <q-icon name="camera_alt" size="24px" class="q-mb-xs" />
                     <span>CLOCK IN</span>
                   </button>
-
                   <button v-else class="btn-premium btn-locked full-width" @click="startAbsensi">
                     <q-icon name="lock" size="24px" class="q-mb-xs text-blue-grey-4" />
                     <span class="text-blue-grey-5">TERKUNCI</span>
@@ -329,7 +262,6 @@
                     <q-icon name="logout" size="24px" class="q-mb-xs" />
                     <span>CLOCK OUT</span>
                   </button>
-
                   <button v-else class="btn-premium btn-locked full-width" @click="absenPulang">
                     <q-icon name="lock" size="24px" class="q-mb-xs text-blue-grey-4" />
                     <span class="text-blue-grey-5">OUT TERKUNCI</span>
@@ -337,13 +269,23 @@
                 </div>
               </div>
 
-              <div class="row items-center q-mt-md bg-grey-1 q-pa-sm rounded-8 border-grey">
-                <q-icon name="info" color="blue-grey-5" size="16px" class="q-mr-sm" />
+              <!-- SENSOR ENGINE & AI STATUS BOARD -->
+              <div
+                class="row items-center q-mt-md q-pa-sm rounded-8 border-grey"
+                :class="isAiReady ? 'bg-teal-50 border-teal-200' : 'bg-orange-50 border-orange-200'"
+              >
+                <q-icon
+                  :name="isAiReady ? 'face' : 'psychology'"
+                  :color="isAiReady ? 'teal-6' : 'orange-7'"
+                  size="16px"
+                  class="q-mr-sm"
+                />
                 <div
-                  class="text-caption text-blue-grey-7 text-weight-medium"
+                  class="text-caption text-weight-bold"
+                  :class="isAiReady ? 'text-teal-8' : 'text-orange-9'"
                   style="font-size: 11px"
                 >
-                  Tombol akan terbuka jika Anda berada di area kantor.
+                  {{ aiStatusText }}
                 </div>
               </div>
 
@@ -361,8 +303,76 @@
         </div>
       </div>
 
+      <!-- ========================================== -->
+      <!-- WIDGET PEMBERITAHUAN UMUM                  -->
+      <!-- ========================================== -->
+      <q-slide-transition>
+        <div class="row q-mb-lg" v-if="!showCamera && activeAnnouncements.length > 0">
+          <div class="col-12">
+            <q-card
+              flat
+              class="bento-card bg-gradient-indigo text-white overflow-hidden shadow-soft-primary"
+            >
+              <div class="row items-stretch no-wrap">
+                <div
+                  class="col-auto bg-black bg-opacity-20 flex flex-center q-pa-md"
+                  style="width: 80px"
+                >
+                  <q-icon name="campaign" size="36px" color="white" class="drop-shadow-glow" />
+                </div>
+
+                <div class="col overflow-hidden relative-position">
+                  <q-carousel
+                    v-model="slidePengumuman"
+                    transition-prev="slide-down"
+                    transition-next="slide-up"
+                    swipeable
+                    animated
+                    autoplay
+                    infinite
+                    :navigation="activeAnnouncements.length > 1"
+                    navigation-position="right"
+                    control-color="white"
+                    height="auto"
+                    class="bg-transparent full-height q-pa-sm"
+                  >
+                    <q-carousel-slide
+                      v-for="(item, index) in activeAnnouncements"
+                      :key="item.id"
+                      :name="index"
+                      class="q-pa-sm flex column justify-center"
+                    >
+                      <div
+                        class="text-caption text-blue-2 text-weight-bold uppercase letter-spacing-1 q-mb-xs"
+                      >
+                        Pengumuman dari {{ item.pembuat || 'HRD' }}
+                      </div>
+                      <div
+                        class="text-subtitle1 text-weight-bolder line-height-tight q-mb-xs text-shadow"
+                        style="word-wrap: break-word; white-space: normal"
+                      >
+                        {{ item.judul }}
+                      </div>
+                      <div
+                        class="text-caption text-blue-1 opacity-80 ellipsis-2-lines"
+                        style="max-width: 95%"
+                      >
+                        {{ item.isi }}
+                      </div>
+                    </q-carousel-slide>
+                  </q-carousel>
+                </div>
+              </div>
+            </q-card>
+          </div>
+        </div>
+      </q-slide-transition>
+
+      <!-- ========================================== -->
+      <!-- BAGIAN BAWAH: RIWAYAT                      -->
+      <!-- ========================================== -->
       <div class="row q-col-gutter-lg" v-if="!showCamera">
-        <div class="col-12 col-md-7">
+        <div class="col-12">
           <q-card flat class="bento-card bg-white full-height">
             <q-card-section class="q-pa-lg border-bottom row items-center justify-between">
               <div class="text-subtitle1 text-weight-bold text-blue-grey-9">
@@ -411,9 +421,9 @@
 
                   <q-item-section side class="text-right">
                     <div class="text-weight-bold font-mono text-body2">
-                      <span :class="item.is_late ? 'text-red-6' : 'text-blue-grey-10'">
-                        {{ formatWaktu(item.waktu_masuk) }}
-                      </span>
+                      <span :class="item.is_late ? 'text-red-6' : 'text-blue-grey-10'">{{
+                        formatWaktu(item.waktu_masuk)
+                      }}</span>
                       <span class="text-grey-4 q-mx-xs">━</span>
                       <span class="text-blue-grey-10">{{ formatWaktu(item.waktu_pulang) }}</span>
                     </div>
@@ -423,15 +433,13 @@
                         v-if="item.is_late"
                         color="red-5"
                         class="rounded-6 shadow-1 text-weight-bold"
+                        >TERLAMBAT</q-badge
                       >
-                        TERLAMBAT
-                      </q-badge>
                       <q-badge
                         :color="item.status === 'Selesai' ? 'teal-5' : 'orange-5'"
                         class="rounded-6 shadow-1 text-weight-bold"
+                        >{{ item.status.toUpperCase() }}</q-badge
                       >
-                        {{ item.status.toUpperCase() }}
-                      </q-badge>
                     </div>
                   </q-item-section>
                 </q-item>
@@ -439,63 +447,11 @@
             </q-card-section>
           </q-card>
         </div>
-
-        <div class="col-12 col-md-5">
-          <q-card flat class="bento-card bg-white full-height">
-            <q-card-section class="q-pa-lg border-bottom row items-center justify-between">
-              <div class="text-subtitle1 text-weight-bold text-blue-grey-9">Rekan Kerja Hadir</div>
-              <q-badge color="teal-1" text-color="teal-7" class="text-weight-bold"
-                >{{ dataSeluruhKaryawan.length }} Orang</q-badge
-              >
-            </q-card-section>
-
-            <q-card-section class="q-pa-none">
-              <q-scroll-area style="height: 300px">
-                <q-list>
-                  <div v-if="dataSeluruhKaryawan.length === 0" class="text-center q-pa-xl">
-                    <q-icon name="groups" size="4em" color="grey-3" class="q-mb-md" />
-                    <div class="text-blue-grey-5 text-weight-medium">
-                      Belum ada rekan kerja yang hadir.
-                    </div>
-                  </div>
-
-                  <q-item
-                    v-for="rekan in dataSeluruhKaryawan"
-                    :key="rekan.no"
-                    class="q-py-sm q-px-lg hover-bg"
-                  >
-                    <q-item-section avatar>
-                      <q-avatar
-                        size="36px"
-                        :color="getRandomColor(rekan.nama_karyawan)"
-                        text-color="white"
-                        class="text-weight-bold text-subtitle2"
-                      >
-                        {{ getInitial(rekan.nama_karyawan) }}
-                      </q-avatar>
-                    </q-item-section>
-                    <q-item-section>
-                      <q-item-label
-                        class="text-weight-bold text-blue-grey-9 text-caption text-uppercase ellipsis"
-                      >
-                        {{ rekan.nama_karyawan }}
-                      </q-item-label>
-                      <q-item-label
-                        caption
-                        class="text-teal-6 text-weight-bold"
-                        style="font-size: 10px"
-                      >
-                        In: {{ rekan.checkin }}
-                      </q-item-label>
-                    </q-item-section>
-                  </q-item>
-                </q-list>
-              </q-scroll-area>
-            </q-card-section>
-          </q-card>
-        </div>
       </div>
 
+      <!-- ========================================== -->
+      <!-- MODAL ABSENSI MANUAL                       -->
+      <!-- ========================================== -->
       <q-dialog v-model="manualDialog" persistent backdrop-filter="blur(5px)">
         <q-card
           style="width: 550px; max-width: 95vw"
@@ -644,6 +600,9 @@
         </q-card>
       </q-dialog>
 
+      <!-- ========================================== -->
+      <!-- MODAL SCREEN ABSEN DIGITAL VERIFICATION    -->
+      <!-- ========================================== -->
       <q-slide-transition>
         <div v-if="showCamera" class="row justify-center">
           <div class="col-12 col-xl-10">
@@ -660,7 +619,7 @@
                   class="bg-blue-grey-8 transition-smooth hover-scale"
                 />
                 <div class="text-subtitle1 text-weight-bold q-ml-md letter-spacing-1">
-                  VERIFIKASI ABSENSI
+                  VERIFIKASI BIOMETRIK WAJAH
                 </div>
               </div>
 
@@ -680,13 +639,13 @@
                       <div class="corner b-r"></div>
                       <div class="scan-laser"></div>
                     </div>
-                    <div class="absolute-bottom text-center q-pb-md q-pb-lg-xl">
+                    <div class="absolute-bottom text-center q-pb-md">
                       <q-chip
-                        color="teal-9"
-                        text-color="teal-2"
+                        color="primary"
+                        text-color="white"
                         class="text-weight-bold shadow-3 bg-opacity-80"
                       >
-                        <q-icon name="face" size="xs" class="q-mr-xs" /> Arahkan wajah ke dalam area
+                        <q-icon name="face" size="xs" class="q-mr-xs" /> Deteksi Sensor Wajah Aktif
                       </q-chip>
                     </div>
                   </div>
@@ -698,14 +657,12 @@
                   />
                 </div>
 
-                <div
-                  class="col-12 col-md-5 q-pa-lg q-pa-md-xl bg-grey-1 flex column justify-center"
-                >
-                  <div class="bg-white q-pa-lg rounded-16 border-grey shadow-sm q-mb-lg q-mb-md-xl">
+                <div class="col-12 col-md-5 q-pa-lg bg-grey-1 flex column justify-center">
+                  <div class="bg-white q-pa-lg rounded-16 border-grey shadow-sm q-mb-lg">
                     <div
                       class="text-caption text-blue-grey-5 text-weight-bold uppercase letter-spacing-1 q-mb-md"
                     >
-                      Informasi Check-In
+                      Informasi Log Absensi
                     </div>
                     <div class="row items-center q-mb-md">
                       <q-avatar
@@ -715,64 +672,103 @@
                         icon="person"
                         class="q-mr-md"
                       />
-                      <div
-                        class="text-weight-bold text-blue-grey-10 text-subtitle1"
-                        style="word-wrap: break-word"
-                      >
+                      <div class="text-weight-bold text-blue-grey-10 text-subtitle1">
                         {{ userData.nama }}
                       </div>
                     </div>
+
+                    <!-- INDIKATOR VERIFIKASI SEBELUM KIRIM (DENGAN ANIMASI LOADING UX) -->
+                    <div
+                      v-if="isVerifyingFace"
+                      class="q-pa-sm rounded-8 text-center text-weight-bold q-mb-md bg-orange-50 text-orange-8 border-orange"
+                    >
+                      <q-spinner-dots size="1.5em" class="q-mr-xs" /> MEMPROSES BIOMETRIK...
+                    </div>
+                    <div
+                      v-else
+                      class="q-pa-sm rounded-8 text-center text-weight-bold q-mb-md"
+                      :class="
+                        isFaceMatched
+                          ? 'bg-teal-50 text-teal-8 border-teal'
+                          : 'bg-red-50 text-red-8 border-red'
+                      "
+                    >
+                      <q-icon :name="isFaceMatched ? 'verified' : 'lock'" class="q-mr-xs" />
+                      {{
+                        isFaceMatched ? 'WAJAH COCOK DENGAN DATA HRD' : 'SILAKAN AMBIL FOTO WAJAH'
+                      }}
+                    </div>
+
                     <div class="row items-start q-mb-md">
                       <q-avatar
-                        size="40px"
+                        size="32px"
                         color="teal-1"
                         text-color="teal-7"
                         icon="place"
                         class="q-mr-md"
                       />
                       <div class="col">
-                        <div class="text-weight-bold text-blue-grey-9 text-subtitle2">
+                        <div class="text-weight-bold text-blue-grey-9 text-caption">
                           {{ locationData.matchedLocationName }}
                         </div>
-                        <div class="text-caption text-blue-grey-6 line-height-tight q-mt-xs">
+                        <div class="text-blue-grey-6 line-height-tight" style="font-size: 11px">
                           {{ locationData.address }}
                         </div>
                       </div>
                     </div>
-                    <q-badge
-                      color="blue-grey-8"
-                      class="q-px-sm q-py-xs text-weight-bold rounded-6 font-mono full-width justify-center"
-                    >
-                      LAT: {{ locationData.lat }} | LNG: {{ locationData.lng }}
-                    </q-badge>
                   </div>
 
+                  <!-- TOMBOL LOGIC SINKRON AI -->
                   <div v-if="!capturedImage">
                     <q-btn
                       unelevated
                       color="primary"
-                      icon="camera"
-                      label="AMBIL FOTO WAJAH"
-                      class="full-width rounded-12 q-py-md text-weight-bolder shadow-soft-primary text-subtitle1 transition-smooth"
+                      icon="photo_camera"
+                      label="PINDAI WAJAH ANDA"
+                      class="full-width rounded-12 q-py-md text-weight-bolder shadow-soft-primary text-subtitle1"
                       @click="takePhoto"
+                      :disable="!isAiReady"
                     />
                   </div>
 
-                  <div v-else class="column q-gutter-y-md">
+                  <div v-else class="column q-gutter-y-sm">
+                    <!-- Tombol Loading AI (Perbaikan UX) -->
                     <q-btn
-                      unelevated
-                      color="teal-6"
-                      label="KONFIRMASI & KIRIM"
-                      class="full-width rounded-12 q-py-md text-weight-bolder shadow-glow-positive transition-smooth text-subtitle1"
-                      icon="send"
-                      @click="saveAbsensi"
+                      v-if="isVerifyingFace"
+                      loading
+                      color="orange-5"
+                      label="MENGANALISIS..."
+                      class="full-width rounded-12 q-py-md text-weight-bolder text-subtitle1"
                     />
+
+                    <template v-else>
+                      <q-btn
+                        v-if="isFaceMatched"
+                        unelevated
+                        color="teal-6"
+                        label="KONFIRMASI & KIRIM"
+                        class="full-width rounded-12 q-py-md text-weight-bolder shadow-glow-positive text-subtitle1"
+                        icon="send"
+                        @click="saveAbsensi"
+                      />
+                      <q-btn
+                        v-else
+                        disabled
+                        color="grey-5"
+                        label="AKSES DIKUNCI: WAJAH SALAH"
+                        class="full-width rounded-12 q-py-md text-weight-bolder text-subtitle1"
+                        icon="block"
+                      />
+                    </template>
+
+                    <!-- PERBAIKAN LOGIKA EVENT INLINE UNTUK MENGHINDARI ERROR COMPILER -->
                     <q-btn
                       outline
                       color="blue-grey-6"
-                      label="ULANGI FOTO"
-                      class="full-width rounded-12 q-py-sm text-weight-bold bg-white transition-smooth hover-scale"
-                      @click="capturedImage = null"
+                      label="ULANGI PINDAI"
+                      class="full-width rounded-12 q-py-sm text-weight-bold bg-white"
+                      @click="ulangiPindai"
+                      :disable="isVerifyingFace"
                     />
                   </div>
                 </div>
@@ -805,11 +801,12 @@ import { ref as storageRef, uploadString, getDownloadURL, uploadBytes } from 'fi
 import { useQuasar, date } from 'quasar'
 
 const $q = useQuasar()
+const LATE_LIMIT = '08:00'
 
-// KONFIGURASI SHIFT KERJA (REVISI 3)
-const LATE_LIMIT = '08:15'
+// Deklarasi Listener
+let timer, unsubMe, unsubAll, unsubUser, unsubLokasi, unsubPengumuman, locationTimer
 
-// State Jam Terpisah
+// State Engine Waktu
 const currentHours = ref('')
 const currentMinutes = ref('')
 const currentSeconds = ref('')
@@ -822,7 +819,7 @@ const dataSeluruhKaryawan = ref([])
 const activeAnnouncements = ref([])
 const slidePengumuman = ref(0)
 
-// State User
+// State User & Master Data Karyawan
 const userData = ref({
   nama: 'Memuat...',
   jabatan: 'Staff',
@@ -832,7 +829,12 @@ const userData = ref({
   foto_profil: '',
 })
 
-// STATE ABSENSI MANUAL
+// STATE AI FACE VERIFICATION
+const isAiReady = ref(false)
+const isFaceMatched = ref(false)
+const isVerifyingFace = ref(false) // UX Loading State Tambahan
+const aiStatusText = ref('Menginisialisasi modul kecerdasan buatan...')
+
 const manualDialog = ref(false)
 const submittingManual = ref(false)
 const manualForm = ref({
@@ -848,7 +850,6 @@ const showCamera = ref(false)
 const capturedImage = ref(null)
 const video = ref(null)
 const canvas = ref(null)
-
 const daftarLokasiKantor = ref([])
 
 const locationData = ref({
@@ -861,16 +862,156 @@ const locationData = ref({
   securityRisk: false,
 })
 
-// Helper UI
-const getInitial = (name) => {
-  if (!name) return 'U'
-  return name.charAt(0).toUpperCase()
+// FUNGSI MENGHAPUS FOTO DAN MENGULANG SCAN (MENCEGAH ERROR VITE COMPILER)
+const ulangiPindai = () => {
+  capturedImage.value = null
+  isFaceMatched.value = false
 }
-const getRandomColor = (name) => {
-  if (!name) return 'primary'
-  const colors = ['blue-6', 'teal-5', 'indigo-5', 'deep-purple-5', 'cyan-7', 'light-blue-6']
-  const index = name.length % colors.length
-  return colors[index]
+
+// FUNGSI INJEKSI SCRIPT CDN SECARA DINAMIS (ANTI-RIBET EDIT HTML)
+const loadFaceApiScript = () => {
+  return new Promise((resolve, reject) => {
+    if (window.faceapi) {
+      resolve()
+      return
+    }
+    const script = document.createElement('script')
+    script.src = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js'
+    script.async = true
+    script.onload = () => {
+      resolve()
+    }
+    script.onerror = () => {
+      reject(new Error('Gagal memuat library AI Face-API dari CDN.'))
+    }
+    document.head.appendChild(script)
+  })
+}
+
+// FUNGSI LOAD CORE MODEL AI LANGSUNG DARI CLOUD CDN (MENGHINDARI ERROR LOKAL TENSOR)
+const initFaceEngine = async () => {
+  try {
+    aiStatusText.value = 'Menghubungkan ke server satelit AI...'
+    await loadFaceApiScript()
+
+    aiStatusText.value = 'AI sedang mengunduh bobot jaringan dari Cloud...'
+
+    // GANTI KE URL CLOUD RESMI (ANTI-CORRUPT & TIDAK PERLU COPY FOLDER PUBLIC/MODELS)
+    const modelUrl = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model'
+
+    await window.faceapi.nets.ssdMobilenetv1.loadFromUri(modelUrl)
+    await window.faceapi.nets.faceLandmark68Net.loadFromUri(modelUrl)
+    await window.faceapi.nets.faceRecognitionNet.loadFromUri(modelUrl)
+
+    isAiReady.value = true
+    aiStatusText.value = 'Double-Guard GPS & Pemindai Wajah Biometrik Aktif (Aman)'
+  } catch (e) {
+    console.error('Gagal memuat AI Engine:', e)
+    aiStatusText.value = 'Gagal memuat model AI: ' + e.message
+  }
+}
+
+// LOGIKA MATEMATIKA: PEMBANDING VECTOR DESCRIPTOR WAJAH (E-KYC SINKRON)
+const lakukanFaceMatch = async () => {
+  const masterFotoUrl = userData.value.foto_profil || userData.value.fotoUrl
+  if (!masterFotoUrl) {
+    $q.notify({
+      color: 'negative',
+      icon: 'error',
+      message: 'FOTO MASTER IDENTITAS BELUM DI-UPLOAD HRD PADA MODUL KARYAWAN!',
+      position: 'top',
+      timeout: 5000,
+    })
+    isFaceMatched.value = false
+    return
+  }
+
+  try {
+    // 1. Ambil Data Wajah Kamera (Live)
+    const liveImg = new Image()
+    liveImg.src = capturedImage.value
+    await new Promise((r) => (liveImg.onload = r))
+    const liveDesc = await window.faceapi
+      .detectSingleFace(liveImg)
+      .withFaceLandmarks()
+      .withFaceDescriptor()
+
+    // 2. Ambil Data Foto Identitas Resmi Karyawan (Master Data)
+    const refImg = new Image()
+    refImg.crossOrigin = 'anonymous'
+    refImg.src = masterFotoUrl
+    await new Promise((res, rej) => {
+      refImg.onload = res
+      refImg.onerror = () => rej(new Error('Gagal mengunduh foto master HRD.'))
+    })
+    const refDesc = await window.faceapi
+      .detectSingleFace(refImg)
+      .withFaceLandmarks()
+      .withFaceDescriptor()
+
+    if (!liveDesc) {
+      $q.notify({
+        color: 'negative',
+        message: 'Wajah gagal terdeteksi kamera! Dekatkan wajah Anda ke kamera.',
+      })
+      capturedImage.value = null
+      isFaceMatched.value = false
+      return
+    }
+
+    if (!refDesc) {
+      $q.notify({
+        color: 'negative',
+        message: 'Foto master di database HRD buram/tidak valid! Hubungi Admin.',
+      })
+      isFaceMatched.value = false
+      return
+    }
+
+    // 3. Hitung Jarak Euclidean (Ambang batas keamanan standard: 0.55)
+    const distance = window.faceapi.euclideanDistance(liveDesc.descriptor, refDesc.descriptor)
+
+    if (distance < 0.55) {
+      isFaceMatched.value = true
+      $q.notify({
+        color: 'positive',
+        icon: 'verified',
+        message: 'Verifikasi Wajah Sukses! Identitas Valid.',
+      })
+    } else {
+      isFaceMatched.value = false
+      $q.notify({
+        color: 'negative',
+        icon: 'block',
+        message: 'Verifikasi Gagal: Wajah Anda tidak cocok dengan database!',
+      })
+    }
+  } catch (err) {
+    console.error(err)
+    $q.notify({ color: 'negative', message: 'Koneksi AI Terganggu: ' + err.message })
+    isFaceMatched.value = false
+  }
+}
+
+const takePhoto = async () => {
+  const ctx = canvas.value.getContext('2d')
+  canvas.value.width = video.value.videoWidth
+  canvas.value.height = video.value.videoHeight
+  ctx.drawImage(video.value, 0, 0)
+  capturedImage.value = canvas.value.toDataURL('image/jpeg')
+
+  // Langsung picu komparasi AI wajah setelah jepret foto
+  isVerifyingFace.value = true // Nyalakan indikator loading UI
+  await lakukanFaceMatch()
+  isVerifyingFace.value = false // Matikan indikator loading UI
+}
+
+// UI Helpers
+const getInitial = (n) => (n ? n.charAt(0).toUpperCase() : 'U')
+const getRandomColor = (n) => {
+  if (!n) return 'primary'
+  const colors = ['blue-6', 'teal-5', 'indigo-5', 'deep-purple-5', 'cyan-7']
+  return colors[n.length % colors.length]
 }
 
 const updateTime = () => {
@@ -878,7 +1019,6 @@ const updateTime = () => {
   currentHours.value = date.formatDate(now, 'HH')
   currentMinutes.value = date.formatDate(now, 'mm')
   currentSeconds.value = date.formatDate(now, 'ss')
-
   currentDate.value = date.formatDate(now, 'dddd, DD MMMM YYYY', {
     days: ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'],
     months: [
@@ -900,13 +1040,13 @@ const updateTime = () => {
 
 const getAddressName = async (lat, lng) => {
   try {
-    const response = await fetch(
+    const res = await fetch(
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`,
     )
-    const data = await response.json()
-    locationData.value.address = data.display_name.split(',').slice(0, 4).join(', ')
+    const d = await res.json()
+    locationData.value.address = d.display_name.split(',').slice(0, 4).join(', ')
   } catch {
-    locationData.value.address = 'Gagal memuat detail jalan'
+    locationData.value.address = 'Gagal memuat koordinat jalan'
   }
 }
 
@@ -920,27 +1060,19 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
       Math.cos(lat2 * (Math.PI / 180)) *
       Math.sin(dLon / 2) *
       Math.sin(dLon / 2)
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-  return R * c
+  return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)))
 }
 
 const detectLocation = () => {
   if (!navigator.geolocation) return
-
-  locationData.value.statusText = 'Memverifikasi Sinyal & Keamanan...'
-
   navigator.geolocation.getCurrentPosition(
     (p) => {
       const lat = p.coords.latitude
       const lng = p.coords.longitude
-      const accuracy = p.coords.accuracy
+      const acc = p.coords.accuracy
 
       const isSuspicious =
-        p.coords.mocked === true ||
-        accuracy === 10 ||
-        accuracy === 5 ||
-        accuracy === 1 ||
-        accuracy === 100
+        p.coords.mocked === true || acc === 10 || acc === 5 || acc === 1 || acc === 100
 
       if (isSuspicious) {
         locationData.value.securityRisk = true
@@ -971,52 +1103,25 @@ const detectLocation = () => {
       locationData.value.inRange = foundMatch
       locationData.value.matchedLocationName = matchedName
       locationData.value.statusText = foundMatch ? 'LOKASI VALID & COCOK' : 'DI LUAR AREA KANTOR'
-
       getAddressName(lat, lng)
     },
     () => {
-      locationData.value.statusText = 'IZINKAN AKSES GPS BROWSER!'
+      locationData.value.statusText = 'IZINKAN GPS BROWSER!'
     },
     { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 },
   )
 }
 
 const startAbsensi = () => {
-  if (locationData.value.securityRisk) {
-    $q.notify({
-      color: 'negative',
-      icon: 'warning',
-      message: 'PERINGATAN KEAMANAN: Matikan Fake GPS / Mock Location untuk bisa absen!',
-      position: 'top',
-      timeout: 4000,
-      classes: 'rounded-12 text-weight-bold',
-    })
-    return
-  }
+  if (locationData.value.securityRisk || !locationData.value.inRange) return
 
-  if (!locationData.value.inRange) {
-    $q.notify({
-      color: 'negative',
-      icon: 'gavel',
-      message: 'SISTEM TERKUNCI: Anda berada di luar radius toleransi kantor!',
-      position: 'top',
-      timeout: 3000,
-      classes: 'rounded-12 text-weight-bold',
-    })
-    return
-  }
-
-  // Cek Keterlambatan untuk Notifikasi (Revisi 3)
   const timeStr = `${currentHours.value}:${currentMinutes.value}`
   if (timeStr > LATE_LIMIT) {
     $q.notify({
-      color: 'orange-9',
-      icon: 'schedule',
-      message:
-        'Anda terdeteksi masuk di luar batas toleransi shift (08:15). Sistem akan menandai Anda Terlambat.',
+      color: 'red-6',
+      icon: 'warning',
+      message: 'Waktu presensi sudah melebihi 08:00. Log tersimpan sebagai Terlambat.',
       position: 'top',
-      timeout: 5000,
-      classes: 'rounded-12 text-weight-bold',
     })
   }
 
@@ -1028,34 +1133,22 @@ const startAbsensi = () => {
   }, 100)
 }
 
-const takePhoto = () => {
-  const ctx = canvas.value.getContext('2d')
-  canvas.value.width = video.value.videoWidth
-  canvas.value.height = video.value.videoHeight
-  ctx.drawImage(video.value, 0, 0)
-  capturedImage.value = canvas.value.toDataURL('image/jpeg')
-}
-
 const stopCamera = () => {
   if (video.value?.srcObject) video.value.srcObject.getTracks().forEach((t) => t.stop())
   showCamera.value = false
+  capturedImage.value = null
+  isFaceMatched.value = false
+  isVerifyingFace.value = false
 }
 
 const saveAbsensi = async () => {
-  if (!locationData.value.inRange || locationData.value.securityRisk) {
-    $q.notify({
-      color: 'negative',
-      message: 'Tindakan Ilegal. Sistem Mendeteksi Lokasi Luar/Palsu.',
-    })
-    return
-  }
+  if (!locationData.value.inRange || locationData.value.securityRisk || !isFaceMatched.value) return
 
-  $q.loading.show({ message: 'Menyinkronkan data & foto ke server...' })
+  $q.loading.show({ message: 'Menyimpan log presensi digital...' })
   try {
     const formattedName = (userData.value.nama || 'USER').toUpperCase()
-
-    // Hitung apakah dia terlambat berdasarkan jam saat tombol diklik (Revisi 3)
-    const timeStr = `${currentHours.value}:${currentMinutes.value}`
+    const now = new Date()
+    const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`
     const isLate = timeStr > LATE_LIMIT
 
     let fotoUrl = null
@@ -1075,55 +1168,25 @@ const saveAbsensi = async () => {
       alamat_lengkap: locationData.value.address,
       koordinat: `${locationData.value.lat}, ${locationData.value.lng}`,
       foto_masuk: fotoUrl,
-      is_late: isLate, // Status Keterlambatan disimpan ke Database
+      is_late: isLate,
     })
 
     $q.notify({
       color: 'positive',
       message: 'Clock-In Sukses! Selamat bekerja.',
-      classes: 'rounded-12 text-weight-bold',
       icon: 'check_circle',
     })
     stopCamera()
-    capturedImage.value = null
+    // eslint-disable-next-line no-unused-vars
   } catch (e) {
-    console.error('Gagal Clock-in:', e)
     $q.notify({ color: 'negative', message: 'Koneksi gagal, coba lagi.' })
   } finally {
     $q.loading.hide()
   }
 }
 
-// LOGIKA CLOCK OUT DIPERKETAT DENGAN LOKASI (REVISI 5)
 const absenPulang = async () => {
-  if (!documentId.value) {
-    return $q.notify({
-      color: 'warning',
-      message: 'Anda belum melakukan Clock-In hari ini!',
-      classes: 'rounded-12 text-weight-bold',
-    })
-  }
-
-  if (locationData.value.securityRisk) {
-    return $q.notify({
-      color: 'negative',
-      icon: 'warning',
-      message: 'PERINGATAN: Matikan Fake GPS untuk bisa Clock Out!',
-      position: 'top',
-      classes: 'rounded-12 text-weight-bold',
-    })
-  }
-
-  if (!locationData.value.inRange) {
-    return $q.notify({
-      color: 'negative',
-      icon: 'location_off',
-      message: 'SISTEM TERKUNCI: Anda harus berada di area kantor untuk bisa Clock Out!',
-      position: 'top',
-      classes: 'rounded-12 text-weight-bold',
-    })
-  }
-
+  if (!documentId.value || locationData.value.securityRisk || !locationData.value.inRange) return
   $q.loading.show()
   try {
     await updateDoc(doc(db, 'absensi', documentId.value), {
@@ -1132,16 +1195,14 @@ const absenPulang = async () => {
       koordinat_pulang: `${locationData.value.lat}, ${locationData.value.lng}`,
       nama_tempat_pulang: locationData.value.matchedLocationName,
     })
-
     $q.notify({
       color: 'primary',
       message: 'Clock-Out Sukses! Selamat beristirahat.',
-      classes: 'rounded-12 text-weight-bold',
       icon: 'logout',
     })
+    // eslint-disable-next-line no-unused-vars
   } catch (e) {
-    console.error('Gagal Clock-out:', e)
-    $q.notify({ color: 'negative', message: 'Koneksi gagal, coba lagi.' })
+    $q.notify({ color: 'negative', message: 'Gagal memproses pengakhiran shift.' })
   } finally {
     $q.loading.hide()
   }
@@ -1151,29 +1212,24 @@ const submitManualAbsen = async () => {
   submittingManual.value = true
   try {
     const namaKaryawan = (userData.value.nama || 'USER').toUpperCase()
-
     let finalDocUrl = ''
     if (manualForm.value.lampiran) {
-      $q.loading.show({ message: 'Mengunggah bukti...' })
       const file = manualForm.value.lampiran
       const extension = file.name.split('.').pop()
       const fileName = `MANUAL_ABSEN_${namaKaryawan}_${Date.now()}.${extension}`
-
       const sRef = storageRef(storage, `lampiran_pengajuan/${fileName}`)
+
       await uploadBytes(sRef, file)
       finalDocUrl = await getDownloadURL(sRef)
-      $q.loading.hide()
     }
 
     const outTime = manualForm.value.waktuOut ? manualForm.value.waktuOut : 'Belum Pulang'
-    const combinedAlasan = `[Jam Masuk: ${manualForm.value.waktuIn} | Jam Pulang: ${outTime}] - Alasan: ${manualForm.value.alasan}`
-
     await addDoc(collection(db, 'pengajuan'), {
       nama_karyawan: namaKaryawan,
       jenis_pengajuan: 'Absensi Manual',
       tanggal_mulai: manualForm.value.tanggal,
       tanggal_selesai: manualForm.value.tanggal,
-      alasan: combinedAlasan,
+      alasan: `[Jam Masuk: ${manualForm.value.waktuIn} | Jam Pulang: ${outTime}] - Alasan: ${manualForm.value.alasan}`,
       dokumen_url: finalDocUrl,
       status_approval: 'Pending',
       created_at: serverTimestamp(),
@@ -1181,26 +1237,13 @@ const submitManualAbsen = async () => {
 
     $q.notify({
       color: 'positive',
-      message: 'Pengajuan Absensi Manual Berhasil Dikirim ke HRD!',
+      message: 'Pengajuan Absensi Manual Terkirim!',
       icon: 'check_circle',
-      classes: 'rounded-12 text-weight-bold',
     })
-
     manualDialog.value = false
-    manualForm.value = {
-      tanggal: date.formatDate(Date.now(), 'YYYY-MM-DD'),
-      waktuIn: '',
-      waktuOut: '',
-      alasan: '',
-      lampiran: null,
-    }
+    // eslint-disable-next-line no-unused-vars
   } catch (e) {
-    if ($q.loading.isActive) $q.loading.hide()
-    $q.notify({
-      color: 'negative',
-      message: e.message || 'Gagal mengirim pengajuan.',
-      classes: 'rounded-12 text-weight-bold',
-    })
+    $q.notify({ color: 'negative', message: 'Gagal memproses data manual.' })
   } finally {
     submittingManual.value = false
   }
@@ -1208,24 +1251,22 @@ const submitManualAbsen = async () => {
 
 const formatWaktu = (ts) => (ts ? date.formatDate(ts.toDate(), 'HH:mm') : '--:--')
 
-let timer, unsubMe, unsubAll, unsubUser, unsubLokasi, unsubPengumuman, locationTimer
-
 onMounted(() => {
   updateTime()
   timer = setInterval(updateTime, 1000)
+  initFaceEngine()
 
   unsubLokasi = onSnapshot(collection(db, 'lokasi_kantor'), (snap) => {
     daftarLokasiKantor.value = snap.docs.map((doc) => doc.data())
     detectLocation()
   })
-
   locationTimer = setInterval(detectLocation, 30000)
 
+  // SINKRONISASI PENGUMUMAN (Bug Fixed)
   const qPengumuman = query(collection(db, 'pemberitahuan'), orderBy('tgl_publikasi', 'desc'))
   unsubPengumuman = onSnapshot(qPengumuman, (snap) => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
-
     const semuaPengumuman = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
 
     activeAnnouncements.value = semuaPengumuman.filter((p) => {
@@ -1239,15 +1280,7 @@ onMounted(() => {
   if (saved) {
     try {
       const parsed = JSON.parse(saved)
-      userData.value = {
-        ...userData.value,
-        nama: parsed.nama || 'User',
-        jabatan: parsed.jabatan || parsed.role || 'Staff',
-        role: parsed.role || 'Staff',
-        email: parsed.email || '',
-        fotoUrl: parsed.fotoUrl || '',
-        foto_profil: parsed.foto_profil || '',
-      }
+      userData.value = { ...userData.value, email: parsed.email || '', nama: parsed.nama || 'User' }
 
       if (userData.value.email) {
         const qUser = query(collection(db, 'karyawan'), where('email', '==', userData.value.email))
@@ -1257,53 +1290,48 @@ onMounted(() => {
             userData.value = {
               ...userData.value,
               nama: data.nama || userData.value.nama,
-              jabatan: data.jabatan || userData.value.jabatan,
-              role: data.role || userData.value.role,
-              fotoUrl: data.fotoUrl || data.foto_profil || userData.value.fotoUrl,
-              foto_profil: data.foto_profil || data.fotoUrl || userData.value.foto_profil,
+              jabatan: data.jabatan || data.role,
+              foto_profil: data.foto_profil || data.fotoUrl || '',
             }
           }
         })
       }
     } catch (e) {
-      console.error('Gagal parse data sesi', e)
+      console.error(e)
     }
   }
 
   const searchName = (userData.value.nama || 'USER').toUpperCase()
-  const qMe = query(
-    collection(db, 'absensi'),
-    where('nama_karyawan', '==', searchName),
-    orderBy('waktu_masuk', 'desc'),
-    limit(5),
+  unsubMe = onSnapshot(
+    query(
+      collection(db, 'absensi'),
+      where('nama_karyawan', '==', searchName),
+      orderBy('waktu_masuk', 'desc'),
+      limit(5),
+    ),
+    (snap) => {
+      riwayatData.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+      const active = riwayatData.value.find(
+        (a) => a.tanggal === currentDate.value && a.status === 'Hadir',
+      )
+      documentId.value = active ? active.id : null
+    },
   )
 
-  unsubMe = onSnapshot(qMe, (snap) => {
-    riwayatData.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
-    const active = riwayatData.value.find(
-      (a) => a.tanggal === currentDate.value && a.status === 'Hadir',
-    )
-    documentId.value = active ? active.id : null
-  })
-
-  const startDay = new Date()
-  startDay.setHours(0, 0, 0, 0)
-  const qAll = query(
-    collection(db, 'absensi'),
-    where('waktu_masuk', '>=', Timestamp.fromDate(startDay)),
-    orderBy('waktu_masuk', 'desc'),
-  )
-
-  unsubAll = onSnapshot(qAll, (snap) => {
-    dataSeluruhKaryawan.value = snap.docs.map((d, i) => {
-      const dta = d.data()
-      return {
+  unsubAll = onSnapshot(
+    query(
+      collection(db, 'absensi'),
+      where('waktu_masuk', '>=', Timestamp.fromDate(new Date(new Date().setHours(0, 0, 0, 0)))),
+      orderBy('waktu_masuk', 'desc'),
+    ),
+    (snap) => {
+      dataSeluruhKaryawan.value = snap.docs.map((d, i) => ({
         no: i + 1,
-        nama_karyawan: dta.nama_karyawan,
-        checkin: formatWaktu(dta.waktu_masuk),
-      }
-    })
-  })
+        nama_karyawan: d.data().nama_karyawan,
+        checkin: formatWaktu(d.data().waktu_masuk),
+      }))
+    },
+  )
 })
 
 onUnmounted(() => {
@@ -1313,19 +1341,13 @@ onUnmounted(() => {
   if (unsubAll) unsubAll()
   if (unsubUser) unsubUser()
   if (unsubLokasi) unsubLokasi()
-  if (unsubPengumuman) unsubPengumuman()
+  if (unsubPengumuman) unsubPengumuman() // Hapus Listener Memori Pengumuman
 })
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@700;800;900&display=swap');
-
-/* GLOBAL TYPOGRAPHY */
 .font-inter {
   font-family: 'Inter', sans-serif;
-}
-.font-digital {
-  font-family: 'JetBrains Mono', monospace;
 }
 .font-mono {
   font-family: monospace;
@@ -1345,8 +1367,6 @@ onUnmounted(() => {
 .uppercase {
   text-transform: uppercase;
 }
-
-/* LAYOUTING & BENTO GRID */
 .bento-container {
   max-width: 1400px;
 }
@@ -1369,6 +1389,16 @@ onUnmounted(() => {
 .border-grey {
   border: 1px solid #e2e8f0;
 }
+.border-teal {
+  border: 1px solid #14b8a6;
+}
+.border-red {
+  border: 1px solid #ef4444;
+}
+.border-orange {
+  border: 1px solid #f97316;
+}
+
 .mx-auto {
   margin-left: auto;
   margin-right: auto;
@@ -1376,26 +1406,6 @@ onUnmounted(() => {
 .text-xs {
   font-size: 11px;
 }
-.ellipsis-2-lines {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* PEMBERITAHUAN BANNER */
-.bg-gradient-indigo {
-  background: linear-gradient(135deg, #4f46e5 0%, #312e81 100%);
-}
-.bg-opacity-20 {
-  background-color: rgba(0, 0, 0, 0.2) !important;
-}
-.text-shadow {
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-/* SHADOWS & RADIUS */
 .shadow-soft {
   box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05) !important;
 }
@@ -1421,7 +1431,6 @@ onUnmounted(() => {
   border-radius: 6px;
 }
 
-/* PROFILE EFFECTS */
 .decor-circle-1 {
   position: absolute;
   width: 300px;
@@ -1440,8 +1449,6 @@ onUnmounted(() => {
   height: 18px;
   border: 3px solid white;
 }
-
-/* AURORA HOLOGRAPHIC CLOCK CSS */
 .aurora-card {
   background: #0f172a;
 }
@@ -1473,7 +1480,6 @@ onUnmounted(() => {
 .drop-shadow-glow {
   text-shadow: 0 4px 30px rgba(56, 189, 248, 0.4);
 }
-
 .time-wrapper {
   display: flex;
   align-items: baseline;
@@ -1500,7 +1506,6 @@ onUnmounted(() => {
     opacity: 0;
   }
 }
-
 .date-chip {
   display: inline-block;
   padding: 8px 20px;
@@ -1512,7 +1517,6 @@ onUnmounted(() => {
   letter-spacing: 0.5px;
 }
 
-/* RADAR PANEL */
 .radar-box {
   border: 1px solid #f1f5f9;
   background: #fafafa;
@@ -1543,7 +1547,6 @@ onUnmounted(() => {
 .pulse-red {
   animation: pulseRed 2s infinite;
 }
-
 @keyframes pulseGreen {
   0% {
     transform: scale(0.9);
@@ -1573,7 +1576,6 @@ onUnmounted(() => {
   }
 }
 
-/* HIGH-END BUTTONS */
 .btn-premium {
   border: none;
   border-radius: 16px;
@@ -1598,7 +1600,6 @@ onUnmounted(() => {
   transform: translateY(-3px);
   box-shadow: 0 12px 30px -8px rgba(13, 148, 136, 0.8);
 }
-
 .btn-clock-out {
   background: #ef4444;
   color: white;
@@ -1609,7 +1610,6 @@ onUnmounted(() => {
   transform: translateY(-3px);
   box-shadow: 0 12px 30px -8px rgba(239, 68, 68, 0.8);
 }
-
 .btn-locked {
   background: #f8fafc;
   color: #94a3b8;
@@ -1621,21 +1621,16 @@ onUnmounted(() => {
   background: #f1f5f9;
 }
 
-/* LIST HOVER */
 .hover-bg {
   transition: background 0.3s;
 }
 .hover-bg:hover {
   background: #f8fafc;
 }
-
-/* Z-INDEX CONTENT FIX */
 .z-content {
   position: relative;
   z-index: 1;
 }
-
-/* CAMERA SCANNER SCIFI */
 .video-stream {
   width: 100%;
   height: 100%;
@@ -1685,7 +1680,6 @@ onUnmounted(() => {
   right: 0;
   border-width: 0 4px 4px 0;
 }
-
 @keyframes scan-laser {
   0% {
     top: 5%;
@@ -1720,14 +1714,11 @@ onUnmounted(() => {
   background: rgba(0, 77, 64, 0.8) !important;
 }
 
-/* HIDE ON MOBILE */
 @media (max-width: 1023px) {
   .hide-on-mobile {
     display: none !important;
   }
 }
-
-/* RESPONSIVE ORDERING UNTUK MOBILE SWAP WIDGET */
 @media (max-width: 1023px) {
   .mobile-order-1 {
     order: 1 !important;
