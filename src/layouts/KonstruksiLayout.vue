@@ -1,6 +1,6 @@
 <template>
   <q-layout view="lHh Lpr lFf" class="bg-grey-2 layout-container">
-    <q-header borderless class="bg-indigo-10 text-white shadow-1">
+    <q-header borderless class="bg-brand-teal text-white shadow-1">
       <q-toolbar class="q-py-xs">
         <q-btn flat dense round icon="menu" @click="leftDrawerOpen = !leftDrawerOpen" />
 
@@ -8,7 +8,7 @@
           <div class="row items-center no-wrap">
             <div class="row items-center no-wrap text-h6 text-md-h5">
               <span class="q-mr-xs tracking-tighter">AGRA</span>
-              <span class="text-weight-light text-indigo-2">ERP</span>
+              <span class="text-weight-light text-brand-light-text">ERP</span>
             </div>
           </div>
         </q-toolbar-title>
@@ -30,7 +30,7 @@
             <q-list style="min-width: 320px" class="q-py-sm">
               <q-item-label
                 header
-                class="text-weight-bold text-indigo-10 uppercase tracking-widest bg-indigo-1 q-mx-sm q-mb-sm rounded-8"
+                class="text-weight-bold text-brand-primary uppercase tracking-widest bg-brand-pale q-mx-sm q-mb-sm rounded-8"
                 style="font-size: 11px"
               >
                 Detail Notifikasi Sistem
@@ -329,12 +329,10 @@
                 class="notif-item"
               >
                 <q-item-section avatar>
-                  <q-avatar color="blue-1" text-color="indigo-9" icon="price_check" size="md" />
+                  <q-avatar color="blue-1" text-color="teal-9" icon="price_check" size="md" />
                 </q-item-section>
                 <q-item-section>
-                  <q-item-label class="text-weight-bold text-indigo-9"
-                    >Siap Direalisasi</q-item-label
-                  >
+                  <q-item-label class="text-weight-bold text-teal-9">Siap Direalisasi</q-item-label>
                   <q-item-label caption
                     >{{ approvedPaymentRealizationCount }} pengajuan pembayaran disetujui & siap
                     dicairkan.</q-item-label
@@ -411,7 +409,7 @@
               <q-separator class="q-my-md" />
               <q-btn
                 outline
-                color="primary"
+                color="teal-6"
                 class="full-width text-weight-bold"
                 icon="home"
                 label="Kembali ke Menu Utama"
@@ -427,7 +425,7 @@
           <q-avatar
             size="32px"
             color="white"
-            text-color="indigo-10"
+            text-color="brand-primary"
             class="text-weight-bold shadow-1"
           >
             {{ userData?.nama?.charAt(0) || 'A' }}
@@ -443,15 +441,15 @@
               <q-item class="q-py-md">
                 <q-item-section avatar>
                   <q-avatar
-                    color="indigo-1"
-                    text-color="indigo-10"
+                    color="brand-pale"
+                    text-color="brand-primary"
                     class="text-weight-bold shadow-sm"
                   >
                     {{ userData?.nama?.charAt(0) || 'A' }}
                   </q-avatar>
                 </q-item-section>
                 <q-item-section>
-                  <q-item-label class="text-weight-bold text-indigo-10">{{
+                  <q-item-label class="text-weight-bold text-brand-primary">{{
                     userData?.nama || 'Administrator'
                   }}</q-item-label>
                   <q-item-label caption class="text-blue-grey-6">{{
@@ -495,7 +493,7 @@
           <div class="row items-center q-gutter-md">
             <q-avatar
               size="54px"
-              color="indigo-10"
+              color="brand-teal"
               text-color="white"
               class="font-bold text-h6 shadow-2 profile-avatar"
             >
@@ -509,8 +507,8 @@
                 {{ userData?.nama || 'Administrator' }}
               </div>
               <div
-                class="text-caption ellipsis text-uppercase tracking-widest text-cyan font-bold q-mt-xs text-glow"
-                style="font-size: 10px; opacity: 0.95"
+                class="text-caption ellipsis text-uppercase tracking-widest font-bold q-mt-xs text-glow"
+                style="color: rgba(255, 255, 255, 0.85); font-size: 10px; opacity: 0.95"
               >
                 {{ authStore.user?.role || 'User' }}
               </div>
@@ -556,14 +554,14 @@
               label="DATA MASTER"
               class="menu-expansion-clean"
               header-class="menu-expansion-header"
-              expand-icon-class="text-cyan-4"
+              expand-icon-class="text-brand-teal-icon"
               default-opened
             >
               <q-list>
                 <q-expansion-item
                   v-if="hasSectionAccess(['marketing/customer', 'master/supplier'])"
                   header-class="sub-expansion-header"
-                  expand-icon-class="text-cyan-4"
+                  expand-icon-class="text-brand-teal-icon"
                   dense
                   class="level-2-expansion"
                   default-opened
@@ -615,7 +613,7 @@
                     ])
                   "
                   header-class="sub-expansion-header"
-                  expand-icon-class="text-cyan-4"
+                  expand-icon-class="text-brand-teal-icon"
                   dense
                   class="level-2-expansion"
                   default-opened
@@ -689,7 +687,7 @@
               label="MARKETING"
               class="menu-expansion-clean"
               header-class="menu-expansion-header"
-              expand-icon-class="text-cyan-4"
+              expand-icon-class="text-brand-teal-icon"
             >
               <q-list class="q-pb-sm">
                 <q-item
@@ -780,7 +778,7 @@
               label="PROYEK"
               class="menu-expansion-clean"
               header-class="menu-expansion-header"
-              expand-icon-class="text-cyan-4"
+              expand-icon-class="text-brand-teal-icon"
             >
               <q-list class="q-pb-sm">
                 <q-item
@@ -899,7 +897,7 @@
               label="PEMBELIAN"
               class="menu-expansion-clean"
               header-class="menu-expansion-header"
-              expand-icon-class="text-cyan-4"
+              expand-icon-class="text-brand-teal-icon"
             >
               <q-list class="q-pb-sm">
                 <q-item
@@ -946,7 +944,7 @@
               label="FINANCE"
               class="menu-expansion-clean"
               header-class="menu-expansion-header"
-              expand-icon-class="text-cyan-4"
+              expand-icon-class="text-brand-teal-icon"
               default-opened
             >
               <q-list class="q-pb-sm">
@@ -1287,7 +1285,7 @@ const totalNotifCount = computed(() => {
 const thumbStyle = {
   right: '2px',
   borderRadius: '4px',
-  backgroundColor: '#38bdf8',
+  backgroundColor: '#36ADA3',
   width: '5px',
   opacity: 0.5,
 }
@@ -1327,7 +1325,7 @@ const hasSectionAccess = (menuPaths) => {
 
 const handleLogout = () => {
   $q.dialog({
-    title: '<span class="text-indigo-10 text-weight-bold">Konfirmasi Keluar</span>',
+    title: '<span class="text-brand-primary text-weight-bold">Konfirmasi Keluar</span>',
     message: 'Apakah Anda yakin ingin mengakhiri sesi AGRA ERP ini?',
     html: true,
     cancel: true,
@@ -1562,49 +1560,45 @@ onUnmounted(() => {
   border-radius: 16px;
 }
 
-/* ================== FORCE ROYAL BLUE DARK THEME ON SIDEBAR (MEMAKSA WARNA SESUAI GAMBAR) ================== */
-/* CSS specificity tinggi untuk memaksa Quasar Drawer agar menggunakan warna biru royal pekat */
+/* ================== NAVBAR COLOR ================== */
+.bg-brand-teal {
+  background: linear-gradient(135deg, #36ada3 0%, #2a9089 100%) !important;
+}
+
+/* ================== LIGHT TEAL SIDEBAR THEME ================== */
+/* Sidebar putih bersih dengan aksen teal cerah dan merah */
 .custom-sidebar,
 :deep(.q-drawer),
 :deep(.q-drawer__content),
 :deep(.q-navigation-deck) {
-  background: linear-gradient(
-    180deg,
-    #11237a 0%,
-    #07103a 100%
-  ) !important; /* Warna Biru Royal Utama dari Gambar */
-  color: #e2e8f0 !important;
-  border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: #ffffff !important;
+  color: #2d4a48 !important;
+  border-right: 2px solid rgba(54, 173, 163, 0.15) !important;
 }
 
 .bg-profile-header {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.04) 0%,
-    rgba(255, 255, 255, 0.01) 100%
-  ) !important;
+  background: linear-gradient(135deg, #36ada3 0%, #2a9089 100%) !important;
   position: relative;
   overflow: hidden;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-  backdrop-filter: blur(10px);
+  border-bottom: 2px solid rgba(54, 173, 163, 0.3) !important;
 }
 
 .profile-avatar {
-  border: 2px solid #00f2fe;
-  box-shadow: 0 0 15px rgba(0, 242, 254, 0.35);
+  border: 3px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
 }
 
 .text-glow {
-  text-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
 .sidebar-section-title {
   font-size: 11px;
   font-weight: 800;
-  color: #38bdf8 !important; /* Biru Turquoise Terang */
+  color: #1e7a74 !important; /* Teal Dark */
   letter-spacing: 2px;
   margin: 22px 0 10px 24px;
-  text-shadow: 0 0 8px rgba(56, 189, 248, 0.25);
+  text-shadow: none;
   position: relative;
   display: flex;
   align-items: center;
@@ -1615,9 +1609,9 @@ onUnmounted(() => {
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background-color: #00f2fe;
+    background-color: #ad3640;
     margin-right: 8px;
-    box-shadow: 0 0 8px #00f2fe;
+    box-shadow: 0 0 6px rgba(173, 54, 64, 0.4);
   }
 }
 
@@ -1627,35 +1621,34 @@ onUnmounted(() => {
 }
 
 .icon-sub {
-  color: #38bdf8 !important; /* Turquoise Icons */
+  color: #36ada3 !important; /* Teal Icons */
 }
 
 /* ITEM MENU LEVEL 1 & 2 UTAMA - SEKARANG BERKONTRAST TINGGI DI ATAS BG GELAP */
 .menu-item-clean {
-  color: #cbd5e1 !important; /* Teks abu-abu terang sangat terbaca */
+  color: #2d4a48 !important; /* Teks gelap di bg putih */
   margin: 6px 14px;
   border-radius: 10px;
   min-height: 48px;
   padding: 8px 16px;
-  background-color: rgba(255, 255, 255, 0.03) !important; /* Frosted Glass Semi Transparan */
-  border: 1px solid rgba(255, 255, 255, 0.06) !important;
-  backdrop-filter: blur(12px);
+  background-color: transparent !important;
+  border: 1px solid transparent !important;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
   :deep(.q-icon) {
-    color: #38bdf8 !important;
+    color: #36ada3 !important;
     transition: color 0.25s ease;
   }
 
   &:hover {
-    background-color: rgba(255, 255, 255, 0.08) !important;
-    color: #ffffff !important;
+    background-color: rgba(54, 173, 163, 0.08) !important;
+    color: #1e7a74 !important;
     transform: translateX(4px);
-    border-color: rgba(0, 242, 254, 0.4) !important;
-    box-shadow: 0 4px 15px rgba(0, 242, 254, 0.1) !important;
+    border-color: rgba(54, 173, 163, 0.4) !important;
+    box-shadow: 0 4px 15px rgba(54, 173, 163, 0.12) !important;
 
     :deep(.q-icon) {
-      color: #00f2fe !important;
+      color: #36ada3 !important;
     }
   }
 }
@@ -1663,13 +1656,13 @@ onUnmounted(() => {
 .menu-item-active {
   background: linear-gradient(
     135deg,
-    #00f2fe 0%,
-    #0066ff 100%
-  ) !important; /* Pilar Gradient Cyan Active */
+    #36ada3 0%,
+    #1e6e69 100%
+  ) !important; /* Teal Gradient Active */
   color: #ffffff !important;
   font-weight: 800 !important;
   border: none !important;
-  box-shadow: 0 8px 24px rgba(0, 242, 254, 0.35) !important;
+  box-shadow: 0 8px 24px rgba(54, 173, 163, 0.35) !important;
 
   :deep(.q-icon) {
     color: #ffffff !important;
@@ -1681,36 +1674,36 @@ onUnmounted(() => {
 
 /* EXPANSION MENU OVERHAUL - KARTU GLASS GELAP UNTUK KATEGORI UTAMA */
 .menu-expansion-clean {
-  background-color: rgba(255, 255, 255, 0.03) !important;
+  background-color: rgba(54, 173, 163, 0.04) !important;
   border-radius: 10px;
   margin: 6px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.06) !important;
-  backdrop-filter: blur(12px);
+  border: 1px solid rgba(54, 173, 163, 0.1) !important;
   transition: all 0.3s ease;
 
   :deep(.q-item) {
     border-radius: 10px;
     min-height: 48px;
-    color: #cbd5e1 !important; /* Memperbaiki warna header agar kontras tinggi */
+    color: #2d4a48 !important;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   :deep(.q-item__section--avatar .q-icon) {
-    color: #38bdf8 !important;
+    color: #36ada3 !important;
   }
 
   :deep(.q-item:hover) {
-    background-color: rgba(255, 255, 255, 0.07) !important;
-    color: #ffffff !important;
+    background-color: rgba(54, 173, 163, 0.1) !important;
+    color: #1e7a74 !important;
     transform: translateX(3px);
     .q-item__section--avatar .q-icon {
-      color: #00f2fe !important;
+      color: #36ada3 !important;
     }
   }
 
   &.q-expansion-item--expanded {
     background-color: rgba(255, 255, 255, 0.05) !important;
-    border-color: rgba(0, 242, 254, 0.25) !important;
+    border-color: rgba(54, 173, 163, 0.3) !important;
+    background-color: rgba(54, 173, 163, 0.06) !important;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2) !important;
   }
 }
@@ -1718,18 +1711,18 @@ onUnmounted(() => {
 .menu-expansion-header {
   font-size: 14px;
   font-weight: 700;
-  color: #ffffff !important; /* Warna judul card putih tebal */
-  text-shadow: 0 0 6px rgba(255, 255, 255, 0.1);
+  color: #1e4a47 !important;
+  text-shadow: none;
 }
 
 .sub-expansion-header {
   font-size: 13.5px;
   font-weight: 600;
-  color: #e2e8f0 !important; /* Terbaca jelas */
+  color: #2d4a48 !important;
 }
 
 .sub-expansion-title {
-  color: #e2e8f0 !important; /* Pastikan teks sub-expansion tidak hilang */
+  color: #2d4a48 !important;
 }
 
 /* LEVEL 2 & LEVEL 3 ITEMS */
@@ -1738,7 +1731,7 @@ onUnmounted(() => {
   :deep(.q-item) {
     min-height: 44px;
     border-radius: 8px;
-    color: #cbd5e1 !important;
+    color: #2d4a48 !important;
   }
 }
 
@@ -1747,19 +1740,19 @@ onUnmounted(() => {
   margin: 3px 10px 3px 20px;
   min-height: 42px;
   font-size: 13.5px;
-  color: #cbd5e1 !important; /* Dipastikan sangat terbaca */
+  color: #2d4a48 !important;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
   .icon-sub {
-    color: #38bdf8 !important;
+    color: #36ada3 !important;
   }
 
   &:hover {
-    background-color: rgba(255, 255, 255, 0.07) !important;
-    color: #00f2fe !important;
+    background-color: rgba(54, 173, 163, 0.1) !important;
+    color: #1e7a74 !important;
     transform: translateX(4px);
     .icon-sub {
-      color: #00f2fe !important;
+      color: #36ada3 !important;
     }
   }
 }
@@ -1769,45 +1762,45 @@ onUnmounted(() => {
   margin: 3px 10px 3px 36px;
   min-height: 38px;
   font-size: 13px;
-  color: #cbd5e1 !important; /* Menghilangkan efek washed-out */
+  color: #3a5a57 !important;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
   :deep(.q-icon) {
-    color: #38bdf8 !important; /* Menghidupkan icon agar tidak redup */
+    color: #36ada3 !important;
     margin-right: 8px;
     transition: color 0.25s ease;
   }
 
   &:hover {
-    background-color: rgba(255, 255, 255, 0.07) !important;
-    color: #00f2fe !important;
+    background-color: rgba(54, 173, 163, 0.1) !important;
+    color: #1e7a74 !important;
     transform: translateX(4px);
     :deep(.q-icon) {
-      color: #00f2fe !important;
+      color: #36ada3 !important;
     }
   }
 }
 
 .sub-item-active {
-  background-color: rgba(0, 242, 254, 0.12) !important; /* Kapsul Aktif Neon Cyan */
-  color: #00f2fe !important;
+  background-color: rgba(54, 173, 163, 0.18) !important;
+  color: #ffffff !important;
   font-weight: 700 !important;
-  border: 1px solid rgba(0, 242, 254, 0.4) !important;
+  border: 1px solid rgba(54, 173, 163, 0.5) !important;
   border-radius: 8px;
 
   :deep(.q-icon),
   .icon-sub {
-    color: #00f2fe !important;
+    color: #36ada3 !important;
     opacity: 1;
-    text-shadow: 0 0 8px rgba(0, 242, 254, 0.6);
+    text-shadow: 0 0 8px rgba(54, 173, 163, 0.6);
   }
   .menu-text {
     font-weight: 700;
   }
 
   &:hover {
-    background-color: rgba(0, 242, 254, 0.18) !important;
-    color: #00f2fe !important;
+    background-color: rgba(54, 173, 163, 0.25) !important;
+    color: #ffffff !important;
   }
 }
 
@@ -1818,7 +1811,7 @@ onUnmounted(() => {
 
 /* ================== PREMIUM LOGOUT BUTTON ================== */
 .border-top-soft {
-  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-top: 1px solid rgba(54, 173, 163, 0.15) !important;
 }
 
 .bg-slate-50 {
@@ -1828,19 +1821,19 @@ onUnmounted(() => {
 .logout-btn {
   font-weight: 700;
   font-size: 13.5px;
-  background-color: rgba(239, 68, 68, 0.08) !important; /* Frosted Crimson Glass */
-  border: 1px dashed rgba(239, 68, 68, 0.35) !important;
-  color: #f87171 !important;
+  background-color: rgba(173, 54, 64, 0.06) !important;
+  border: 1px dashed rgba(173, 54, 64, 0.4) !important;
+  color: #ad3640 !important;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   padding: 10px 0;
 
   &:hover {
-    background-color: #ef4444 !important; /* Menyala Merah Solid Saat Hover */
+    background-color: #ad3640 !important;
     color: #ffffff !important;
     border-style: solid;
-    border-color: #ef4444 !important;
+    border-color: #ad3640 !important;
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.25) !important;
+    box-shadow: 0 6px 16px rgba(173, 54, 64, 0.3) !important;
   }
   &:active {
     transform: translateY(0);

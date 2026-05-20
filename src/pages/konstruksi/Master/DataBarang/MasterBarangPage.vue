@@ -1,9 +1,41 @@
 <template>
-  <q-page class="bg-grey-2 q-pa-md q-pa-md-lg font-pro">
+  <q-page class="bg-page q-pa-md q-pa-md-lg font-pro relative-position" @click="spawnIcon($event)">
+    <!-- EFEK ANIMASI KLIK (SPAWN ICONS) -->
+    <div class="click-spawn-container">
+      <transition-group name="spawn">
+        <div
+          v-for="icon in spawnedIcons"
+          :key="icon.id"
+          class="spawned-icon"
+          :style="{
+            left: icon.x + 'px',
+            top: icon.y + 'px',
+            '--rand-rotate': icon.rotate + 'deg',
+            '--rand-color': icon.color,
+            fontSize: icon.size + 'px',
+          }"
+        >
+          <q-icon :name="icon.name" />
+        </div>
+      </transition-group>
+    </div>
+
+    <!-- EFEK LATAR BELAKANG ANIMASI MENGAMBANG (Warna-Warni & Dari Bawah ke Atas) -->
+    <div class="bg-animation-container">
+      <q-icon name="engineering" class="floating-icon i-1" />
+      <q-icon name="construction" class="floating-icon i-2" />
+      <q-icon name="architecture" class="floating-icon i-3" />
+      <q-icon name="location_city" class="floating-icon i-4" />
+      <q-icon name="handyman" class="floating-icon i-5" />
+      <q-icon name="apartment" class="floating-icon i-6" />
+      <q-icon name="engineering" class="floating-icon i-7" />
+      <q-icon name="hardware" class="floating-icon i-8" />
+    </div>
+
     <!-- HEADER SECTION -->
-    <div class="row items-center justify-between q-mb-xl animate-fade no-print">
-      <div class="col-12 col-md-8">
-        <div class="text-h4 text-weight-bolder text-indigo-10 leading-tight">
+    <div class="row items-center justify-between q-mb-xl no-print">
+      <div class="col-12 col-sm-8">
+        <div class="text-h4 text-weight-bolder text-brand-primary leading-tight">
           Master Barang & Material
           <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
             >Inventaris & Logistik Proyek</span
@@ -14,16 +46,17 @@
           terpadu.
         </div>
       </div>
-      <div class="col-12 col-md-auto q-mt-md q-mt-md-none">
+      <div class="col-12 col-sm-auto q-mt-md q-mt-sm-none flex">
+        <!-- Tambah class 'btn-tambah-responsive' untuk full-width di HP -->
         <q-btn
           v-if="canAction('buat')"
-          color="indigo-10"
+          color="brand-primary"
           icon="add_box"
           label="Tambah Barang Baru"
           unelevated
           rounded
           no-caps
-          class="q-px-lg q-py-sm shadow-premium btn-hover"
+          class="q-px-lg q-py-sm shadow-premium btn-hover btn-tambah-responsive"
           @click="openAddDialog"
         />
       </div>
@@ -44,7 +77,7 @@
               class="search-input"
             >
               <template v-slot:prepend>
-                <q-icon name="search" color="primary" />
+                <q-icon name="search" color="brand-primary" />
               </template>
               <template v-slot:append v-if="filter">
                 <q-icon name="close" @click="filter = ''" class="cursor-pointer" />
@@ -54,7 +87,9 @@
           <q-space />
           <div class="col-12 col-md-auto text-caption text-grey-6">
             Total Katalog:
-            <span class="text-weight-bold text-indigo-10">{{ rows.length }} Item Terdaftar</span>
+            <span class="text-weight-bold text-brand-primary"
+              >{{ rows.length }} Item Terdaftar</span
+            >
           </div>
         </div>
       </q-card-section>
@@ -74,7 +109,7 @@
       >
         <!-- Custom Header -->
         <template v-slot:header="props">
-          <q-tr :props="props" class="bg-indigo-10 text-white">
+          <q-tr :props="props" class="bg-brand-primary text-white">
             <q-th v-for="col in props.cols" :key="col.name" :props="props" class="text-weight-bold">
               {{ col.label }}
             </q-th>
@@ -90,9 +125,8 @@
           >
             <q-td key="kode" class="text-weight-medium text-grey-7">{{ props.row.kode }}</q-td>
 
-            <!-- KOLOM FOTO TERPISAH -->
             <q-td key="foto" class="text-center">
-              <q-avatar size="40px" rounded color="grey-2" class="shadow-sm border-indigo-thin">
+              <q-avatar size="40px" rounded color="grey-2" class="shadow-sm border-brand-thin">
                 <q-img
                   :src="
                     props.row.foto_url ||
@@ -112,7 +146,7 @@
                 <div class="text-weight-bold text-subtitle2 text-blue-grey-10 text-uppercase">
                   {{ props.row.nama }}
                 </div>
-                <div class="text-caption text-primary text-weight-medium">
+                <div class="text-caption text-brand-primary text-weight-medium">
                   {{ props.row.merk || 'No Brand' }}
                 </div>
               </div>
@@ -125,7 +159,7 @@
             </q-td>
             <q-td key="harga" class="text-right">
               <div v-if="props.row.vendor_prices && props.row.vendor_prices.length">
-                <div class="text-weight-bolder text-indigo-10">
+                <div class="text-weight-bolder text-brand-primary">
                   Rp {{ getMinPrice(props.row.vendor_prices).toLocaleString() }}
                 </div>
                 <div class="text-caption text-grey-6" style="font-size: 10px">Harga Terendah</div>
@@ -135,8 +169,8 @@
             <q-td key="kategori">
               <q-chip
                 dense
-                color="indigo-1"
-                text-color="indigo-10"
+                color="brand-light"
+                text-color="brand-primary"
                 icon="category"
                 class="text-weight-bold uppercase"
                 size="sm"
@@ -150,7 +184,7 @@
                   v-if="canAction('ubah')"
                   flat
                   round
-                  color="blue-8"
+                  color="brand-primary"
                   icon="edit"
                   size="sm"
                   @click.stop="openEditDialog(props.row)"
@@ -173,7 +207,9 @@
       </q-table>
     </q-card>
 
-    <!-- VIEW 1: DETAIL BARANG ( Luxury Viewer ) -->
+    <!-- ============================================== -->
+    <!-- VIEW: DETAIL BARANG ( DIALOG ORIGINAL )        -->
+    <!-- ============================================== -->
     <q-dialog
       v-model="showDetail"
       maximized
@@ -181,54 +217,35 @@
       transition-hide="slide-down"
     >
       <q-card class="bg-grey-2 column no-wrap print-fixed-card" v-if="selectedItem">
-        <q-toolbar class="bg-indigo-10 text-white q-py-md shadow-2 shrink no-print">
+        <q-toolbar class="bg-brand-primary text-white q-py-md shadow-2 shrink no-print">
           <q-btn flat round dense icon="arrow_back" v-close-popup />
           <q-toolbar-title class="text-weight-bold uppercase tracking-widest"
             >Profil Detail Material</q-toolbar-title
           >
 
-          <q-btn-group unelevated rounded class="q-mr-md shadow-2 gt-xs">
-            <q-btn color="primary" icon="print" label="Cetak" @click="printDetail" />
-            <q-btn color="red-9" icon="picture_as_pdf" label="PDF" @click="exportDetailPDF" />
-          </q-btn-group>
-
           <q-btn
             unelevated
             color="white"
-            text-color="indigo-10"
+            text-color="brand-primary"
             icon="edit"
             label="Edit Data"
             @click="editFromDetail"
             v-if="canAction('ubah')"
             rounded
-            class="q-px-md shadow-3"
+            class="q-px-md shadow-3 q-ml-md"
           />
         </q-toolbar>
 
         <q-card-section class="col scroll q-pa-md q-pa-md-xl print-content-area">
           <div id="material-detail-print" class="row justify-center print-container">
             <div class="col-12 col-lg-10">
-              <!-- Judul untuk Print (Hanya muncul saat cetak) -->
-              <div class="print-only q-mb-xl text-center">
-                <div class="text-h4 text-weight-black text-indigo-10 uppercase tracking-widest">
-                  Profil Material Aset
-                </div>
-                <div class="text-subtitle1 text-grey-7 italic">
-                  Laporan Katalog Barang & Vendor PT AGRA
-                </div>
-                <div
-                  class="q-mt-md"
-                  style="height: 2px; background: #1a237e; width: 100px; margin: 15px auto"
-                ></div>
-              </div>
-
               <div class="row q-col-gutter-xl print-row-fix">
                 <!-- Visual & Info Utama -->
                 <div class="col-12 col-md-4">
                   <q-card
                     flat
                     bordered
-                    class="rounded-20 overflow-hidden shadow-premium bg-white border-indigo-thin"
+                    class="rounded-20 overflow-hidden shadow-premium bg-white border-brand-thin"
                   >
                     <q-img
                       :src="
@@ -239,7 +256,7 @@
                       :ratio="1"
                       class="bg-grey-1"
                     />
-                    <q-card-section class="bg-indigo-10 text-white text-center print-indigo-bg">
+                    <q-card-section class="bg-brand-primary text-white text-center print-brand-bg">
                       <div class="text-overline opacity-80 uppercase tracking-widest">
                         Katalog Produk
                       </div>
@@ -251,15 +268,15 @@
                     <q-card-section>
                       <div class="text-overline text-grey-6 uppercase">Kategori Barang</div>
                       <div class="row items-center q-mt-sm">
-                        <q-icon name="category" color="primary" size="sm" class="q-mr-sm" />
-                        <div class="text-subtitle1 text-weight-bold uppercase text-indigo-10">
+                        <q-icon name="category" color="brand-primary" size="sm" class="q-mr-sm" />
+                        <div class="text-subtitle1 text-weight-bold uppercase text-brand-primary">
                           {{ selectedItem.kategori }}
                         </div>
                       </div>
                       <q-separator class="q-my-md" />
                       <div class="text-overline text-grey-6 uppercase">Satuan Ukur</div>
-                      <div class="row items-center q-mt-sm text-indigo-10 text-weight-bolder">
-                        <q-icon name="straighten" color="indigo-10" size="sm" class="q-mr-sm" />
+                      <div class="row items-center q-mt-sm text-brand-primary text-weight-bolder">
+                        <q-icon name="straighten" color="brand-primary" size="sm" class="q-mr-sm" />
                         <div class="text-h6 uppercase">{{ selectedItem.unit }}</div>
                       </div>
                     </q-card-section>
@@ -269,7 +286,7 @@
                 <!-- Spesifikasi & Perbandingan Harga -->
                 <div class="col-12 col-md-8">
                   <div
-                    class="text-h3 text-weight-black text-indigo-10 text-uppercase leading-tight q-mb-xs print-text-indigo"
+                    class="text-h3 text-weight-black text-brand-primary text-uppercase leading-tight q-mb-xs print-text-brand"
                   >
                     {{ selectedItem.nama }}
                   </div>
@@ -295,7 +312,7 @@
                       <tbody>
                         <tr v-for="(v, i) in selectedItem.vendor_prices" :key="i">
                           <td class="text-left">
-                            <div class="text-weight-bold text-indigo-9 text-uppercase">
+                            <div class="text-weight-bold text-brand-primary text-uppercase">
                               {{ v.vendor?.nama || 'Unknown' }}
                             </div>
                           </td>
@@ -317,12 +334,6 @@
                                 label="Termurah"
                                 class="q-ml-xs shadow-sm no-print"
                               />
-                              <span
-                                v-if="v.harga === getMinPrice(selectedItem.vendor_prices)"
-                                class="print-only text-positive q-ml-sm"
-                                style="font-size: 10px"
-                                >(TERENDAH)</span
-                              >
                             </div>
                           </td>
                           <td class="text-center no-print">
@@ -330,7 +341,7 @@
                               v-if="v.quotation_url || v.quotation_base64"
                               flat
                               round
-                              color="primary"
+                              color="brand-primary"
                               icon="description"
                               size="sm"
                               @click="openDoc(v.quotation_url || v.quotation_base64)"
@@ -355,7 +366,7 @@
                       <q-card
                         flat
                         bordered
-                        class="rounded-20 bg-indigo-1 text-indigo-10 shadow-sm border-indigo-thin"
+                        class="rounded-20 bg-brand-light text-brand-primary shadow-sm border-brand-thin"
                       >
                         <q-card-section class="row items-center no-wrap">
                           <q-icon name="update" size="md" class="q-mr-md opacity-50" />
@@ -381,7 +392,9 @@
       </q-card>
     </q-dialog>
 
-    <!-- VIEW 2: FORM DIALOG (TAMBAH/EDIT) -->
+    <!-- ============================================== -->
+    <!-- VIEW 3: FORM TAMBAH/EDIT ( DIALOG ORIGINAL )   -->
+    <!-- ============================================== -->
     <q-dialog
       v-model="showDialog"
       persistent
@@ -391,14 +404,14 @@
       backdrop-filter="blur(4px)"
     >
       <q-card class="bg-grey-2 column no-wrap">
-        <q-toolbar class="bg-white text-indigo-10 q-py-md shadow-2 shrink">
+        <q-toolbar class="bg-white text-brand-primary q-py-md shadow-2 shrink">
           <q-btn flat round dense icon="close" v-close-popup color="grey-7" />
           <q-toolbar-title class="text-weight-bold text-center uppercase tracking-widest">
             {{ isEditMode ? 'Pembaruan Data Barang' : 'Registrasi Barang Baru' }}
           </q-toolbar-title>
           <q-btn
             unelevated
-            color="indigo-10"
+            color="brand-primary"
             label="SIMPAN ITEM"
             :loading="submitting"
             rounded
@@ -415,7 +428,7 @@
                 <div class="col-12 col-md-5">
                   <q-card flat bordered class="rounded-20 q-pa-lg bg-white shadow-1">
                     <div
-                      class="text-subtitle1 text-indigo-10 text-weight-bolder q-mb-lg flex items-center"
+                      class="text-subtitle1 text-brand-primary text-weight-bolder q-mb-lg flex items-center"
                     >
                       <q-icon name="branding_watermark" class="q-mr-sm" /> IDENTITAS & SPESIFIKASI
                     </div>
@@ -427,7 +440,7 @@
                             size="160px"
                             rounded
                             color="grey-1"
-                            class="shadow-2 border-indigo-thin q-mb-sm overflow-hidden"
+                            class="shadow-2 border-brand-thin q-mb-sm overflow-hidden"
                           >
                             <q-img
                               v-if="form.foto_url || form.foto_base64"
@@ -445,7 +458,7 @@
                             class="btn-file-custom"
                           >
                             <template v-slot:prepend
-                              ><q-icon name="photo_camera" color="indigo-10"
+                              ><q-icon name="photo_camera" color="brand-primary"
                             /></template>
                           </q-file>
                         </div>
@@ -495,7 +508,7 @@
                             <q-btn
                               flat
                               round
-                              color="primary"
+                              color="brand-primary"
                               icon="add_circle"
                               class="q-ml-xs"
                               @click="quickAddSatuan"
@@ -515,7 +528,7 @@
                             <q-btn
                               flat
                               round
-                              color="primary"
+                              color="brand-primary"
                               icon="add_circle"
                               class="q-ml-xs"
                               @click="quickAddKategori"
@@ -532,12 +545,12 @@
                   <q-card flat bordered class="rounded-20 q-pa-lg bg-white shadow-1 h-full">
                     <div class="row items-center justify-between q-mb-lg">
                       <div
-                        class="text-subtitle1 text-indigo-10 text-weight-bolder flex items-center"
+                        class="text-subtitle1 text-brand-primary text-weight-bolder flex items-center"
                       >
                         <q-icon name="payments" class="q-mr-sm" /> PERBANDINGAN HARGA VENDOR
                       </div>
                       <q-btn
-                        color="indigo-10"
+                        color="brand-primary"
                         icon="add"
                         label="Tambah Harga"
                         rounded
@@ -622,7 +635,7 @@
                               @update:model-value="(val) => handleQuotationFile(val, index)"
                             >
                               <template v-slot:prepend
-                                ><q-icon name="cloud_upload" size="xs" color="indigo-7"
+                                ><q-icon name="cloud_upload" size="xs" color="brand-primary"
                               /></template>
                               <template
                                 v-slot:append
@@ -633,7 +646,7 @@
                                   round
                                   dense
                                   icon="visibility"
-                                  color="primary"
+                                  color="brand-primary"
                                   size="xs"
                                   @click.stop="openDoc(vp.quotation_url || vp.quotation_base64)"
                                 />
@@ -656,7 +669,7 @@
     <!-- VIEW: DOCUMENT VIEWER -->
     <q-dialog v-model="showDocViewer" maximized transition-show="scale" transition-hide="scale">
       <q-card class="bg-grey-10">
-        <q-toolbar class="bg-indigo-10 text-white shadow-2">
+        <q-toolbar class="bg-brand-primary text-white shadow-2">
           <q-toolbar-title>Peninjauan Dokumen</q-toolbar-title>
           <q-btn flat round dense icon="close" v-close-popup />
         </q-toolbar>
@@ -689,11 +702,14 @@ import {
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { db, storage } from 'src/boot/firebase'
 import { useAuthStore } from 'src/stores/auth'
-import html2pdf from 'html2pdf.js'
 
 const $q = useQuasar()
 const authStore = useAuthStore()
+
+// State Data Master
 const filter = ref('')
+// eslint-disable-next-line no-unused-vars
+const activeView = ref('list')
 const showDialog = ref(false)
 const showDetail = ref(false)
 const isEditMode = ref(false)
@@ -706,6 +722,65 @@ const currentDocUrl = ref('')
 const itemPhotoFile = ref(null)
 let unsubscribeUser = null
 let unsubscribeBarang = null
+
+// ==========================================
+// ANIMASI KLIK & MENGAMBANG
+// ==========================================
+const spawnedIcons = ref([])
+let spawnIdCounter = 0
+const clickIcons = [
+  'construction',
+  'engineering',
+  'handyman',
+  'architecture',
+  'foundation',
+  'precision_manufacturing',
+  'carpenter',
+  'plumbing',
+  'electrical_services',
+  'hardware',
+]
+
+const spawnIcon = (e) => {
+  // Cegah animasi muncul bila yang diklik adalah komponen interaktif
+  const target = e.target
+  if (
+    target.closest('button') ||
+    target.closest('.q-btn') ||
+    target.closest('input') ||
+    target.closest('.q-field') ||
+    target.closest('.q-dialog') ||
+    target.closest('.q-table') ||
+    target.closest('.q-card')
+  ) {
+    return
+  }
+
+  const iconName = clickIcons[Math.floor(Math.random() * clickIcons.length)]
+  const colors = ['#36ada3', '#2a8b83', '#56c2b9', '#f29c1f', '#e67e22', '#e74c3c']
+  const randColor = colors[Math.floor(Math.random() * colors.length)]
+  const randRotate = Math.floor(Math.random() * 90) - 45
+
+  // Mengubah ukuran ikon spawn untuk di kurangi lagi (35px - 60px)
+  const randSize = Math.floor(Math.random() * 25) + 35
+
+  const newIcon = {
+    id: spawnIdCounter++,
+    x: e.clientX,
+    y: e.clientY,
+    name: iconName,
+    color: randColor,
+    rotate: randRotate,
+    size: randSize,
+  }
+
+  spawnedIcons.value.push(newIcon)
+
+  setTimeout(() => {
+    spawnedIcons.value = spawnedIcons.value.filter((i) => i.id !== newIcon.id)
+  }, 1400)
+}
+// ==========================================
 
 const formDefault = {
   kode: '',
@@ -755,25 +830,6 @@ const openDetailView = (evt, row) => {
 const editFromDetail = () => {
   openEditDialog(selectedItem.value)
   showDetail.value = false
-}
-
-const printDetail = () => window.print()
-
-const exportDetailPDF = () => {
-  const element = document.getElementById('material-detail-print')
-  const opt = {
-    margin: 0,
-    filename: `Material_${selectedItem.value.kode}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2.5, useCORS: true, letterRendering: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-  }
-  $q.loading.show({ message: 'Sedang memproses PDF...' })
-  html2pdf()
-    .set(opt)
-    .from(element)
-    .save()
-    .then(() => $q.loading.hide())
 }
 
 const handleItemPhoto = (file) => {
@@ -843,7 +899,7 @@ const quickAddSatuan = () => {
     message: 'Contoh: Kg, Pcs, m3',
     prompt: { vModel: '', type: 'text' },
     cancel: true,
-    ok: { color: 'indigo-10' },
+    ok: { color: 'brand-primary' },
   }).onOk(async (data) => {
     if (!data) return
     await addDoc(collection(db, 'master_satuan'), { nama: data, createdAt: serverTimestamp() })
@@ -858,7 +914,7 @@ const quickAddKategori = () => {
     message: 'Contoh: Semen, Besi',
     prompt: { vModel: '', type: 'text' },
     cancel: true,
-    ok: { color: 'indigo-10' },
+    ok: { color: 'brand-primary' },
   }).onOk(async (data) => {
     if (!data) return
     await addDoc(collection(db, 'kategori_barang'), { nama: data, createdAt: serverTimestamp() })
@@ -944,7 +1000,17 @@ const simpanBarang = async () => {
     }
 
     showDialog.value = false
-    $q.notify({ type: 'positive', message: 'Data katalog berhasil disimpan' })
+
+    $q.notify({
+      message: '<div class="text-weight-bold text-subtitle1">Berhasil Disimpan!</div>',
+      caption: 'Data katalog telah berhasil diperbarui di sistem.',
+      html: true,
+      icon: 'check_circle',
+      color: 'positive',
+      position: 'top-right',
+      timeout: 3000,
+      classes: 'q-pa-md text-subtitle1 rounded-10 shadow-4',
+    })
   } catch (e) {
     console.error(e)
     $q.notify({ color: 'negative', message: 'Gagal Simpan: ' + e.message })
@@ -956,18 +1022,53 @@ const simpanBarang = async () => {
 
 const hapusBarang = (data) => {
   $q.dialog({
-    title: 'Konfirmasi Hapus',
-    message: `Hapus ${data.nama}?`,
-    cancel: true,
-    ok: { color: 'negative', unelevated: true },
+    title:
+      '<div class="text-h6 text-negative text-weight-bolder flex items-center q-mb-sm"><q-icon name="warning" size="md" class="q-mr-sm"/> Konfirmasi Hapus</div>',
+    message: `Apakah Anda yakin ingin menghapus <b>${data.nama}</b>?<br/><span class="text-grey-7 text-caption block q-mt-sm">Data yang dihapus tidak dapat dikembalikan lagi.</span>`,
+    html: true,
+    cancel: {
+      label: 'Batal',
+      color: 'grey-7',
+      outline: true,
+      rounded: true,
+      class: 'q-px-md text-weight-bold',
+    },
+    ok: {
+      label: 'Ya, Hapus',
+      color: 'negative',
+      unelevated: true,
+      rounded: true,
+      class: 'q-px-md shadow-3 text-weight-bold',
+    },
+    class: 'rounded-20 shadow-premium',
+    persistent: true,
   }).onOk(async () => {
-    await deleteDoc(doc(db, 'master_barang', data.id))
-    $q.notify({ icon: 'delete', message: 'Item telah dihapus' })
+    try {
+      await deleteDoc(doc(db, 'master_barang', data.id))
+      $q.notify({
+        message: '<div class="text-weight-bold text-subtitle1">Data Dihapus</div>',
+        caption: 'Item telah berhasil dihapus secara permanen.',
+        html: true,
+        icon: 'delete_forever',
+        color: 'negative',
+        position: 'top-right',
+        timeout: 3000,
+        classes: 'q-pa-md text-subtitle1 rounded-10 shadow-4',
+      })
+    } catch (e) {
+      console.error(e)
+      $q.notify({ color: 'negative', message: 'Terjadi kesalahan saat menghapus.' })
+    }
   })
 }
 </script>
 
 <style scoped>
+/* ===== GLOBAL THEME OVERRIDES (DARI CUSTOMER PAGE) ===== */
+.bg-page {
+  background-color: #f8fcfb;
+}
+
 .font-pro {
   font-family:
     'Inter',
@@ -978,7 +1079,7 @@ const hapusBarang = (data) => {
   border-radius: 20px;
 }
 .shadow-premium {
-  box-shadow: 0 10px 30px rgba(25, 118, 210, 0.15);
+  box-shadow: 0 10px 30px rgba(54, 173, 163, 0.15); /* Disesuaikan dengan brand color (Teal) */
 }
 .border-dashed {
   border: 2px dashed #e0e0e0;
@@ -986,10 +1087,186 @@ const hapusBarang = (data) => {
 .border-subtle {
   border: 1px solid rgba(0, 0, 0, 0.05);
 }
-.border-indigo-thin {
-  border: 2px solid #e8eaf6;
+
+/* OVERRIDE WARNA LAMA (INDIGO) MENJADI BRAND COLOR BARU (TEAL) */
+.bg-brand-primary,
+:deep(.bg-brand-primary) {
+  background-color: #36ada3 !important;
+}
+.text-brand-primary,
+:deep(.text-brand-primary) {
+  color: #36ada3 !important;
+}
+.bg-brand-light {
+  background-color: #e6f5f4 !important; /* Soft Teal */
+}
+.text-brand-secondary {
+  color: #2a8b83 !important;
+}
+.border-brand-thin {
+  border: 2px solid #b2e5e2 !important; /* Soft Teal border */
 }
 
+/* QUASAR COMPONENT OVERRIDES */
+:deep(.q-btn.bg-brand-primary) {
+  background-color: #36ada3 !important;
+}
+:deep(.q-field--focused .q-field__control) {
+  border-color: #36ada3 !important;
+}
+:deep(.q-field--focused .q-field__label) {
+  color: #36ada3 !important;
+}
+:deep(.q-icon[color='brand-primary']),
+:deep(.q-field__prepend .q-icon) {
+  color: #36ada3 !important;
+}
+
+/* Tombol Responsive Untuk Layar HP (Mobile) */
+@media (max-width: 599px) {
+  .btn-tambah-responsive {
+    width: 100%;
+  }
+}
+
+/* ===== ANIMASI BACKGROUND (FLOATING DARI BAWAH KE ATAS) ===== */
+.bg-animation-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.floating-icon {
+  position: absolute;
+  bottom: -150px; /* Memulai posisi dari bawah layar */
+  animation: floatUp linear infinite;
+  opacity: 0.35; /* Mengatur ketebalan tembus pandang untuk semua ikon melayang */
+}
+
+/* Memberikan Warna-Warni pada masing-masing Ikon Melayang
+  Menggunakan Palet Warna: Teal, Orange, Red, Yellow
+*/
+.i-1 {
+  left: 10%;
+  font-size: 100px;
+  animation-duration: 25s;
+  animation-delay: 0s;
+  color: #36ada3;
+} /* Teal */
+.i-2 {
+  left: 30%;
+  font-size: 70px;
+  animation-duration: 35s;
+  animation-delay: 5s;
+  color: #f29c1f;
+} /* Yellow-Orange */
+.i-3 {
+  left: 60%;
+  font-size: 120px;
+  animation-duration: 40s;
+  animation-delay: 12s;
+  color: #e74c3c;
+} /* Red */
+.i-4 {
+  left: 80%;
+  font-size: 85px;
+  animation-duration: 30s;
+  animation-delay: 2s;
+  color: #56c2b9;
+} /* Light Teal */
+.i-5 {
+  left: 15%;
+  font-size: 90px;
+  animation-duration: 28s;
+  animation-delay: 15s;
+  color: #e67e22;
+} /* Orange */
+.i-6 {
+  left: 45%;
+  font-size: 110px;
+  animation-duration: 45s;
+  animation-delay: 8s;
+  color: #2a8b83;
+} /* Dark Teal */
+.i-7 {
+  left: 75%;
+  font-size: 60px;
+  animation-duration: 22s;
+  animation-delay: 20s;
+  color: #f29c1f;
+} /* Yellow-Orange */
+.i-8 {
+  left: 25%;
+  font-size: 95px;
+  animation-duration: 32s;
+  animation-delay: 25s;
+  color: #e74c3c;
+} /* Red */
+
+/* Mengatur Animasi Bawah Ke Atas (Bottom to Top) */
+@keyframes floatUp {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1; /* Opacity maksimalnya dikendalikan dari .floating-icon yang diset 0.35 */
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-120vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* ===== CLICK SPAWN ICONS ===== */
+.click-spawn-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.spawned-icon {
+  position: absolute;
+  color: var(--rand-color);
+  transform-origin: center;
+  pointer-events: none;
+  animation: spawnBurst 1.4s ease-out forwards;
+}
+
+@keyframes spawnBurst {
+  0% {
+    transform: translate(-50%, -50%) scale(0) rotate(0deg);
+    opacity: 1;
+  }
+  40% {
+    transform: translate(-50%, -100%) scale(1.2) rotate(var(--rand-rotate));
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(-50%, -180%) scale(0.5) rotate(calc(var(--rand-rotate) * 1.5));
+    opacity: 0;
+  }
+}
+
+.spawn-enter-active,
+.spawn-leave-active {
+  transition: all 1.4s ease;
+}
+
+/* ===== EXISTING UTILITIES ===== */
 .barang-table :deep(thead tr th) {
   position: sticky;
   top: 0;
@@ -1004,19 +1281,19 @@ const hapusBarang = (data) => {
   transition: 0.3s;
 }
 .hover-bg:hover {
-  background-color: rgba(25, 118, 210, 0.03) !important;
+  background-color: rgba(54, 173, 163, 0.05) !important;
 }
 .transition-all {
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .animate-fade {
-  animation: fadeIn 0.8s ease-out;
+  animation: fadeIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(15px);
   }
   to {
     opacity: 1;
@@ -1040,7 +1317,7 @@ const hapusBarang = (data) => {
   padding: 0 !important;
 }
 .btn-file-custom :deep(.q-field__control) {
-  background: #e8eaf6;
+  background: #e6f5f4; /* Teal muda */
   border-radius: 50px;
   padding: 0 15px;
   min-height: 32px;
@@ -1061,118 +1338,5 @@ const hapusBarang = (data) => {
 
 .shrink {
   flex: 0 0 auto;
-}
-
-.print-only {
-  display: none;
-}
-
-/* PERBAIKAN TOTAL UNTUK PRINT */
-@media print {
-  @page {
-    size: A4;
-    margin: 15mm !important;
-  }
-
-  /* Hilangkan Scrollbar & fixed height Quasar */
-  html,
-  body,
-  .q-layout,
-  .q-page-container,
-  .q-page,
-  .q-dialog,
-  .q-dialog__inner,
-  .print-fixed-card {
-    height: auto !important;
-    min-height: auto !important;
-    overflow: visible !important;
-    position: static !important;
-    background: white !important;
-  }
-
-  ::-webkit-scrollbar {
-    display: none !important;
-  }
-  * {
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
-  }
-
-  /* Sembunyikan SEMUA elemen no-print secara agresif */
-  .no-print,
-  .q-toolbar.no-print,
-  .q-header,
-  .q-footer,
-  .q-btn,
-  .q-btn-group {
-    display: none !important;
-  }
-
-  .print-only {
-    display: block !important;
-  }
-
-  .q-dialog__inner--maximized {
-    padding: 0 !important;
-    display: block !important;
-  }
-
-  .q-card {
-    box-shadow: none !important;
-    border: none !important;
-    display: block !important;
-  }
-
-  /* RESET GRID UNTUK A4 (Memaksa agar tetap 2 kolom) */
-  .print-row-fix {
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    align-items: flex-start !important;
-  }
-  .col-md-4 {
-    width: 32% !important;
-    flex: 0 0 32% !important;
-  }
-  .col-md-8 {
-    width: 68% !important;
-    flex: 0 0 68% !important;
-  }
-
-  .print-container {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  /* Pastikan warna latar belakang muncul di kertas */
-  .border-indigo-thin {
-    border: 1.5px solid #1a237e !important;
-  }
-  .bg-indigo-10,
-  .print-indigo-bg {
-    background-color: #1a237e !important;
-    color: white !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  .print-text-indigo {
-    color: #1a237e !important;
-    -webkit-print-color-adjust: exact;
-  }
-
-  .no-print-bg {
-    background-color: #f5f5f5 !important;
-    color: #1a237e !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-    border-bottom: 2px solid #1a237e !important;
-  }
-
-  .q-img {
-    max-width: 100% !important;
-    height: auto !important;
-    border-radius: 12px !important;
-  }
 }
 </style>
