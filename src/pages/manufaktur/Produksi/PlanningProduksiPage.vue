@@ -303,7 +303,13 @@ const form = ref(defaultForm())
 
 const columns = [
   { name: 'nomor_spk', align: 'left', label: 'Nomor SPK', field: 'nomor_spk', sortable: true },
-  { name: 'nama_produk', align: 'left', label: 'Nama Produk', field: 'nama_produk', sortable: true },
+  {
+    name: 'nama_produk',
+    align: 'left',
+    label: 'Nama Produk',
+    field: 'nama_produk',
+    sortable: true,
+  },
   { name: 'customer', align: 'left', label: 'Customer', field: 'customer', sortable: true },
   { name: 'qty_target', align: 'right', label: 'Qty Target', field: 'qty_target', sortable: true },
   { name: 'line_produksi', align: 'left', label: 'Line Produksi', field: 'line_produksi' },

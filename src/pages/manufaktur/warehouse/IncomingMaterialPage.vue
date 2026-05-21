@@ -529,8 +529,6 @@ const masterKategoriRows = ref([])
 const masterSatuanRows = ref([])
 let unsubIncoming = null
 let unsubMasterBarang = null
-let unsubMasterKategori = null
-let unsubMasterSatuan = null
 let incomingDialogObserver = null
 let incomingDialogWarningShown = false
 let incomingQtyValidationFrame = 0
@@ -914,26 +912,20 @@ const getCheckerSignatureSrc = (signature = checkerSignature.value) =>
   typeof signature === 'string' ? signature : signature?.base64 || signature?.url || ''
 const getMasterBarangName = (item = {}) =>
   item.nama || item.nama_barang || item.nama_material || item.material || ''
-const resolveMasterName = (rows, value) => {
-  const raw = String(value || '').trim()
-  if (!raw) return ''
-  const matched = rows.find(
-    (row) => row.id === raw || String(row.nama || '').toLowerCase() === raw.toLowerCase(),
-  )
-  return matched?.nama || raw
-}
+const getMaterialType = (item = {}) =>
+  String(item.jenis_material || item.tipe_material || item.tipe || item.kategori || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '_')
+    .replace(/-/g, '_')
+const isIncomingMaterialType = (item = {}) =>
+  ['bahan_mentah', 'consumable'].includes(getMaterialType(item))
 const getMasterBarangCategory = (item = {}) =>
-  resolveMasterName(
-    masterKategoriRows.value,
-    item.kategori || item.kategori_barang || item.kategori_material || item.category,
-  )
+  item.kategori || item.kategori_material || item.tipe_material || item.jenis_material || ''
 const getMasterBarangUnit = (item = {}) =>
-  resolveMasterName(
-    masterSatuanRows.value,
-    item.unit || item.satuan || item.satuan_barang || item.uom,
-  )
+  item.satuan || item.unit || item.satuan_barang || item.uom || ''
 const getMasterBarangLabel = (item = {}) => {
-  const code = item.kode || item.kode_barang || item.sku || ''
+  const code = item.kode_material || item.kode || item.kode_barang || item.sku || ''
   const name = getMasterBarangName(item)
   return [code, name].filter(Boolean).join(' - ') || '-'
 }
@@ -943,7 +935,14 @@ const findMasterBarang = (value) => {
     .toLowerCase()
   if (!normalized) return null
   return masterBarangRows.value.find((item) =>
-    [getMasterBarangLabel(item), getMasterBarangName(item), item.kode, item.kode_barang, item.sku]
+    [
+      getMasterBarangLabel(item),
+      getMasterBarangName(item),
+      item.kode_material,
+      item.kode,
+      item.kode_barang,
+      item.sku,
+    ]
       .filter(Boolean)
       .some((entry) => String(entry).trim().toLowerCase() === normalized),
   )
@@ -951,16 +950,22 @@ const findMasterBarang = (value) => {
 
 const loadMasterReferences = () => {
   if (unsubMasterBarang) unsubMasterBarang()
-  if (unsubMasterKategori) unsubMasterKategori()
-  if (unsubMasterSatuan) unsubMasterSatuan()
 
   unsubMasterBarang = onSnapshot(
-    query(collection(db, 'manufactur_master_barang'), orderBy('nama', 'asc')),
+    query(collection(db, 'master_material'), orderBy('nama_material', 'asc')),
     (snapshot) => {
-      masterBarangRows.value = snapshot.docs.map((docSnap) => ({
-        id: docSnap.id,
-        ...docSnap.data(),
-      }))
+      masterBarangRows.value = snapshot.docs
+        .map((docSnap) => ({
+          id: docSnap.id,
+          ...docSnap.data(),
+        }))
+        .filter((item) => item.status !== 'Nonaktif' && isIncomingMaterialType(item))
+      masterKategoriRows.value = Array.from(
+        new Set(masterBarangRows.value.map((item) => getMasterBarangCategory(item)).filter(Boolean)),
+      ).map((nama) => ({ id: nama, nama }))
+      masterSatuanRows.value = Array.from(
+        new Set(masterBarangRows.value.map((item) => getMasterBarangUnit(item)).filter(Boolean)),
+      ).map((nama) => ({ id: nama, nama }))
       nextTick(() => {
         const dialog = getIncomingDialog()
         if (dialog) injectMasterBarangControls(dialog)
@@ -968,33 +973,7 @@ const loadMasterReferences = () => {
     },
     (error) => {
       console.error(error)
-      $q.notify({ type: 'negative', message: 'Gagal memuat Master Data Barang' })
-    },
-  )
-
-  unsubMasterKategori = onSnapshot(
-    query(collection(db, 'manufactur_master_kategori_barang'), orderBy('nama', 'asc')),
-    (snapshot) => {
-      masterKategoriRows.value = snapshot.docs.map((docSnap) => ({
-        id: docSnap.id,
-        ...docSnap.data(),
-      }))
-    },
-    (error) => {
-      console.error(error)
-    },
-  )
-
-  unsubMasterSatuan = onSnapshot(
-    query(collection(db, 'manufactur_master_satuan'), orderBy('nama', 'asc')),
-    (snapshot) => {
-      masterSatuanRows.value = snapshot.docs.map((docSnap) => ({
-        id: docSnap.id,
-        ...docSnap.data(),
-      }))
-    },
-    (error) => {
-      console.error(error)
+      $q.notify({ type: 'negative', message: 'Gagal memuat master material' })
     },
   )
 }
@@ -1356,7 +1335,7 @@ const applyMasterBarangToRow = (row, barang) => {
   setNativeInputValue(kategoriInput, kategori)
   setNativeInputValue(satuanInput, satuan)
   row.dataset.masterBarangId = barang.id || ''
-  row.dataset.masterBarangKode = barang.kode || barang.kode_barang || barang.sku || ''
+  row.dataset.masterBarangKode = barang.kode_material || barang.kode || barang.kode_barang || barang.sku || ''
 }
 
 const injectMasterBarangControls = (dialog) => {
@@ -1383,7 +1362,7 @@ const injectMasterBarangControls = (dialog) => {
         <input
           class="incoming-master-barang-search"
           list="${listId}"
-          placeholder="Cari / pilih barang dari Master Data Barang"
+          placeholder="Cari / pilih material dari Master Material"
           autocomplete="off"
         />
         <datalist id="${listId}" class="incoming-master-barang-list"></datalist>
@@ -1570,6 +1549,12 @@ const buildPayload = (form) => {
   const checkerSignatureBase64 = captureCheckerSignaturePad()
   const items = getIncomingItems(form).map((item) => ({
     ...item,
+    master_material_id: findMasterBarang(item.nama_barang || item.nama_material || item.material)?.id || item.master_material_id || '',
+    kode_material:
+      findMasterBarang(item.nama_barang || item.nama_material || item.material)?.kode_material ||
+      item.kode_material ||
+      '',
+    tipe_material: getMaterialType(findMasterBarang(item.nama_barang || item.nama_material || item.material) || item),
     qty_surat_jalan: toSafeNumber(item.qty_surat_jalan),
     qty_actual: toSafeNumber(item.qty_actual),
     selisih_qty:
@@ -1880,8 +1865,6 @@ onMounted(() => {
 onUnmounted(() => {
   if (unsubIncoming) unsubIncoming()
   if (unsubMasterBarang) unsubMasterBarang()
-  if (unsubMasterKategori) unsubMasterKategori()
-  if (unsubMasterSatuan) unsubMasterSatuan()
   cleanupIncomingDialogQtyValidation()
 })
 </script>

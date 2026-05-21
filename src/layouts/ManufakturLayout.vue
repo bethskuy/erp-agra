@@ -263,6 +263,114 @@
                   </q-item>
                 </q-list>
               </q-expansion-item>
+
+              <q-expansion-item
+                icon="engineering"
+                label="Master Produksi"
+                header-class="submenu-group master-child-group"
+                expand-icon-class="nav-expand-icon"
+                dense
+              >
+                <q-list>
+                  <q-item
+                    clickable
+                    v-ripple
+                    to="/manufaktur/master-produksi/material"
+                    active-class="active-menu"
+                    class="submenu-item master-grandchild-item"
+                    dense
+                  >
+                    <q-item-section avatar class="submenu-icon">
+                      <q-icon name="inventory_2" size="xs" />
+                    </q-item-section>
+                    <q-item-section class="submenu-text">Material</q-item-section>
+                  </q-item>
+
+                  <q-item
+                    clickable
+                    v-ripple
+                    to="/manufaktur/master-produksi/produk"
+                    active-class="active-menu"
+                    class="submenu-item master-grandchild-item"
+                    dense
+                  >
+                    <q-item-section avatar class="submenu-icon">
+                      <q-icon name="inventory" size="xs" />
+                    </q-item-section>
+                    <q-item-section class="submenu-text">Master Produk</q-item-section>
+                  </q-item>
+
+                  <q-item
+                    clickable
+                    v-ripple
+                    to="/manufaktur/master-produksi/tahapan-fabrikasi"
+                    active-class="active-menu"
+                    class="submenu-item master-grandchild-item"
+                    dense
+                  >
+                    <q-item-section avatar class="submenu-icon">
+                      <q-icon name="precision_manufacturing" size="xs" />
+                    </q-item-section>
+                    <q-item-section class="submenu-text">Tahapan Fabrikasi</q-item-section>
+                  </q-item>
+
+                  <q-item
+                    clickable
+                    v-ripple
+                    to="/manufaktur/master-produksi/qc-checklist"
+                    active-class="active-menu"
+                    class="submenu-item master-grandchild-item"
+                    dense
+                  >
+                    <q-item-section avatar class="submenu-icon">
+                      <q-icon name="fact_check" size="xs" />
+                    </q-item-section>
+                    <q-item-section class="submenu-text">QC Checklist</q-item-section>
+                  </q-item>
+
+                  <q-item
+                    clickable
+                    v-ripple
+                    to="/manufaktur/master-produksi/tools"
+                    active-class="active-menu"
+                    class="submenu-item master-grandchild-item"
+                    dense
+                  >
+                    <q-item-section avatar class="submenu-icon">
+                      <q-icon name="handyman" size="xs" />
+                    </q-item-section>
+                    <q-item-section class="submenu-text">Tools & Peralatan</q-item-section>
+                  </q-item>
+
+                  <q-item
+                    clickable
+                    v-ripple
+                    to="/manufaktur/master-produksi/tim-produksi"
+                    active-class="active-menu"
+                    class="submenu-item master-grandchild-item"
+                    dense
+                  >
+                    <q-item-section avatar class="submenu-icon">
+                      <q-icon name="groups" size="xs" />
+                    </q-item-section>
+                    <q-item-section class="submenu-text">Tim Produksi</q-item-section>
+                  </q-item>
+
+                  <q-item
+                    clickable
+                    v-ripple
+                    to="/manufaktur/master-produksi/jenis-pekerjaan"
+                    active-class="active-menu"
+                    class="submenu-item master-grandchild-item"
+                    dense
+                  >
+                    <q-item-section avatar class="submenu-icon">
+                      <q-icon name="work_outline" size="xs" />
+                    </q-item-section>
+                    <q-item-section class="submenu-text">Jenis Pekerjaan</q-item-section>
+                  </q-item>
+                </q-list>
+              </q-expansion-item>
             </q-list>
           </q-expansion-item>
 
@@ -722,12 +830,13 @@ onUnmounted(() => {
 .app-layout {
   position: relative;
   min-height: 100vh;
-  overflow: hidden;
+  overflow-x: hidden;
   background:
     radial-gradient(circle at 12% 8%, rgba(16, 185, 129, 0.16), transparent 28%),
     radial-gradient(circle at 86% 12%, rgba(34, 211, 238, 0.12), transparent 26%),
     radial-gradient(circle at 50% 102%, rgba(6, 95, 70, 0.14), transparent 34%),
     linear-gradient(135deg, #041f1d 0%, #062f2b 42%, #0f3d35 100%);
+  max-width: 100vw;
 }
 .app-layout--manufacture {
   isolation: isolate;
@@ -797,9 +906,57 @@ onUnmounted(() => {
   position: relative;
   z-index: 1;
   background: transparent;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 .app-page-container :deep(.q-page) {
   background: transparent !important;
+  width: 100%;
+  max-width: none !important;
+}
+.app-page-container :deep(.q-page > *) {
+  max-width: none !important;
+}
+.app-page-container :deep(.container),
+.app-page-container :deep(.page-container),
+.app-page-container :deep(.content-container),
+.app-page-container :deep(.main-container),
+.app-page-container :deep(.dashboard-container) {
+  width: 100% !important;
+  max-width: none !important;
+}
+.app-page-container :deep(.q-card),
+.app-page-container :deep(.q-table__container),
+.app-page-container :deep(.q-table__middle),
+.app-page-container :deep(.q-markup-table),
+.app-page-container :deep(table) {
+  max-width: 100% !important;
+}
+.app-page-container :deep(.q-table__container),
+.app-page-container :deep(.q-table__middle) {
+  width: 100% !important;
+}
+.app-page-container :deep(.q-table) {
+  width: 100%;
+}
+:global(body:has(.app-layout--manufacture)),
+:global(body:has(.app-layout--manufacture) #q-app) {
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
+}
+:global(body:has(.app-layout--manufacture) .q-dialog__inner--minimized > div) {
+  max-width: min(96vw, 1120px) !important;
+}
+:global(body:has(.app-layout--manufacture) .q-dialog__inner--minimized .q-card) {
+  width: min(96vw, 1120px);
+}
+:global(body:has(.app-layout--manufacture) .q-dialog__inner--minimized .q-card.master-dialog),
+:global(body:has(.app-layout--manufacture) .q-dialog__inner--minimized .q-card.work-order-dialog) {
+  width: min(96vw, 1120px) !important;
+}
+:global(body:has(.app-layout--manufacture) .q-dialog__inner--minimized .q-card.detail-dialog) {
+  width: min(94vw, 920px) !important;
 }
 .border-bottom {
   border-bottom: 1px solid rgba(15, 23, 42, 0.06);

@@ -20,6 +20,46 @@
       />
     </div>
 
+    <q-card flat bordered class="filter-card bg-white q-mb-md">
+      <q-card-section class="q-py-md">
+        <div class="row q-col-gutter-md items-center">
+          <div class="col-12 col-md-5">
+            <q-input
+              v-model="search"
+              outlined
+              dense
+              rounded
+              debounce="250"
+              placeholder="Cari kode, nama material, ukuran, atau satuan..."
+              bg-color="white"
+            >
+              <template #prepend>
+                <q-icon name="search" color="green-10" />
+              </template>
+            </q-input>
+          </div>
+          <div class="col-12 col-md-3">
+            <q-select
+              v-model="typeFilter"
+              :options="typeOptions"
+              outlined
+              dense
+              rounded
+              emit-value
+              map-options
+              label="Tipe Material"
+              bg-color="white"
+            />
+          </div>
+          <div class="col-12 col-md-auto">
+            <q-chip dense color="green-10" text-color="white" class="text-weight-bold q-px-md">
+              {{ rows.length }} MATERIAL
+            </q-chip>
+          </div>
+        </div>
+      </q-card-section>
+    </q-card>
+
     <q-card flat bordered class="table-card bg-white">
       <q-table
         :rows="rows"
@@ -41,43 +81,82 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { collection, onSnapshot, orderBy, query } from 'firebase/firestore'
 import { db } from 'src/boot/firebase'
 
-const COLLECTION_NAME = 'stock_forecast_manufaktur'
+const COLLECTION_NAME = 'master_material'
 const $q = useQuasar()
-const rows = ref([])
+const masterMaterials = ref([])
+const search = ref('')
+const typeFilter = ref('all')
 const loading = ref(false)
 let unsubscribeRows = null
+const typeOptions = [
+  { label: 'Semua Tipe', value: 'all' },
+  { label: 'Bahan Mentah', value: 'bahan_mentah' },
+  { label: 'Bahan Jadi', value: 'bahan_jadi' },
+  { label: 'Consumable', value: 'consumable' },
+]
 
 const columns = [
   { name: 'kode_barang', label: 'Kode Barang', field: 'kode_barang', align: 'left', sortable: true },
-  { name: 'nama_barang', label: 'Nama Barang', field: 'nama_barang', align: 'left', sortable: true },
+  { name: 'nama_barang', label: 'Nama Material', field: 'nama_barang', align: 'left', sortable: true },
+  { name: 'tipe_material', label: 'Tipe', field: 'tipe_material', align: 'left', sortable: true },
   { name: 'stok_saat_ini', label: 'Stok Saat Ini', field: 'stok_saat_ini', align: 'right', sortable: true },
   { name: 'kebutuhan', label: 'Kebutuhan', field: 'kebutuhan', align: 'right', sortable: true },
   { name: 'forecast', label: 'Forecast', field: 'forecast', align: 'right', sortable: true },
-  { name: 'periode', label: 'Periode', field: 'periode', align: 'left' },
+  { name: 'satuan', label: 'Satuan', field: 'satuan', align: 'left' },
 ]
+
+const getMaterialType = (data = {}) =>
+  String(data.jenis_material || data.tipe_material || data.tipe || data.kategori || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '_')
+    .replace(/-/g, '_')
 
 const normalizeRow = (id, data) => ({
   id,
-  kode_barang: data.kode_barang || data.kode || '-',
-  nama_barang: data.nama_barang || data.nama_produk || '-',
+  kode_barang: data.kode_material || data.kode_barang || data.kode || '-',
+  nama_barang: data.nama_material || data.nama_barang || data.nama_produk || '-',
+  tipe_material: getMaterialType(data) || '-',
   stok_saat_ini: Number(data.stok_saat_ini ?? data.stok ?? 0),
-  kebutuhan: Number(data.kebutuhan ?? data.qty_kebutuhan ?? 0),
-  forecast: Number(data.forecast ?? data.qty_forecast ?? 0),
-  periode: data.periode || data.bulan || '-',
+  kebutuhan: Number(data.kebutuhan ?? data.qty_kebutuhan ?? data.stok_minimum ?? 0),
+  forecast: Math.max(
+    Number(data.kebutuhan ?? data.qty_kebutuhan ?? data.stok_minimum ?? 0) -
+      Number(data.stok_saat_ini ?? data.stok ?? 0),
+    0,
+  ),
+  satuan: data.satuan || 'PCS',
+})
+
+const rows = computed(() => {
+  const keyword = search.value.trim().toLowerCase()
+  return masterMaterials.value
+    .filter((item) => item.status !== 'Nonaktif')
+    .filter((item) => ['bahan_mentah', 'bahan_jadi', 'consumable'].includes(getMaterialType(item)))
+    .filter((item) => typeFilter.value === 'all' || getMaterialType(item) === typeFilter.value)
+    .map((item) => normalizeRow(item.id, item))
+    .filter((row) => {
+      if (!keyword) return true
+      return [row.kode_barang, row.nama_barang, row.tipe_material, row.satuan]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(keyword))
+    })
 })
 
 const loadRows = () => {
   loading.value = true
   if (unsubscribeRows) unsubscribeRows()
   unsubscribeRows = onSnapshot(
-    query(collection(db, COLLECTION_NAME), orderBy('updated_at', 'desc')),
+    query(collection(db, COLLECTION_NAME), orderBy('nama_material', 'asc')),
     (snapshot) => {
-      rows.value = snapshot.docs.map((docItem) => normalizeRow(docItem.id, docItem.data()))
+      masterMaterials.value = snapshot.docs.map((docItem) => ({
+        id: docItem.id,
+        ...docItem.data(),
+      }))
       loading.value = false
     },
     (error) => {
@@ -95,6 +174,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.filter-card,
 .table-card {
   border-color: #dfe8df;
   border-radius: 20px;

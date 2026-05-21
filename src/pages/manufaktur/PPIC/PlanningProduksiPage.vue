@@ -323,7 +323,19 @@
                 <q-input v-model="form.deadline" outlined dense type="date" label="Deadline" />
               </div>
               <div class="col-12 col-md-4">
-                <q-input v-model="form.work_center" outlined dense label="Work Center" />
+                <q-select
+                  v-model="form.tahapan_fabrikasi_id"
+                  :options="tahapanOptions"
+                  outlined
+                  dense
+                  emit-value
+                  map-options
+                  option-label="label"
+                  option-value="value"
+                  label="Tahapan Fabrikasi"
+                  :loading="loadingMasterTahapan"
+                  :rules="[(val) => !!val || 'Tahapan fabrikasi wajib dipilih']"
+                />
               </div>
 
               <div class="col-12 col-md-4">
@@ -357,7 +369,19 @@
               </div>
 
               <div class="col-12 col-md-6">
-                <q-input v-model="form.pic" outlined dense label="PIC" />
+                <q-select
+                  v-model="form.tim_produksi_id"
+                  :options="timProduksiOptions"
+                  outlined
+                  dense
+                  emit-value
+                  map-options
+                  option-label="label"
+                  option-value="value"
+                  label="Tim Produksi"
+                  :loading="loadingMasterTim"
+                  :rules="[(val) => !!val || 'Tim produksi wajib dipilih']"
+                />
               </div>
               <div class="col-12">
                 <q-input
@@ -476,6 +500,8 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useQuasar } from 'quasar'
+import { collection, onSnapshot, orderBy, query } from 'firebase/firestore'
+import { db } from 'src/boot/firebase'
 import {
   createPlanningProduksi,
   deletePlanningProduksi,
@@ -495,7 +521,13 @@ const rows = ref([])
 const loading = ref(true)
 const submitting = ref(false)
 const errorMessage = ref('')
+const masterTahapan = ref([])
+const masterTimProduksi = ref([])
+const loadingMasterTahapan = ref(true)
+const loadingMasterTim = ref(true)
 let unsubscribePlanning = null
+let unsubscribeMasterTahapan = null
+let unsubscribeMasterTim = null
 
 const statusOptions = ['Draft', 'Approved', 'Scheduled', 'On Progress', 'Selesai']
 const priorityOptions = ['High', 'Medium', 'Low']
@@ -522,11 +554,15 @@ const defaultForm = () => ({
   tanggal_planning: '',
   deadline: '',
   work_center: '',
+  tahapan_fabrikasi_id: '',
+  tahapan_fabrikasi: '',
   material_status: 'Waiting',
   prioritas: 'Medium',
   status: 'Draft',
   progress: 0,
   pic: '',
+  tim_produksi_id: '',
+  tim_produksi: '',
   catatan: '',
 })
 
@@ -616,6 +652,30 @@ const averageProgress = computed(() => {
 
 const formTitle = computed(() => (editingId.value ? 'Edit Planning Produksi' : 'Tambah Planning Produksi'))
 
+const tahapanOptions = computed(() =>
+  masterTahapan.value.map((item) => ({
+    label: `${item.urutan ? `${item.urutan}. ` : ''}${item.nama_tahapan}`,
+    value: item.id,
+    item,
+  })),
+)
+
+const timProduksiOptions = computed(() =>
+  masterTimProduksi.value.map((item) => ({
+    label: `${item.nama}${item.jabatan ? ` - ${item.jabatan}` : ''}`,
+    value: item.id,
+    item,
+  })),
+)
+
+const selectedTahapan = computed(
+  () => tahapanOptions.value.find((option) => option.value === form.value.tahapan_fabrikasi_id)?.item,
+)
+
+const selectedTimProduksi = computed(
+  () => timProduksiOptions.value.find((option) => option.value === form.value.tim_produksi_id)?.item,
+)
+
 const buildPayload = () => ({
   no_planning: form.value.no_planning,
   no_so: form.value.no_so,
@@ -626,12 +686,18 @@ const buildPayload = () => ({
   satuan: form.value.satuan,
   tanggal_planning: form.value.tanggal_planning,
   deadline: form.value.deadline,
-  work_center: form.value.work_center,
+  work_center: selectedTahapan.value?.nama_tahapan || form.value.work_center,
+  tahapan_fabrikasi_id: form.value.tahapan_fabrikasi_id,
+  tahapan_fabrikasi: selectedTahapan.value?.nama_tahapan || form.value.tahapan_fabrikasi,
+  urutan_tahapan: Number(selectedTahapan.value?.urutan || form.value.urutan_tahapan || 0),
   material_status: form.value.material_status,
   prioritas: form.value.prioritas,
   status: form.value.status,
   progress: Math.min(Math.max(Number(form.value.progress || 0), 0), 100),
-  pic: form.value.pic,
+  pic: selectedTimProduksi.value?.nama || form.value.pic,
+  tim_produksi_id: form.value.tim_produksi_id,
+  tim_produksi: selectedTimProduksi.value?.nama || form.value.tim_produksi,
+  jabatan_tim_produksi: selectedTimProduksi.value?.jabatan || form.value.jabatan_tim_produksi || '',
   catatan: form.value.catatan,
 })
 
@@ -717,6 +783,42 @@ const listenPlanning = () => {
   )
 }
 
+const listenMasterTahapan = () => {
+  loadingMasterTahapan.value = true
+  unsubscribeMasterTahapan = onSnapshot(
+    query(collection(db, 'master_tahapan_fabrikasi'), orderBy('urutan', 'asc')),
+    (snapshot) => {
+      masterTahapan.value = snapshot.docs
+        .map((item) => ({ id: item.id, ...item.data() }))
+        .filter((item) => item.status !== 'Nonaktif')
+      loadingMasterTahapan.value = false
+    },
+    (error) => {
+      console.error(error)
+      loadingMasterTahapan.value = false
+      $q.notify({ type: 'negative', message: 'Gagal memuat master tahapan fabrikasi' })
+    },
+  )
+}
+
+const listenMasterTimProduksi = () => {
+  loadingMasterTim.value = true
+  unsubscribeMasterTim = onSnapshot(
+    query(collection(db, 'master_tim_produksi'), orderBy('nama', 'asc')),
+    (snapshot) => {
+      masterTimProduksi.value = snapshot.docs
+        .map((item) => ({ id: item.id, ...item.data() }))
+        .filter((item) => item.status !== 'Nonaktif')
+      loadingMasterTim.value = false
+    },
+    (error) => {
+      console.error(error)
+      loadingMasterTim.value = false
+      $q.notify({ type: 'negative', message: 'Gagal memuat master tim produksi' })
+    },
+  )
+}
+
 const resetFilter = () => {
   search.value = ''
   statusFilter.value = 'all'
@@ -772,10 +874,16 @@ const formatDate = (value) => {
   })
 }
 
-onMounted(listenPlanning)
+onMounted(() => {
+  listenPlanning()
+  listenMasterTahapan()
+  listenMasterTimProduksi()
+})
 
 onUnmounted(() => {
   if (unsubscribePlanning) unsubscribePlanning()
+  if (unsubscribeMasterTahapan) unsubscribeMasterTahapan()
+  if (unsubscribeMasterTim) unsubscribeMasterTim()
 })
 </script>
 
