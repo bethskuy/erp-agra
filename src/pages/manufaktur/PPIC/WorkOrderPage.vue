@@ -52,7 +52,7 @@
               dense
               rounded
               debounce="250"
-              placeholder="Cari nomor WO, customer, produk, line, atau PIC..."
+              placeholder="Cari nomor WO, customer, produk, tahapan, atau PIC..."
               bg-color="white"
             >
               <template #prepend>
@@ -140,7 +140,9 @@
             <q-td key="qty_target" :props="props" class="text-right text-weight-bold">
               {{ formatNumber(props.row.qty_target) }}
             </q-td>
-            <q-td key="line_produksi" :props="props">{{ props.row.line_produksi || '-' }}</q-td>
+            <q-td key="line_produksi" :props="props">
+              {{ props.row.tahapan_fabrikasi || props.row.line_produksi || '-' }}
+            </q-td>
             <q-td key="prioritas" :props="props">
               <q-chip
                 dense
@@ -247,12 +249,18 @@
                 />
               </div>
               <div class="col-12 col-md-6">
-                <q-input
-                  v-model="form.produk"
+                <q-select
+                  v-model="form.produk_id"
+                  :options="produkOptions"
                   outlined
                   dense
+                  emit-value
+                  map-options
+                  option-label="label"
+                  option-value="value"
                   label="Produk"
-                  :rules="[(val) => !!val || 'Produk wajib diisi']"
+                  :loading="loadingMasterProduk"
+                  :rules="[(val) => !!val || 'Produk wajib dipilih']"
                 />
               </div>
               <div class="col-12 col-md-6">
@@ -278,12 +286,17 @@
               </div>
               <div class="col-12 col-md-6">
                 <q-select
-                  v-model="form.line_produksi"
-                  :options="lineOptions"
+                  v-model="form.tahapan_fabrikasi_id"
+                  :options="tahapanOptions"
                   outlined
                   dense
-                  label="Line Produksi"
-                  :rules="[(val) => !!val || 'Line produksi wajib dipilih']"
+                  emit-value
+                  map-options
+                  option-label="label"
+                  option-value="value"
+                  label="Tahapan Fabrikasi"
+                  :loading="loadingMasterTahapan"
+                  :rules="[(val) => !!val || 'Tahapan fabrikasi wajib dipilih']"
                 />
               </div>
               <div class="col-12 col-md-6">
@@ -431,8 +444,10 @@
               </q-chip>
             </div>
             <div class="col-12 col-sm-4">
-              <div class="detail-label">Line Produksi</div>
-              <div class="detail-value">{{ selectedRow?.line_produksi || '-' }}</div>
+              <div class="detail-label">Tahapan Fabrikasi</div>
+              <div class="detail-value">
+                {{ selectedRow?.tahapan_fabrikasi || selectedRow?.line_produksi || '-' }}
+              </div>
             </div>
             <div class="col-12 col-sm-4">
               <div class="detail-label">PIC Produksi</div>
@@ -512,12 +527,15 @@ const priorityFilterOptions = [
   { label: 'Semua Prioritas', value: 'all' },
   ...priorityOptions.map((priority) => ({ label: priority, value: priority })),
 ]
-const lineOptions = ['Line A', 'Line B', 'Line C', 'Line D']
 const materialStatusOptions = ['Belum Dicek', 'Ready', 'Parsial', 'Kurang']
 
 const $q = useQuasar()
 const rows = ref([])
+const masterProduk = ref([])
+const masterTahapan = ref([])
 const loading = ref(false)
+const loadingMasterProduk = ref(true)
+const loadingMasterTahapan = ref(true)
 const submitting = ref(false)
 const search = ref('')
 const statusFilter = ref('all')
@@ -527,21 +545,27 @@ const showDetailDialog = ref(false)
 const selectedRow = ref(null)
 const editingId = ref(null)
 let unsubscribeWorkOrders = null
+let unsubscribeMasterProduk = null
+let unsubscribeMasterTahapan = null
 
 const defaultForm = () => ({
   nomor_wo: generateWorkOrderNumber(),
   customer: '',
+  produk_id: '',
   produk: '',
+  kode_produk: '',
+  kategori_produk: '',
+  jenis_fabrikasi: '',
+  satuan_produk: '',
   qty_target: null,
   deadline: '',
   line_produksi: '',
+  tahapan_fabrikasi_id: '',
+  tahapan_fabrikasi: '',
   prioritas: 'Normal',
   pic_produksi: '',
   status_wo: 'DRAFT',
-  materials: [
-    { nama: '', qty: null, satuan: 'pcs', status: 'Belum Dicek' },
-    { nama: '', qty: null, satuan: 'pcs', status: 'Belum Dicek' },
-  ],
+  materials: [],
 })
 
 const form = ref(defaultForm())
@@ -550,7 +574,7 @@ const columns = [
   { name: 'nomor_wo', align: 'left', label: 'Nomor WO', field: 'nomor_wo', sortable: true },
   { name: 'produk', align: 'left', label: 'Produk / Customer', field: 'produk', sortable: true },
   { name: 'qty_target', align: 'right', label: 'Qty Target', field: 'qty_target', sortable: true },
-  { name: 'line_produksi', align: 'left', label: 'Line Produksi', field: 'line_produksi' },
+  { name: 'line_produksi', align: 'left', label: 'Tahapan Fabrikasi', field: 'line_produksi' },
   { name: 'prioritas', align: 'center', label: 'Prioritas', field: 'prioritas', sortable: true },
   { name: 'pic_produksi', align: 'left', label: 'PIC Produksi', field: 'pic_produksi' },
   { name: 'material', align: 'left', label: 'Material Requirement' },
@@ -569,6 +593,7 @@ const filteredRows = computed(() => {
         row.nomor_wo,
         row.customer,
         row.produk,
+        row.tahapan_fabrikasi,
         row.line_produksi,
         row.prioritas,
         row.pic_produksi,
@@ -615,6 +640,30 @@ const summaryCards = computed(() => [
 ])
 
 const formModeLabel = computed(() => (editingId.value ? 'Edit' : 'Buat'))
+
+const produkOptions = computed(() =>
+  masterProduk.value.map((item) => ({
+    label: `${item.kode_produk ? `${item.kode_produk} - ` : ''}${item.nama_produk}`,
+    value: item.id,
+    item,
+  })),
+)
+
+const selectedProduk = computed(
+  () => produkOptions.value.find((option) => option.value === form.value.produk_id)?.item,
+)
+
+const tahapanOptions = computed(() =>
+  masterTahapan.value.map((item) => ({
+    label: `${item.urutan ? `${item.urutan}. ` : ''}${item.nama_tahapan}`,
+    value: item.id,
+    item,
+  })),
+)
+
+const selectedTahapan = computed(
+  () => tahapanOptions.value.find((option) => option.value === form.value.tahapan_fabrikasi_id)?.item,
+)
 
 function generateWorkOrderNumber() {
   const date = new Date()
@@ -699,20 +748,34 @@ const openCreateDialog = () => {
 }
 
 const openEditDialog = (row) => {
+  const matchedProduk = produkOptions.value.find(
+    (option) =>
+      option.value === row.produk_id ||
+      option.item?.nama_produk?.toLowerCase() === row.produk?.toLowerCase() ||
+      option.item?.kode_produk?.toLowerCase() === row.kode_produk?.toLowerCase(),
+  )
+
   editingId.value = row.id
   form.value = {
     nomor_wo: row.nomor_wo || '',
     customer: row.customer || '',
-    produk: row.produk || '',
+    produk_id: matchedProduk?.value || row.produk_id || '',
+    produk: matchedProduk?.item?.nama_produk || row.produk || '',
+    kode_produk: matchedProduk?.item?.kode_produk || row.kode_produk || '',
+    kategori_produk: matchedProduk?.item?.kategori_produk || row.kategori_produk || '',
+    jenis_fabrikasi: matchedProduk?.item?.jenis_fabrikasi || row.jenis_fabrikasi || '',
+    satuan_produk: matchedProduk?.item?.satuan || row.satuan_produk || '',
     qty_target: Number(row.qty_target || 0),
     deadline: row.deadline || '',
     line_produksi: row.line_produksi || '',
+    tahapan_fabrikasi_id: row.tahapan_fabrikasi_id || '',
+    tahapan_fabrikasi: row.tahapan_fabrikasi || '',
     prioritas: row.prioritas || 'Normal',
     pic_produksi: row.pic_produksi || '',
     status_wo: row.status_wo || 'DRAFT',
     materials: row.materials?.length
       ? row.materials.map((material) => ({ ...material }))
-      : [{ nama: '', qty: null, satuan: 'pcs', status: 'Belum Dicek' }],
+      : [],
   }
   showFormDialog.value = true
 }
@@ -735,7 +798,17 @@ const saveWorkOrder = async () => {
   try {
     const payload = {
       ...form.value,
+      produk_id: form.value.produk_id,
+      produk: selectedProduk.value?.nama_produk || form.value.produk,
+      kode_produk: selectedProduk.value?.kode_produk || form.value.kode_produk || '',
+      kategori_produk: selectedProduk.value?.kategori_produk || form.value.kategori_produk || '',
+      jenis_fabrikasi: selectedProduk.value?.jenis_fabrikasi || form.value.jenis_fabrikasi || '',
+      satuan_produk: selectedProduk.value?.satuan || form.value.satuan_produk || '',
       qty_target: Number(form.value.qty_target || 0),
+      line_produksi: selectedTahapan.value?.nama_tahapan || form.value.line_produksi,
+      tahapan_fabrikasi_id: form.value.tahapan_fabrikasi_id,
+      tahapan_fabrikasi: selectedTahapan.value?.nama_tahapan || form.value.tahapan_fabrikasi,
+      urutan_tahapan: Number(selectedTahapan.value?.urutan || form.value.urutan_tahapan || 0),
       materials: normalizeMaterials(form.value.materials),
       updated_at: serverTimestamp(),
     }
@@ -783,10 +856,54 @@ const loadWorkOrders = () => {
   )
 }
 
-onMounted(loadWorkOrders)
+const loadMasterProduk = () => {
+  loadingMasterProduk.value = true
+  if (unsubscribeMasterProduk) unsubscribeMasterProduk()
+
+  unsubscribeMasterProduk = onSnapshot(
+    query(collection(db, 'master_produk'), orderBy('nama_produk', 'asc')),
+    (snapshot) => {
+      masterProduk.value = snapshot.docs
+        .map((produkDoc) => ({ id: produkDoc.id, ...produkDoc.data() }))
+        .filter((item) => item.status !== 'Nonaktif')
+      loadingMasterProduk.value = false
+    },
+    (error) => {
+      console.error(error)
+      loadingMasterProduk.value = false
+      $q.notify({ type: 'negative', message: 'Gagal memuat master produk' })
+    },
+  )
+}
+
+const loadMasterTahapan = () => {
+  loadingMasterTahapan.value = true
+  unsubscribeMasterTahapan = onSnapshot(
+    query(collection(db, 'master_tahapan_fabrikasi'), orderBy('urutan', 'asc')),
+    (snapshot) => {
+      masterTahapan.value = snapshot.docs
+        .map((tahapanDoc) => ({ id: tahapanDoc.id, ...tahapanDoc.data() }))
+        .filter((item) => item.status !== 'Nonaktif')
+      loadingMasterTahapan.value = false
+    },
+    (error) => {
+      console.error(error)
+      loadingMasterTahapan.value = false
+      $q.notify({ type: 'negative', message: 'Gagal memuat master tahapan fabrikasi' })
+    },
+  )
+}
+
+onMounted(() => {
+  loadWorkOrders()
+  loadMasterProduk()
+  loadMasterTahapan()
+})
 
 onUnmounted(() => {
   if (unsubscribeWorkOrders) unsubscribeWorkOrders()
+  if (unsubscribeMasterProduk) unsubscribeMasterProduk()
+  if (unsubscribeMasterTahapan) unsubscribeMasterTahapan()
 })
 </script>
 

@@ -9,8 +9,8 @@
           </span>
         </div>
         <div class="text-subtitle1 text-grey-7 q-mt-sm">
-          Dashboard terpadu untuk memantau Planning Produksi, Line Produksi, QC Produksi, Packing
-          Produksi, dan Ready Delivery dalam satu halaman.
+          Dashboard terpadu untuk memantau SPK Fabrikasi, routing tahapan, produksi, QC, dan
+          finished dalam satu halaman.
         </div>
       </div>
 
@@ -177,9 +177,16 @@
               <div class="text-weight-bold text-green-10">{{ props.row.nama_produk }}</div>
               <div class="text-caption text-grey-6">{{ props.row.customer || '-' }}</div>
             </q-td>
-            <q-td key="line_produksi" :props="props">{{ props.row.line_produksi || '-' }}</q-td>
+            <q-td key="line_produksi" :props="props">
+              <div class="text-weight-bold">{{ props.row.tahapan_aktif || '-' }}</div>
+              <div class="text-caption text-grey-6">Routing {{ props.row.urutan_tahapan || '-' }}</div>
+            </q-td>
             <q-td key="qty_target" :props="props" class="text-weight-bold">
               {{ formatNumber(props.row.qty_target) }}
+            </q-td>
+            <q-td key="assigned_team" :props="props">
+              <div class="text-weight-bold">{{ props.row.assigned_team || '-' }}</div>
+              <div class="text-caption text-grey-6">{{ props.row.jabatan_tim || '-' }}</div>
             </q-td>
             <q-td key="qty_selesai" :props="props" class="text-weight-bold text-positive">
               {{ formatNumber(props.row.qty_selesai) }}
@@ -247,6 +254,7 @@ import { collection, onSnapshot, orderBy, query } from 'firebase/firestore'
 import { db } from 'src/boot/firebase'
 
 const COLLECTIONS = {
+  spk: 'spk_fabrikasi',
   planning: 'planning_produksi_manufaktur',
   line: 'line_produksi_manufaktur',
   qc: 'qc_produksi_manufaktur',
@@ -254,7 +262,7 @@ const COLLECTIONS = {
   delivery: 'ready_delivery_manufaktur',
 }
 
-const statusOptions = ['Waiting', 'On Progress', 'QC', 'Packing', 'Ready Delivery', 'Delivered']
+const statusOptions = ['SPK Fabrikasi', 'Routing Tahapan', 'Produksi', 'QC', 'Finished']
 const statusFilterOptions = [
   { label: 'Semua Status', value: 'all' },
   ...statusOptions.map((status) => ({ label: status, value: status })),
@@ -264,6 +272,7 @@ const $q = useQuasar()
 const loading = ref(false)
 const search = ref('')
 const statusFilter = ref('all')
+const spkRows = ref([])
 const planningRows = ref([])
 const lineRows = ref([])
 const qcRows = ref([])
@@ -273,9 +282,10 @@ let unsubscribers = []
 
 const columns = [
   { name: 'nomor_spk', align: 'left', label: 'Nomor SPK', field: 'nomor_spk', sortable: true },
-  { name: 'nama_produk', align: 'left', label: 'Nama Produk', field: 'nama_produk', sortable: true },
-  { name: 'line_produksi', align: 'left', label: 'Line Produksi', field: 'line_produksi', sortable: true },
+  { name: 'nama_produk', align: 'left', label: 'Material / Produk', field: 'nama_produk', sortable: true },
+  { name: 'line_produksi', align: 'left', label: 'Tahapan Aktif', field: 'tahapan_aktif', sortable: true },
   { name: 'qty_target', align: 'right', label: 'Qty Target', field: 'qty_target', sortable: true },
+  { name: 'assigned_team', align: 'left', label: 'Assigned Team', field: 'assigned_team', sortable: true },
   { name: 'qty_selesai', align: 'right', label: 'Qty Selesai', field: 'qty_selesai', sortable: true },
   { name: 'qty_reject', align: 'right', label: 'Reject QC', field: 'qty_reject', sortable: true },
   { name: 'progress', align: 'left', label: 'Progress Produksi', field: 'progress', sortable: true },
@@ -291,12 +301,17 @@ const monitoringRows = computed(() => {
     if (!map.has(key)) {
       map.set(key, {
         nomor_spk: key,
-        nama_produk: source.nama_produk || '-',
+        nama_produk: source.nama_produk || source.nama_material || '-',
         customer: source.customer || '',
-        line_produksi: source.line_produksi || '',
+        line_produksi: source.line_produksi || source.tahapan_fabrikasi || '',
+        tahapan_aktif: source.tahapan_fabrikasi || source.line_produksi || '',
+        urutan_tahapan: Number(source.urutan_tahapan || 0),
+        assigned_team: source.tim_produksi || source.assigned_team || '',
+        jabatan_tim: source.jabatan_tim || source.jabatan_tim_produksi || '',
         qty_target: Number(source.qty_target || 0),
         qty_selesai: Number(source.qty_selesai || source.qty_packing || source.qty_ready || 0),
         qty_reject: Number(source.qty_reject || source.reject_qty || 0),
+        spk: null,
         planning: null,
         line: null,
         qc: null,
@@ -305,9 +320,14 @@ const monitoringRows = computed(() => {
       })
     }
     const row = map.get(key)
-    row.nama_produk = row.nama_produk !== '-' ? row.nama_produk : source.nama_produk || '-'
+    row.nama_produk =
+      row.nama_produk !== '-' ? row.nama_produk : source.nama_produk || source.nama_material || '-'
     row.customer = row.customer || source.customer || ''
-    row.line_produksi = row.line_produksi || source.line_produksi || ''
+    row.line_produksi = row.line_produksi || source.line_produksi || source.tahapan_fabrikasi || ''
+    row.tahapan_aktif = row.tahapan_aktif || source.tahapan_fabrikasi || source.line_produksi || ''
+    row.urutan_tahapan = row.urutan_tahapan || Number(source.urutan_tahapan || 0)
+    row.assigned_team = row.assigned_team || source.tim_produksi || source.assigned_team || ''
+    row.jabatan_tim = row.jabatan_tim || source.jabatan_tim || source.jabatan_tim_produksi || ''
     row.qty_target = row.qty_target || Number(source.qty_target || source.qty_approved_qc || 0)
     row.qty_selesai =
       row.qty_selesai || Number(source.qty_selesai || source.qty_packing || source.qty_ready || 0)
@@ -315,6 +335,10 @@ const monitoringRows = computed(() => {
     return row
   }
 
+  spkRows.value.forEach((item) => {
+    const row = ensureRow(item)
+    if (row) row.spk = item
+  })
   planningRows.value.forEach((item) => {
     const row = ensureRow(item)
     if (row) row.planning = item
@@ -354,7 +378,15 @@ const filteredRows = computed(() => {
     const matchesStatus = statusFilter.value === 'all' || row.status === statusFilter.value
     const matchesSearch =
       !keyword ||
-      [row.nomor_spk, row.nama_produk, row.customer, row.line_produksi, row.status]
+      [
+        row.nomor_spk,
+        row.nama_produk,
+        row.customer,
+        row.line_produksi,
+        row.tahapan_aktif,
+        row.assigned_team,
+        row.status,
+      ]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(keyword))
     return matchesStatus && matchesSearch
@@ -364,9 +396,17 @@ const filteredRows = computed(() => {
 const summaryCards = computed(() => [
   {
     title: 'Produksi Aktif',
-    value: monitoringRows.value.filter((row) => ['Waiting', 'On Progress', 'QC'].includes(row.status)).length,
+    value: monitoringRows.value.filter((row) =>
+      ['SPK Fabrikasi', 'Routing Tahapan', 'Produksi', 'QC'].includes(row.status),
+    ).length,
     icon: 'precision_manufacturing',
     color: 'green-10',
+  },
+  {
+    title: 'SPK Fabrikasi',
+    value: spkRows.value.length,
+    icon: 'description',
+    color: 'blue-grey-7',
   },
   {
     title: 'QC Pending',
@@ -395,11 +435,12 @@ const summaryCards = computed(() => [
 ])
 
 const flowStages = computed(() => [
-  { title: 'Planning Produksi', value: planningRows.value.length, icon: 'assignment' },
-  { title: 'Line Produksi', value: lineRows.value.length, icon: 'precision_manufacturing' },
-  { title: 'QC Produksi', value: qcRows.value.length, icon: 'fact_check' },
-  { title: 'Packing Produksi', value: packingRows.value.length, icon: 'inventory_2' },
-  { title: 'Ready Delivery', value: deliveryRows.value.length, icon: 'local_shipping' },
+  { title: 'Quotation Approved', value: spkRows.value.filter((row) => row.status_pekerjaan === 'Quotation Approved').length, icon: 'verified' },
+  { title: 'SPK Fabrikasi', value: spkRows.value.length, icon: 'description' },
+  { title: 'Routing Tahapan', value: spkRows.value.filter((row) => row.tahapan_fabrikasi_id).length, icon: 'route' },
+  { title: 'Produksi', value: spkRows.value.filter((row) => row.status_pekerjaan === 'Produksi').length + lineRows.value.length, icon: 'precision_manufacturing' },
+  { title: 'QC', value: qcRows.value.length, icon: 'fact_check' },
+  { title: 'Finished', value: spkRows.value.filter((row) => row.status_pekerjaan === 'Finished').length + deliveryRows.value.length, icon: 'inventory' },
 ])
 
 const averageProgress = computed(() => {
@@ -413,13 +454,14 @@ const timelineItems = computed(() =>
     nomor_spk: row.nomor_spk,
     title: `${row.nomor_spk} - ${row.status}`,
     subtitle: row.nama_produk || '-',
-    caption: `${row.line_produksi || 'Line belum ditentukan'} | Progress ${row.progress}%`,
+    caption: `${row.tahapan_aktif || 'Tahapan belum ditentukan'} | ${row.assigned_team || 'Tim belum ditentukan'} | Progress ${row.progress}%`,
     icon: statusIcon(row.status),
     color: statusColor(row.status),
   })),
 )
 
 const realtimeStatus = (row) => {
+  if (row.spk?.status_pekerjaan) return row.spk.status_pekerjaan
   if (row.delivery?.status_delivery === 'DELIVERED') return 'Delivered'
   if (row.delivery?.status_delivery === 'READY_DELIVERY') return 'Ready Delivery'
   if (row.delivery?.status_delivery === 'WAITING_PICKUP') return 'Ready Delivery'
@@ -428,11 +470,13 @@ const realtimeStatus = (row) => {
   if (row.qc?.status_qc === 'QC_APPROVED') return 'Packing'
   if (row.qc?.status_qc === 'QC_PROCESS' || row.qc?.status_qc === 'MENUNGGU_QC') return 'QC'
   if (row.line?.status === 'On Progress' || row.planning?.status === 'On Progress') return 'On Progress'
-  return 'Waiting'
+  return 'SPK Fabrikasi'
 }
 
 const productionProgress = (row) => {
+  if (row.spk) return Math.min(Math.max(Number(row.spk.progress || 0), 0), 100)
   if (row.status === 'Delivered') return 100
+  if (row.status === 'Finished') return 100
   if (row.status === 'Ready Delivery') return 90
   if (row.status === 'Packing') return 75
   if (row.status === 'QC') return 60
@@ -443,15 +487,25 @@ const productionProgress = (row) => {
 }
 
 const buildStages = (row) => [
-  { key: 'planning', label: 'Planning Produksi', icon: 'assignment', done: !!row.planning },
-  { key: 'line', label: 'Line Produksi', icon: 'precision_manufacturing', done: !!row.line },
-  { key: 'qc', label: 'QC Produksi', icon: 'fact_check', done: !!row.qc },
-  { key: 'packing', label: 'Packing Produksi', icon: 'inventory_2', done: !!row.packing },
-  { key: 'delivery', label: 'Ready Delivery', icon: 'local_shipping', done: !!row.delivery },
+  { key: 'quotation', label: 'Quotation Approved', icon: 'verified', done: !!row.spk },
+  { key: 'spk', label: 'SPK Fabrikasi', icon: 'description', done: !!row.spk },
+  { key: 'routing', label: 'Routing Tahapan', icon: 'route', done: !!row.tahapan_aktif },
+  {
+    key: 'produksi',
+    label: 'Produksi',
+    icon: 'precision_manufacturing',
+    done: !!row.line || ['Produksi', 'QC', 'Finished'].includes(row.status),
+  },
+  { key: 'qc', label: 'QC', icon: 'fact_check', done: !!row.qc || ['QC', 'Finished'].includes(row.status) },
+  { key: 'finished', label: 'Finished', icon: 'inventory', done: row.status === 'Finished' || !!row.delivery },
 ]
 
 const statusColor = (status) => {
   const colors = {
+    'SPK Fabrikasi': 'green-10',
+    'Routing Tahapan': 'deep-purple-6',
+    Produksi: 'orange-9',
+    Finished: 'positive',
     Waiting: 'blue-grey-6',
     'On Progress': 'orange-9',
     QC: 'deep-purple-6',
@@ -464,6 +518,10 @@ const statusColor = (status) => {
 
 const statusIcon = (status) => {
   const icons = {
+    'SPK Fabrikasi': 'description',
+    'Routing Tahapan': 'route',
+    Produksi: 'precision_manufacturing',
+    Finished: 'inventory',
     Waiting: 'hourglass_empty',
     'On Progress': 'precision_manufacturing',
     QC: 'fact_check',
@@ -506,6 +564,7 @@ const loadMonitoring = () => {
   loading.value = true
   unsubscribers.forEach((unsubscribe) => unsubscribe())
   unsubscribers = [
+    subscribeCollection(COLLECTIONS.spk, spkRows),
     subscribeCollection(COLLECTIONS.planning, planningRows),
     subscribeCollection(COLLECTIONS.line, lineRows),
     subscribeCollection(COLLECTIONS.qc, qcRows),

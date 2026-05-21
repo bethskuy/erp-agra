@@ -245,12 +245,17 @@
               </div>
               <div class="col-12 col-md-6">
                 <q-select
-                  v-model="form.jenis_packing"
-                  :options="packingTypeOptions"
+                  v-model="form.jenis_pekerjaan_id"
+                  :options="jenisPekerjaanOptions"
                   outlined
                   dense
-                  label="Jenis Packing"
-                  :rules="[(val) => !!val || 'Jenis packing wajib dipilih']"
+                  emit-value
+                  map-options
+                  option-label="label"
+                  option-value="value"
+                  label="Jenis Pekerjaan"
+                  :loading="loadingMasterJenis"
+                  :rules="[(val) => !!val || 'Jenis pekerjaan wajib dipilih']"
                 />
               </div>
               <div class="col-12 col-md-6">
@@ -325,24 +330,28 @@ const statusFilterOptions = [
   { label: 'Semua Status', value: 'all' },
   ...statusOptions.map((status) => ({ label: status, value: status })),
 ]
-const packingTypeOptions = ['Dus', 'Box', 'Pallet', 'Crate', 'Wrapping']
 
 const $q = useQuasar()
 const rows = ref([])
+const masterJenisPekerjaan = ref([])
 const loading = ref(false)
+const loadingMasterJenis = ref(true)
 const submitting = ref(false)
 const search = ref('')
 const statusFilter = ref('all')
 const showPackingDialog = ref(false)
 const selectedRow = ref(null)
 let unsubscribePacking = null
+let unsubscribeMasterJenis = null
 
 const defaultForm = () => ({
   nomor_spk: '',
   nama_produk: '',
   qty_approved_qc: null,
   qty_packing: null,
+  jenis_pekerjaan_id: '',
   jenis_packing: '',
+  kode_jenis: '',
   checker_packing: '',
   tanggal_packing: new Date().toISOString().slice(0, 10),
   status_packing: 'MENUNGGU_PACKING',
@@ -409,6 +418,18 @@ const dialogTitle = computed(() =>
   selectedRow.value ? 'Update Packing Produksi' : 'Input Packing Produksi',
 )
 
+const jenisPekerjaanOptions = computed(() =>
+  masterJenisPekerjaan.value.map((item) => ({
+    label: `${item.kode_jenis ? `${item.kode_jenis} - ` : ''}${item.nama_jenis}`,
+    value: item.id,
+    item,
+  })),
+)
+
+const selectedJenisPekerjaan = computed(
+  () => jenisPekerjaanOptions.value.find((option) => option.value === form.value.jenis_pekerjaan_id)?.item,
+)
+
 const packingProgress = (row) => {
   const approved = Number(row.qty_approved_qc || 0)
   if (!approved) return 0
@@ -452,7 +473,9 @@ const openPackingDialog = (row = null) => {
         nama_produk: row.nama_produk || '',
         qty_approved_qc: Number(row.qty_approved_qc || 0),
         qty_packing: Number(row.qty_packing || 0),
+        jenis_pekerjaan_id: row.jenis_pekerjaan_id || '',
         jenis_packing: row.jenis_packing || '',
+        kode_jenis: row.kode_jenis || '',
         checker_packing: row.checker_packing || '',
         tanggal_packing: row.tanggal_packing || new Date().toISOString().slice(0, 10),
         status_packing: row.status_packing || 'MENUNGGU_PACKING',
@@ -467,6 +490,10 @@ const savePacking = async () => {
     ...form.value,
     qty_approved_qc: Number(form.value.qty_approved_qc || 0),
     qty_packing: Number(form.value.qty_packing || 0),
+    jenis_pekerjaan_id: form.value.jenis_pekerjaan_id,
+    kode_jenis: selectedJenisPekerjaan.value?.kode_jenis || form.value.kode_jenis || '',
+    jenis_packing: selectedJenisPekerjaan.value?.nama_jenis || form.value.jenis_packing,
+    deskripsi_jenis_pekerjaan: selectedJenisPekerjaan.value?.deskripsi || '',
     updated_at: serverTimestamp(),
   }
 
@@ -514,10 +541,32 @@ const loadPackingRows = () => {
   )
 }
 
-onMounted(loadPackingRows)
+const loadMasterJenisPekerjaan = () => {
+  loadingMasterJenis.value = true
+  unsubscribeMasterJenis = onSnapshot(
+    query(collection(db, 'master_jenis_pekerjaan'), orderBy('nama_jenis', 'asc')),
+    (snapshot) => {
+      masterJenisPekerjaan.value = snapshot.docs
+        .map((jenisDoc) => ({ id: jenisDoc.id, ...jenisDoc.data() }))
+        .filter((item) => item.status !== 'Nonaktif')
+      loadingMasterJenis.value = false
+    },
+    (error) => {
+      console.error(error)
+      loadingMasterJenis.value = false
+      $q.notify({ type: 'negative', message: 'Gagal memuat master jenis pekerjaan' })
+    },
+  )
+}
+
+onMounted(() => {
+  loadPackingRows()
+  loadMasterJenisPekerjaan()
+})
 
 onUnmounted(() => {
   if (unsubscribePacking) unsubscribePacking()
+  if (unsubscribeMasterJenis) unsubscribeMasterJenis()
 })
 </script>
 

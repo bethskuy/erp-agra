@@ -219,12 +219,18 @@
                 />
               </div>
               <div class="col-12">
-                <q-input
-                  v-model="form.material"
+                <q-select
+                  v-model="form.material_id"
+                  :options="materialOptions"
                   outlined
                   dense
+                  emit-value
+                  map-options
+                  option-label="label"
+                  option-value="value"
                   label="Material"
-                  :rules="[(val) => !!val || 'Material wajib diisi']"
+                  :loading="loadingMasterMaterial"
+                  :rules="[(val) => !!val || 'Material wajib dipilih']"
                 />
               </div>
               <div class="col-12 col-md-4">
@@ -367,7 +373,9 @@ const statusFilterOptions = [
 
 const $q = useQuasar()
 const rows = ref([])
+const masterMaterials = ref([])
 const loading = ref(false)
+const loadingMasterMaterial = ref(true)
 const submitting = ref(false)
 const search = ref('')
 const statusFilter = ref('all')
@@ -376,11 +384,15 @@ const showStockDialog = ref(false)
 const selectedRow = ref(null)
 const editingId = ref(null)
 let unsubscribeRequirements = null
+let unsubscribeMasterMaterials = null
 
 const defaultForm = () => ({
   nomor_wo: '',
   produk: '',
+  material_id: '',
   material: '',
+  kode_material: '',
+  satuan: '',
   qty_kebutuhan: null,
   stok_tersedia: 0,
 })
@@ -475,6 +487,18 @@ const stockMessage = computed(() => {
 
 const formModeLabel = computed(() => (editingId.value ? 'Edit' : 'Tambah'))
 
+const materialOptions = computed(() =>
+  masterMaterials.value.map((item) => ({
+    label: `${item.kode_material ? `${item.kode_material} - ` : ''}${item.nama_material}`,
+    value: item.id,
+    item,
+  })),
+)
+
+const selectedMaterial = computed(
+  () => materialOptions.value.find((option) => option.value === form.value.material_id)?.item,
+)
+
 const calculateShortage = (required, available) =>
   Math.max(Number(required || 0) - Number(available || 0), 0)
 
@@ -510,7 +534,12 @@ const buildPayload = () => {
   return {
     nomor_wo: form.value.nomor_wo,
     produk: form.value.produk,
-    material: form.value.material,
+    material_id: form.value.material_id,
+    material: selectedMaterial.value?.nama_material || form.value.material,
+    kode_material: selectedMaterial.value?.kode_material || form.value.kode_material,
+    satuan: selectedMaterial.value?.satuan || form.value.satuan,
+    kategori_material: selectedMaterial.value?.kategori || '',
+    ukuran_material: selectedMaterial.value?.ukuran || '',
     qty_kebutuhan: qtyKebutuhan,
     stok_tersedia: stokTersedia,
     qty_kurang: qtyKurang,
@@ -530,7 +559,10 @@ const openEditDialog = (row) => {
   form.value = {
     nomor_wo: row.nomor_wo || '',
     produk: row.produk || '',
+    material_id: row.material_id || '',
     material: row.material || '',
+    kode_material: row.kode_material || '',
+    satuan: row.satuan || '',
     qty_kebutuhan: Number(row.qty_kebutuhan || 0),
     stok_tersedia: Number(row.stok_tersedia || 0),
   }
@@ -589,10 +621,32 @@ const loadRequirements = () => {
   )
 }
 
-onMounted(loadRequirements)
+const loadMasterMaterials = () => {
+  loadingMasterMaterial.value = true
+  unsubscribeMasterMaterials = onSnapshot(
+    query(collection(db, 'master_material'), orderBy('nama_material', 'asc')),
+    (snapshot) => {
+      masterMaterials.value = snapshot.docs
+        .map((materialDoc) => ({ id: materialDoc.id, ...materialDoc.data() }))
+        .filter((item) => item.status !== 'Nonaktif')
+      loadingMasterMaterial.value = false
+    },
+    (error) => {
+      console.error(error)
+      loadingMasterMaterial.value = false
+      $q.notify({ type: 'negative', message: 'Gagal memuat master material' })
+    },
+  )
+}
+
+onMounted(() => {
+  loadRequirements()
+  loadMasterMaterials()
+})
 
 onUnmounted(() => {
   if (unsubscribeRequirements) unsubscribeRequirements()
+  if (unsubscribeMasterMaterials) unsubscribeMasterMaterials()
 })
 </script>
 

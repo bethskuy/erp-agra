@@ -242,6 +242,41 @@ const routes = [
         name: 'manufaktur-master-satuan',
         component: () => import('pages/manufaktur/Master/DataSatuan/MasterSatuanPage.vue'),
       },
+      {
+        path: 'master-produksi/material',
+        name: 'manufaktur-master-produksi-material',
+        component: () => import('pages/manufaktur/Master/MasterMaterialPage.vue'),
+      },
+      {
+        path: 'master-produksi/produk',
+        name: 'manufaktur-master-produksi-produk',
+        component: () => import('pages/manufaktur/Master/DataProduk/MasterProdukPage.vue'),
+      },
+      {
+        path: 'master-produksi/tahapan-fabrikasi',
+        name: 'manufaktur-master-produksi-tahapan-fabrikasi',
+        component: () => import('pages/manufaktur/Master/MasterTahapanFabrikasiPage.vue'),
+      },
+      {
+        path: 'master-produksi/qc-checklist',
+        name: 'manufaktur-master-produksi-qc-checklist',
+        component: () => import('pages/manufaktur/Master/MasterQcChecklistPage.vue'),
+      },
+      {
+        path: 'master-produksi/tools',
+        name: 'manufaktur-master-produksi-tools',
+        component: () => import('pages/manufaktur/Master/MasterToolsPage.vue'),
+      },
+      {
+        path: 'master-produksi/tim-produksi',
+        name: 'manufaktur-master-produksi-tim-produksi',
+        component: () => import('pages/manufaktur/Master/MasterTimProduksiPage.vue'),
+      },
+      {
+        path: 'master-produksi/jenis-pekerjaan',
+        name: 'manufaktur-master-produksi-jenis-pekerjaan',
+        component: () => import('pages/manufaktur/Master/MasterJenisPekerjaanPage.vue'),
+      },
       // --- MENU SISTEM PENAWARAN (REVISI SESUAI GAMBAR) ---
       {
         path: 'penawaran',
@@ -262,6 +297,11 @@ const routes = [
       },
 
       // --- SECTION 2: PPIC ---
+      {
+        path: 'ppic/spk-fabrikasi',
+        name: 'manufaktur-ppic-spk-fabrikasi',
+        component: () => import('pages/manufaktur/PPIC/SPKProduksiPage.vue'),
+      },
       {
         path: 'ppic/work-order',
         name: 'manufaktur-ppic-work-order',

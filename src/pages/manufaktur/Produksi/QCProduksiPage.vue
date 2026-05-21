@@ -119,6 +119,10 @@
               <div class="text-caption text-grey-6">{{ props.row.line_produksi || '-' }}</div>
             </q-td>
             <q-td key="line_produksi" :props="props">{{ props.row.line_produksi || '-' }}</q-td>
+            <q-td key="qc_checklist" :props="props">
+              <div class="text-weight-bold">{{ props.row.nama_pengecekan || '-' }}</div>
+              <div class="text-caption text-grey-6">{{ props.row.parameter_qc || '-' }}</div>
+            </q-td>
             <q-td key="qty_produksi" :props="props" class="text-weight-bold">
               {{ formatNumber(props.row.qty_produksi) }}
             </q-td>
@@ -207,6 +211,39 @@
               </div>
             </div>
 
+            <div class="row q-col-gutter-md">
+              <div class="col-12 col-md-6">
+                <q-select
+                  v-model="selectedQcChecklistId"
+                  :options="qcChecklistOptions"
+                  outlined
+                  dense
+                  emit-value
+                  map-options
+                  option-label="label"
+                  option-value="value"
+                  label="QC Checklist"
+                  :loading="loadingMasterQc"
+                  :rules="[(val) => !!val || 'QC checklist wajib dipilih']"
+                />
+              </div>
+              <div class="col-12 col-md-6">
+                <q-select
+                  v-model="selectedToolId"
+                  :options="toolOptions"
+                  outlined
+                  dense
+                  emit-value
+                  map-options
+                  option-label="label"
+                  option-value="value"
+                  label="Tools / Peralatan"
+                  :loading="loadingMasterTools"
+                  clearable
+                />
+              </div>
+            </div>
+
             <q-input
               v-model="qcNote"
               outlined
@@ -253,20 +290,29 @@ const statusFilterOptions = [
 const $q = useQuasar()
 const authStore = useAuthStore()
 const rows = ref([])
+const masterQcChecklist = ref([])
+const masterTools = ref([])
 const loading = ref(false)
+const loadingMasterQc = ref(true)
+const loadingMasterTools = ref(true)
 const search = ref('')
 const statusFilter = ref('all')
 const showQcDialog = ref(false)
 const selectedRow = ref(null)
+const selectedQcChecklistId = ref('')
+const selectedToolId = ref('')
 const qcNote = ref('')
 const actionType = ref('')
 const updatingId = ref(null)
 let unsubscribeQc = null
+let unsubscribeMasterQc = null
+let unsubscribeMasterTools = null
 
 const columns = [
   { name: 'nomor_spk', align: 'left', label: 'Nomor SPK', field: 'nomor_spk', sortable: true },
   { name: 'nama_produk', align: 'left', label: 'Nama Produk', field: 'nama_produk', sortable: true },
   { name: 'line_produksi', align: 'left', label: 'Line Produksi', field: 'line_produksi', sortable: true },
+  { name: 'qc_checklist', align: 'left', label: 'QC Checklist', field: 'nama_pengecekan', sortable: true },
   { name: 'qty_produksi', align: 'right', label: 'Qty Produksi', field: 'qty_produksi', sortable: true },
   { name: 'qty_reject', align: 'right', label: 'Qty Reject', field: 'qty_reject', sortable: true },
   { name: 'checker_qc', align: 'left', label: 'Checker QC', field: 'checker_qc' },
@@ -287,6 +333,9 @@ const filteredRows = computed(() => {
         row.nomor_spk,
         row.nama_produk,
         row.line_produksi,
+        row.nama_pengecekan,
+        row.parameter_qc,
+        row.nama_tools,
         row.checker_qc,
         row.catatan_qc,
         rowStatus,
@@ -327,6 +376,30 @@ const currentCheckerName = computed(
   () => authStore.user?.displayName || authStore.user?.email || 'Checker QC',
 )
 
+const qcChecklistOptions = computed(() =>
+  masterQcChecklist.value.map((item) => ({
+    label: `${item.kode_qc ? `${item.kode_qc} - ` : ''}${item.nama_pengecekan}`,
+    value: item.id,
+    item,
+  })),
+)
+
+const toolOptions = computed(() =>
+  masterTools.value.map((item) => ({
+    label: `${item.kode_tools ? `${item.kode_tools} - ` : ''}${item.nama_tools}`,
+    value: item.id,
+    item,
+  })),
+)
+
+const selectedQcChecklist = computed(
+  () => qcChecklistOptions.value.find((option) => option.value === selectedQcChecklistId.value)?.item,
+)
+
+const selectedTool = computed(
+  () => toolOptions.value.find((option) => option.value === selectedToolId.value)?.item,
+)
+
 const statusColor = (status) => {
   const colors = {
     MENUNGGU_QC: 'blue-grey-6',
@@ -352,6 +425,8 @@ const formatDateTime = (value) => {
 const openQcDialog = (row, type) => {
   selectedRow.value = row
   actionType.value = type
+  selectedQcChecklistId.value = row.qc_checklist_id || ''
+  selectedToolId.value = row.tools_id || ''
   qcNote.value = row.catatan_qc || ''
   showQcDialog.value = true
 }
@@ -364,6 +439,15 @@ const submitQcAction = async () => {
   try {
     await updateDoc(doc(db, COLLECTION_NAME, selectedRow.value.id), {
       status_qc: nextStatus,
+      qc_checklist_id: selectedQcChecklistId.value,
+      kode_qc: selectedQcChecklist.value?.kode_qc || selectedRow.value.kode_qc || '',
+      nama_pengecekan: selectedQcChecklist.value?.nama_pengecekan || selectedRow.value.nama_pengecekan || '',
+      parameter_qc: selectedQcChecklist.value?.parameter || selectedRow.value.parameter_qc || '',
+      toleransi_qc: selectedQcChecklist.value?.toleransi || selectedRow.value.toleransi_qc || '',
+      satuan_qc: selectedQcChecklist.value?.satuan || selectedRow.value.satuan_qc || '',
+      tools_id: selectedToolId.value || '',
+      kode_tools: selectedTool.value?.kode_tools || selectedRow.value.kode_tools || '',
+      nama_tools: selectedTool.value?.nama_tools || selectedRow.value.nama_tools || '',
       checker_qc: currentCheckerName.value,
       catatan_qc: qcNote.value,
       tanggal_qc: serverTimestamp(),
@@ -404,10 +488,52 @@ const loadQcRows = () => {
   )
 }
 
-onMounted(loadQcRows)
+const loadMasterQcChecklist = () => {
+  loadingMasterQc.value = true
+  unsubscribeMasterQc = onSnapshot(
+    query(collection(db, 'master_qc_checklist'), orderBy('nama_pengecekan', 'asc')),
+    (snapshot) => {
+      masterQcChecklist.value = snapshot.docs
+        .map((qcDoc) => ({ id: qcDoc.id, ...qcDoc.data() }))
+        .filter((item) => item.status !== 'Nonaktif')
+      loadingMasterQc.value = false
+    },
+    (error) => {
+      console.error(error)
+      loadingMasterQc.value = false
+      $q.notify({ type: 'negative', message: 'Gagal memuat master QC checklist' })
+    },
+  )
+}
+
+const loadMasterTools = () => {
+  loadingMasterTools.value = true
+  unsubscribeMasterTools = onSnapshot(
+    query(collection(db, 'master_tools'), orderBy('nama_tools', 'asc')),
+    (snapshot) => {
+      masterTools.value = snapshot.docs
+        .map((toolDoc) => ({ id: toolDoc.id, ...toolDoc.data() }))
+        .filter((item) => item.status !== 'Nonaktif')
+      loadingMasterTools.value = false
+    },
+    (error) => {
+      console.error(error)
+      loadingMasterTools.value = false
+      $q.notify({ type: 'negative', message: 'Gagal memuat master tools' })
+    },
+  )
+}
+
+onMounted(() => {
+  loadQcRows()
+  loadMasterQcChecklist()
+  loadMasterTools()
+})
 
 onUnmounted(() => {
   if (unsubscribeQc) unsubscribeQc()
+  if (unsubscribeMasterQc) unsubscribeMasterQc()
+  if (unsubscribeMasterTools) unsubscribeMasterTools()
 })
 </script>
 
