@@ -189,7 +189,7 @@
     </template>
 
     <!-- =====================================================================================
-         VIEW 2: DETAIL PROFIL (VIEW SWITCHER - DESIGN BARU SANGAT MODERN & ELEGAN)
+         VIEW 2: DETAIL PROFIL (DESAIN MODERN & KARTU IDENTITAS BIOMETRIK TERINTEGRASI)
          ===================================================================================== -->
     <template v-else-if="currentView === 'detail'">
       <!-- TOP NAVIGATION BAR -->
@@ -491,13 +491,89 @@
               </q-card>
             </div>
           </div>
+
+          <!-- =====================================================================================
+               REVISI BARU: KARTU IDENTITAS DIGITAL & BIOMETRIK WAJAH (QR CODE & FOTO REGISTRASI)
+               ===================================================================================== -->
+          <q-card flat bordered class="rounded-20 shadow-premium bg-white border-subtle q-mt-lg">
+            <q-card-section class="q-pa-lg border-bottom-subtle row items-center">
+              <q-avatar
+                size="32px"
+                color="orange-50"
+                text-color="orange-8"
+                icon="badge"
+                class="q-mr-sm rounded-8"
+              />
+              <div class="text-slate-800 text-subtitle1 text-weight-bold">
+                Kartu Identitas Digital & Biometrik Wajah
+              </div>
+            </q-card-section>
+
+            <q-card-section class="q-pa-lg">
+              <div class="row q-col-gutter-lg items-center justify-center">
+                <!-- Foto Registrasi Biometrik (Master Wajah AI) -->
+                <div class="col-12 col-sm-6 text-center border-right-subtle">
+                  <div
+                    class="text-caption text-slate-500 font-bold uppercase tracking-wider q-mb-md"
+                  >
+                    Foto Registrasi Biometrik (Acuan AI)
+                  </div>
+                  <div class="relative-position inline-block">
+                    <q-img
+                      v-if="selectedKaryawan.foto_registrasi"
+                      :src="selectedKaryawan.foto_registrasi"
+                      style="width: 150px; height: 180px; border-radius: 12px; object-fit: cover"
+                      class="shadow-5"
+                    />
+                    <div
+                      v-else
+                      class="text-slate-400 italic q-pa-xl bg-slate-50 rounded-12 border-dashed"
+                    >
+                      Foto Registrasi belum terdaftar
+                    </div>
+                    <q-badge
+                      color="red-6"
+                      class="absolute-bottom-right q-ma-xs q-py-xs q-px-sm rounded-6 shadow-1"
+                    >
+                      <q-icon name="lock" class="q-mr-xs" /> LOCKED
+                    </q-badge>
+                  </div>
+                </div>
+
+                <!-- Barcode / QR Code Presensi -->
+                <div class="col-12 col-sm-6 text-center">
+                  <div
+                    class="text-caption text-slate-500 font-bold uppercase tracking-wider q-mb-md"
+                  >
+                    QR Code Absensi Digital
+                  </div>
+                  <div class="inline-block q-pa-sm bg-white rounded-16 border-subtle shadow-soft">
+                    <q-img
+                      :src="
+                        'https://api.qrserver.com/v1/create-qr-code/?size=150x150&color=1a237e&data=' +
+                        selectedKaryawan.nik
+                      "
+                      style="width: 150px; height: 150px"
+                      class="img-qr"
+                    />
+                  </div>
+                  <div class="text-subtitle2 text-weight-bolder text-indigo-10 font-mono q-mt-sm">
+                    {{ selectedKaryawan.nik }}
+                  </div>
+                  <div class="text-caption text-slate-400">
+                    Scan QR Code untuk verifikasi instan di lapangan
+                  </div>
+                </div>
+              </div>
+            </q-card-section>
+          </q-card>
         </div>
       </div>
       <div class="q-py-xl"></div>
     </template>
 
     <!-- =====================================================================================
-         VIEW 3: FORM REGISTRASI / EDIT (VIEW SWITCHER - NO BORING DIALOGS!)
+         VIEW 3: FORM REGISTRASI / EDIT (DENGAN TAMBAHAN FORM UPLOAD FOTO REGISTRASI WAJAH)
          ===================================================================================== -->
     <template v-else-if="currentView === 'form'">
       <div class="row items-center justify-between q-mb-xl animate-fade">
@@ -667,7 +743,7 @@
               </q-card>
             </div>
 
-            <!-- Divisi & Media -->
+            <!-- Divisi, Media & Foto Registrasi Terkunci -->
             <div class="col-12 col-md-5">
               <q-card flat bordered class="rounded-borders q-pa-lg bg-white shadow-soft">
                 <!-- Section Header Modern Proporsional -->
@@ -738,6 +814,58 @@
                   class="q-mb-xl"
                 >
                   <template v-slot:prepend><q-icon name="cloud_upload" /></template>
+                </q-file>
+
+                <!-- =====================================================================================
+                     REVISI BARU: FORM REGISTER FOTO BIOMETRIK ABSEN (SATU KALI UNGHAH / TERKUNCI)
+                     ===================================================================================== -->
+                <div class="row items-center q-mb-md">
+                  <q-avatar
+                    size="36px"
+                    color="orange-50"
+                    text-color="orange-8"
+                    icon="face"
+                    class="q-mr-sm rounded-8 shadow-sm"
+                  />
+                  <div>
+                    <div
+                      class="text-subtitle1 text-weight-bold text-slate-800 leading-none q-mb-xs"
+                    >
+                      Foto Registrasi Absen (Terkunci)
+                    </div>
+                    <div class="text-caption text-grey-6 leading-none">
+                      Digunakan AI untuk verifikasi wajah absensi (Sekali Upload)
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Jika sedang Edit Mode, tampilkan foto registrasi yang terkunci -->
+                <div
+                  v-if="isEditMode && form.foto_registrasi"
+                  class="text-center q-pa-md rounded-12 border-subtle bg-slate-50 q-mb-xl"
+                >
+                  <q-img
+                    :src="form.foto_registrasi"
+                    style="max-width: 150px; border-radius: 12px"
+                    class="shadow-sm q-mb-xs"
+                  />
+                  <div class="text-caption text-weight-bold text-red-7">
+                    <q-icon name="lock" class="q-mr-xs" /> FOTO REGISTRASI TERKUNCI
+                  </div>
+                </div>
+
+                <!-- Jika Karyawan Baru, wajibkan upload foto registrasi wajah -->
+                <q-file
+                  v-else
+                  outlined
+                  v-model="fotoRegistrasiFile"
+                  label="Pilih Foto Registrasi (Wajah Jelas)"
+                  accept="image/*"
+                  dense
+                  class="q-mb-xl"
+                  :rules="[(val) => !!val || 'Foto registrasi wajib diunggah untuk basis data AI!']"
+                >
+                  <template v-slot:prepend><q-icon name="badge" /></template>
                 </q-file>
 
                 <!-- Section Header Modern Proporsional -->
@@ -921,6 +1049,9 @@ const jabatanOptions = ref([])
 const docList = ref([{ name: '', file: null }])
 const fotoFile = ref(null)
 
+// REVISI STATE: FILE ABSEN FOTO REGISTRASI WAJAH KARYAWAN
+const fotoRegistrasiFile = ref(null)
+
 // Static Divisi Options
 const divisiOptions = ['Konstruksi', 'Manufaktur']
 
@@ -938,6 +1069,7 @@ const formDefault = {
   alamat: '',
   divisi: '',
   akses: [],
+  foto_registrasi: '', // Default field registrasi
 }
 const form = ref({ ...formDefault })
 
@@ -963,7 +1095,6 @@ const filteredJabatanOptions = computed(() => {
     return options
   }
 
-  // Saring/Hapus pilihan 'Super Admin' jika yang login bukan Super Admin
   return options.filter((opt) => {
     const label = opt.label?.toLowerCase() || ''
     const val = opt.value?.toLowerCase() || ''
@@ -1049,6 +1180,7 @@ const editKaryawan = (data) => {
   form.value = { ...data, password: '' }
   docList.value = data.docs ? [...data.docs] : [{ name: '', file: null }]
   fotoFile.value = null
+  fotoRegistrasiFile.value = null // Reset file buffer registrasi baru
   currentView.value = 'form'
   window.scrollTo(0, 0)
 }
@@ -1058,6 +1190,7 @@ const openDialog = () => {
   form.value = { ...formDefault, nik: 'KRY-' + Date.now().toString().slice(-6) }
   docList.value = [{ name: '', file: null }]
   fotoFile.value = null
+  fotoRegistrasiFile.value = null // Reset file buffer registrasi baru
   currentView.value = 'form'
   window.scrollTo(0, 0)
 }
@@ -1072,10 +1205,20 @@ const saveKaryawan = async () => {
     return
   }
 
+  // Validasi Foto Registrasi Wajib untuk Karyawan Baru
+  if (!isEditMode.value && !fotoRegistrasiFile.value) {
+    $q.notify({
+      type: 'warning',
+      message: 'Foto Registrasi Wajah wajib diunggah untuk data acuan AI Absensi!',
+    })
+    return
+  }
+
   $q.loading.show({ message: 'Menyimpan data karyawan...' })
   submitting.value = true
 
   try {
+    // 1. Upload Foto Profil (Bisa diubah sesuka hati)
     let fotoUrl = form.value.fotoUrl || null
     if (fotoFile.value) {
       const fRef = storageRef(storage, `karyawan/avatars/${Date.now()}_${fotoFile.value.name}`)
@@ -1083,8 +1226,20 @@ const saveKaryawan = async () => {
       fotoUrl = await getDownloadURL(fRef)
     }
 
+    // 2. Upload Foto Registrasi Biometrik Wajah (Hanya sekali saja saat registrasi awal / isEditMode: false)
+    let fotoRegistrasiUrl = form.value.foto_registrasi || null
+    if (fotoRegistrasiFile.value && !isEditMode.value) {
+      const regRef = storageRef(
+        storage,
+        `karyawan/registrasi/${Date.now()}_${fotoRegistrasiFile.value.name}`,
+      )
+      await uploadBytes(regRef, fotoRegistrasiFile.value)
+      fotoRegistrasiUrl = await getDownloadURL(regRef)
+    }
+
     const payload = JSON.parse(JSON.stringify(form.value))
     payload.fotoUrl = fotoUrl
+    payload.foto_registrasi = fotoRegistrasiUrl // Inject URL registrasi terkunci
     payload.updatedAt = serverTimestamp()
 
     const docId = payload.id
@@ -1111,7 +1266,6 @@ const saveKaryawan = async () => {
   }
 }
 
-// FIXED: Hapus Karyawan dengan dialog konfirmasi yang fungsional
 const deleteKaryawan = (row) => {
   $q.dialog({
     title: '<span class="text-red text-weight-bold">Konfirmasi Hapus</span>',
@@ -1148,7 +1302,7 @@ const deleteKaryawan = (row) => {
 }
 
 // ============================================================================
-// PREMIUM EXPORTS (BEAUTIFUL & COLORFUL)
+// PREMIUM EXPORTS
 // ============================================================================
 const exportToExcel = () => {
   try {
@@ -1300,16 +1454,6 @@ const openLink = (url) => {
   if (url) window.open(url, '_blank')
 }
 
-// eslint-disable-next-line no-unused-vars
-const isImage = (url) => {
-  if (!url) return false
-  return (
-    url.match(/\.(jpeg|jpg|gif|png|webp)$/i) != null ||
-    url.includes('alt=media') ||
-    url.startsWith('data:image/')
-  )
-}
-
 const formatDateIndo = (d) => {
   if (!d || d === '-') return '-'
   const date = new Date(d)
@@ -1330,7 +1474,7 @@ onMounted(async () => {
     })
   }
 
-  // 2. Ambil List Karyawan Real-time (SINKRONISASI TOTAL: JS Sorting di memori untuk mencegah hilangnya data lama tanpa createdAt)
+  // 2. Ambil List Karyawan Real-time (SINKRONISASI TOTAL)
   const qKaryawan = query(collection(db, 'karyawan'))
   unsubKaryawan = onSnapshot(
     qKaryawan,
@@ -1342,12 +1486,10 @@ onMounted(async () => {
           const dateB = b.createdAt?.seconds ? b.createdAt.seconds : 0
           return dateB - dateA
         })
-      // eslint-disable-next-line no-undef
       loading.value = false
     },
     (err) => {
       console.error(err)
-      // eslint-disable-next-line no-undef
       loading.value = false
     },
   )
@@ -1367,6 +1509,8 @@ onUnmounted(() => {
   if (unsubKaryawan) unsubKaryawan()
   if (unsubJabatan) unsubJabatan()
 })
+
+const loading = ref(true)
 
 const columns = [
   { name: 'nik', label: 'NIK', field: 'nik', align: 'left', sortable: true },
@@ -1395,17 +1539,13 @@ const columns = [
   border-radius: 20px;
 }
 .border-subtle {
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid #f1f5f9 !important;
 }
 .border-bottom-subtle {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid #f1f5f9 !important;
 }
-.border-dashed {
-  border: 2px dashed #cbd5e1;
-}
-.dashed-box {
-  border: 2px dashed #cbd5e1;
-  border-radius: 12px;
+.border-right-subtle {
+  border-right: 1px solid #f1f5f9;
 }
 .hover-bg:hover {
   background-color: rgba(25, 118, 210, 0.03) !important;
@@ -1431,49 +1571,6 @@ const columns = [
 }
 .leading-none {
   line-height: 1;
-}
-
-.float-icon {
-  position: absolute;
-  bottom: -150px;
-  color: #1a237e;
-  opacity: 0.03;
-  animation: floatUp 24s infinite linear;
-  will-change: transform, opacity;
-}
-@keyframes floatUp {
-  0% {
-    transform: translateY(0) rotate(0deg) scale(0.8);
-    opacity: 0;
-  }
-  10% {
-    opacity: 0.03;
-  }
-  90% {
-    opacity: 0.03;
-  }
-  100% {
-    transform: translateY(-110vh) rotate(360deg) scale(1.2);
-    opacity: 0;
-  }
-}
-
-.floating-construction-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  pointer-events: none;
-  z-index: 1;
-}
-.z-index-10 {
-  position: relative;
-  z-index: 10;
-}
-.h-full-view {
-  min-height: 100vh;
 }
 
 .animate-fade {
@@ -1551,77 +1648,18 @@ const columns = [
 /* =======================================================================
    MODERN SAAS UI COMPACT COMPONENT DESIGN
    ======================================================================= */
-.bg-saas-base {
-  background-color: #f8fafc;
-}
-.saas-header-icon {
-  width: 56px;
-  height: 56px;
-  background: white;
-  border-radius: 14px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-}
-.saas-btn-primary {
-  border-radius: 10px;
-  background-color: #1a237e !important; /* Corporate Indigo */
-  box-shadow: 0 4px 6px -1px rgba(26, 35, 126, 0.2);
-  transition: all 0.2s;
-}
-.saas-btn-primary:hover {
-  background-color: #0f172a !important;
-  transform: translateY(-1px);
-}
 .saas-btn-outline {
   border-radius: 8px;
   border: 1px solid #e2e8f0;
   background-color: white;
   transition: all 0.2s;
 }
-.saas-input :deep(.q-field__control) {
-  border-radius: 10px;
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  transition: all 0.2s ease;
-}
-.saas-input :deep(.q-field__control:before),
-.saas-input :deep(.q-field__control:after) {
-  display: none !important;
-}
-.saas-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #334155;
-  margin-bottom: 6px;
-}
-.saas-table :deep(.q-table__container) {
-  border-radius: 16px;
-  border: none;
-}
-.saas-table :deep(thead tr th) {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  border-bottom: 1px solid #e2e8f0;
-  padding: 16px;
-}
-.saas-table :deep(tbody td) {
-  border-bottom: 1px solid #f1f5f9;
-  padding: 14px 16px;
-}
+
 .saas-hover-row {
   transition: all 0.2s ease;
 }
 .saas-hover-row:hover {
   background-color: #f8fafc !important;
-}
-
-.saas-action-btn {
-  transition: all 0.2s;
-}
-.saas-action-btn:hover {
-  background-color: #f1f5f9 !important;
-  transform: scale(1.05);
 }
 
 .saas-gradient-primary {
@@ -1653,15 +1691,6 @@ const columns = [
   display: inline-block;
   position: relative;
 }
-.status-badge-dot {
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  border: 4px solid white;
-  border-radius: 50%;
-  bottom: 10px;
-  right: 10px;
-}
 .kpi-mini-card {
   padding: 16px;
   border-radius: 12px;
@@ -1670,26 +1699,6 @@ const columns = [
   display: flex;
   flex-direction: column;
   justify-content: center;
-}
-.detail-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-.detail-table td {
-  padding: 12px 0;
-  font-size: 13.5px;
-  border-bottom: 1px solid #f1f5f9;
-}
-.detail-table tr:last-child td {
-  border-bottom: none;
-}
-.detail-table td:first-child {
-  width: 35%;
-  color: #64748b;
-  font-weight: 500;
-}
-.detail-table td:last-child {
-  color: #1e293b;
 }
 
 /* CUSTOM STYLING UTILITIES FOR MODERN SLATE LOOK */
@@ -1707,12 +1716,6 @@ const columns = [
 }
 .text-slate-900 {
   color: #0f172a !important;
-}
-.border-subtle {
-  border: 1px solid #e2e8f0 !important;
-}
-.border-bottom-subtle {
-  border-bottom: 1px solid #f1f5f9 !important;
 }
 .avatar-ring {
   background: white;
