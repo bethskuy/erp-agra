@@ -1,9 +1,41 @@
 <template>
-  <q-page class="bg-grey-2 q-pa-md q-pa-md-lg font-pro">
+  <q-page class="bg-page q-pa-md q-pa-md-lg font-pro relative-position" @click="spawnIcon($event)">
+    <!-- EFEK ANIMASI KLIK (SPAWN ICONS) -->
+    <div class="click-spawn-container">
+      <transition-group name="spawn">
+        <div
+          v-for="icon in spawnedIcons"
+          :key="icon.id"
+          class="spawned-icon"
+          :style="{
+            left: icon.x + 'px',
+            top: icon.y + 'px',
+            '--rand-rotate': icon.rotate + 'deg',
+            '--rand-color': icon.color,
+            fontSize: icon.size + 'px',
+          }"
+        >
+          <q-icon :name="icon.name" />
+        </div>
+      </transition-group>
+    </div>
+
+    <!-- EFEK LATAR BELAKANG ANIMASI MENGAMBANG (Warna-Warni Tosca, Kebureman Tipis & Elegan) -->
+    <div class="bg-animation-container">
+      <q-icon name="engineering" class="floating-icon i-1" />
+      <q-icon name="construction" class="floating-icon i-2" />
+      <q-icon name="architecture" class="floating-icon i-3" />
+      <q-icon name="location_city" class="floating-icon i-4" />
+      <q-icon name="handyman" class="floating-icon i-5" />
+      <q-icon name="apartment" class="floating-icon i-6" />
+      <q-icon name="engineering" class="floating-icon i-7" />
+      <q-icon name="hardware" class="floating-icon i-8" />
+    </div>
+
     <!-- HEADER SECTION -->
-    <div class="row items-center justify-between q-mb-xl animate-fade no-print">
+    <div class="row items-center justify-between q-mb-xl animate-fade no-print content-relative">
       <div class="col-12 col-md-8">
-        <div class="text-h4 text-weight-bolder text-indigo-10 leading-tight">
+        <div class="text-h4 text-weight-bolder text-brand-primary leading-tight">
           Approval Penawaran
           <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
             >Otorisasi & Histori Quotation</span
@@ -22,7 +54,11 @@
     </div>
 
     <!-- SEARCH & SUMMARY CARD -->
-    <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print">
+    <q-card
+      flat
+      bordered
+      class="q-mb-lg shadow-1 rounded-20 bg-white no-print content-relative border-subtle"
+    >
       <q-card-section class="q-py-md">
         <div class="row items-center q-col-gutter-md">
           <div class="col-12 col-md-5">
@@ -36,7 +72,7 @@
               class="search-input"
             >
               <template v-slot:prepend>
-                <q-icon name="search" color="primary" />
+                <q-icon name="search" color="brand-primary" />
               </template>
               <template v-slot:append v-if="filter">
                 <q-icon name="close" @click="filter = ''" class="cursor-pointer" />
@@ -44,13 +80,17 @@
             </q-input>
           </div>
           <q-space />
-          <q-btn flat round icon="refresh" color="primary" @click="fetchApprovalData" />
+          <q-btn flat round icon="refresh" color="brand-primary" @click="fetchApprovalData" />
         </div>
       </q-card-section>
     </q-card>
 
     <!-- TABLE LIST SECTION -->
-    <q-card flat bordered class="rounded-20 shadow-sm overflow-hidden bg-white no-print">
+    <q-card
+      flat
+      bordered
+      class="rounded-20 shadow-sm overflow-hidden bg-white no-print content-relative border-subtle"
+    >
       <q-table
         :rows="rows"
         :columns="columns"
@@ -63,7 +103,7 @@
       >
         <!-- Custom Header -->
         <template v-slot:header="props">
-          <q-tr :props="props" class="bg-indigo-10 text-white">
+          <q-tr :props="props" class="bg-brand-primary text-white">
             <q-th v-for="col in props.cols" :key="col.name" :props="props" class="text-weight-bold">
               {{ col.label }}
             </q-th>
@@ -77,13 +117,13 @@
             class="hover-bg transition-all cursor-pointer"
             @click="openPreview(props.row)"
           >
-            <q-td key="nomor" class="text-weight-bolder text-indigo-10">
+            <q-td key="nomor" class="text-weight-bolder text-brand-primary">
               {{ props.row.nomor }}
             </q-td>
             <q-td key="nama_customer" class="text-weight-bold text-blue-grey-9 uppercase">
               {{ props.row.nama_customer }}
             </q-td>
-            <q-td key="total_harga" class="text-right text-weight-bolder">
+            <q-td key="total_harga" class="text-right text-weight-bolder text-brand-primary">
               <span class="text-caption text-grey-6 q-mr-xs">IDR</span>
               {{ (props.row.total_harga || 0).toLocaleString() }}
             </q-td>
@@ -140,9 +180,19 @@
 
     <!-- PREVIEW & APPROVAL DIALOG -->
     <q-dialog v-model="showPreview" maximized transition-show="fade" transition-hide="fade">
-      <q-card class="column no-wrap bg-grey-4">
+      <q-card class="column no-wrap bg-grey-4 relative-position">
+        <!-- Background Animation di dalam Preview Dialog -->
+        <div class="bg-animation-container">
+          <q-icon name="engineering" class="floating-icon i-1" />
+          <q-icon name="construction" class="floating-icon i-2" />
+          <q-icon name="architecture" class="floating-icon i-3" />
+          <q-icon name="location_city" class="floating-icon i-4" />
+        </div>
+
         <!-- TOOLBAR: RESPONSIVE DESIGN -->
-        <q-toolbar class="bg-white text-indigo-10 q-py-sm no-print shadow-2 shrink">
+        <q-toolbar
+          class="bg-white text-brand-primary q-py-sm no-print shadow-2 shrink content-relative"
+        >
           <q-btn flat round dense icon="arrow_back" v-close-popup color="grey-7" />
           <q-toolbar-title class="text-weight-bold gt-xs">OTORISASI DOKUMEN</q-toolbar-title>
 
@@ -151,12 +201,12 @@
           <!-- TOMBOL LIHAT DOKUMEN ANALISA (BISA PDF, WORD, EXCEL) -->
           <q-btn
             v-if="selectedData?.analisa_harga_url"
-            color="indigo-10"
+            color="brand-primary"
             icon="description"
             :label="$q.screen.gt.xs ? 'Lihat Dokumen Analisa' : ''"
             unelevated
             rounded
-            class="q-mr-md shadow-2"
+            class="q-mr-md shadow-2 text-white"
             @click="openAnalisaFile(selectedData.analisa_harga_url)"
           >
             <q-tooltip>Unduh/Buka Berkas Analisa Pendukung (PDF/Word/Excel)</q-tooltip>
@@ -169,6 +219,7 @@
               icon="picture_as_pdf"
               :label="$q.screen.gt.sm ? 'PDF' : ''"
               @click="exportToPDF"
+              class="text-white"
             >
               <q-tooltip v-if="!$q.screen.gt.sm">Export PDF</q-tooltip>
             </q-btn>
@@ -184,15 +235,17 @@
               :label="$q.screen.gt.sm ? 'APPROVE SEKARANG' : $q.screen.gt.xs ? 'APPROVE' : ''"
               @click="handleApproval(selectedData, 'Approved')"
               rounded
-              class="text-weight-bold"
+              class="text-weight-bold text-white"
             >
               <q-tooltip v-if="!$q.screen.gt.xs">Approve Penawaran</q-tooltip>
             </q-btn>
           </template>
         </q-toolbar>
 
-        <!-- CONTAINER SURAT -->
-        <q-card-section class="col scroll q-pa-none q-pa-md-md flex flex-center preview-container">
+        <!-- CONTAINER SURAT (WARNA TULISAN INDIGO TIDAK DIGANGGU GUGAT SESUAI REQUEST) -->
+        <q-card-section
+          class="col scroll q-pa-none q-pa-md-md flex flex-center preview-container content-relative"
+        >
           <div id="quotation-print" class="letter-paper shadow-24" v-if="selectedData">
             <!-- Kop Surat -->
             <div class="row no-wrap items-center">
@@ -265,7 +318,7 @@
                   <td colspan="5" class="text-right text-bold uppercase italic text-grey-7">
                     Tax ({{ selectedData.tax_rate }}%)
                   </td>
-                  <td class="text-right text-weight-bold">
+                  <td class="text-right text-weight-bold text-indigo-10">
                     IDR
                     {{
                       (
@@ -280,7 +333,7 @@
                   <td colspan="5" class="text-right text-bold uppercase text-grey-7">
                     {{ selectedData.biaya_lain_label || 'BIAYA LAIN' }}
                   </td>
-                  <td class="text-right text-weight-bold">
+                  <td class="text-right text-weight-bold text-indigo-10">
                     IDR {{ (selectedData.biaya_lain || 0).toLocaleString() }}
                   </td>
                 </tr>
@@ -358,7 +411,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+// eslint-disable-next-line no-unused-vars
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { useQuasar } from 'quasar'
 import { db } from 'src/boot/firebase'
 import {
   collection,
@@ -370,7 +425,6 @@ import {
   onSnapshot,
   serverTimestamp,
 } from 'firebase/firestore'
-import { useQuasar } from 'quasar'
 import { useAuthStore } from 'src/stores/auth'
 import html2pdf from 'html2pdf.js'
 
@@ -386,6 +440,62 @@ const userData = ref(null)
 
 let unsubUser = null
 let unsubApproval = null
+
+// ==========================================
+// ANIMASI KLIK & MENGAMBANG (SAMA SEPERTI MASTER BARANG)
+// ==========================================
+const spawnedIcons = ref([])
+let spawnIdCounter = 0
+const clickIcons = [
+  'construction',
+  'engineering',
+  'handyman',
+  'architecture',
+  'foundation',
+  'precision_manufacturing',
+  'carpenter',
+  'plumbing',
+  'electrical_services',
+  'hardware',
+]
+
+const spawnIcon = (e) => {
+  const target = e.target
+  if (
+    target.closest('button') ||
+    target.closest('.q-btn') ||
+    target.closest('input') ||
+    target.closest('.q-field') ||
+    target.closest('.q-dialog') ||
+    target.closest('.q-table') ||
+    target.closest('.q-card')
+  ) {
+    return
+  }
+
+  const iconName = clickIcons[Math.floor(Math.random() * clickIcons.length)]
+  const colors = ['#36ada3', '#2a8b83', '#56c2b9', '#f29c1f', '#e67e22', '#e74c3c']
+  const randColor = colors[Math.floor(Math.random() * colors.length)]
+  const randRotate = Math.floor(Math.random() * 90) - 45
+  const randSize = Math.floor(Math.random() * 25) + 35
+
+  const newIcon = {
+    id: spawnIdCounter++,
+    x: e.clientX,
+    y: e.clientY,
+    name: iconName,
+    color: randColor,
+    rotate: randRotate,
+    size: randSize,
+  }
+
+  spawnedIcons.value.push(newIcon)
+
+  setTimeout(() => {
+    spawnedIcons.value = spawnedIcons.value.filter((i) => i.id !== newIcon.id)
+  }, 1400)
+}
+// ==========================================
 
 const columns = [
   { name: 'nomor', align: 'left', label: 'REFERENCE NO', field: 'nomor', sortable: true },
@@ -460,16 +570,29 @@ const fetchApprovalData = () => {
 }
 
 const handleApproval = (row, status, alasan = null) => {
+  // MEMPERBAIKI DIALOG BUTTONS AGAR ELEGAN, RAPI, TIDAK SALING TABRAKAN ATAU INVISIBLE
   $q.dialog({
-    title: 'Konfirmasi Approval',
-    message: `Apakah Anda yakin ingin memproses dokumen ini ke status ${status}?`,
-    cancel: true,
+    title:
+      '<div class="text-h5 text-weight-bolder text-brand-primary q-mb-sm">Konfirmasi Otorisasi</div>',
+    message: `Apakah Anda yakin ingin memperbarui status dokumen ini menjadi <b class="${status === 'Approved' ? 'text-positive' : 'text-negative'}">${status}</b>?`,
+    html: true,
+    cancel: {
+      label: 'Batal',
+      color: 'grey-7',
+      outline: true,
+      rounded: true,
+      unelevated: true,
+      class: 'q-px-lg text-weight-bold text-uppercase',
+    },
     ok: {
+      label: 'Ya, Proses',
       color: status === 'Approved' ? 'positive' : 'negative',
       unelevated: true,
       rounded: true,
-      label: 'Ya, Proses',
+      class: 'q-px-lg text-weight-bold text-uppercase shadow-2',
     },
+    class: 'rounded-20 q-pa-md shadow-premium bg-white',
+    persistent: true,
   }).onOk(async () => {
     try {
       $q.loading.show()
@@ -482,7 +605,19 @@ const handleApproval = (row, status, alasan = null) => {
       if (status === 'Rejected' && alasan) data.alasan_reject = alasan
       await updateDoc(doc(db, 'penawaran', row.id), data)
       showPreview.value = false
-      $q.notify({ type: 'positive', message: `Status penawaran diperbarui menjadi ${status}` })
+
+      // SINKRONISASI NOTIFIKASI OTORISASI PREMIUM (HIJAU UNTUK APPROVED, MERAH UNTUK REJECTED DI BAGIAN ATAS DENGAN PROGRESS BAR & CLOSE BUTTON)
+      $q.notify({
+        html: true,
+        message: `<div class="text-weight-bold text-subtitle1 q-mb-none leading-none">Otorisasi Berhasil!</div><div class="text-caption q-mt-xs" style="opacity: 0.85">Status dokumen penawaran diperbarui menjadi <b>${status}</b>.</div>`,
+        color: status === 'Approved' ? 'positive' : 'negative',
+        icon: status === 'Approved' ? 'verified' : 'cancel',
+        position: 'top', // Penempatan digeser ke bagian atas layar
+        timeout: 4000,
+        progress: true,
+        classes: 'rounded-12 shadow-premium q-pl-md q-pr-lg q-py-sm border-white-2',
+        actions: [{ icon: 'close', color: 'white', round: true, size: 'sm', dense: true }],
+      })
     } catch (e) {
       console.error(e)
     } finally {
@@ -493,15 +628,32 @@ const handleApproval = (row, status, alasan = null) => {
 
 const promptReject = (row) => {
   $q.dialog({
-    title: 'Penolakan Penawaran (Reject)',
+    title:
+      '<div class="text-h5 text-weight-bolder text-negative q-mb-sm">Penolakan Penawaran</div>',
     message: 'Berikan alasan singkat atau instruksi revisi untuk marketing:',
+    html: true,
     prompt: {
       model: '',
       type: 'textarea',
       placeholder: 'Contoh: Harga material terlalu tinggi, sesuaikan dengan budget...',
     },
-    cancel: true,
-    ok: { color: 'negative', unelevated: true, label: 'Reject Dokumen' },
+    cancel: {
+      label: 'Batal',
+      color: 'grey-7',
+      outline: true,
+      rounded: true,
+      unelevated: true,
+      class: 'q-px-lg text-weight-bold text-uppercase',
+    },
+    ok: {
+      label: 'Reject Dokumen',
+      color: 'negative',
+      unelevated: true,
+      rounded: true,
+      class: 'q-px-lg text-weight-bold text-uppercase shadow-2',
+    },
+    class: 'rounded-20 q-pa-md shadow-premium bg-white',
+    persistent: true,
   }).onOk((a) => handleApproval(row, 'Rejected', a))
 }
 
@@ -561,24 +713,173 @@ onUnmounted(() => {
 })
 </script>
 
+<style>
+/* =======================================================================
+   ANIMASI BACKGROUND GLOBAL STYLES (Mencegah Typo & Kegagalan Scoped CSS)
+   ======================================================================= */
+.bg-animation-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.floating-icon {
+  position: absolute;
+  bottom: -150px;
+  animation: floatUp linear infinite;
+  opacity: 0.15;
+  filter: blur(1.5px);
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+/* Posisi dan durasi masing-masing ikon mengambang */
+.i-1 {
+  left: 10%;
+  font-size: 100px;
+  animation-duration: 25s;
+  animation-delay: 0s;
+  color: #36ada3;
+}
+.i-2 {
+  left: 30%;
+  font-size: 70px;
+  animation-duration: 35s;
+  animation-delay: 5s;
+  color: #f29c1f;
+}
+.i-3 {
+  left: 60%;
+  font-size: 120px;
+  animation-duration: 40s;
+  animation-delay: 12s;
+  color: #e74c3c;
+}
+.i-4 {
+  left: 80%;
+  font-size: 85px;
+  animation-duration: 30s;
+  animation-delay: 2s;
+  color: #56c2b9;
+}
+.i-5 {
+  left: 15%;
+  font-size: 90px;
+  animation-duration: 28s;
+  animation-delay: 15s;
+  color: #e67e22;
+}
+.i-6 {
+  left: 45%;
+  font-size: 110px;
+  animation-duration: 45s;
+  animation-delay: 8s;
+  color: #2a8b83;
+}
+.i-7 {
+  left: 75%;
+  font-size: 60px;
+  animation-duration: 22s;
+  animation-delay: 20s;
+  color: #f29c1f;
+}
+.i-8 {
+  left: 25%;
+  font-size: 95px;
+  animation-duration: 32s;
+  animation-delay: 25s;
+  color: #e74c3c;
+}
+
+@keyframes floatUp {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.15;
+  }
+  90% {
+    opacity: 0.15;
+  }
+  100% {
+    transform: translateY(-120vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+</style>
+
 <style scoped>
+/* ===== LOCAL STYLES SCOPED ===== */
+.bg-page {
+  background-color: #f8fcfb;
+}
+
 .font-pro {
   font-family:
-    'Inter',
+    'Plus Jakarta Sans',
     -apple-system,
     sans-serif;
 }
 .rounded-20 {
   border-radius: 20px;
 }
+.rounded-12 {
+  border-radius: 12px;
+}
 .shadow-premium {
-  box-shadow: 0 10px 30px rgba(25, 118, 210, 0.15);
+  box-shadow: 0 10px 30px rgba(54, 173, 163, 0.15);
 }
 .block {
   display: block;
 }
 .uppercase {
   text-transform: uppercase;
+}
+
+/* OVERRIDE WARNA LAMA (INDIGO) MENJADI BRAND COLOR BARU (TEAL) */
+.bg-brand-primary,
+:deep(.bg-brand-primary) {
+  background-color: #36ada3 !important;
+}
+.text-brand-primary,
+:deep(.text-brand-primary) {
+  color: #36ada3 !important;
+}
+.bg-brand-light {
+  background-color: #e6f5f4 !important;
+}
+.text-brand-secondary {
+  color: #2a8b83 !important;
+}
+.border-brand-thin {
+  border: 2px solid #b2e5e2 !important;
+}
+.border-subtle {
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+.border-white-2 {
+  border: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+/* QUASAR COMPONENT OVERRIDES */
+:deep(.q-btn.bg-brand-primary) {
+  background-color: #36ada3 !important;
+}
+:deep(.q-field--focused .q-field__control) {
+  border-color: #36ada3 !important;
+}
+:deep(.q-field--focused .q-field__label) {
+  color: #36ada3 !important;
+}
+:deep(.q-icon[color='brand-primary']),
+:deep(.q-field__prepend .q-icon) {
+  color: #36ada3 !important;
 }
 
 /* Table Styling */
@@ -591,7 +892,7 @@ onUnmounted(() => {
   letter-spacing: 0.5px;
 }
 .hover-bg:hover {
-  background-color: rgba(25, 118, 210, 0.03) !important;
+  background-color: #e6f5f4 !important;
 }
 .transition-all {
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -787,6 +1088,50 @@ onUnmounted(() => {
 }
 .search-input :deep(.q-field__control) {
   border-radius: 30px;
+}
+.content-relative {
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== CLICK SPAWN ICONS ===== */
+.click-spawn-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.spawned-icon {
+  position: absolute;
+  color: var(--rand-color);
+  transform-origin: center;
+  pointer-events: none;
+  animation: spawnBurst 1.4s ease-out forwards;
+}
+
+@keyframes spawnBurst {
+  0% {
+    transform: translate(-50%, -50%) scale(0) rotate(0deg);
+    opacity: 1;
+  }
+  40% {
+    transform: translate(-50%, -100%) scale(1.2) rotate(var(--rand-rotate));
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(-50%, -180%) scale(0.5) rotate(calc(var(--rand-rotate) * 1.5));
+    opacity: 0;
+  }
+}
+
+.spawn-enter-active,
+.spawn-leave-active {
+  transition: all 1.4s ease;
 }
 
 @media print {

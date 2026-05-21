@@ -1,15 +1,47 @@
 <template>
-  <q-page class="bg-grey-2 q-pa-md q-pa-md-lg font-pro">
+  <q-page class="bg-page q-pa-md q-pa-md-lg font-pro relative-position" @click="spawnIcon($event)">
+    <!-- EFEK ANIMASI KLIK (SPAWN ICONS) -->
+    <div class="click-spawn-container">
+      <transition-group name="spawn">
+        <div
+          v-for="icon in spawnedIcons"
+          :key="icon.id"
+          class="spawned-icon"
+          :style="{
+            left: icon.x + 'px',
+            top: icon.y + 'px',
+            '--rand-rotate': icon.rotate + 'deg',
+            '--rand-color': icon.color,
+            fontSize: icon.size + 'px',
+          }"
+        >
+          <q-icon :name="icon.name" />
+        </div>
+      </transition-group>
+    </div>
+
+    <!-- EFEK LATAR BELAKANG ANIMASI MENGAMBANG (Warna-Warni Tosca, Kebureman Tipis & Elegan) -->
+    <div class="bg-animation-container">
+      <q-icon name="engineering" class="floating-icon i-1" />
+      <q-icon name="construction" class="floating-icon i-2" />
+      <q-icon name="architecture" class="floating-icon i-3" />
+      <q-icon name="location_city" class="floating-icon i-4" />
+      <q-icon name="handyman" class="floating-icon i-5" />
+      <q-icon name="apartment" class="floating-icon i-6" />
+      <q-icon name="engineering" class="floating-icon i-7" />
+      <q-icon name="hardware" class="floating-icon i-8" />
+    </div>
+
     <!-- =====================================================================================
          SCREEN 1: LOCK SCREEN JIKA TIDAK MEMILIKI AKSES LIHAT
          ===================================================================================== -->
     <template v-if="!canAction('lihat')">
       <div
-        class="row flex-center q-pa-xl text-center font-pro animate-fade"
+        class="row flex-center q-pa-xl text-center font-pro animate-fade content-relative"
         style="min-height: 70vh"
       >
         <div
-          class="col-12 col-sm-8 col-md-6 bg-white q-pa-xl rounded-20 shadow-premium border-indigo-thin"
+          class="col-12 col-sm-8 col-md-6 bg-white q-pa-xl rounded-20 shadow-premium border-brand-thin"
         >
           <q-avatar size="100px" color="red-1" text-color="red-10" icon="lock" class="q-mb-md" />
           <div class="text-h5 text-weight-bold text-blue-grey-10 q-mb-xs">Akses Terbatas</div>
@@ -19,11 +51,12 @@
           </div>
           <q-btn
             label="Kembali ke Beranda"
-            color="indigo-10"
+            color="brand-primary"
             icon="arrow_back"
             rounded
             unelevated
             no-caps
+            class="text-white text-weight-bold"
             @click="$router.push('/')"
           />
         </div>
@@ -34,10 +67,10 @@
       <!-- =====================================================================================
            VIEW 1: DAFTAR PROYEK UTAMA
            ===================================================================================== -->
-      <div v-if="viewMode === 'list'" class="animate-fade">
+      <div v-if="viewMode === 'list'" class="animate-fade content-relative">
         <div class="row items-center justify-between q-mb-xl">
-          <div class="col">
-            <div class="text-h4 text-weight-bolder text-indigo-10 leading-tight">
+          <div class="col-12 col-sm-8">
+            <div class="text-h4 text-weight-bolder text-brand-primary leading-tight">
               Manajemen Proyek
               <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
                 >Daftar Kontrak & Pekerjaan Aktif</span
@@ -47,21 +80,22 @@
               Monitoring seluruh portofolio proyek konstruksi PT AGRA secara terpusat.
             </div>
           </div>
-          <div class="col-auto">
+          <!-- RESPONSIVE TOMBOL BUAT PROYEK BARU -->
+          <div class="col-12 col-sm-auto q-mt-md q-mt-sm-none">
             <q-btn
               v-if="canAction('buat')"
               unelevated
-              color="indigo-10"
+              color="brand-primary"
               icon="add_circle"
               label="Buat Proyek Baru"
-              class="q-px-lg q-py-sm shadow-premium btn-hover rounded-20"
+              class="full-width q-px-lg q-py-sm shadow-premium btn-hover rounded-20 text-white text-weight-bold"
               @click="openAddDialog"
             />
           </div>
         </div>
 
         <!-- SEARCH & SUMMARY CARD -->
-        <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white">
+        <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white border-subtle">
           <q-card-section class="q-py-md">
             <div class="row items-center q-col-gutter-md">
               <div class="col-12 col-md-5">
@@ -75,7 +109,7 @@
                   class="search-input"
                 >
                   <template v-slot:prepend>
-                    <q-icon name="search" color="primary" />
+                    <q-icon name="search" color="brand-primary" />
                   </template>
                   <template v-slot:append v-if="filter">
                     <q-icon name="close" @click="filter = ''" class="cursor-pointer" />
@@ -85,7 +119,7 @@
               <q-space />
               <div class="col-12 col-md-auto text-caption text-grey-6">
                 Total Proyek:
-                <span class="text-weight-bold text-indigo-10">{{ rows.length }} Record</span>
+                <span class="text-weight-bold text-brand-primary">{{ rows.length }} Record</span>
               </div>
             </div>
           </q-card-section>
@@ -94,7 +128,7 @@
         <q-card
           flat
           bordered
-          class="rounded-20 shadow-sm overflow-hidden bg-white border-indigo-thin"
+          class="rounded-20 shadow-sm overflow-hidden bg-white border-brand-thin"
         >
           <q-table
             :rows="rows"
@@ -108,7 +142,7 @@
           >
             <!-- Custom Header -->
             <template v-slot:header="props">
-              <q-tr :props="props" class="bg-indigo-10 text-white">
+              <q-tr :props="props" class="bg-brand-primary text-white">
                 <q-th
                   v-for="col in props.cols"
                   :key="col.name"
@@ -130,8 +164,8 @@
                   <div class="row items-center no-wrap">
                     <q-avatar
                       size="36px"
-                      color="indigo-1"
-                      text-color="indigo-10"
+                      color="brand-light"
+                      text-color="brand-primary"
                       icon="foundation"
                       class="q-mr-md shadow-sm"
                     />
@@ -144,7 +178,7 @@
                   {{ props.row.konsumen || '-' }}
                 </q-td>
                 <q-td key="total_kontrak" class="text-right">
-                  <div class="text-weight-bolder text-primary text-subtitle1">
+                  <div class="text-weight-bolder text-brand-primary text-subtitle1">
                     Rp {{ formatMoney(props.row.total_omzet || 0) }}
                   </div>
                 </q-td>
@@ -198,18 +232,21 @@
       <!-- =====================================================================================
            VIEW 2: DETAIL PROYEK & LIST SPK
            ===================================================================================== -->
-      <div v-else-if="viewMode === 'detail' && currentProject" class="animate-fade">
+      <div
+        v-else-if="viewMode === 'detail' && currentProject"
+        class="animate-fade content-relative"
+      >
         <div class="row items-center q-mb-lg">
           <q-btn
             flat
             round
             icon="arrow_back"
-            color="indigo-10"
+            color="brand-primary"
             @click="viewMode = 'list'"
             class="q-mr-md bg-white shadow-1"
           />
           <div class="col">
-            <div class="text-h5 text-weight-bolder text-indigo-10 uppercase letter-spacing-1">
+            <div class="text-h5 text-weight-bolder text-brand-primary uppercase letter-spacing-1">
               Dashboard Proyek
             </div>
             <div class="text-caption text-grey-7">{{ currentProject.nama }}</div>
@@ -220,22 +257,22 @@
         <q-card
           flat
           bordered
-          class="bg-white rounded-20 shadow-premium q-mb-xl overflow-hidden border-indigo-thin"
+          class="bg-white rounded-20 shadow-premium q-mb-xl overflow-hidden border-brand-thin"
         >
           <div class="row divider-container">
             <div class="col-12 col-md-4 q-pa-xl border-right-sep text-center">
               <div class="text-overline text-grey-6 text-bold tracking-widest">
                 KLIEN / KONSUMEN
               </div>
-              <div class="text-h5 text-indigo-10 text-weight-bolder text-uppercase q-mt-sm">
+              <div class="text-h5 text-brand-primary text-weight-bolder text-uppercase q-mt-sm">
                 {{ currentProject.konsumen || '-' }}
               </div>
             </div>
-            <div class="col-12 col-md-4 q-pa-xl border-right-sep text-center bg-indigo-1">
-              <div class="text-overline text-indigo-10 text-bold tracking-widest">
+            <div class="col-12 col-md-4 q-pa-xl border-right-sep text-center bg-brand-light">
+              <div class="text-overline text-brand-primary text-bold tracking-widest">
                 REALISASI OMZET
               </div>
-              <div class="text-h4 text-primary text-weight-black q-mt-sm">
+              <div class="text-h4 text-brand-primary text-weight-black q-mt-sm">
                 Rp {{ formatMoney(currentProject.total_omzet || 0) }}
               </div>
             </div>
@@ -250,27 +287,30 @@
           </div>
         </q-card>
 
-        <div class="row items-center justify-between q-mb-md">
+        <!-- HEADER KONTRAK YANG RESPONSIVE DI HP -->
+        <div class="row items-center justify-between q-mb-md q-col-gutter-sm">
           <div
-            class="text-h6 text-indigo-10 text-weight-bold uppercase letter-spacing-1 flex items-center"
+            class="col-12 col-sm-auto text-h6 text-brand-primary text-weight-bold uppercase letter-spacing-1 flex items-center"
           >
             <q-icon name="contract" class="q-mr-sm" /> Kontrak & SPK Terkait
           </div>
-          <q-btn
-            v-if="canAction('buat')"
-            unelevated
-            color="indigo-10"
-            icon="add_box"
-            label="TAMBAHKAN KONTRAK"
-            @click="openAddSpkDialog"
-            class="rounded-20 q-px-lg text-weight-bold shadow-2"
-          />
+          <div class="col-12 col-sm-auto">
+            <q-btn
+              v-if="canAction('buat')"
+              unelevated
+              color="brand-primary"
+              icon="add_box"
+              label="TAMBAHKAN KONTRAK"
+              @click="openAddSpkDialog"
+              class="full-width rounded-20 q-px-lg text-weight-bold shadow-2 text-white"
+            />
+          </div>
         </div>
 
         <q-card
           flat
           bordered
-          class="rounded-20 shadow-sm overflow-hidden bg-white border-indigo-thin"
+          class="rounded-20 shadow-sm overflow-hidden bg-white border-brand-thin"
         >
           <q-table :rows="listSpkProject" :columns="spkColumns" flat class="spk-table-premium">
             <template v-slot:header="props">
@@ -293,13 +333,13 @@
               >
                 <q-td key="no_spk">
                   <div class="row items-center q-gutter-x-sm">
-                    <span class="text-weight-bold text-primary text-subtitle1">
+                    <span class="text-weight-bold text-brand-primary text-subtitle1">
                       {{ props.row.nomor_spk }}
                     </span>
                     <q-badge
                       v-if="props.row.status === 'Approved'"
                       color="positive"
-                      class="text-weight-bold"
+                      class="text-weight-bold text-white"
                     >
                       APPROVED
                     </q-badge>
@@ -309,7 +349,7 @@
                   </div>
                 </q-td>
                 <q-td key="nilai" class="text-right">
-                  <div class="text-weight-black text-indigo-10 text-h6">
+                  <div class="text-weight-black text-brand-primary text-h6">
                     Rp {{ formatMoney(props.row.nilai_total) }}
                   </div>
                 </q-td>
@@ -336,7 +376,7 @@
                     <q-btn
                       flat
                       round
-                      color="indigo-10"
+                      color="brand-primary"
                       icon="analytics"
                       size="sm"
                       @click="showSpkDetail(null, props.row)"
@@ -354,31 +394,34 @@
       <!-- =====================================================================================
            VIEW 3: DETAIL SPK (BOQ, RAB, BALANCE SHEET)
            ===================================================================================== -->
-      <div v-else-if="viewMode === 'spk_detail' && currentSpk" class="animate-fade">
+      <div
+        v-else-if="viewMode === 'spk_detail' && currentSpk"
+        class="animate-fade content-relative"
+      >
         <!-- APPROVED LOCK BANNER -->
         <div
           v-if="currentSpk.status === 'Approved'"
           class="q-mb-md q-pa-md bg-positive text-white rounded-20 flex items-center shadow-sm"
         >
           <q-icon name="verified" size="sm" class="q-mr-md" />
-          <div class="text-weight-bold">
+          <div class="text-weight-bold text-white">
             Kontrak & Analisa Harga Unit ini telah disetujui (Approved) secara resmi oleh Manajemen.
             Seluruh perubahan dikunci.
           </div>
         </div>
 
-        <div class="row items-center justify-between q-mb-lg">
-          <div class="row items-center">
+        <div class="row items-center justify-between q-mb-lg q-col-gutter-sm">
+          <div class="col-12 col-sm-auto row items-center">
             <q-btn
               flat
               round
               icon="arrow_back"
-              color="indigo-10"
+              color="brand-primary"
               @click="viewMode = 'detail'"
               class="q-mr-md bg-white shadow-1"
             />
             <div>
-              <div class="text-h5 text-weight-black text-indigo-10 uppercase letter-spacing-1">
+              <div class="text-h5 text-weight-black text-brand-primary uppercase letter-spacing-1">
                 Data Teknis Kontrak
               </div>
               <div class="text-subtitle1 text-grey-7">
@@ -387,37 +430,45 @@
             </div>
           </div>
 
-          <div class="row items-center">
-            <!-- Approval Controls (setuju Permission) -->
-            <q-btn
+          <!-- TOMBOL AKSI YANG MEMBENTANG RESPONSIVE DI HP -->
+          <div class="col-12 col-sm-auto row q-col-gutter-xs justify-end">
+            <div
+              class="col-12 col-sm-auto"
               v-if="canAction('setuju') && currentSpk.status !== 'Approved'"
-              unelevated
-              color="positive"
-              icon="check_circle"
-              label="SETUJUI KONTRAK"
-              @click="handleApproveSpk('Approved')"
-              class="rounded-20 q-px-lg text-weight-bold shadow-4 q-mr-sm"
-            />
-            <q-btn
+            >
+              <q-btn
+                unelevated
+                color="positive"
+                icon="check_circle"
+                label="SETUJUI KONTRAK"
+                @click="handleApproveSpk('Approved')"
+                class="full-width rounded-20 q-px-lg text-weight-bold shadow-4 text-white"
+              />
+            </div>
+            <div
+              class="col-12 col-sm-auto"
               v-if="canAction('setuju') && currentSpk.status === 'Approved'"
-              unelevated
-              color="warning"
-              icon="undo"
-              label="BATALKAN SETUJU"
-              @click="handleApproveSpk('Pending')"
-              class="rounded-20 q-px-lg text-weight-bold shadow-4 q-mr-sm"
-            />
-
-            <q-btn
-              v-if="isEditable"
-              unelevated
-              color="positive"
-              icon="save"
-              label="SIMPAN PERUBAHAN"
-              :loading="savingRab"
-              @click="saveRabModal"
-              class="rounded-20 q-px-xl text-weight-bold shadow-4"
-            />
+            >
+              <q-btn
+                unelevated
+                color="warning"
+                icon="undo"
+                label="BATALKAN SETUJU"
+                @click="handleApproveSpk('Pending')"
+                class="full-width rounded-20 q-px-lg text-weight-bold shadow-4"
+              />
+            </div>
+            <div class="col-12 col-sm-auto" v-if="isEditable">
+              <q-btn
+                unelevated
+                color="positive"
+                icon="save"
+                label="SIMPAN PERUBAHAN"
+                :loading="savingRab"
+                @click="saveRabModal"
+                class="full-width rounded-20 q-px-xl text-weight-bold shadow-4 text-white"
+              />
+            </div>
           </div>
         </div>
 
@@ -425,7 +476,7 @@
         <q-card
           flat
           bordered
-          class="q-mb-lg bg-white rounded-20 shadow-sm border-indigo-thin overflow-hidden"
+          class="q-mb-lg bg-white rounded-20 shadow-sm border-brand-thin overflow-hidden"
         >
           <q-card-section class="row q-col-gutter-lg q-pa-lg">
             <div class="col-12 col-md-3 border-right-sep">
@@ -433,13 +484,13 @@
               <div class="text-subtitle1 text-bold text-blue-grey-10">
                 {{ currentSpk.nomor_spk }}
               </div>
-              <div class="text-caption text-indigo-8 q-mt-xs">
+              <div class="text-caption text-brand-primary q-mt-xs">
                 Ref Quot: {{ currentSpk.no_quotation || '-' }}
               </div>
             </div>
             <div class="col-12 col-md-3 border-right-sep">
               <div class="text-overline text-grey-6 text-bold">DURASI KONTRAK</div>
-              <div class="text-subtitle1 text-primary text-bold">
+              <div class="text-subtitle1 text-brand-primary text-bold">
                 {{ currentSpk.durasi || '-' }}
               </div>
               <div class="text-caption text-grey-7">
@@ -457,8 +508,8 @@
                     v-for="(doc, dIdx) in currentSpk.documents"
                     :key="dIdx"
                     unelevated
-                    color="indigo-1"
-                    text-color="indigo-10"
+                    color="brand-light"
+                    text-color="brand-primary"
                     size="sm"
                     icon="description"
                     :label="doc.label"
@@ -466,7 +517,7 @@
                     rounded
                   />
                 </div>
-                <div v-else class="text-caption text-grey-5 italic">Tidak ada lampiran</div>
+                <div class="text-caption text-grey-5 italic" v-else>Tidak ada lampiran</div>
               </div>
             </div>
           </q-card-section>
@@ -476,12 +527,12 @@
         <q-card
           flat
           bordered
-          class="rounded-20 bg-white shadow-10 overflow-hidden border-indigo-thin"
+          class="rounded-20 bg-white shadow-10 overflow-hidden border-brand-thin"
         >
           <q-tabs
             v-model="activeTab"
             dense
-            class="bg-indigo-10 text-white"
+            class="bg-brand-primary text-white"
             active-color="white"
             indicator-color="orange-9"
             align="left"
@@ -492,19 +543,19 @@
               name="boq"
               label="1. Bill of Quantity (BOQ)"
               icon="format_list_numbered"
-              class="q-px-xl text-weight-bold"
+              class="q-px-xl text-weight-bold text-white"
             />
             <q-tab
               name="budget"
               label="2. Analisa Modal (RAB)"
               icon="engineering"
-              class="q-px-xl text-weight-bold"
+              class="q-px-xl text-weight-bold text-white"
             />
             <q-tab
               name="margin"
               label="3. Profit & Loss Analysis"
               icon="insights"
-              class="q-px-xl text-weight-bold"
+              class="q-px-xl text-weight-bold text-white"
             />
           </q-tabs>
 
@@ -514,9 +565,9 @@
               <div
                 v-for="(group, gIdx) in currentSpk.groups"
                 :key="gIdx"
-                class="q-mb-xl bg-white rounded-20 shadow-sm border-indigo overflow-hidden"
+                class="q-mb-xl bg-white rounded-20 shadow-sm border-brand-primary overflow-hidden"
               >
-                <q-toolbar class="bg-indigo-10 text-white q-py-sm">
+                <q-toolbar class="bg-brand-primary text-white q-py-sm">
                   <q-icon name="list" class="q-mr-md" />
                   <q-input
                     dark
@@ -524,7 +575,7 @@
                     dense
                     v-model="group.title"
                     class="text-bold text-h6 col"
-                    placeholder="Input Nama Pekerjaan Utama..."
+                    placeholder="Input Name Pekerjaan Utama..."
                     :readonly="!isEditable"
                   />
                   <q-btn
@@ -540,7 +591,7 @@
 
                 <q-markup-table flat bordered separator="cell" class="excel-grid-blue">
                   <thead>
-                    <tr class="bg-indigo-1 text-indigo-10 text-center uppercase">
+                    <tr class="bg-brand-light text-brand-primary text-center uppercase">
                       <th width="40">H</th>
                       <th width="50">NO</th>
                       <th class="text-left">URAIAN PEKERJAAN</th>
@@ -548,21 +599,21 @@
                       <th width="80">SAT</th>
                       <th width="150">HARGA JUAL</th>
                       <th width="180">TOTAL JUAL</th>
-                      <th width="50"></th>
+                      <th width="40"></th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr
                       v-for="(item, iIdx) in group.items"
                       :key="iIdx"
-                      :class="item.is_header ? 'bg-indigo-50' : ''"
+                      :class="item.is_header ? 'bg-brand-light' : ''"
                     >
                       <td class="text-center">
                         <q-checkbox
                           v-model="item.is_header"
                           dense
                           size="xs"
-                          color="indigo"
+                          color="brand-primary"
                           :disable="!isEditable"
                           @update:model-value="handleBoqHeaderToggle(item)"
                         />
@@ -575,7 +626,7 @@
                           v-model="item.deskripsi"
                           class="q-px-md"
                           :input-class="
-                            item.is_header ? 'text-bold text-indigo-10 text-subtitle2' : ''
+                            item.is_header ? 'text-bold text-brand-primary text-subtitle2' : ''
                           "
                           placeholder="Input rincian item..."
                           :readonly="!isEditable"
@@ -596,7 +647,7 @@
                           borderless
                           dense
                           v-model="item.satuan"
-                          class="text-center uppercase text-weight-bold text-primary"
+                          class="text-center uppercase text-weight-bold text-brand-primary"
                           :disable="item.is_header || !isEditable"
                         />
                       </td>
@@ -610,7 +661,7 @@
                           :disable="item.is_header || !isEditable"
                         />
                       </td>
-                      <td class="text-right text-weight-bolder text-indigo-10 q-px-md">
+                      <td class="text-right text-weight-bolder text-brand-primary q-px-md">
                         Rp {{ formatMoney((item.volume || 0) * (item.harga_satuan || 0)) }}
                       </td>
                       <td class="text-center">
@@ -630,7 +681,7 @@
                 <q-btn
                   v-if="isEditable"
                   flat
-                  color="indigo"
+                  color="brand-primary"
                   icon="add"
                   label="TAMBAH RINCIAN BARIS"
                   @click="
@@ -642,23 +693,26 @@
                       rab_modal: [],
                     })
                   "
-                  class="full-width bg-indigo-1 text-weight-bold"
+                  class="full-width bg-brand-light font-bold"
                 />
               </div>
               <q-btn
                 v-if="isEditable"
                 unelevated
-                color="indigo-10"
+                color="brand-primary"
                 icon="add_circle"
                 label="TAMBAHKAN KATEGORI PEKERJAAN BARU"
                 @click="addTableGroup(currentSpk)"
-                class="full-width q-py-lg rounded-20 text-weight-black shadow-3"
+                class="full-width q-py-lg rounded-20 text-weight-black shadow-3 text-white"
               />
-              <div class="q-mt-xl q-pa-xl bg-indigo-10 text-white rounded-20 text-right shadow-10">
+              <!-- CARD GRAND TOTAL KONTRAK RESPONSIVE KE TENGAH DI HP -->
+              <div
+                class="q-mt-xl q-pa-xl bg-brand-primary text-white rounded-20 mobile-text-center desktop-text-right shadow-10"
+              >
                 <div class="text-overline opacity-80 uppercase tracking-widest text-weight-bold">
                   Grand Total Kontrak
                 </div>
-                <div class="text-h3 text-weight-black">
+                <div class="text-h3 text-weight-black text-white">
                   Rp {{ formatMoney(calculateGrandTotalJual(currentSpk)) }}
                 </div>
               </div>
@@ -740,7 +794,7 @@
                               borderless
                               dense
                               v-model="rab.sat_unit"
-                              input-class="text-center uppercase text-weight-bold text-primary"
+                              input-class="text-center uppercase text-weight-bold text-brand-primary"
                               :readonly="!isEditable"
                             />
                           </td>
@@ -828,11 +882,14 @@
                   </tbody>
                 </q-markup-table>
               </div>
-              <div class="q-pa-xl bg-orange-10 text-white rounded-20 text-right shadow-10">
+              <!-- CARD GRAND TOTAL BIAYA PRODUKSI RESPONSIVE KE TENGAH DI HP -->
+              <div
+                class="q-pa-xl bg-orange-10 text-white rounded-20 mobile-text-center desktop-text-right shadow-10"
+              >
                 <div class="text-overline opacity-80 uppercase tracking-widest text-weight-bold">
                   Total Biaya Produksi (Modal)
                 </div>
-                <div class="text-h3 text-weight-black">
+                <div class="text-h3 text-weight-black text-white">
                   Rp {{ formatMoney(calculateGrandTotalModal(currentSpk)) }}
                 </div>
               </div>
@@ -843,9 +900,11 @@
               <div class="row q-col-gutter-xl q-mb-xl animate-fade">
                 <div class="col-12 col-md-4">
                   <q-card flat class="balance-prestige-card bg-white shadow-2">
-                    <div class="card-accent-bar bg-indigo-10"></div>
+                    <div class="card-accent-bar bg-brand-primary"></div>
                     <q-card-section class="q-pa-xl">
-                      <div class="text-overline text-indigo-10 text-bold uppercase tracking-widest">
+                      <div
+                        class="text-overline text-brand-primary text-bold uppercase tracking-widest"
+                      >
                         Revenue (Harga Jual)
                       </div>
                       <div class="text-h4 text-weight-black text-dark q-mt-sm">
@@ -881,7 +940,7 @@
                       <div class="text-overline opacity-80 text-bold uppercase tracking-widest">
                         Gross Profit Projection
                       </div>
-                      <div class="text-h3 text-weight-black q-mt-sm">
+                      <div class="text-h3 text-weight-black q-mt-sm text-white">
                         Rp
                         {{
                           formatMoney(
@@ -890,7 +949,9 @@
                           )
                         }}
                       </div>
-                      <div class="margin-badge-white q-mt-lg text-subtitle1 text-weight-bold">
+                      <div
+                        class="margin-badge-white q-mt-lg text-subtitle1 text-weight-bold text-white"
+                      >
                         Margin:
                         {{
                           calculateGrandTotalJual(currentSpk) > 0
@@ -911,11 +972,13 @@
               <q-card
                 flat
                 bordered
-                class="rounded-20 overflow-hidden shadow-sm bg-white border-indigo-thin animate-fade-up"
+                class="rounded-20 overflow-hidden shadow-sm bg-white border-brand-thin animate-fade-up"
               >
-                <div class="q-pa-lg bg-indigo-1 border-bottom row items-center">
-                  <q-icon name="summarize" color="indigo-10" size="md" class="q-mr-md" />
-                  <div class="text-h6 text-weight-black text-indigo-10 uppercase letter-spacing-1">
+                <div class="q-pa-lg bg-brand-light border-bottom row items-center">
+                  <q-icon name="summarize" color="brand-primary" size="md" class="q-mr-md" />
+                  <div
+                    class="text-h6 text-weight-black text-brand-primary uppercase letter-spacing-1"
+                  >
                     Balance Sheet Per Item Pekerjaan
                   </div>
                 </div>
@@ -931,11 +994,11 @@
                   </thead>
                   <tbody>
                     <template v-for="(group, gIdx) in currentSpk.groups" :key="'bsg-' + gIdx">
-                      <tr class="bg-indigo-50 text-bold">
-                        <td class="text-left text-weight-black text-indigo-10">
+                      <tr class="bg-brand-light text-bold">
+                        <td class="text-left text-weight-black text-brand-primary">
                           {{ group.title }}
                         </td>
-                        <td class="text-right text-indigo-10">
+                        <td class="text-right text-brand-primary">
                           Rp {{ formatMoney(sumGroupJual(group)) }}
                         </td>
                         <td class="text-right text-orange-10">
@@ -956,7 +1019,7 @@
                             :color="
                               sumGroupJual(group) - sumGroupModal(group) < 0 ? 'red-10' : 'green-10'
                             "
-                            class="text-bold q-px-sm"
+                            class="text-bold q-px-sm text-white"
                             >{{
                               sumGroupJual(group) > 0
                                 ? (
@@ -1020,8 +1083,16 @@
          ===================================================================================== -->
     <!-- SPK DIALOG -->
     <q-dialog v-model="showAddSpk" persistent maximized transition-show="slide-up">
-      <q-card class="bg-grey-2 column no-wrap">
-        <q-toolbar class="bg-indigo-10 text-white q-py-md shadow-4 shrink">
+      <q-card class="bg-grey-2 column no-wrap relative-position">
+        <!-- Background Animation di dalam Dialog -->
+        <div class="bg-animation-container">
+          <q-icon name="engineering" class="floating-icon i-1" />
+          <q-icon name="construction" class="floating-icon i-2" />
+          <q-icon name="architecture" class="floating-icon i-3" />
+          <q-icon name="location_city" class="floating-icon i-4" />
+        </div>
+
+        <q-toolbar class="bg-brand-primary text-white q-py-md shadow-4 shrink content-relative">
           <q-btn flat round icon="close" v-close-popup />
           <q-toolbar-title class="text-weight-black uppercase">{{
             isEditSpkMode ? 'REVISI DATA KONTRAK' : 'REGISTRASI KONTRAK BARU'
@@ -1030,7 +1101,7 @@
             v-if="canAction('buat') || canAction('ubah')"
             unelevated
             color="white"
-            text-color="indigo-10"
+            text-color="brand-primary"
             label="SIMPAN DATA"
             @click="handleSaveSpk"
             :loading="submittingSpk"
@@ -1039,7 +1110,7 @@
           />
         </q-toolbar>
 
-        <q-scroll-area class="col q-pa-lg q-pa-md-xl">
+        <q-scroll-area class="col q-pa-lg q-pa-md-xl content-relative">
           <div class="row justify-center">
             <div class="col-12 col-lg-10">
               <div class="row q-col-gutter-xl">
@@ -1047,10 +1118,10 @@
                   <q-card
                     flat
                     bordered
-                    class="rounded-20 q-pa-lg bg-white shadow-1 border-indigo-thin"
+                    class="rounded-20 q-pa-lg bg-white shadow-1 border-brand-thin"
                   >
                     <div
-                      class="text-subtitle1 text-indigo-10 q-mb-lg uppercase text-weight-black border-bottom q-pb-xs"
+                      class="text-subtitle1 text-brand-primary q-mb-lg uppercase text-weight-black border-bottom q-pb-xs"
                     >
                       <q-icon name="info" class="q-mr-xs" /> Metadata Kontrak
                     </div>
@@ -1105,13 +1176,13 @@
                         v-model="formSpk.durasi"
                         label="Kalkulasi Durasi"
                         readonly
-                        bg-color="indigo-1"
+                        bg-color="brand-light"
                         class="text-weight-bold"
                       />
                     </div>
 
                     <div
-                      class="text-subtitle1 text-indigo-10 q-mt-xl q-mb-lg uppercase text-weight-black"
+                      class="text-subtitle1 text-brand-primary q-mt-xl q-mb-lg uppercase text-weight-black"
                     >
                       <q-icon name="attach_file" class="q-mr-xs" /> Lampiran Digital
                     </div>
@@ -1150,7 +1221,7 @@
                     </div>
                     <q-btn
                       outline
-                      color="indigo-10"
+                      color="brand-primary"
                       icon="add"
                       label="TAMBAH DOKUMEN"
                       class="full-width q-mt-md rounded-20 text-weight-bold"
@@ -1163,9 +1234,9 @@
                   <div
                     v-for="(group, gIdx) in formSpk.groups"
                     :key="gIdx"
-                    class="bg-white shadow-2 rounded-20 border-indigo overflow-hidden q-mb-xl"
+                    class="bg-white shadow-2 rounded-20 border-brand-primary overflow-hidden q-mb-xl"
                   >
-                    <q-toolbar class="bg-indigo-10 text-white q-py-sm">
+                    <q-toolbar class="bg-brand-primary text-white q-py-sm">
                       <q-icon name="list" class="q-mr-sm" />
                       <q-input
                         dark
@@ -1186,7 +1257,7 @@
                     </q-toolbar>
                     <q-markup-table flat bordered dense class="excel-grid-blue">
                       <thead>
-                        <tr class="bg-indigo-1 text-indigo-10 text-caption font-bold">
+                        <tr class="bg-brand-light text-brand-primary text-caption font-bold">
                           <th width="40">H</th>
                           <th width="50">NO</th>
                           <th>URAIAN ITEM</th>
@@ -1201,10 +1272,15 @@
                         <tr
                           v-for="(item, iIdx) in group.items"
                           :key="iIdx"
-                          :class="item.is_header ? 'bg-indigo-50' : ''"
+                          :class="item.is_header ? 'bg-brand-light' : ''"
                         >
                           <td class="text-center">
-                            <q-checkbox v-model="item.is_header" dense size="xs" color="indigo" />
+                            <q-checkbox
+                              v-model="item.is_header"
+                              dense
+                              size="xs"
+                              color="brand-primary"
+                            />
                           </td>
                           <td class="text-center text-grey-5">{{ iIdx + 1 }}</td>
                           <td class="no-padding">
@@ -1245,7 +1321,7 @@
                               :disable="item.is_header"
                             />
                           </td>
-                          <td class="text-right text-bold text-indigo-10 q-px-md">
+                          <td class="text-right text-bold text-brand-primary q-px-md">
                             Rp {{ formatMoney((item.volume || 0) * (item.harga_satuan || 0)) }}
                           </td>
                           <td class="text-center">
@@ -1263,7 +1339,7 @@
                     </q-markup-table>
                     <q-btn
                       flat
-                      color="indigo"
+                      color="brand-primary"
                       icon="add"
                       label="TAMBAH RINCIAN"
                       @click="
@@ -1275,12 +1351,12 @@
                           rab_modal: [],
                         })
                       "
-                      class="full-width bg-indigo-1 font-bold"
+                      class="full-width bg-brand-light font-bold"
                     />
                   </div>
                   <q-btn
                     outline
-                    color="indigo-10"
+                    color="brand-primary"
                     icon="add_circle"
                     label="TAMBAHKAN KATEGORI PEKERJAAN"
                     @click="addTableGroup(formSpk)"
@@ -1297,14 +1373,24 @@
 
     <!-- PROJECT BASIC INFO DIALOG -->
     <q-dialog v-model="showAddDialog" persistent backdrop-filter="blur(4px)">
-      <q-card style="width: 550px; max-width: 95vw" class="rounded-20 shadow-24 overflow-hidden">
-        <q-toolbar class="bg-indigo-10 text-white q-py-md">
+      <q-card
+        style="width: 550px; max-width: 95vw"
+        class="rounded-20 shadow-24 overflow-hidden relative-position"
+      >
+        <!-- Background Animation di dalam Dialog -->
+        <div class="bg-animation-container">
+          <q-icon name="engineering" class="floating-icon i-1" />
+          <q-icon name="construction" class="floating-icon i-2" />
+          <q-icon name="architecture" class="floating-icon i-3" />
+        </div>
+
+        <q-toolbar class="bg-brand-primary text-white q-py-md content-relative">
           <q-btn flat round icon="close" v-close-popup />
           <q-toolbar-title class="text-weight-black uppercase">{{
             isEditMode ? 'PEMBARUAN PROYEK' : 'REGISTRASI PROYEK BARU'
           }}</q-toolbar-title>
         </q-toolbar>
-        <q-card-section class="q-pa-xl bg-grey-1">
+        <q-card-section class="q-pa-xl bg-grey-1 content-relative">
           <div class="q-gutter-y-lg">
             <q-input
               filled
@@ -1343,10 +1429,10 @@
             <q-btn
               v-if="canAction('buat') || canAction('ubah')"
               unelevated
-              color="indigo-10"
+              color="brand-primary"
               label="SIMPAN DATA PROYEK"
               @click="simpanProyek"
-              class="full-width rounded-20 q-py-lg text-weight-black shadow-6"
+              class="full-width rounded-20 q-py-lg text-weight-black shadow-6 text-white"
             />
           </div>
         </q-card-section>
@@ -1356,7 +1442,7 @@
     <!-- DOCUMENT PREVIEW DIALOG -->
     <q-dialog v-model="showDocPreview" maximized transition-show="scale" transition-hide="scale">
       <q-card class="bg-grey-10">
-        <q-toolbar class="bg-indigo-10 text-white shadow-2">
+        <q-toolbar class="bg-brand-primary text-white shadow-2">
           <q-toolbar-title class="text-weight-bold">Peninjauan Dokumen Kontrak</q-toolbar-title>
           <q-btn flat round dense icon="close" v-close-popup />
         </q-toolbar>
@@ -1431,32 +1517,76 @@ let unsubUser = null
 
 const userData = ref(null)
 
-// ============================================================================
+// ==========================================
+// ANIMASI KLIK & MENGAMBANG (SAMA SEPERTI MASTER BARANG)
+// ==========================================
+const spawnedIcons = ref([])
+let spawnIdCounter = 0
+const clickIcons = [
+  'construction',
+  'engineering',
+  'handyman',
+  'architecture',
+  'foundation',
+  'precision_manufacturing',
+  'carpenter',
+  'plumbing',
+  'electrical_services',
+  'hardware',
+]
+
+const spawnIcon = (e) => {
+  const target = e.target
+  if (
+    target.closest('button') ||
+    target.closest('.q-btn') ||
+    target.closest('input') ||
+    target.closest('.q-field') ||
+    target.closest('.q-dialog') ||
+    target.closest('.q-table') ||
+    target.closest('.q-card')
+  ) {
+    return
+  }
+
+  const iconName = clickIcons[Math.floor(Math.random() * clickIcons.length)]
+  const colors = ['#36ada3', '#2a8b83', '#56c2b9', '#f29c1f', '#e67e22', '#e74c3c']
+  const randColor = colors[Math.floor(Math.random() * colors.length)]
+  const randRotate = Math.floor(Math.random() * 90) - 45
+  const randSize = Math.floor(Math.random() * 25) + 35
+
+  const newIcon = {
+    id: spawnIdCounter++,
+    x: e.clientX,
+    y: e.clientY,
+    name: iconName,
+    color: randColor,
+    rotate: randRotate,
+    size: randSize,
+  }
+
+  spawnedIcons.value.push(newIcon)
+
+  setTimeout(() => {
+    spawnedIcons.value = spawnedIcons.value.filter((i) => i.id !== newIcon.id)
+  }, 1400)
+}
+// ==========================================
+
 // INTEGRATED REAL-TIME PERMISSION CONTROL Matrix
-// ============================================================================
 const canAction = (actionType) => {
-  // 1. Super Admin otomatis bypass
   if (authStore.user?.role === 'Super Admin') return true
-
-  // 2. Safeguard jika profile hak akses belum termuat sempurna
   if (!userData.value?.permissions_detail) return false
-
-  // 3. Ambil data izin modul 'konstruksi'
   const modulePerm = userData.value.permissions_detail.find((m) => m.id === 'konstruksi')
   if (!modulePerm || !modulePerm.isActive) return false
-
-  // 4. Cari sub-menu 'Proyek Data' / 'proyek_data'
   const menu = modulePerm.menus.find(
     (m) => m.id.toLowerCase().includes('proyek_data') || m.id.toLowerCase().includes('proyek-data'),
   )
   if (!menu) return false
-
-  // 5. Mapping nama parameter pemanggil ke skema matrix AksesPage.vue
   if (actionType === 'setuju') return menu.approve || false
   return menu[actionType] || false
 }
 
-// Menentukan apakah SPK / RAB masih bisa diedit oleh pengguna
 const isEditable = computed(() => {
   return canAction('ubah') && currentSpk.value?.status !== 'Approved'
 })
@@ -1617,16 +1747,47 @@ const confirmDeleteSpk = (row) => {
     })
     return
   }
+  // DIALOG KONFIRMASI HAPUS KONTRAK PREMIUM
   $q.dialog({
-    title: '<span class="text-negative text-weight-bold">Hapus Kontrak?</span>',
-    message: `Apakah Anda yakin ingin menghapus kontrak <b>${row.nomor_spk}</b> secara permanen?`,
+    title: '<div class="text-h5 text-weight-bolder text-negative q-mb-sm">Konfirmasi Hapus</div>',
+    message: `Apakah Anda yakin ingin menghapus kontrak <b>${row.nomor_spk}</b> secara permanen?<br/><span class="text-grey-7 text-caption block q-mt-xs">Data yang dihapus tidak dapat dikembalikan lagi.</span>`,
     html: true,
-    cancel: true,
-    ok: { color: 'negative', unelevated: true, label: 'Ya, Hapus', rounded: true },
+    cancel: {
+      label: 'Batal',
+      color: 'grey-7',
+      outline: true,
+      rounded: true,
+      unelevated: true,
+      class: 'q-px-lg text-weight-bold text-uppercase',
+    },
+    ok: {
+      label: 'Ya, Hapus',
+      color: 'negative',
+      unelevated: true,
+      rounded: true,
+      class: 'q-px-lg text-weight-bold text-uppercase shadow-2',
+    },
+    class: 'rounded-20 q-pa-md shadow-premium bg-white',
     persistent: true,
   }).onOk(async () => {
-    await deleteDoc(doc(db, 'spk_customer', row.id))
-    $q.notify({ icon: 'delete', message: 'Kontrak berhasil dihapus dari sistem.' })
+    try {
+      await deleteDoc(doc(db, 'spk_customer', row.id))
+      // NOTIFIKASI HAPUS KONTRAK PREMIUM
+      $q.notify({
+        html: true,
+        message:
+          '<div class="text-weight-bold text-subtitle1 q-mb-none leading-none">Kontrak Dihapus!</div><div class="text-caption q-mt-xs" style="opacity: 0.85">Kontrak berhasil dihapus dari sistem secara permanen.</div>',
+        color: 'negative',
+        icon: 'delete_forever',
+        position: 'top',
+        timeout: 4000,
+        progress: true,
+        classes: 'rounded-12 shadow-premium q-pl-md q-pr-lg q-py-sm border-white-2',
+        actions: [{ icon: 'close', color: 'white', round: true, size: 'sm', dense: true }],
+      })
+    } catch (e) {
+      console.error(e)
+    }
   })
 }
 
@@ -1650,7 +1811,19 @@ const handleSaveSpk = async () => {
       await addDoc(collection(db, 'spk_customer'), payload)
     }
     showAddSpk.value = false
-    $q.notify({ type: 'positive', message: 'Data Kontrak tersimpan di sistem' })
+    // NOTIFIKASI SIMPAN KONTRAK PREMIUM (HIJAU PREMIUM)
+    $q.notify({
+      html: true,
+      message:
+        '<div class="text-weight-bold text-subtitle1 q-mb-none leading-none">Kontrak Tersimpan!</div><div class="text-caption q-mt-xs" style="opacity: 0.85">Data Kontrak berhasil diperbarui dan disinkronisasi ke sistem.</div>',
+      color: 'positive',
+      icon: 'task_alt',
+      position: 'top',
+      timeout: 4000,
+      progress: true,
+      classes: 'rounded-12 shadow-premium q-pl-md q-pr-lg q-py-sm border-white-2',
+      actions: [{ icon: 'close', color: 'white', round: true, size: 'sm', dense: true }],
+    })
   } catch (e) {
     console.error(e)
   } finally {
@@ -1673,7 +1846,19 @@ const saveRabModal = async () => {
     const sid = payload.id
     delete payload.id
     await updateDoc(doc(db, 'spk_customer', sid), { ...payload, updatedAt: serverTimestamp() })
-    $q.notify({ type: 'positive', message: 'Sinkronisasi RAB Berhasil!' })
+    // NOTIFIKASI SINKRONISASI RAB PREMIUM (HIJAU PREMIUM)
+    $q.notify({
+      html: true,
+      message:
+        '<div class="text-weight-bold text-subtitle1 q-mb-none leading-none">Sinkronisasi Berhasil!</div><div class="text-caption q-mt-xs" style="opacity: 0.85">Sinkronisasi RAB telah berhasil diperbarui dan disimpan.</div>',
+      color: 'positive',
+      icon: 'task_alt',
+      position: 'top',
+      timeout: 4000,
+      progress: true,
+      classes: 'rounded-12 shadow-premium q-pl-md q-pr-lg q-py-sm border-white-2',
+      actions: [{ icon: 'close', color: 'white', round: true, size: 'sm', dense: true }],
+    })
   } catch (e) {
     console.error(e)
   } finally {
@@ -1705,12 +1890,21 @@ const handleApproveSpk = async (statusVal) => {
       status: statusVal,
       updatedAt: serverTimestamp(),
     })
+
+    // NOTIFIKASI OTORISASI / PEMBATALAN PREMIUM
     $q.notify({
-      type: 'positive',
+      html: true,
       message:
         statusVal === 'Approved'
-          ? 'Kontrak & RAB disetujui resmi!'
-          : 'Persetujuan resmi dibatalkan.',
+          ? '<div class="text-weight-bold text-subtitle1 q-mb-none leading-none">Otorisasi Berhasil!</div><div class="text-caption q-mt-xs" style="opacity: 0.85">Kontrak & RAB telah resmi disetujui untuk operasional.</div>'
+          : '<div class="text-weight-bold text-subtitle1 q-mb-none leading-none">Pembatalan Sukses!</div><div class="text-caption q-mt-xs" style="opacity: 0.85">Persetujuan resmi kontrak telah berhasil dibatalkan.</div>',
+      color: statusVal === 'Approved' ? 'positive' : 'warning',
+      icon: statusVal === 'Approved' ? 'verified' : 'undo',
+      position: 'top',
+      timeout: 4000,
+      progress: true,
+      classes: 'rounded-12 shadow-premium q-pl-md q-pr-lg q-py-sm border-white-2',
+      actions: [{ icon: 'close', color: 'white', round: true, size: 'sm', dense: true }],
     })
   } catch (e) {
     console.error(e)
@@ -1731,7 +1925,19 @@ const simpanProyek = async () => {
       await addDoc(collection(db, 'proyek'), p)
     }
     showAddDialog.value = false
-    $q.notify({ type: 'positive', message: 'Database proyek diperbarui' })
+    // NOTIFIKASI REKAP PROYEK PREMIUM (HIJAU PREMIUM)
+    $q.notify({
+      html: true,
+      message:
+        '<div class="text-weight-bold text-subtitle1 q-mb-none leading-none">Proyek Diperbarui!</div><div class="text-caption q-mt-xs" style="opacity: 0.85">Database proyek Agra ERP telah berhasil diperbarui.</div>',
+      color: 'positive',
+      icon: 'task_alt',
+      position: 'top',
+      timeout: 4000,
+      progress: true,
+      classes: 'rounded-12 shadow-premium q-pl-md q-pr-lg q-py-sm border-white-2',
+      actions: [{ icon: 'close', color: 'white', round: true, size: 'sm', dense: true }],
+    })
   } catch (e) {
     console.error(e)
   }
@@ -1776,16 +1982,47 @@ const hapusProyek = (row) => {
     })
     return
   }
+  // DIALOG KONFIRMASI HAPUS PROYEK PREMIUM
   $q.dialog({
-    title: '<span class="text-negative text-weight-bold">Hapus Proyek?</span>',
-    message: `Data proyek "<b>${row.nama}</b>" akan terhapus selamanya dari sistem.`,
+    title: '<div class="text-h5 text-weight-bolder text-negative q-mb-sm">Konfirmasi Hapus</div>',
+    message: `Apakah Anda yakin ingin menghapus proyek <b>${row.nama}</b> secara permanen?<br/><span class="text-grey-7 text-caption block q-mt-xs">Seluruh database, Kontrak, dan RAB SPK terkait proyek ini akan hilang.</span>`,
     html: true,
-    cancel: true,
-    ok: { label: 'Hapus Permanen', color: 'negative', unelevated: true, rounded: true },
+    cancel: {
+      label: 'Batal',
+      color: 'grey-7',
+      outline: true,
+      rounded: true,
+      unelevated: true,
+      class: 'q-px-lg text-weight-bold text-uppercase',
+    },
+    ok: {
+      label: 'Ya, Hapus',
+      color: 'negative',
+      unelevated: true,
+      rounded: true,
+      class: 'q-px-lg text-weight-bold text-uppercase shadow-2',
+    },
+    class: 'rounded-20 q-pa-md shadow-premium bg-white',
     persistent: true,
   }).onOk(async () => {
-    await deleteDoc(doc(db, 'proyek', row.id))
-    $q.notify({ icon: 'delete', message: 'Proyek dihapus' })
+    try {
+      await deleteDoc(doc(db, 'proyek', row.id))
+      // NOTIFIKASI HAPUS PROYEK PREMIUM
+      $q.notify({
+        html: true,
+        message:
+          '<div class="text-weight-bold text-subtitle1 q-mb-none leading-none">Proyek Dihapus!</div><div class="text-caption q-mt-xs" style="opacity: 0.85">Data portofolio proyek telah ditarik secara permanen dari sistem.</div>',
+        color: 'negative',
+        icon: 'delete_forever',
+        position: 'top',
+        timeout: 4000,
+        progress: true,
+        classes: 'rounded-12 shadow-premium q-pl-md q-pr-lg q-py-sm border-white-2',
+        actions: [{ icon: 'close', color: 'white', round: true, size: 'sm', dense: true }],
+      })
+    } catch (e) {
+      console.error(e)
+    }
   })
 }
 
@@ -1833,6 +2070,11 @@ const spkColumns = [
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
 
+/* ===== GLOBAL THEME OVERRIDES (DARI MASTER BARANG TEAL/TOSCA) ===== */
+.bg-page {
+  background-color: #f8fcfb;
+}
+
 .font-pro {
   font-family:
     'Plus Jakarta Sans',
@@ -1842,25 +2084,223 @@ const spkColumns = [
 .rounded-20 {
   border-radius: 20px;
 }
-.shadow-premium {
-  box-shadow: 0 12px 30px rgba(25, 118, 210, 0.15);
+.rounded-12 {
+  border-radius: 12px;
 }
+.shadow-premium {
+  box-shadow: 0 10px 30px rgba(54, 173, 163, 0.15); /* Teal accent shadow */
+}
+.border-dashed {
+  border: 2px dashed #e0e0e0;
+}
+
+/* OVERRIDE WARNA INDIGO MENJADI BRAND COLOR TEAL/TOSCA */
+.bg-brand-primary,
+:deep(.bg-brand-primary) {
+  background-color: #36ada3 !important;
+}
+.text-brand-primary,
+:deep(.text-brand-primary) {
+  color: #36ada3 !important;
+}
+.bg-brand-light {
+  background-color: #e6f5f4 !important; /* Soft Teal */
+}
+.text-brand-secondary {
+  color: #2a8b83 !important;
+}
+.border-brand-thin {
+  border: 2px solid #b2e5e2 !important; /* Soft Teal border */
+}
+
+/* CARDS ACCENTS */
 .border-indigo {
-  border: 1px solid #1a237e;
-  border-top: 5px solid #1a237e;
+  border: 1px solid #36ada3;
+  border-top: 5px solid #36ada3;
 }
 .border-orange {
   border: 1px solid #e65100;
   border-top: 5px solid #e65100;
 }
-.border-indigo-thin {
-  border: 1px solid rgba(26, 35, 126, 0.1);
-}
 .border-right-sep {
   border-right: 1px solid rgba(0, 0, 0, 0.05);
 }
-.border-dashed {
-  border: 2px dashed #e0e0e0;
+.border-white-2 {
+  border: 2px solid rgba(255, 255, 255, 0.4);
+}
+.border-subtle {
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* RESPONSIVE CARD TEXT ALIGNMENT HELPER (HP CENTER, LAPTOP RIGHT) */
+@media (max-width: 599px) {
+  .mobile-text-center {
+    text-align: center !important;
+  }
+}
+@media (min-width: 600px) {
+  .desktop-text-right {
+    text-align: right !important;
+  }
+}
+
+/* BTNS RESPONSIVENESS IN HP (MEMBENTANG PENUH) */
+@media (max-width: 599px) {
+  .q-btn.full-width {
+    width: 100% !important;
+  }
+  .divider-container > div {
+    border-right: none !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  }
+}
+
+/* ===== ANIMASI BACKGROUND (FLOATING TEAL DENGAN BLUR HALUS) ===== */
+.bg-animation-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.floating-icon {
+  position: absolute;
+  bottom: -150px;
+  animation: floatUp linear infinite;
+  opacity: 0.15;
+  filter: blur(1.5px); /* Kebureman tipis dan lembut sesuai contoh */
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+/* Posisi dan durasi masing-masing ikon mengambang */
+.i-1 {
+  left: 10%;
+  font-size: 100px;
+  animation-duration: 25s;
+  animation-delay: 0s;
+  color: #36ada3;
+}
+.i-2 {
+  left: 30%;
+  font-size: 70px;
+  animation-duration: 35s;
+  animation-delay: 5s;
+  color: #f29c1f;
+}
+.i-3 {
+  left: 60%;
+  font-size: 120px;
+  animation-duration: 40s;
+  animation-delay: 12s;
+  color: #e74c3c;
+}
+.i-4 {
+  left: 80%;
+  font-size: 85px;
+  animation-duration: 30s;
+  animation-delay: 2s;
+  color: #56c2b9;
+}
+.i-5 {
+  left: 15%;
+  font-size: 90px;
+  animation-duration: 28s;
+  animation-delay: 15s;
+  color: #e67e22;
+}
+.i-6 {
+  left: 45%;
+  font-size: 110px;
+  animation-duration: 45s;
+  animation-delay: 8s;
+  color: #2a8b83;
+}
+.i-7 {
+  left: 75%;
+  font-size: 60px;
+  animation-duration: 22s;
+  animation-delay: 20s;
+  color: #f29c1f;
+}
+.i-8 {
+  left: 25%;
+  font-size: 95px;
+  animation-duration: 32s;
+  animation-delay: 25s;
+  color: #e74c3c;
+}
+
+@keyframes floatUp {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.15;
+  }
+  90% {
+    opacity: 0.15;
+  }
+  100% {
+    transform: translateY(-120vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* ===== CLICK SPAWN ICONS (MEMANCAR REAKTIF) ===== */
+.click-spawn-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.spawned-icon {
+  position: absolute;
+  color: var(--rand-color);
+  transform-origin: center;
+  pointer-events: none;
+  animation: spawnBurst 1.4s ease-out forwards;
+}
+
+@keyframes spawnBurst {
+  0% {
+    transform: translate(-50%, -50%) scale(0) rotate(0deg);
+    opacity: 1;
+  }
+  40% {
+    transform: translate(-50%, -100%) scale(1.2) rotate(var(--rand-rotate));
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(-50%, -180%) scale(0.5) rotate(calc(var(--rand-rotate) * 1.5));
+    opacity: 0;
+  }
+}
+
+.spawn-enter-active,
+.spawn-leave-active {
+  transition: all 1.4s ease;
+}
+
+/* Table Styling */
+.proyek-table :deep(thead tr th),
+.spk-table-premium :deep(thead tr th) {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  font-weight: 800;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
 }
 .btn-hover:hover {
   filter: brightness(1.1);
@@ -1868,7 +2308,7 @@ const spkColumns = [
   transition: 0.3s;
 }
 .hover-bg:hover {
-  background-color: rgba(25, 118, 210, 0.03) !important;
+  background-color: #e6f5f4 !important;
 }
 .transition-all {
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -1892,12 +2332,12 @@ const spkColumns = [
   padding: 0 !important;
 }
 
-/* Grid Styles */
+/* Grid Styles BOQ / RAB */
 .excel-grid-blue :deep(thead th) {
   font-size: 0.7rem;
   font-weight: 800;
   padding: 12px;
-  background: #1a237e;
+  background: #36ada3;
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -1973,5 +2413,9 @@ const spkColumns = [
 }
 .shrink {
   flex: 0 0 auto;
+}
+.content-relative {
+  position: relative;
+  z-index: 1;
 }
 </style>

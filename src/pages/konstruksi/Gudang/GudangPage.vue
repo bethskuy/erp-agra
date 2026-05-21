@@ -1,11 +1,43 @@
 <template>
-  <q-page class="bg-grey-2 q-pa-md q-pa-md-lg font-pro">
+  <q-page class="bg-page q-pa-md q-pa-md-lg font-pro relative-position" @click="spawnIcon($event)">
+    <!-- EFEK ANIMASI KLIK (SPAWN ICONS) -->
+    <div class="click-spawn-container">
+      <transition-group name="spawn">
+        <div
+          v-for="icon in spawnedIcons"
+          :key="icon.id"
+          class="spawned-icon"
+          :style="{
+            left: icon.x + 'px',
+            top: icon.y + 'px',
+            '--rand-rotate': icon.rotate + 'deg',
+            '--rand-color': icon.color,
+            fontSize: icon.size + 'px',
+          }"
+        >
+          <q-icon :name="icon.name" />
+        </div>
+      </transition-group>
+    </div>
+
+    <!-- EFEK LATAR BELAKANG ANIMASI MENGAMBANG (Warna-Warni, Kebureman Tipis & Elegan Sesuai Contoh) -->
+    <div class="bg-animation-container">
+      <q-icon name="engineering" class="floating-icon i-1" />
+      <q-icon name="construction" class="floating-icon i-2" />
+      <q-icon name="architecture" class="floating-icon i-3" />
+      <q-icon name="location_city" class="floating-icon i-4" />
+      <q-icon name="handyman" class="floating-icon i-5" />
+      <q-icon name="apartment" class="floating-icon i-6" />
+      <q-icon name="engineering" class="floating-icon i-7" />
+      <q-icon name="hardware" class="floating-icon i-8" />
+    </div>
+
     <!-- =====================================================================================
          SCREEN 1: LOCK SCREEN JIKA TIDAK MEMILIKI AKSES LIHAT GUDANG
          ===================================================================================== -->
     <template v-if="!canAction('lihat')">
       <div
-        class="row flex-center q-pa-xl text-center font-pro animate-fade"
+        class="row flex-center q-pa-xl text-center font-pro animate-fade content-relative"
         style="min-height: 70vh"
       >
         <div
@@ -24,6 +56,7 @@
             rounded
             unelevated
             no-caps
+            class="text-white text-weight-bold"
             @click="$router.push('/')"
           />
         </div>
@@ -35,7 +68,7 @@
          ===================================================================================== -->
     <template v-else>
       <!-- HEADER SECTION -->
-      <div class="row items-center justify-between q-mb-xl animate-fade">
+      <div class="row items-center justify-between q-mb-xl animate-fade content-relative">
         <div class="col-12 col-md-8">
           <div class="text-h4 text-weight-bolder text-indigo-10 leading-tight">
             Manajemen Gudang
@@ -59,19 +92,19 @@
             label="Kembali ke Daftar Gudang"
             @click="selectedGudang = null"
             color="indigo-10"
-            class="bg-white shadow-1"
+            class="bg-white shadow-1 full-width-mobile text-weight-bold"
           />
         </div>
       </div>
 
       <!-- VIEW 1: GUDANG SELECTOR GRID -->
-      <div v-if="!selectedGudang" class="row q-col-gutter-lg animate-fade-up">
+      <div v-if="!selectedGudang" class="row q-col-gutter-lg animate-fade-up content-relative">
         <!-- Gudang Utama Card -->
         <div class="col-12 col-sm-6 col-md-4">
           <q-card
             flat
             bordered
-            class="gudang-card rounded-20 cursor-pointer transition-all hover-shadow relative-position bg-white"
+            class="gudang-card rounded-20 cursor-pointer transition-all hover-shadow relative-position bg-white border-subtle"
             @click="selectGudang({ id: 'UTAMA', nama: 'Gudang Utama' })"
           >
             <!-- NOTIFIKASI GUDANG UTAMA (MUTASI) -->
@@ -80,7 +113,7 @@
               color="red"
               floating
               rounded
-              class="q-pa-sm text-weight-bold shadow-2 z-top animate-bounce"
+              class="q-pa-sm text-weight-bold shadow-2 z-top animate-bounce animate-duration"
               style="top: -5px; right: -5px"
             >
               <q-icon name="move_to_inbox" size="14px" class="q-mr-xs" />
@@ -91,7 +124,7 @@
               color="positive"
               floating
               rounded
-              class="q-pa-sm text-weight-bold shadow-2 z-top animate-bounce"
+              class="q-pa-sm text-weight-bold shadow-2 z-top animate-bounce animate-duration"
               style="top: -5px; left: -5px; right: auto"
             >
               <q-icon name="local_shipping" size="14px" class="q-mr-xs" />
@@ -104,7 +137,7 @@
               color="positive"
               floating
               rounded
-              class="q-pa-sm text-weight-bold shadow-2 z-top animate-bounce"
+              class="q-pa-sm text-weight-bold shadow-2 z-top animate-bounce animate-duration"
               style="bottom: -5px; right: -5px; top: auto"
             >
               <q-icon name="done_all" size="14px" class="q-mr-xs" />
@@ -115,7 +148,7 @@
               color="negative"
               floating
               rounded
-              class="q-pa-sm text-weight-bold shadow-2 z-top animate-bounce"
+              class="q-pa-sm text-weight-bold shadow-2 z-top animate-bounce animate-duration"
               style="bottom: -5px; left: -5px; top: auto; right: auto"
             >
               <q-icon name="cancel" size="14px" class="q-mr-xs" />
@@ -136,8 +169,10 @@
               </div>
             </q-card-section>
             <q-separator inset />
-            <q-card-section class="bg-indigo-10 text-white text-center q-py-sm">
-              <div class="text-caption text-weight-bold tracking-widest">PILIH LOKASI</div>
+            <q-card-section class="bg-indigo-10 text-white text-center q-py-sm print-brand-bg">
+              <div class="text-caption text-weight-bold tracking-widest text-white">
+                PILIH LOKASI
+              </div>
             </q-card-section>
           </q-card>
         </div>
@@ -147,7 +182,7 @@
           <q-card
             flat
             bordered
-            class="gudang-card rounded-20 cursor-pointer transition-all hover-shadow relative-position bg-white"
+            class="gudang-card rounded-20 cursor-pointer transition-all hover-shadow relative-position bg-white border-subtle"
             @click="selectGudang({ id: p.id, nama: 'Gudang ' + (p.nama_proyek || p.nama) })"
           >
             <!-- NOTIFIKASI GUDANG PROYEK (MUTASI) -->
@@ -156,7 +191,7 @@
               color="red"
               floating
               rounded
-              class="q-pa-sm text-weight-bold shadow-2 z-top animate-bounce"
+              class="q-pa-sm text-weight-bold shadow-2 z-top animate-bounce animate-duration"
               style="top: -5px; right: -5px"
             >
               <q-icon name="move_to_inbox" size="14px" class="q-mr-xs" />
@@ -167,7 +202,7 @@
               color="positive"
               floating
               rounded
-              class="q-pa-sm text-weight-bold shadow-2 z-top animate-bounce"
+              class="q-pa-sm text-weight-bold shadow-2 z-top animate-bounce animate-duration"
               style="top: -5px; left: -5px; right: auto"
             >
               <q-icon name="local_shipping" size="14px" class="q-mr-xs" />
@@ -180,7 +215,7 @@
               color="positive"
               floating
               rounded
-              class="q-pa-sm text-weight-bold shadow-2 z-top animate-bounce"
+              class="q-pa-sm text-weight-bold shadow-2 z-top animate-bounce animate-duration"
               style="bottom: -5px; right: -5px; top: auto"
             >
               <q-icon name="done_all" size="14px" class="q-mr-xs" />
@@ -210,195 +245,205 @@
                 Gudang {{ p.nama_proyek || p.nama }}
               </div>
               <div class="text-caption text-grey-7 q-mt-sm ellipsis-2-lines">
-                Lokasi: {{ p.lokasi || 'Proyek Aktif' }}
+                Lokasi: {{ p.lokasi || 'Proyek' }}
               </div>
             </q-card-section>
             <q-separator inset />
             <q-card-section class="bg-primary text-white text-center q-py-sm">
-              <div class="text-caption text-weight-bold tracking-widest">DETAIL LOGISTIK</div>
+              <div class="text-caption text-weight-bold tracking-widest text-white">
+                DETAIL LOGISTIK
+              </div>
             </q-card-section>
           </q-card>
         </div>
       </div>
 
-      <!-- VIEW 2: DETAIL STOK GUDANG -->
-      <div v-else class="animate-fade">
+      <!-- VIEW 2: DETAIL STOK GUDANG (RAPID DAN MEMBENTANG HP) -->
+      <div v-else class="animate-fade content-relative">
         <!-- Action Bar -->
-        <div class="row q-gutter-md q-mb-lg items-center">
+        <div class="row q-col-gutter-sm q-mb-lg items-center">
           <!-- Button Opname (SOP click intercept if no edit rights) -->
-          <q-btn
-            unelevated
-            color="primary"
-            icon="analytics"
-            label="Stok Opname"
-            @click="goToOpname"
-            rounded
-            class="q-px-lg shadow-2 text-weight-bold"
-          />
+          <div class="col-12 col-sm-auto">
+            <q-btn
+              unelevated
+              color="primary"
+              icon="analytics"
+              label="Stok Opname"
+              @click="goToOpname"
+              rounded
+              class="full-width q-px-lg shadow-2 text-weight-bold"
+            />
+          </div>
 
           <!-- Transaksi Dropdown -->
-          <q-btn-dropdown
-            unelevated
-            color="white"
-            text-color="primary"
-            icon="sync_alt"
-            label="Transaksi Stok"
-            rounded
-            class="shadow-1 q-px-lg text-weight-bold"
-          >
-            <q-list style="min-width: 200px" class="q-pa-sm">
-              <q-item clickable v-ripple @click="goToRiwayat" class="rounded-borders">
-                <q-item-section avatar><q-icon name="history" color="primary" /></q-item-section>
-                <q-item-section class="text-weight-bold">Riwayat Transaksi</q-item-section>
-              </q-item>
-              <q-separator spaced />
-              <q-item
-                clickable
-                v-ripple
-                @click="goToBarangMasuk"
-                class="rounded-borders bg-green-1 text-green-10 q-mb-xs"
-              >
-                <q-item-section avatar><q-icon name="add_circle" /></q-item-section>
-                <q-item-section class="text-weight-bold">Barang Masuk</q-item-section>
-              </q-item>
-              <q-item
-                clickable
-                v-ripple
-                @click="goToBarangKeluar"
-                class="rounded-borders bg-red-1 text-red-10"
-              >
-                <q-item-section avatar><q-icon name="remove_circle" /></q-item-section>
-                <q-item-section class="text-weight-bold">Barang Keluar</q-item-section>
-              </q-item>
-            </q-list>
-          </q-btn-dropdown>
+          <div class="col-12 col-sm-auto">
+            <q-btn-dropdown
+              unelevated
+              color="white"
+              text-color="primary"
+              icon="sync_alt"
+              label="Transaksi Stok"
+              rounded
+              class="full-width shadow-1 q-px-lg text-weight-bold"
+            >
+              <q-list style="min-width: 200px" class="q-pa-sm">
+                <q-item clickable v-ripple @click="goToRiwayat" class="rounded-borders">
+                  <q-item-section avatar><q-icon name="history" color="primary" /></q-item-section>
+                  <q-item-section class="text-weight-bold">Riwayat Transaksi</q-item-section>
+                </q-item>
+                <q-separator spaced />
+                <q-item
+                  clickable
+                  v-ripple
+                  @click="goToBarangMasuk"
+                  class="rounded-borders bg-green-1 text-green-10 q-mb-xs"
+                >
+                  <q-item-section avatar><q-icon name="add_circle" /></q-item-section>
+                  <q-item-section class="text-weight-bold">Barang Masuk</q-item-section>
+                </q-item>
+                <q-item
+                  clickable
+                  v-ripple
+                  @click="goToBarangKeluar"
+                  class="rounded-borders bg-red-1 text-red-10"
+                >
+                  <q-item-section avatar><q-icon name="remove_circle" /></q-item-section>
+                  <q-item-section class="text-weight-bold">Barang Keluar</q-item-section>
+                </q-item>
+              </q-list>
+            </q-btn-dropdown>
+          </div>
 
           <!-- Permintaan Barang Dropdown -->
-          <q-btn-dropdown
-            unelevated
-            color="indigo-1"
-            text-color="indigo-10"
-            icon="shopping_basket"
-            rounded
-            class="shadow-1 q-px-lg text-weight-bold"
-          >
-            <template v-slot:label>
-              <div class="row items-center no-wrap">
-                <span class="q-mr-xs">Permintaan Barang</span>
-                <q-badge
-                  color="red"
-                  rounded
-                  v-if="hasAnyGudangNotif(selectedGudang.id)"
-                  class="shadow-1 font-bold animate-bounce"
-                />
-              </div>
-            </template>
-
-            <q-list style="min-width: 280px" class="q-pa-sm">
-              <!-- Mutasi Internal (List Permintaan) -->
-              <q-item
-                clickable
-                v-ripple
-                @click="goToDaftarPermintaan"
-                class="rounded-borders q-mb-xs"
-              >
-                <q-item-section avatar
-                  ><q-icon name="assignment" color="indigo-10"
-                /></q-item-section>
-                <q-item-section>
-                  <q-item-label class="text-weight-bold text-indigo-10"
-                    >Daftar Permintaan</q-item-label
-                  >
-                  <q-item-label caption>Pantau antrean request & mutasi stok</q-item-label>
-                </q-item-section>
-                <q-item-section
-                  side
-                  v-if="
-                    notifGudang[selectedGudang.id]?.mutasiPending > 0 ||
-                    notifGudang[selectedGudang.id]?.mutasiApproved > 0
-                  "
-                >
+          <div class="col-12 col-sm-auto">
+            <q-btn-dropdown
+              unelevated
+              color="indigo-1"
+              text-color="indigo-10"
+              icon="shopping_basket"
+              rounded
+              class="full-width shadow-1 q-px-lg text-weight-bold"
+            >
+              <template v-slot:label>
+                <div class="row items-center no-wrap">
+                  <span class="q-mr-xs">Permintaan Barang</span>
                   <q-badge
                     color="red"
                     rounded
-                    :label="notifGudang[selectedGudang.id].mutasiPending + ' New'"
-                    v-if="notifGudang[selectedGudang.id]?.mutasiPending > 0"
-                    class="q-mb-xs shadow-1 animate-bounce"
+                    v-if="hasAnyGudangNotif(selectedGudang.id)"
+                    class="shadow-1 font-bold animate-bounce"
                   />
-                  <q-badge
-                    color="positive"
-                    rounded
-                    label="Cek Kiriman"
-                    v-if="notifGudang[selectedGudang.id]?.mutasiApproved > 0"
-                    class="shadow-1 animate-bounce"
-                  />
-                </q-item-section>
-              </q-item>
-              <q-separator spaced />
+                </div>
+              </template>
 
-              <!-- Permintaan Antar Gudang (Mutasi Request) -->
-              <q-item
-                clickable
-                v-ripple
-                @click="goToPermintaanAntar"
-                class="rounded-borders q-mb-xs"
-              >
-                <q-item-section avatar
-                  ><q-icon name="swap_horiz" color="orange-9"
-                /></q-item-section>
-                <q-item-section>
-                  <q-item-label class="text-weight-bold">Permintaan Antar Gudang</q-item-label>
-                  <q-item-label caption>Request mutasi stok dari gudang lain</q-item-label>
-                </q-item-section>
-              </q-item>
-
-              <!-- Purchase Request (PR) -->
-              <q-item clickable v-ripple @click="goToPurchaseRequest" class="rounded-borders">
-                <q-item-section avatar
-                  ><q-icon name="shopping_cart_checkout" color="primary"
-                /></q-item-section>
-                <q-item-section>
-                  <q-item-label class="text-weight-bold">Purchase Request (PR)</q-item-label>
-                  <q-item-label caption>Pengajuan pembelian material baru</q-item-label>
-                </q-item-section>
-                <q-item-section
-                  side
-                  v-if="
-                    notifGudang[selectedGudang.id]?.prApproved > 0 ||
-                    notifGudang[selectedGudang.id]?.prRejected > 0
-                  "
+              <q-list style="min-width: 280px" class="q-pa-sm">
+                <!-- Mutasi Internal (List Permintaan) -->
+                <q-item
+                  clickable
+                  v-ripple
+                  @click="goToDaftarPermintaan"
+                  class="rounded-borders q-mb-xs"
                 >
-                  <q-badge
-                    color="positive"
-                    rounded
-                    :label="notifGudang[selectedGudang.id].prApproved + ' ACC'"
-                    v-if="notifGudang[selectedGudang.id]?.prApproved > 0"
-                    class="q-mb-xs shadow-1 animate-bounce"
-                  />
-                  <q-badge
-                    color="negative"
-                    rounded
-                    :label="notifGudang[selectedGudang.id].prRejected + ' Ditolak'"
-                    v-if="notifGudang[selectedGudang.id]?.prRejected > 0"
-                    class="shadow-1 animate-bounce"
-                  />
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-btn-dropdown>
+                  <q-item-section avatar
+                    ><q-icon name="assignment" color="indigo-10"
+                  /></q-item-section>
+                  <q-item-section>
+                    <q-item-label class="text-weight-bold text-indigo-10"
+                      >Daftar Permintaan</q-item-label
+                    >
+                    <q-item-label caption>Pantau antrean request & mutasi stok</q-item-label>
+                  </q-item-section>
+                  <q-item-section
+                    side
+                    v-if="
+                      notifGudang[selectedGudang.id]?.mutasiPending > 0 ||
+                      notifGudang[selectedGudang.id]?.mutasiApproved > 0
+                    "
+                  >
+                    <q-badge
+                      color="red"
+                      rounded
+                      :label="notifGudang[selectedGudang.id].mutasiPending + ' New'"
+                      v-if="notifGudang[selectedGudang.id]?.mutasiPending > 0"
+                      class="q-mb-xs shadow-1 animate-bounce"
+                    />
+                    <q-badge
+                      color="positive"
+                      rounded
+                      label="Cek Kiriman"
+                      v-if="notifGudang[selectedGudang.id]?.mutasiApproved > 0"
+                      class="shadow-1 animate-bounce"
+                    />
+                  </q-item-section>
+                </q-item>
+                <q-separator spaced />
 
-          <q-space />
+                <!-- Permintaan Antar Gudang (Mutasi Request) -->
+                <q-item
+                  clickable
+                  v-ripple
+                  @click="goToPermintaanAntar"
+                  class="rounded-borders q-mb-xs"
+                >
+                  <q-item-section avatar
+                    ><q-icon name="swap_horiz" color="orange-9"
+                  /></q-item-section>
+                  <q-item-section>
+                    <q-item-label class="text-weight-bold">Permintaan Antar Gudang</q-item-label>
+                    <q-item-label caption>Request mutasi stok dari gudang lain</q-item-label>
+                  </q-item-section>
+                </q-item>
+
+                <!-- Purchase Request (PR) -->
+                <q-item clickable v-ripple @click="goToPurchaseRequest" class="rounded-borders">
+                  <q-item-section avatar
+                    ><q-icon name="shopping_cart_checkout" color="primary"
+                  /></q-item-section>
+                  <q-item-section>
+                    <q-item-label class="text-weight-bold">Purchase Request (PR)</q-item-label>
+                    <q-item-label caption>Pengajuan pembelian material baru</q-item-label>
+                  </q-item-section>
+                  <q-item-section
+                    side
+                    v-if="
+                      notifGudang[selectedGudang.id]?.prApproved > 0 ||
+                      notifGudang[selectedGudang.id]?.prRejected > 0
+                    "
+                  >
+                    <q-badge
+                      color="positive"
+                      rounded
+                      :label="notifGudang[selectedGudang.id].prApproved + ' ACC'"
+                      v-if="notifGudang[selectedGudang.id]?.prApproved > 0"
+                      class="q-mb-xs shadow-1 animate-bounce"
+                    />
+                    <q-badge
+                      color="negative"
+                      rounded
+                      :label="notifGudang[selectedGudang.id].prRejected + ' Ditolak'"
+                      v-if="notifGudang[selectedGudang.id]?.prRejected > 0"
+                      class="shadow-1 animate-bounce"
+                    />
+                  </q-item-section>
+                </q-item>
+              </q-list>
+            </q-btn-dropdown>
+          </div>
+
+          <q-space class="gt-xs" />
 
           <!-- Input Stok Manual -->
-          <q-btn
-            unelevated
-            color="indigo-10"
-            icon="post_add"
-            label="Input Stok Manual"
-            @click="openAddStokDialog"
-            rounded
-            class="q-px-lg shadow-premium btn-hover text-weight-bold"
-          />
+          <div class="col-12 col-sm-auto">
+            <q-btn
+              unelevated
+              color="indigo-10"
+              icon="post_add"
+              label="Input Stok Manual"
+              @click="openAddStokDialog"
+              rounded
+              class="full-width q-px-lg shadow-premium btn-hover text-weight-bold text-white"
+            />
+          </div>
         </div>
 
         <!-- TABLE INVENTARIS -->
@@ -431,59 +476,63 @@
             </template>
 
             <template v-slot:top-right>
-              <div class="row items-center q-gutter-sm">
-                <q-input
-                  outlined
-                  dense
-                  rounded
-                  v-model="filter"
-                  placeholder="Cari item di gudang ini..."
-                  class="search-input"
-                  style="width: 250px"
-                  bg-color="white"
-                >
-                  <template v-slot:prepend><q-icon name="search" color="primary" /></template>
-                </q-input>
+              <div class="row items-center q-col-gutter-xs full-width justify-end">
+                <div class="col-12 col-sm-auto">
+                  <q-input
+                    outlined
+                    dense
+                    rounded
+                    v-model="filter"
+                    placeholder="Cari item di gudang ini..."
+                    class="search-input full-width"
+                    style="min-width: 200px"
+                    bg-color="white"
+                  >
+                    <template v-slot:prepend><q-icon name="search" color="primary" /></template>
+                  </q-input>
+                </div>
 
                 <!-- EXPORT DROPDOWN BUTTON FOR GUDANG -->
-                <q-btn-dropdown
-                  unelevated
-                  rounded
-                  color="indigo-10"
-                  icon="file_download"
-                  label="Export Data"
-                  class="shadow-1 font-bold q-px-md"
-                >
-                  <q-list style="min-width: 180px">
-                    <q-item clickable v-ripple @click="exportGudangToPDF" class="q-py-md">
-                      <q-item-section avatar>
-                        <q-avatar
-                          color="red-1"
-                          text-color="red-9"
-                          icon="picture_as_pdf"
-                          size="sm"
-                        />
-                      </q-item-section>
-                      <q-item-section class="text-weight-bold text-red-9"
-                        >Export PDF</q-item-section
-                      >
-                    </q-item>
-                    <q-separator />
-                    <q-item clickable v-ripple @click="exportGudangToExcel" class="q-py-md">
-                      <q-item-section avatar>
-                        <q-avatar
-                          color="green-1"
-                          text-color="green-9"
-                          icon="table_view"
-                          size="sm"
-                        />
-                      </q-item-section>
-                      <q-item-section class="text-weight-bold text-green-9"
-                        >Export Excel</q-item-section
-                      >
-                    </q-item>
-                  </q-list>
-                </q-btn-dropdown>
+                <div class="col-12 col-sm-auto">
+                  <q-btn-dropdown
+                    unelevated
+                    rounded
+                    color="indigo-10"
+                    icon="file_download"
+                    label="Export Data"
+                    class="shadow-1 font-bold q-px-md full-width"
+                  >
+                    <q-list style="min-width: 180px">
+                      <q-item clickable v-ripple @click="exportGudangToPDF" class="q-py-md">
+                        <q-item-section avatar>
+                          <q-avatar
+                            color="red-1"
+                            text-color="red-9"
+                            icon="picture_as_pdf"
+                            size="sm"
+                          />
+                        </q-item-section>
+                        <q-item-section class="text-weight-bold text-red-9"
+                          >Export PDF</q-item-section
+                        >
+                      </q-item>
+                      <q-separator />
+                      <q-item clickable v-ripple @click="exportGudangToExcel" class="q-py-md">
+                        <q-item-section avatar>
+                          <q-avatar
+                            color="green-1"
+                            text-color="green-9"
+                            icon="table_view"
+                            size="sm"
+                          />
+                        </q-item-section>
+                        <q-item-section class="text-weight-bold text-green-9"
+                          >Export Excel</q-item-section
+                        >
+                      </q-item>
+                    </q-list>
+                  </q-btn-dropdown>
+                </div>
               </div>
             </template>
 
@@ -530,8 +579,16 @@
         transition-show="slide-up"
         transition-hide="slide-down"
       >
-        <q-card class="bg-grey-2 column no-wrap">
-          <q-toolbar class="bg-white text-indigo-10 q-py-md shadow-2">
+        <q-card class="bg-grey-2 column no-wrap relative-position">
+          <!-- Background Animation di dalam Form Dialog -->
+          <div class="bg-animation-container">
+            <q-icon name="engineering" class="floating-icon i-1" />
+            <q-icon name="construction" class="floating-icon i-2" />
+            <q-icon name="architecture" class="floating-icon i-3" />
+            <q-icon name="location_city" class="floating-icon i-4" />
+          </div>
+
+          <q-toolbar class="bg-white text-indigo-10 q-py-md shadow-2 content-relative">
             <q-btn flat round dense icon="close" v-close-popup color="grey-7" />
             <q-toolbar-title class="text-weight-bold text-center"
               >PENYESUAIAN STOK MANUAL</q-toolbar-title
@@ -541,12 +598,12 @@
               color="indigo-10"
               label="SIMPAN DATA"
               rounded
-              class="q-px-xl text-weight-bold shadow-3"
+              class="q-px-xl text-weight-bold shadow-3 text-white"
               @click="stokFormRef.submit()"
             />
           </q-toolbar>
 
-          <q-scroll-area class="col q-pa-lg q-pa-md-xl">
+          <q-scroll-area class="col q-pa-lg q-pa-md-xl content-relative">
             <div class="row justify-center">
               <div class="col-12 col-md-8 col-lg-6">
                 <q-card flat bordered class="rounded-20 q-pa-xl bg-white shadow-1">
@@ -748,9 +805,7 @@ import {
   doc,
   orderBy,
   where,
-  // eslint-disable-next-line no-unused-vars
-  getDoc,
-  query, // <--- SINKRONISASI KRUSIAL: Tambahkan import "query" di sini agar tidak memicu error ReferenceError
+  query,
 } from 'firebase/firestore'
 import { useQuasar } from 'quasar'
 import html2pdf from 'html2pdf.js'
@@ -783,25 +838,70 @@ let unsubUser = null
 
 const userData = ref(null)
 
-// ============================================================================
+// ==========================================
+// ANIMASI KLIK & MENGAMBANG
+// ==========================================
+const spawnedIcons = ref([])
+let spawnIdCounter = 0
+const clickIcons = [
+  'construction',
+  'engineering',
+  'handyman',
+  'architecture',
+  'foundation',
+  'precision_manufacturing',
+  'carpenter',
+  'plumbing',
+  'electrical_services',
+  'hardware',
+]
+
+const spawnIcon = (e) => {
+  const target = e.target
+  if (
+    target.closest('button') ||
+    target.closest('.q-btn') ||
+    target.closest('input') ||
+    target.closest('.q-field') ||
+    target.closest('.q-dialog') ||
+    target.closest('.q-table') ||
+    target.closest('.q-card')
+  ) {
+    return
+  }
+
+  const iconName = clickIcons[Math.floor(Math.random() * clickIcons.length)]
+  const colors = ['#1a237e', '#2a8b83', '#56c2b9', '#f29c1f', '#e67e22', '#e74c3c']
+  const randColor = colors[Math.floor(Math.random() * colors.length)]
+  const randRotate = Math.floor(Math.random() * 90) - 45
+  const randSize = Math.floor(Math.random() * 25) + 35
+
+  const newIcon = {
+    id: spawnIdCounter++,
+    x: e.clientX,
+    y: e.clientY,
+    name: iconName,
+    color: randColor,
+    rotate: randRotate,
+    size: randSize,
+  }
+
+  spawnedIcons.value.push(newIcon)
+
+  setTimeout(() => {
+    spawnedIcons.value = spawnedIcons.value.filter((i) => i.id !== newIcon.id)
+  }, 1400)
+}
+// ==========================================
+
 // INTEGRATED REAL-TIME PERMISSION CONTROL (SOP SINGLE MASTER ROW)
-// ============================================================================
 const canAction = (actionType) => {
-  // 1. Super Admin otomatis bypass
   if (authStore.user?.role === 'Super Admin') return true
-
-  // 2. Safeguard jika profile karyawan belum termuat
   if (!userData.value?.permissions_detail) return false
-
-  // 3. Ambil data modul 'konstruksi'
   const modulePerm = userData.value.permissions_detail.find((m) => m.id === 'konstruksi')
   if (!modulePerm || !modulePerm.isActive) return false
-
-  // 4. Cari menu tunggal dengan id '_konstruksi_gudang'
   const menu = modulePerm.menus.find((m) => m.id === '_konstruksi_gudang')
   if (!menu) return false
-
-  // 5. Mapping actionType
   if (actionType === 'setuju') return menu.approve || false
   return menu[actionType] || false
 }
@@ -809,12 +909,16 @@ const canAction = (actionType) => {
 // Dialog Warning Toast SOP Anti-Bypass
 const showPermissionDenied = () => {
   $q.notify({
-    type: 'negative',
-    color: 'red-10',
+    html: true,
+    message:
+      '<div class="text-weight-bold text-subtitle1 q-mb-none leading-none">Akses Terbatas!</div><div class="text-caption q-mt-xs" style="opacity: 0.85">Maaf, Hak Akses Operasional Ditutup! Silakan hubungi Super Admin.</div>',
+    color: 'negative',
     icon: 'lock',
-    message: 'Maaf, Hak Akses Operasional Ditutup! Silakan hubungi Super Admin.',
     position: 'top',
     timeout: 3000,
+    progress: true,
+    classes: 'rounded-12 shadow-premium q-pl-md q-pr-lg q-py-sm border-white-2',
+    actions: [{ icon: 'close', color: 'white', round: true, size: 'sm', dense: true }],
   })
 }
 
@@ -879,7 +983,6 @@ const columns = [
   { name: 'satuan', label: 'SATUAN', field: 'satuan', align: 'center' },
 ]
 
-// Injecting Kode Barang into Stok List
 const stokBarangEnriched = computed(() => {
   return stokBarang.value.map((stok) => {
     const mb = masterBarang.value.find((b) => b.id === stok.id_barang)
@@ -936,7 +1039,6 @@ const fetchProyek = async () => {
   }
 }
 
-// LOGIKA NOTIFIKASI MULTI GUDANG (MENDUKUNG PR APPROVED/REJECTED)
 const listenNotifikasiGlobal = () => {
   if (unsubPermintaan) unsubPermintaan()
   unsubPermintaan = onSnapshot(collection(db, 'permintaan_barang'), (snap) => {
@@ -952,7 +1054,6 @@ const listenNotifikasiGlobal = () => {
     snap.docs.forEach((doc) => {
       const data = doc.data()
 
-      // LOGIKA MUTASI ANTAR GUDANG
       if (data.tipe === 'ANTAR_GUDANG') {
         if (data.status === 'Pending' && data.dari_gudang?.id) {
           if (!counts[data.dari_gudang.id])
@@ -976,11 +1077,9 @@ const listenNotifikasiGlobal = () => {
         }
       }
 
-      // LOGIKA PURCHASE REQUEST
       if (data.tipe === 'PURCHASE_REQUEST') {
         const gId = data.gudang_id || data.proyek_id
         if (gId && counts[gId]) {
-          // Cek apakah ini PR miliknya / dia admin
           const isMilikku = data.pemohon?.id === myUid || data.pemohon?.email === myEmail || isAdmin
 
           if (data.status === 'Approved' && data.requester_read === false && isMilikku) {
@@ -996,11 +1095,8 @@ const listenNotifikasiGlobal = () => {
   })
 }
 
-// =============================================================================
-// LOGIKA EXPORT PDF & EXCEL UNTUK GUDANG INVENTARIS
-// =============================================================================
 const exportGudangToPDF = () => {
-  $q.loading.show({ message: 'Generating Professional PDF...' })
+  $q.loading.show({ message: 'Generating Professional PDF Laporan...' })
   setTimeout(() => {
     const element = document.getElementById('stok-print-area')
     const gdgNama = selectedGudang.value?.nama.replace(/\s+/g, '_') || 'All'
@@ -1019,9 +1115,16 @@ const exportGudangToPDF = () => {
       .then(() => {
         $q.loading.hide()
         $q.notify({
-          type: 'positive',
-          message: 'Laporan Stok PDF Berhasil Diunduh!',
+          html: true,
+          message:
+            '<div class="text-weight-bold text-subtitle1 q-mb-none leading-none">PDF Diunduh!</div><div class="text-caption q-mt-xs" style="opacity: 0.85">Laporan PDF Gudang berhasil disimpan ke perangkat Anda.</div>',
+          color: 'positive',
+          icon: 'task_alt',
           position: 'top',
+          timeout: 4000,
+          progress: true,
+          classes: 'rounded-12 shadow-premium q-pl-md q-pr-lg q-py-sm border-white-2',
+          actions: [{ icon: 'close', color: 'white', round: true, size: 'sm', dense: true }],
         })
       })
   }, 500)
@@ -1086,7 +1189,6 @@ const exportGudangToExcel = () => {
   document.body.removeChild(a)
   URL.revokeObjectURL(url)
 }
-// =============================================================================
 
 const openAddStokDialog = async () => {
   if (canAction('buat')) {
@@ -1173,7 +1275,20 @@ const simpanStok = async () => {
       timestamp: serverTimestamp(),
     })
 
-    $q.notify({ type: 'positive', message: 'Stok diperbarui!', position: 'top' })
+    // SINKRONISASI NOTIFIKASI BERHASIL DISIMPAN PREMIUM
+    $q.notify({
+      html: true,
+      message:
+        '<div class="text-weight-bold text-subtitle1 q-mb-none leading-none">Sinkronisasi Berhasil!</div><div class="text-caption q-mt-xs" style="opacity: 0.85">Stok gudang telah berhasil diperbarui dan dicatatkan di database.</div>',
+      color: 'positive',
+      icon: 'task_alt',
+      position: 'top',
+      timeout: 4000,
+      progress: true,
+      classes: 'rounded-12 shadow-premium q-pl-md q-pr-lg q-py-sm border-white-2',
+      actions: [{ icon: 'close', color: 'white', round: true, size: 'sm', dense: true }],
+    })
+
     dialogStok.value = false
   } catch (error) {
     $q.notify({ type: 'negative', message: 'Gagal: ' + error.message })
@@ -1230,9 +1345,10 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* ===== GLOBAL THEME ORIGNAL CODES ===== */
 .font-pro {
   font-family:
-    'Inter',
+    'Plus Jakarta Sans',
     -apple-system,
     sans-serif;
 }
@@ -1270,6 +1386,18 @@ onUnmounted(() => {
   transform: scale(1.02);
   transition: 0.3s;
 }
+
+/* RESPONSIVENESS: TOMBOL-TOMBOL MEMBENTANG PENUH DI HP */
+@media (max-width: 599px) {
+  .full-width-mobile {
+    width: 100% !important;
+    display: block !important;
+  }
+  .q-btn.full-width {
+    width: 100% !important;
+  }
+}
+
 .animate-fade {
   animation: fadeIn 0.8s ease-out;
 }
@@ -1384,5 +1512,153 @@ onUnmounted(() => {
 }
 .border-subtle {
   border: 1px solid rgba(0, 0, 0, 0.05);
+}
+.border-white-2 {
+  border: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+/* ===== ANIMASI BACKGROUND (FLOATING TEAL DENGAN BLUR HALUS) ===== */
+.bg-animation-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.floating-icon {
+  position: absolute;
+  bottom: -150px;
+  animation: floatUp linear infinite;
+  opacity: 0.15;
+  filter: blur(1.5px); /* Kebureman tipis dan lembut sesuai contoh */
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+/* Posisi dan durasi masing-masing ikon mengambang */
+.i-1 {
+  left: 10%;
+  font-size: 100px;
+  animation-duration: 25s;
+  animation-delay: 0s;
+  color: #36ada3;
+}
+.i-2 {
+  left: 30%;
+  font-size: 70px;
+  animation-duration: 35s;
+  animation-delay: 5s;
+  color: #f29c1f;
+}
+.i-3 {
+  left: 60%;
+  font-size: 120px;
+  animation-duration: 40s;
+  animation-delay: 12s;
+  color: #e74c3c;
+}
+.i-4 {
+  left: 80%;
+  font-size: 85px;
+  animation-duration: 30s;
+  animation-delay: 2s;
+  color: #56c2b9;
+}
+.i-5 {
+  left: 15%;
+  font-size: 90px;
+  animation-duration: 28s;
+  animation-delay: 15s;
+  color: #e67e22;
+}
+.i-6 {
+  left: 45%;
+  font-size: 110px;
+  animation-duration: 45s;
+  animation-delay: 8s;
+  color: #2a8b83;
+}
+.i-7 {
+  left: 75%;
+  font-size: 60px;
+  animation-duration: 22s;
+  animation-delay: 20s;
+  color: #f29c1f;
+}
+.i-8 {
+  left: 25%;
+  font-size: 95px;
+  animation-duration: 32s;
+  animation-delay: 25s;
+  color: #e74c3c;
+}
+
+@keyframes floatUp {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.15;
+  }
+  90% {
+    opacity: 0.15;
+  }
+  100% {
+    transform: translateY(-120vh) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+/* ===== CLICK SPAWN ICONS (MEMANCAR REAKTIF) ===== */
+.click-spawn-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.spawned-icon {
+  position: absolute;
+  color: var(--rand-color);
+  transform-origin: center;
+  pointer-events: none;
+  animation: spawnBurst 1.4s ease-out forwards;
+}
+
+@keyframes spawnBurst {
+  0% {
+    transform: translate(-50%, -50%) scale(0) rotate(0deg);
+    opacity: 1;
+  }
+  40% {
+    transform: translate(-50%, -100%) scale(1.2) rotate(var(--rand-rotate));
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(-50%, -180%) scale(0.5) rotate(calc(var(--rand-rotate) * 1.5));
+    opacity: 0;
+  }
+}
+
+.spawn-enter-active,
+.spawn-leave-active {
+  transition: all 1.4s ease;
+}
+
+.shrink {
+  flex: 0 0 auto;
+}
+.content-relative {
+  position: relative;
+  z-index: 1;
 }
 </style>
