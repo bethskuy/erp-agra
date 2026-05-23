@@ -8,16 +8,8 @@
       <div class="row items-center justify-between q-mb-xl no-print">
         <div class="col-12 col-md-7">
           <div class="row items-center no-wrap">
-            <q-btn
-              flat
-              round
-              color="indigo-10"
-              icon="arrow_back"
-              @click="$router.back()"
-              class="q-mr-md bg-white shadow-1"
-            />
             <div>
-              <div class="text-h4 text-weight-bolder text-indigo-10 leading-tight">
+              <div class="text-h4 text-weight-bolder text-teal-10 leading-tight">
                 Pengajuan Pembayaran
                 <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
                   >Payment Request & Disbursement</span
@@ -36,23 +28,12 @@
             v-if="canLihat"
             unelevated
             color="white"
-            text-color="indigo-10"
+            text-color="teal-10"
             icon="ios_share"
             label="Export Data"
             class="rounded-12 text-weight-bold shadow-2"
           >
             <q-list class="bg-white rounded-borders q-py-sm" style="min-width: 200px">
-              <q-item clickable v-close-popup @click="printTable" class="hover-blue-btn">
-                <q-item-section avatar
-                  ><q-avatar color="blue-1" text-color="blue-10" icon="print" size="sm"
-                /></q-item-section>
-                <q-item-section
-                  ><q-item-label class="text-weight-bold"
-                    >Cetak (Print)</q-item-label
-                  ></q-item-section
-                >
-              </q-item>
-              <q-separator class="q-my-sm" />
               <q-item clickable v-close-popup @click="exportTablePDF" class="hover-blue-btn">
                 <q-item-section avatar
                   ><q-avatar color="red-1" text-color="red-10" icon="picture_as_pdf" size="sm"
@@ -80,7 +61,7 @@
           <!-- TOMBOL BUAT BARU: hanya tampil jika punya izin 'buat' -->
           <q-btn
             v-if="canBuat"
-            color="indigo-10"
+            color="teal-10"
             icon="post_add"
             label="Buat Pengajuan Baru"
             unelevated
@@ -106,121 +87,113 @@
       <template v-if="canLihat">
         <!-- SUMMARY CARDS / KPI -->
         <div class="row q-col-gutter-lg q-mb-lg animate-fade-up no-print items-stretch">
-          <!-- Card 1 -->
+          <!-- Card 1: TOTAL PENGAJUAN -->
           <div class="col-12 col-sm-6 col-md-3">
             <q-card
               flat
-              class="rounded-20 border-subtle bg-white transition-all hover-shadow h-full flex column justify-center"
+              class="rounded-20 card-teal-gradient text-white transition-all hover-shadow h-full flex column justify-center"
             >
               <q-card-section class="row items-center no-wrap q-pa-md">
                 <div class="col">
                   <div
-                    class="text-overline text-grey-6 leading-none text-weight-bold tracking-widest q-mb-xs"
+                    class="text-overline leading-none text-weight-bold tracking-widest q-mb-xs"
+                    style="color: rgba(255, 255, 255, 0.85)"
                   >
                     TOTAL PENGAJUAN
                   </div>
-                  <div class="text-h4 text-weight-bolder text-indigo-10">
+                  <div class="text-h4 text-weight-bolder text-white">
                     {{ rows.length }}
                   </div>
                 </div>
-                <div class="col-auto">
-                  <q-avatar
-                    size="54px"
-                    color="indigo-1"
-                    text-color="indigo-10"
-                    icon="request_page"
-                    class="rounded-12 shadow-sm"
-                  />
+                <div
+                  class="bg-white q-pa-md rounded-borders shadow-sm"
+                  style="min-width: 56px; text-align: center"
+                >
+                  <q-icon name="request_page" color="teal-8" size="28px" />
                 </div>
               </q-card-section>
             </q-card>
           </div>
 
-          <!-- Card 2 -->
+          <!-- Card 2: MENUNGGU APPROVAL -->
           <div class="col-12 col-sm-6 col-md-3">
             <q-card
               flat
-              class="rounded-20 border-subtle bg-white transition-all hover-shadow h-full flex column justify-center"
+              class="rounded-20 card-orange-gradient text-white transition-all hover-shadow h-full flex column justify-center"
             >
               <q-card-section class="row items-center no-wrap q-pa-md">
                 <div class="col">
                   <div
-                    class="text-overline text-grey-6 leading-none text-weight-bold tracking-widest q-mb-xs"
+                    class="text-overline leading-none text-weight-bold tracking-widest q-mb-xs"
+                    style="color: rgba(255, 255, 255, 0.85)"
                   >
                     MENUNGGU APPROVAL
                   </div>
-                  <div class="text-h4 text-weight-bolder text-orange-9">
+                  <div class="text-h4 text-weight-bolder text-white">
                     {{ countByStatus('Pending') }}
                   </div>
                 </div>
-                <div class="col-auto">
-                  <q-avatar
-                    size="54px"
-                    color="orange-1"
-                    text-color="orange-9"
-                    icon="hourglass_empty"
-                    class="rounded-12 shadow-sm"
-                  />
+                <div
+                  class="bg-white q-pa-md rounded-borders shadow-sm"
+                  style="min-width: 56px; text-align: center"
+                >
+                  <q-icon name="hourglass_empty" color="orange-8" size="28px" />
                 </div>
               </q-card-section>
             </q-card>
           </div>
 
-          <!-- Card 3 -->
+          <!-- Card 3: SIAP CAIR (APPROVED) -->
           <div class="col-12 col-sm-6 col-md-3">
             <q-card
               flat
-              class="rounded-20 border-subtle bg-white transition-all hover-shadow h-full flex column justify-center"
+              class="rounded-20 card-green-gradient text-white transition-all hover-shadow h-full flex column justify-center"
             >
               <q-card-section class="row items-center no-wrap q-pa-md">
                 <div class="col">
                   <div
-                    class="text-overline text-grey-6 leading-none text-weight-bold tracking-widest q-mb-xs"
+                    class="text-overline leading-none text-weight-bold tracking-widest q-mb-xs"
+                    style="color: rgba(255, 255, 255, 0.85)"
                   >
                     SIAP CAIR (APPROVED)
                   </div>
-                  <div class="text-h4 text-weight-bolder text-positive">
+                  <div class="text-h4 text-weight-bolder text-white">
                     {{ countByStatus('Approved') }}
                   </div>
                 </div>
-                <div class="col-auto">
-                  <q-avatar
-                    size="54px"
-                    color="green-1"
-                    text-color="positive"
-                    icon="verified"
-                    class="rounded-12 shadow-sm"
-                  />
+                <div
+                  class="bg-white q-pa-md rounded-borders shadow-sm"
+                  style="min-width: 56px; text-align: center"
+                >
+                  <q-icon name="verified" color="green-8" size="28px" />
                 </div>
               </q-card-section>
             </q-card>
           </div>
 
-          <!-- Card 4 -->
+          <!-- Card 4: DANA DIAJUKAN -->
           <div class="col-12 col-sm-6 col-md-3">
             <q-card
               flat
-              class="rounded-20 border-subtle bg-indigo-10 text-white transition-all hover-shadow h-full flex column justify-center"
+              class="rounded-20 card-blue-gradient text-white transition-all hover-shadow h-full flex column justify-center"
             >
               <q-card-section class="row items-center no-wrap q-pa-md">
                 <div class="col">
                   <div
-                    class="text-overline text-indigo-2 leading-none text-weight-bold tracking-widest q-mb-xs"
+                    class="text-overline leading-none text-weight-bold tracking-widest q-mb-xs"
+                    style="color: rgba(255, 255, 255, 0.85)"
                   >
                     DANA DIAJUKAN
                   </div>
-                  <div class="text-h6 text-weight-bolder">
+                  <div class="text-h5 text-weight-bolder text-white">
                     Rp {{ formatCompact(totalDanaPending) }}
                   </div>
                 </div>
-                <div class="col-auto">
-                  <q-avatar
-                    size="54px"
-                    color="white"
-                    text-color="indigo-10"
-                    icon="account_balance"
-                    class="rounded-12 shadow-2"
-                  />
+                <div
+                  class="bg-white q-pa-md rounded-borders shadow-sm"
+                  style="min-width: 56px; text-align: center"
+                >
+                  <q-icon name="account_balance" color="blue-8" size="28px" />
                 </div>
               </q-card-section>
             </q-card>
@@ -253,7 +226,7 @@
                   v-model="statusFilter"
                   dense
                   class="text-grey-7 bg-grey-1 rounded-12 p-1"
-                  active-color="indigo-10"
+                  active-color="teal-10"
                   indicator-color="transparent"
                   active-bg-color="white"
                   align="justify"
@@ -289,7 +262,7 @@
             :pagination="{ rowsPerPage: 10 }"
           >
             <template v-slot:header="props">
-              <q-tr :props="props" class="bg-indigo-10 text-white">
+              <q-tr :props="props" class="bg-teal-10 text-white">
                 <q-th
                   v-for="col in props.cols"
                   :key="col.name"
@@ -309,7 +282,7 @@
               >
                 <q-td key="request">
                   <div class="row items-center q-gutter-x-xs no-wrap">
-                    <span class="text-weight-bold text-indigo-10">{{ props.row.no_request }}</span>
+                    <span class="text-weight-bold text-teal-10">{{ props.row.no_request }}</span>
                     <q-badge
                       v-if="
                         (props.row.status === 'Cair' ||
@@ -343,7 +316,7 @@
                 </q-td>
 
                 <q-td key="nominal" class="text-right">
-                  <div class="text-weight-bolder text-indigo-10 text-subtitle2">
+                  <div class="text-weight-bolder text-teal-10 text-subtitle2">
                     Rp {{ (props.row.nominal || 0).toLocaleString('id-ID') }}
                   </div>
                 </q-td>
@@ -379,7 +352,7 @@
                     <q-btn
                       flat
                       round
-                      color="indigo-10"
+                      color="teal-10"
                       icon="visibility"
                       size="sm"
                       @click="openDetail(props.row)"
@@ -438,13 +411,13 @@
             <q-btn
               flat
               round
-              color="indigo-10"
+              color="teal-10"
               icon="arrow_back"
               @click="viewMode = 'list'"
               class="q-mr-md bg-white shadow-1"
             />
             <div>
-              <div class="text-h4 text-weight-bolder text-indigo-10 leading-tight uppercase">
+              <div class="text-h4 text-weight-bolder text-teal-10 leading-tight uppercase">
                 {{ isEditMode ? 'Edit Pengajuan' : 'Buat Pengajuan Baru' }}
               </div>
               <div class="text-subtitle1 text-grey-7 q-mt-sm">
@@ -456,7 +429,7 @@
         <div class="col-12 col-md-auto q-mt-md q-mt-md-none text-right">
           <q-btn
             unelevated
-            color="indigo-10"
+            color="teal-10"
             icon="send"
             label="SUBMIT PENGAJUAN"
             @click="simpanPengajuan"
@@ -474,7 +447,7 @@
             <div class="col-12 col-md-6">
               <q-card flat bordered class="rounded-20 q-mb-lg bg-white shadow-1">
                 <q-card-section
-                  class="bg-indigo-1 q-py-sm text-indigo-10 text-weight-bold flex items-center border-bottom"
+                  class="bg-teal-1 q-py-sm text-teal-10 text-weight-bold flex items-center border-bottom"
                 >
                   <q-icon name="settings_suggest" class="q-mr-xs" size="sm" /> 1. METODE & REFERENSI
                 </q-card-section>
@@ -487,7 +460,7 @@
                       class="custom-toggle"
                       no-caps
                       unelevated
-                      toggle-color="indigo-10"
+                      toggle-color="teal-10"
                       color="white"
                       text-color="grey-7"
                       :options="tipePengajuanOptions"
@@ -549,7 +522,7 @@
                         v-model="form.no_request"
                         readonly
                         bg-color="grey-2"
-                        class="text-weight-bold text-indigo-10"
+                        class="text-weight-bold text-teal-10"
                       />
                     </div>
                     <div class="col-12 col-md-6" v-if="form.tipe_pengajuan === 'Tagihan Supplier'">
@@ -568,7 +541,7 @@
 
               <q-card flat bordered class="rounded-20 q-mb-lg bg-white shadow-1">
                 <q-card-section
-                  class="bg-indigo-1 q-py-sm text-indigo-10 text-weight-bold flex items-center border-bottom"
+                  class="bg-teal-1 q-py-sm text-teal-10 text-weight-bold flex items-center border-bottom"
                 >
                   <q-icon name="account_balance" class="q-mr-xs" size="sm" /> 2. REKENING PENERIMA
                 </q-card-section>
@@ -627,7 +600,7 @@
             <div class="col-12 col-md-6">
               <q-card flat bordered class="rounded-20 bg-white shadow-1 overflow-hidden q-mb-lg">
                 <q-card-section
-                  class="bg-indigo-10 q-py-sm text-white text-weight-bold flex items-center border-bottom"
+                  class="bg-teal-10 q-py-sm text-white text-weight-bold flex items-center border-bottom"
                 >
                   <q-icon name="payments" class="q-mr-xs" size="sm" /> 3. NOMINAL & JADWAL
                 </q-card-section>
@@ -641,7 +614,7 @@
                       type="number"
                       v-model.number="form.nominal"
                       bg-color="white"
-                      class="text-weight-bold text-h5 text-indigo-10"
+                      class="text-weight-bold text-h5 text-teal-10"
                       prefix="Rp"
                     />
                     <div
@@ -696,7 +669,7 @@
               <!-- LAMPIRAN -->
               <q-card flat bordered class="rounded-20 bg-white shadow-1">
                 <q-card-section
-                  class="bg-indigo-1 q-py-sm text-indigo-10 text-weight-bold flex items-center border-bottom"
+                  class="bg-teal-1 q-py-sm text-teal-10 text-weight-bold flex items-center border-bottom"
                 >
                   <q-icon name="attach_file" class="q-mr-xs" size="sm" /> 4. DOKUMEN LAMPIRAN
                 </q-card-section>
@@ -708,13 +681,13 @@
                     <q-btn
                       round
                       unelevated
-                      color="indigo-10"
+                      color="teal-10"
                       icon="add"
                       size="sm"
                       @click="addDocRow"
                     />
                   </div>
-                  <div class="bg-indigo-50 q-pa-sm rounded-12 border-dashed">
+                  <div class="bg-teal-50 q-pa-sm rounded-12 border-dashed">
                     <div
                       v-for="(item, index) in form.lampiran"
                       :key="index"
@@ -778,7 +751,7 @@
           <q-btn
             flat
             round
-            color="indigo-10"
+            color="teal-10"
             icon="arrow_back"
             @click="viewMode = 'list'"
             class="q-mr-md bg-white shadow-1"
@@ -787,7 +760,7 @@
             <div class="text-overline text-grey-6 text-bold tracking-widest q-mb-xs leading-none">
               DETAIL PENGAJUAN PEMBAYARAN
             </div>
-            <div class="text-h5 text-weight-bolder text-indigo-10 leading-tight uppercase">
+            <div class="text-h5 text-weight-bolder text-teal-10 leading-tight uppercase">
               {{ selectedData.no_request }}
             </div>
           </div>
@@ -796,7 +769,7 @@
           <q-btn-dropdown
             unelevated
             color="white"
-            text-color="indigo-10"
+            text-color="teal-10"
             icon="ios_share"
             label="Export Dokumen"
             class="rounded-12 text-weight-bold shadow-2"
@@ -849,11 +822,9 @@
             class="rounded-20 shadow-sm bg-white overflow-hidden"
           >
             <!-- Header Biru Tua -->
-            <div class="bg-indigo-10 text-white q-pa-md q-px-lg flex justify-between items-center">
+            <div class="bg-teal-10 text-white q-pa-md q-px-lg flex justify-between items-center">
               <div>
-                <div
-                  class="text-overline text-indigo-2 text-bold tracking-widest uppercase q-mb-xs"
-                >
+                <div class="text-overline text-teal-2 text-bold tracking-widest uppercase q-mb-xs">
                   NOMINAL PENGAJUAN
                 </div>
                 <div class="text-h3 text-weight-black leading-none">
@@ -885,7 +856,7 @@
                 <!-- Informasi Umum -->
                 <div class="col-12 col-md-6">
                   <div
-                    class="text-weight-bold text-indigo-10 q-mb-sm uppercase tracking-widest font-11 border-bottom-subtle q-pb-xs"
+                    class="text-weight-bold text-teal-10 q-mb-sm uppercase tracking-widest font-11 border-bottom-subtle q-pb-xs"
                   >
                     INFORMASI UMUM
                   </div>
@@ -932,7 +903,7 @@
                 <!-- Rekening Tujuan -->
                 <div class="col-12 col-md-6">
                   <div
-                    class="text-weight-bold text-indigo-10 q-mb-sm uppercase tracking-widest font-11 border-bottom-subtle q-pb-xs"
+                    class="text-weight-bold text-teal-10 q-mb-sm uppercase tracking-widest font-11 border-bottom-subtle q-pb-xs"
                   >
                     REKENING TUJUAN
                   </div>
@@ -947,7 +918,7 @@
                     </tr>
                     <tr>
                       <td>No. Rekening</td>
-                      <td class="text-h6 text-indigo-10">{{ selectedData.rek_nomor }}</td>
+                      <td class="text-h6 text-teal-10">{{ selectedData.rek_nomor }}</td>
                     </tr>
                     <tr>
                       <td>Atas Nama</td>
@@ -961,7 +932,7 @@
               <div class="row q-mt-sm">
                 <div class="col-12">
                   <div
-                    class="text-weight-bold text-indigo-10 q-mb-sm uppercase tracking-widest font-11 border-bottom-subtle q-pb-xs"
+                    class="text-weight-bold text-teal-10 q-mb-sm uppercase tracking-widest font-11 border-bottom-subtle q-pb-xs"
                   >
                     KETERANGAN / TUJUAN DANA
                   </div>
@@ -1012,7 +983,7 @@
               >
                 <div class="col-12">
                   <div
-                    class="text-weight-bold text-indigo-10 q-mb-sm uppercase tracking-widest font-11 border-bottom-subtle q-pb-xs"
+                    class="text-weight-bold text-teal-10 q-mb-sm uppercase tracking-widest font-11 border-bottom-subtle q-pb-xs"
                   >
                     BUKTI TRANSFER / REALISASI
                   </div>
@@ -1047,8 +1018,8 @@
                     >
                       <q-item-section avatar>
                         <q-avatar
-                          color="indigo-1"
-                          text-color="indigo-10"
+                          color="teal-1"
+                          text-color="teal-10"
                           icon="receipt_long"
                           size="sm"
                         />
@@ -1077,7 +1048,7 @@
               >
                 <div class="col-12">
                   <div
-                    class="text-weight-bold text-indigo-10 q-mb-sm uppercase tracking-widest font-11 border-bottom-subtle q-pb-xs"
+                    class="text-weight-bold text-teal-10 q-mb-sm uppercase tracking-widest font-11 border-bottom-subtle q-pb-xs"
                   >
                     DOKUMEN LAMPIRAN PENGAJUAN
                   </div>
@@ -1092,8 +1063,8 @@
                     >
                       <q-item-section avatar>
                         <q-avatar
-                          color="indigo-1"
-                          text-color="indigo-10"
+                          color="teal-1"
+                          text-color="teal-10"
                           icon="description"
                           size="sm"
                         />
@@ -1121,7 +1092,7 @@
       <div id="table-pdf-export" class="landscape-paper">
         <div
           style="
-            border-bottom: 3px solid #2b579a;
+            border-bottom: 3px solid #00796b;
             padding-bottom: 15px;
             margin-bottom: 20px;
             display: flex;
@@ -1130,7 +1101,7 @@
         >
           <div
             style="
-              background-color: #2b579a;
+              background-color: #00796b;
               color: white;
               border-radius: 8px;
               padding: 12px;
@@ -1144,7 +1115,7 @@
               style="
                 font-size: 24px;
                 font-weight: 900;
-                color: #2b579a;
+                color: #00796b;
                 text-transform: uppercase;
                 letter-spacing: 1px;
               "
@@ -1172,7 +1143,7 @@
             <tr v-for="(row, idx) in filteredRows" :key="idx">
               <td style="text-align: center; font-weight: bold">{{ idx + 1 }}</td>
               <td style="text-align: left">
-                <div style="font-weight: bold; color: #1a237e">{{ row.no_request }}</div>
+                <div style="font-weight: bold; color: #00695c">{{ row.no_request }}</div>
                 <div style="font-size: 9px; color: #666; margin-top: 2px">
                   Ref: {{ row.tagihan_kode || row.tagihan_nomor_invoice || '-' }}
                 </div>
@@ -1248,19 +1219,12 @@ const authStore = useAuthStore()
 
 // ============================================================================
 // PERMISSION HELPERS
-// ID menu pembayaran di dalam modul konstruksi sesuai generateMatrixFromRoutes
-// Sesuaikan nilai MODULE_ID dan MENU_ID dengan yang ada di routes.js Anda
 // ============================================================================
 const MODULE_ID = 'konstruksi'
 
-/**
- * Ambil objek menu pembayaran dari permissions_detail karyawan yang sedang login.
- * Mengembalikan object { lihat, buat, ubah, hapus, approve } atau null jika tidak ada.
- */
 const getPembayaranMenuPerm = () => {
   const user = authStore.user
 
-  // Super Admin / Direktur / Finance selalu punya akses penuh
   if (user && ['Super Admin', 'Direktur', 'Finance'].includes(user.role)) {
     return { lihat: true, buat: true, ubah: true, hapus: true, approve: true }
   }
@@ -1271,7 +1235,6 @@ const getPembayaranMenuPerm = () => {
   const modul = detail.find((m) => m.id === MODULE_ID)
   if (!modul || !modul.isActive) return null
 
-  // Cari menu yang id-nya mengandung 'pembayaran' (sesuai generateMatrixFromRoutes)
   const menu = modul.menus.find(
     (m) =>
       m.id &&
@@ -1280,7 +1243,6 @@ const getPembayaranMenuPerm = () => {
   return menu || null
 }
 
-// Computed permission flags — reaktif terhadap userData
 const canLihat = computed(() => {
   const perm = getPembayaranMenuPerm()
   return perm ? perm.lihat === true : false
@@ -1297,16 +1259,11 @@ const canHapus = computed(() => {
   const perm = getPembayaranMenuPerm()
   return perm ? perm.hapus === true : false
 })
-// canApprove disiapkan jika dibutuhkan di halaman ini di masa depan
-// const canApprove = computed(() => {
-//   const perm = getPembayaranMenuPerm()
-//   return perm ? perm.approve === true : false
-// })
 
 // ============================================================================
 // STATE
 // ============================================================================
-const viewMode = ref('list') // 'list' | 'form' | 'detail'
+const viewMode = ref('list')
 const loading = ref(true)
 const submitting = ref(false)
 
@@ -1324,7 +1281,6 @@ const selectedData = ref(null)
 let unsubData = null
 let unsubTagihan = null
 
-// Form State
 const formDefault = {
   id: null,
   no_request: '',
@@ -1345,7 +1301,6 @@ const formDefault = {
 }
 const form = ref({ ...formDefault })
 
-// Cek Hak Akses Tagihan Supplier
 const hasAccessTagihanSupplier = computed(() => {
   const user = authStore.user
   if (!user) return false
@@ -1361,7 +1316,6 @@ const hasAccessTagihanSupplier = computed(() => {
   return menu ? menu.lihat || menu.buat || menu.edit || menu.approve : false
 })
 
-// Dynamic Toggle Options
 const tipePengajuanOptions = computed(() => {
   const options = []
   if (hasAccessTagihanSupplier.value) {
@@ -1371,7 +1325,6 @@ const tipePengajuanOptions = computed(() => {
   return options
 })
 
-// Columns
 const columns = [
   {
     name: 'request',
@@ -1405,7 +1358,6 @@ const columns = [
   { name: 'aksi', align: 'center', label: 'AKSI', field: 'id' },
 ]
 
-// Generate No Request
 const generateNoRequest = () => {
   const count = rows.value.length + 1
   const padded = count.toString().padStart(3, '0')
@@ -1414,7 +1366,6 @@ const generateNoRequest = () => {
   return `REQ/${year}${month}/${padded}`
 }
 
-// Fetch Data
 const fetchData = async () => {
   loading.value = true
   const user = authStore.user
@@ -1453,7 +1404,6 @@ const fetchData = async () => {
   })
 }
 
-// Computed Filtering
 const filteredRows = computed(() => {
   let res = rows.value
   if (statusFilter.value !== 'ALL') {
@@ -1476,7 +1426,6 @@ const totalDanaPending = computed(() =>
   rows.value.filter((r) => r.status === 'Pending').reduce((sum, r) => sum + (r.nominal || 0), 0),
 )
 
-// Logic Form
 const onTipeChange = (val) => {
   if (val === 'Manual') {
     form.value.tagihan_obj = null
@@ -1511,11 +1460,17 @@ const filterTagihan = (val, update) => {
   })
 }
 
-// Dialog Triggers
 const openAddDialog = () => {
-  // Guard: cegah akses langsung via URL manipulation
   if (!canBuat.value) {
-    $q.notify({ type: 'negative', message: 'Anda tidak memiliki izin membuat pengajuan.' })
+    $q.notify({
+      type: 'negative',
+      position: 'top',
+      icon: 'lock',
+      message: 'Anda tidak memiliki izin membuat pengajuan.',
+      caption: 'Hubungi administrator untuk mendapatkan akses.',
+      classes: 'notify-styled',
+      timeout: 3000,
+    })
     return
   }
   isEditMode.value = false
@@ -1527,7 +1482,14 @@ const openAddDialog = () => {
 
 const openEditDialog = (row) => {
   if (!canUbah.value) {
-    $q.notify({ type: 'negative', message: 'Anda tidak memiliki izin mengubah pengajuan.' })
+    $q.notify({
+      type: 'negative',
+      position: 'top',
+      icon: 'lock',
+      message: 'Anda tidak memiliki izin mengubah pengajuan.',
+      caption: 'Hubungi administrator untuk mendapatkan akses.',
+      timeout: 3000,
+    })
     return
   }
   isEditMode.value = true
@@ -1564,7 +1526,6 @@ const openDetail = async (row) => {
   }
 }
 
-// Lampiran Logic
 const addDocRow = () => form.value.lampiran.push({ label: '', url: '', base64: '', fileObj: null })
 const removeDocRow = (i) => form.value.lampiran.splice(i, 1)
 
@@ -1583,11 +1544,15 @@ const processHybridUpload = async (file, pathName) => {
   }
 }
 
-// Save & Delete
 const simpanPengajuan = async () => {
-  // Guard permission
   if (!canBuat.value && !canUbah.value) {
-    $q.notify({ type: 'negative', message: 'Anda tidak memiliki izin menyimpan pengajuan.' })
+    $q.notify({
+      type: 'negative',
+      position: 'top',
+      icon: 'lock',
+      message: 'Anda tidak memiliki izin menyimpan pengajuan.',
+      timeout: 3000,
+    })
     return
   }
 
@@ -1597,19 +1562,29 @@ const simpanPengajuan = async () => {
     !form.value.rek_nomor ||
     !form.value.nominal
   ) {
-    return $q.notify({
+    $q.notify({
       type: 'warning',
-      message: 'Lengkapi Nama Vendor, Bank, No Rekening, dan Nominal!',
+      position: 'top',
+      icon: 'edit_note',
+      message: 'Data belum lengkap!',
+      caption: 'Lengkapi Nama Vendor, Bank, No Rekening, dan Nominal.',
+      timeout: 3500,
     })
+    return
   }
   if (
     form.value.tipe_pengajuan === 'Tagihan Supplier' &&
     (!form.value.tagihan_id || !form.value.tagihan_nomor_invoice)
   ) {
-    return $q.notify({
+    $q.notify({
       type: 'warning',
-      message: 'Anda memilih metode Tarik Tagihan. Harap pilih Tagihan Supplier!',
+      position: 'top',
+      icon: 'receipt_long',
+      message: 'Tagihan belum dipilih!',
+      caption: 'Anda memilih metode Tarik Tagihan. Harap pilih Tagihan Supplier.',
+      timeout: 3500,
     })
+    return
   }
 
   submitting.value = true
@@ -1664,11 +1639,25 @@ const simpanPengajuan = async () => {
       await addDoc(collection(db, 'finance_pengajuan_pembayaran'), payload)
     }
 
-    $q.notify({ type: 'positive', message: 'Pengajuan berhasil dikirim!' })
+    $q.notify({
+      type: 'positive',
+      position: 'top',
+      icon: 'check_circle',
+      message: 'Pengajuan berhasil dikirim!',
+      caption: 'Menunggu proses approval dari atasan.',
+      timeout: 3500,
+    })
     viewMode.value = 'list'
   } catch (error) {
     console.error(error)
-    $q.notify({ type: 'negative', message: 'Terjadi kesalahan sistem.' })
+    $q.notify({
+      type: 'negative',
+      position: 'top',
+      icon: 'error',
+      message: 'Terjadi kesalahan sistem.',
+      caption: 'Silakan coba lagi atau hubungi administrator.',
+      timeout: 4000,
+    })
   } finally {
     submitting.value = false
     $q.loading.hide()
@@ -1677,7 +1666,13 @@ const simpanPengajuan = async () => {
 
 const confirmHapus = (row) => {
   if (!canHapus.value) {
-    $q.notify({ type: 'negative', message: 'Anda tidak memiliki izin menghapus pengajuan.' })
+    $q.notify({
+      type: 'negative',
+      position: 'top',
+      icon: 'lock',
+      message: 'Anda tidak memiliki izin menghapus pengajuan.',
+      timeout: 3000,
+    })
     return
   }
   $q.dialog({
@@ -1687,7 +1682,13 @@ const confirmHapus = (row) => {
     ok: { color: 'negative', label: 'Hapus', unelevated: true },
   }).onOk(async () => {
     await deleteDoc(doc(db, 'finance_pengajuan_pembayaran', row.id))
-    $q.notify({ type: 'positive', message: 'Data terhapus' })
+    $q.notify({
+      type: 'positive',
+      position: 'top',
+      icon: 'delete_forever',
+      message: 'Data berhasil dihapus.',
+      timeout: 2500,
+    })
   })
 }
 
@@ -1723,7 +1724,13 @@ const getStatusColor = (status) => {
 
 const openLink = (url) => {
   if (!url) {
-    $q.notify({ type: 'warning', message: 'Tautan dokumen tidak tersedia.' })
+    $q.notify({
+      type: 'warning',
+      position: 'top',
+      icon: 'link_off',
+      message: 'Tautan dokumen tidak tersedia.',
+      timeout: 2500,
+    })
     return
   }
   if (url.startsWith('data:')) {
@@ -1747,7 +1754,13 @@ const openLink = (url) => {
       setTimeout(() => URL.revokeObjectURL(blobUrl), 1000)
     } catch (e) {
       console.error('Error parsing base64 URL:', e)
-      $q.notify({ type: 'negative', message: 'Gagal membuka dokumen internal.' })
+      $q.notify({
+        type: 'negative',
+        position: 'top',
+        icon: 'error',
+        message: 'Gagal membuka dokumen internal.',
+        timeout: 3000,
+      })
     }
   } else {
     const link = document.createElement('a')
@@ -1762,8 +1775,6 @@ const openLink = (url) => {
 // ============================================================================
 // EXPORT METHODS
 // ============================================================================
-const printTable = () => window.print()
-
 const exportTablePDF = () => {
   const e = document.getElementById('table-pdf-export')
   if (!e) return
@@ -1779,13 +1790,22 @@ const exportTablePDF = () => {
     .set(opt)
     .from(e)
     .save()
-    .then(() => $q.loading.hide())
+    .then(() => {
+      $q.loading.hide()
+      $q.notify({
+        type: 'positive',
+        position: 'top',
+        icon: 'picture_as_pdf',
+        message: 'PDF berhasil diunduh.',
+        timeout: 2500,
+      })
+    })
 }
 
 const exportTableExcel = () => {
   try {
     const thStyle =
-      'background-color: #1a237e; color: #ffffff; font-weight: bold; border: 1px solid #dddddd; padding: 10px; text-align: center; text-transform: uppercase;'
+      'background-color: #00695c; color: #ffffff; font-weight: bold; border: 1px solid #dddddd; padding: 10px; text-align: center; text-transform: uppercase;'
     const tdStyle = 'border: 1px solid #dddddd; padding: 8px; vertical-align: top;'
     const tdNumStyle = tdStyle + ' text-align: right;'
     const tdCenterStyle = tdStyle + ' text-align: center;'
@@ -1794,7 +1814,7 @@ const exportTableExcel = () => {
       '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">'
     tableHtml += '<head><meta charset="utf-8"></head><body>'
     tableHtml +=
-      '<h2 style="color: #1a237e; margin-bottom: 5px; font-family: sans-serif;">Laporan Pengajuan Pembayaran</h2>'
+      '<h2 style="color: #00695c; margin-bottom: 5px; font-family: sans-serif;">Laporan Pengajuan Pembayaran</h2>'
     tableHtml +=
       '<p style="margin-top: 0; font-family: sans-serif;">Diekspor pada: ' +
       new Date().toLocaleString('id-ID') +
@@ -1854,10 +1874,22 @@ const exportTableExcel = () => {
     link.click()
     URL.revokeObjectURL(url)
 
-    $q.notify({ type: 'positive', message: 'Data berhasil diekspor ke Excel' })
+    $q.notify({
+      type: 'positive',
+      position: 'top',
+      icon: 'table_view',
+      message: 'Data berhasil diekspor ke Excel.',
+      timeout: 2500,
+    })
   } catch (err) {
     console.error(err)
-    $q.notify({ type: 'negative', message: 'Gagal mengekspor data list' })
+    $q.notify({
+      type: 'negative',
+      position: 'top',
+      icon: 'error',
+      message: 'Gagal mengekspor data list.',
+      timeout: 3000,
+    })
   }
 }
 
@@ -1878,20 +1910,29 @@ const exportDetailPDF = () => {
     .set(opt)
     .from(e)
     .save()
-    .then(() => $q.loading.hide())
+    .then(() => {
+      $q.loading.hide()
+      $q.notify({
+        type: 'positive',
+        position: 'top',
+        icon: 'picture_as_pdf',
+        message: 'PDF berhasil diunduh.',
+        timeout: 2500,
+      })
+    })
 }
 
 const exportDetailExcel = () => {
   try {
     const thStyle =
-      'background-color: #1a237e; color: #ffffff; font-weight: bold; border: 1px solid #dddddd; padding: 10px; text-align: left;'
+      'background-color: #00695c; color: #ffffff; font-weight: bold; border: 1px solid #dddddd; padding: 10px; text-align: left;'
     const tdStyle = 'border: 1px solid #dddddd; padding: 8px; vertical-align: top;'
 
     let tableHtml =
       '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">'
     tableHtml += '<head><meta charset="utf-8"></head><body>'
     tableHtml +=
-      '<h2 style="color: #1a237e; margin-bottom: 5px; font-family: sans-serif;">Detail Pengajuan Pembayaran</h2>'
+      '<h2 style="color: #00695c; margin-bottom: 5px; font-family: sans-serif;">Detail Pengajuan Pembayaran</h2>'
     tableHtml +=
       '<p style="margin-top: 0; font-family: sans-serif;">Diekspor pada: ' +
       new Date().toLocaleString('id-ID') +
@@ -1941,10 +1982,22 @@ const exportDetailExcel = () => {
     link.click()
     URL.revokeObjectURL(url)
 
-    $q.notify({ type: 'positive', message: 'Data detail berhasil diekspor ke Excel' })
+    $q.notify({
+      type: 'positive',
+      position: 'top',
+      icon: 'table_view',
+      message: 'Data detail berhasil diekspor ke Excel.',
+      timeout: 2500,
+    })
   } catch (err) {
     console.error(err)
-    $q.notify({ type: 'negative', message: 'Gagal mengekspor data detail' })
+    $q.notify({
+      type: 'negative',
+      position: 'top',
+      icon: 'error',
+      message: 'Gagal mengekspor data detail.',
+      timeout: 3000,
+    })
   }
 }
 
@@ -1955,7 +2008,6 @@ onMounted(() => {
   fetchData()
   const email = authStore.user?.email
   if (email) {
-    // Subscribe ke data karyawan agar permissions_detail reaktif
     const qUser = query(collection(db, 'karyawan'), where('email', '==', email))
     unsubUser = onSnapshot(qUser, (s) => {
       if (!s.empty) {
@@ -1984,7 +2036,7 @@ onUnmounted(() => {
   border-radius: 12px;
 }
 .shadow-premium {
-  box-shadow: 0 10px 30px rgba(26, 35, 126, 0.15);
+  box-shadow: 0 10px 30px rgba(0, 121, 107, 0.15);
 }
 .border-subtle {
   border: 1px solid rgba(0, 0, 0, 0.05);
@@ -2008,6 +2060,26 @@ onUnmounted(() => {
   border: 1px solid rgba(25, 118, 210, 0.15);
 }
 
+/* =============================================
+   GRADIENT KPI CARDS
+   ============================================= */
+.card-teal-gradient {
+  background: linear-gradient(135deg, #009688 0%, #00695c 100%) !important;
+  box-shadow: 0 8px 24px rgba(0, 121, 107, 0.35) !important;
+}
+.card-orange-gradient {
+  background: linear-gradient(135deg, #fb8c00 0%, #e65100 100%) !important;
+  box-shadow: 0 8px 24px rgba(230, 81, 0, 0.35) !important;
+}
+.card-green-gradient {
+  background: linear-gradient(135deg, #43a047 0%, #1b5e20 100%) !important;
+  box-shadow: 0 8px 24px rgba(27, 94, 32, 0.35) !important;
+}
+.card-blue-gradient {
+  background: linear-gradient(135deg, #0288d1 0%, #01579b 100%) !important;
+  box-shadow: 0 8px 24px rgba(1, 87, 155, 0.35) !important;
+}
+
 .finance-table :deep(thead tr th) {
   position: sticky;
   top: 0;
@@ -2018,14 +2090,14 @@ onUnmounted(() => {
   padding: 16px;
 }
 .hover-bg:hover {
-  background-color: rgba(26, 35, 126, 0.03) !important;
+  background-color: rgba(0, 121, 107, 0.03) !important;
 }
 .transition-all {
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 .hover-shadow:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 25px rgba(26, 35, 126, 0.1) !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2) !important;
 }
 .btn-hover:hover {
   filter: brightness(1.1);
@@ -2034,7 +2106,7 @@ onUnmounted(() => {
 }
 .hover-blue-btn:hover {
   background-color: #e8eaf6 !important;
-  color: #1a237e !important;
+  color: #00695c !important;
 }
 
 .animate-bounce {
@@ -2146,11 +2218,11 @@ onUnmounted(() => {
   box-sizing: border-box;
 }
 .report-table th {
-  background-color: #2b579a !important;
+  background-color: #00796b !important;
   color: white !important;
   padding: 10px;
   font-size: 11px;
-  border: 1px solid #2b579a;
+  border: 1px solid #00796b;
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
 }

@@ -7,30 +7,19 @@
       <!-- HEADER SECTION -->
       <div class="row items-center justify-between q-mb-xl no-print">
         <div class="col-12 col-md-8">
-          <div class="row items-center no-wrap">
-            <q-btn
-              flat
-              round
-              color="indigo-10"
-              icon="arrow_back"
-              @click="$router.back()"
-              class="q-mr-md bg-white shadow-1"
-            />
-            <div>
-              <div class="text-h4 text-weight-bolder text-indigo-10 leading-tight">
-                Realisasi Pembayaran
-                <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
-                  >Payment Disbursement Execution</span
-                >
-              </div>
-              <div class="text-subtitle1 text-grey-7 q-mt-sm">
-                Eksekusi pencairan dana (transfer) untuk pengajuan yang telah disetujui (Approved).
-              </div>
+          <div>
+            <div class="text-h4 text-weight-bolder text-indigo-10 leading-tight">
+              Realisasi Pembayaran
+              <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
+                >Payment Disbursement Execution</span
+              >
+            </div>
+            <div class="text-subtitle1 text-grey-7 q-mt-sm">
+              Eksekusi pencairan dana (transfer) untuk pengajuan yang telah disetujui (Approved).
             </div>
           </div>
         </div>
         <div class="col-12 col-md-auto q-mt-md q-mt-md-none text-right">
-          <!-- EXPORT DROPDOWN LIST -->
           <q-btn-dropdown
             unelevated
             color="white"
@@ -40,17 +29,6 @@
             class="rounded-12 text-weight-bold shadow-2"
           >
             <q-list class="bg-white rounded-borders q-py-sm" style="min-width: 200px">
-              <q-item clickable v-close-popup @click="printTable" class="hover-blue-btn">
-                <q-item-section avatar
-                  ><q-avatar color="blue-1" text-color="blue-10" icon="print" size="sm"
-                /></q-item-section>
-                <q-item-section
-                  ><q-item-label class="text-weight-bold"
-                    >Cetak (Print)</q-item-label
-                  ></q-item-section
-                >
-              </q-item>
-              <q-separator class="q-my-sm" />
               <q-item clickable v-close-popup @click="exportTablePDF" class="hover-blue-btn">
                 <q-item-section avatar
                   ><q-avatar color="red-1" text-color="red-10" icon="picture_as_pdf" size="sm"
@@ -79,89 +57,65 @@
 
       <!-- SUMMARY CARDS / KPI -->
       <div class="row q-col-gutter-lg q-mb-lg animate-fade-up no-print">
-        <!-- Approved Count (Antrean) -->
+        <!-- Antrean Cair -->
         <div class="col-12 col-sm-4">
           <q-card
             flat
-            class="rounded-20 border-subtle bg-white transition-all hover-shadow h-full flex column justify-center"
+            class="rounded-20 kpi-card kpi-orange text-white transition-all hover-shadow"
           >
-            <q-card-section class="row items-center no-wrap q-pa-md">
+            <q-card-section class="row items-center no-wrap q-pa-lg">
               <div class="col">
-                <div
-                  class="text-overline text-orange-9 leading-none text-weight-bold tracking-widest q-mb-xs"
-                >
+                <div class="text-overline text-white kpi-label tracking-widest q-mb-xs">
                   ANTREAN CAIR
                 </div>
-                <div class="text-h4 text-weight-bolder text-indigo-10">
-                  {{ pendingCount }}
-                </div>
+                <div class="text-h3 text-weight-black">{{ pendingCount }}</div>
               </div>
-              <div class="col-auto">
-                <q-avatar
-                  size="54px"
-                  color="orange-1"
-                  text-color="orange-9"
-                  icon="pending_actions"
-                  class="rounded-12 shadow-sm"
-                />
+              <div class="kpi-icon-wrap q-pa-md rounded-borders flex flex-center">
+                <q-icon name="pending_actions" color="white" size="32px" />
               </div>
             </q-card-section>
           </q-card>
         </div>
 
-        <!-- Antrean Amount -->
+        <!-- Nilai Dana Antrean -->
         <div class="col-12 col-sm-4">
           <q-card
             flat
-            class="rounded-20 border-subtle bg-white transition-all hover-shadow h-full flex column justify-center"
+            class="rounded-20 kpi-card kpi-blue-grey text-white transition-all hover-shadow"
           >
-            <q-card-section class="row items-center no-wrap q-pa-md">
+            <q-card-section class="row items-center no-wrap q-pa-lg">
               <div class="col">
-                <div
-                  class="text-overline text-grey-6 leading-none text-weight-bold tracking-widest q-mb-xs"
-                >
+                <div class="text-overline text-white kpi-label tracking-widest q-mb-xs">
                   NILAI DANA ANTREAN
                 </div>
-                <div class="text-h4 text-weight-bolder text-indigo-10">
+                <div class="text-h5 text-weight-black q-mt-xs">
                   Rp {{ formatCompact(pendingAmount) }}
                 </div>
               </div>
-              <div class="col-auto">
-                <q-avatar
-                  size="54px"
-                  color="indigo-1"
-                  text-color="indigo-10"
-                  icon="account_balance_wallet"
-                  class="rounded-12 shadow-sm"
-                />
+              <div class="kpi-icon-wrap q-pa-md rounded-borders flex flex-center">
+                <q-icon name="account_balance_wallet" color="white" size="32px" />
               </div>
             </q-card-section>
           </q-card>
         </div>
 
-        <!-- Realized Count -->
+        <!-- Dana Terealisasi -->
         <div class="col-12 col-sm-4">
           <q-card
             flat
-            class="rounded-20 border-subtle bg-indigo-10 text-white transition-all hover-shadow h-full flex column justify-center"
+            class="rounded-20 kpi-card kpi-indigo text-white transition-all hover-shadow"
           >
-            <q-card-section class="row items-center no-wrap q-pa-md">
+            <q-card-section class="row items-center no-wrap q-pa-lg">
               <div class="col">
-                <div
-                  class="text-overline text-indigo-2 leading-none text-weight-bold tracking-widest q-mb-xs"
-                >
+                <div class="text-overline text-white kpi-label tracking-widest q-mb-xs">
                   DANA TEREALISASI
                 </div>
-                <div class="text-h4 text-weight-bolder">Rp {{ formatCompact(realizedAmount) }}</div>
+                <div class="text-h5 text-weight-black q-mt-xs">
+                  Rp {{ formatCompact(realizedAmount) }}
+                </div>
               </div>
-              <div class="col-auto">
-                <q-avatar
-                  size="54px"
-                  color="white"
-                  text-color="indigo-10"
-                  icon="price_check"
-                  class="rounded-12 shadow-2"
-                />
+              <div class="kpi-icon-wrap q-pa-md rounded-borders flex flex-center">
+                <q-icon name="price_check" color="white" size="32px" />
               </div>
             </q-card-section>
           </q-card>
@@ -249,7 +203,6 @@
               @click="openDetail(props.row)"
             >
               <q-td key="request">
-                <!-- SINKRONISASI BADGE "BARU" BERKEDIP DI TABEL ANTREAN TRANSFER -->
                 <div class="row items-center q-gutter-x-xs no-wrap">
                   <span class="text-weight-bold text-indigo-10">{{ props.row.no_request }}</span>
                   <q-badge
@@ -329,10 +282,8 @@
                   >
                     <q-tooltip>Lihat Detail</q-tooltip>
                   </q-btn>
-
-                  <!-- TOMBOL EKSEKUSI DENGAN PENGECEKAN HAK AKSES -->
                   <q-btn
-                    v-if="props.row.status === 'Approved' && hasRealisasiPermission"
+                    v-if="props.row.status === 'Approved'"
                     unelevated
                     round
                     color="positive"
@@ -393,17 +344,6 @@
             class="rounded-12 text-weight-bold shadow-2"
           >
             <q-list class="bg-white rounded-borders q-py-sm" style="min-width: 200px">
-              <q-item clickable v-close-popup @click="printDetail" class="hover-blue-btn">
-                <q-item-section avatar
-                  ><q-avatar color="blue-1" text-color="blue-10" icon="print" size="sm"
-                /></q-item-section>
-                <q-item-section
-                  ><q-item-label class="text-weight-bold"
-                    >Cetak (Print)</q-item-label
-                  ></q-item-section
-                >
-              </q-item>
-              <q-separator class="q-my-sm" />
               <q-item clickable v-close-popup @click="exportDetailPDF" class="hover-blue-btn">
                 <q-item-section avatar
                   ><q-avatar color="red-1" text-color="red-10" icon="picture_as_pdf" size="sm"
@@ -428,8 +368,7 @@
             </q-list>
           </q-btn-dropdown>
 
-          <!-- PENGECEKAN HAK AKSES UNTUK TOMBOL DI VIEW DETAIL -->
-          <template v-if="selectedData.status === 'Approved' && hasRealisasiPermission">
+          <template v-if="selectedData.status === 'Approved'">
             <q-btn
               unelevated
               color="positive"
@@ -502,7 +441,6 @@
 
             <q-card-section class="q-pa-xl bg-white">
               <div class="row q-col-gutter-xl q-mb-lg">
-                <!-- Informasi Umum -->
                 <div class="col-12 col-md-6">
                   <div
                     class="text-weight-bold text-indigo-10 q-mb-lg uppercase tracking-widest font-11 border-bottom-subtle q-pb-sm"
@@ -546,8 +484,6 @@
                     </tr>
                   </table>
                 </div>
-
-                <!-- Rekening Tujuan -->
                 <div class="col-12 col-md-6">
                   <div
                     class="text-weight-bold text-indigo-10 q-mb-lg uppercase tracking-widest font-11 border-bottom-subtle q-pb-sm"
@@ -575,7 +511,6 @@
                 </div>
               </div>
 
-              <!-- Keterangan / Tujuan Dana -->
               <div class="row q-mt-lg">
                 <div class="col-12">
                   <div
@@ -592,7 +527,6 @@
                 </div>
               </div>
 
-              <!-- Alasan Tolak / Catatan Approval -->
               <div
                 class="row q-mt-md"
                 v-if="
@@ -619,7 +553,6 @@
                 </div>
               </div>
 
-              <!-- BUKTI TRANSFER (Jika Ada) -->
               <div
                 class="row q-mt-xl"
                 v-if="
@@ -633,8 +566,6 @@
                   >
                     BUKTI TRANSFER / REALISASI
                   </div>
-
-                  <!-- Catatan & Nominal Realisasi -->
                   <div
                     class="bg-blue-50 text-blue-9 border-blue-thin q-pa-md rounded-12 text-weight-bold q-mb-md"
                     v-if="selectedData.nominal_eksekusi || selectedData.catatan_realisasi"
@@ -652,8 +583,6 @@
                       {{ selectedData.catatan_realisasi || 'Telah dicairkan' }}
                     </div>
                   </div>
-
-                  <!-- Dokumen Bukti Transfer -->
                   <q-list
                     separator
                     class="rounded-12 border-subtle"
@@ -665,9 +594,9 @@
                       @click="openLink(selectedData.bukti_transfer)"
                       class="q-py-md hover-bg"
                     >
-                      <q-item-section avatar>
-                        <q-avatar color="indigo-1" text-color="indigo-10" icon="receipt_long" />
-                      </q-item-section>
+                      <q-item-section avatar
+                        ><q-avatar color="indigo-1" text-color="indigo-10" icon="receipt_long"
+                      /></q-item-section>
                       <q-item-section>
                         <q-item-label class="text-weight-bold text-subtitle1"
                           >Bukti Transfer (Realisasi)</q-item-label
@@ -676,15 +605,14 @@
                           >Klik untuk mengunduh / melihat file bukti pembayaran</q-item-label
                         >
                       </q-item-section>
-                      <q-item-section side>
-                        <q-icon name="open_in_new" color="primary" size="sm" />
-                      </q-item-section>
+                      <q-item-section side
+                        ><q-icon name="open_in_new" color="primary" size="sm"
+                      /></q-item-section>
                     </q-item>
                   </q-list>
                 </div>
               </div>
 
-              <!-- Dokumen Lampiran Pengajuan -->
               <div
                 class="row q-mt-xl"
                 v-if="selectedData.lampiran && selectedData.lampiran.length > 0"
@@ -704,17 +632,17 @@
                       @click="openLink(doc.url || doc.base64)"
                       class="q-py-md hover-bg"
                     >
-                      <q-item-section avatar>
-                        <q-avatar color="indigo-1" text-color="indigo-10" icon="description" />
-                      </q-item-section>
+                      <q-item-section avatar
+                        ><q-avatar color="indigo-1" text-color="indigo-10" icon="description"
+                      /></q-item-section>
                       <q-item-section>
                         <q-item-label class="text-weight-bold text-subtitle1">{{
                           doc.label || 'Dokumen ' + (dIdx + 1)
                         }}</q-item-label>
                       </q-item-section>
-                      <q-item-section side>
-                        <q-icon name="open_in_new" color="primary" size="sm" />
-                      </q-item-section>
+                      <q-item-section side
+                        ><q-icon name="open_in_new" color="primary" size="sm"
+                      /></q-item-section>
                     </q-item>
                   </q-list>
                 </div>
@@ -734,12 +662,11 @@
       transition-hide="slide-down"
     >
       <q-card class="bg-grey-2 column no-wrap">
-        <!-- HEADER DIALOG FULLSCREEN -->
         <q-toolbar class="bg-indigo-10 text-white q-py-md shadow-4 shrink">
           <q-btn flat round dense icon="close" v-close-popup />
-          <q-toolbar-title class="text-weight-black uppercase">
-            EKSEKUSI PENCAIRAN DANA
-          </q-toolbar-title>
+          <q-toolbar-title class="text-weight-black uppercase"
+            >EKSEKUSI PENCAIRAN DANA</q-toolbar-title
+          >
           <q-btn
             unelevated
             color="white"
@@ -810,9 +737,9 @@
                       bg-color="white"
                       class="bg-indigo-50"
                     >
-                      <template v-slot:prepend>
-                        <q-icon name="cloud_upload" color="indigo-10" />
-                      </template>
+                      <template v-slot:prepend
+                        ><q-icon name="cloud_upload" color="indigo-10"
+                      /></template>
                       <template v-slot:append v-if="realisasiForm.bukti_file">
                         <q-icon
                           name="close"
@@ -874,7 +801,6 @@
             </div>
           </div>
         </div>
-
         <table class="report-table" style="width: 100%; border-collapse: collapse">
           <thead>
             <tr>
@@ -889,13 +815,13 @@
           <tbody>
             <tr v-for="(row, idx) in filteredRows" :key="idx">
               <td style="text-align: center; font-weight: bold">{{ idx + 1 }}</td>
-              <td style="text-align: left">
+              <td>
                 <div style="font-weight: bold; color: #1a237e">{{ row.no_request }}</div>
                 <div style="font-size: 9px; color: #666; margin-top: 2px">
                   Ref: {{ row.tagihan_kode || row.tagihan_nomor_invoice || '-' }}
                 </div>
               </td>
-              <td style="text-align: left">
+              <td>
                 <div style="font-weight: bold; text-transform: uppercase">
                   {{ row.vendor_nama }}
                 </div>
@@ -906,7 +832,7 @@
               <td style="text-align: right; font-weight: bold">
                 {{ (row.nominal || 0).toLocaleString('id-ID') }}
               </td>
-              <td style="text-align: left">
+              <td>
                 <div style="font-weight: bold; text-transform: uppercase">
                   {{
                     row.status === 'Cair'
@@ -944,14 +870,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { db, storage } from 'src/boot/firebase'
 import {
   collection,
   onSnapshot,
   query,
   where,
-  limit,
   doc,
   updateDoc,
   serverTimestamp,
@@ -964,18 +889,14 @@ import html2pdf from 'html2pdf.js'
 const $q = useQuasar()
 const authStore = useAuthStore()
 
-// State View
-const viewMode = ref('list') // 'list', 'detail'
+const viewMode = ref('list')
 const loading = ref(true)
 const isProcessing = ref(false)
-
-// Data State
 const rows = ref([])
 const searchQuery = ref('')
-const tabFilter = ref('Approved') // Default tab Antrean Transfer (Approved)
+const tabFilter = ref('Approved')
 const selectedData = ref(null)
 
-// Realisasi State
 const showRealisasiDialog = ref(false)
 const realisasiForm = ref({
   tanggal: new Date().toISOString().substr(0, 10),
@@ -985,104 +906,7 @@ const realisasiForm = ref({
 })
 
 let unsubData = null
-let unsubUser = null // Listener realtime khusus untuk data hak akses user saat ini
 
-// Reaktif state menampung perizinan terbaru dari database langsung
-const currentUserPermissions = ref(null)
-
-// ============================================================================
-// COMPUTED: CEK HAK AKSES REALISASI DARI USER LOGIN (Bisa update instan!)
-// ============================================================================
-const hasRealisasiPermission = computed(() => {
-  // Prioritas utama ambil dari Listener Realtime, jika belum ter-load baru ambil dari authStore
-  const perms = currentUserPermissions.value || authStore.user?.permissions_detail || []
-
-  if (!Array.isArray(perms) || perms.length === 0) return false
-
-  let canApprove = false
-
-  for (const modul of perms) {
-    if (modul.menus && Array.isArray(modul.menus)) {
-      const targetMenu = modul.menus.find((m) => {
-        const lblStr = (m.label || '').toLowerCase()
-        const idStr = (m.id || '').toLowerCase()
-
-        return (
-          lblStr.includes('realisasi pembayaran') ||
-          idStr.includes('realisasi-pembayaran') ||
-          idStr.includes('realisasi_pembayaran')
-        )
-      })
-
-      // Jika menu ditemukan dan status approve = true
-      if (targetMenu && targetMenu.approve === true) {
-        canApprove = true
-        break
-      }
-    }
-  }
-
-  return canApprove
-})
-
-// ============================================================================
-// LISTENER HAK AKSES SECARA REALTIME UNTUK USER SAAT INI
-// ============================================================================
-const fetchRealtimeAccess = (u) => {
-  if (!u) return
-
-  if (unsubUser) {
-    unsubUser()
-    unsubUser = null
-  }
-
-  const processData = (data) => {
-    currentUserPermissions.value = data.permissions_detail || []
-    if (authStore.user) {
-      authStore.user.permissions_detail = data.permissions_detail
-      authStore.user.akses = data.akses
-    }
-  }
-
-  // 1. Prioritas Pertama: Cari berdasarkan Email
-  if (u.email) {
-    const qUser = query(collection(db, 'karyawan'), where('email', '==', u.email), limit(1))
-    unsubUser = onSnapshot(qUser, (snap) => {
-      if (!snap.empty) processData(snap.docs[0].data())
-    })
-    return
-  }
-
-  // 2. Prioritas Kedua: Cari berdasarkan NIK
-  if (u.nik) {
-    const qUser = query(collection(db, 'karyawan'), where('nik', '==', u.nik), limit(1))
-    unsubUser = onSnapshot(qUser, (snap) => {
-      if (!snap.empty) processData(snap.docs[0].data())
-    })
-    return
-  }
-
-  // 3. Prioritas Ketiga: Fallback ID Dokumen
-  const docId = u.id || u.uid || u.id_karyawan
-  if (docId) {
-    unsubUser = onSnapshot(doc(db, 'karyawan', docId), (docSnap) => {
-      if (docSnap.exists()) processData(docSnap.data())
-    })
-  }
-}
-
-// MEMASTIKAN LISTENER BERJALAN MESKI DATA USER MENGALAMI DELAY (VUE REACTIVITY)
-watch(
-  () => authStore.user?.email || authStore.user?.nik || authStore.user?.id || authStore.user?.uid,
-  (identifier) => {
-    if (identifier && authStore.user) {
-      fetchRealtimeAccess(authStore.user)
-    }
-  },
-  { immediate: true },
-)
-
-// Columns
 const columns = [
   {
     name: 'request',
@@ -1110,14 +934,12 @@ const columns = [
   { name: 'aksi', align: 'center', label: 'AKSI', field: 'id' },
 ]
 
-// Fetch Data (Hanya ambil yang sudah Approved atau Cair)
 const fetchData = () => {
   loading.value = true
   const qPengajuan = query(
     collection(db, 'finance_pengajuan_pembayaran'),
     where('status', 'in', ['Approved', 'Cair']),
   )
-
   unsubData = onSnapshot(
     qPengajuan,
     (snap) => {
@@ -1133,7 +955,6 @@ const fetchData = () => {
   )
 }
 
-// KPI & Computed
 const pendingCount = computed(() => rows.value.filter((r) => r.status === 'Approved').length)
 const pendingAmount = computed(() =>
   rows.value.filter((r) => r.status === 'Approved').reduce((sum, r) => sum + (r.nominal || 0), 0),
@@ -1144,7 +965,6 @@ const realizedAmount = computed(() =>
 
 const filteredRows = computed(() => {
   let res = rows.value.filter((r) => r.status === tabFilter.value)
-
   if (searchQuery.value) {
     const lower = searchQuery.value.toLowerCase()
     res = res.filter(
@@ -1158,18 +978,12 @@ const filteredRows = computed(() => {
   return res
 })
 
-// SINKRONISASI LOGIKA BACA UNTUK BENDAHARA SAAT PREVIEW DETAIL DIBUKA
 const openDetail = async (row) => {
   selectedData.value = row
   viewMode.value = 'detail'
   window.scrollTo(0, 0)
-
-  // CATATAN: Notifikasi "BARU" sengaja tidak dihapus dari database ketika detail dibuka
-  // untuk memastikan kasir tidak lupa mengeksekusi transfer. Notifikasi akan hilang secara
-  // saklek ketika kasir berhasil memencet tombol "PROSES REALISASI" (Cair).
 }
 
-// SINKRONISASI LOGIKA BACA UNTUK BENDAHARA SAAT INGIN CAIR LANGSUNG DARI LIST
 const triggerRealisasi = async (row) => {
   selectedData.value = row
   realisasiForm.value = {
@@ -1179,21 +993,34 @@ const triggerRealisasi = async (row) => {
     bukti_file: null,
   }
   showRealisasiDialog.value = true
-
-  // CATATAN: Notifikasi "BARU" sengaja tidak dihapus saat tombol ditekan, melainkan
-  // saat transaksi mutasi dinyatakan sukses (Cair) di server database.
 }
 
-// Eksekusi Realisasi Pembayaran Kasir
 const processRealisasi = async () => {
   if (!realisasiForm.value.bukti_file) {
     return $q.notify({
       type: 'warning',
-      message: 'Harap unggah bukti dokumen/transfer terlebih dahulu!',
+      message: '⚠️ Harap unggah bukti dokumen/transfer terlebih dahulu!',
+      icon: 'upload_file',
+      color: 'orange-9',
+      position: 'top-right',
+      timeout: 3500,
+      progress: true,
+      classes: 'notif-premium',
+      actions: [{ icon: 'close', color: 'white', round: true }],
     })
   }
   if (!realisasiForm.value.nominal || realisasiForm.value.nominal <= 0) {
-    return $q.notify({ type: 'warning', message: 'Nominal eksekusi tidak boleh kosong!' })
+    return $q.notify({
+      type: 'warning',
+      message: '⚠️ Nominal eksekusi tidak boleh kosong!',
+      icon: 'money_off',
+      color: 'orange-9',
+      position: 'top-right',
+      timeout: 3500,
+      progress: true,
+      classes: 'notif-premium',
+      actions: [{ icon: 'close', color: 'white', round: true }],
+    })
   }
 
   isProcessing.value = true
@@ -1213,14 +1040,13 @@ const processRealisasi = async () => {
       tanggal_eksekusi: realisasiForm.value.tanggal,
       nominal_eksekusi: realisasiForm.value.nominal,
       catatan_realisasi: realisasiForm.value.catatan,
-      realizer_read: true, // SAKLEK: Ditandai sudah dibaca realizer, sehingga notifikasi di sidebar langsung padam!
-      creator_read: false, // Kreator dapat notifikasi baru bahwa dana telah cair (Event 2 Cair)
-      realized_approved_read: false, // Approver dapat notifikasi bahwa realisasi cair sukses (Event 3)
+      realizer_read: true,
+      creator_read: false,
+      realized_approved_read: false,
     }
 
     await updateDoc(doc(db, 'finance_pengajuan_pembayaran', selectedData.value.id), updateData)
 
-    // Auto update status tagihan AP menjadi 'Lunas' jika ada relasi
     if (selectedData.value.tagihan_id) {
       await updateDoc(doc(db, 'finance_tagihan', selectedData.value.tagihan_id), {
         status: 'Lunas',
@@ -1237,19 +1063,38 @@ const processRealisasi = async () => {
       selectedData.value.realizer_read = true
     }
 
-    $q.notify({ type: 'positive', message: 'Dana berhasil direalisasikan (Cair)!' })
+    $q.notify({
+      message: '💸 Dana berhasil direalisasikan!',
+      caption: `${selectedData.value?.no_request} — Rp ${realisasiForm.value.nominal.toLocaleString('id-ID')} telah dicairkan`,
+      icon: 'task_alt',
+      color: 'positive',
+      position: 'top-right',
+      timeout: 4000,
+      progress: true,
+      classes: 'notif-premium',
+      actions: [{ icon: 'close', color: 'white', round: true }],
+    })
     showRealisasiDialog.value = false
     viewMode.value = 'list'
   } catch (e) {
     console.error(e)
-    $q.notify({ type: 'negative', message: 'Gagal memproses realisasi.' })
+    $q.notify({
+      type: 'negative',
+      message: '❌ Gagal memproses realisasi.',
+      caption: 'Periksa koneksi dan coba lagi.',
+      icon: 'error',
+      position: 'top-right',
+      timeout: 4000,
+      progress: true,
+      classes: 'notif-premium',
+      actions: [{ icon: 'close', color: 'white', round: true }],
+    })
   } finally {
     isProcessing.value = false
     $q.loading.hide()
   }
 }
 
-// Utilities
 const formatDateIndo = (d) => {
   if (!d) return '-'
   return new Date(d).toLocaleDateString('id-ID', {
@@ -1279,10 +1124,16 @@ const getStatusColor = (status) => {
 
 const openLink = (url) => {
   if (!url) {
-    $q.notify({ type: 'warning', message: 'Tautan dokumen tidak tersedia.' })
+    $q.notify({
+      type: 'warning',
+      message: 'Tautan dokumen tidak tersedia.',
+      icon: 'link_off',
+      position: 'top-right',
+      timeout: 2500,
+      progress: true,
+    })
     return
   }
-
   if (url.startsWith('data:')) {
     try {
       const arr = url.split(',')
@@ -1290,25 +1141,21 @@ const openLink = (url) => {
       const bstr = atob(arr[1])
       let n = bstr.length
       const u8arr = new Uint8Array(n)
-      while (n--) {
-        u8arr[n] = bstr.charCodeAt(n)
-      }
+      while (n--) u8arr[n] = bstr.charCodeAt(n)
       const blob = new Blob([u8arr], { type: mime })
-      const blobUrl = URL.createObjectURL(blob)
-      window.open(blobUrl, '_blank')
+      window.open(URL.createObjectURL(blob), '_blank')
     } catch (e) {
       console.error('Error parsing base64 URL:', e)
-      $q.notify({ type: 'negative', message: 'Gagal membuka dokumen internal.' })
+      $q.notify({
+        type: 'negative',
+        message: 'Gagal membuka dokumen internal.',
+        position: 'top-right',
+      })
     }
   } else {
     window.open(url, '_blank')
   }
 }
-
-// ============================================================================
-// EXPORT METHODS
-// ============================================================================
-const printTable = () => window.print()
 
 const exportTablePDF = () => {
   const e = document.getElementById('table-pdf-export')
@@ -1334,7 +1181,6 @@ const exportTableExcel = () => {
     filteredRows.value.forEach((r) => {
       csv += `"${r.no_request}","${r.tagihan_kode || r.tagihan_nomor_invoice || '-'}","${r.vendor_nama}","${r.rek_bank}","${r.rek_nomor}","${r.nominal}","${r.status === 'Cair' ? formatDateIndo(r.realizedAt?.seconds ? new Date(r.realizedAt.toDate()) : null) : formatDateIndo(r.tanggal_dibutuhkan)}","${r.status}","${(r.catatan_approval || '').replace(/"/g, '""').replace(/\n/g, ' ')}"\n`
     })
-
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
@@ -1342,14 +1188,28 @@ const exportTableExcel = () => {
     link.download = `Laporan_Realisasi_${tabFilter.value}_${Date.now()}.csv`
     link.click()
     URL.revokeObjectURL(url)
-    $q.notify({ type: 'positive', message: 'Data list berhasil diekspor ke Excel (CSV)' })
+    $q.notify({
+      message: '📊 Data berhasil diekspor ke Excel!',
+      caption: `File CSV tersimpan di folder unduhan Anda`,
+      icon: 'table_view',
+      color: 'positive',
+      position: 'top-right',
+      timeout: 3500,
+      progress: true,
+      classes: 'notif-premium',
+      actions: [{ icon: 'close', color: 'white', round: true }],
+    })
   } catch (err) {
     console.error(err)
-    $q.notify({ type: 'negative', message: 'Gagal mengekspor data list' })
+    $q.notify({
+      type: 'negative',
+      message: 'Gagal mengekspor data list',
+      position: 'top-right',
+      timeout: 3000,
+      progress: true,
+    })
   }
 }
-
-const printDetail = () => window.print()
 
 const exportDetailPDF = () => {
   const e = document.getElementById('pengajuan-detail-pdf')
@@ -1374,7 +1234,6 @@ const exportDetailExcel = () => {
     let csv = `NO REQUEST,TIPE PENGAJUAN,REF TAGIHAN,VENDOR/PENERIMA,BANK,NO REKENING,ATAS NAMA,TGL PENGAJUAN,TARGET CAIR,TGL REALISASI,NOMINAL,STATUS,KETERANGAN,CATATAN APPROVAL\n`
     const r = selectedData.value
     csv += `"${r.no_request}","${r.tipe_pengajuan}","${r.tagihan_kode || r.tagihan_nomor_invoice || '-'}","${r.vendor_nama}","${r.rek_bank}","${r.rek_nomor}","${r.rek_nama}","${formatDateIndo(r.tanggal_pengajuan)}","${formatDateIndo(r.tanggal_dibutuhkan)}","${formatDateIndo(r.realizedAt?.seconds ? new Date(r.realizedAt.toDate()) : null)}","${r.nominal}","${r.status}","${(r.keterangan || '').replace(/"/g, '""').replace(/\n/g, ' ')}","${(r.catatan_approval || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`
-
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
@@ -1382,10 +1241,26 @@ const exportDetailExcel = () => {
     link.download = `Detail_Realisasi_${r.no_request.replace(/\//g, '-')}.csv`
     link.click()
     URL.revokeObjectURL(url)
-    $q.notify({ type: 'positive', message: 'Data detail berhasil diekspor ke Excel (CSV)' })
+    $q.notify({
+      message: '📊 Detail berhasil diekspor ke Excel!',
+      caption: `${r.no_request} — file CSV siap diunduh`,
+      icon: 'table_view',
+      color: 'positive',
+      position: 'top-right',
+      timeout: 3500,
+      progress: true,
+      classes: 'notif-premium',
+      actions: [{ icon: 'close', color: 'white', round: true }],
+    })
   } catch (err) {
     console.error(err)
-    $q.notify({ type: 'negative', message: 'Gagal mengekspor data detail' })
+    $q.notify({
+      type: 'negative',
+      message: 'Gagal mengekspor data detail',
+      position: 'top-right',
+      timeout: 3000,
+      progress: true,
+    })
   }
 }
 
@@ -1394,12 +1269,12 @@ onMounted(() => {
 })
 onUnmounted(() => {
   if (unsubData) unsubData()
-  if (unsubUser) unsubUser() // Bersihkan listener saat pindah halaman
 })
 </script>
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+
 .font-pro {
   font-family: 'Plus Jakarta Sans', sans-serif;
 }
@@ -1408,9 +1283,6 @@ onUnmounted(() => {
 }
 .rounded-12 {
   border-radius: 12px;
-}
-.shadow-premium {
-  box-shadow: 0 10px 30px rgba(26, 35, 126, 0.15);
 }
 .border-subtle {
   border: 1px solid rgba(0, 0, 0, 0.05);
@@ -1431,6 +1303,30 @@ onUnmounted(() => {
   border: 2px dashed #e0e0e0;
 }
 
+/* ─── KPI CARDS ──────────────────────────────────────────── */
+.kpi-card {
+  border: none !important;
+}
+.kpi-orange {
+  background: linear-gradient(135deg, #fb8c00 0%, #e65100 100%) !important;
+}
+.kpi-blue-grey {
+  background: linear-gradient(135deg, #546e7a 0%, #37474f 100%) !important;
+}
+.kpi-indigo {
+  background: linear-gradient(135deg, #3949ab 0%, #1a237e 100%) !important;
+}
+.kpi-label {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  opacity: 0.9;
+}
+.kpi-icon-wrap {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-radius: 12px !important;
+}
+
+/* ─── TABLE ──────────────────────────────────────────────── */
 .finance-table :deep(thead tr th) {
   position: sticky;
   top: 0;
@@ -1448,14 +1344,14 @@ onUnmounted(() => {
 }
 .hover-shadow:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 25px rgba(26, 35, 126, 0.1) !important;
+  box-shadow: 0 12px 28px rgba(26, 35, 126, 0.18) !important;
 }
 .hover-blue-btn:hover {
   background-color: #e8eaf6 !important;
   color: #1a237e !important;
 }
 
-/* Animasi Kedip Badge BARU */
+/* ─── BADGE BARU ─────────────────────────────────────────── */
 .animate-bounce {
   animation: bounce 1.5s infinite;
 }
@@ -1469,6 +1365,7 @@ onUnmounted(() => {
   }
 }
 
+/* ─── ANIMATIONS ─────────────────────────────────────────── */
 .animate-fade {
   animation: fadeIn 0.6s ease-out;
 }
@@ -1496,9 +1393,12 @@ onUnmounted(() => {
   }
 }
 
+/* ─── SEARCH ─────────────────────────────────────────────── */
 .search-input :deep(.q-field__control) {
   border-radius: 30px;
 }
+
+/* ─── MISC ───────────────────────────────────────────────── */
 .opacity-50 {
   opacity: 0.5;
 }
@@ -1515,7 +1415,7 @@ onUnmounted(() => {
   line-height: 1.6;
 }
 
-/* CSS BARU UNTUK DETAIL TABLE */
+/* ─── DETAIL TABLE ───────────────────────────────────────── */
 .detail-table {
   width: 100%;
   border-collapse: collapse;
@@ -1538,7 +1438,15 @@ onUnmounted(() => {
   font-weight: 700;
 }
 
-/* TABLE PDF EXPORT STYLES (LANDSCAPE) */
+/* ─── GLOBAL NOTIFY PREMIUM ──────────────────────────────── */
+:deep(.notif-premium) {
+  border-radius: 14px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18) !important;
+  font-size: 14px !important;
+}
+
+/* ─── PDF EXPORT ─────────────────────────────────────────── */
 .landscape-paper {
   background: white;
   width: 297mm;
