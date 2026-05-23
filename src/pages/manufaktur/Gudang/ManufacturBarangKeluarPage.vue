@@ -580,8 +580,7 @@
 </template>
 
 <script setup>
-// eslint-disable-next-line no-unused-vars
-import { ref, onMounted, reactive, computed } from 'vue'
+import { ref, onMounted, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { db, storage } from 'src/boot/firebase'
 import {
@@ -590,13 +589,8 @@ import {
   where,
   getDocs,
   doc,
-  // eslint-disable-next-line no-unused-vars
-  updateDoc,
   increment,
-  // eslint-disable-next-line no-unused-vars
-  addDoc,
   serverTimestamp,
-  // eslint-disable-next-line no-unused-vars
   orderBy,
   getDoc,
   runTransaction,
@@ -611,6 +605,7 @@ const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const gudangId = route.params.id || 'UTAMA'
+const MASTER_MATERIAL_COLLECTION = 'master_material'
 
 const loading = ref(false)
 const processDone = ref(false)
@@ -747,6 +742,64 @@ const onTipeChange = () => {
   generateSjNumber()
 }
 
+const normalizeMaterialKey = (value) => String(value || '').trim().toLowerCase()
+
+const findMasterMaterial = (item, masterMaterials) => {
+  const keys = [item.id_barang, item.kode_barang, item.nama_barang].map(normalizeMaterialKey)
+
+  return masterMaterials.find((material) =>
+    [
+      material.id,
+      material.kode_material,
+      material.kode_barang,
+      material.nama_material,
+      material.nama_barang,
+    ]
+      .map(normalizeMaterialKey)
+      .some((key) => keys.includes(key)),
+  )
+}
+
+const buildMaterialIssueMap = async (items) => {
+  const materialSnap = await getDocs(
+    query(collection(db, MASTER_MATERIAL_COLLECTION), orderBy('nama_material', 'asc')),
+  )
+  const masterMaterials = materialSnap.docs.map((materialDoc) => ({
+    id: materialDoc.id,
+    ...materialDoc.data(),
+  }))
+  const issueMap = new Map()
+  const issueByItem = new Map()
+
+  items.forEach((item) => {
+    const masterMaterial = findMasterMaterial(item, masterMaterials)
+    if (!masterMaterial) {
+      throw new Error(`Material "${item.nama_barang}" tidak ditemukan di master material.`)
+    }
+
+    const qty = Number(item.jumlah || 0)
+    const existing = issueMap.get(masterMaterial.id)
+    if (existing) {
+      existing.qty += qty
+      issueByItem.set(item, existing)
+      return
+    }
+
+    const allocation = {
+      ref: doc(db, MASTER_MATERIAL_COLLECTION, masterMaterial.id),
+      nama: masterMaterial.nama_material || item.nama_barang,
+      qty,
+    }
+    issueMap.set(masterMaterial.id, allocation)
+    issueByItem.set(item, allocation)
+  })
+
+  return {
+    issueByItem,
+    allocations: Array.from(issueMap.values()),
+  }
+}
+
 const prosesBarangKeluar = async () => {
   const validItems = form.items.filter((it) => it.barang_obj && it.jumlah > 0)
   if (validItems.length === 0) return $q.notify({ type: 'warning', message: 'Input barang!' })
@@ -775,13 +828,83 @@ const prosesBarangKeluar = async () => {
           })
         }
       }
+      const materialIssueMap = await buildMaterialIssueMap(validItems)
+      const stockIssueMap = new Map()
+      validItems.forEach((item) => {
+        const qty = Number(item.jumlah || 0)
+        const existing = stockIssueMap.get(item.id_barang_stok)
+        if (existing) {
+          existing.qty += qty
+          return
+        }
+        stockIssueMap.set(item.id_barang_stok, {
+          ref: doc(db, 'stok_barang_manufaktur', item.id_barang_stok),
+          nama: item.nama_barang,
+          qty,
+        })
+      })
+
       await runTransaction(db, async (transaction) => {
-        for (const item of validItems) {
-          const stokRef = doc(db, 'stok_barang_manufaktur', item.id_barang_stok)
-          transaction.update(stokRef, {
-            jumlah: increment(-Number(item.jumlah)),
+        const stockUpdates = []
+        const masterUpdates = []
+
+        for (const stockIssue of stockIssueMap.values()) {
+          const stokSnap = await transaction.get(stockIssue.ref)
+          if (!stokSnap.exists()) {
+            throw new Error(`Stok ${stockIssue.nama} tidak ditemukan.`)
+          }
+
+          const currentWarehouseStock = Number(stokSnap.data().jumlah || 0)
+          if (currentWarehouseStock < stockIssue.qty) {
+            throw new Error(
+              `Stok gudang ${stockIssue.nama} tidak cukup. Tersedia ${currentWarehouseStock}, dibutuhkan ${stockIssue.qty}.`,
+            )
+          }
+
+          stockUpdates.push(stockIssue)
+        }
+
+        for (const masterMaterial of materialIssueMap.allocations) {
+          const masterSnap = await transaction.get(masterMaterial.ref)
+          if (!masterSnap.exists()) {
+            throw new Error(`Master material ${masterMaterial.nama} tidak ditemukan.`)
+          }
+
+          const masterData = masterSnap.data()
+          const stokFisik = Number(masterData.stok_fisik || 0)
+          const stokTerpesan = Number(masterData.stok_terpesan || 0)
+          const nextStokFisik = stokFisik - masterMaterial.qty
+          const nextStokTerpesan = stokTerpesan - masterMaterial.qty
+          if (nextStokFisik < 0 || nextStokTerpesan < 0) {
+            throw new Error(
+              `Stok master ${masterMaterial.nama} tidak cukup. Fisik ${stokFisik}, terpesan ${stokTerpesan}, dibutuhkan ${masterMaterial.qty}.`,
+            )
+          }
+
+          masterUpdates.push({
+            ...masterMaterial,
+            nextStokFisik,
+            nextStokTerpesan,
+          })
+        }
+
+        stockUpdates.forEach((stockIssue) => {
+          transaction.update(stockIssue.ref, {
+            jumlah: increment(-stockIssue.qty),
             updated_at: serverTimestamp(),
           })
+        })
+
+        masterUpdates.forEach((masterMaterial) => {
+          transaction.update(masterMaterial.ref, {
+            stok_fisik: masterMaterial.nextStokFisik,
+            stok_terpesan: masterMaterial.nextStokTerpesan,
+            stok_tersedia: masterMaterial.nextStokFisik - masterMaterial.nextStokTerpesan,
+            updated_at: serverTimestamp(),
+          })
+        })
+
+        for (const item of validItems) {
           const logRef = doc(collection(db, 'aktivitas_manufaktur'))
           transaction.set(logRef, {
             id_gudang: gudangId,

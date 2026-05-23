@@ -56,6 +56,16 @@
         :loading="loading"
         :pagination="{ rowsPerPage: 10 }"
       >
+        <template #body-cell-nama_barang="props">
+          <q-td :props="props">
+            <div class="text-weight-bold text-green-10">{{ props.row.nama_barang || '-' }}</div>
+            <div class="text-caption text-grey-6">{{ props.row.kode_barang || '-' }}</div>
+            <q-badge v-if="isLowStock(props.row)" color="negative" class="q-mt-xs">
+              STOK MENIPIS
+            </q-badge>
+          </q-td>
+        </template>
+
         <template #no-data>
           <div class="full-width row flex-center text-grey-7 q-pa-xl">
             <q-icon name="inventory" size="28px" class="q-mr-sm" />
@@ -85,6 +95,7 @@ const columns = [
   { name: 'nama_barang', label: 'Nama Barang', field: 'nama_barang', align: 'left', sortable: true },
   { name: 'kategori', label: 'Tipe', field: 'kategori', align: 'left', sortable: true },
   { name: 'ukuran', label: 'Ukuran', field: 'ukuran', align: 'left', sortable: true },
+  { name: 'stok_tersedia', label: 'Stok Tersedia', field: 'stok_tersedia', align: 'right', sortable: true },
   { name: 'stok_minimum', label: 'Stok Min.', field: 'stok_minimum', align: 'right', sortable: true },
   { name: 'satuan', label: 'Satuan', field: 'satuan', align: 'left' },
   { name: 'supplier_default', label: 'Supplier Default', field: 'supplier_default', align: 'left' },
@@ -104,11 +115,14 @@ const normalizeRow = (id, data) => ({
   nama_barang: data.nama_material || data.nama_barang || data.nama_produk || '-',
   kategori: getMaterialType(data) || '-',
   ukuran: data.ukuran || '-',
+  stok_tersedia: Number(data.stok_tersedia ?? data.stok_saat_ini ?? data.stok ?? 0),
   stok_minimum: Number(data.stok_minimum ?? 0),
   satuan: data.satuan || 'PCS',
   supplier_default: data.supplier_default || '-',
   status: data.status || 'AVAILABLE',
 })
+
+const isLowStock = (row) => Number(row?.stok_tersedia || 0) <= Number(row?.stok_minimum || 0)
 
 const rows = computed(() => {
   const keyword = search.value.trim().toLowerCase()

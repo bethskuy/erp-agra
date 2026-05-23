@@ -479,9 +479,11 @@ import {
   collection,
   doc,
   deleteDoc,
+  increment,
   onSnapshot,
   orderBy,
   query,
+  runTransaction,
   serverTimestamp,
   updateDoc,
 } from 'firebase/firestore'
@@ -499,6 +501,13 @@ const STATUS_QC_APPROVED = 'QC_APPROVED'
 const STATUS_QC_REJECTED = 'QC_REJECTED'
 const STATUS_DISTRIBUSI = 'DISTRIBUSI_MATERIAL'
 const STATUS_DATA_TIDAK_SESUAI = 'DATA TIDAK SESUAI'
+const MASTER_MATERIAL_COLLECTION = 'master_material'
+const STOCK_SYNC_STATUSES = new Set([
+  'DITERIMA',
+  'COMPLETE',
+  STATUS_QC_APPROVED,
+  STATUS_DISTRIBUSI,
+])
 
 const STATUS_LABEL = {
   [STATUS_DATANG]: 'Barang Datang',
@@ -946,6 +955,111 @@ const findMasterBarang = (value) => {
       .filter(Boolean)
       .some((entry) => String(entry).trim().toLowerCase() === normalized),
   )
+}
+
+const findMasterBarangForIncomingItem = (item = {}) => {
+  if (item.master_material_id) {
+    const byId = masterBarangRows.value.find((material) => material.id === item.master_material_id)
+    if (byId) return byId
+  }
+
+  return (
+    findMasterBarang(item.kode_material) ||
+    findMasterBarang(item.kode_barang) ||
+    findMasterBarang(item.nama_barang || item.nama_material || item.material)
+  )
+}
+
+const getIncomingStockQty = (item = {}) => {
+  const qtyActual = toSafeNumber(item.qty_actual ?? item.qtyActual ?? item.quantity)
+  const qtySj = toSafeNumber(item.qty_surat_jalan ?? item.qtySJ ?? item.qty)
+  return qtyActual || qtySj
+}
+
+const shouldSyncIncomingStock = (row, status) =>
+  !row?.master_material_stock_synced &&
+  STOCK_SYNC_STATUSES.has(String(status || '').trim().toUpperCase())
+
+const buildIncomingStockAllocations = (row) => {
+  const allocationMap = new Map()
+
+  getIncomingItems(row).forEach((item) => {
+    const qty = getIncomingStockQty(item)
+    if (qty <= 0) return
+
+    const masterMaterial = findMasterBarangForIncomingItem(item)
+    if (!masterMaterial) {
+      throw new Error(
+        `Material "${item.nama_barang || item.nama_material || item.material || '-'}" tidak ditemukan di master material.`,
+      )
+    }
+
+    const existing = allocationMap.get(masterMaterial.id)
+    if (existing) {
+      existing.qty += qty
+      return
+    }
+
+    allocationMap.set(masterMaterial.id, {
+      ref: doc(db, MASTER_MATERIAL_COLLECTION, masterMaterial.id),
+      nama: masterMaterial.nama_material || getMasterBarangName(masterMaterial),
+      qty,
+    })
+  })
+
+  return Array.from(allocationMap.values())
+}
+
+const applyIncomingStatusUpdate = async (row, status, payload) => {
+  const incomingRef = doc(db, COLLECTION_NAME, row.id)
+
+  if (!shouldSyncIncomingStock(row, status)) {
+    await updateDoc(incomingRef, payload)
+    return
+  }
+
+  const stockAllocations = buildIncomingStockAllocations({ ...row, ...payload })
+  await runTransaction(db, async (transaction) => {
+    const incomingSnap = await transaction.get(incomingRef)
+    if (!incomingSnap.exists()) {
+      throw new Error('Incoming material tidak ditemukan.')
+    }
+    if (incomingSnap.data().master_material_stock_synced) {
+      transaction.update(incomingRef, payload)
+      return
+    }
+
+    const materialUpdates = []
+    for (const allocation of stockAllocations) {
+      const materialSnap = await transaction.get(allocation.ref)
+      if (!materialSnap.exists()) {
+        throw new Error(`Master material ${allocation.nama} tidak ditemukan.`)
+      }
+
+      const materialData = materialSnap.data()
+      const nextStokFisik = toSafeNumber(materialData.stok_fisik) + allocation.qty
+      const stokTerpesan = toSafeNumber(materialData.stok_terpesan)
+      materialUpdates.push({
+        ...allocation,
+        nextStokTersedia: nextStokFisik - stokTerpesan,
+      })
+    }
+
+    materialUpdates.forEach((allocation) => {
+      transaction.update(allocation.ref, {
+        stok_fisik: increment(allocation.qty),
+        stok_tersedia: allocation.nextStokTersedia,
+        updated_at: serverTimestamp(),
+      })
+    })
+
+    transaction.update(incomingRef, {
+      ...payload,
+      master_material_stock_synced: true,
+      master_material_stock_synced_at: serverTimestamp(),
+      master_material_stock_synced_status: status,
+    })
+  })
 }
 
 const loadMasterReferences = () => {
@@ -1651,7 +1765,7 @@ const saveIncoming = async ({ form }) => {
   submitting.value = true
   try {
     if (selectedRow.value?.id) {
-      await updateDoc(doc(db, COLLECTION_NAME, selectedRow.value.id), {
+      await applyIncomingStatusUpdate(selectedRow.value, payload.status_incoming, {
         ...payload,
         history: [
           ...(selectedRow.value.history || []),
@@ -1770,7 +1884,7 @@ const updateWorkflow = async (row, status, note, extraPayload = {}) => {
     return
   }
   try {
-    await updateDoc(doc(db, COLLECTION_NAME, row.id), {
+    await applyIncomingStatusUpdate(row, status, {
       status,
       status_incoming: status,
       status_validation: status,

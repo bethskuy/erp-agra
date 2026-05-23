@@ -73,6 +73,35 @@
                 />
               </div>
               <div class="col-12 col-md-6 col-xl-4">
+                <q-input
+                  v-model.number="form.stok_fisik"
+                  outlined
+                  type="number"
+                  min="0"
+                  label="Stok Fisik"
+                  :rules="[(val) => Number(val) >= 0 || 'Stok fisik wajib valid']"
+                />
+              </div>
+              <div class="col-12 col-md-6 col-xl-4">
+                <q-input
+                  v-model.number="form.stok_terpesan"
+                  outlined
+                  type="number"
+                  min="0"
+                  label="Stok Terpesan"
+                  :rules="[(val) => Number(val) >= 0 || 'Stok terpesan wajib valid']"
+                />
+              </div>
+              <div class="col-12 col-md-6 col-xl-4">
+                <q-input
+                  :model-value="formStokTersedia"
+                  outlined
+                  type="number"
+                  label="Stok Tersedia"
+                  readonly
+                />
+              </div>
+              <div class="col-12 col-md-6 col-xl-4">
                 <q-input v-model="form.supplier_default" outlined label="Supplier Default" />
               </div>
               <div class="col-12 col-md-6 col-xl-4">
@@ -186,6 +215,9 @@
           <q-td :props="props">
             <div class="text-weight-bold text-green-10">{{ props.row.nama_material || '-' }}</div>
             <div class="text-caption text-grey-6">{{ props.row.kode_material || '-' }}</div>
+            <q-badge v-if="isLowStock(props.row)" color="negative" class="q-mt-xs">
+              STOK MENIPIS
+            </q-badge>
           </q-td>
         </template>
 
@@ -252,6 +284,9 @@ const emptyForm = () => ({
   ukuran: '',
   satuan: '',
   stok_minimum: 0,
+  stok_fisik: 0,
+  stok_terpesan: 0,
+  stok_tersedia: 0,
   supplier_default: '',
   status: 'Aktif',
 })
@@ -270,6 +305,9 @@ const columns = [
   { name: 'ukuran', label: 'Ukuran', field: 'ukuran', align: 'left', sortable: true },
   { name: 'satuan', label: 'Satuan', field: 'satuan', align: 'left', sortable: true },
   { name: 'stok_minimum', label: 'Stok Min.', field: 'stok_minimum', align: 'right', sortable: true },
+  { name: 'stok_fisik', label: 'Stok Fisik', field: 'stok_fisik', align: 'right', sortable: true },
+  { name: 'stok_terpesan', label: 'Stok Terpesan', field: 'stok_terpesan', align: 'right', sortable: true },
+  { name: 'stok_tersedia', label: 'Stok Tersedia', field: 'stok_tersedia', align: 'right', sortable: true },
   { name: 'supplier_default', label: 'Supplier Default', field: 'supplier_default', align: 'left', sortable: true },
   { name: 'status', label: 'Status', field: 'status', align: 'left', sortable: true },
   { name: 'aksi', label: 'Aksi', field: 'aksi', align: 'center' },
@@ -278,6 +316,12 @@ const columns = [
 const required = (val) => !!val || 'Field wajib diisi'
 const formPageTitle = computed(() =>
   selectedId.value ? 'Edit Master Material' : 'Tambah Master Material',
+)
+const calculateStokTersedia = (stokFisik, stokTerpesan) =>
+  Number(stokFisik || 0) - Number(stokTerpesan || 0)
+const isLowStock = (row) => Number(row?.stok_tersedia || 0) <= Number(row?.stok_minimum || 0)
+const formStokTersedia = computed(() =>
+  calculateStokTersedia(form.value.stok_fisik, form.value.stok_terpesan),
 )
 
 watch(formPageOpen, (isOpen) => {
@@ -296,6 +340,9 @@ const filteredRows = computed(() => {
         row.kategori,
         row.ukuran,
         row.satuan,
+        row.stok_fisik,
+        row.stok_terpesan,
+        row.stok_tersedia,
         row.supplier_default,
       ]
         .join(' ')
@@ -334,9 +381,26 @@ const payloadFromForm = () => ({
   ukuran: form.value.ukuran,
   satuan: form.value.satuan,
   stok_minimum: Number(form.value.stok_minimum || 0),
+  stok_fisik: Number(form.value.stok_fisik || 0),
+  stok_terpesan: Number(form.value.stok_terpesan || 0),
+  stok_tersedia: formStokTersedia.value,
   supplier_default: form.value.supplier_default,
   status: form.value.status,
 })
+
+const normalizeMaterialRow = (item) => {
+  const data = item.data()
+  const stokFisik = Number(data.stok_fisik ?? 0)
+  const stokTerpesan = Number(data.stok_terpesan ?? 0)
+
+  return {
+    id: item.id,
+    ...data,
+    stok_fisik: stokFisik,
+    stok_terpesan: stokTerpesan,
+    stok_tersedia: calculateStokTersedia(stokFisik, stokTerpesan),
+  }
+}
 
 const saveRow = async () => {
   saving.value = true
@@ -388,7 +452,7 @@ onMounted(() => {
   unsubscribeRows = onSnapshot(
     query(collection(db, COLLECTION_NAME), orderBy('created_at', 'desc')),
     (snapshot) => {
-      rows.value = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }))
+      rows.value = snapshot.docs.map(normalizeMaterialRow)
       loading.value = false
     },
     (error) => {

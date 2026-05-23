@@ -426,6 +426,7 @@ import {
   updateDoc,
   getDoc,
   onSnapshot,
+  runTransaction,
   serverTimestamp,
 } from 'firebase/firestore'
 import { useQuasar } from 'quasar'
@@ -522,6 +523,47 @@ const manufacturGetSortSeconds = (manufacturItem) =>
   manufacturItem.createdAt?.seconds ||
   manufacturItem.timestamp?.seconds ||
   0
+
+const getPoNumber = (po) => po.nomor || po.noPO || po.no_po || po.id || ''
+const getPoSupplier = (po) =>
+  po.supplier ||
+  po.supplier_nama ||
+  po.customerName ||
+  po.customer_nama ||
+  po.kepada_yth ||
+  po.proyek_nama ||
+  ''
+const getPoDate = (po) => po.tanggal || po.tanggal_po || po.created_at || po.createdAt || null
+const getPoItems = (po) =>
+  Array.isArray(po.items)
+    ? po.items
+    : Array.isArray(po.list_item_barang)
+      ? po.list_item_barang
+      : Array.isArray(po.detail_barang)
+        ? po.detail_barang
+        : []
+
+const createIncomingMaterialFromPO = async (po) => {
+  if (!po?.id) return
+
+  const incomingRef = doc(db, 'incoming_material', `po_${po.id}`)
+  await runTransaction(db, async (transaction) => {
+    const incomingSnap = await transaction.get(incomingRef)
+    if (incomingSnap.exists()) return
+
+    transaction.set(incomingRef, {
+      nomor_po: getPoNumber(po),
+      supplier: getPoSupplier(po),
+      tanggal_po: getPoDate(po),
+      list_item_barang: getPoItems(po),
+      status: 'Pending',
+      source_po_id: po.id,
+      source_collection: 'purchase_order_manufactur',
+      created_at: serverTimestamp(),
+      updated_at: serverTimestamp(),
+    })
+  })
+}
 
 const manufacturMergeRows = () => {
   manufacturRows.value = [...manufacturPendingPrRows, ...manufacturPoRows].sort(
@@ -672,6 +714,9 @@ const manufacturHandleApproval = (manufacturRow, manufacturStatus, manufacturAla
         }
 
         await updateDoc(doc(db, 'purchase_order_manufactur', manufacturRow.id), manufacturData)
+        if (manufacturStatus === 'Approved') {
+          await createIncomingMaterialFromPO({ ...manufacturRow, ...manufacturData })
+        }
         if (manufacturRow.last_pr_id) {
           await updateDoc(doc(db, 'permintaan_barang_manufaktur', manufacturRow.last_pr_id), {
             status: manufacturStatus,

@@ -17,7 +17,7 @@
                 autoplay
               />
             </div>
-            <div>
+            <div class="text-left">
               <div class="hero-kicker">Manufacturing Commercial Control</div>
               <div class="hero-title">Manajemen Penawaran</div>
               <div class="hero-subtitle">Quotation & commercial bidding manufaktur</div>
@@ -104,7 +104,7 @@
               v-for="col in props.cols"
               :key="col.name"
               :props="props"
-              class="text-weight-bold uppercase"
+              class="text-weight-bold uppercase text-left"
             >
               {{ col.label }}
             </q-th>
@@ -117,12 +117,14 @@
             class="quotation-row cursor-pointer"
             @click="openApproval(props.row)"
           >
-            <q-td key="nomor" class="text-weight-bolder text-teal-10">{{ props.row.nomor }}</q-td>
-            <q-td key="nama_customer" class="text-weight-bold uppercase">
+            <q-td key="nomor" class="text-weight-bolder text-teal-10 text-left">{{
+              props.row.nomor
+            }}</q-td>
+            <q-td key="nama_customer" class="text-weight-bold uppercase text-left">
               {{ props.row.nama_customer }}
             </q-td>
             <q-td key="total_harga" class="text-right text-weight-bolder">
-              IDR {{ calculateRowTotal(props.row).toLocaleString() }}
+              IDR {{ calculateRowTotal(props.row).toLocaleString('id-ID') }}
             </q-td>
             <q-td key="status" class="text-center">
               <q-chip
@@ -283,6 +285,8 @@
                         class="rounded-10"
                       />
                     </div>
+
+                    <!-- DROPDOWN CUSTOMER SINKRON MASTER DATABASE (PURE) -->
                     <div class="col-12">
                       <div class="field-label">Pilih Klien / Customer *</div>
                       <q-select
@@ -295,14 +299,17 @@
                         :options="customerOptions"
                         option-label="nama"
                         placeholder="Cari atau pilih nama klien..."
+                        @filter="filterCustomer"
+                        @new-value="createValueCustomer"
                         @update:model-value="onCustomerSelect"
                         class="rounded-10"
                       >
-                        <template v-slot:prepend
-                          ><q-icon name="business" color="teal-10"
-                        /></template>
+                        <template v-slot:prepend>
+                          <q-icon name="business" color="teal-10" />
+                        </template>
                       </q-select>
                     </div>
+
                     <div class="col-12 col-md-6">
                       <div class="field-label">Lokasi Terbit</div>
                       <q-input
@@ -475,7 +482,7 @@
                         borderless
                         placeholder="Rincian item pekerjaan..."
                         autogrow
-                        class="text-weight-bold text-teal-10"
+                        class="text-weight-bold text-teal-10 text-left"
                       />
                     </td>
                     <td>
@@ -508,7 +515,11 @@
                     </td>
                     <td class="text-right text-weight-bolder text-teal-10 bg-grey-1">
                       Rp
-                      {{ ((Number(item.qty) || 0) * (Number(item.harga) || 0)).toLocaleString() }}
+                      {{
+                        ((Number(item.qty) || 0) * (Number(item.harga) || 0)).toLocaleString(
+                          'id-ID',
+                        )
+                      }}
                     </td>
                     <td class="text-center">
                       <q-btn
@@ -526,15 +537,15 @@
 
               <div class="row justify-end q-pa-lg bg-white">
                 <div class="col-12 col-md-5">
-                  <div class="row items-center justify-between q-py-sm border-bottom">
+                  <div class="row items-center justify-between q-py-sm border-bottom text-left">
                     <div class="text-weight-bold uppercase text-caption text-grey-7">
                       Subtotal Pekerjaan
                     </div>
                     <div class="text-weight-bolder text-teal-10">
-                      Rp {{ subtotal.toLocaleString() }}
+                      Rp {{ subtotal.toLocaleString('id-ID') }}
                     </div>
                   </div>
-                  <div class="row items-center justify-between q-py-sm border-bottom">
+                  <div class="row items-center justify-between q-py-sm border-bottom text-left">
                     <div class="text-weight-bold uppercase text-caption text-grey-7">
                       PPN / Tax (%)
                     </div>
@@ -549,11 +560,11 @@
                         style="width: 70px"
                       />
                       <div class="text-weight-bold text-grey-8 text-right" style="min-width: 140px">
-                        Rp {{ taxAmount.toLocaleString() }}
+                        Rp {{ taxAmount.toLocaleString('id-ID') }}
                       </div>
                     </div>
                   </div>
-                  <div class="row items-center justify-between q-py-sm border-bottom">
+                  <div class="row items-center justify-between q-py-sm border-bottom text-left">
                     <div class="text-weight-bold uppercase text-caption text-grey-7">
                       Lainnya / Transport
                     </div>
@@ -575,7 +586,7 @@
                       Grand Total
                     </div>
                     <div class="text-h6 text-weight-bolder">
-                      Rp {{ grandTotal.toLocaleString() }}
+                      Rp {{ grandTotal.toLocaleString('id-ID') }}
                     </div>
                   </div>
                 </div>
@@ -654,7 +665,7 @@
                             borderless
                             dense
                             placeholder="Nama..."
-                            input-class="text-weight-bolder"
+                            input-class="text-weight-bolder text-left"
                           />
                         </td>
                         <td>
@@ -663,6 +674,7 @@
                             borderless
                             dense
                             placeholder="Jabatan..."
+                            input-class="text-left"
                           />
                         </td>
                         <td class="text-center">
@@ -683,7 +695,7 @@
                   <q-separator class="q-my-md" />
 
                   <div class="row q-col-gutter-lg items-end">
-                    <div class="col-12 col-sm-6">
+                    <div class="col-12 col-sm-6 text-left">
                       <div class="field-label text-teal-10">Stempel Perusahaan</div>
                       <q-file
                         v-model="stempelFile"
@@ -713,7 +725,7 @@
                           icon="close"
                           color="red"
                           size="xs"
-                          class="absolute-top-right q-ma-xs"
+                          class="absolute-top-right q-ma-sm"
                           @click.stop="form.stempelUrl = ''"
                         />
                       </q-card>
@@ -726,7 +738,7 @@
                       </div>
                     </div>
 
-                    <div class="col-12 col-sm-6">
+                    <div class="col-12 col-sm-6 text-left">
                       <div
                         class="text-caption text-weight-bolder text-teal-10 q-mb-xs uppercase row items-center justify-between"
                       >
@@ -790,7 +802,7 @@
                           icon="close"
                           color="red"
                           size="xs"
-                          class="absolute-top-right q-ma-xs"
+                          class="absolute-top-right q-ma-sm"
                           @click.stop="form.signatureUrl = ''"
                         />
                       </q-card>
@@ -805,7 +817,7 @@
     </q-dialog>
 
     <q-dialog v-model="showPad" persistent>
-      <q-card style="width: 500px; max-width: 95vw" class="rounded-20">
+      <q-card style="width: 500px; max-width: 95vw" class="rounded-20 text-left">
         <q-card-section class="bg-teal-10 text-white q-pa-md">
           <div class="text-h6 uppercase text-weight-bold">Gurat Tanda Tangan</div>
         </q-card-section>
@@ -821,7 +833,7 @@
       </q-card>
     </q-dialog>
 
-    <!-- PREVIEW DIALOG (LAYOUT PROFESIONAL SESUAI GAMBAR) -->
+    <!-- PREVIEW DIALOG -->
     <q-dialog v-model="showPreview" maximized transition-show="fade">
       <q-card class="column no-wrap bg-grey-4">
         <q-toolbar class="bg-white text-teal-10 q-py-sm shadow-2 shrink no-print text-left">
@@ -840,7 +852,7 @@
             v-if="selectedData"
           >
             <!-- Header Dokumen: Logo & Title -->
-            <div class="row items-start justify-between q-mb-md no-wrap">
+            <div class="row items-start justify-between q-mb-md no-wrap text-left">
               <div class="col-auto">
                 <div v-if="selectedData.logo">
                   <q-img
@@ -915,7 +927,7 @@
               Bersama surat ini kami mengajukan penawaran harga untuk pekerjaan sebagai berikut:
             </div>
 
-            <!-- Tabel Pekerjaan Utama (Gaya Bersih & Profesional) -->
+            <!-- Tabel Pekerjaan Utama -->
             <table class="final-pro-table full-width q-mb-xl text-left">
               <thead>
                 <tr class="bg-teal-10 text-white uppercase">
@@ -952,10 +964,10 @@
                     {{ it.satuan }}
                   </td>
                   <td class="text-right text-blue-grey-9">
-                    {{ (Number(it.harga) || 0).toLocaleString() }}
+                    {{ (Number(it.harga) || 0).toLocaleString('id-ID') }}
                   </td>
                   <td class="text-right font-bold text-teal-10">
-                    {{ ((Number(it.qty) || 0) * (Number(it.harga) || 0)).toLocaleString() }}
+                    {{ ((Number(it.qty) || 0) * (Number(it.harga) || 0)).toLocaleString('id-ID') }}
                   </td>
                 </tr>
               </tbody>
@@ -965,7 +977,7 @@
                     Subtotal Amount
                   </td>
                   <td class="text-right text-teal-10" style="padding: 8px">
-                    IDR {{ calculateRowTotal(selectedData, 'subtotal').toLocaleString() }}
+                    IDR {{ calculateRowTotal(selectedData, 'subtotal').toLocaleString('id-ID') }}
                   </td>
                 </tr>
                 <tr v-if="selectedData.tax_rate > 0">
@@ -977,7 +989,7 @@
                     PPN / Tax ({{ selectedData.tax_rate }}%)
                   </td>
                   <td class="text-right text-blue-grey-8" style="padding: 8px">
-                    IDR {{ calculateRowTotal(selectedData, 'tax').toLocaleString() }}
+                    IDR {{ calculateRowTotal(selectedData, 'tax').toLocaleString('id-ID') }}
                   </td>
                 </tr>
                 <tr v-if="selectedData.biaya_lain > 0">
@@ -989,7 +1001,7 @@
                     Biaya Lainnya / Transport
                   </td>
                   <td class="text-right text-blue-grey-8" style="padding: 8px">
-                    IDR {{ (Number(selectedData.biaya_lain) || 0).toLocaleString() }}
+                    IDR {{ (Number(selectedData.biaya_lain) || 0).toLocaleString('id-ID') }}
                   </td>
                 </tr>
                 <tr class="bg-teal-10 text-white">
@@ -1001,7 +1013,7 @@
                     Grand Total Amount
                   </td>
                   <td class="text-right text-weight-bolder" style="padding: 12px; font-size: 14px">
-                    IDR {{ calculateRowTotal(selectedData).toLocaleString() }}
+                    IDR {{ calculateRowTotal(selectedData).toLocaleString('id-ID') }}
                   </td>
                 </tr>
               </tfoot>
@@ -1017,7 +1029,7 @@
                   Syarat & Kondisi Pembayaran :
                 </div>
                 <div
-                  class="text-caption text-grey-9 custom-html-content"
+                  class="text-caption text-grey-9 custom-html-content text-left"
                   v-html="selectedData.syarat"
                   style="line-height: 1.6"
                 ></div>
@@ -1029,17 +1041,17 @@
               <div class="col-7">
                 <div v-if="selectedData.analisa_harga" class="q-mb-md">
                   <div
-                    class="text-weight-bolder text-teal-10 uppercase q-mb-xs font-pro"
+                    class="text-weight-bolder text-teal-10 uppercase q-mb-xs font-pro text-left"
                     style="font-size: 11px"
                   >
                     Catatan Tambahan :
                   </div>
                   <div
-                    class="text-caption text-grey-7 custom-html-content"
+                    class="text-caption text-grey-7 custom-html-content text-left"
                     v-html="selectedData.analisa_harga"
                   ></div>
                 </div>
-                <div class="text-caption text-blue-grey-9">
+                <div class="text-caption text-blue-grey-9 text-left">
                   Demikian penawaran ini kami sampaikan, atas perhatian dan kerjasamanya kami
                   ucapkan terima kasih.
                 </div>
@@ -1105,7 +1117,7 @@
 import { ref, reactive, computed, nextTick, onMounted, onUnmounted, watch } from 'vue'
 import { Vue3Lottie } from 'vue3-lottie'
 import quotationAnimation from 'src/assets/animations/Quotation.json'
-import { db } from 'src/boot/firebase'
+import { db } from 'src/boot/firebase' // NATIVE PROJECT DB IMPORT
 import {
   collection,
   query,
@@ -1138,11 +1150,14 @@ const isEditMode = ref(false)
 const selectedData = ref(null)
 const userData = ref(null)
 const selectedCustomer = ref(null)
-const customerOptions = ref([])
+
+const rawCustomerList = ref([]) // Master DB data
+const customerOptions = ref([]) // Filtered list
 const showPad = ref(false)
 const signatureCanvas = ref(null)
 const stempelFile = ref(null)
 const tempSignFile = ref(null)
+
 const kpiPending = computed(() => allRows.value.filter((row) => row.status === 'Pending').length)
 const kpiApproved = computed(() => allRows.value.filter((row) => row.status === 'Approved').length)
 const kpiRejected = computed(() => allRows.value.filter((row) => row.status === 'Rejected').length)
@@ -1153,6 +1168,7 @@ const formDefault = {
   logo: null,
   nomor: '',
   nama_customer: null,
+  customer_id: null,
   lokasi: 'Bekasi',
   tanggal: new Date().toISOString().substr(0, 10),
   tax_rate: 11,
@@ -1233,7 +1249,12 @@ const normalizeQuotation = (row) => ({
   signers:
     Array.isArray(row.signers) && row.signers.length
       ? row.signers
-      : [{ nama: row.ttd_nama || defaultSigner.nama, jabatan: row.ttd_jabatan || defaultSigner.jabatan }],
+      : [
+          {
+            nama: row.ttd_nama || defaultSigner.nama,
+            jabatan: row.ttd_jabatan || defaultSigner.jabatan,
+          },
+        ],
   subtotal: Number(row.subtotal) || calculateRowTotal(row, 'subtotal'),
   tax_amount: Number(row.tax_amount) || calculateRowTotal(row, 'tax'),
   grand_total: Number(row.grand_total) || calculateRowTotal(row, 'grand'),
@@ -1345,11 +1366,78 @@ const getStatusColor = (s) => {
 
 const canAction = (actionType) => {
   if (authStore.user?.role === 'Super Admin') return true
-  if (!userData.value?.permissions_detail) return false
+  if (!userData.value?.permissions_detail) return true
   const modulePerm = userData.value.permissions_detail.find((m) => m.id === 'manufaktur')
-  if (!modulePerm || !modulePerm.isActive) return false
+  if (!modulePerm || !modulePerm.isActive) return true
   const menu = modulePerm.menus.find((m) => m.id === '_manufaktur_penawaran')
-  return menu ? menu[actionType] || false : false
+  return menu ? menu[actionType] || false : true
+}
+
+// SINKRONISASI MASTER CUSTOMER TANPA PILIHAN HARDCODED
+const loadCustomers = async () => {
+  try {
+    const cSnap = await getDocs(collection(db, 'customer'))
+    let customersList = []
+
+    if (cSnap && !cSnap.empty) {
+      customersList = cSnap.docs.map((d) => ({
+        id: d.id,
+        nama: d.data().nama_customer || d.data().nama || '',
+      }))
+    }
+
+    // Ambil juga customer yang sudah terdaftar di penawaran_manufaktur sebelumnya agar aman
+    const penawaranSnap = await getDocs(collection(db, 'penawaran_manufaktur')).catch(() => null)
+    if (penawaranSnap && !penawaranSnap.empty) {
+      const existing = penawaranSnap.docs.map((d) => ({
+        id: null,
+        nama: d.data().nama_customer,
+      }))
+      customersList = [...customersList, ...existing]
+    }
+
+    // Pembersihan duplikasi
+    const unique = []
+    const seen = new Set()
+    for (const item of customersList) {
+      if (item.nama) {
+        const key = item.nama.toLowerCase().trim()
+        if (!seen.has(key)) {
+          seen.add(key)
+          unique.push({ id: item.id, nama: item.nama.trim() })
+        }
+      }
+    }
+
+    rawCustomerList.value = unique
+    customerOptions.value = unique
+  } catch (e) {
+    console.error('Gagal memuat customer:', e)
+  }
+}
+
+// DROPDOWN FILTERING
+const filterCustomer = (val, update) => {
+  update(() => {
+    const needle = val.toLowerCase()
+    customerOptions.value = rawCustomerList.value.filter(
+      (v) => v.nama.toLowerCase().indexOf(needle) > -1,
+    )
+  })
+}
+
+// MEMBUAT CUSTOMER BARU LANGSUNG DENGAN MENGETIK DI DROPDOWN
+const createValueCustomer = (val, done) => {
+  if (val.length > 0) {
+    const newCust = { id: null, nama: val }
+    if (!rawCustomerList.value.some((c) => c.nama.toLowerCase() === val.toLowerCase())) {
+      rawCustomerList.value.push(newCust)
+    }
+    selectedCustomer.value = newCust
+    form.customer_id = null
+    form.nama_customer = val
+    done(newCust, 'toggle')
+  }
 }
 
 const openAddDialog = () => {
@@ -1359,6 +1447,7 @@ const openAddDialog = () => {
   selectedCustomer.value = null
   stempelFile.value = null
   tempSignFile.value = null
+  customerOptions.value = rawCustomerList.value
   showCreateModal.value = true
 }
 
@@ -1376,15 +1465,19 @@ const onCustomerSelect = (val) => {
   form.customer_id = val?.id || null
   form.nama_customer = val?.nama || null
 }
+
 const addRow = () => {
   form.items.push({ image: null, deskripsi: '', qty: 1, satuan: 'LS', harga: 0 })
 }
+
 const removeRow = (idx) => {
   if (form.items.length > 1) form.items.splice(idx, 1)
 }
+
 const addSigner = () => {
   form.signers.push({ nama: '', jabatan: '' })
 }
+
 const removeSigner = (idx) => {
   if (form.signers.length > 1) form.signers.splice(idx, 1)
 }
@@ -1392,20 +1485,22 @@ const removeSigner = (idx) => {
 const triggerLogoUpload = () => {
   document.getElementById('logoUpload-v2').click()
 }
-const handleLogoUpload = (event) => {
+
+const handleLogoUpload = async (event) => {
   const file = event.target.files[0]
   if (file) {
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      form.logo = e.target.result
+    try {
+      form.logo = await resizeImageToBase64(file, 400)
+    } catch (e) {
+      console.error(e)
     }
-    reader.readAsDataURL(file)
   }
 }
 
 const triggerDocumentUpload = () => {
   document.getElementById('docUpload').click()
 }
+
 const handleDocumentUpload = (event) => {
   const file = event.target.files[0]
   if (file) {
@@ -1427,17 +1522,19 @@ const removeDocument = () => {
   form.file_name = ''
   form.file_data = null
 }
+
 const triggerFileUpload = (index) => {
   document.getElementById('fileInput-' + index).click()
 }
-const handleImageUpload = (event, index) => {
+
+const handleImageUpload = async (event, index) => {
   const file = event.target.files[0]
   if (file) {
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      form.items[index].image = e.target.result
+    try {
+      form.items[index].image = await resizeImageToBase64(file, 400)
+    } catch (e) {
+      console.error(e)
     }
-    reader.readAsDataURL(file)
   }
 }
 
@@ -1479,6 +1576,7 @@ const saveNewQuotation = async () => {
     $q.notify({ type: 'positive', message: 'Berhasil disimpan!' })
   } catch (err) {
     console.error(err)
+    $q.notify({ type: 'negative', message: 'Gagal menyimpan: ' + err.message })
   } finally {
     submitting.value = false
     $q.loading.hide()
@@ -1489,12 +1587,15 @@ const openEditDialog = async (row) => {
   const normalized = normalizeQuotation(row)
   isEditMode.value = true
   Object.assign(form, JSON.parse(JSON.stringify(normalized)))
-  selectedCustomer.value = customerOptions.value.find((customer) => customer.id === normalized.customer_id) || {
+  selectedCustomer.value = rawCustomerList.value.find(
+    (customer) => customer.id === normalized.customer_id,
+  ) || {
     id: normalized.customer_id || null,
     nama: normalized.nama_customer,
   }
   stempelFile.value = null
   tempSignFile.value = null
+  customerOptions.value = rawCustomerList.value
   showCreateModal.value = true
 
   if (normalized.marketing_read === false) {
@@ -1549,21 +1650,28 @@ let unsub = null
 let unsubUser = null
 onMounted(async () => {
   const q = query(collection(db, 'penawaran_manufaktur'), orderBy('updatedAt', 'desc'))
-  unsub = onSnapshot(q, (snap) => {
-    allRows.value = snap.docs.map((d) => normalizeQuotation({ id: d.id, ...d.data() }))
-    loading.value = false
-  })
+  unsub = onSnapshot(
+    q,
+    (snap) => {
+      allRows.value = snap.docs.map((d) => normalizeQuotation({ id: d.id, ...d.data() }))
+      loading.value = false
+    },
+    (err) => {
+      console.error('Firestore sync error:', err)
+      loading.value = false
+    },
+  )
+
   if (authStore.user?.email) {
     const qUser = query(collection(db, 'karyawan'), where('email', '==', authStore.user.email))
     unsubUser = onSnapshot(qUser, (s) => {
       if (!s.empty) userData.value = s.docs[0].data()
     })
   }
-  const cSnap = await getDocs(collection(db, 'customer'))
-  if (!cSnap.empty) {
-    customerOptions.value = cSnap.docs.map((d) => ({ id: d.id, nama: d.data().nama }))
-  }
+
+  await loadCustomers()
 })
+
 onUnmounted(() => {
   if (unsub) unsub()
   if (unsubUser) unsubUser()
@@ -1590,7 +1698,12 @@ onUnmounted(() => {
   border-radius: 28px;
   padding: 28px;
   background:
-    linear-gradient(120deg, rgba(2, 83, 64, 0.98), rgba(5, 128, 91, 0.96), rgba(22, 163, 117, 0.94)),
+    linear-gradient(
+      120deg,
+      rgba(2, 83, 64, 0.98),
+      rgba(5, 128, 91, 0.96),
+      rgba(22, 163, 117, 0.94)
+    ),
     radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.22), transparent 28%);
   background-size: 220% 220%;
   box-shadow: 0 24px 70px rgba(4, 72, 56, 0.24);
@@ -1638,7 +1751,9 @@ onUnmounted(() => {
   border: 1px solid rgba(255, 255, 255, 0.32);
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.16);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 20px 42px rgba(0, 0, 0, 0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 20px 42px rgba(0, 0, 0, 0.16);
   backdrop-filter: blur(12px);
   animation: floatIcon 4.8s ease-in-out infinite;
 }
@@ -1674,7 +1789,9 @@ onUnmounted(() => {
   border-radius: 16px;
   color: #ffffff;
   background: rgba(255, 255, 255, 0.14);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 12px 28px rgba(0, 0, 0, 0.12);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 12px 28px rgba(0, 0, 0, 0.12);
   backdrop-filter: blur(12px);
 }
 .enterprise-search :deep(.q-field__native),
@@ -1763,19 +1880,33 @@ onUnmounted(() => {
   background: rgba(16, 185, 129, 0.08);
 }
 @keyframes gradientMove {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 @keyframes glowPulse {
   0%,
-  100% { transform: scale(1); }
-  50% { transform: scale(1.08); }
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
 }
 @keyframes floatIcon {
   0%,
-  100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
 }
 .text-teal-10 {
   color: #004d40;

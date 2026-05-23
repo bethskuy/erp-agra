@@ -29,6 +29,16 @@
         :loading="loading"
         :pagination="{ rowsPerPage: 10 }"
       >
+        <template #body-cell-nama_barang="props">
+          <q-td :props="props">
+            <div class="text-weight-bold text-green-10">{{ props.row.nama_barang || '-' }}</div>
+            <div class="text-caption text-grey-6">{{ props.row.kode_barang || '-' }}</div>
+            <q-badge v-if="isLowStock(props.row)" color="negative" class="q-mt-xs">
+              STOK MENIPIS
+            </q-badge>
+          </q-td>
+        </template>
+
         <template #no-data>
           <div class="full-width row flex-center text-grey-7 q-pa-xl">
             <q-icon name="inventory_2" size="28px" class="q-mr-sm" />
@@ -57,6 +67,7 @@ const columns = [
   { name: 'nama_barang', label: 'Nama Barang', field: 'nama_barang', align: 'left', sortable: true },
   { name: 'kategori', label: 'Kategori', field: 'kategori', align: 'left' },
   { name: 'qty', label: 'Qty', field: 'qty', align: 'right', sortable: true },
+  { name: 'stok_minimum', label: 'Stok Min.', field: 'stok_minimum', align: 'right', sortable: true },
   { name: 'satuan', label: 'Satuan', field: 'satuan', align: 'left' },
   { name: 'lokasi', label: 'Lokasi', field: 'lokasi', align: 'left' },
 ]
@@ -67,9 +78,13 @@ const normalizeRow = (id, data) => ({
   nama_barang: data.nama_barang || data.nama_produk || '-',
   kategori: data.kategori || data.kategori_barang || '-',
   qty: Number(data.qty ?? data.stok ?? 0),
+  stok_tersedia: Number(data.stok_tersedia ?? data.qty ?? data.stok ?? 0),
+  stok_minimum: Number(data.stok_minimum ?? 0),
   satuan: data.satuan || 'PCS',
   lokasi: data.lokasi || data.rak || '-',
 })
+
+const isLowStock = (row) => Number(row?.stok_tersedia || 0) <= Number(row?.stok_minimum || 0)
 
 const loadRows = () => {
   loading.value = true

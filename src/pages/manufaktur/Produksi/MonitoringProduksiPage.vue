@@ -14,7 +14,16 @@
         </div>
       </div>
 
-      <div class="col-12 col-md-auto q-mt-md q-mt-md-none">
+      <div class="col-12 col-md-auto q-mt-md q-mt-md-none row q-gutter-sm">
+        <q-btn
+          unelevated
+          color="green-10"
+          icon="add"
+          label="Tambah SPK Baru"
+          no-caps
+          class="q-px-lg"
+          @click="openReleaseForm"
+        />
         <q-btn
           flat
           rounded
@@ -102,47 +111,43 @@
       </div>
     </div>
 
-    <q-card flat bordered class="filter-card bg-white q-mb-lg">
-      <q-card-section class="q-py-md">
-        <div class="row q-col-gutter-md items-center">
-          <div class="col-12 col-md-6">
-            <q-input
-              v-model="search"
-              outlined
-              dense
-              rounded
-              debounce="250"
-              placeholder="Cari SPK, produk, customer, line, atau status..."
-              bg-color="white"
-            >
-              <template #prepend>
-                <q-icon name="search" color="green-10" />
-              </template>
-            </q-input>
-          </div>
+    <div class="row q-col-gutter-md q-mb-lg">
+      <div class="col-12 col-md-6">
+        <q-input
+          v-model="search"
+          outlined
+          dense
+          rounded
+          debounce="250"
+          placeholder="Cari SPK, produk, customer, line, atau status..."
+          bg-color="white"
+        >
+          <template #prepend>
+            <q-icon name="search" color="green-10" />
+          </template>
+        </q-input>
+      </div>
 
-          <div class="col-12 col-md-3">
-            <q-select
-              v-model="statusFilter"
-              :options="statusFilterOptions"
-              outlined
-              dense
-              rounded
-              emit-value
-              map-options
-              label="Filter Status"
-              bg-color="white"
-            />
-          </div>
+      <div class="col-12 col-md-3">
+        <q-select
+          v-model="statusFilter"
+          :options="statusFilterOptions"
+          outlined
+          dense
+          rounded
+          emit-value
+          map-options
+          label="Filter Status"
+          bg-color="white"
+        />
+      </div>
 
-          <div class="col-12 col-md-auto">
-            <q-chip dense color="green-10" text-color="white" class="text-weight-bold q-px-md">
-              {{ filteredRows.length }} SPK
-            </q-chip>
-          </div>
-        </div>
-      </q-card-section>
-    </q-card>
+      <div class="col-12 col-md-auto">
+        <q-chip dense color="green-10" text-color="white" class="text-weight-bold q-px-md">
+          {{ filteredRows.length }} SPK
+        </q-chip>
+      </div>
+    </div>
 
     <q-card flat bordered class="table-card bg-white">
       <q-table
@@ -179,14 +184,18 @@
             </q-td>
             <q-td key="line_produksi" :props="props">
               <div class="text-weight-bold">{{ props.row.tahapan_aktif || '-' }}</div>
-              <div class="text-caption text-grey-6">Routing {{ props.row.urutan_tahapan || '-' }}</div>
+              <div class="text-caption text-grey-6">
+                Routing {{ props.row.urutan_tahapan || '-' }}
+              </div>
             </q-td>
             <q-td key="qty_target" :props="props" class="text-weight-bold">
               {{ formatNumber(props.row.qty_target) }}
             </q-td>
             <q-td key="assigned_team" :props="props">
-              <div class="text-weight-bold">{{ props.row.assigned_team || '-' }}</div>
-              <div class="text-caption text-grey-6">{{ props.row.jabatan_tim || '-' }}</div>
+              <div class="text-weight-bold text-teal-10">{{ props.row.assigned_team || '-' }}</div>
+              <div class="text-caption text-grey-7 text-weight-medium">
+                {{ props.row.jabatan_tim || '-' }}
+              </div>
             </q-td>
             <q-td key="qty_selesai" :props="props" class="text-weight-bold text-positive">
               {{ formatNumber(props.row.qty_selesai) }}
@@ -244,13 +253,173 @@
         </template>
       </q-table>
     </q-card>
+
+    <!-- FORM DIALOG TAMBAH SPK BARU (FULLSCREEN & MANUAL - KONEK DATA MASTER) -->
+    <q-dialog
+      v-model="showReleaseDialog"
+      maximized
+      persistent
+      transition-show="slide-up"
+      transition-hide="slide-down"
+    >
+      <q-card class="release-spk-dialog bg-grey-2 column">
+        <!-- HEADER BAR -->
+        <q-bar class="bg-white release-spk-bar shadow-1" style="height: 70px; z-index: 10">
+          <q-btn flat round dense icon="close" color="grey-7" @click="showReleaseDialog = false" />
+          <q-space />
+          <div class="release-spk-title text-green-10 text-weight-bold text-h6">
+            Form Pembuatan SPK Baru (Manual)
+          </div>
+          <q-space />
+          <q-btn
+            unelevated
+            color="teal-10"
+            icon="save"
+            label="Rilis SPK (Release WO)"
+            no-caps
+            class="q-px-lg text-weight-bold"
+            :loading="saving"
+            @click="saveSPK"
+          />
+        </q-bar>
+
+        <!-- INPUT AREA FORM -->
+        <q-card-section class="col scroll q-pa-lg">
+          <div class="row q-col-gutter-lg justify-center" style="max-width: 1100px; margin: 0 auto">
+            <!-- FORM SEBELAH KIRI: DETAIL UTAMA -->
+            <div class="col-12 col-md-8">
+              <q-card
+                flat
+                bordered
+                class="q-pa-lg bg-white"
+                style="border-radius: 12px; border-color: #dfe8df"
+              >
+                <div class="text-subtitle1 text-weight-bold text-green-10 q-mb-md row items-center">
+                  <q-icon name="info" class="q-mr-sm" size="sm" />
+                  Informasi Perintah Kerja
+                </div>
+
+                <div class="row q-col-gutter-md">
+                  <div class="col-12 col-sm-6">
+                    <q-input
+                      v-model="formSPK.nomor_spk"
+                      outlined
+                      readonly
+                      label="Nomor SPK (Auto)"
+                      bg-color="grey-1"
+                    />
+                  </div>
+
+                  <!-- DROPDOWN CUSTOMER (SINKRON MARKETING/PENAWARAN) -->
+                  <div class="col-12 col-sm-6">
+                    <q-select
+                      v-model="formSPK.customer"
+                      use-input
+                      input-debounce="0"
+                      @new-value="createValueCustomer"
+                      :options="filteredCustomerOptions"
+                      @filter="filterCustomer"
+                      outlined
+                      label="Nama Customer / Perusahaan"
+                      placeholder="Pilih atau ketik customer baru..."
+                      :rules="[(val) => !!val || 'Nama customer wajib diisi']"
+                    />
+                  </div>
+
+                  <!-- DROPDOWN PRODUK (SINKRON MASTER PRODUK) -->
+                  <div class="col-12">
+                    <q-select
+                      v-model="selectedProduk"
+                      use-input
+                      input-debounce="0"
+                      @new-value="createValueProduk"
+                      :options="filteredProdukOptions"
+                      @filter="filterProduk"
+                      outlined
+                      label="Nama Produk / Item Item Fabrikasi"
+                      placeholder="Pilih atau ketik produk baru..."
+                      @update:model-value="onProdukSelected"
+                      :rules="[(val) => !!val || 'Nama produk wajib diisi']"
+                    />
+                  </div>
+
+                  <div class="col-12 col-sm-6">
+                    <q-input
+                      v-model.number="formSPK.qty_target"
+                      type="number"
+                      outlined
+                      label="Total Target Qty"
+                      :rules="[(val) => val > 0 || 'Target qty harus lebih dari 0']"
+                    />
+                  </div>
+                  <div class="col-12 col-sm-6">
+                    <q-select
+                      v-model="formSPK.tahapan_fabrikasi"
+                      :options="statusOptions"
+                      outlined
+                      label="Tahapan Produksi Awal"
+                    />
+                  </div>
+                </div>
+              </q-card>
+            </div>
+
+            <!-- FORM SEBELAH KANAN: ALOKASI TIM & PENJADWALAN -->
+            <div class="col-12 col-md-4">
+              <q-card
+                flat
+                bordered
+                class="q-pa-lg bg-white q-gutter-md"
+                style="border-radius: 12px; border-color: #dfe8df"
+              >
+                <div class="text-subtitle1 text-weight-bold text-green-10 row items-center">
+                  <q-icon name="groups" class="q-mr-sm" size="sm" />
+                  Alokasi & Penjadwalan
+                </div>
+
+                <!-- DROPDOWN PILIHAN TIM (SINKRON MASTER TIM PRODUKSI MANUFAKTUR) -->
+                <q-select
+                  v-model="formSPK.assigned_team"
+                  use-input
+                  input-debounce="0"
+                  @new-value="createValueTeam"
+                  :options="filteredTeamOptions"
+                  @filter="filterTeam"
+                  outlined
+                  label="Pilih Tim / Operator Produksi"
+                  placeholder="Pilih atau ketik tim baru..."
+                  :rules="[(val) => !!val || 'Tim pelaksana wajib ditentukan']"
+                />
+
+                <!-- INPUT DEADLINE PRODUKSI -->
+                <q-input
+                  v-model="formSPK.deadline"
+                  outlined
+                  type="date"
+                  label="Deadline Target Selesai"
+                  stack-label
+                />
+              </q-card>
+            </div>
+          </div>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useQuasar } from 'quasar'
-import { collection, onSnapshot, orderBy, query } from 'firebase/firestore'
+import {
+  collection,
+  onSnapshot,
+  orderBy,
+  query,
+  addDoc,
+  getDocs,
+  serverTimestamp,
+} from 'firebase/firestore'
 import { db } from 'src/boot/firebase'
 
 const COLLECTIONS = {
@@ -270,8 +439,10 @@ const statusFilterOptions = [
 
 const $q = useQuasar()
 const loading = ref(false)
+const saving = ref(false)
 const search = ref('')
 const statusFilter = ref('all')
+const showReleaseDialog = ref(false)
 const spkRows = ref([])
 const planningRows = ref([])
 const lineRows = ref([])
@@ -280,15 +451,386 @@ const packingRows = ref([])
 const deliveryRows = ref([])
 let unsubscribers = []
 
+// REAKTIF DATA MASTER
+const appId = typeof window !== 'undefined' && window.__app_id ? window.__app_id : 'default-app-id'
+const masterCustomerOptions = ref([])
+const masterProdukOptions = ref([])
+const masterTeamOptions = ref([]) // Sinkron murni dengan Master Tim Produksi
+
+const filteredCustomerOptions = ref([])
+const filteredProdukOptions = ref([])
+const filteredTeamOptions = ref([])
+const selectedProduk = ref(null)
+
+// STATE FORM INPUT MANUAL SPK
+const formSPK = ref({
+  nomor_spk: '',
+  customer: '',
+  nama_produk: '',
+  qty_target: 1,
+  assigned_team: '',
+  tahapan_fabrikasi: 'SPK Fabrikasi',
+  deadline: '',
+})
+
+// MURNI AMBIL DARI DATA MASTER FIREBASE
+const customerList = computed(() => {
+  return masterCustomerOptions.value
+})
+
+const produkList = computed(() => {
+  return masterProdukOptions.value
+})
+
+// Dipetakan ke format string murni untuk dropdown, murni data personel real di database Anda
+const teamList = computed(() => {
+  return masterTeamOptions.value.map((t) => (typeof t === 'object' ? t.label : t))
+})
+
+// MEMUAT DATA MASTER SECARA DINAMIS DARI MODUL MANUFAKTUR (RULE 1 & ROOT CHANNELS)
+const loadMasterData = async () => {
+  try {
+    // 1. Ambil data produk murni dari sub-koleksi master_produk manufaktur
+    const prodColRef = collection(db, 'artifacts', appId, 'public', 'data', 'master_produk')
+    const prodSnap = await getDocs(prodColRef).catch(() => null)
+
+    if (prodSnap && !prodSnap.empty) {
+      masterProdukOptions.value = prodSnap.docs.map((doc) => {
+        const d = doc.data()
+        const label = d.nama_produk || d.nama || d.nama_material || 'Tanpa Nama'
+        return { label, value: label }
+      })
+    } else {
+      // Cadangan ke root master_produk jika sub-koleksi belum diinisiasi
+      const rootProdSnap = await getDocs(collection(db, 'master_produk')).catch(() => null)
+      if (rootProdSnap && !rootProdSnap.empty) {
+        masterProdukOptions.value = rootProdSnap.docs.map((doc) => {
+          const d = doc.data()
+          const label = d.nama_produk || d.nama_material || 'Tanpa Nama'
+          return { label, value: label }
+        })
+      }
+    }
+
+    // 2. Ambil data customer dari sub-koleksi customer / penawaran manufaktur
+    const custColRef = collection(db, 'artifacts', appId, 'public', 'data', 'customer')
+    const custSnap = await getDocs(custColRef).catch(() => null)
+    let customersList = []
+
+    if (custSnap && !custSnap.empty) {
+      customersList = custSnap.docs.map((doc) => doc.data().nama_customer || doc.data().nama || '')
+    } else {
+      // Ambil alternatif dari data penawaran_manufaktur
+      const penawaranColRef = collection(
+        db,
+        'artifacts',
+        appId,
+        'public',
+        'data',
+        'penawaran_manufaktur',
+      )
+      const penawaranSnap = await getDocs(penawaranColRef).catch(() => null)
+      if (penawaranSnap && !penawaranSnap.empty) {
+        customersList = penawaranSnap.docs.map((doc) => doc.data().nama_customer)
+      }
+    }
+
+    if (customersList.length > 0) {
+      masterCustomerOptions.value = [...new Set(customersList)].filter(Boolean)
+    }
+
+    // 3. Ambil data TIM PRODUKSI (Personel Workshop) secara cerdas & tangguh
+    let loadedTeams = []
+    const collectionsToTry = [
+      'tim_produksi',
+      'master_tim_produksi',
+      'master_tim',
+      'teams',
+      'personel_produksi',
+      'personil_produksi',
+      'tim_produksi_manufaktur',
+      'master_tim_produksi_manufaktur',
+      'karyawan',
+      'karyawan_produksi',
+      'operator_produksi',
+      'operators',
+    ]
+
+    // Coba sub-koleksi artifact (Rule 1)
+    for (const colName of collectionsToTry) {
+      const artRef = collection(db, 'artifacts', appId, 'public', 'data', colName)
+      const snap = await getDocs(artRef).catch(() => null)
+      if (snap && !snap.empty) {
+        snap.docs.forEach((doc) => {
+          const d = doc.data()
+          // Sangat penting: Mendeteksi variasi penulisan bahasa Indonesia (personil vs personel)
+          const name =
+            d.nama_personil ||
+            d.nama_personel ||
+            d.personil ||
+            d.personel ||
+            d.nama ||
+            d.nama_tim ||
+            d.nama_karyawan ||
+            d.operator ||
+            ''
+          const jabatan = d.jabatan || d.skill || d.role || d.posisi || ''
+          if (name) {
+            loadedTeams.push({ label: name, value: name, jabatan: jabatan })
+          }
+        })
+      }
+    }
+
+    // Coba root level (Fallback)
+    for (const colName of collectionsToTry) {
+      const rootRef = collection(db, colName)
+      const snap = await getDocs(rootRef).catch(() => null)
+      if (snap && !snap.empty) {
+        snap.docs.forEach((doc) => {
+          const d = doc.data()
+          const name =
+            d.nama_personil ||
+            d.nama_personel ||
+            d.personil ||
+            d.personel ||
+            d.nama ||
+            d.nama_tim ||
+            d.nama_karyawan ||
+            d.operator ||
+            ''
+          const jabatan = d.jabatan || d.skill || d.role || d.posisi || ''
+          if (name) {
+            loadedTeams.push({ label: name, value: name, jabatan: jabatan })
+          }
+        })
+      }
+    }
+
+    if (loadedTeams.length > 0) {
+      // Bersihkan data duplikasi jika personel ada di beberapa koleksi sekaligus
+      const uniqueTeams = []
+      const seen = new Set()
+      for (const t of loadedTeams) {
+        const key = t.label.toLowerCase().trim()
+        if (!seen.has(key)) {
+          seen.add(key)
+          uniqueTeams.push(t)
+        }
+      }
+      masterTeamOptions.value = uniqueTeams
+    } else {
+      // Fallback terakhir ke karyawan jika tim_produksi benar-benar kosong di database baru
+      const karyawanSnap = await getDocs(collection(db, 'karyawan')).catch(() => null)
+      if (karyawanSnap && !karyawanSnap.empty) {
+        const filtered = karyawanSnap.docs
+          .map((doc) => {
+            const k = doc.data()
+            const name = k.nama_karyawan || k.nama || ''
+            const jabatan = k.jabatan || k.departemen || ''
+            return name ? { label: name, value: name, jabatan: jabatan } : null
+          })
+          .filter(Boolean)
+        if (filtered.length > 0) {
+          masterTeamOptions.value = filtered
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Gagal memuat database master:', err)
+  }
+}
+
+// DROPDOWN FILTER & HELPER UNTUK CUSTOMER
+const filterCustomer = (val, update) => {
+  update(() => {
+    const needle = val.toLowerCase()
+    filteredCustomerOptions.value = customerList.value.filter(
+      (v) => v.toLowerCase().indexOf(needle) > -1,
+    )
+  })
+}
+
+const createValueCustomer = (val, done) => {
+  if (val.length > 0) {
+    if (!masterCustomerOptions.value.includes(val)) {
+      masterCustomerOptions.value.push(val)
+    }
+    done(val, 'toggle')
+  }
+}
+
+// DROPDOWN FILTER & HELPER UNTUK PRODUK
+const filterProduk = (val, update) => {
+  update(() => {
+    const needle = val.toLowerCase()
+    filteredProdukOptions.value = produkList.value.filter(
+      (v) => v.label.toLowerCase().indexOf(needle) > -1,
+    )
+  })
+}
+
+const createValueProduk = (val, done) => {
+  if (val.length > 0) {
+    const exists = masterProdukOptions.value.some(
+      (p) => p.label.toLowerCase() === val.toLowerCase(),
+    )
+    const newObj = { label: val, value: val }
+    if (!exists) {
+      masterProdukOptions.value.push(newObj)
+    }
+    done(newObj, 'toggle')
+  }
+}
+
+const onProdukSelected = (val) => {
+  if (val) {
+    formSPK.value.nama_produk = typeof val === 'object' ? val.value : val
+  } else {
+    formSPK.value.nama_produk = ''
+  }
+}
+
+// DROPDOWN FILTER & HELPER UNTUK TIM PRODUKSI
+const filterTeam = (val, update) => {
+  update(() => {
+    const needle = val.toLowerCase()
+    filteredTeamOptions.value = teamList.value.filter((v) => v.toLowerCase().indexOf(needle) > -1)
+  })
+}
+
+const createValueTeam = (val, done) => {
+  if (val.length > 0) {
+    if (
+      !masterTeamOptions.value.some(
+        (t) => (typeof t === 'object' ? t.label : t).toLowerCase() === val.toLowerCase(),
+      )
+    ) {
+      masterTeamOptions.value.push({ label: val, value: val, jabatan: 'Operator Baru' })
+    }
+    done(val, 'toggle')
+  }
+}
+
+// FUNGSI MEMBUKA FORM DAN GENERATE NOMOR SPK SECARA OTOMATIS
+const openReleaseForm = () => {
+  const randNum = Math.floor(1000 + Math.random() * 9000)
+
+  // Pre-populate pilihan awal agar user tidak menemui dropdown kosong sesaat setelah dialog dibuka
+  filteredCustomerOptions.value = customerList.value
+  filteredProdukOptions.value = produkList.value
+  filteredTeamOptions.value = teamList.value
+
+  formSPK.value = {
+    nomor_spk: `SPK/AGRA/${new Date().getFullYear()}/${randNum}`,
+    customer: '',
+    nama_produk: '',
+    qty_target: 1,
+    assigned_team: teamList.value[0] || '',
+    tahapan_fabrikasi: 'SPK Fabrikasi',
+    deadline: '',
+  }
+  selectedProduk.value = null
+  showReleaseDialog.value = true
+}
+
+// FUNGSI SIMPAN SPK SECARA MANUAL KE FIRESTORE
+const saveSPK = async () => {
+  if (!formSPK.value.nama_produk || !formSPK.value.customer) {
+    $q.notify({ type: 'negative', message: 'Lengkapi Nama Produk dan Customer!' })
+    return
+  }
+  if (!formSPK.value.assigned_team) {
+    $q.notify({ type: 'negative', message: 'Tentukan pelaksana / Tim Produksi!' })
+    return
+  }
+  if (formSPK.value.qty_target <= 0) {
+    $q.notify({ type: 'negative', message: 'Target Qty harus lebih besar dari 0!' })
+    return
+  }
+
+  saving.value = true
+  try {
+    // Cari jabatan untuk tim/personel terpilih
+    const selectedTeamObj = masterTeamOptions.value.find(
+      (t) => (typeof t === 'object' ? t.label : t) === formSPK.value.assigned_team,
+    )
+
+    // Default jabatan jika data kosong
+    const jabatan_tim =
+      selectedTeamObj && typeof selectedTeamObj === 'object'
+        ? selectedTeamObj.jabatan || 'Workshop Operator'
+        : 'Workshop Operator'
+
+    const payload = {
+      nomor_spk: formSPK.value.nomor_spk,
+      nama_produk: formSPK.value.nama_produk,
+      customer: formSPK.value.customer,
+      qty_target: Number(formSPK.value.qty_target),
+      qty_selesai: 0,
+      qty_reject: 0,
+      assigned_team: formSPK.value.assigned_team,
+      jabatan_tim: jabatan_tim,
+      tahapan_fabrikasi: formSPK.value.tahapan_fabrikasi,
+      progress: 0,
+      status_pekerjaan: 'SPK Fabrikasi',
+      deadline: formSPK.value.deadline,
+      created_at: serverTimestamp(),
+      updated_at: serverTimestamp(),
+    }
+
+    // Masukkan data ke koleksi 'spk_fabrikasi'
+    await addDoc(collection(db, COLLECTIONS.spk), payload)
+
+    $q.notify({ type: 'positive', message: 'Surat Perintah Kerja (SPK) Berhasil Dirilis!' })
+    showReleaseDialog.value = false
+  } catch (error) {
+    console.error(error)
+    $q.notify({ type: 'negative', message: 'Gagal merilis SPK.' })
+  } finally {
+    saving.value = false
+  }
+}
+
 const columns = [
   { name: 'nomor_spk', align: 'left', label: 'Nomor SPK', field: 'nomor_spk', sortable: true },
-  { name: 'nama_produk', align: 'left', label: 'Material / Produk', field: 'nama_produk', sortable: true },
-  { name: 'line_produksi', align: 'left', label: 'Tahapan Aktif', field: 'tahapan_aktif', sortable: true },
+  {
+    name: 'nama_produk',
+    align: 'left',
+    label: 'Material / Produk',
+    field: 'nama_produk',
+    sortable: true,
+  },
+  {
+    name: 'line_produksi',
+    align: 'left',
+    label: 'Tahapan Hack',
+    field: 'tahapan_aktif',
+    sortable: true,
+  },
   { name: 'qty_target', align: 'right', label: 'Qty Target', field: 'qty_target', sortable: true },
-  { name: 'assigned_team', align: 'left', label: 'Assigned Team', field: 'assigned_team', sortable: true },
-  { name: 'qty_selesai', align: 'right', label: 'Qty Selesai', field: 'qty_selesai', sortable: true },
+  {
+    name: 'assigned_team',
+    align: 'left',
+    label: 'Assigned Operator',
+    field: 'assigned_team',
+    sortable: true,
+  },
+  {
+    name: 'qty_selesai',
+    align: 'right',
+    label: 'Qty Selesai',
+    field: 'qty_selesai',
+    sortable: true,
+  },
   { name: 'qty_reject', align: 'right', label: 'Reject QC', field: 'qty_reject', sortable: true },
-  { name: 'progress', align: 'left', label: 'Progress Produksi', field: 'progress', sortable: true },
+  {
+    name: 'progress',
+    align: 'left',
+    label: 'Progress Produksi',
+    field: 'progress',
+    sortable: true,
+  },
   { name: 'stage', align: 'center', label: 'Flow' },
   { name: 'status', align: 'center', label: 'Status Realtime', field: 'status', sortable: true },
 ]
@@ -395,7 +937,7 @@ const filteredRows = computed(() => {
 
 const summaryCards = computed(() => [
   {
-    title: 'Produksi Aktif',
+    title: 'Produksi Hack',
     value: monitoringRows.value.filter((row) =>
       ['SPK Fabrikasi', 'Routing Tahapan', 'Produksi', 'QC'].includes(row.status),
     ).length,
@@ -410,7 +952,8 @@ const summaryCards = computed(() => [
   },
   {
     title: 'QC Pending',
-    value: qcRows.value.filter((row) => ['MENUNGGU_QC', 'QC_PROCESS'].includes(row.status_qc)).length,
+    value: qcRows.value.filter((row) => ['MENUNGGU_QC', 'QC_PROCESS'].includes(row.status_qc))
+      .length,
     icon: 'pending_actions',
     color: 'orange-9',
   },
@@ -435,12 +978,32 @@ const summaryCards = computed(() => [
 ])
 
 const flowStages = computed(() => [
-  { title: 'Quotation Approved', value: spkRows.value.filter((row) => row.status_pekerjaan === 'Quotation Approved').length, icon: 'verified' },
+  {
+    title: 'Quotation Approved',
+    value: spkRows.value.filter((row) => row.status_pekerjaan === 'Quotation Approved').length,
+    icon: 'verified',
+  },
   { title: 'SPK Fabrikasi', value: spkRows.value.length, icon: 'description' },
-  { title: 'Routing Tahapan', value: spkRows.value.filter((row) => row.tahapan_fabrikasi_id).length, icon: 'route' },
-  { title: 'Produksi', value: spkRows.value.filter((row) => row.status_pekerjaan === 'Produksi').length + lineRows.value.length, icon: 'precision_manufacturing' },
+  {
+    title: 'Routing Tahapan',
+    value: spkRows.value.filter((row) => row.tahapan_fabrikasi_id).length,
+    icon: 'route',
+  },
+  {
+    title: 'Produksi',
+    value:
+      spkRows.value.filter((row) => row.status_pekerjaan === 'Produksi').length +
+      lineRows.value.length,
+    icon: 'precision_manufacturing',
+  },
   { title: 'QC', value: qcRows.value.length, icon: 'fact_check' },
-  { title: 'Finished', value: spkRows.value.filter((row) => row.status_pekerjaan === 'Finished').length + deliveryRows.value.length, icon: 'inventory' },
+  {
+    title: 'Finished',
+    value:
+      spkRows.value.filter((row) => row.status_pekerjaan === 'Finished').length +
+      deliveryRows.value.length,
+    icon: 'inventory',
+  },
 ])
 
 const averageProgress = computed(() => {
@@ -469,7 +1032,8 @@ const realtimeStatus = (row) => {
   if (row.packing?.status_packing === 'PACKING_PROCESS') return 'Packing'
   if (row.qc?.status_qc === 'QC_APPROVED') return 'Packing'
   if (row.qc?.status_qc === 'QC_PROCESS' || row.qc?.status_qc === 'MENUNGGU_QC') return 'QC'
-  if (row.line?.status === 'On Progress' || row.planning?.status === 'On Progress') return 'On Progress'
+  if (row.line?.status === 'On Progress' || row.planning?.status === 'On Progress')
+    return 'On Progress'
   return 'SPK Fabrikasi'
 }
 
@@ -496,8 +1060,18 @@ const buildStages = (row) => [
     icon: 'precision_manufacturing',
     done: !!row.line || ['Produksi', 'QC', 'Finished'].includes(row.status),
   },
-  { key: 'qc', label: 'QC', icon: 'fact_check', done: !!row.qc || ['QC', 'Finished'].includes(row.status) },
-  { key: 'finished', label: 'Finished', icon: 'inventory', done: row.status === 'Finished' || !!row.delivery },
+  {
+    key: 'qc',
+    label: 'QC',
+    icon: 'fact_check',
+    done: !!row.qc || ['QC', 'Finished'].includes(row.status),
+  },
+  {
+    key: 'finished',
+    label: 'Finished',
+    icon: 'inventory',
+    done: row.status === 'Finished' || !!row.delivery,
+  },
 ]
 
 const statusColor = (status) => {
@@ -573,7 +1147,10 @@ const loadMonitoring = () => {
   ]
 }
 
-onMounted(loadMonitoring)
+onMounted(() => {
+  loadMonitoring()
+  loadMasterData()
+})
 
 onUnmounted(() => {
   unsubscribers.forEach((unsubscribe) => unsubscribe())
@@ -713,6 +1290,17 @@ onUnmounted(() => {
   letter-spacing: 0.2px;
   min-width: 104px;
   justify-content: center;
+}
+
+.release-spk-bar {
+  height: 56px;
+  padding: 0 16px;
+}
+
+.release-spk-title {
+  left: 50%;
+  position: absolute;
+  transform: translateX(-50%);
 }
 
 @media (max-width: 1023px) {

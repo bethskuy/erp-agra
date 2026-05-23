@@ -344,18 +344,19 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import {
-  addDoc,
   collection,
   doc,
+  getDocs,
   onSnapshot,
   orderBy,
   query,
+  runTransaction,
   serverTimestamp,
-  updateDoc,
 } from 'firebase/firestore'
 import { db } from 'src/boot/firebase'
 
 const COLLECTION_NAME = 'material_usage_manufaktur'
+const MASTER_MATERIAL_COLLECTION = 'master_material'
 const statusOptions = ['READY', 'KURANG_MATERIAL', 'HABIS']
 const statusFilterOptions = [
   { label: 'Semua Status', value: 'all' },
@@ -506,6 +507,27 @@ const rowClass = (row) => (materialStatus(row) === 'KURANG_MATERIAL' ? 'row-shor
 
 const formatNumber = (value) => Number(value || 0).toLocaleString('id-ID')
 
+const normalizeMaterialKey = (value) => String(value || '').trim().toLowerCase()
+
+const findMasterMaterialRef = async (materialName) => {
+  const key = normalizeMaterialKey(materialName)
+  const materialSnap = await getDocs(
+    query(collection(db, MASTER_MATERIAL_COLLECTION), orderBy('nama_material', 'asc')),
+  )
+  const materialDoc = materialSnap.docs.find((item) => {
+    const data = item.data()
+    return [item.id, data.kode_material, data.kode_barang, data.nama_material, data.nama_barang]
+      .map(normalizeMaterialKey)
+      .includes(key)
+  })
+
+  if (!materialDoc) {
+    throw new Error(`Material "${materialName}" tidak ditemukan di master material.`)
+  }
+
+  return doc(db, MASTER_MATERIAL_COLLECTION, materialDoc.id)
+}
+
 const formatDate = (value) => {
   if (!value) return '-'
   const date = value?.seconds ? new Date(value.seconds * 1000) : new Date(value)
@@ -548,19 +570,57 @@ const saveUsage = async () => {
   }
 
   try {
-    if (selectedRow.value?.id) {
-      await updateDoc(doc(db, COLLECTION_NAME, selectedRow.value.id), payload)
-    } else {
-      await addDoc(collection(db, COLLECTION_NAME), {
-        ...payload,
-        created_at: serverTimestamp(),
-      })
-    }
+    const previousQtyDipakai = Number(selectedRow.value?.qty_dipakai || 0)
+    const usageDelta = payload.qty_dipakai - previousQtyDipakai
+    const masterMaterialRef = usageDelta
+      ? await findMasterMaterialRef(payload.nama_material)
+      : null
+    const usageRef = selectedRow.value?.id
+      ? doc(db, COLLECTION_NAME, selectedRow.value.id)
+      : doc(collection(db, COLLECTION_NAME))
+
+    await runTransaction(db, async (transaction) => {
+      if (masterMaterialRef) {
+        const masterSnap = await transaction.get(masterMaterialRef)
+        if (!masterSnap.exists()) {
+          throw new Error(`Material "${payload.nama_material}" tidak ditemukan di master material.`)
+        }
+
+        const masterData = masterSnap.data()
+        const stokFisik = Number(masterData.stok_fisik || 0)
+        const stokTerpesan = Number(masterData.stok_terpesan || 0)
+        const nextStokFisik = stokFisik - usageDelta
+        const nextStokTerpesan = stokTerpesan - usageDelta
+
+        if (nextStokFisik < 0 || nextStokTerpesan < 0) {
+          throw new Error(
+            `Stok master ${payload.nama_material} tidak cukup. Fisik ${stokFisik}, terpesan ${stokTerpesan}, dibutuhkan ${usageDelta}.`,
+          )
+        }
+
+        transaction.update(masterMaterialRef, {
+          stok_fisik: nextStokFisik,
+          stok_terpesan: nextStokTerpesan,
+          stok_tersedia: nextStokFisik - nextStokTerpesan,
+          updated_at: serverTimestamp(),
+        })
+      }
+
+      if (selectedRow.value?.id) {
+        transaction.update(usageRef, payload)
+      } else {
+        transaction.set(usageRef, {
+          ...payload,
+          created_at: serverTimestamp(),
+        })
+      }
+    })
+
     showUsageDialog.value = false
     $q.notify({ type: 'positive', message: 'Pemakaian material berhasil disimpan' })
   } catch (error) {
     console.error(error)
-    $q.notify({ type: 'negative', message: 'Gagal menyimpan pemakaian material' })
+    $q.notify({ type: 'negative', message: error.message || 'Gagal menyimpan pemakaian material' })
   } finally {
     submitting.value = false
   }

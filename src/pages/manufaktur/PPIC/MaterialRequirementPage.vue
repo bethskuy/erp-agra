@@ -157,6 +157,17 @@
                   round
                   dense
                   color="green-10"
+                  icon="check_circle"
+                  :disable="!canApproveMaterialRequest(props.row)"
+                  @click="approveMaterialRequest(props.row)"
+                >
+                  <q-tooltip>Approve material request</q-tooltip>
+                </q-btn>
+                <q-btn
+                  flat
+                  round
+                  dense
+                  color="green-10"
                   icon="inventory"
                   @click="openStockDialog(props.row)"
                 >
@@ -352,19 +363,24 @@ import {
   addDoc,
   collection,
   doc,
+  increment,
   onSnapshot,
   orderBy,
   query,
+  runTransaction,
   serverTimestamp,
   updateDoc,
 } from 'firebase/firestore'
 import { db } from 'src/boot/firebase'
 
 const COLLECTION_NAME = 'material_requirement_manufaktur'
+const MASTER_MATERIAL_COLLECTION = 'master_material'
+const APPROVED_STATUS = 'APPROVED'
 const statusOptions = [
   { label: 'READY', value: 'READY' },
   { label: 'KURANG MATERIAL', value: 'KURANG_MATERIAL' },
   { label: 'WAITING PURCHASE', value: 'WAITING_PURCHASE' },
+  { label: 'APPROVED', value: APPROVED_STATUS },
 ]
 const statusFilterOptions = [
   { label: 'Semua Status', value: 'all' },
@@ -504,6 +520,27 @@ const calculateShortage = (required, available) =>
 
 const deriveStatus = (shortage) => (shortage > 0 ? 'KURANG_MATERIAL' : 'READY')
 
+const findMasterMaterial = (row) => {
+  if (row?.material_id) {
+    const byId = masterMaterials.value.find((item) => item.id === row.material_id)
+    if (byId) return byId
+  }
+
+  const materialKey = String(row?.material || '').trim().toLowerCase()
+  const codeKey = String(row?.kode_material || '').trim().toLowerCase()
+  return masterMaterials.value.find((item) =>
+    [item.nama_material, item.kode_material]
+      .filter(Boolean)
+      .some((value) => [materialKey, codeKey].includes(String(value).trim().toLowerCase())),
+  )
+}
+
+const canApproveMaterialRequest = (row) =>
+  Boolean(row?.id) &&
+  !row.material_request_stock_synced &&
+  Number(row.qty_kebutuhan || 0) > 0 &&
+  calculateShortage(row.qty_kebutuhan, row.stok_tersedia) === 0
+
 const statusLabel = (status) => {
   const option = statusOptions.find((item) => item.value === status)
   return option?.label || status || '-'
@@ -596,6 +633,58 @@ const saveRequirement = async () => {
     $q.notify({ type: 'negative', message: 'Gagal menyimpan material requirement' })
   } finally {
     submitting.value = false
+  }
+}
+
+const approveMaterialRequest = async (row) => {
+  const masterMaterial = findMasterMaterial(row)
+  if (!masterMaterial) {
+    $q.notify({ type: 'negative', message: 'Master material tidak ditemukan' })
+    return
+  }
+
+  try {
+    await runTransaction(db, async (transaction) => {
+      const requirementRef = doc(db, COLLECTION_NAME, row.id)
+      const materialRef = doc(db, MASTER_MATERIAL_COLLECTION, masterMaterial.id)
+      const [requirementSnap, materialSnap] = await Promise.all([
+        transaction.get(requirementRef),
+        transaction.get(materialRef),
+      ])
+
+      if (!requirementSnap.exists()) throw new Error('Material request tidak ditemukan.')
+      if (!materialSnap.exists()) throw new Error('Master material tidak ditemukan.')
+      if (requirementSnap.data().material_request_stock_synced) return
+
+      const currentAvailable = Number(materialSnap.data().stok_tersedia || 0)
+      const qtyKebutuhan = Number(requirementSnap.data().qty_kebutuhan || row.qty_kebutuhan || 0)
+      const nextAvailable = currentAvailable - qtyKebutuhan
+
+      if (nextAvailable < 0) {
+        throw new Error(
+          `Stok tersedia tidak cukup. Tersedia ${formatNumber(currentAvailable)}, dibutuhkan ${formatNumber(qtyKebutuhan)}.`,
+        )
+      }
+
+      transaction.update(materialRef, {
+        stok_tersedia: nextAvailable,
+        kebutuhan_produksi: increment(qtyKebutuhan),
+        updated_at: serverTimestamp(),
+      })
+      transaction.update(requirementRef, {
+        stok_tersedia: nextAvailable,
+        qty_kurang: 0,
+        status_material: APPROVED_STATUS,
+        material_request_stock_synced: true,
+        material_request_stock_synced_at: serverTimestamp(),
+        updated_at: serverTimestamp(),
+      })
+    })
+
+    $q.notify({ type: 'positive', message: 'Material request berhasil di-approve' })
+  } catch (error) {
+    console.error(error)
+    $q.notify({ type: 'negative', message: error.message || 'Gagal approve material request' })
   }
 }
 
