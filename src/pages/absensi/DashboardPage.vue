@@ -112,12 +112,14 @@
                     Sistem Radar Lokasi
                   </div>
                 </div>
+                <!-- REVISI POIN 5: Tampilan Jam Kerja Shift membaca secara dinamis dari Firestore Karyawan -->
                 <q-badge
                   outline
                   color="indigo-5"
                   class="q-px-sm q-py-xs rounded-6 font-mono text-weight-bold bg-indigo-50"
                 >
-                  <q-icon name="work_outline" size="12px" class="q-mr-xs" /> SHIFT: 08:00 - 17:00
+                  <q-icon name="work_outline" size="12px" class="q-mr-xs" /> SHIFT:
+                  {{ userData.jam_masuk }} - {{ userData.jam_pulang }}
                 </q-badge>
               </div>
 
@@ -228,7 +230,7 @@
           </q-card>
         </div>
 
-        <!-- WIDGET 4: TOMBOL AKSI & ABSEN MANUAL -->
+        <!-- WIDGET 4: TOMBOL AKSI -->
         <div class="col-12 col-md-6 mobile-order-1 desktop-order-2">
           <q-card flat class="bento-card bg-white full-height flex column justify-center">
             <q-card-section class="q-pa-lg">
@@ -242,12 +244,13 @@
                   <button
                     v-if="locationData.inRange && !locationData.securityRisk"
                     class="btn-premium btn-clock-in full-width"
-                    @click="startAbsensi"
+                    @click="startAbsensi('in')"
+                    :disabled="!isAiReady"
                   >
                     <q-icon name="camera_alt" size="24px" class="q-mb-xs" />
                     <span>CLOCK IN</span>
                   </button>
-                  <button v-else class="btn-premium btn-locked full-width" @click="startAbsensi">
+                  <button v-else class="btn-premium btn-locked full-width" :disabled="true">
                     <q-icon name="lock" size="24px" class="q-mb-xs text-blue-grey-4" />
                     <span class="text-blue-grey-5">TERKUNCI</span>
                   </button>
@@ -255,14 +258,15 @@
 
                 <div class="col-12 col-sm-6">
                   <button
-                    v-if="locationData.inRange && !locationData.securityRisk"
+                    v-if="locationData.inRange && !locationData.securityRisk && documentId"
                     class="btn-premium btn-clock-out full-width"
-                    @click="absenPulang"
+                    @click="startAbsensi('out')"
+                    :disabled="!isAiReady"
                   >
                     <q-icon name="logout" size="24px" class="q-mb-xs" />
                     <span>CLOCK OUT</span>
                   </button>
-                  <button v-else class="btn-premium btn-locked full-width" @click="absenPulang">
+                  <button v-else class="btn-premium btn-locked full-width" :disabled="true">
                     <q-icon name="lock" size="24px" class="q-mb-xs text-blue-grey-4" />
                     <span class="text-blue-grey-5">OUT TERKUNCI</span>
                   </button>
@@ -296,77 +300,12 @@
                 icon="history_edu"
                 label="Sistem Error? Ajukan Absensi Manual"
                 class="full-width q-mt-sm text-weight-bold rounded-8 transition-smooth hover-bg"
-                @click="manualDialog = true"
+                @click="router.push('/absensi/manual')"
               />
             </q-card-section>
           </q-card>
         </div>
       </div>
-
-      <!-- ========================================== -->
-      <!-- WIDGET PEMBERITAHUAN UMUM                  -->
-      <!-- ========================================== -->
-      <q-slide-transition>
-        <div class="row q-mb-lg" v-if="!showCamera && activeAnnouncements.length > 0">
-          <div class="col-12">
-            <q-card
-              flat
-              class="bento-card bg-gradient-indigo text-white overflow-hidden shadow-soft-primary"
-            >
-              <div class="row items-stretch no-wrap">
-                <div
-                  class="col-auto bg-black bg-opacity-20 flex flex-center q-pa-md"
-                  style="width: 80px"
-                >
-                  <q-icon name="campaign" size="36px" color="white" class="drop-shadow-glow" />
-                </div>
-
-                <div class="col overflow-hidden relative-position">
-                  <q-carousel
-                    v-model="slidePengumuman"
-                    transition-prev="slide-down"
-                    transition-next="slide-up"
-                    swipeable
-                    animated
-                    autoplay
-                    infinite
-                    :navigation="activeAnnouncements.length > 1"
-                    navigation-position="right"
-                    control-color="white"
-                    height="auto"
-                    class="bg-transparent full-height q-pa-sm"
-                  >
-                    <q-carousel-slide
-                      v-for="(item, index) in activeAnnouncements"
-                      :key="item.id"
-                      :name="index"
-                      class="q-pa-sm flex column justify-center"
-                    >
-                      <div
-                        class="text-caption text-blue-2 text-weight-bold uppercase letter-spacing-1 q-mb-xs"
-                      >
-                        Pengumuman dari {{ item.pembuat || 'HRD' }}
-                      </div>
-                      <div
-                        class="text-subtitle1 text-weight-bolder line-height-tight q-mb-xs text-shadow"
-                        style="word-wrap: break-word; white-space: normal"
-                      >
-                        {{ item.judul }}
-                      </div>
-                      <div
-                        class="text-caption text-blue-1 opacity-80 ellipsis-2-lines"
-                        style="max-width: 95%"
-                      >
-                        {{ item.isi }}
-                      </div>
-                    </q-carousel-slide>
-                  </q-carousel>
-                </div>
-              </div>
-            </q-card>
-          </div>
-        </div>
-      </q-slide-transition>
 
       <!-- ========================================== -->
       <!-- BAGIAN BAWAH: RIWAYAT                      -->
@@ -450,165 +389,14 @@
       </div>
 
       <!-- ========================================== -->
-      <!-- MODAL ABSENSI MANUAL                       -->
-      <!-- ========================================== -->
-      <q-dialog v-model="manualDialog" persistent backdrop-filter="blur(5px)">
-        <q-card
-          style="width: 550px; max-width: 95vw"
-          class="rounded-24 bg-white overflow-hidden shadow-soft flex column"
-        >
-          <q-form @submit.prevent="submitManualAbsen" class="column full-height" style="margin: 0">
-            <q-card-section class="row items-center q-pb-md q-pt-lg q-px-lg">
-              <div class="row items-center col">
-                <div class="bg-blue-50 text-primary q-pa-sm rounded-8 q-mr-md">
-                  <q-icon name="history_edu" size="24px" />
-                </div>
-                <div>
-                  <div class="text-h6 text-weight-bolder text-blue-grey-10 line-height-tight">
-                    Absensi Manual
-                  </div>
-                  <div class="text-caption text-blue-grey-5 font-mono text-weight-bold q-mt-xs">
-                    Form pengajuan jika sistem error/lupa absen.
-                  </div>
-                </div>
-              </div>
-              <q-btn
-                icon="close"
-                flat
-                round
-                dense
-                v-close-popup
-                color="blue-grey-4"
-                class="bg-grey-1 transition-smooth hover-scale"
-              />
-            </q-card-section>
-
-            <q-card-section class="q-px-lg q-py-sm scroll" style="max-height: 60vh">
-              <div class="q-gutter-y-md">
-                <div>
-                  <div
-                    class="text-caption text-weight-bold text-blue-grey-8 uppercase letter-spacing-1 q-mb-sm"
-                  >
-                    Tanggal Absen
-                  </div>
-                  <q-input
-                    outlined
-                    v-model="manualForm.tanggal"
-                    type="date"
-                    color="primary"
-                    class="rounded-input"
-                    :rules="[(val) => !!val || 'Wajib diisi']"
-                  />
-                </div>
-
-                <div class="row q-col-gutter-md">
-                  <div class="col-12 col-sm-6">
-                    <div
-                      class="text-caption text-weight-bold text-blue-grey-8 uppercase letter-spacing-1 q-mb-sm"
-                    >
-                      Jam Masuk
-                    </div>
-                    <q-input
-                      outlined
-                      v-model="manualForm.waktuIn"
-                      type="time"
-                      color="primary"
-                      class="rounded-input"
-                      :rules="[(val) => !!val || 'Wajib diisi']"
-                    />
-                  </div>
-                  <div class="col-12 col-sm-6">
-                    <div
-                      class="text-caption text-weight-bold text-blue-grey-8 uppercase letter-spacing-1 q-mb-sm"
-                    >
-                      Jam Pulang
-                    </div>
-                    <q-input
-                      outlined
-                      v-model="manualForm.waktuOut"
-                      type="time"
-                      color="primary"
-                      class="rounded-input"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <div
-                    class="text-caption text-weight-bold text-blue-grey-8 uppercase letter-spacing-1 q-mb-sm"
-                  >
-                    Alasan Manual
-                  </div>
-                  <q-input
-                    outlined
-                    v-model="manualForm.alasan"
-                    type="textarea"
-                    rows="3"
-                    placeholder="Contoh: Lupa absen pulang, HP error, jaringan hilang, dll."
-                    color="primary"
-                    class="rounded-input"
-                    :rules="[(val) => !!val || 'Wajib diisi']"
-                  />
-                </div>
-
-                <div>
-                  <div
-                    class="text-caption text-weight-bold text-blue-grey-8 uppercase letter-spacing-1 q-mb-sm"
-                  >
-                    Bukti (Opsional)
-                  </div>
-                  <q-file
-                    outlined
-                    v-model="manualForm.lampiran"
-                    placeholder="Upload Foto / Screenshot"
-                    color="primary"
-                    class="rounded-input bg-grey-1"
-                    accept="image/*, .pdf"
-                    clearable
-                    max-file-size="5242880"
-                  >
-                    <template v-slot:prepend
-                      ><q-icon name="cloud_upload" color="blue-grey-4"
-                    /></template>
-                    <q-tooltip class="bg-blue-grey-9"
-                      >Screenshot error atau foto bukti pendukung (Max 5MB)</q-tooltip
-                    >
-                  </q-file>
-                </div>
-              </div>
-            </q-card-section>
-
-            <q-card-actions align="right" class="bg-slate-50 q-px-lg q-pb-lg q-pt-md border-top">
-              <q-btn
-                flat
-                label="BATAL"
-                color="blue-grey-6"
-                v-close-popup
-                class="text-weight-bold rounded-8 q-px-md transition-smooth hover-scale"
-              />
-              <q-btn
-                unelevated
-                label="KIRIM PENGAJUAN"
-                color="primary"
-                type="submit"
-                class="text-weight-bolder rounded-12 q-px-xl shadow-soft-primary transition-smooth hover-scale q-py-sm"
-                :loading="submittingManual"
-                icon="send"
-              />
-            </q-card-actions>
-          </q-form>
-        </q-card>
-      </q-dialog>
-
-      <!-- ========================================== -->
       <!-- MODAL SCREEN ABSEN DIGITAL VERIFICATION    -->
       <!-- ========================================== -->
       <q-slide-transition>
-        <div v-if="showCamera" class="row justify-center">
+        <div v-if="showCamera" class="row justify-center camera-outer-wrapper">
           <div class="col-12 col-xl-10">
-            <q-card flat class="bento-card bg-white overflow-hidden shadow-soft">
+            <q-card flat class="bento-card bg-white overflow-hidden shadow-soft camera-modal-card">
               <div
-                class="bg-blue-grey-9 text-white row items-center q-pa-md z-top relative-position"
+                class="bg-blue-grey-9 text-white row items-center q-pa-sm q-px-md z-top relative-position camera-header"
               >
                 <q-btn
                   icon="arrow_back"
@@ -617,16 +405,19 @@
                   dense
                   @click="stopCamera"
                   class="bg-blue-grey-8 transition-smooth hover-scale"
+                  size="sm"
                 />
-                <div class="text-subtitle1 text-weight-bold q-ml-md letter-spacing-1">
-                  VERIFIKASI BIOMETRIK WAJAH
+                <div
+                  class="text-subtitle2 text-weight-bold q-ml-md letter-spacing-1 uppercase text-ellipsis"
+                >
+                  BIOMETRIK:
+                  {{ attendanceMode === 'in' ? 'CLOCK IN (MASUK)' : 'CLOCK OUT (PULANG)' }}
                 </div>
               </div>
 
-              <div class="row">
+              <div class="row no-wrap-md camera-row-container">
                 <div
-                  class="col-12 col-md-7 bg-black relative-position flex flex-center"
-                  style="min-height: 350px"
+                  class="col-12 col-md-7 bg-black relative-position flex flex-center camera-video-container"
                 >
                   <video ref="video" autoplay playsinline class="video-stream"></video>
                   <canvas ref="canvas" class="hidden"></canvas>
@@ -639,13 +430,14 @@
                       <div class="corner b-r"></div>
                       <div class="scan-laser"></div>
                     </div>
-                    <div class="absolute-bottom text-center q-pb-md">
+                    <div class="absolute-bottom text-center q-pb-sm">
                       <q-chip
                         color="primary"
                         text-color="white"
-                        class="text-weight-bold shadow-3 bg-opacity-80"
+                        class="text-weight-bold shadow-3 bg-opacity-80 text-10"
                       >
-                        <q-icon name="face" size="xs" class="q-mr-xs" /> Deteksi Sensor Wajah Aktif
+                        <q-icon name="face" size="14px" class="q-mr-xs" /> Deteksi Sensor Wajah
+                        Aktif
                       </q-chip>
                     </div>
                   </div>
@@ -657,36 +449,43 @@
                   />
                 </div>
 
-                <div class="col-12 col-md-5 q-pa-lg bg-grey-1 flex column justify-center">
-                  <div class="bg-white q-pa-lg rounded-16 border-grey shadow-sm q-mb-lg">
+                <div
+                  class="col-12 col-md-5 q-pa-sm q-pa-md-md bg-grey-1 flex column justify-between camera-control-panel"
+                >
+                  <div
+                    class="bg-white q-pa-sm q-pa-md-md rounded-12 border-grey shadow-sm info-summary-card"
+                  >
                     <div
-                      class="text-caption text-blue-grey-5 text-weight-bold uppercase letter-spacing-1 q-mb-md"
+                      class="text-caption text-blue-grey-5 text-weight-bold uppercase letter-spacing-1 q-mb-xs font-10"
                     >
-                      Informasi Log Absensi
+                      Informasi Log Presensi
                     </div>
-                    <div class="row items-center q-mb-md">
+
+                    <div class="row items-center q-mb-xs">
                       <q-avatar
-                        size="40px"
+                        size="28px"
                         color="blue-1"
                         text-color="primary"
                         icon="person"
-                        class="q-mr-md"
+                        class="q-mr-sm"
                       />
-                      <div class="text-weight-bold text-blue-grey-10 text-subtitle1">
+                      <div
+                        class="text-weight-bold text-blue-grey-10 text-subtitle2 ellipsis max-w-160"
+                      >
                         {{ userData.nama }}
                       </div>
                     </div>
 
-                    <!-- INDIKATOR VERIFIKASI SEBELUM KIRIM (DENGAN ANIMASI LOADING UX) -->
                     <div
                       v-if="isVerifyingFace"
-                      class="q-pa-sm rounded-8 text-center text-weight-bold q-mb-md bg-orange-50 text-orange-8 border-orange"
+                      class="q-pa-sm rounded-8 text-center text-weight-bold q-mb-md bg-orange-50 text-orange-8 border-orange text-11"
                     >
-                      <q-spinner-dots size="1.5em" class="q-mr-xs" /> MEMPROSES BIOMETRIK...
+                      <q-spinner-dots size="1.2em" class="q-mr-xs" /> MENGANALISIS STRUKTUR
+                      BIOMETRIK...
                     </div>
                     <div
                       v-else
-                      class="q-pa-sm rounded-8 text-center text-weight-bold q-mb-md"
+                      class="q-pa-sm rounded-8 text-center text-weight-bold q-mb-md text-11"
                       :class="
                         isFaceMatched
                           ? 'bg-teal-50 text-teal-8 border-teal'
@@ -699,77 +498,59 @@
                       }}
                     </div>
 
-                    <div class="row items-start q-mb-md">
-                      <q-avatar
-                        size="32px"
-                        color="teal-1"
-                        text-color="teal-7"
-                        icon="place"
-                        class="q-mr-md"
-                      />
-                      <div class="col">
-                        <div class="text-weight-bold text-blue-grey-9 text-caption">
-                          {{ locationData.matchedLocationName }}
-                        </div>
-                        <div class="text-blue-grey-6 line-height-tight" style="font-size: 11px">
-                          {{ locationData.address }}
-                        </div>
+                    <div class="row items-center no-wrap text-11 text-blue-grey-7 q-mb-xs">
+                      <q-icon name="place" size="14px" color="teal" class="q-mr-xs" />
+                      <div class="ellipsis text-weight-bold">
+                        {{ locationData.matchedLocationName }}
                       </div>
+                    </div>
+
+                    <div class="text-10 text-blue-grey-5 ellipsis line-height-tight q-pl-sm">
+                      {{ locationData.address }}
                     </div>
                   </div>
 
-                  <!-- TOMBOL LOGIC SINKRON AI -->
-                  <div v-if="!capturedImage">
-                    <q-btn
-                      unelevated
-                      color="primary"
-                      icon="photo_camera"
-                      label="PINDAI WAJAH ANDA"
-                      class="full-width rounded-12 q-py-md text-weight-bolder shadow-soft-primary text-subtitle1"
-                      @click="takePhoto"
-                      :disable="!isAiReady"
-                    />
-                  </div>
+                  <div class="q-mt-sm">
+                    <div v-if="!capturedImage">
+                      <q-btn
+                        unelevated
+                        color="primary"
+                        icon="photo_camera"
+                        label="PINDAI WAJAH ANDA"
+                        class="full-width rounded-12 q-py-sm text-weight-bolder shadow-soft-primary text-subtitle2"
+                        @click="takePhoto"
+                        :disabled="!isAiReady || isVerifyingFace"
+                      />
+                    </div>
 
-                  <div v-else class="column q-gutter-y-sm">
-                    <!-- Tombol Loading AI (Perbaikan UX) -->
-                    <q-btn
-                      v-if="isVerifyingFace"
-                      loading
-                      color="orange-5"
-                      label="MENGANALISIS..."
-                      class="full-width rounded-12 q-py-md text-weight-bolder text-subtitle1"
-                    />
-
-                    <template v-else>
+                    <div v-else class="column q-gutter-y-sm">
                       <q-btn
                         v-if="isFaceMatched"
                         unelevated
                         color="teal-6"
-                        label="KONFIRMASI & KIRIM"
-                        class="full-width rounded-12 q-py-md text-weight-bolder shadow-glow-positive text-subtitle1"
+                        :label="attendanceMode === 'in' ? 'KONFIRMASI MASUK' : 'KONFIRMASI PULANG'"
+                        class="full-width rounded-12 q-py-sm text-weight-bolder shadow-glow-positive text-subtitle2"
                         icon="send"
-                        @click="saveAbsensi"
+                        @click="executeAbsensiAction"
                       />
                       <q-btn
                         v-else
                         disabled
                         color="grey-5"
                         label="AKSES DIKUNCI: WAJAH SALAH"
-                        class="full-width rounded-12 q-py-md text-weight-bolder text-subtitle1"
+                        class="full-width rounded-12 q-py-sm text-weight-bolder text-subtitle2"
                         icon="block"
                       />
-                    </template>
 
-                    <!-- PERBAIKAN LOGIKA EVENT INLINE UNTUK MENGHINDARI ERROR COMPILER -->
-                    <q-btn
-                      outline
-                      color="blue-grey-6"
-                      label="ULANGI PINDAI"
-                      class="full-width rounded-12 q-py-sm text-weight-bold bg-white"
-                      @click="ulangiPindai"
-                      :disable="isVerifyingFace"
-                    />
+                      <q-btn
+                        outline
+                        color="blue-grey-6"
+                        label="ULANGI PINDAI"
+                        class="full-width rounded-12 q-py-xs text-weight-bold bg-white text-11"
+                        @click="ulangiPindai"
+                        :disabled="isVerifyingFace"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -782,7 +563,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { db, storage } from 'src/boot/firebase'
 import {
   collection,
@@ -797,14 +578,15 @@ import {
   where,
   Timestamp,
 } from 'firebase/firestore'
-import { ref as storageRef, uploadString, getDownloadURL, uploadBytes } from 'firebase/storage'
+import { ref as storageRef, uploadString, getDownloadURL } from 'firebase/storage'
 import { useQuasar, date } from 'quasar'
+import { useRouter } from 'vue-router'
 
 const $q = useQuasar()
-const LATE_LIMIT = '08:00'
+const router = useRouter()
 
 // Deklarasi Listener
-let timer, unsubMe, unsubAll, unsubUser, unsubLokasi, unsubPengumuman, locationTimer
+let timer, unsubMe, unsubAll, unsubUser, unsubLokasi, locationTimer
 
 // State Engine Waktu
 const currentHours = ref('')
@@ -815,11 +597,7 @@ const currentDate = ref('')
 const riwayatData = ref([])
 const dataSeluruhKaryawan = ref([])
 
-// State Pemberitahuan Umum
-const activeAnnouncements = ref([])
-const slidePengumuman = ref(0)
-
-// State User & Master Data Karyawan
+// REVISI POIN 5 & 15: Ditambahkan jam_masuk, jam_pulang, dan lokasi_dinas (array) dinamis pada profil karyawan
 const userData = ref({
   nama: 'Memuat...',
   jabatan: 'Staff',
@@ -827,23 +605,20 @@ const userData = ref({
   email: '',
   fotoUrl: '',
   foto_profil: '',
+  foto_registrasi: '',
+  nik: '',
+  jam_masuk: '08:00', // Default Fallback jika HRD belum set jam kerja
+  jam_pulang: '17:00', // Default Fallback jika HRD belum set jam kerja
+  lokasi_dinas: [], // Diubah menjadi Array reaktif untuk memuat beberapa lokasi dinas (Poin 15 akhir)
 })
 
 // STATE AI FACE VERIFICATION
 const isAiReady = ref(false)
 const isFaceMatched = ref(false)
-const isVerifyingFace = ref(false) // UX Loading State Tambahan
+const isVerifyingFace = ref(false)
 const aiStatusText = ref('Menginisialisasi modul kecerdasan buatan...')
 
-const manualDialog = ref(false)
-const submittingManual = ref(false)
-const manualForm = ref({
-  tanggal: date.formatDate(Date.now(), 'YYYY-MM-DD'),
-  waktuIn: '',
-  waktuOut: '',
-  alasan: '',
-  lampiran: null,
-})
+const attendanceMode = ref('in')
 
 const documentId = ref(null)
 const showCamera = ref(false)
@@ -862,158 +637,16 @@ const locationData = ref({
   securityRisk: false,
 })
 
-// FUNGSI MENGHAPUS FOTO DAN MENGULANG SCAN (MENCEGAH ERROR VITE COMPILER)
+// REVISI POIN 5: Menghitung limit keterlambatan dinamis berbasis data Firestore Karyawan
+const lateLimit = computed(() => userData.value.jam_masuk || '08:00')
+
+// FUNGSI MENGHAPUS FOTO DAN MENGULANG SCAN
 const ulangiPindai = () => {
   capturedImage.value = null
   isFaceMatched.value = false
 }
 
-// FUNGSI INJEKSI SCRIPT CDN SECARA DINAMIS (ANTI-RIBET EDIT HTML)
-const loadFaceApiScript = () => {
-  return new Promise((resolve, reject) => {
-    if (window.faceapi) {
-      resolve()
-      return
-    }
-    const script = document.createElement('script')
-    script.src = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js'
-    script.async = true
-    script.onload = () => {
-      resolve()
-    }
-    script.onerror = () => {
-      reject(new Error('Gagal memuat library AI Face-API dari CDN.'))
-    }
-    document.head.appendChild(script)
-  })
-}
-
-// FUNGSI LOAD CORE MODEL AI LANGSUNG DARI CLOUD CDN (MENGHINDARI ERROR LOKAL TENSOR)
-const initFaceEngine = async () => {
-  try {
-    aiStatusText.value = 'Menghubungkan ke server satelit AI...'
-    await loadFaceApiScript()
-
-    aiStatusText.value = 'AI sedang mengunduh bobot jaringan dari Cloud...'
-
-    // GANTI KE URL CLOUD RESMI (ANTI-CORRUPT & TIDAK PERLU COPY FOLDER PUBLIC/MODELS)
-    const modelUrl = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model'
-
-    await window.faceapi.nets.ssdMobilenetv1.loadFromUri(modelUrl)
-    await window.faceapi.nets.faceLandmark68Net.loadFromUri(modelUrl)
-    await window.faceapi.nets.faceRecognitionNet.loadFromUri(modelUrl)
-
-    isAiReady.value = true
-    aiStatusText.value = 'Double-Guard GPS & Pemindai Wajah Biometrik Aktif (Aman)'
-  } catch (e) {
-    console.error('Gagal memuat AI Engine:', e)
-    aiStatusText.value = 'Gagal memuat model AI: ' + e.message
-  }
-}
-
-// LOGIKA MATEMATIKA: PEMBANDING VECTOR DESCRIPTOR WAJAH (E-KYC SINKRON)
-const lakukanFaceMatch = async () => {
-  const masterFotoUrl = userData.value.foto_profil || userData.value.fotoUrl
-  if (!masterFotoUrl) {
-    $q.notify({
-      color: 'negative',
-      icon: 'error',
-      message: 'FOTO MASTER IDENTITAS BELUM DI-UPLOAD HRD PADA MODUL KARYAWAN!',
-      position: 'top',
-      timeout: 5000,
-    })
-    isFaceMatched.value = false
-    return
-  }
-
-  try {
-    // 1. Ambil Data Wajah Kamera (Live)
-    const liveImg = new Image()
-    liveImg.src = capturedImage.value
-    await new Promise((r) => (liveImg.onload = r))
-    const liveDesc = await window.faceapi
-      .detectSingleFace(liveImg)
-      .withFaceLandmarks()
-      .withFaceDescriptor()
-
-    // 2. Ambil Data Foto Identitas Resmi Karyawan (Master Data)
-    const refImg = new Image()
-    refImg.crossOrigin = 'anonymous'
-    refImg.src = masterFotoUrl
-    await new Promise((res, rej) => {
-      refImg.onload = res
-      refImg.onerror = () => rej(new Error('Gagal mengunduh foto master HRD.'))
-    })
-    const refDesc = await window.faceapi
-      .detectSingleFace(refImg)
-      .withFaceLandmarks()
-      .withFaceDescriptor()
-
-    if (!liveDesc) {
-      $q.notify({
-        color: 'negative',
-        message: 'Wajah gagal terdeteksi kamera! Dekatkan wajah Anda ke kamera.',
-      })
-      capturedImage.value = null
-      isFaceMatched.value = false
-      return
-    }
-
-    if (!refDesc) {
-      $q.notify({
-        color: 'negative',
-        message: 'Foto master di database HRD buram/tidak valid! Hubungi Admin.',
-      })
-      isFaceMatched.value = false
-      return
-    }
-
-    // 3. Hitung Jarak Euclidean (Ambang batas keamanan standard: 0.55)
-    const distance = window.faceapi.euclideanDistance(liveDesc.descriptor, refDesc.descriptor)
-
-    if (distance < 0.55) {
-      isFaceMatched.value = true
-      $q.notify({
-        color: 'positive',
-        icon: 'verified',
-        message: 'Verifikasi Wajah Sukses! Identitas Valid.',
-      })
-    } else {
-      isFaceMatched.value = false
-      $q.notify({
-        color: 'negative',
-        icon: 'block',
-        message: 'Verifikasi Gagal: Wajah Anda tidak cocok dengan database!',
-      })
-    }
-  } catch (err) {
-    console.error(err)
-    $q.notify({ color: 'negative', message: 'Koneksi AI Terganggu: ' + err.message })
-    isFaceMatched.value = false
-  }
-}
-
-const takePhoto = async () => {
-  const ctx = canvas.value.getContext('2d')
-  canvas.value.width = video.value.videoWidth
-  canvas.value.height = video.value.videoHeight
-  ctx.drawImage(video.value, 0, 0)
-  capturedImage.value = canvas.value.toDataURL('image/jpeg')
-
-  // Langsung picu komparasi AI wajah setelah jepret foto
-  isVerifyingFace.value = true // Nyalakan indikator loading UI
-  await lakukanFaceMatch()
-  isVerifyingFace.value = false // Matikan indikator loading UI
-}
-
-// UI Helpers
-const getInitial = (n) => (n ? n.charAt(0).toUpperCase() : 'U')
-const getRandomColor = (n) => {
-  if (!n) return 'primary'
-  const colors = ['blue-6', 'teal-5', 'indigo-5', 'deep-purple-5', 'cyan-7']
-  return colors[n.length % colors.length]
-}
-
+// FUNGSI SINKRONISASI JAM DIGITAL REAL-TIME
 const updateTime = () => {
   const now = new Date()
   currentHours.value = date.formatDate(now, 'HH')
@@ -1036,6 +669,273 @@ const updateTime = () => {
       'Desember',
     ],
   })
+}
+
+// FUNGSI INJEKSI SCRIPT CDN SECARA DINAMIS
+const loadFaceApiScript = () => {
+  return new Promise((resolve, reject) => {
+    if (window.faceapi) {
+      resolve()
+      return
+    }
+    const script = document.createElement('script')
+    script.src = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js'
+    script.async = true
+    script.onload = () => {
+      resolve()
+    }
+    script.onerror = () => {
+      reject(new Error('Gagal memuat library AI Face-API dari CDN.'))
+    }
+    document.head.appendChild(script)
+  })
+}
+
+// FUNGSI LOAD CORE MODEL AI LANGSUNG DARI CLOUD CDN
+const initFaceEngine = async () => {
+  try {
+    aiStatusText.value = 'Menghubungkan ke server satelit AI...'
+    await loadFaceApiScript()
+
+    aiStatusText.value = 'AI sedang mengunduh bobot jaringan dari Cloud...'
+    const modelUrl = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model'
+
+    await window.faceapi.nets.ssdMobilenetv1.loadFromUri(modelUrl)
+    await window.faceapi.nets.faceLandmark68Net.loadFromUri(modelUrl)
+    await window.faceapi.nets.faceRecognitionNet.loadFromUri(modelUrl)
+
+    isAiReady.value = true
+    aiStatusText.value = 'Double-Guard GPS & Pemindai Wajah Biometrik Aktif (Aman)'
+  } catch (e) {
+    console.error('Gagal memuat AI Engine:', e)
+    aiStatusText.value = 'Gagal memuat model AI: ' + e.message
+  }
+}
+
+// LOGIKA MATEMATIKA: PEMBANDING VECTOR DESCRIPTOR WAJAH (STRICT THRESHOLD DETECTOR)
+const lakukanFaceMatch = async (rawImgBase64) => {
+  const masterFotoUrl = userData.value.foto_registrasi
+
+  if (!masterFotoUrl) {
+    $q.notify({
+      color: 'negative',
+      icon: 'error',
+      message:
+        'SISTEM DIKUNCI: Anda belum melakukan registrasi wajah biometrik resmi di database HRD!',
+      position: 'top',
+      timeout: 6000,
+    })
+    isFaceMatched.value = false
+    return false
+  }
+
+  try {
+    const liveImg = new Image()
+    liveImg.src = rawImgBase64
+    await new Promise((r) => (liveImg.onload = r))
+    const liveDesc = await window.faceapi
+      .detectSingleFace(liveImg)
+      .withFaceLandmarks()
+      .withFaceDescriptor()
+
+    const refImg = new Image()
+    refImg.crossOrigin = 'anonymous'
+    refImg.src = masterFotoUrl
+    await new Promise((res, rej) => {
+      refImg.onload = res
+      refImg.onerror = () => rej(new Error('Gagal mengunduh foto master HRD.'))
+    })
+    const refDesc = await window.faceapi
+      .detectSingleFace(refImg)
+      .withFaceLandmarks()
+      .withFaceDescriptor()
+
+    if (!liveDesc) {
+      $q.notify({
+        color: 'negative',
+        message: 'Wajah gagal terdeteksi kamera! Dekatkan wajah Anda ke kamera.',
+      })
+      isFaceMatched.value = false
+      return false
+    }
+
+    if (!refDesc) {
+      $q.notify({
+        color: 'negative',
+        message: 'Foto registrasi master tidak valid! Harap hubungi HRD untuk registrasi ulang.',
+      })
+      isFaceMatched.value = false
+      return false
+    }
+
+    const distance = window.faceapi.euclideanDistance(liveDesc.descriptor, refDesc.descriptor)
+    const matchScore = (1 - distance) * 100
+
+    if (distance < 0.48) {
+      isFaceMatched.value = true
+      $q.notify({
+        color: 'positive',
+        icon: 'verified',
+        message: `Verifikasi Wajah Berhasil! (Kecocokan: ${matchScore.toFixed(0)}%)`,
+        position: 'top',
+        timeout: 3000,
+      })
+      return true
+    } else {
+      isFaceMatched.value = false
+      $q.notify({
+        color: 'negative',
+        icon: 'block',
+        message: `Wajah Tidak Cocok! (Kecocokan: ${matchScore.toFixed(0)}% - Butuh Min. 52%)`,
+        position: 'top',
+        timeout: 4000,
+      })
+      return false
+    }
+  } catch (err) {
+    console.error(err)
+    $q.notify({ color: 'negative', message: 'Koneksi AI Terganggu: ' + err.message })
+    isFaceMatched.value = false
+    return false
+  }
+}
+
+// REVISI METODE WATERMARK: Canvas overlay dinamis mengikuti standard Map Camera (Clean & Premium)
+const applyWatermark = (base64Image, isClockIn = true) => {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.src = base64Image
+    img.onload = () => {
+      const wCanvas = document.createElement('canvas')
+      wCanvas.width = img.width
+      wCanvas.height = img.height
+      const ctx = wCanvas.getContext('2d')
+
+      ctx.drawImage(img, 0, 0)
+
+      const padding = Math.max(12, img.width * 0.035)
+      const watermarkHeight = img.height * 0.2
+      const startY = img.height - watermarkHeight
+
+      const grad = ctx.createLinearGradient(0, startY, 0, img.height)
+      grad.addColorStop(0, 'rgba(0, 0, 0, 0)')
+      grad.addColorStop(1, 'rgba(15, 23, 42, 0.75)')
+      ctx.fillStyle = grad
+      ctx.fillRect(0, startY, img.width, watermarkHeight)
+
+      const mapSize = Math.max(55, img.height * 0.13)
+      const mapX = padding
+      const mapY = img.height - mapSize - padding
+
+      ctx.save()
+      ctx.shadowColor = 'rgba(0,0,0,0.4)'
+      ctx.shadowBlur = 6
+      ctx.fillStyle = '#e2e8f0'
+      ctx.beginPath()
+      ctx.arc(mapX + mapSize / 2, mapY + mapSize / 2, mapSize / 2, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.restore()
+
+      ctx.strokeStyle = '#cbd5e1'
+      ctx.lineWidth = 1
+      ctx.beginPath()
+      ctx.arc(mapX + mapSize / 2, mapY + mapSize / 2, mapSize / 3, 0, Math.PI * 2)
+      ctx.stroke()
+
+      ctx.beginPath()
+      ctx.moveTo(mapX, mapY + mapSize / 2)
+      ctx.lineTo(mapX + mapSize, mapY + mapSize / 2)
+      ctx.moveTo(mapX + mapSize / 2, mapY)
+      ctx.lineTo(mapX + mapSize / 2, mapY + mapSize)
+      ctx.stroke()
+
+      const pinX = mapX + mapSize / 2
+      const pinY = mapY + mapSize / 2
+      ctx.fillStyle = '#ef4444'
+      ctx.beginPath()
+      ctx.arc(pinX, pinY, 4, 0, Math.PI * 2)
+      ctx.fill()
+
+      const textX = mapX + mapSize + 15
+      let textY = mapY - 4
+      const fontSize = Math.max(10, Math.floor(img.width * 0.028))
+
+      ctx.textBaseline = 'top'
+      ctx.fillStyle = '#ffffff'
+
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.85)'
+      ctx.shadowBlur = 4
+      ctx.shadowOffsetX = 1
+      ctx.shadowOffsetY = 1
+
+      ctx.font = `bold ${fontSize}px sans-serif`
+      const formattedNow = date.formatDate(new Date(), 'DD MMM YYYY HH.mm.ss')
+      ctx.fillText(formattedNow, textX, textY)
+
+      textY += fontSize + 4
+      ctx.font = `${fontSize - 1}px sans-serif`
+      ctx.fillText(
+        locationData.value.matchedLocationName || 'PT AGRA ABHINAYA PERKASA',
+        textX,
+        textY,
+      )
+
+      textY += fontSize + 3
+      ctx.font = `${fontSize - 2}px sans-serif`
+      const addrParts = locationData.value.address
+        ? locationData.value.address.split(',')
+        : ['Deltamas, Cikarang', 'Bekasi, Jawa Barat']
+      ctx.fillText((addrParts[0] || '').trim(), textX, textY)
+
+      textY += fontSize + 2
+      const line4Str = `${(addrParts[1] || '').trim()}, ${(addrParts[2] || '').trim()}`
+      ctx.fillText(line4Str, textX, textY)
+
+      textY += fontSize + 2
+      ctx.font = `italic ${fontSize - 2}px sans-serif`
+      ctx.fillText(
+        `GPS: ${locationData.value.lat}, ${locationData.value.lng} (${isClockIn ? 'CLOCK IN' : 'CLOCK OUT'})`,
+        textX,
+        textY,
+      )
+
+      resolve(wCanvas.toDataURL('image/jpeg', 0.9))
+    }
+  })
+}
+
+// AMBIL FOTO & TERAPKAN LIVE WATERMARK SETELAH VALIDASI
+const takePhoto = async () => {
+  const ctx = canvas.value.getContext('2d')
+  canvas.value.width = video.value.videoWidth
+  canvas.value.height = video.value.videoHeight
+  ctx.drawImage(video.value, 0, 0)
+
+  const rawImg = canvas.value.toDataURL('image/jpeg')
+  capturedImage.value = rawImg
+
+  isVerifyingFace.value = true
+  const isMatched = await lakukanFaceMatch(rawImg)
+  isVerifyingFace.value = false
+
+  if (isMatched) {
+    const watermarkedImg = await applyWatermark(rawImg, attendanceMode.value === 'in')
+    capturedImage.value = watermarkedImg
+  } else {
+    capturedImage.value = null
+  }
+}
+
+// UI Helpers
+const getInitial = (name) => {
+  if (!name) return 'U'
+  return name.charAt(0).toUpperCase()
+}
+
+const getRandomColor = (name) => {
+  if (!name) return 'primary'
+  const colors = ['blue-6', 'teal-5', 'indigo-5', 'deep-purple-5', 'cyan-7']
+  return colors[name.length % colors.length]
 }
 
 const getAddressName = async (lat, lng) => {
@@ -1063,6 +963,7 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)))
 }
 
+// REVISI POIN 15: Optimasi GPS Radar agar memvalidasi multi-lokasi penugasan aktif secara reaktif
 const detectLocation = () => {
   if (!navigator.geolocation) return
   navigator.geolocation.getCurrentPosition(
@@ -1091,7 +992,19 @@ const detectLocation = () => {
       let foundMatch = false
       let matchedName = 'TIDAK TERDETEKSI'
 
+      // Normalisasi daftar lokasi dinas karyawan agar aman dari bentuk String / Array
+      let assignedLocs = []
+      if (userData.value.lokasi_dinas) {
+        assignedLocs = Array.isArray(userData.value.lokasi_dinas)
+          ? userData.value.lokasi_dinas.map((l) => l.toUpperCase())
+          : [userData.value.lokasi_dinas.toUpperCase()]
+      }
+
       for (const loc of daftarLokasiKantor.value) {
+        // REVISI METODE PENCOCOKAN: Karyawan hanya bisa absen di salah satu lokasi dari list penugasan mereka
+        if (assignedLocs.length > 0 && !assignedLocs.includes(loc.nama_lokasi.toUpperCase())) {
+          continue
+        }
         const distance = calculateDistance(lat, lng, loc.latitude, loc.longitude)
         if (distance <= loc.radius) {
           foundMatch = true
@@ -1102,7 +1015,16 @@ const detectLocation = () => {
 
       locationData.value.inRange = foundMatch
       locationData.value.matchedLocationName = matchedName
-      locationData.value.statusText = foundMatch ? 'LOKASI VALID & COCOK' : 'DI LUAR AREA KANTOR'
+
+      if (foundMatch) {
+        locationData.value.statusText = 'LOKASI VALID & COCOK'
+      } else {
+        if (assignedLocs.length > 0) {
+          locationData.value.statusText = `WAJIB DI AREA PENUGASAN: ${assignedLocs.join(' / ')}`
+        } else {
+          locationData.value.statusText = 'DI LUAR AREA KANTOR / PROYEK'
+        }
+      }
       getAddressName(lat, lng)
     },
     () => {
@@ -1112,17 +1034,31 @@ const detectLocation = () => {
   )
 }
 
-const startAbsensi = () => {
+const startAbsensi = (mode) => {
   if (locationData.value.securityRisk || !locationData.value.inRange) return
 
-  const timeStr = `${currentHours.value}:${currentMinutes.value}`
-  if (timeStr > LATE_LIMIT) {
-    $q.notify({
-      color: 'red-6',
-      icon: 'warning',
-      message: 'Waktu presensi sudah melebihi 08:00. Log tersimpan sebagai Terlambat.',
-      position: 'top',
-    })
+  attendanceMode.value = mode
+
+  // REVISI POIN 5: Pengecekan status terlambat membandingkan dengan parameter limit dinamis
+  if (mode === 'in') {
+    const timeStr = `${currentHours.value}:${currentMinutes.value}`
+    if (timeStr > lateLimit.value) {
+      $q.notify({
+        color: 'red-6',
+        icon: 'warning',
+        message: `Waktu presensi sudah melebihi ${lateLimit.value}. Log tersimpan sebagai Terlambat.`,
+        position: 'top',
+      })
+    }
+  } else {
+    if (!documentId.value) {
+      $q.notify({
+        color: 'red-6',
+        icon: 'warning',
+        message: 'Gagal mendeteksi dokumen masuk hari ini. Silakan hubungi admin.',
+      })
+      return
+    }
   }
 
   showCamera.value = true
@@ -1141,15 +1077,26 @@ const stopCamera = () => {
   isVerifyingFace.value = false
 }
 
+const executeAbsensiAction = async () => {
+  if (attendanceMode.value === 'in') {
+    await saveAbsensi()
+  } else {
+    await saveAbsensiOut()
+  }
+}
+
+// CLOCK IN SINKRONISASI
 const saveAbsensi = async () => {
   if (!locationData.value.inRange || locationData.value.securityRisk || !isFaceMatched.value) return
 
-  $q.loading.show({ message: 'Menyimpan log presensi digital...' })
+  $q.loading.show({ message: 'Menyimpan berkas presensi masuk...' })
   try {
     const formattedName = (userData.value.nama || 'USER').toUpperCase()
     const now = new Date()
     const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`
-    const isLate = timeStr > LATE_LIMIT
+
+    // REVISI POIN 5: Penentuan status is_late di database mengikuti lateLimit dinamis
+    const isLate = timeStr > lateLimit.value
 
     let fotoUrl = null
     if (capturedImage.value) {
@@ -1177,75 +1124,53 @@ const saveAbsensi = async () => {
       icon: 'check_circle',
     })
     stopCamera()
-    // eslint-disable-next-line no-unused-vars
-  } catch (e) {
+  } catch {
     $q.notify({ color: 'negative', message: 'Koneksi gagal, coba lagi.' })
   } finally {
     $q.loading.hide()
   }
 }
 
-const absenPulang = async () => {
-  if (!documentId.value || locationData.value.securityRisk || !locationData.value.inRange) return
-  $q.loading.show()
+// CLOCK OUT SINKRONISASI
+const saveAbsensiOut = async () => {
+  if (
+    !documentId.value ||
+    locationData.value.securityRisk ||
+    !locationData.value.inRange ||
+    !isFaceMatched.value
+  )
+    return
+
+  $q.loading.show({ message: 'Menyimpan bukti presensi pulang...' })
   try {
+    const formattedName = (userData.value.nama || 'USER').toUpperCase()
+
+    let fotoPulangUrl = null
+    if (capturedImage.value) {
+      const fRef = storageRef(storage, `absensi/${formattedName}_OUT_${Date.now()}.jpg`)
+      await uploadString(fRef, capturedImage.value, 'data_url')
+      fotoPulangUrl = await getDownloadURL(fRef)
+    }
+
     await updateDoc(doc(db, 'absensi', documentId.value), {
       waktu_pulang: serverTimestamp(),
       status: 'Selesai',
       koordinat_pulang: `${locationData.value.lat}, ${locationData.value.lng}`,
       nama_tempat_pulang: locationData.value.matchedLocationName,
+      foto_pulang: fotoPulangUrl,
     })
+
     $q.notify({
       color: 'primary',
-      message: 'Clock-Out Sukses! Selamat beristirahat.',
+      message: 'Clock-Out Sukses! Selamat beristirahat di rumah.',
       icon: 'logout',
     })
-    // eslint-disable-next-line no-unused-vars
-  } catch (e) {
+    stopCamera()
+  } catch (err) {
+    console.error(err)
     $q.notify({ color: 'negative', message: 'Gagal memproses pengakhiran shift.' })
   } finally {
     $q.loading.hide()
-  }
-}
-
-const submitManualAbsen = async () => {
-  submittingManual.value = true
-  try {
-    const namaKaryawan = (userData.value.nama || 'USER').toUpperCase()
-    let finalDocUrl = ''
-    if (manualForm.value.lampiran) {
-      const file = manualForm.value.lampiran
-      const extension = file.name.split('.').pop()
-      const fileName = `MANUAL_ABSEN_${namaKaryawan}_${Date.now()}.${extension}`
-      const sRef = storageRef(storage, `lampiran_pengajuan/${fileName}`)
-
-      await uploadBytes(sRef, file)
-      finalDocUrl = await getDownloadURL(sRef)
-    }
-
-    const outTime = manualForm.value.waktuOut ? manualForm.value.waktuOut : 'Belum Pulang'
-    await addDoc(collection(db, 'pengajuan'), {
-      nama_karyawan: namaKaryawan,
-      jenis_pengajuan: 'Absensi Manual',
-      tanggal_mulai: manualForm.value.tanggal,
-      tanggal_selesai: manualForm.value.tanggal,
-      alasan: `[Jam Masuk: ${manualForm.value.waktuIn} | Jam Pulang: ${outTime}] - Alasan: ${manualForm.value.alasan}`,
-      dokumen_url: finalDocUrl,
-      status_approval: 'Pending',
-      created_at: serverTimestamp(),
-    })
-
-    $q.notify({
-      color: 'positive',
-      message: 'Pengajuan Absensi Manual Terkirim!',
-      icon: 'check_circle',
-    })
-    manualDialog.value = false
-    // eslint-disable-next-line no-unused-vars
-  } catch (e) {
-    $q.notify({ color: 'negative', message: 'Gagal memproses data manual.' })
-  } finally {
-    submittingManual.value = false
   }
 }
 
@@ -1262,20 +1187,6 @@ onMounted(() => {
   })
   locationTimer = setInterval(detectLocation, 30000)
 
-  // SINKRONISASI PENGUMUMAN (Bug Fixed)
-  const qPengumuman = query(collection(db, 'pemberitahuan'), orderBy('tgl_publikasi', 'desc'))
-  unsubPengumuman = onSnapshot(qPengumuman, (snap) => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const semuaPengumuman = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
-
-    activeAnnouncements.value = semuaPengumuman.filter((p) => {
-      if (!p.tgl_kadaluarsa) return true
-      const expDate = new Date(p.tgl_kadaluarsa)
-      return expDate >= today
-    })
-  })
-
   const saved = localStorage.getItem('user_data')
   if (saved) {
     try {
@@ -1287,12 +1198,26 @@ onMounted(() => {
         unsubUser = onSnapshot(qUser, (snap) => {
           if (!snap.empty) {
             const data = snap.docs[0].data()
+
+            // REVISI POIN 5 & 15: Penanganan normalisasi data lokasi_dinas agar bertipe Array yang aman
+            let initialLocs = data.lokasi_dinas || []
+            if (typeof initialLocs === 'string') {
+              initialLocs = initialLocs ? [initialLocs] : []
+            }
+
             userData.value = {
               ...userData.value,
               nama: data.nama || userData.value.nama,
               jabatan: data.jabatan || data.role,
               foto_profil: data.foto_profil || data.fotoUrl || '',
+              foto_registrasi: data.foto_registrasi || '',
+              nik: data.nik || '',
+              jam_masuk: data.jam_masuk || '08:00',
+              jam_pulang: data.jam_pulang || '17:00',
+              lokasi_dinas: initialLocs,
             }
+            // Trigger pendeteksian ulang koordinat sesudah lokasi dinas berhasil diload
+            detectLocation()
           }
         })
       }
@@ -1341,7 +1266,6 @@ onUnmounted(() => {
   if (unsubAll) unsubAll()
   if (unsubUser) unsubUser()
   if (unsubLokasi) unsubLokasi()
-  if (unsubPengumuman) unsubPengumuman() // Hapus Listener Memori Pengumuman
 })
 </script>
 
@@ -1617,9 +1541,6 @@ onUnmounted(() => {
   box-shadow: none;
   cursor: not-allowed;
 }
-.btn-locked:hover {
-  background: #f1f5f9;
-}
 
 .hover-bg {
   transition: background 0.3s;
@@ -1712,6 +1633,117 @@ onUnmounted(() => {
 }
 .bg-opacity-80 {
   background: rgba(0, 77, 64, 0.8) !important;
+}
+
+/* =======================================================================
+   REVISI RESPONSIF LAYOUT MOBILE - ZERO-SCROLL SINGLE PANEL CONFIG
+   ======================================================================= */
+@media (max-width: 767px) {
+  /* Memaksa wrapper kamera melayang penuh menutupi sisa padding q-page */
+  .camera-outer-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 9999;
+    background: #f1f5f9;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden;
+  }
+
+  /* Memastikan anak pembungkus wrapper juga memanjang penuh */
+  .camera-outer-wrapper > div {
+    height: 100% !important;
+    width: 100% !important;
+  }
+
+  .camera-modal-card {
+    border-radius: 0 !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    display: flex;
+    flex-direction: column;
+    margin: 0 !important;
+    border: none !important;
+  }
+
+  .camera-header {
+    padding: 10px 16px !important;
+    flex: none;
+  }
+
+  .camera-row-container {
+    flex-direction: column !important;
+    flex-wrap: nowrap !important; /* MENCEGAH ELEMEN MELIPAT HORIZONTAL KE SISI KANAN */
+    flex: 1;
+    overflow: hidden;
+    display: flex !important;
+  }
+
+  /* Video kamera presisi 42vh dari tinggi layar HP */
+  .camera-video-container {
+    height: 42vh !important;
+    min-height: 180px !important;
+    max-height: 240px !important;
+    flex: none !important;
+    background: #000000 !important;
+  }
+
+  /* Mencegah Watermark Terpotong Sisi Atas/Bawah karena Penskalaan CSS Cover */
+  .video-stream,
+  .captured-preview {
+    height: 100% !important;
+    width: 100% !important;
+    object-fit: contain !important; /* DIJAMIN WATERMARK TERLIHAT UTUH */
+    background: #000000 !important;
+  }
+
+  /* Panel kontrol otomatis mengisi sisa tinggi layar HP */
+  .camera-control-panel {
+    padding: 12px !important;
+    flex: 1;
+    display: flex !important;
+    flex-direction: column !important;
+    flex-wrap: nowrap !important; /* KUNCI AGAR TIDAK MELIPAT KE KANAN */
+    justify-content: space-between !important;
+    background-color: #f8fafc !important;
+    overflow: hidden;
+  }
+
+  .info-summary-card {
+    padding: 8px 12px !important;
+    border-radius: 12px !important;
+    margin-bottom: 0 !important;
+    border: 1px solid #e2e8f0;
+    background: white;
+  }
+
+  .info-summary-card .text-subtitle2 {
+    font-size: 13px !important;
+  }
+
+  .font-10 {
+    font-size: 9px !important;
+  }
+
+  .text-11 {
+    font-size: 10px !important;
+    padding: 4px !important;
+  }
+
+  .text-10 {
+    font-size: 9px !important;
+  }
+
+  .q-mt-sm {
+    margin-top: 8px !important;
+  }
+
+  .text-subtitle2 {
+    font-size: 13px !important;
+  }
 }
 
 @media (max-width: 1023px) {

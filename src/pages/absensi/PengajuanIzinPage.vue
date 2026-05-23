@@ -197,9 +197,41 @@
                           minimal
                           emit-immediately
                           color="primary"
+                          :options="(d) => !isDateDisabled(d)"
+                          :events="(d) => calendarEvents.some((e) => e.date === d)"
+                          :event-color="(d) => getDateColor(d)"
                           class="shadow-soft rounded-16"
                         >
                           <div class="row items-center justify-end q-gutter-sm q-pa-sm border-top">
+                            <!-- Legenda kalender -->
+                            <div class="full-width row q-gutter-xs q-mb-sm q-px-xs">
+                              <div class="row items-center q-mr-md">
+                                <div
+                                  style="
+                                    width: 10px;
+                                    height: 10px;
+                                    border-radius: 50%;
+                                    background: #ef5350;
+                                  "
+                                  class="q-mr-xs"
+                                ></div>
+                                <span class="text-caption text-blue-grey-7"
+                                  >Hari Libur Nasional</span
+                                >
+                              </div>
+                              <div class="row items-center">
+                                <div
+                                  style="
+                                    width: 10px;
+                                    height: 10px;
+                                    border-radius: 50%;
+                                    background: #fb8c00;
+                                  "
+                                  class="q-mr-xs"
+                                ></div>
+                                <span class="text-caption text-blue-grey-7">Cuti Bersama</span>
+                              </div>
+                            </div>
                             <q-btn
                               label="SELESAI PILIH TANGGAL"
                               color="primary"
@@ -209,6 +241,12 @@
                             />
                           </div>
                         </q-date>
+                        <div
+                          v-if="form.jenis === 'Cuti Tahunan'"
+                          class="text-caption text-orange q-mt-sm"
+                        >
+                          Pengajuan cuti tahunan wajib dilakukan minimal H+14.
+                        </div>
                       </q-popup-proxy>
                     </q-input>
                   </div>
@@ -431,6 +469,49 @@
                       />
                       {{ props.row.status_approval || 'Pending' }}
                     </q-badge>
+                    <!-- Badge DIREVISI jika admin mengubah durasi -->
+                    <div v-if="props.row.direvisi_oleh_admin" class="q-mt-xs">
+                      <q-badge
+                        color="orange-2"
+                        text-color="orange-9"
+                        class="q-px-sm q-py-xs rounded-6 text-weight-bold"
+                        style="font-size: 10px"
+                      >
+                        <q-icon name="edit" size="10px" class="q-mr-xs" />
+                        Durasi Direvisi Admin
+                      </q-badge>
+                    </div>
+                  </q-td>
+
+                  <!-- Kolom Catatan Admin -->
+                  <q-td key="catatan" class="text-left">
+                    <div
+                      v-if="props.row.catatan_revisi"
+                      class="row items-start no-wrap"
+                      style="max-width: 200px"
+                    >
+                      <q-icon
+                        name="admin_panel_settings"
+                        color="orange-6"
+                        size="14px"
+                        class="q-mr-xs q-mt-xs flex-shrink-0"
+                      />
+                      <div>
+                        <div class="text-caption text-weight-bold text-orange-8 q-mb-xs">
+                          Catatan Admin:
+                        </div>
+                        <div
+                          class="text-caption text-blue-grey-7 line-height-normal"
+                          style="white-space: normal"
+                        >
+                          {{ props.row.catatan_revisi }}
+                          <q-tooltip class="bg-blue-grey-9 text-white rounded-8" max-width="280px">
+                            {{ props.row.catatan_revisi }}
+                          </q-tooltip>
+                        </div>
+                      </div>
+                    </div>
+                    <span v-else class="text-grey-4 font-mono">-</span>
                   </q-td>
                 </q-tr>
               </template>
@@ -447,12 +528,188 @@
           </q-card>
         </div>
       </div>
+
+      <!-- ========================================== -->
+      <!-- BAGIAN 5: KALENDER DINDING REALTIME        -->
+      <!-- ========================================== -->
+      <div class="q-mt-xl">
+        <div class="row items-center justify-between q-mb-md">
+          <div class="row items-center">
+            <div class="ios-icon-box small bg-indigo-50 text-indigo-6 q-mr-sm">
+              <q-icon name="calendar_month" size="20px" />
+            </div>
+            <div>
+              <div class="text-h6 text-weight-bolder text-blue-grey-9">
+                Kalender {{ calendarYear }}
+                <q-spinner-dots
+                  v-if="loadingCalendar"
+                  color="primary"
+                  size="18px"
+                  class="q-ml-sm"
+                />
+              </div>
+              <div class="text-caption text-blue-grey-5">
+                Data hari libur nasional & cuti bersama Indonesia otomatis
+              </div>
+            </div>
+          </div>
+          <div class="row items-center q-gutter-sm">
+            <!-- Legenda -->
+            <div class="row items-center q-mr-md q-gutter-xs">
+              <div
+                style="width: 12px; height: 12px; border-radius: 3px; background: #c62828"
+                class="q-mr-xs"
+              ></div>
+              <span class="text-caption text-weight-bold text-blue-grey-7">Libur Nasional</span>
+              <div
+                style="width: 12px; height: 12px; border-radius: 3px; background: #e65100"
+                class="q-mr-xs q-ml-md"
+              ></div>
+              <span class="text-caption text-weight-bold text-blue-grey-7">Cuti Bersama</span>
+              <div
+                style="width: 12px; height: 12px; border-radius: 3px; background: #1976d2"
+                class="q-mr-xs q-ml-md"
+              ></div>
+              <span class="text-caption text-weight-bold text-blue-grey-7">Hari Ini</span>
+              <div
+                style="width: 12px; height: 12px; border-radius: 3px; background: #ffebee"
+                class="q-mr-xs q-ml-md; border: 1px solid #ef9a9a"
+              ></div>
+              <span class="text-caption text-weight-bold text-blue-grey-7">Minggu</span>
+            </div>
+            <!-- Navigasi Tahun -->
+            <q-btn
+              flat
+              round
+              dense
+              icon="chevron_left"
+              color="primary"
+              @click="calendarYear--"
+              :disable="loadingCalendar"
+            />
+            <span class="text-subtitle1 text-weight-bolder text-blue-grey-9 q-px-sm">{{
+              calendarYear
+            }}</span>
+            <q-btn
+              flat
+              round
+              dense
+              icon="chevron_right"
+              color="primary"
+              @click="calendarYear++"
+              :disable="loadingCalendar"
+            />
+          </div>
+        </div>
+
+        <!-- Grid 12 Bulan -->
+        <div class="row q-col-gutter-md">
+          <div
+            v-for="(bulan, bIndex) in calendarMonths"
+            :key="bIndex"
+            class="col-12 col-sm-6 col-md-4 col-lg-3"
+          >
+            <q-card flat class="bento-card bg-white overflow-hidden">
+              <!-- Header Bulan -->
+              <div
+                class="q-pa-sm text-center text-weight-bolder text-white"
+                :class="
+                  bIndex === currentMonthIndex && calendarYear === currentYear
+                    ? 'bg-primary'
+                    : 'bg-blue-grey-7'
+                "
+                style="letter-spacing: 1px; font-size: 13px"
+              >
+                {{ bulan.nama.toUpperCase() }}
+              </div>
+
+              <!-- Header Hari -->
+              <div class="row q-px-xs q-pt-xs">
+                <div
+                  v-for="hari in ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab']"
+                  :key="hari"
+                  class="col text-center"
+                  style="font-size: 10px; font-weight: 700; padding: 4px 0; color: #90a4ae"
+                >
+                  {{ hari }}
+                </div>
+              </div>
+
+              <!-- Grid Tanggal -->
+              <div class="row q-px-xs q-pb-xs">
+                <!-- Offset hari pertama bulan -->
+                <div
+                  v-for="n in bulan.offset"
+                  :key="'off-' + n"
+                  class="col"
+                  style="aspect-ratio: 1"
+                />
+                <!-- Tanggal -->
+                <div
+                  v-for="tgl in bulan.totalDays"
+                  :key="tgl"
+                  class="col text-center cal-day"
+                  style="padding: 2px"
+                >
+                  <div
+                    class="cal-day-inner"
+                    :class="getDayClass(calendarYear, bIndex + 1, tgl)"
+                    style="
+                      border-radius: 6px;
+                      font-size: 11px;
+                      font-weight: 600;
+                      min-height: 28px;
+                      display: flex;
+                      flex-direction: column;
+                      align-items: center;
+                      justify-content: center;
+                      cursor: default;
+                      padding: 2px 1px;
+                    "
+                  >
+                    <span>{{ tgl }}</span>
+                    <!-- Nama libur singkat (2 kata pertama) -->
+                    <span
+                      v-if="getEventLabel(calendarYear, bIndex + 1, tgl)"
+                      style="
+                        font-size: 7px;
+                        font-weight: 700;
+                        line-height: 1.1;
+                        text-align: center;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        max-width: 100%;
+                        opacity: 0.85;
+                      "
+                    >
+                      {{
+                        getEventLabel(calendarYear, bIndex + 1, tgl)
+                          .split(' ')
+                          .slice(0, 2)
+                          .join(' ')
+                      }}
+                    </span>
+                    <q-tooltip
+                      v-if="getEventLabel(calendarYear, bIndex + 1, tgl)"
+                      class="bg-blue-grey-9 text-white rounded-8"
+                      style="font-size: 12px"
+                    >
+                      {{ getEventLabel(calendarYear, bIndex + 1, tgl) }}
+                    </q-tooltip>
+                  </div>
+                </div>
+              </div>
+            </q-card>
+          </div>
+        </div>
+      </div>
     </div>
   </q-page>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { db, storage } from 'src/boot/firebase'
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
 import {
@@ -470,6 +727,11 @@ const $q = useQuasar()
 const loading = ref(true)
 const submitting = ref(false)
 const rows = ref([])
+
+// Kalender dari API publik (otomatis, tanpa input manual)
+const holidays = ref([]) // semua hari libur + cuti bersama tahun ini
+const disabledDates = ref([]) // tanggal yang tidak bisa dipilih di form
+const calendarEvents = ref([]) // untuk highlight kalender dinding
 
 // State Dinamis Terintegrasi
 const userData = ref({
@@ -505,17 +767,25 @@ const columns = [
   { name: 'lampiran', label: 'LAMPIRAN', align: 'center' },
   { name: 'delegasi', label: 'DELEGASI', align: 'center' },
   { name: 'status', label: 'STATUS', align: 'right' },
+  { name: 'catatan', label: 'CATATAN ADMIN', align: 'left' },
 ]
 
 const usedDays = computed(() => {
   let total = 0
+
   rows.value.forEach((row) => {
-    if (row.status_approval === 'Approved' || row.status_approval === 'Selesai') {
+    const approved = row.status_approval === 'Approved' || row.status_approval === 'Selesai'
+
+    const isAnnualLeave = row.jenis_pengajuan === 'Cuti Tahunan'
+
+    if (approved && isAnnualLeave) {
       const start = new Date(row.tanggal_mulai)
       const end = new Date(row.tanggal_selesai)
+
       total += Math.ceil(Math.abs(end - start) / (1000 * 60 * 60 * 24)) + 1
     }
   })
+
   return total
 })
 
@@ -583,10 +853,198 @@ const onFileRejected = () => {
   })
 }
 
-// FUNGSI SUBMIT TERINTEGRASI CLOUD STORAGE
+// ============================================================
+// DATA HARI LIBUR INDONESIA — per tahun, lengkap & akurat
+// Sumber: Keputusan Bersama/SKB Pemerintah RI
+// Format tanggal: YYYY/MM/DD  |  type: 'holiday' | 'cuti_bersama'
+// ============================================================
+const HOLIDAY_DATA = {
+  2025: [
+    { tanggal: '2025/01/01', nama: 'Tahun Baru 2025', type: 'holiday' },
+    { tanggal: '2025/01/27', nama: 'Isra Miraj', type: 'holiday' },
+    { tanggal: '2025/01/28', nama: 'Cuti Bersama Isra Miraj', type: 'cuti_bersama' },
+    { tanggal: '2025/01/29', nama: 'Tahun Baru Imlek', type: 'holiday' },
+    { tanggal: '2025/03/29', nama: 'Hari Raya Nyepi', type: 'holiday' },
+    { tanggal: '2025/03/28', nama: 'Cuti Bersama Nyepi', type: 'cuti_bersama' },
+    { tanggal: '2025/03/31', nama: 'Idul Fitri 1446 H', type: 'holiday' },
+    { tanggal: '2025/04/01', nama: 'Idul Fitri 1446 H', type: 'holiday' },
+    { tanggal: '2025/03/26', nama: 'Cuti Bersama Idul Fitri', type: 'cuti_bersama' },
+    { tanggal: '2025/03/27', nama: 'Cuti Bersama Idul Fitri', type: 'cuti_bersama' },
+    { tanggal: '2025/04/02', nama: 'Cuti Bersama Idul Fitri', type: 'cuti_bersama' },
+    { tanggal: '2025/04/03', nama: 'Cuti Bersama Idul Fitri', type: 'cuti_bersama' },
+    { tanggal: '2025/04/04', nama: 'Cuti Bersama Idul Fitri', type: 'cuti_bersama' },
+    { tanggal: '2025/04/07', nama: 'Cuti Bersama Idul Fitri', type: 'cuti_bersama' },
+    { tanggal: '2025/04/18', nama: 'Wafat Yesus Kristus', type: 'holiday' },
+    { tanggal: '2025/05/01', nama: 'Hari Buruh Internasional', type: 'holiday' },
+    { tanggal: '2025/05/12', nama: 'Hari Raya Waisak', type: 'holiday' },
+    { tanggal: '2025/05/13', nama: 'Cuti Bersama Waisak', type: 'cuti_bersama' },
+    { tanggal: '2025/05/29', nama: 'Kenaikan Yesus Kristus', type: 'holiday' },
+    { tanggal: '2025/05/28', nama: 'Cuti Bersama Kenaikan Yesus', type: 'cuti_bersama' },
+    { tanggal: '2025/06/01', nama: 'Hari Lahir Pancasila', type: 'holiday' },
+    { tanggal: '2025/06/06', nama: 'Idul Adha 1446 H', type: 'holiday' },
+    { tanggal: '2025/06/27', nama: 'Tahun Baru Islam 1447 H', type: 'holiday' },
+    { tanggal: '2025/08/17', nama: 'HUT Kemerdekaan RI', type: 'holiday' },
+    { tanggal: '2025/09/05', nama: 'Maulid Nabi Muhammad SAW', type: 'holiday' },
+    { tanggal: '2025/12/25', nama: 'Hari Raya Natal', type: 'holiday' },
+    { tanggal: '2025/12/26', nama: 'Cuti Bersama Natal', type: 'cuti_bersama' },
+  ],
+  2026: [
+    { tanggal: '2026/01/01', nama: 'Tahun Baru 2026', type: 'holiday' },
+    { tanggal: '2026/01/16', nama: 'Isra Miraj 1447 H', type: 'holiday' },
+    { tanggal: '2026/02/17', nama: 'Tahun Baru Imlek 2577', type: 'holiday' },
+    { tanggal: '2026/03/19', nama: 'Hari Raya Nyepi', type: 'holiday' },
+    { tanggal: '2026/03/20', nama: 'Wafat Yesus Kristus', type: 'holiday' },
+    { tanggal: '2026/03/21', nama: 'Idul Fitri 1447 H', type: 'holiday' },
+    { tanggal: '2026/03/22', nama: 'Idul Fitri 1447 H', type: 'holiday' },
+    { tanggal: '2026/03/18', nama: 'Cuti Bersama Idul Fitri', type: 'cuti_bersama' },
+    { tanggal: '2026/03/23', nama: 'Cuti Bersama Idul Fitri', type: 'cuti_bersama' },
+    { tanggal: '2026/03/24', nama: 'Cuti Bersama Idul Fitri', type: 'cuti_bersama' },
+    { tanggal: '2026/03/25', nama: 'Cuti Bersama Idul Fitri', type: 'cuti_bersama' },
+    { tanggal: '2026/03/26', nama: 'Cuti Bersama Idul Fitri', type: 'cuti_bersama' },
+    { tanggal: '2026/03/27', nama: 'Cuti Bersama Idul Fitri', type: 'cuti_bersama' },
+    { tanggal: '2026/05/01', nama: 'Hari Buruh Internasional', type: 'holiday' },
+    { tanggal: '2026/05/14', nama: 'Kenaikan Yesus Kristus', type: 'holiday' },
+    { tanggal: '2026/05/25', nama: 'Hari Raya Waisak', type: 'holiday' },
+    { tanggal: '2026/06/01', nama: 'Hari Lahir Pancasila', type: 'holiday' },
+    { tanggal: '2026/05/27', nama: 'Idul Adha 1447 H', type: 'holiday' },
+    { tanggal: '2026/05/28', nama: 'Cuti Bersama Idul Adha', type: 'cuti_bersama' },
+    { tanggal: '2026/06/17', nama: 'Tahun Baru Islam 1448 H', type: 'holiday' },
+    { tanggal: '2026/08/17', nama: 'HUT Kemerdekaan RI ke-81', type: 'holiday' },
+    { tanggal: '2026/08/25', nama: 'Maulid Nabi Muhammad SAW', type: 'holiday' },
+    { tanggal: '2026/12/25', nama: 'Hari Raya Natal', type: 'holiday' },
+    { tanggal: '2026/12/24', nama: 'Cuti Bersama Natal', type: 'cuti_bersama' },
+    { tanggal: '2026/12/26', nama: 'Cuti Bersama Natal', type: 'cuti_bersama' },
+    { tanggal: '2026/12/31', nama: 'Cuti Bersama Tahun Baru', type: 'cuti_bersama' },
+  ],
+}
+
+const loadingCalendar = ref(false)
+
+const fetchHolidaysByYear = (year) => {
+  loadingCalendar.value = true
+  const data = HOLIDAY_DATA[year] || []
+  holidays.value = data
+  disabledDates.value = data.map((h) => h.tanggal)
+  calendarEvents.value = data.map((h) => ({
+    date: h.tanggal,
+    type: h.type,
+    label: h.nama,
+  }))
+  loadingCalendar.value = false
+}
+
+const isDateDisabled = (dateString) => {
+  return disabledDates.value.includes(dateString)
+}
+
+// Helper: warna highlight di kalender berdasarkan jenis event
+const getDateColor = (dateString) => {
+  const ev = calendarEvents.value.find((e) => e.date === dateString)
+  if (!ev) return null
+  return ev.type === 'holiday' ? 'red' : 'orange'
+}
+
+// ================================================
+// KALENDER DINDING — computed & helpers
+// ================================================
+const now = new Date()
+const currentYear = now.getFullYear()
+const currentMonthIndex = now.getMonth() // 0-based
+const calendarYear = ref(currentYear)
+
+// Watch: setiap calendarYear berubah, fetch data libur tahun itu otomatis
+watch(calendarYear, (newYear) => {
+  fetchHolidaysByYear(newYear)
+})
+
+const NAMA_BULAN = [
+  'Januari',
+  'Februari',
+  'Maret',
+  'April',
+  'Mei',
+  'Juni',
+  'Juli',
+  'Agustus',
+  'September',
+  'Oktober',
+  'November',
+  'Desember',
+]
+
+// Build struktur 12 bulan untuk tahun yang dipilih
+const calendarMonths = computed(() => {
+  return NAMA_BULAN.map((nama, idx) => {
+    const firstDay = new Date(calendarYear.value, idx, 1).getDay() // 0=Min
+    const totalDays = new Date(calendarYear.value, idx + 1, 0).getDate()
+    return { nama, offset: firstDay, totalDays }
+  })
+})
+
+// Format tanggal ke string YYYY/MM/DD untuk dicocokkan dengan Firestore
+const toDateStr = (year, month1based, day) => {
+  const mm = String(month1based).padStart(2, '0')
+  const dd = String(day).padStart(2, '0')
+  return `${year}/${mm}/${dd}`
+}
+
+// Ambil label event (nama libur/cuti) untuk tooltip
+const getEventLabel = (year, month1based, day) => {
+  const ds = toDateStr(year, month1based, day)
+  const ev = calendarEvents.value.find((e) => e.date === ds)
+  return ev ? ev.label : ''
+}
+
+// Tentukan class CSS tiap tanggal di kalender dinding
+const getDayClass = (year, month1based, day) => {
+  const ds = toDateStr(year, month1based, day)
+  const todayStr = toDateStr(now.getFullYear(), now.getMonth() + 1, now.getDate())
+  const ev = calendarEvents.value.find((e) => e.date === ds)
+  const dow = new Date(year, month1based - 1, day).getDay() // 0=Min
+
+  if (ds === todayStr) return 'cal-today'
+  if (ev) return ev.type === 'holiday' ? 'cal-holiday' : 'cal-cuti-bersama'
+  if (dow === 0) return 'cal-sunday' // Minggu tetap merah muda
+  return ''
+}
+
+const validateLeaveSubmission = () => {
+  const range = form.value.range
+
+  const startDate = typeof range === 'string' ? range : range?.from
+
+  if (!startDate) {
+    throw new Error('Tanggal cuti wajib dipilih.')
+  }
+
+  if (form.value.jenis === 'Cuti Tahunan') {
+    const today = new Date()
+
+    today.setHours(0, 0, 0, 0)
+
+    const minimumDate = new Date(today)
+
+    minimumDate.setDate(minimumDate.getDate() + 14)
+
+    const selectedDate = new Date(startDate)
+
+    selectedDate.setHours(0, 0, 0, 0)
+
+    if (selectedDate < minimumDate) {
+      throw new Error('Pengajuan cuti tahunan minimal harus H+14 dari tanggal pengajuan.')
+    }
+  }
+
+  if (isDateDisabled(startDate)) {
+    throw new Error('Tanggal yang dipilih merupakan hari libur nasional / cuti bersama.')
+  }
+}
+
 const onSubmit = async () => {
   submitting.value = true
   try {
+    validateLeaveSubmission()
+
     const range = form.value.range
     const start = typeof range === 'string' ? range : range?.from
     const end = typeof range === 'string' ? range : range?.to
@@ -649,6 +1107,9 @@ let unsubscribeData = null
 let unsubscribeUser = null
 
 onMounted(() => {
+  // Kalender: load data tahun ini dari data lokal (instant, tanpa API)
+  fetchHolidaysByYear(currentYear)
+
   // 1. SINKRONISASI DATA USER DARI LOKAL
   const saved = localStorage.getItem('user_data')
   if (saved) {
@@ -846,5 +1307,44 @@ onUnmounted(() => {
   width: 10px;
   height: 10px;
   border-radius: 50%;
+}
+
+/* ==============================
+   KALENDER DINDING
+   ============================== */
+.cal-day {
+  min-width: 0;
+}
+.cal-day-inner {
+  color: #37474f;
+  transition: background 0.15s ease;
+}
+.cal-day-inner:hover {
+  background: #f1f5f9;
+}
+/* Hari ini */
+.cal-today {
+  background: #1976d2 !important;
+  color: #fff !important;
+  border-radius: 6px;
+}
+/* Libur Nasional */
+.cal-holiday {
+  background: #ffebee !important;
+  color: #c62828 !important;
+  font-weight: 800 !important;
+  border-radius: 6px;
+}
+/* Cuti Bersama */
+.cal-cuti-bersama {
+  background: #fff3e0 !important;
+  color: #e65100 !important;
+  font-weight: 700 !important;
+  border-radius: 6px;
+}
+/* Hari Minggu */
+.cal-sunday {
+  color: #ef9a9a !important;
+  font-weight: 600 !important;
 }
 </style>
