@@ -74,7 +74,7 @@
       </q-toolbar>
     </q-header>
 
-    <q-drawer v-model="leftDrawerOpen" show-if-above :width="285" class="bg-white">
+    <q-drawer v-model="leftDrawerOpen" show-if-above :width="310" class="bg-white">
       <div class="column fit">
         <div class="q-pa-lg bg-blue-1 text-blue-10">
           <div class="row items-center q-gutter-md">
@@ -110,8 +110,30 @@
                 class="menu-item q-mb-xs"
                 active-class="menu-item-active"
               >
-                <q-item-section avatar><q-icon :name="menu.icon" size="22px" /></q-item-section>
+                <q-item-section avatar>
+                  <q-icon :name="menu.icon" size="22px" />
+                </q-item-section>
                 <q-item-section class="text-weight-bold uppercase">{{ menu.label }}</q-item-section>
+                <!-- Badge notif khusus menu Persetujuan Cuti (hanya untuk admin) -->
+                <q-item-section
+                  v-if="
+                    menu.path === '/absensi/admin/persetujuan' && pendingCount > 0 && isSuperAdmin
+                  "
+                  side
+                >
+                  <q-badge
+                    color="red-6"
+                    :label="pendingCount > 99 ? '99+' : String(pendingCount)"
+                    class="text-weight-bolder shadow-2 notif-badge-pulse"
+                    style="
+                      font-size: 11px;
+                      min-width: 22px;
+                      height: 22px;
+                      border-radius: 11px;
+                      margin-right: 8px;
+                    "
+                  />
+                </q-item-section>
               </q-item>
             </template>
 
@@ -158,6 +180,8 @@ const leftDrawerOpen = ref(false)
 
 const userData = ref({ nama: '', jabatan: '', role: '', fotoUrl: '', email: '', akses: [] })
 const userPermissions = ref([])
+const pendingCount = ref(0)
+let unsubscribePending = null
 
 const availableApps = [
   {
@@ -273,6 +297,23 @@ const menuListFiltered = computed(() => {
   return baseMenus.filter((m) => canSee(m.key))
 })
 
+// REALTIME LISTENER: hitung pengajuan pending untuk badge notif admin
+// Dipanggil langsung di onMounted tanpa cek role dulu,
+// agar badge langsung muncul begitu data masuk Firebase
+const loadPendingCount = () => {
+  if (unsubscribePending) unsubscribePending()
+  const qPending = query(collection(db, 'pengajuan'), where('status_approval', '==', 'Pending'))
+  unsubscribePending = onSnapshot(
+    qPending,
+    (snap) => {
+      pendingCount.value = snap.size // otomatis update setiap ada pengajuan baru/dibatalkan
+    },
+    (err) => {
+      console.warn('Gagal load pending count:', err.message)
+    },
+  )
+}
+
 const syncData = () => {
   const saved = localStorage.getItem('user_data')
   if (saved) {
@@ -321,6 +362,7 @@ const syncData = () => {
 
 onMounted(() => {
   syncData()
+  loadPendingCount()
 })
 
 const handleLogout = () => {
@@ -329,6 +371,7 @@ const handleLogout = () => {
       try {
         localStorage.removeItem('user_data')
         localStorage.removeItem('auth')
+        if (unsubscribePending) unsubscribePending()
         await signOut(auth)
         router.push('/login')
       } catch (error) {
@@ -342,7 +385,8 @@ const handleLogout = () => {
 <style lang="scss" scoped>
 .menu-item {
   border-radius: 0 25px 25px 0;
-  margin-right: 12px;
+  margin-right: 20px;
+  position: relative;
   color: #546e7a;
   text-transform: uppercase;
   font-size: 13px;
@@ -377,5 +421,21 @@ const handleLogout = () => {
   line-height: 1.2;
   white-space: normal;
   word-wrap: break-word;
+}
+
+/* Animasi pulse untuk badge notifikasi */
+.notif-badge-pulse {
+  animation: badgePulse 2s infinite;
+}
+@keyframes badgePulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 7px rgba(229, 57, 53, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(229, 57, 53, 0);
+  }
 }
 </style>

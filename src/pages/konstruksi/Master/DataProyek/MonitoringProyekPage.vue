@@ -84,29 +84,30 @@
         </div>
       </div>
 
-      <!-- SUMMARY CARDS / KPI (RESPONSIVE KE TENGAH DI HP, KIRI DI LAPTOP) -->
+      <!-- SUMMARY CARDS / KPI (WARNA-WARNI KREATIF SEPERTI MONITORINGPROYEK / INVOICE APPROVAL) -->
       <div class="row q-col-gutter-lg q-mb-lg animate-fade-up no-print content-relative">
         <!-- Total Proyek -->
         <div class="col-12 col-sm-6 col-md-3">
-          <q-card flat class="rounded-20 border-subtle bg-white transition-all hover-shadow">
+          <q-card flat class="rounded-20 card-teal-gradient text-white transition-all hover-shadow">
             <q-card-section
               class="row items-center no-wrap q-pa-md flex-column flex-sm-row text-center text-sm-left q-gutter-y-md q-gutter-sm-none"
             >
               <div class="col">
                 <div
-                  class="text-overline text-grey-6 leading-none text-weight-bold tracking-widest"
+                  class="text-overline leading-none text-weight-bold tracking-widest"
+                  style="color: rgba(255, 255, 255, 0.85)"
                 >
                   TOTAL PROYEK
                 </div>
-                <div class="text-h4 text-weight-bolder q-mt-xs text-brand-primary">
+                <div class="text-h4 text-weight-bolder q-mt-xs text-white">
                   {{ combinedProjects.length }}
                 </div>
               </div>
               <div
-                class="bg-brand-light q-pa-md rounded-borders col-sm-auto"
+                class="bg-white q-pa-md rounded-12 col-sm-auto shadow-sm"
                 style="min-width: 56px; text-align: center"
               >
-                <q-icon name="domain" color="brand-primary" size="28px" />
+                <q-icon name="domain" color="teal-8" size="28px" />
               </div>
             </q-card-section>
           </q-card>
@@ -114,22 +115,23 @@
 
         <!-- Proyek Berjalan -->
         <div class="col-12 col-sm-6 col-md-3">
-          <q-card flat class="rounded-20 border-subtle bg-white transition-all hover-shadow">
+          <q-card flat class="rounded-20 card-blue-gradient text-white transition-all hover-shadow">
             <q-card-section
               class="row items-center no-wrap q-pa-md flex-column flex-sm-row text-center text-sm-left q-gutter-y-md q-gutter-sm-none"
             >
               <div class="col">
                 <div
-                  class="text-overline text-grey-6 leading-none text-weight-bold tracking-widest"
+                  class="text-overline leading-none text-weight-bold tracking-widest"
+                  style="color: rgba(255, 255, 255, 0.85)"
                 >
                   SEDANG BERJALAN
                 </div>
-                <div class="text-h4 text-weight-bolder q-mt-xs text-blue-8">
+                <div class="text-h4 text-weight-bolder q-mt-xs text-white">
                   {{ countByStatus('On Progress') }}
                 </div>
               </div>
               <div
-                class="bg-blue-1 q-pa-md rounded-borders col-sm-auto"
+                class="bg-white q-pa-md rounded-12 col-sm-auto shadow-sm"
                 style="min-width: 56px; text-align: center"
               >
                 <q-icon name="trending_up" color="blue-8" size="28px" />
@@ -140,25 +142,29 @@
 
         <!-- Proyek Selesai -->
         <div class="col-12 col-sm-6 col-md-3">
-          <q-card flat class="rounded-20 border-subtle bg-white transition-all hover-shadow">
+          <q-card
+            flat
+            class="rounded-20 card-green-gradient text-white transition-all hover-shadow"
+          >
             <q-card-section
               class="row items-center no-wrap q-pa-md flex-column flex-sm-row text-center text-sm-left q-gutter-y-md q-gutter-sm-none"
             >
               <div class="col">
                 <div
-                  class="text-overline text-grey-6 leading-none text-weight-bold tracking-widest"
+                  class="text-overline leading-none text-weight-bold tracking-widest"
+                  style="color: rgba(255, 255, 255, 0.85)"
                 >
                   PROYEK SELESAI
                 </div>
-                <div class="text-h4 text-weight-bolder q-mt-xs text-positive">
+                <div class="text-h4 text-weight-bolder q-mt-xs text-white">
                   {{ countByStatus('Selesai') }}
                 </div>
               </div>
               <div
-                class="bg-green-1 q-pa-md rounded-borders col-sm-auto"
+                class="bg-white q-pa-md rounded-12 col-sm-auto shadow-sm"
                 style="min-width: 56px; text-align: center"
               >
-                <q-icon name="task_alt" color="positive" size="28px" />
+                <q-icon name="task_alt" color="green-8" size="28px" />
               </div>
             </q-card-section>
           </q-card>
@@ -168,14 +174,15 @@
         <div class="col-12 col-sm-6 col-md-3">
           <q-card
             flat
-            class="rounded-20 border-subtle bg-brand-primary text-white transition-all hover-shadow"
+            class="rounded-20 card-orange-gradient text-white transition-all hover-shadow"
           >
             <q-card-section
               class="row items-center no-wrap q-pa-md flex-column flex-sm-row text-center text-sm-left q-gutter-y-md q-gutter-sm-none"
             >
               <div class="col">
                 <div
-                  class="text-overline text-brand-light leading-none text-weight-bold tracking-widest"
+                  class="text-overline leading-none text-weight-bold tracking-widest"
+                  style="color: rgba(255, 255, 255, 0.85)"
                 >
                   TOTAL VALUASI
                 </div>
@@ -184,10 +191,10 @@
                 </div>
               </div>
               <div
-                class="bg-white q-pa-md rounded-borders shadow-2 col-sm-auto"
+                class="bg-white q-pa-md rounded-12 col-sm-auto shadow-sm"
                 style="min-width: 56px; text-align: center"
               >
-                <q-icon name="account_balance_wallet" color="brand-primary" size="28px" />
+                <q-icon name="account_balance_wallet" color="orange-9" size="28px" />
               </div>
             </q-card-section>
           </q-card>
@@ -356,8 +363,8 @@
       </q-card>
 
       <!-- =====================================================================================
-           MODAL 1: DETAIL RINGKASAN EXECUTIVE INFORMATIF (PROYEK PROFILE)
-           ===================================================================================== -->
+            MODAL 1: DETAIL RINGKASAN EXECUTIVE INFORMATIF (PROYEK PROFILE)
+            ===================================================================================== -->
       <q-dialog v-model="showDetailDialog" backdrop-filter="blur(6px)">
         <q-card
           style="width: 750px; max-width: 95vw"
@@ -640,8 +647,8 @@
       </q-dialog>
 
       <!-- =====================================================================================
-           MODAL 2: DIALOG UPDATE PROGRESS (MODAL KECIL UNTUK SUNTIK UPDATE)
-           ===================================================================================== -->
+            MODAL 2: DIALOG UPDATE PROGRESS (MODAL KECIL UNTUK SUNTIK UPDATE)
+            ===================================================================================== -->
       <q-dialog v-model="showUpdateDialog" persistent backdrop-filter="blur(4px)">
         <q-card
           style="width: 550px; max-width: 95vw"
@@ -827,7 +834,7 @@ let unsubUser = null
 const userData = ref(null)
 
 // ==========================================
-// ANIMASI KLIK & MENGAMBANG (SAMA SEPERTI MASTER BARANG)
+// ANIMASI KLIK & MENGAMBANG
 // ==========================================
 const spawnedIcons = ref([])
 let spawnIdCounter = 0
@@ -1178,7 +1185,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* ===== GLOBAL THEME OVERRIDES (DARI MASTER BARANG TEAL/TOSCA) ===== */
+/* ===== GLOBAL THEME OVERRIDES ===== */
 .bg-page {
   background-color: #f8fcfb;
 }
@@ -1225,6 +1232,26 @@ onUnmounted(() => {
 }
 .border-brand-thin {
   border: 2px solid #b2e5e2 !important; /* Soft Teal border */
+}
+
+/* =============================================
+   WARNA-WARNI GRADIEN KPI BARU (IDENTIK SEPERTI GAMBAR KEDUA)
+   ============================================= */
+.card-teal-gradient {
+  background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%) !important;
+  box-shadow: 0 8px 24px rgba(13, 148, 136, 0.35) !important;
+}
+.card-blue-gradient {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+  box-shadow: 0 8px 24px rgba(3, 105, 161, 0.35) !important;
+}
+.card-green-gradient {
+  background: linear-gradient(135deg, #10b981 0%, #047857 100%) !important;
+  box-shadow: 0 8px 24px rgba(4, 120, 87, 0.35) !important;
+}
+.card-orange-gradient {
+  background: linear-gradient(135deg, #f59e0b 0%, #ff781e 100%) !important;
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.35) !important;
 }
 
 /* QUASAR COMPONENT OVERRIDES */

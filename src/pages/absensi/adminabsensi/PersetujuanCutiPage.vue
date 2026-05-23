@@ -155,35 +155,53 @@
 
               <!-- Kolom Aksi (UI DIUPDATE SESUAI REFERENSI IMAGE) -->
               <q-td key="aksi" class="text-center">
-                <div class="row items-center justify-center no-wrap">
-                  <!-- Tombol TERIMA Hijau (Gaya Tumpuk) -->
+                <div class="column items-center q-gutter-y-xs">
+                  <div class="row items-center justify-center no-wrap q-gutter-x-sm">
+                    <!-- Tombol TERIMA Hijau -->
+                    <q-btn
+                      unelevated
+                      color="green-6"
+                      class="rounded-8 shadow-soft-positive transition-smooth hover-scale q-px-md q-py-xs"
+                      @click="updateStatus(props.row.id, 'Approved')"
+                    >
+                      <div class="column items-center">
+                        <q-icon name="check" size="24px" class="text-white text-weight-bolder" />
+                        <span
+                          class="text-white text-weight-bolder tracking-wide"
+                          style="font-size: 11px"
+                          >TERIMA</span
+                        >
+                      </div>
+                    </q-btn>
+
+                    <!-- Tombol X Merah Polos -->
+                    <q-btn
+                      flat
+                      round
+                      icon="close"
+                      color="red-8"
+                      size="18px"
+                      class="q-ml-xs transition-smooth hover-scale text-weight-bolder"
+                      @click="updateStatus(props.row.id, 'Rejected')"
+                    >
+                      <q-tooltip class="bg-negative text-weight-bold">Tolak Pengajuan</q-tooltip>
+                    </q-btn>
+                  </div>
+
+                  <!-- Tombol REVISI (bawah) -->
                   <q-btn
                     unelevated
-                    color="green-6"
-                    class="rounded-8 shadow-soft-positive transition-smooth hover-scale q-px-md q-py-xs"
-                    @click="updateStatus(props.row.id, 'Approved')"
+                    color="orange-7"
+                    icon="edit_calendar"
+                    label="REVISI"
+                    size="sm"
+                    class="rounded-8 transition-smooth hover-scale text-weight-bolder full-width"
+                    style="font-size: 10px"
+                    @click="openRevisi(props.row)"
                   >
-                    <div class="column items-center">
-                      <q-icon name="check" size="24px" class="text-white text-weight-bolder" />
-                      <span
-                        class="text-white text-weight-bolder tracking-wide"
-                        style="font-size: 11px"
-                        >TERIMA</span
-                      >
-                    </div>
-                  </q-btn>
-
-                  <!-- Tombol X Merah Polos -->
-                  <q-btn
-                    flat
-                    round
-                    icon="close"
-                    color="red-8"
-                    size="18px"
-                    class="q-ml-sm transition-smooth hover-scale text-weight-bolder"
-                    @click="updateStatus(props.row.id, 'Rejected')"
-                  >
-                    <q-tooltip class="bg-negative text-weight-bold">Tolak Pengajuan</q-tooltip>
+                    <q-tooltip class="bg-orange-8 text-weight-bold">
+                      Revisi & Setujui dengan durasi berbeda
+                    </q-tooltip>
                   </q-btn>
                 </div>
               </q-td>
@@ -290,17 +308,29 @@
 
               <!-- Kolom Status -->
               <q-td key="status" class="text-center">
-                <q-badge
-                  :color="props.row.status_approval === 'Approved' ? 'teal-5' : 'red-5'"
-                  class="q-px-md q-py-sm text-weight-bold rounded-8 shadow-1"
-                >
-                  <q-icon
-                    :name="props.row.status_approval === 'Approved' ? 'check_circle' : 'cancel'"
-                    size="xs"
-                    class="q-mr-xs"
-                  />
-                  {{ props.row.status_approval === 'Approved' ? 'DISETUJUI' : 'DITOLAK' }}
-                </q-badge>
+                <div class="column items-center q-gutter-y-xs">
+                  <q-badge
+                    :color="props.row.status_approval === 'Approved' ? 'teal-5' : 'red-5'"
+                    class="q-px-md q-py-sm text-weight-bold rounded-8 shadow-1"
+                  >
+                    <q-icon
+                      :name="props.row.status_approval === 'Approved' ? 'check_circle' : 'cancel'"
+                      size="xs"
+                      class="q-mr-xs"
+                    />
+                    {{ props.row.status_approval === 'Approved' ? 'DISETUJUI' : 'DITOLAK' }}
+                  </q-badge>
+                  <!-- Badge tambahan jika direvisi admin -->
+                  <q-badge
+                    v-if="props.row.direvisi_oleh_admin"
+                    color="orange-6"
+                    class="q-px-sm q-py-xs text-weight-bold rounded-6"
+                    style="font-size: 10px"
+                  >
+                    <q-icon name="edit" size="10px" class="q-mr-xs" />
+                    DIREVISI ADMIN
+                  </q-badge>
+                </div>
               </q-td>
 
               <!-- Kolom Aksi (Hanya Hapus Riwayat) -->
@@ -329,6 +359,148 @@
         </q-table>
       </q-card>
     </div>
+
+    <!-- ============================================ -->
+    <!-- DIALOG REVISI DURASI CUTI (ADMIN)            -->
+    <!-- ============================================ -->
+    <q-dialog v-model="revisiDialog" persistent>
+      <q-card flat class="rounded-16 bg-white" style="min-width: 420px; max-width: 520px">
+        <!-- Header Dialog -->
+        <q-card-section class="row items-center q-pb-sm border-bottom-light">
+          <div class="row items-center no-wrap">
+            <div class="ios-icon-box small bg-orange-50 text-orange-7 q-mr-md">
+              <q-icon name="edit_calendar" size="22px" />
+            </div>
+            <div>
+              <div class="text-h6 text-weight-bolder text-blue-grey-9">Revisi Pengajuan Cuti</div>
+              <div class="text-caption text-blue-grey-5 text-weight-medium">
+                Ubah durasi yang disetujui sesuai kebutuhan perusahaan
+              </div>
+            </div>
+          </div>
+          <q-space />
+          <q-btn flat round dense icon="close" color="blue-grey-4" v-close-popup />
+        </q-card-section>
+
+        <!-- Info Karyawan -->
+        <q-card-section class="q-pt-md q-pb-none" v-if="revisiTarget">
+          <div class="rounded-12 bg-orange-50 q-pa-md row items-center no-wrap q-mb-md">
+            <q-avatar
+              size="42px"
+              :color="getRandomColor(revisiTarget.nama_karyawan)"
+              text-color="white"
+              class="text-weight-bold q-mr-md shadow-1"
+            >
+              {{ getInitial(revisiTarget.nama_karyawan) }}
+            </q-avatar>
+            <div class="col">
+              <div class="text-weight-bolder text-blue-grey-9 text-uppercase">
+                {{ revisiTarget.nama_karyawan }}
+              </div>
+              <div class="text-caption text-blue-grey-5">
+                {{ revisiTarget.jenis_pengajuan }} ·
+                <span class="font-mono">
+                  {{ formatDate(revisiTarget.tanggal_mulai) }}
+                  <span v-if="revisiTarget.tanggal_mulai !== revisiTarget.tanggal_selesai">
+                    → {{ formatDate(revisiTarget.tanggal_selesai) }}
+                  </span>
+                </span>
+                <span class="text-orange-8 text-weight-bold q-ml-xs">(Pengajuan Asli)</span>
+              </div>
+            </div>
+          </div>
+        </q-card-section>
+
+        <!-- Form Revisi -->
+        <q-card-section class="q-pt-sm">
+          <div class="q-gutter-y-md">
+            <!-- Tanggal Mulai -->
+            <div>
+              <div
+                class="text-caption text-weight-bold text-blue-grey-8 uppercase letter-spacing-1 q-mb-sm"
+              >
+                Tanggal Mulai (Direvisi)
+              </div>
+              <q-input
+                outlined
+                v-model="revisiForm.tanggal_mulai"
+                type="date"
+                class="rounded-input bg-grey-1"
+                color="orange"
+                :rules="[(val) => !!val || 'Wajib diisi']"
+              >
+                <template v-slot:prepend>
+                  <q-icon name="event" color="orange-6" />
+                </template>
+              </q-input>
+            </div>
+
+            <!-- Tanggal Selesai -->
+            <div>
+              <div
+                class="text-caption text-weight-bold text-blue-grey-8 uppercase letter-spacing-1 q-mb-sm"
+              >
+                Tanggal Selesai (Direvisi)
+              </div>
+              <q-input
+                outlined
+                v-model="revisiForm.tanggal_selesai"
+                type="date"
+                class="rounded-input bg-grey-1"
+                color="orange"
+                :min="revisiForm.tanggal_mulai"
+              >
+                <template v-slot:prepend>
+                  <q-icon name="event_available" color="orange-6" />
+                </template>
+              </q-input>
+            </div>
+
+            <!-- Catatan Revisi -->
+            <div>
+              <div
+                class="text-caption text-weight-bold text-blue-grey-8 uppercase letter-spacing-1 q-mb-sm"
+              >
+                Catatan Revisi (Opsional)
+              </div>
+              <q-input
+                outlined
+                v-model="revisiForm.catatan_revisi"
+                type="textarea"
+                rows="2"
+                placeholder="Contoh: Disetujui 2 hari sesuai kapasitas tim..."
+                class="rounded-input bg-grey-1"
+                color="orange"
+              >
+                <template v-slot:prepend>
+                  <q-icon name="notes" color="blue-grey-4" />
+                </template>
+              </q-input>
+            </div>
+          </div>
+        </q-card-section>
+
+        <!-- Tombol Aksi -->
+        <q-card-section class="row q-gutter-sm justify-end q-pt-sm">
+          <q-btn
+            flat
+            label="Batal"
+            color="blue-grey-6"
+            class="text-weight-bold rounded-8"
+            v-close-popup
+          />
+          <q-btn
+            unelevated
+            color="orange-7"
+            icon="check_circle"
+            label="Simpan & Setujui"
+            class="text-weight-bolder rounded-8 q-px-lg"
+            :loading="revisiSubmitting"
+            @click="submitRevisi"
+          />
+        </q-card-section>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
@@ -351,6 +523,16 @@ const $q = useQuasar()
 const loading = ref(true)
 const allData = ref([])
 const karyawanMap = ref({})
+
+// STATE DIALOG REVISI ADMIN
+const revisiDialog = ref(false)
+const revisiTarget = ref(null) // row yang sedang direvisi
+const revisiForm = ref({
+  tanggal_mulai: '',
+  tanggal_selesai: '',
+  catatan_revisi: '',
+})
+const revisiSubmitting = ref(false)
 
 // Custom Columns untuk Pending (Lebih Detail)
 const columns = [
@@ -513,6 +695,48 @@ const hapusData = (id) => {
       $q.loading.hide()
     }
   })
+}
+
+// AKSI ADMIN: BUKA DIALOG REVISI DURASI CUTI
+const openRevisi = (row) => {
+  revisiTarget.value = row
+  revisiForm.value = {
+    tanggal_mulai: row.tanggal_mulai || '',
+    tanggal_selesai: row.tanggal_selesai || row.tanggal_mulai || '',
+    catatan_revisi: row.catatan_revisi || '',
+  }
+  revisiDialog.value = true
+}
+
+// AKSI ADMIN: SIMPAN REVISI & LANGSUNG APPROVE
+const submitRevisi = async () => {
+  if (!revisiTarget.value) return
+  if (!revisiForm.value.tanggal_mulai) {
+    $q.notify({ color: 'negative', message: 'Tanggal mulai wajib diisi.', icon: 'warning' })
+    return
+  }
+  revisiSubmitting.value = true
+  try {
+    await updateDoc(doc(db, 'pengajuan', revisiTarget.value.id), {
+      tanggal_mulai: revisiForm.value.tanggal_mulai,
+      tanggal_selesai: revisiForm.value.tanggal_selesai || revisiForm.value.tanggal_mulai,
+      catatan_revisi: revisiForm.value.catatan_revisi,
+      status_approval: 'Approved',
+      direvisi_oleh_admin: true,
+    })
+    $q.notify({
+      color: 'positive',
+      message: 'Pengajuan berhasil direvisi dan disetujui!',
+      icon: 'edit_calendar',
+      classes: 'rounded-12 text-weight-bold',
+    })
+    revisiDialog.value = false
+  } catch (error) {
+    console.error(error)
+    $q.notify({ color: 'negative', message: 'Gagal menyimpan revisi.' })
+  } finally {
+    revisiSubmitting.value = false
+  }
 }
 
 onMounted(async () => {

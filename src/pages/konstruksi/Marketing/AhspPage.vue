@@ -76,13 +76,6 @@
       <div class="row items-center justify-between q-mb-xl animate-fade no-print">
         <div class="col-12 col-md-7">
           <div class="row items-center no-wrap">
-            <q-btn
-              flat
-              round
-              class="q-mr-md bg-white shadow-1 text-theme-primary"
-              icon="arrow_back"
-              @click="$router.back()"
-            />
             <div>
               <div class="text-h4 text-weight-bolder leading-tight text-theme-primary">
                 Analisa Harga Satuan (AHSP)
@@ -97,62 +90,9 @@
           </div>
         </div>
 
-        <!-- BUTTONS & THEME COLOR WHEEL SELECTOR -->
+        <!-- BUTTONS -->
         <div class="col-12 col-md-5 q-mt-md q-mt-md-none text-right">
           <div class="row q-col-gutter-sm justify-end items-center">
-            <!-- Tombol Color Wheel Ubah Tema Bebas -->
-            <div class="col-auto">
-              <q-btn
-                flat
-                round
-                size="md"
-                class="bg-white shadow-1 text-theme-primary"
-                icon="palette"
-              >
-                <q-tooltip>Ubah Warna Tema</q-tooltip>
-                <q-menu
-                  anchor="bottom right"
-                  self="top right"
-                  transition-show="scale"
-                  transition-hide="scale"
-                >
-                  <div class="q-pa-md text-center" style="min-width: 250px">
-                    <div class="text-subtitle2 text-weight-black text-grey-8 q-mb-xs">
-                      Ubah Warna Tema
-                    </div>
-                    <div class="text-caption text-grey-6 q-mb-md">Pilih warna kesukaan Anda</div>
-
-                    <q-color
-                      v-model="customThemeColor"
-                      no-header
-                      no-footer
-                      class="my-picker"
-                      @update:model-value="onThemeColorPicked"
-                    />
-
-                    <!-- Swatch / Pilihan Siap Pakai -->
-                    <div class="row q-col-gutter-xs q-mt-md justify-center">
-                      <div v-for="color in presetColors" :key="color" class="col-auto">
-                        <q-btn
-                          round
-                          size="xs"
-                          :style="{ backgroundColor: color }"
-                          @click="setPresetColor(color)"
-                        >
-                          <q-icon
-                            name="done"
-                            size="10px"
-                            color="white"
-                            v-if="customThemeColor === color"
-                          />
-                        </q-btn>
-                      </div>
-                    </div>
-                  </div>
-                </q-menu>
-              </q-btn>
-            </div>
-
             <!-- Buat Uraian Pekerjaan Button (Membentang di HP, Normal di Laptop) -->
             <div class="col-12 col-sm-auto">
               <q-btn
@@ -1235,95 +1175,10 @@ const detailList = ref([])
 const previewItem = ref(null)
 const overheadPercent = ref(15)
 
-// Dynamic Color Wheel State & Preset Color Palettes
-const customThemeColor = ref('#1a237e') // Default Indigo
-const presetColors = [
-  '#1a237e', // Indigo
-  '#005b52', // Forest Teal
-  '#2e7d32', // Emerald Green
-  '#c62828', // Crimson Red
-  '#ef6c00', // Warning Orange
-  '#6a1b9a', // Deep Purple
-  '#00838f', // Cyan Dark
-  '#37474f', // Slate Dark
-]
-
-const onThemeColorPicked = (val) => {
-  localStorage.setItem('ahsppage_custom_theme', val)
-  applyDynamicTheme(val)
-}
-
-const setPresetColor = (color) => {
-  customThemeColor.value = color
-  onThemeColorPicked(color)
-}
-
-// Function to automatically calculate variations and load styles dynamically
-const applyDynamicTheme = (hexColor) => {
-  const root = document.documentElement
-  root.style.setProperty('--theme-primary', hexColor)
-
-  // Create hover variation
-  const primaryHover = adjustColorBrightness(hexColor, -15)
-  root.style.setProperty('--theme-primary-hover', primaryHover)
-
-  // Create light pastel variation (e.g. for folder background)
-  const lightBg = adjustColorBrightness(hexColor, 80, true)
-  root.style.setProperty('--theme-light', lightBg)
-
-  // Create light soft transparency tint
-  const lightSoftBg = hexToRGBA(hexColor, 0.05)
-  root.style.setProperty('--theme-light-soft', lightSoftBg)
-}
-
-// Color calculations utility
-const hexToRGBA = (hex, alpha) => {
-  let r = parseInt(hex.slice(1, 3), 16),
-    g = parseInt(hex.slice(3, 5), 16),
-    b = parseInt(hex.slice(5, 7), 16)
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`
-}
-
-const adjustColorBrightness = (hex, percent, makeLightBg = false) => {
-  let R = parseInt(hex.substring(1, 3), 16)
-  let G = parseInt(hex.substring(3, 5), 16)
-  let B = parseInt(hex.substring(5, 7), 16)
-
-  if (makeLightBg) {
-    // Elegant pastel mixing (85% White, 15% Base Color)
-    R = Math.round(R * 0.15 + 255 * 0.85)
-    G = Math.round(G * 0.15 + 255 * 0.85)
-    B = Math.round(B * 0.15 + 255 * 0.85)
-  } else {
-    R = parseInt((R * (100 + percent)) / 100)
-    G = parseInt((G * (100 + percent)) / 100)
-    B = parseInt((B * (100 + percent)) / 100)
-
-    R = R < 255 ? R : 255
-    G = G < 255 ? G : 255
-    B = B < 255 ? B : 255
-    R = R > 0 ? R : 0
-    G = G > 0 ? G : 0
-    B = B > 0 ? B : 0
-  }
-
-  const rHex = R.toString(16).padStart(2, '0')
-  const gHex = G.toString(16).padStart(2, '0')
-  const bHex = B.toString(16).padStart(2, '0')
-
-  return `#${rHex}${gHex}${bHex}`
-}
-
-// Custom Delete Dialog State
-const showDeleteConfirmationDialog = ref(false)
-const itemToDelete = ref(null)
-const deleting = ref(false)
-
-// Floating Background & Click Spawn Icon System matching image_28ede3.png
+// Floating Background & Click Spawn Icon System
 const floatingIcons = ref([])
 const clickSpawns = ref([])
 
-// Accurate construction icons matching image_28ede3.png style
 const iconTemplates = [
   'engineering',
   'construction',
@@ -1342,7 +1197,6 @@ const iconTemplates = [
   'precision_manufacturing',
 ]
 
-// Energetic and vivid construction color palette (Red, Orange, Yellow, Green, Cyan, Teal, Slate)
 const iconColors = [
   '#e53935',
   '#d81b60',
@@ -1368,9 +1222,9 @@ const spawnFloatingIcon = () => {
   }
   const randomIcon = iconTemplates[Math.floor(Math.random() * iconTemplates.length)]
   const randomColor = iconColors[Math.floor(Math.random() * iconColors.length)]
-  const size = Math.floor(Math.random() * 22) + 18 // 18px to 40px for clarity
+  const size = Math.floor(Math.random() * 22) + 18
   const left = Math.random() * 95
-  const duration = Math.random() * 8 + 7 // Slow, elegant floating pace
+  const duration = Math.random() * 8 + 7
   const delay = Math.random() * 2
   const drift = Math.random() * 120 - 60 + 'px'
   const rotation = Math.random() * 360 - 180 + 'deg'
@@ -1388,7 +1242,6 @@ const spawnFloatingIcon = () => {
   })
 }
 
-// Clicking a blank space spawns a cluster stack bubble of icons, matching image_28ede3.png
 const handlePageClick = (e) => {
   const interactiveTags = ['BUTTON', 'INPUT', 'A', 'I', 'TD', 'TH', 'TEXTAREA', 'SELECT', 'SPAN']
   if (
@@ -1405,12 +1258,11 @@ const handlePageClick = (e) => {
   const x = e.clientX
   const y = e.clientY
 
-  // Spawn cluster group of 7 stacked colorful construction tools
   for (let i = 0; i < 7; i++) {
     const angle = (i * (360 / 7) + Math.random() * 20) * (Math.PI / 180)
     const distance = Math.random() * 80 + 40
     const tx = Math.cos(angle) * distance + 'px'
-    const ty = Math.sin(angle) * distance - 110 + 'px' // Float upward drift
+    const ty = Math.sin(angle) * distance - 110 + 'px'
     const rot = Math.random() * 240 - 120 + 'deg'
     const size = Math.floor(Math.random() * 16) + 18 + 'px'
     const randomIcon = iconTemplates[Math.floor(Math.random() * iconTemplates.length)]
@@ -1429,7 +1281,6 @@ const handlePageClick = (e) => {
     })
   }
 
-  // Clear memory of particles smoothly
   setTimeout(() => {
     if (clickSpawns.value.length > 50) {
       clickSpawns.value.splice(0, 14)
@@ -1437,7 +1288,7 @@ const handlePageClick = (e) => {
   }, 1600)
 }
 
-// SUCCESS TOAST NOTIFICATION (PIXEL PERFECT TO image_287a07.png)
+// SUCCESS TOAST NOTIFICATION
 const showSuccessToast = (message, title = 'Sinkronisasi Berhasil!') => {
   $q.notify({
     message: `
@@ -1461,7 +1312,7 @@ const showSuccessToast = (message, title = 'Sinkronisasi Berhasil!') => {
   })
 }
 
-// DELETE TOAST NOTIFICATION (PIXEL PERFECT TO image_287d64.png)
+// DELETE TOAST NOTIFICATION
 const showDeleteToast = (message, title = 'Data Terhapus!') => {
   $q.notify({
     message: `
@@ -1548,10 +1399,8 @@ const fetchData = async () => {
 onMounted(async () => {
   await fetchData()
 
-  // Load Saved Dynamic Color Theme
-  const savedTheme = localStorage.getItem('ahsppage_custom_theme') || '#1a237e'
-  customThemeColor.value = savedTheme
-  applyDynamicTheme(savedTheme)
+  // Apply teal theme on mount
+  applyDynamicTheme('#00695c')
 
   // Spawning initial particles floating elements
   for (let i = 0; i < 8; i++) {
@@ -1576,6 +1425,58 @@ onUnmounted(() => {
   if (unsubUser) unsubUser()
   if (floatInterval) clearInterval(floatInterval)
 })
+
+// Function to apply dynamic theme
+const applyDynamicTheme = (hexColor) => {
+  const root = document.documentElement
+  root.style.setProperty('--theme-primary', hexColor)
+  const primaryHover = adjustColorBrightness(hexColor, -15)
+  root.style.setProperty('--theme-primary-hover', primaryHover)
+  const lightBg = adjustColorBrightness(hexColor, 80, true)
+  root.style.setProperty('--theme-light', lightBg)
+  const lightSoftBg = hexToRGBA(hexColor, 0.05)
+  root.style.setProperty('--theme-light-soft', lightSoftBg)
+}
+
+const hexToRGBA = (hex, alpha) => {
+  let r = parseInt(hex.slice(1, 3), 16),
+    g = parseInt(hex.slice(3, 5), 16),
+    b = parseInt(hex.slice(5, 7), 16)
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
+
+const adjustColorBrightness = (hex, percent, makeLightBg = false) => {
+  let R = parseInt(hex.substring(1, 3), 16)
+  let G = parseInt(hex.substring(3, 5), 16)
+  let B = parseInt(hex.substring(5, 7), 16)
+
+  if (makeLightBg) {
+    R = Math.round(R * 0.15 + 255 * 0.85)
+    G = Math.round(G * 0.15 + 255 * 0.85)
+    B = Math.round(B * 0.15 + 255 * 0.85)
+  } else {
+    R = parseInt((R * (100 + percent)) / 100)
+    G = parseInt((G * (100 + percent)) / 100)
+    B = parseInt((B * (100 + percent)) / 100)
+    R = R < 255 ? R : 255
+    G = G < 255 ? G : 255
+    B = B < 255 ? B : 255
+    R = R > 0 ? R : 0
+    G = G > 0 ? G : 0
+    B = B > 0 ? B : 0
+  }
+
+  const rHex = R.toString(16).padStart(2, '0')
+  const gHex = G.toString(16).padStart(2, '0')
+  const bHex = B.toString(16).padStart(2, '0')
+
+  return `#${rHex}${gHex}${bHex}`
+}
+
+// Custom Delete Dialog State
+const showDeleteConfirmationDialog = ref(false)
+const itemToDelete = ref(null)
+const deleting = ref(false)
 
 // --- LOGIC MASTER (BUAT/EDIT) ---
 const openMasterDialog = (item) => {
@@ -1797,206 +1698,304 @@ const exportToPDF = () => {
 }
 
 // ============================================================================
-// STANDAR NASIONAL INDONESIA (SNI) EXCEL GENERATOR (ALWAYS THEMED IN BLUE INDIGO)
+// STANDAR NASIONAL INDONESIA (SNI) EXCEL GENERATOR
 // ============================================================================
 const exportToExcel = (item) => {
   if (!item) return
 
-  // Standard national Excel theme color remains strictly Blue Indigo ('#1a237e') as requested
-  const excelPrimaryColor = '#1a237e'
+  // ── Color tokens (teal theme, Excel stays with SNI teal) ─────────────
+  const C_PRIMARY = '#00695C'
+  const C_PRI_DARK = '#004D40'
+  const C_PRI_LIGHT = '#E0F2F1'
+  const C_TITLE_BG = '#B2DFDB'
+  const C_SUBTOT_BG = '#E8F5E9'
+  const C_CALC_BG = '#ECEFF1'
+  const C_WHITE = '#FFFFFF'
+  const C_LIGHT_GRY = '#F5F5F5'
+  const C_LABEL_GRY = '#546E7A'
+  const C_BORDER = '#B0BEC5'
 
-  let htmlContent = `
-  <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <!--[if gte mso 9]>
-    <xml>
-      <x:ExcelWorkbook>
-        <x:ExcelWorksheets>
-          <x:ExcelWorksheet>
-            <x:Name>AHSP - ${item.kode || 'SNI'}</x:Name>
-            <x:WorksheetOptions>
-              <x:DisplayGridlines/>
-            </x:WorksheetOptions>
-          </x:ExcelWorksheet>
-        </x:ExcelWorksheets>
-      </x:ExcelWorkbook>
-    </xml>
-    <![endif]-->
-    <style>
-      body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-      .text-center { text-align: center; }
-      .text-left { text-align: left; }
-      .text-right { text-align: right; }
-      .font-bold { font-weight: bold; }
-      .header-title { font-size: 16px; font-weight: bold; text-align: center; color: ${excelPrimaryColor}; text-transform: uppercase; }
-      .header-subtitle { font-size: 10px; text-align: center; color: #555555; font-style: italic; }
-      .meta-label { font-weight: bold; width: 140px; font-size: 11px; }
-      .meta-val { font-size: 11px; }
-      .ahsp-table { border-collapse: collapse; width: 100%; margin-top: 15px; }
-      .ahsp-table th { background-color: ${excelPrimaryColor}; color: #ffffff; border: 1px solid #000000; padding: 10px; font-size: 10px; font-weight: bold; }
-      .ahsp-table td { border: 1px solid #000000; padding: 6px 8px; font-size: 10px; }
-      .bg-category { background-color: #e8eaf6; font-weight: bold; text-transform: uppercase; }
-      .bg-subtotal { background-color: #f5f5f5; font-weight: bold; font-style: italic; }
-      .bg-total-d { background-color: #eeeeee; font-weight: bold; }
-      .bg-total-e { background-color: #eeeeee; font-weight: bold; }
-      .bg-grand-total { background-color: ${excelPrimaryColor}; color: #ffffff; font-weight: bold; font-size: 11px; }
-      .rupiah-format { mso-number-format: '\\"Rp\\"\\#\\,\\#\\#0\\.00'; }
-      .decimal-format { mso-number-format: '0\\.0000'; }
-    </style>
-  </head>
-  <body>
-    <!-- KOP SURAT PERUSAHAAN -->
-    <table style="width: 100%;">
-      <tr>
-        <td colspan="7" class="header-title">${config.value.nama_pt || 'PT AGRA ABHINAYA PERKASA'}</td>
-      </tr>
-      <tr>
-        <td colspan="7" class="header-subtitle">${config.value.slogan_pt || 'General Construction and General Supply'}</td>
-      </tr>
-      <tr>
-        <td colspan="7" style="border-bottom: 2px solid #333333; height: 5px;"></td>
-      </tr>
-      <tr style="height: 15px;"><td></td></tr>
-      <tr>
-        <td colspan="7" style="font-size: 13px; font-weight: bold; text-align: center; text-decoration: underline;">ANALISA HARGA SATUAN PEKERJAAN (AHSP)</td>
-      </tr>
-      <tr>
-        <td colspan="7" class="text-center" style="font-size: 10px; font-weight: bold;">KODE STANDAR: ${item.kode || '-'}</td>
-      </tr>
-      <tr style="height: 15px;"><td></td></tr>
-    </table>
+  // ── Formatters ────────────────────────────────────────────────────────
+  const fmtRp = (v) =>
+    Number(v || 0).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const fmtKoef = (v) =>
+    Number(v || 0).toLocaleString('en-US', { minimumFractionDigits: 4, maximumFractionDigits: 4 })
 
-    <!-- META DATA AHSP -->
-    <table style="width: 100%;">
-      <tr>
-        <td class="meta-label">Uraian Pekerjaan</td>
-        <td>:</td>
-        <td colspan="5" class="meta-val" style="font-weight: bold; color: ${excelPrimaryColor}; text-transform: uppercase;">${item.nama_uraian}</td>
-      </tr>
-      <tr>
-        <td class="meta-label">Satuan Pekerjaan</td>
-        <td>:</td>
-        <td colspan="5" class="meta-val" style="font-weight: bold; text-transform: uppercase;">${item.satuan || '-'}</td>
-      </tr>
-    </table>
+  // ── Shared cell style helper ──────────────────────────────────────────
+  const td = ({
+    value = '',
+    colspan = 1,
+    rowspan = 1,
+    align = 'left',
+    valign = 'middle',
+    bold = false,
+    italic = false,
+    fontSize = 10,
+    color = '#1A1A1A',
+    bg = C_WHITE,
+    border = `1px solid ${C_BORDER}`,
+    paddingLeft = '6px',
+    paddingRight = '6px',
+    wrap = false,
+    width = '',
+    height = '',
+    numberFormat = '',
+    textTransform = '',
+    extra = '',
+  } = {}) => {
+    const styleArr = [
+      `font-family: Arial, sans-serif`,
+      `font-size: ${fontSize}px`,
+      `color: ${color}`,
+      `background-color: ${bg}`,
+      `text-align: ${align}`,
+      `vertical-align: ${valign}`,
+      `padding: 5px ${paddingRight} 5px ${paddingLeft}`,
+      `border: ${border}`,
+      bold ? 'font-weight: bold' : 'font-weight: normal',
+      italic ? 'font-style: italic' : '',
+      wrap ? 'white-space: normal' : 'white-space: nowrap',
+      width ? `width: ${width}` : '',
+      height ? `height: ${height}` : '',
+      textTransform ? `text-transform: ${textTransform}` : '',
+      numberFormat ? `mso-number-format: "${numberFormat}"` : '',
+    ]
+      .filter(Boolean)
+      .join('; ')
 
-    <!-- TABEL UTAMA AHSP SNI -->
-    <table class="ahsp-table">
-      <thead>
-        <tr>
-          <th style="width: 40px;">NO</th>
-          <th style="width: 320px;">URAIAN PEKERJAAN</th>
-          <th style="width: 90px;">KODE</th>
-          <th style="width: 70px;">SATUAN</th>
-          <th style="width: 90px;">KOEFISIEN</th>
-          <th style="width: 120px;">HARGA SATUAN (Rp)</th>
-          <th style="width: 140px;">JUMLAH HARGA (Rp)</th>
-        </tr>
-      </thead>
-      <tbody>
-  `
+    const attrs = [
+      colspan > 1 ? `colspan="${colspan}"` : '',
+      rowspan > 1 ? `rowspan="${rowspan}"` : '',
+      extra,
+    ]
+      .filter(Boolean)
+      .join(' ')
+
+    return `<td style="${styleArr}" ${attrs}>${value}</td>`
+  }
 
   const details = item.details || []
-  details.forEach((sub, idx) => {
-    if (sub.isTitle) {
-      htmlContent += `
-        <tr class="bg-category">
-          <td class="text-center" style="font-weight: bold;">${getTitleIndex(idx, details)}</td>
-          <td colspan="6" style="font-weight: bold;">${sub.uraian}</td>
-        </tr>
-      `
-    } else {
-      const koef = sub.koef || 0
-      const harga = sub.harga || 0
-      const total = koef * harga
-      htmlContent += `
-        <tr>
-          <td class="text-center">${getSubIndex(idx, details)}</td>
-          <td style="padding-left: 15px;">${sub.uraian}</td>
-          <td class="text-center" style="mso-number-format:'\\@';">${sub.kode || '-'}</td>
-          <td class="text-center">${sub.satuan || '-'}</td>
-          <td class="text-center decimal-format">${koef}</td>
-          <td class="text-right rupiah-format">${harga}</td>
-          <td class="text-right rupiah-format" style="font-weight: bold;">${total}</td>
-        </tr>
-      `
-    }
-
-    // Insert Category Subtotals
-    if (!sub.isTitle && (idx === details.length - 1 || details[idx + 1].isTitle)) {
-      htmlContent += `
-        <tr class="bg-subtotal">
-          <td colspan="6" class="text-right" style="font-weight: bold;">Jumlah ${getGroupName(idx, details)} (${getTitleIndexForSubtotal(idx, details)})</td>
-          <td class="text-right rupiah-format" style="font-weight: bold;">${getGroupSubtotal(idx, details)}</td>
-        </tr>
-      `
-    }
-  })
-
-  // Calculations for Summary
-  const dasar = calculateDasar(item)
   const overheadPct = item.overhead !== undefined ? Number(item.overhead) : 15
+  const ptName = config.value.nama_pt || 'PT AGRA ABHINAYA PERKASA'
+  const ptSlogan = config.value.slogan_pt || 'General Construction and General Supply'
+
+  // ── Build render list (title | item | subtotal) ───────────────────────
+  const renderList = []
+  let titleIdx = 0
+  let i = 0
+  while (i < details.length) {
+    const row = details[i]
+    if (row.isTitle) {
+      titleIdx++
+      const letter = String.fromCharCode(64 + titleIdx)
+      renderList.push({ kind: 'title', data: row, letter })
+      i++
+      while (i < details.length && !details[i].isTitle) {
+        renderList.push({ kind: 'item', data: details[i], letter })
+        i++
+      }
+      renderList.push({ kind: 'subtotal', letter, name: row.uraian })
+    } else {
+      i++
+    }
+  }
+
+  // ── Pre-calculate subtotals per group ─────────────────────────────────
+  const groupTotals = {}
+  let currentLetter = null
+  for (const entry of renderList) {
+    if (entry.kind === 'title') {
+      currentLetter = entry.letter
+      groupTotals[currentLetter] = 0
+    } else if (entry.kind === 'item' && currentLetter) {
+      groupTotals[currentLetter] += (entry.data.koef || 0) * (entry.data.harga || 0)
+    }
+  }
+  const dasar = Object.values(groupTotals).reduce((s, v) => s + v, 0)
   const overheadVal = dasar * (overheadPct / 100)
   const grandTotal = dasar + overheadVal
 
-  htmlContent += `
-        <!-- SUMMARY ROW D -->
-        <tr class="bg-total-d">
-          <td class="text-center" style="font-weight: bold;">D</td>
-          <td colspan="5" class="text-left" style="font-weight: bold; text-transform: uppercase;">JUMLAH HARGA TENAGA, BAHAN DAN PERALATAN (A+B+C)</td>
-          <td class="text-right rupiah-format" style="font-weight: bold;">${dasar}</td>
-        </tr>
-        <!-- SUMMARY ROW E -->
-        <tr class="bg-total-e">
-          <td class="text-center" style="font-weight: bold;">E</td>
-          <td colspan="5" class="text-left" style="font-weight: bold; text-transform: uppercase;">OVERHEAD + PROFIT (${overheadPct}% * D)</td>
-          <td class="text-right rupiah-format" style="font-weight: bold;">${overheadVal}</td>
-        </tr>
-        <!-- GRAND TOTAL F -->
-        <tr class="bg-grand-total">
-          <td class="text-center" style="font-weight: bold; border-bottom: 3px double #000;">F</td>
-          <td colspan="5" class="text-left" style="font-weight: bold; text-transform: uppercase; border-bottom: 3px double #000;">HARGA SATUAN PEKERJAAN (D+E)</td>
-          <td class="text-right rupiah-format" style="font-weight: bold; border-bottom: 3px double #000;">${grandTotal}</td>
-        </tr>
-      </tbody>
-    </table>
+  // ── Build table rows HTML ─────────────────────────────────────────────
+  let dataRows = ''
+  const subCounters = {}
 
-    <br/><br/>
-    <!-- SIGNATURE BLOCKS -->
-    <table style="width: 100%; text-align: center; font-size: 10px;">
-      <tr>
-        <td colspan="2" style="font-weight: bold; width: 33%;">Dibuat Oleh,</td>
-        <td colspan="3" style="font-weight: bold; width: 33%;">Diperiksa Oleh,</td>
-        <td colspan="2" style="font-weight: bold; width: 34%;">Disetujui Oleh,</td>
-      </tr>
-      <tr style="height: 45px;"><td colspan="7"></td></tr>
-      <tr>
-        <td colspan="2" style="font-weight: bold; text-decoration: underline; text-transform: uppercase;">Estimator / Engineering</td>
-        <td colspan="3" style="font-weight: bold; text-decoration: underline; text-transform: uppercase;">Site Manager</td>
-        <td colspan="2" style="font-weight: bold; text-decoration: underline; text-transform: uppercase;">Project Manager / Direksi</td>
-      </tr>
-    </table>
-  </body>
-  </html>
-  `
+  for (const entry of renderList) {
+    if (entry.kind === 'title') {
+      subCounters[entry.letter] = 0
+      dataRows += `
+        <tr style="height:22px">
+          ${td({ value: entry.letter, bold: true, fontSize: 11, color: C_PRIMARY, align: 'center', bg: C_TITLE_BG, border: `2px solid ${C_PRIMARY}` })}
+          ${td({ value: `${entry.data.uraian.toUpperCase()}`, bold: true, fontSize: 11, color: C_PRIMARY, bg: C_TITLE_BG, colspan: 6, border: `2px solid ${C_PRIMARY}`, paddingLeft: '10px', textTransform: 'uppercase' })}
+        </tr>`
+    } else if (entry.kind === 'item') {
+      subCounters[entry.letter] = (subCounters[entry.letter] || 0) + 1
+      const subNum = subCounters[entry.letter]
+      const rowBg = subNum % 2 === 1 ? C_WHITE : C_LIGHT_GRY
+      const koef = entry.data.koef || 0
+      const harga = entry.data.harga || 0
+      const total = koef * harga
+      dataRows += `
+        <tr style="height:20px">
+          ${td({ value: subNum, align: 'center', fontSize: 9, color: C_LABEL_GRY, bg: rowBg })}
+          ${td({ value: entry.data.uraian, bg: rowBg, paddingLeft: '12px', wrap: true })}
+          ${td({ value: entry.data.kode || '-', align: 'center', fontSize: 9, color: C_LABEL_GRY, bg: rowBg })}
+          ${td({ value: (entry.data.satuan || '-').toUpperCase(), align: 'center', bold: true, fontSize: 9, color: C_PRIMARY, bg: rowBg })}
+          ${td({ value: fmtKoef(koef), align: 'center', bg: rowBg, numberFormat: '0.0000' })}
+          ${td({ value: harga ? fmtRp(harga) : '-', align: 'right', bg: rowBg, paddingRight: '10px', numberFormat: '#,##0.00' })}
+          ${td({ value: total ? fmtRp(total) : '-', align: 'right', bold: true, color: C_PRIMARY, bg: C_PRI_LIGHT, paddingRight: '10px', numberFormat: '#,##0.00' })}
+        </tr>`
+    } else if (entry.kind === 'subtotal') {
+      const subtot = groupTotals[entry.letter] || 0
+      dataRows += `
+        <tr style="height:20px">
+          ${td({ value: `JUMLAH  (${entry.letter})`, bold: true, italic: true, color: C_PRIMARY, bg: C_SUBTOT_BG, align: 'right', colspan: 6, border: `1px solid ${C_BORDER}`, paddingRight: '12px' })}
+          ${td({ value: fmtRp(subtot), bold: true, color: C_PRIMARY, bg: C_SUBTOT_BG, align: 'right', paddingRight: '10px', border: `1px solid ${C_BORDER}` })}
+        </tr>`
+    }
+  }
 
-  const blob = new Blob([htmlContent], { type: 'application/vnd.ms-excel;charset=utf-8;' })
+  // ── Assemble full HTML ────────────────────────────────────────────────
+  const html = `
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:x="urn:schemas-microsoft-com:office:excel"
+      xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<!--[if gte mso 9]><xml>
+  <x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>
+    <x:Name>AHSP ${item.kode || 'SNI'}</x:Name>
+    <x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
+  </x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook>
+</xml><![endif]-->
+<style>
+  * { font-family: Arial, sans-serif; }
+  table { border-collapse: collapse; width: 100%; }
+  @page { size: A4 portrait; margin: 1.5cm; }
+</style>
+</head>
+<body>
+
+<!-- ══ HEADER PERUSAHAAN ══════════════════════════════════════════════════ -->
+<table>
+  <colgroup>
+    <col style="width:40px"><col style="width:320px"><col style="width:90px">
+    <col style="width:70px"><col style="width:90px">
+    <col style="width:120px"><col style="width:130px">
+  </colgroup>
+  <tr style="height:26px">
+    <td colspan="7" style="font-family:Arial;font-size:15px;font-weight:bold;color:${C_PRIMARY};
+      text-align:center;background-color:${C_PRI_LIGHT};
+      border-bottom:3px solid ${C_PRIMARY};padding:8px 0 4px 0;
+      text-transform:uppercase;letter-spacing:1px">${ptName}</td>
+  </tr>
+  <tr style="height:18px">
+    <td colspan="7" style="font-family:Arial;font-size:9px;color:${C_LABEL_GRY};
+      text-align:center;background-color:${C_PRI_LIGHT};
+      font-style:italic;padding:2px 0 6px 0">${ptSlogan}</td>
+  </tr>
+  <tr style="height:4px">
+    <td colspan="7" style="background:${C_PRIMARY};height:4px;padding:0;font-size:1px">&nbsp;</td>
+  </tr>
+  <tr style="height:6px"><td colspan="7" style="background:${C_WHITE}">&nbsp;</td></tr>
+
+  <!-- Judul dokumen -->
+  <tr style="height:24px">
+    <td colspan="7" style="font-family:Arial;font-size:13px;font-weight:bold;color:${C_WHITE};
+      text-align:center;background-color:${C_PRIMARY};
+      padding:6px 0;text-transform:uppercase;letter-spacing:2px">
+      ANALISA HARGA SATUAN PEKERJAAN (AHSP)
+    </td>
+  </tr>
+  <tr style="height:18px">
+    <td colspan="7" style="font-family:Arial;font-size:10px;font-weight:bold;color:${C_PRIMARY};
+      text-align:center;background-color:${C_PRI_LIGHT};padding:4px 0">
+      KODE STANDAR: ${item.kode || '-'}
+    </td>
+  </tr>
+  <tr style="height:6px"><td colspan="7" style="background:${C_WHITE}">&nbsp;</td></tr>
+
+  <!-- Meta info -->
+  <tr style="height:20px">
+    <td colspan="2" style="font-family:Arial;font-size:10px;font-weight:bold;color:${C_LABEL_GRY};padding:3px 6px">Uraian Pekerjaan</td>
+    <td style="font-family:Arial;font-size:10px;color:${C_LABEL_GRY};text-align:center">:</td>
+    <td colspan="4" style="font-family:Arial;font-size:10px;font-weight:bold;color:${C_PRIMARY};padding:3px 6px;text-transform:uppercase">${item.nama_uraian}</td>
+  </tr>
+  <tr style="height:20px">
+    <td colspan="2" style="font-family:Arial;font-size:10px;font-weight:bold;color:${C_LABEL_GRY};padding:3px 6px">Satuan Pekerjaan</td>
+    <td style="font-family:Arial;font-size:10px;color:${C_LABEL_GRY};text-align:center">:</td>
+    <td colspan="4" style="font-family:Arial;font-size:10px;font-weight:bold;color:${C_PRIMARY};padding:3px 6px;text-transform:uppercase">${(item.satuan || '-').toUpperCase()}</td>
+  </tr>
+  <tr style="height:6px"><td colspan="7" style="background:${C_WHITE}">&nbsp;</td></tr>
+
+  <!-- ══ TABLE HEADER ══════════════════════════════════════════════════════ -->
+  <tr style="height:30px">
+    ${td({ value: 'NO', align: 'center', bold: true, fontSize: 9, color: C_WHITE, bg: C_PRIMARY, border: `1px solid ${C_PRI_DARK}`, width: '40px' })}
+    ${td({ value: 'URAIAN PEKERJAAN', align: 'center', bold: true, fontSize: 9, color: C_WHITE, bg: C_PRIMARY, border: `1px solid ${C_PRI_DARK}`, width: '320px' })}
+    ${td({ value: 'KODE', align: 'center', bold: true, fontSize: 9, color: C_WHITE, bg: C_PRIMARY, border: `1px solid ${C_PRI_DARK}`, width: '80px' })}
+    ${td({ value: 'SATUAN', align: 'center', bold: true, fontSize: 9, color: C_WHITE, bg: C_PRIMARY, border: `1px solid ${C_PRI_DARK}`, width: '70px' })}
+    ${td({ value: 'KOEFISIEN', align: 'center', bold: true, fontSize: 9, color: C_WHITE, bg: C_PRIMARY, border: `1px solid ${C_PRI_DARK}`, width: '90px' })}
+    ${td({ value: 'HARGA SATUAN (Rp)', align: 'center', bold: true, fontSize: 9, color: C_WHITE, bg: C_PRIMARY, border: `1px solid ${C_PRI_DARK}`, width: '120px' })}
+    ${td({ value: 'JUMLAH HARGA (Rp)', align: 'center', bold: true, fontSize: 9, color: C_WHITE, bg: C_PRIMARY, border: `1px solid ${C_PRI_DARK}`, width: '130px' })}
+  </tr>
+
+  <!-- ══ DATA ROWS ═══════════════════════════════════════════════════════ -->
+  ${dataRows}
+
+  <!-- ══ SUMMARY D, E, F ════════════════════════════════════════════════ -->
+  <tr style="height:22px">
+    ${td({ value: 'D', align: 'center', bold: true, fontSize: 11, color: '#1A1A1A', bg: C_CALC_BG, border: `2px solid ${C_BORDER}` })}
+    ${td({ value: 'JUMLAH HARGA TENAGA, BAHAN DAN PERALATAN (A+B+C)', bold: true, fontSize: 10, color: '#1A1A1A', bg: C_CALC_BG, colspan: 5, border: `2px solid ${C_BORDER}`, paddingLeft: '10px' })}
+    ${td({ value: fmtRp(dasar), bold: true, align: 'right', fontSize: 10, color: '#1A1A1A', bg: C_CALC_BG, border: `2px solid ${C_BORDER}`, paddingRight: '10px' })}
+  </tr>
+  <tr style="height:22px">
+    ${td({ value: 'E', align: 'center', bold: true, fontSize: 11, color: '#1A1A1A', bg: C_CALC_BG, border: `2px solid ${C_BORDER}` })}
+    ${td({ value: `OVERHEAD + PROFIT  (${overheadPct}% × D)`, bold: true, fontSize: 10, color: '#1A1A1A', bg: C_CALC_BG, colspan: 5, border: `2px solid ${C_BORDER}`, paddingLeft: '10px' })}
+    ${td({ value: fmtRp(overheadVal), bold: true, align: 'right', fontSize: 10, color: '#1A1A1A', bg: C_CALC_BG, border: `2px solid ${C_BORDER}`, paddingRight: '10px' })}
+  </tr>
+  <tr style="height:26px">
+    ${td({ value: 'F', align: 'center', bold: true, fontSize: 12, color: C_WHITE, bg: C_PRIMARY, border: `2px solid ${C_PRI_DARK}` })}
+    ${td({ value: 'HARGA SATUAN PEKERJAAN  (D+E)', bold: true, fontSize: 11, color: C_WHITE, bg: C_PRIMARY, colspan: 5, border: `2px solid ${C_PRI_DARK}`, paddingLeft: '10px' })}
+    ${td({ value: fmtRp(grandTotal), bold: true, align: 'right', fontSize: 12, color: C_WHITE, bg: C_PRIMARY, border: `2px solid ${C_PRI_DARK}`, paddingRight: '10px' })}
+  </tr>
+
+  <!-- ══ SPACER ══════════════════════════════════════════════════════════ -->
+  <tr style="height:20px"><td colspan="7" style="border:none">&nbsp;</td></tr>
+
+  <!-- ══ TANDA TANGAN ═══════════════════════════════════════════════════ -->
+  <tr style="height:16px">
+    <td colspan="2" style="font-family:Arial;font-size:9px;font-weight:bold;color:${C_LABEL_GRY};text-align:center">Dibuat Oleh,</td>
+    <td colspan="3" style="font-family:Arial;font-size:9px;font-weight:bold;color:${C_LABEL_GRY};text-align:center">Diperiksa Oleh,</td>
+    <td colspan="2" style="font-family:Arial;font-size:9px;font-weight:bold;color:${C_LABEL_GRY};text-align:center">Disetujui Oleh,</td>
+  </tr>
+  <tr style="height:55px">
+    <td colspan="2" style="border:none">&nbsp;</td>
+    <td colspan="3" style="border:none">&nbsp;</td>
+    <td colspan="2" style="border:none">&nbsp;</td>
+  </tr>
+  <tr style="height:16px">
+    <td colspan="2" style="font-family:Arial;font-size:9px;font-weight:bold;color:${C_PRIMARY};text-align:center;border-top:2px solid ${C_PRIMARY}">Estimator / Engineering</td>
+    <td colspan="3" style="font-family:Arial;font-size:9px;font-weight:bold;color:${C_LABEL_GRY};text-align:center;border-top:2px solid ${C_PRIMARY}">Site Manager</td>
+    <td colspan="2" style="font-family:Arial;font-size:9px;font-weight:bold;color:${C_PRIMARY};text-align:center;border-top:2px solid ${C_PRIMARY}">Project Manager / Direksi</td>
+  </tr>
+</table>
+
+</body>
+</html>`
+
+  const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' })
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
   link.setAttribute(
     'download',
-    `AHSP_NASIONAL_${item.kode || 'SNI'}_${item.nama_uraian.replace(/\s+/g, '_')}.xls`,
+    `AHSP_${item.kode || 'SNI'}_${item.nama_uraian.replace(/\s+/g, '_').substring(0, 40)}.xls`,
   )
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
+  URL.revokeObjectURL(url)
 
-  showSuccessToast(
-    'Pemberkasan ekspor Excel standar nasional rampung disiapkan.',
-    'Sinkronisasi Berhasil!',
-  )
+  showSuccessToast('Dokumen Excel AHSP berhasil diekspor.', 'Export Berhasil!')
 }
 
 // --- SMART CALCULATIONS ---
@@ -2040,7 +2039,7 @@ const getTitleIndex = (idx, list = detailList.value) => {
   for (let i = 0; i <= idx; i++) {
     if (list[i] && list[i].isTitle) count++
   }
-  return String.fromCharCode(64 + count) // 65 = 'A'
+  return String.fromCharCode(64 + count)
 }
 
 const getTitleIndexForSubtotal = (idx, list = detailList.value) => {
@@ -2048,7 +2047,7 @@ const getTitleIndexForSubtotal = (idx, list = detailList.value) => {
   for (let i = 0; i <= idx; i++) {
     if (list[i] && list[i].isTitle) count++
   }
-  return String.fromCharCode(64 + count) // 65 = 'A'
+  return String.fromCharCode(64 + count)
 }
 
 const getSubIndex = (idx, list = detailList.value) => {
@@ -2113,13 +2112,13 @@ const executeHapus = async () => {
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
 
-/* Dynamic Theme Variable Declarations */
+/* Dynamic Theme Variable Declarations - DEFAULT TEAL */
 :root {
-  --theme-primary: #1a237e;
-  --theme-primary-hover: #0f175f;
-  --theme-light: #e8eaf6;
-  --theme-light-hover: #c5cae9;
-  --theme-light-soft: rgba(26, 35, 126, 0.02);
+  --theme-primary: #00695c;
+  --theme-primary-hover: #004d40;
+  --theme-light: #e0f2f1;
+  --theme-light-hover: #b2dfdb;
+  --theme-light-soft: rgba(0, 105, 92, 0.05);
 }
 
 .font-pro {
@@ -2136,7 +2135,7 @@ const executeHapus = async () => {
 }
 
 .shadow-premium {
-  box-shadow: 0 10px 25px rgba(26, 35, 126, 0.15);
+  box-shadow: 0 10px 25px rgba(0, 105, 92, 0.15);
 }
 
 /* THEME DYNAMIC ASSIGNMENT */
@@ -2369,10 +2368,10 @@ const executeHapus = async () => {
 }
 
 /* =======================================================================
-   TOAST STYLING (PIXEL PERFECT ACCORDING TO REFERENCE IMAGES)
+   TOAST STYLING
    ======================================================================= */
 :deep(.custom-premium-toast-success) {
-  background-color: #21ba45 !important; /* Rich Green matching image_287a07.png */
+  background-color: #21ba45 !important;
   color: white !important;
   border-radius: 6px !important;
   padding: 12px 18px !important;
@@ -2394,7 +2393,7 @@ const executeHapus = async () => {
 }
 
 :deep(.custom-premium-toast-danger) {
-  background-color: #c10015 !important; /* Rich Crimson Red matching image_287d64.png */
+  background-color: #c10015 !important;
   color: white !important;
   border-radius: 6px !important;
   padding: 12px 18px !important;
