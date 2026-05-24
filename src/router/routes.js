@@ -186,6 +186,11 @@ const routes = [
         component: () => import('pages/absensi/adminabsensi/PersetujuanCutiPage.vue'),
       },
       {
+        path: 'admin/persetujuan-izin',
+        name: 'absensi-admin-persetujuan-izin',
+        component: () => import('pages/absensi/adminabsensi/PersetujuanIzinPage.vue'),
+      },
+      {
         path: 'admin/pemberitahuan',
         name: 'absensi-admin-pemberitahuan',
         component: () => import('pages/absensi/adminabsensi/PemberitahuanUmumPage.vue'),

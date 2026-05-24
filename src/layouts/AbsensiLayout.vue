@@ -92,7 +92,13 @@
                 class="text-caption text-grey-7 text-uppercase"
                 style="font-size: 10px; letter-spacing: 1px"
               >
-                {{ isSuperAdmin ? 'SUPER ADMIN' : userData.jabatan || userData.role || 'Karyawan' }}
+                {{
+                  isSuperAdmin
+                    ? 'SUPER ADMIN'
+                    : isDireksi
+                      ? 'DIREKTUR'
+                      : userData.jabatan || userData.role || 'Karyawan'
+                }}
               </div>
             </div>
           </div>
@@ -114,16 +120,42 @@
                   <q-icon :name="menu.icon" size="22px" />
                 </q-item-section>
                 <q-item-section class="text-weight-bold uppercase">{{ menu.label }}</q-item-section>
-                <!-- Badge notif khusus menu Persetujuan Cuti (hanya untuk admin) -->
+
+                <!-- Badge notif khusus menu Persetujuan Cuti (Cuti Tahunan) -->
                 <q-item-section
                   v-if="
-                    menu.path === '/absensi/admin/persetujuan' && pendingCount > 0 && isSuperAdmin
+                    menu.path === '/absensi/admin/persetujuan' &&
+                    pendingCutiCount > 0 &&
+                    (isSuperAdmin || isDireksi)
                   "
                   side
                 >
                   <q-badge
                     color="red-6"
-                    :label="pendingCount > 99 ? '99+' : String(pendingCount)"
+                    :label="pendingCutiCount > 99 ? '99+' : String(pendingCutiCount)"
+                    class="text-weight-bolder shadow-2 notif-badge-pulse"
+                    style="
+                      font-size: 11px;
+                      min-width: 22px;
+                      height: 22px;
+                      border-radius: 11px;
+                      margin-right: 8px;
+                    "
+                  />
+                </q-item-section>
+
+                <!-- Badge notif khusus menu Persetujuan Izin (Izin & Sakit) -->
+                <q-item-section
+                  v-if="
+                    menu.path === '/absensi/admin/persetujuan-izin' &&
+                    pendingIzinCount > 0 &&
+                    (isSuperAdmin || isDireksi || isHRDAdmin)
+                  "
+                  side
+                >
+                  <q-badge
+                    color="orange-6"
+                    :label="pendingIzinCount > 99 ? '99+' : String(pendingIzinCount)"
                     class="text-weight-bolder shadow-2 notif-badge-pulse"
                     style="
                       font-size: 11px;
@@ -180,7 +212,9 @@ const leftDrawerOpen = ref(false)
 
 const userData = ref({ nama: '', jabatan: '', role: '', fotoUrl: '', email: '', akses: [] })
 const userPermissions = ref([])
-const pendingCount = ref(0)
+
+// Penampung data pengajuan pending asinkron
+const pendingList = ref([])
 let unsubscribePending = null
 
 const availableApps = [
@@ -242,6 +276,25 @@ const isSuperAdmin = computed(() => {
   return isAdminIdentity || isAdminRole
 })
 
+// DETEKSI ROLE DIREKSI SECARA DINAMIS
+const isDireksi = computed(() => {
+  const role = userData.value.role ? userData.value.role.toLowerCase() : ''
+  const jabatan = userData.value.jabatan ? userData.value.jabatan.toLowerCase() : ''
+  return (
+    role.includes('direktur') ||
+    role.includes('direksi') ||
+    jabatan.includes('direktur') ||
+    jabatan.includes('direksi')
+  )
+})
+
+// DETEKSI ADMIN HRD / OPERASIONAL BIASA
+const isHRDAdmin = computed(() => {
+  const roleLower = userData.value.role?.toLowerCase() || ''
+  const jabatanLower = userData.value.jabatan?.toLowerCase() || ''
+  return roleLower.includes('admin') || jabatanLower.includes('admin') || roleLower.includes('hrd')
+})
+
 const filteredApps = computed(() => {
   if (isSuperAdmin.value) return availableApps
 
@@ -253,21 +306,40 @@ const filteredApps = computed(() => {
 
 // LOGIKA PENGATURAN MENU DINAMIS BERDASARKAN ROLE
 const menuListFiltered = computed(() => {
-  if (isSuperAdmin.value) {
+  // 1. MENU UNTUK SUPER ADMIN DAN DIREKTUR (BISA LIHAT DUA SUB-MODUL)
+  if (isSuperAdmin.value || isDireksi.value) {
     return [
       { label: 'DASHBOARD ADMIN', icon: 'admin_panel_settings', path: '/absensi/admin/dashboard' },
       { label: 'PENGATURAN ABSENSI', icon: 'settings_suggest', path: '/absensi/admin/pengaturan' },
       { label: 'CATATAN ABSENSI', icon: 'fact_check', path: '/absensi/admin/catatan' },
       { label: 'PERSETUJUAN CUTI', icon: 'event_available', path: '/absensi/admin/persetujuan' },
+      { label: 'PERSETUJUAN IZIN', icon: 'rule_folder', path: '/absensi/admin/persetujuan-izin' },
       { label: 'PEMBERITAHUAN UMUM', icon: 'campaign', path: '/absensi/admin/pemberitahuan' },
       { label: 'DASHBOARD KARYAWAN', icon: 'dashboard', path: '/absensi/dashboard' },
       { label: 'PROFIL', icon: 'account_circle', path: '/absensi/profil' },
       { label: 'RIWAYAT ABSENSI', icon: 'history', path: '/absensi/riwayat' },
       { label: 'PENGAJUAN CUTI/IZIN', icon: 'event_note', path: '/absensi/pengajuan-izin' },
-      { label: 'ABSENSI MANUAL', icon: 'history_edu', path: '/absensi/manual' }, // <-- BARU: Absensi Manual
+      { label: 'ABSENSI MANUAL', icon: 'history_edu', path: '/absensi/manual' },
     ]
   }
 
+  // 2. MENU UNTUK ADMIN HRD / OPERASIONAL BIASA (HANYA BISA LIHAT PERSETUJUAN IZIN, TIDAK BISA CUTI)
+  if (isHRDAdmin.value) {
+    return [
+      { label: 'DASHBOARD ADMIN', icon: 'admin_panel_settings', path: '/absensi/admin/dashboard' },
+      { label: 'PENGATURAN ABSENSI', icon: 'settings_suggest', path: '/absensi/admin/pengaturan' },
+      { label: 'CATATAN ABSENSI', icon: 'fact_check', path: '/absensi/admin/catatan' },
+      { label: 'PERSETUJUAN IZIN', icon: 'rule_folder', path: '/absensi/admin/persetujuan-izin' }, // Cuti Tahunan disembunyikan
+      { label: 'PEMBERITAHUAN UMUM', icon: 'campaign', path: '/absensi/admin/pemberitahuan' },
+      { label: 'DASHBOARD KARYAWAN', icon: 'dashboard', path: '/absensi/dashboard' },
+      { label: 'PROFIL', icon: 'account_circle', path: '/absensi/profil' },
+      { label: 'RIWAYAT ABSENSI', icon: 'history', path: '/absensi/riwayat' },
+      { label: 'PENGAJUAN CUTI/IZIN', icon: 'event_note', path: '/absensi/pengajuan-izin' },
+      { label: 'ABSENSI MANUAL', icon: 'history_edu', path: '/absensi/manual' },
+    ]
+  }
+
+  // 3. MENU UNTUK STAF / KARYAWAN BIASA
   const absensiModule = userPermissions.value.find((p) => p.id === 'absensi')
   if (!absensiModule || !absensiModule.isActive) return []
 
@@ -291,28 +363,35 @@ const menuListFiltered = computed(() => {
       path: '/absensi/pengajuan-izin',
       key: 'pengajuan',
     },
-    { label: 'ABSENSI MANUAL', icon: 'history_edu', path: '/absensi/manual', key: 'pengajuan' }, // Tampil jika user punya akses pengajuan
+    { label: 'ABSENSI MANUAL', icon: 'history_edu', path: '/absensi/manual', key: 'pengajuan' },
   ]
 
   return baseMenus.filter((m) => canSee(m.key))
 })
 
-// REALTIME LISTENER: hitung pengajuan pending untuk badge notif admin
-// Dipanggil langsung di onMounted tanpa cek role dulu,
-// agar badge langsung muncul begitu data masuk Firebase
+// REALTIME LISTENER: Hitung pengajuan pending secara aman (Rule 2)
 const loadPendingCount = () => {
   if (unsubscribePending) unsubscribePending()
   const qPending = query(collection(db, 'pengajuan'), where('status_approval', '==', 'Pending'))
   unsubscribePending = onSnapshot(
     qPending,
     (snap) => {
-      pendingCount.value = snap.size // otomatis update setiap ada pengajuan baru/dibatalkan
+      pendingList.value = snap.docs.map((docObj) => ({ id: docObj.id, ...docObj.data() }))
     },
     (err) => {
       console.warn('Gagal load pending count:', err.message)
     },
   )
 }
+
+// KALKULATOR BADGE SECARA REAKTIF & AMAN DI MEMORI
+const pendingCutiCount = computed(() => {
+  return pendingList.value.filter((p) => p.jenis_pengajuan === 'Cuti Tahunan').length
+})
+
+const pendingIzinCount = computed(() => {
+  return pendingList.value.filter((p) => p.jenis_pengajuan !== 'Cuti Tahunan').length
+})
 
 const syncData = () => {
   const saved = localStorage.getItem('user_data')

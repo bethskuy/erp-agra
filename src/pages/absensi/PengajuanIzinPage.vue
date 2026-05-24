@@ -253,35 +253,79 @@
 
               <!-- Lampiran Pendukung -->
               <div>
-                <div
-                  class="text-caption text-weight-bold text-blue-grey-8 uppercase letter-spacing-1 q-mb-xs"
-                >
-                  Dokumen &amp; Delegasi
+                <div class="row items-center q-mb-xs">
+                  <div
+                    class="text-caption text-weight-bold text-blue-grey-8 uppercase letter-spacing-1"
+                  >
+                    Dokumen &amp; Delegasi
+                  </div>
+                  <!-- Badge wajib/opsional otomatis sesuai jenis -->
+                  <q-badge
+                    v-if="form.jenis && form.jenis !== 'Cuti Tahunan'"
+                    color="red-6"
+                    class="q-ml-sm text-weight-bold rounded-4"
+                    style="font-size: 10px"
+                  >
+                    WAJIB LAMPIRKAN BUKTI
+                  </q-badge>
+                  <q-badge
+                    v-else-if="form.jenis === 'Cuti Tahunan'"
+                    color="grey-5"
+                    class="q-ml-sm text-weight-bold rounded-4"
+                    style="font-size: 10px"
+                  >
+                    OPSIONAL
+                  </q-badge>
                 </div>
                 <div class="row q-col-gutter-md">
                   <div class="col-12 col-sm-6">
                     <q-file
                       outlined
                       v-model="form.lampiran"
-                      placeholder="Pilih Foto/File Bukti (Opsional)"
+                      :placeholder="
+                        form.jenis && form.jenis !== 'Cuti Tahunan'
+                          ? 'Wajib: Surat Dokter / Bukti Izin *'
+                          : 'Foto/File Bukti (Opsional)'
+                      "
                       dense
                       class="rounded-input bg-grey-1"
-                      color="primary"
+                      :color="form.jenis && form.jenis !== 'Cuti Tahunan' ? 'red-6' : 'primary'"
                       accept="image/*, .pdf"
                       clearable
                       max-file-size="5242880"
                       @rejected="onFileRejected"
                     >
                       <template v-slot:prepend>
-                        <q-icon name="cloud_upload" color="blue-grey-4" />
+                        <q-icon
+                          :name="
+                            form.jenis && form.jenis !== 'Cuti Tahunan'
+                              ? 'upload_file'
+                              : 'cloud_upload'
+                          "
+                          :color="
+                            form.jenis && form.jenis !== 'Cuti Tahunan' ? 'red-5' : 'blue-grey-4'
+                          "
+                        />
                       </template>
                       <template v-slot:append>
                         <q-icon name="attach_file" color="blue-grey-4" />
                       </template>
                       <q-tooltip class="bg-blue-grey-9">
-                        Upload surat dokter atau foto bukti (Maks. 5MB)
+                        {{
+                          form.jenis && form.jenis !== 'Cuti Tahunan'
+                            ? 'WAJIB: Upload surat dokter atau foto bukti izin (Maks. 5MB)'
+                            : 'Upload surat dokter atau foto bukti (Maks. 5MB)'
+                        }}
                       </q-tooltip>
                     </q-file>
+                    <!-- Peringatan jika izin/sakit tapi belum pilih file -->
+                    <div
+                      v-if="form.jenis && form.jenis !== 'Cuti Tahunan' && !form.lampiran"
+                      class="text-caption text-red-6 text-weight-bold q-mt-xs row items-center"
+                    >
+                      <q-icon name="warning" size="12px" class="q-mr-xs" />
+                      Lampiran wajib disertakan untuk pengajuan {{ form.jenis }}
+                    </div>
                   </div>
 
                   <div class="col-12 col-sm-6">
@@ -1071,6 +1115,13 @@ const validateLeaveSubmission = () => {
 
   if (!startDate) {
     throw new Error('Tanggal cuti wajib dipilih.')
+  }
+
+  // VALIDASI LAMPIRAN WAJIB untuk Izin Sakit & Izin Mendadak
+  if (form.value.jenis !== 'Cuti Tahunan' && !form.value.lampiran) {
+    throw new Error(
+      `Lampiran bukti wajib disertakan untuk pengajuan ${form.value.jenis}. Harap upload surat dokter atau foto bukti.`,
+    )
   }
 
   // REVISI POIN 8: Validasi Cuti H-14
