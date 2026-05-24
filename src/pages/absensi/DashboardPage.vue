@@ -1090,6 +1090,7 @@ const startAbsensi = (mode) => {
         position: 'top',
       })
     }
+    
   } else {
     if (!documentId.value) {
       $q.notify({
