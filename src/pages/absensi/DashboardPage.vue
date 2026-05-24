@@ -112,7 +112,7 @@
                     Sistem Radar Lokasi
                   </div>
                 </div>
-                <!-- REVISI POIN 5: Tampilan Jam Kerja Shift membaca secara dinamis dari Firestore Karyawan -->
+                <!-- Tampilan Jam Kerja Shift membaca secara dinamis dari Firestore Karyawan -->
                 <q-badge
                   outline
                   color="indigo-5"
@@ -582,6 +582,9 @@ import { ref as storageRef, uploadString, getDownloadURL } from 'firebase/storag
 import { useQuasar, date } from 'quasar'
 import { useRouter } from 'vue-router'
 
+// INTEGRASI EMAS: Import modul Capacitor Geolocation resmi untuk APK Mobile
+import { Geolocation } from '@capacitor/geolocation'
+
 const $q = useQuasar()
 const router = useRouter()
 
@@ -597,7 +600,7 @@ const currentDate = ref('')
 const riwayatData = ref([])
 const dataSeluruhKaryawan = ref([])
 
-// REVISI POIN 5 & 15: Ditambahkan jam_masuk, jam_pulang, dan lokasi_dinas (array) dinamis pada profil karyawan
+// Profil Karyawan Terintegrasi
 const userData = ref({
   nama: 'Memuat...',
   jabatan: 'Staff',
@@ -607,9 +610,9 @@ const userData = ref({
   foto_profil: '',
   foto_registrasi: '',
   nik: '',
-  jam_masuk: '08:00', // Default Fallback jika HRD belum set jam kerja
-  jam_pulang: '17:00', // Default Fallback jika HRD belum set jam kerja
-  lokasi_dinas: [], // Diubah menjadi Array reaktif untuk memuat beberapa lokasi dinas (Poin 15 akhir)
+  jam_masuk: '08:00',
+  jam_pulang: '17:00',
+  lokasi_dinas: [],
 })
 
 // STATE AI FACE VERIFICATION
@@ -637,22 +640,19 @@ const locationData = ref({
   securityRisk: false,
 })
 
-// REVISI POIN 5: Menghitung limit keterlambatan dinamis berbasis data Firestore Karyawan
 const lateLimit = computed(() => userData.value.jam_masuk || '08:00')
 
-// FUNGSI MENGHAPUS FOTO DAN MENGULANG SCAN
 const ulangiPindai = () => {
   capturedImage.value = null
   isFaceMatched.value = false
 }
 
-// FUNGSI SINKRONISASI JAM DIGITAL REAL-TIME
 const updateTime = () => {
-  const now = new Date()
-  currentHours.value = date.formatDate(now, 'HH')
-  currentMinutes.value = date.formatDate(now, 'mm')
-  currentSeconds.value = date.formatDate(now, 'ss')
-  currentDate.value = date.formatDate(now, 'dddd, DD MMMM YYYY', {
+  const nowObj = new Date()
+  currentHours.value = date.formatDate(nowObj, 'HH')
+  currentMinutes.value = date.formatDate(nowObj, 'mm')
+  currentSeconds.value = date.formatDate(nowObj, 'ss')
+  currentDate.value = date.formatDate(nowObj, 'dddd, DD MMMM YYYY', {
     days: ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'],
     months: [
       'Januari',
@@ -671,7 +671,6 @@ const updateTime = () => {
   })
 }
 
-// FUNGSI INJEKSI SCRIPT CDN SECARA DINAMIS
 const loadFaceApiScript = () => {
   return new Promise((resolve, reject) => {
     if (window.faceapi) {
@@ -691,7 +690,6 @@ const loadFaceApiScript = () => {
   })
 }
 
-// FUNGSI LOAD CORE MODEL AI LANGSUNG DARI CLOUD CDN
 const initFaceEngine = async () => {
   try {
     aiStatusText.value = 'Menghubungkan ke server satelit AI...'
@@ -712,7 +710,6 @@ const initFaceEngine = async () => {
   }
 }
 
-// LOGIKA MATEMATIKA: PEMBANDING VECTOR DESCRIPTOR WAJAH (STRICT THRESHOLD DETECTOR)
 const lakukanFaceMatch = async (rawImgBase64) => {
   const masterFotoUrl = userData.value.foto_registrasi
 
@@ -800,7 +797,6 @@ const lakukanFaceMatch = async (rawImgBase64) => {
   }
 }
 
-// REVISI METODE WATERMARK: Canvas overlay dinamis mengikuti standard Map Camera (Clean & Premium)
 const applyWatermark = (base64Image, isClockIn = true) => {
   return new Promise((resolve) => {
     const img = new Image()
@@ -904,7 +900,6 @@ const applyWatermark = (base64Image, isClockIn = true) => {
   })
 }
 
-// AMBIL FOTO & TERAPKAN LIVE WATERMARK SETELAH VALIDASI
 const takePhoto = async () => {
   const ctx = canvas.value.getContext('2d')
   canvas.value.width = video.value.videoWidth
@@ -926,7 +921,6 @@ const takePhoto = async () => {
   }
 }
 
-// UI Helpers
 const getInitial = (name) => {
   if (!name) return 'U'
   return name.charAt(0).toUpperCase()
@@ -963,69 +957,72 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)))
 }
 
-// REVISI POIN 15: Optimasi GPS Radar agar memvalidasi multi-lokasi penugasan aktif secara reaktif
-const detectLocation = () => {
-  if (!navigator.geolocation) return
+// INTEGRASI EMAS: Logika pengolahan koordinat reaktif yang bersih & aman (Bebas Duplikasi)
+const processCoordinates = (lat, lng, accuracy, mocked = false) => {
+  const isSuspicious =
+    mocked === true || accuracy === 10 || accuracy === 5 || accuracy === 1 || accuracy === 100
+
+  if (isSuspicious) {
+    locationData.value.securityRisk = true
+    locationData.value.inRange = false
+    locationData.value.lat = lat.toFixed(5)
+    locationData.value.lng = lng.toFixed(5)
+    locationData.value.statusText = 'TERDETEKSI FAKE GPS / LOKASI PALSU'
+    locationData.value.matchedLocationName = 'AKSES DITOLAK'
+    return
+  }
+
+  locationData.value.securityRisk = false
+  locationData.value.lat = lat.toFixed(5)
+  locationData.value.lng = lng.toFixed(5)
+
+  let foundMatch = false
+  let matchedName = 'TIDAK TERDETEKSI'
+
+  let assignedLocs = []
+  if (userData.value.lokasi_dinas) {
+    assignedLocs = Array.isArray(userData.value.lokasi_dinas)
+      ? userData.value.lokasi_dinas.map((l) => l.toUpperCase())
+      : [userData.value.lokasi_dinas.toUpperCase()]
+  }
+
+  for (const loc of daftarLokasiKantor.value) {
+    if (assignedLocs.length > 0 && !assignedLocs.includes(loc.nama_lokasi.toUpperCase())) {
+      continue
+    }
+    const distance = calculateDistance(lat, lng, loc.latitude, loc.longitude)
+    if (distance <= loc.radius) {
+      foundMatch = true
+      matchedName = loc.nama_lokasi
+      break
+    }
+  }
+
+  locationData.value.inRange = foundMatch
+  locationData.value.matchedLocationName = matchedName
+
+  if (foundMatch) {
+    locationData.value.statusText = 'LOKASI VALID & COCOK'
+  } else {
+    if (assignedLocs.length > 0) {
+      locationData.value.statusText = `WAJIB DI AREA PENUGASAN: ${assignedLocs.join(' / ')}`
+    } else {
+      locationData.value.statusText = 'DI LUAR AREA KANTOR / PROYEK'
+    }
+  }
+  getAddressName(lat, lng)
+}
+
+// INTEGRASI EMAS: Fallback browser Geolocation (Jika tes di localhost/Chrome web)
+const fallbackWebGeolocation = () => {
+  if (!navigator.geolocation) {
+    locationData.value.statusText = 'GPS TIDAK DIDUKUNG BROWSER'
+    return
+  }
   navigator.geolocation.getCurrentPosition(
     (p) => {
-      const lat = p.coords.latitude
-      const lng = p.coords.longitude
-      const acc = p.coords.accuracy
-
-      const isSuspicious =
-        p.coords.mocked === true || acc === 10 || acc === 5 || acc === 1 || acc === 100
-
-      if (isSuspicious) {
-        locationData.value.securityRisk = true
-        locationData.value.inRange = false
-        locationData.value.lat = lat.toFixed(5)
-        locationData.value.lng = lng.toFixed(5)
-        locationData.value.statusText = 'TERDETEKSI FAKE GPS / LOKASI PALSU'
-        locationData.value.matchedLocationName = 'AKSES DITOLAK'
-        return
-      }
-
-      locationData.value.securityRisk = false
-      locationData.value.lat = lat.toFixed(5)
-      locationData.value.lng = lng.toFixed(5)
-
-      let foundMatch = false
-      let matchedName = 'TIDAK TERDETEKSI'
-
-      // Normalisasi daftar lokasi dinas karyawan agar aman dari bentuk String / Array
-      let assignedLocs = []
-      if (userData.value.lokasi_dinas) {
-        assignedLocs = Array.isArray(userData.value.lokasi_dinas)
-          ? userData.value.lokasi_dinas.map((l) => l.toUpperCase())
-          : [userData.value.lokasi_dinas.toUpperCase()]
-      }
-
-      for (const loc of daftarLokasiKantor.value) {
-        // REVISI METODE PENCOCOKAN: Karyawan hanya bisa absen di salah satu lokasi dari list penugasan mereka
-        if (assignedLocs.length > 0 && !assignedLocs.includes(loc.nama_lokasi.toUpperCase())) {
-          continue
-        }
-        const distance = calculateDistance(lat, lng, loc.latitude, loc.longitude)
-        if (distance <= loc.radius) {
-          foundMatch = true
-          matchedName = loc.nama_lokasi
-          break
-        }
-      }
-
-      locationData.value.inRange = foundMatch
-      locationData.value.matchedLocationName = matchedName
-
-      if (foundMatch) {
-        locationData.value.statusText = 'LOKASI VALID & COCOK'
-      } else {
-        if (assignedLocs.length > 0) {
-          locationData.value.statusText = `WAJIB DI AREA PENUGASAN: ${assignedLocs.join(' / ')}`
-        } else {
-          locationData.value.statusText = 'DI LUAR AREA KANTOR / PROYEK'
-        }
-      }
-      getAddressName(lat, lng)
+      const isMocked = p.coords.mocked === true
+      processCoordinates(p.coords.latitude, p.coords.longitude, p.coords.accuracy, isMocked)
     },
     () => {
       locationData.value.statusText = 'IZINKAN GPS BROWSER!'
@@ -1034,12 +1031,55 @@ const detectLocation = () => {
   )
 }
 
+// INTEGRASI EMAS: Logika asinkron pendeteksi lokasi dengan deteksi cerdas Capacitor Native APK + Web Fallback
+const detectLocation = async () => {
+  // Mengecek apakah aplikasi berjalan di dalam platform Capacitor asli (APK HP)
+  const isCapacitor =
+    typeof window !== 'undefined' &&
+    window.Capacitor &&
+    window.Capacitor.isPluginAvailable('Geolocation')
+
+  if (isCapacitor) {
+    try {
+      // Membuka Dialog Izin Native Android/OS HP bawaan secara resmi
+      const permission = await Geolocation.requestPermissions()
+
+      if (permission.location === 'granted') {
+        const posisi = await Geolocation.getCurrentPosition({
+          enableHighAccuracy: true,
+          timeout: 15000,
+        })
+        const isMocked = posisi.coords.mocked || false
+        processCoordinates(
+          posisi.coords.latitude,
+          posisi.coords.longitude,
+          posisi.coords.accuracy,
+          isMocked,
+        )
+      } else {
+        locationData.value.statusText = 'IZINKAN LOKASI DI SETTING HP ANDA!'
+        $q.notify({
+          color: 'negative',
+          icon: 'warning',
+          message: 'Izin Lokasi Ditolak. Harap izinkan akses GPS di pengaturan aplikasi HP Anda.',
+          position: 'top',
+        })
+      }
+    } catch (e) {
+      console.warn('Native Capacitor Geolocation gagal, dialihkan ke Web Fallback:', e)
+      fallbackWebGeolocation()
+    }
+  } else {
+    // Mode testing lokal via Web Browser normal
+    fallbackWebGeolocation()
+  }
+}
+
 const startAbsensi = (mode) => {
   if (locationData.value.securityRisk || !locationData.value.inRange) return
 
   attendanceMode.value = mode
 
-  // REVISI POIN 5: Pengecekan status terlambat membandingkan dengan parameter limit dinamis
   if (mode === 'in') {
     const timeStr = `${currentHours.value}:${currentMinutes.value}`
     if (timeStr > lateLimit.value) {
@@ -1085,17 +1125,15 @@ const executeAbsensiAction = async () => {
   }
 }
 
-// CLOCK IN SINKRONISASI
 const saveAbsensi = async () => {
   if (!locationData.value.inRange || locationData.value.securityRisk || !isFaceMatched.value) return
 
   $q.loading.show({ message: 'Menyimpan berkas presensi masuk...' })
   try {
     const formattedName = (userData.value.nama || 'USER').toUpperCase()
-    const now = new Date()
-    const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`
+    const nowObj = new Date()
+    const timeStr = `${nowObj.getHours().toString().padStart(2, '0')}:${nowObj.getMinutes().toString().padStart(2, '0')}`
 
-    // REVISI POIN 5: Penentuan status is_late di database mengikuti lateLimit dinamis
     const isLate = timeStr > lateLimit.value
 
     let fotoUrl = null
@@ -1131,7 +1169,6 @@ const saveAbsensi = async () => {
   }
 }
 
-// CLOCK OUT SINKRONISASI
 const saveAbsensiOut = async () => {
   if (
     !documentId.value ||
@@ -1182,7 +1219,7 @@ onMounted(() => {
   initFaceEngine()
 
   unsubLokasi = onSnapshot(collection(db, 'lokasi_kantor'), (snap) => {
-    daftarLokasiKantor.value = snap.docs.map((doc) => doc.data())
+    daftarLokasiKantor.value = snap.docs.map((docItem) => docItem.data())
     detectLocation()
   })
   locationTimer = setInterval(detectLocation, 30000)
@@ -1199,7 +1236,6 @@ onMounted(() => {
           if (!snap.empty) {
             const data = snap.docs[0].data()
 
-            // REVISI POIN 5 & 15: Penanganan normalisasi data lokasi_dinas agar bertipe Array yang aman
             let initialLocs = data.lokasi_dinas || []
             if (typeof initialLocs === 'string') {
               initialLocs = initialLocs ? [initialLocs] : []
@@ -1216,7 +1252,6 @@ onMounted(() => {
               jam_pulang: data.jam_pulang || '17:00',
               lokasi_dinas: initialLocs,
             }
-            // Trigger pendeteksian ulang koordinat sesudah lokasi dinas berhasil diload
             detectLocation()
           }
         })
@@ -1639,7 +1674,6 @@ onUnmounted(() => {
    REVISI RESPONSIF LAYOUT MOBILE - ZERO-SCROLL SINGLE PANEL CONFIG
    ======================================================================= */
 @media (max-width: 767px) {
-  /* Memaksa wrapper kamera melayang penuh menutupi sisa padding q-page */
   .camera-outer-wrapper {
     position: fixed;
     top: 0;
@@ -1653,7 +1687,6 @@ onUnmounted(() => {
     overflow: hidden;
   }
 
-  /* Memastikan anak pembungkus wrapper juga memanjang penuh */
   .camera-outer-wrapper > div {
     height: 100% !important;
     width: 100% !important;
@@ -1676,13 +1709,12 @@ onUnmounted(() => {
 
   .camera-row-container {
     flex-direction: column !important;
-    flex-wrap: nowrap !important; /* MENCEGAH ELEMEN MELIPAT HORIZONTAL KE SISI KANAN */
+    flex-wrap: nowrap !important;
     flex: 1;
     overflow: hidden;
     display: flex !important;
   }
 
-  /* Video kamera presisi 42vh dari tinggi layar HP */
   .camera-video-container {
     height: 42vh !important;
     min-height: 180px !important;
@@ -1691,22 +1723,20 @@ onUnmounted(() => {
     background: #000000 !important;
   }
 
-  /* Mencegah Watermark Terpotong Sisi Atas/Bawah karena Penskalaan CSS Cover */
   .video-stream,
   .captured-preview {
     height: 100% !important;
     width: 100% !important;
-    object-fit: contain !important; /* DIJAMIN WATERMARK TERLIHAT UTUH */
+    object-fit: contain !important;
     background: #000000 !important;
   }
 
-  /* Panel kontrol otomatis mengisi sisa tinggi layar HP */
   .camera-control-panel {
     padding: 12px !important;
     flex: 1;
     display: flex !important;
     flex-direction: column !important;
-    flex-wrap: nowrap !important; /* KUNCI AGAR TIDAK MELIPAT KE KANAN */
+    flex-wrap: nowrap !important;
     justify-content: space-between !important;
     background-color: #f8fafc !important;
     overflow: hidden;
