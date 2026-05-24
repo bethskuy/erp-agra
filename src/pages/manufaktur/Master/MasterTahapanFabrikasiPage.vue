@@ -51,8 +51,10 @@
                     outlined
                     label="Kode Tahapan"
                     :rules="[required]"
+                    hint="Contoh: LAS, CUT, PAINT"
                   />
                 </div>
+
                 <div class="col-12 col-md-6 col-xl-4">
                   <q-input
                     v-model="form.nama_tahapan"
@@ -61,6 +63,7 @@
                     :rules="[required]"
                   />
                 </div>
+
                 <div class="col-12 col-md-6 col-xl-4">
                   <q-input
                     v-model.number="form.urutan"
@@ -71,14 +74,25 @@
                     :rules="[(val) => Number(val) > 0 || 'Urutan wajib lebih dari 0']"
                   />
                 </div>
+
                 <div class="col-12 col-md-6 col-xl-4">
                   <q-input
                     v-model="form.estimasi_waktu"
                     outlined
                     label="Estimasi Waktu"
-                    hint="Contoh: 4 jam, 1 hari"
+                    hint="Contoh: 90 menit, 4 jam, 1.5 jam, 1 hari"
                   />
                 </div>
+
+                <div class="col-12 col-md-6 col-xl-4">
+                  <q-input
+                    :model-value="computedEstimasiMenitLabel"
+                    outlined
+                    label="Estimasi Menit (Auto)"
+                    readonly
+                  />
+                </div>
+
                 <div class="col-12 col-md-6 col-xl-4">
                   <q-select
                     v-model="form.status"
@@ -88,6 +102,7 @@
                     :rules="[required]"
                   />
                 </div>
+
                 <div class="col-12 col-md-6 col-xl-4">
                   <div class="qc-toggle-panel row items-center full-height">
                     <q-toggle
@@ -120,136 +135,159 @@
     </template>
 
     <template v-else>
-    <div class="page-header row items-center justify-between q-mb-lg">
-      <div>
-        <div class="text-h4 text-weight-bolder text-green-10">Master Tahapan Fabrikasi</div>
-        <div class="text-subtitle1 text-grey-7 q-mt-xs">
-          Urutan tahapan kerja workshop untuk pekerjaan fabrikasi berbasis proyek.
+      <div class="page-header row items-center justify-between q-mb-lg">
+        <div>
+          <div class="text-h4 text-weight-bolder text-green-10">Master Tahapan Fabrikasi</div>
+          <div class="text-subtitle1 text-grey-7 q-mt-xs">
+            Urutan tahapan kerja workshop untuk pekerjaan fabrikasi berbasis proyek.
+          </div>
         </div>
+
+        <q-btn
+          unelevated
+          rounded
+          color="green-10"
+          icon="add"
+          label="Tambah Tahapan"
+          no-caps
+          class="q-mt-md q-mt-md-none"
+          @click="openFormPage()"
+        />
       </div>
 
-      <q-btn
-        unelevated
-        rounded
-        color="green-10"
-        icon="add"
-        label="Tambah Tahapan"
-        no-caps
-        class="q-mt-md q-mt-md-none"
-        @click="openFormPage()"
-      />
-    </div>
+      <q-card flat bordered class="filter-card q-mb-md">
+        <q-card-section>
+          <div class="row q-col-gutter-md items-center">
+            <div class="col-12 col-md-7">
+              <q-input
+                v-model="search"
+                outlined
+                dense
+                rounded
+                debounce="250"
+                placeholder="Cari kode tahapan, nama tahapan, urutan, estimasi..."
+              >
+                <template #prepend>
+                  <q-icon name="search" color="green-10" />
+                </template>
+              </q-input>
+            </div>
 
-    <q-card flat bordered class="filter-card q-mb-md">
-      <q-card-section>
-        <div class="row q-col-gutter-md items-center">
-          <div class="col-12 col-md-7">
-            <q-input
-              v-model="search"
-              outlined
-              dense
-              rounded
-              debounce="250"
-              placeholder="Cari kode tahapan, nama tahapan, urutan, atau estimasi..."
-            >
-              <template #prepend>
-                <q-icon name="search" color="green-10" />
-              </template>
-            </q-input>
+            <div class="col-12 col-md-3">
+              <q-select
+                v-model="statusFilter"
+                :options="statusFilterOptions"
+                outlined
+                dense
+                rounded
+                emit-value
+                map-options
+                label="Status"
+              />
+            </div>
+
+            <div class="col-12 col-md-auto">
+              <q-chip dense color="green-10" text-color="white" class="text-weight-bold q-px-md">
+                {{ filteredRows.length }} TAHAPAN
+              </q-chip>
+            </div>
           </div>
-          <div class="col-12 col-md-3">
-            <q-select
-              v-model="statusFilter"
-              :options="statusFilterOptions"
-              outlined
-              dense
-              rounded
-              emit-value
-              map-options
-              label="Status"
-            />
-          </div>
-          <div class="col-12 col-md-auto">
-            <q-chip dense color="green-10" text-color="white" class="text-weight-bold q-px-md">
-              {{ filteredRows.length }} TAHAPAN
-            </q-chip>
-          </div>
-        </div>
-      </q-card-section>
-    </q-card>
+        </q-card-section>
+      </q-card>
 
-    <q-card flat bordered class="table-card">
-      <q-table
-        :rows="filteredRows"
-        :columns="columns"
-        row-key="id"
-        flat
-        binary-state-sort
-        :loading="loading"
-        :pagination="{ rowsPerPage: 10 }"
-      >
-        <template #header="props">
-          <q-tr :props="props" class="bg-green-10 text-white">
-            <q-th v-for="col in props.cols" :key="col.name" :props="props" class="text-weight-bold">
-              {{ col.label }}
-            </q-th>
-          </q-tr>
-        </template>
+      <q-card flat bordered class="table-card">
+        <q-table
+          :rows="filteredRows"
+          :columns="columns"
+          row-key="id"
+          flat
+          binary-state-sort
+          :loading="loading"
+          :pagination="{ rowsPerPage: 10, sortBy: 'urutan', descending: false }"
+        >
+          <template #header="props">
+            <q-tr :props="props" class="bg-green-10 text-white">
+              <q-th
+                v-for="col in props.cols"
+                :key="col.name"
+                :props="props"
+                class="text-weight-bold"
+              >
+                {{ col.label }}
+              </q-th>
+            </q-tr>
+          </template>
 
-        <template #body-cell-nama_tahapan="props">
-          <q-td :props="props">
-            <div class="text-weight-bold text-green-10">{{ props.row.nama_tahapan || '-' }}</div>
-            <div class="text-caption text-grey-6">{{ props.row.kode_tahapan || '-' }}</div>
-          </q-td>
-        </template>
+          <template #body-cell-nama_tahapan="props">
+            <q-td :props="props">
+              <div class="text-weight-bold text-green-10">{{ props.row.nama_tahapan || '-' }}</div>
+              <div class="text-caption text-grey-6">{{ props.row.kode_tahapan || '-' }}</div>
+            </q-td>
+          </template>
 
-        <template #body-cell-qc_required="props">
-          <q-td :props="props">
-            <q-chip
-              dense
-              square
-              :color="props.row.qc_required ? 'orange-8' : 'grey-6'"
-              text-color="white"
-              class="status-chip"
-            >
-              {{ props.row.qc_required ? 'Wajib QC' : 'Opsional' }}
-            </q-chip>
-          </q-td>
-        </template>
+          <template #body-cell-estimasi_waktu="props">
+            <q-td :props="props">
+              <div>{{ props.row.estimasi_waktu || '-' }}</div>
+              <div class="text-caption text-grey-6">
+                {{ Number(props.row.estimasi_menit || 0) }} menit
+              </div>
+            </q-td>
+          </template>
 
-        <template #body-cell-status="props">
-          <q-td :props="props">
-            <q-chip
-              dense
-              square
-              text-color="white"
-              :color="props.row.status === 'Aktif' ? 'positive' : 'grey-7'"
-              class="status-chip"
-            >
-              {{ props.row.status || '-' }}
-            </q-chip>
-          </q-td>
-        </template>
+          <template #body-cell-qc_required="props">
+            <q-td :props="props">
+              <q-chip
+                dense
+                square
+                :color="props.row.qc_required ? 'orange-8' : 'grey-6'"
+                text-color="white"
+                class="status-chip"
+              >
+                {{ props.row.qc_required ? 'Wajib QC' : 'Opsional' }}
+              </q-chip>
+            </q-td>
+          </template>
 
-        <template #body-cell-aksi="props">
-          <q-td :props="props" @click.stop>
-            <q-btn flat round dense color="green-10" icon="edit" @click="openFormPage(props.row)">
-              <q-tooltip>Edit tahapan</q-tooltip>
-            </q-btn>
-            <q-btn flat round dense color="negative" icon="delete" @click="confirmDelete(props.row)">
-              <q-tooltip>Hapus tahapan</q-tooltip>
-            </q-btn>
-          </q-td>
-        </template>
+          <template #body-cell-status="props">
+            <q-td :props="props">
+              <q-chip
+                dense
+                square
+                text-color="white"
+                :color="props.row.status === 'Aktif' ? 'positive' : 'grey-7'"
+                class="status-chip"
+              >
+                {{ props.row.status || '-' }}
+              </q-chip>
+            </q-td>
+          </template>
 
-        <template #no-data>
-          <div class="full-width row flex-center text-grey-7 q-pa-xl">
-            <q-icon name="precision_manufacturing" size="28px" class="q-mr-sm" />
-            Belum ada data tahapan fabrikasi.
-          </div>
-        </template>
-      </q-table>
-    </q-card>
+          <template #body-cell-aksi="props">
+            <q-td :props="props" @click.stop>
+              <q-btn flat round dense color="green-10" icon="edit" @click="openFormPage(props.row)">
+                <q-tooltip>Edit tahapan</q-tooltip>
+              </q-btn>
+              <q-btn
+                flat
+                round
+                dense
+                color="negative"
+                icon="delete"
+                @click="confirmDelete(props.row)"
+              >
+                <q-tooltip>Hapus tahapan</q-tooltip>
+              </q-btn>
+            </q-td>
+          </template>
+
+          <template #no-data>
+            <div class="full-width row flex-center text-grey-7 q-pa-xl">
+              <q-icon name="precision_manufacturing" size="28px" class="q-mr-sm" />
+              Belum ada data tahapan fabrikasi.
+            </div>
+          </template>
+        </q-table>
+      </q-card>
     </template>
   </q-page>
 </template>
@@ -257,7 +295,17 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
-import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, serverTimestamp, updateDoc } from 'firebase/firestore'
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  updateDoc,
+} from 'firebase/firestore'
 import { db } from 'src/boot/firebase'
 
 const COLLECTION_NAME = 'master_tahapan_fabrikasi'
@@ -283,6 +331,7 @@ const emptyForm = () => ({
 })
 
 const form = ref(emptyForm())
+
 const statusOptions = ['Aktif', 'Nonaktif']
 const statusFilterOptions = [
   { label: 'Semua Status', value: 'Semua' },
@@ -293,16 +342,46 @@ const statusFilterOptions = [
 const columns = [
   { name: 'nama_tahapan', label: 'Tahapan', field: 'nama_tahapan', align: 'left', sortable: true },
   { name: 'urutan', label: 'Urutan', field: 'urutan', align: 'right', sortable: true },
-  { name: 'estimasi_waktu', label: 'Estimasi Waktu', field: 'estimasi_waktu', align: 'left', sortable: true },
+  {
+    name: 'estimasi_waktu',
+    label: 'Estimasi Waktu',
+    field: 'estimasi_waktu',
+    align: 'left',
+    sortable: true,
+  },
   { name: 'qc_required', label: 'QC', field: 'qc_required', align: 'left', sortable: true },
   { name: 'status', label: 'Status', field: 'status', align: 'left', sortable: true },
   { name: 'aksi', label: 'Aksi', field: 'aksi', align: 'center' },
 ]
 
 const required = (val) => !!val || 'Field wajib diisi'
+
 const formPageTitle = computed(() =>
   selectedId.value ? 'Edit Tahapan Fabrikasi' : 'Tambah Tahapan Fabrikasi',
 )
+
+const parseEstimasiMenit = (value) => {
+  const raw = String(value || '')
+    .trim()
+    .toLowerCase()
+  if (!raw) return 0
+
+  const numberPart = raw.match(/[\d.,]+/)?.[0]?.replace(',', '.') || '0'
+  const numeric = Number(numberPart)
+
+  if (Number.isNaN(numeric) || numeric <= 0) return 0
+  if (raw.includes('hari')) return Math.round(numeric * 8 * 60)
+  if (raw.includes('jam')) return Math.round(numeric * 60)
+  if (raw.includes('menit')) return Math.round(numeric)
+
+  // fallback: kalau user isi angka doang -> dianggap menit
+  return Math.round(numeric)
+}
+
+const computedEstimasiMenitLabel = computed(() => {
+  const menit = parseEstimasiMenit(form.value.estimasi_waktu)
+  return `${menit} menit`
+})
 
 watch(formPageOpen, (isOpen) => {
   document.body.classList.toggle(WORKSPACE_BODY_CLASS, isOpen)
@@ -310,6 +389,7 @@ watch(formPageOpen, (isOpen) => {
 
 const filteredRows = computed(() => {
   const term = search.value.toLowerCase().trim()
+
   return rows.value.filter((row) => {
     const matchesStatus = statusFilter.value === 'Semua' || row.status === statusFilter.value
     const matchesSearch =
@@ -319,6 +399,7 @@ const filteredRows = computed(() => {
         row.nama_tahapan,
         row.urutan,
         row.estimasi_waktu,
+        row.estimasi_menit,
         row.qc_required ? 'wajib qc' : 'opsional',
       ]
         .join(' ')
@@ -334,13 +415,25 @@ const notify = (type, message) => {
     type,
     message,
     position: 'top-right',
-    timeout: 2200,
+    timeout: 2400,
   })
 }
 
+const normalizeKodeTahapan = (value) =>
+  String(value || '')
+    .trim()
+    .toUpperCase()
+const normalizeNamaTahapan = (value) => String(value || '').trim()
+
 const openFormPage = (row = null) => {
   selectedId.value = row?.id || null
-  form.value = row ? { ...emptyForm(), ...row } : emptyForm()
+  form.value = row
+    ? {
+        ...emptyForm(),
+        ...row,
+      }
+    : emptyForm()
+
   formPageOpen.value = true
 }
 
@@ -350,19 +443,74 @@ const closeFormPage = () => {
   form.value = emptyForm()
 }
 
-const payloadFromForm = () => ({
-  kode_tahapan: form.value.kode_tahapan,
-  nama_tahapan: form.value.nama_tahapan,
-  urutan: Number(form.value.urutan || 1),
-  estimasi_waktu: form.value.estimasi_waktu,
-  qc_required: Boolean(form.value.qc_required),
-  status: form.value.status,
-})
+const payloadFromForm = () => {
+  const kode = normalizeKodeTahapan(form.value.kode_tahapan)
+  const nama = normalizeNamaTahapan(form.value.nama_tahapan)
+  const urutan = Number(form.value.urutan || 1)
+  const estimasiWaktu = String(form.value.estimasi_waktu || '').trim()
+  const estimasiMenit = parseEstimasiMenit(estimasiWaktu)
+
+  return {
+    kode_tahapan: kode,
+    nama_tahapan: nama,
+    urutan,
+    estimasi_waktu: estimasiWaktu,
+    estimasi_menit: estimasiMenit,
+    qc_required: Boolean(form.value.qc_required),
+    status: form.value.status,
+  }
+}
+
+const validatePayload = (payload) => {
+  if (!payload.kode_tahapan) return 'Kode tahapan wajib diisi.'
+  if (!payload.nama_tahapan) return 'Nama tahapan wajib diisi.'
+  if (!Number.isFinite(payload.urutan) || payload.urutan <= 0) return 'Urutan wajib lebih dari 0.'
+  if (!payload.status) return 'Status wajib diisi.'
+  if (payload.estimasi_waktu && payload.estimasi_menit <= 0) {
+    return 'Estimasi waktu tidak valid. Contoh: 90 menit, 4 jam, 1 hari.'
+  }
+  return null
+}
+
+const hasDuplicateKode = async (payload) => {
+  // pakai local rows (real-time snapshot) untuk cepat
+  return rows.value.some((r) => {
+    if (r.id === selectedId.value) return false
+    return normalizeKodeTahapan(r.kode_tahapan) === payload.kode_tahapan
+  })
+}
+
+const hasDuplicateUrutanAktif = async (payload) => {
+  // urutan aktif tidak boleh bentrok
+  if (payload.status !== 'Aktif') return false
+
+  return rows.value.some((r) => {
+    if (r.id === selectedId.value) return false
+    return r.status === 'Aktif' && Number(r.urutan) === Number(payload.urutan)
+  })
+}
 
 const saveRow = async () => {
   saving.value = true
   try {
     const payload = payloadFromForm()
+
+    const validationError = validatePayload(payload)
+    if (validationError) {
+      notify('negative', validationError)
+      return
+    }
+
+    if (await hasDuplicateKode(payload)) {
+      notify('negative', 'Kode tahapan sudah dipakai. Gunakan kode lain.')
+      return
+    }
+
+    if (await hasDuplicateUrutanAktif(payload)) {
+      notify('negative', 'Urutan untuk tahapan aktif sudah dipakai. Gunakan urutan lain.')
+      return
+    }
+
     if (selectedId.value) {
       await updateDoc(doc(db, COLLECTION_NAME, selectedId.value), {
         ...payload,
@@ -377,6 +525,7 @@ const saveRow = async () => {
       })
       notify('positive', 'Tahapan fabrikasi berhasil ditambahkan.')
     }
+
     closeFormPage()
   } catch (error) {
     console.error(error)
@@ -406,8 +555,10 @@ const confirmDelete = (row) => {
 
 onMounted(() => {
   loading.value = true
+
+  // penting: master tahapan dibaca sesuai alur proses (urutan ASC)
   unsubscribeRows = onSnapshot(
-    query(collection(db, COLLECTION_NAME), orderBy('created_at', 'desc')),
+    query(collection(db, COLLECTION_NAME), orderBy('urutan', 'asc')),
     (snapshot) => {
       rows.value = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }))
       loading.value = false

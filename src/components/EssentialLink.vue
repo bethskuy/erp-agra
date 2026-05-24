@@ -1,36 +1,18 @@
-<template>
-  <q-item clickable tag="a" target="_blank" :href="props.link">
-    <q-item-section v-if="props.icon" avatar>
-      <q-icon :name="props.icon" />
-    </q-item-section>
-
-    <q-item-section>
-      <q-item-label>{{ props.title }}</q-item-label>
-      <q-item-label caption>{{ props.caption }}</q-item-label>
-    </q-item-section>
-  </q-item>
-</template>
-
 <script setup>
-const props = defineProps({
-  title: {
-    type: String,
-    required: true,
-  },
+import { ref, onMounted } from 'vue'
+import AppSplash from './components/AppSplash.vue'
 
-  caption: {
-    type: String,
-    default: '',
-  },
+const loading = ref(true)
 
-  link: {
-    type: String,
-    default: '#',
-  },
-
-  icon: {
-    type: String,
-    default: '',
-  },
+onMounted(() => {
+  setTimeout(() => {
+    loading.value = false
+  }, 2500)
 })
 </script>
+
+<template>
+  <AppSplash v-if="loading" />
+
+  <router-view v-else />
+</template>

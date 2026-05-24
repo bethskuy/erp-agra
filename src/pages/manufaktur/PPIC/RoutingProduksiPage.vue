@@ -13,6 +13,46 @@
           proyek fabrikasi.
         </div>
       </div>
+
+      <div class="col-12 col-md-auto q-mt-md q-mt-md-none">
+        <q-btn
+          unelevated
+          rounded
+          color="green-10"
+          icon="refresh"
+          label="Refresh Data"
+          no-caps
+          :loading="loading"
+          @click="refreshData"
+        />
+      </div>
+    </div>
+
+    <div class="row q-col-gutter-md q-mb-lg">
+      <div class="col-12 col-md-4">
+        <q-card flat bordered class="summary-card">
+          <q-card-section>
+            <div class="text-caption text-grey-7">Total Tahapan Aktif</div>
+            <div class="text-h5 text-weight-bold text-green-10">{{ filteredRows.length }}</div>
+          </q-card-section>
+        </q-card>
+      </div>
+      <div class="col-12 col-md-4">
+        <q-card flat bordered class="summary-card">
+          <q-card-section>
+            <div class="text-caption text-grey-7">Total Estimasi</div>
+            <div class="text-h5 text-weight-bold text-green-10">{{ totalEstimasiMenit }} menit</div>
+          </q-card-section>
+        </q-card>
+      </div>
+      <div class="col-12 col-md-4">
+        <q-card flat bordered class="summary-card">
+          <q-card-section>
+            <div class="text-caption text-grey-7">Total Estimasi (Jam)</div>
+            <div class="text-h5 text-weight-bold text-green-10">{{ totalEstimasiJam }} jam</div>
+          </q-card-section>
+        </q-card>
+      </div>
     </div>
 
     <q-card flat bordered class="filter-card bg-white q-mb-lg">
@@ -25,7 +65,7 @@
               dense
               rounded
               debounce="250"
-              placeholder="Cari kode tahapan, nama tahapan, atau estimasi waktu..."
+              placeholder="Cari kode tahapan, nama tahapan, estimasi waktu..."
               bg-color="white"
             >
               <template #prepend>
@@ -69,7 +109,7 @@
         flat
         binary-state-sort
         :loading="loading"
-        :pagination="{ rowsPerPage: 10 }"
+        :pagination="{ rowsPerPage: 10, sortBy: 'urutan', descending: false }"
         class="routing-table"
       >
         <template #header="props">
@@ -84,6 +124,15 @@
           <q-td :props="props">
             <div class="text-weight-bold text-green-10">{{ props.row.nama_tahapan || '-' }}</div>
             <div class="text-caption text-grey-6">{{ props.row.kode_tahapan || '-' }}</div>
+          </q-td>
+        </template>
+
+        <template #body-cell-estimasi_waktu="props">
+          <q-td :props="props">
+            <div>{{ props.row.estimasi_waktu || '-' }}</div>
+            <div class="text-caption text-grey-6">
+              {{ Number(props.row.estimasi_menit || 0) }} menit
+            </div>
           </q-td>
         </template>
 
@@ -129,7 +178,7 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useQuasar } from 'quasar'
-import { collection, onSnapshot, orderBy, query } from 'firebase/firestore'
+import { collection, onSnapshot, orderBy, query, where } from 'firebase/firestore'
 import { db } from 'src/boot/firebase'
 
 const $q = useQuasar()
@@ -141,26 +190,39 @@ let unsubscribeTahapan = null
 
 const columns = [
   { name: 'urutan', align: 'right', label: 'Urutan', field: 'urutan', sortable: true },
-  { name: 'nama_tahapan', align: 'left', label: 'Tahapan Fabrikasi', field: 'nama_tahapan', sortable: true },
-  { name: 'estimasi_waktu', align: 'left', label: 'Estimasi Waktu', field: 'estimasi_waktu', sortable: true },
+  {
+    name: 'nama_tahapan',
+    align: 'left',
+    label: 'Tahapan Fabrikasi',
+    field: 'nama_tahapan',
+    sortable: true,
+  },
+  {
+    name: 'estimasi_waktu',
+    align: 'left',
+    label: 'Estimasi Waktu',
+    field: 'estimasi_waktu',
+    sortable: true,
+  },
   { name: 'qc_required', align: 'center', label: 'QC', field: 'qc_required', sortable: true },
   { name: 'status', align: 'center', label: 'Status', field: 'status', sortable: true },
 ]
 
 const tahapanOptions = computed(() =>
   rows.value.map((item) => ({
-    label: `${item.urutan ? `${item.urutan}. ` : ''}${item.nama_tahapan}`,
+    label: `${item.urutan ? `${item.urutan}. ` : ''}${item.nama_tahapan || '-'}`,
     value: item.id,
   })),
 )
 
 const filteredRows = computed(() => {
   const keyword = search.value.trim().toLowerCase()
+
   return rows.value.filter((row) => {
     const matchesSelected = !selectedTahapanId.value || row.id === selectedTahapanId.value
     const matchesSearch =
       !keyword ||
-      [row.kode_tahapan, row.nama_tahapan, row.estimasi_waktu, row.status]
+      [row.kode_tahapan, row.nama_tahapan, row.estimasi_waktu, row.estimasi_menit, row.status]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(keyword))
 
@@ -168,22 +230,52 @@ const filteredRows = computed(() => {
   })
 })
 
+const totalEstimasiMenit = computed(() =>
+  filteredRows.value.reduce((acc, row) => acc + Number(row.estimasi_menit || 0), 0),
+)
+
+const totalEstimasiJam = computed(() => (totalEstimasiMenit.value / 60).toFixed(2))
+
 const loadTahapanFabrikasi = () => {
   loading.value = true
+
+  if (unsubscribeTahapan) unsubscribeTahapan()
+
+  // Ambil hanya tahapan aktif agar siap dipakai routing SPK/PPIC
   unsubscribeTahapan = onSnapshot(
-    query(collection(db, 'master_tahapan_fabrikasi'), orderBy('urutan', 'asc')),
+    query(
+      collection(db, 'master_tahapan_fabrikasi'),
+      where('status', '==', 'Aktif'),
+      orderBy('urutan', 'asc'),
+      orderBy('created_at', 'asc'),
+    ),
     (snapshot) => {
-      rows.value = snapshot.docs
-        .map((tahapanDoc) => ({ id: tahapanDoc.id, ...tahapanDoc.data() }))
-        .filter((item) => item.status !== 'Nonaktif')
+      rows.value = snapshot.docs.map((tahapanDoc) => ({
+        id: tahapanDoc.id,
+        ...tahapanDoc.data(),
+      }))
       loading.value = false
     },
     (error) => {
       console.error(error)
       loading.value = false
-      $q.notify({ type: 'negative', message: 'Gagal memuat routing tahapan fabrikasi' })
+      $q.notify({
+        type: 'negative',
+        message: 'Gagal memuat routing tahapan fabrikasi',
+        position: 'top-right',
+      })
     },
   )
+}
+
+const refreshData = () => {
+  loadTahapanFabrikasi()
+  $q.notify({
+    type: 'positive',
+    message: 'Data routing diperbarui',
+    position: 'top-right',
+    timeout: 1500,
+  })
 }
 
 onMounted(loadTahapanFabrikasi)
@@ -205,6 +297,7 @@ onUnmounted(() => {
   line-height: 1.15;
 }
 
+.summary-card,
 .filter-card,
 .table-card {
   border-color: #dfe8df;
