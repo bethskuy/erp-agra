@@ -20,7 +20,7 @@
       </transition-group>
     </div>
 
-    <!-- EFEK LATAR BELAKANG ANIMASI MENGAMBANG (Warna-Warni Tosca, Kebureman Tipis & Elegan) -->
+    <!-- EFEK LATAR BELAKANG ANIMASI MENGAMBANG -->
     <div class="bg-animation-container">
       <q-icon name="engineering" class="floating-icon i-1" />
       <q-icon name="construction" class="floating-icon i-2" />
@@ -72,15 +72,14 @@
           <div class="col-12 col-sm-8">
             <div class="text-h4 text-weight-bolder text-brand-primary leading-tight">
               Manajemen Proyek
-              <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
-                >Daftar Kontrak & Pekerjaan Aktif</span
-              >
+              <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs">
+                Daftar Kontrak &amp; Pekerjaan Aktif
+              </span>
             </div>
             <div class="text-subtitle1 text-grey-7 q-mt-sm">
               Monitoring seluruh portofolio proyek konstruksi PT AGRA secara terpusat.
             </div>
           </div>
-          <!-- RESPONSIVE TOMBOL BUAT PROYEK BARU -->
           <div class="col-12 col-sm-auto q-mt-md q-mt-sm-none">
             <q-btn
               v-if="canAction('buat')"
@@ -140,7 +139,6 @@
             binary-state-sort
             class="proyek-table"
           >
-            <!-- Custom Header -->
             <template v-slot:header="props">
               <q-tr :props="props" class="bg-brand-primary text-white">
                 <q-th
@@ -178,6 +176,7 @@
                   {{ props.row.konsumen || '-' }}
                 </q-td>
                 <q-td key="total_kontrak" class="text-right">
+                  <!-- ✅ FIX: total_omzet sekarang reaktif real-time dari recalcOmzet() -->
                   <div class="text-weight-bolder text-brand-primary text-subtitle1">
                     Rp {{ formatMoney(props.row.total_omzet || 0) }}
                   </div>
@@ -272,8 +271,9 @@
               <div class="text-overline text-brand-primary text-bold tracking-widest">
                 REALISASI OMZET
               </div>
+              <!-- ✅ FIX: Ambil dari rows (sudah dihitung real-time) bukan currentProject.total_omzet -->
               <div class="text-h4 text-brand-primary text-weight-black q-mt-sm">
-                Rp {{ formatMoney(currentProject.total_omzet || 0) }}
+                Rp {{ formatMoney(getOmzetProyek(currentProject.id)) }}
               </div>
             </div>
             <div class="col-12 col-md-4 q-pa-xl text-center">
@@ -287,12 +287,12 @@
           </div>
         </q-card>
 
-        <!-- HEADER KONTRAK YANG RESPONSIVE DI HP -->
+        <!-- HEADER KONTRAK -->
         <div class="row items-center justify-between q-mb-md q-col-gutter-sm">
           <div
             class="col-12 col-sm-auto text-h6 text-brand-primary text-weight-bold uppercase letter-spacing-1 flex items-center"
           >
-            <q-icon name="contract" class="q-mr-sm" /> Kontrak & SPK Terkait
+            <q-icon name="contract" class="q-mr-sm" /> Kontrak &amp; SPK Terkait
           </div>
           <div class="col-12 col-sm-auto">
             <q-btn
@@ -381,7 +381,7 @@
                       size="sm"
                       @click="showSpkDetail(null, props.row)"
                     >
-                      <q-tooltip>Lihat RAB & Margin</q-tooltip>
+                      <q-tooltip>Lihat RAB &amp; Margin</q-tooltip>
                     </q-btn>
                   </div>
                 </q-td>
@@ -405,8 +405,8 @@
         >
           <q-icon name="verified" size="sm" class="q-mr-md" />
           <div class="text-weight-bold text-white">
-            Kontrak & Analisa Harga Unit ini telah disetujui (Approved) secara resmi oleh Manajemen.
-            Seluruh perubahan dikunci.
+            Kontrak &amp; Analisa Harga Unit ini telah disetujui (Approved) secara resmi oleh
+            Manajemen. Seluruh perubahan dikunci.
           </div>
         </div>
 
@@ -430,7 +430,6 @@
             </div>
           </div>
 
-          <!-- TOMBOL AKSI YANG MEMBENTANG RESPONSIVE DI HP -->
           <div class="col-12 col-sm-auto row q-col-gutter-xs justify-end">
             <div
               class="col-12 col-sm-auto"
@@ -553,7 +552,7 @@
             />
             <q-tab
               name="margin"
-              label="3. Profit & Loss Analysis"
+              label="3. Profit &amp; Loss Analysis"
               icon="insights"
               class="q-px-xl text-weight-bold text-white"
             />
@@ -705,7 +704,6 @@
                 @click="addTableGroup(currentSpk)"
                 class="full-width q-py-lg rounded-20 text-weight-black shadow-3 text-white"
               />
-              <!-- CARD GRAND TOTAL KONTRAK RESPONSIVE KE TENGAH DI HP -->
               <div
                 class="q-mt-xl q-pa-xl bg-brand-primary text-white rounded-20 mobile-text-center desktop-text-right shadow-10"
               >
@@ -736,8 +734,8 @@
                   <thead>
                     <tr class="bg-orange-10 text-white text-center text-weight-bold">
                       <th rowspan="2" width="50">NO</th>
-                      <th rowspan="2">URAIAN MODAL & SUMBER DAYA</th>
-                      <th colspan="7">RAB VOLUME & PERHITUNGAN</th>
+                      <th rowspan="2">URAIAN MODAL &amp; SUMBER DAYA</th>
+                      <th colspan="7">RAB VOLUME &amp; PERHITUNGAN</th>
                       <th rowspan="2" width="160">ESTIMASI TOTAL</th>
                     </tr>
                     <tr class="bg-orange-9 text-white text-caption">
@@ -775,7 +773,7 @@
                               dense
                               v-model="rab.kebutuhan"
                               class="q-px-xl text-weight-medium"
-                              placeholder="Uraian kebutuhan modal (ex: Upah, Material...)"
+                              placeholder="Uraian kebutuhan modal..."
                               :readonly="!isEditable"
                             />
                           </td>
@@ -882,7 +880,6 @@
                   </tbody>
                 </q-markup-table>
               </div>
-              <!-- CARD GRAND TOTAL BIAYA PRODUKSI RESPONSIVE KE TENGAH DI HP -->
               <div
                 class="q-pa-xl bg-orange-10 text-white rounded-20 mobile-text-center desktop-text-right shadow-10"
               >
@@ -1020,7 +1017,8 @@
                               sumGroupJual(group) - sumGroupModal(group) < 0 ? 'red-10' : 'green-10'
                             "
                             class="text-bold q-px-sm text-white"
-                            >{{
+                          >
+                            {{
                               sumGroupJual(group) > 0
                                 ? (
                                     ((sumGroupJual(group) - sumGroupModal(group)) /
@@ -1028,8 +1026,8 @@
                                     100
                                   ).toFixed(1)
                                 : 0
-                            }}%</q-badge
-                          >
+                            }}%
+                          </q-badge>
                         </td>
                       </tr>
                       <tr v-for="(item, iIdx) in group.items" :key="'bsi-' + iIdx">
@@ -1079,12 +1077,12 @@
     </template>
 
     <!-- =====================================================================================
-         DIALOGS (ADD/EDIT & DOKUMEN PREVIEW)
+         DIALOGS
          ===================================================================================== -->
+
     <!-- SPK DIALOG -->
     <q-dialog v-model="showAddSpk" persistent maximized transition-show="slide-up">
       <q-card class="bg-grey-2 column no-wrap relative-position">
-        <!-- Background Animation di dalam Dialog -->
         <div class="bg-animation-container">
           <q-icon name="engineering" class="floating-icon i-1" />
           <q-icon name="construction" class="floating-icon i-2" />
@@ -1094,9 +1092,9 @@
 
         <q-toolbar class="bg-brand-primary text-white q-py-md shadow-4 shrink content-relative">
           <q-btn flat round icon="close" v-close-popup />
-          <q-toolbar-title class="text-weight-black uppercase">{{
-            isEditSpkMode ? 'REVISI DATA KONTRAK' : 'REGISTRASI KONTRAK BARU'
-          }}</q-toolbar-title>
+          <q-toolbar-title class="text-weight-black uppercase">
+            {{ isEditSpkMode ? 'REVISI DATA KONTRAK' : 'REGISTRASI KONTRAK BARU' }}
+          </q-toolbar-title>
           <q-btn
             v-if="canAction('buat') || canAction('ubah')"
             unelevated
@@ -1377,18 +1375,16 @@
         style="width: 550px; max-width: 95vw"
         class="rounded-20 shadow-24 overflow-hidden relative-position"
       >
-        <!-- Background Animation di dalam Dialog -->
         <div class="bg-animation-container">
           <q-icon name="engineering" class="floating-icon i-1" />
           <q-icon name="construction" class="floating-icon i-2" />
           <q-icon name="architecture" class="floating-icon i-3" />
         </div>
-
         <q-toolbar class="bg-brand-primary text-white q-py-md content-relative">
           <q-btn flat round icon="close" v-close-popup />
-          <q-toolbar-title class="text-weight-black uppercase">{{
-            isEditMode ? 'PEMBARUAN PROYEK' : 'REGISTRASI PROYEK BARU'
-          }}</q-toolbar-title>
+          <q-toolbar-title class="text-weight-black uppercase">
+            {{ isEditMode ? 'PEMBARUAN PROYEK' : 'REGISTRASI PROYEK BARU' }}
+          </q-toolbar-title>
         </q-toolbar>
         <q-card-section class="q-pa-xl bg-grey-1 content-relative">
           <div class="q-gutter-y-lg">
@@ -1479,9 +1475,12 @@ import { useAuthStore } from 'src/stores/auth'
 const $q = useQuasar()
 const authStore = useAuthStore()
 
+// ============================================================================
+// STATE
+// ============================================================================
 const viewMode = ref('list')
 const activeTab = ref('boq')
-const rows = ref([])
+const rows = ref([]) // data proyek DENGAN total_omzet sudah dihitung
 const listSpkProject = ref([])
 const currentProject = ref(null)
 const currentSpk = ref(null)
@@ -1495,6 +1494,7 @@ const isEditSpkMode = ref(false)
 const showDocPreview = ref(false)
 const previewUrl = ref('')
 const filter = ref('')
+const userData = ref(null)
 
 const form = ref({ nama: '', kategori: '', konsumen: '', alamat: '' })
 const formSpk = ref({
@@ -1511,15 +1511,45 @@ const formSpk = ref({
 const optionsKonsumen = ref([])
 const optionsKategori = ref([])
 
-let unsubProyek = null
-let unsubSpk = null
-let unsubUser = null
+// ============================================================================
+// LISTENER REFERENCES
+// ============================================================================
+let unsubProyek = null // listener koleksi 'proyek'
+let unsubSpk = null // listener SPK per-proyek (untuk view detail)
+let unsubAllSpk = null // ✅ listener GLOBAL seluruh SPK (untuk kalkulasi omzet)
+let unsubUser = null // listener data user/permissions
 
-const userData = ref(null)
+// ============================================================================
+// ✅ CACHE REAKTIF untuk kalkulasi omzet real-time
+// ============================================================================
+const proyekRaw = ref([]) // data proyek mentah dari Firestore (tanpa omzet)
+const allSpksCache = ref([]) // seluruh data SPK dari Firestore (semua proyek)
 
-// ==========================================
-// ANIMASI KLIK & MENGAMBANG (SAMA SEPERTI MASTER BARANG)
-// ==========================================
+// ============================================================================
+// ✅ FUNGSI RECALC OMZET — dipanggil saat proyek ATAU SPK berubah
+// Menjumlahkan nilai_total semua SPK yang projectId-nya cocok dengan proyek
+// ============================================================================
+const recalcOmzet = () => {
+  rows.value = proyekRaw.value.map((p) => ({
+    ...p,
+    total_omzet: allSpksCache.value
+      .filter((s) => s.projectId === p.id)
+      .reduce((acc, s) => acc + (Number(s.nilai_total) || 0), 0),
+  }))
+}
+
+// ============================================================================
+// ✅ HELPER: Ambil omzet proyek by ID dari rows (sudah dihitung real-time)
+// Dipakai di view detail proyek agar angkanya konsisten dengan tabel list
+// ============================================================================
+const getOmzetProyek = (projectId) => {
+  const found = rows.value.find((r) => r.id === projectId)
+  return found ? found.total_omzet || 0 : 0
+}
+
+// ============================================================================
+// ANIMASI KLIK & MENGAMBANG
+// ============================================================================
 const spawnedIcons = ref([])
 let spawnIdCounter = 0
 const clickIcons = [
@@ -1545,9 +1575,8 @@ const spawnIcon = (e) => {
     target.closest('.q-dialog') ||
     target.closest('.q-table') ||
     target.closest('.q-card')
-  ) {
+  )
     return
-  }
 
   const iconName = clickIcons[Math.floor(Math.random() * clickIcons.length)]
   const colors = ['#36ada3', '#2a8b83', '#56c2b9', '#f29c1f', '#e67e22', '#e74c3c']
@@ -1564,16 +1593,15 @@ const spawnIcon = (e) => {
     rotate: randRotate,
     size: randSize,
   }
-
   spawnedIcons.value.push(newIcon)
-
   setTimeout(() => {
     spawnedIcons.value = spawnedIcons.value.filter((i) => i.id !== newIcon.id)
   }, 1400)
 }
-// ==========================================
 
-// INTEGRATED REAL-TIME PERMISSION CONTROL Matrix
+// ============================================================================
+// PERMISSION CONTROL
+// ============================================================================
 const canAction = (actionType) => {
   if (authStore.user?.role === 'Super Admin') return true
   if (!userData.value?.permissions_detail) return false
@@ -1587,18 +1615,17 @@ const canAction = (actionType) => {
   return menu[actionType] || false
 }
 
-const isEditable = computed(() => {
-  return canAction('ubah') && currentSpk.value?.status !== 'Approved'
-})
+const isEditable = computed(() => canAction('ubah') && currentSpk.value?.status !== 'Approved')
 
+// ============================================================================
+// KALKULASI
+// ============================================================================
 const formatMoney = (v) => (v ? v.toLocaleString('id-ID') : '0')
-const sumRabRowTotal = (r) => {
-  const qty = Number(r.unit) || 0
-  const pemakaian = Number(r.pemakaian) || 1
-  const durasi = Number(r.durasi) || 1
-  const harga = Number(r.harga) || 0
-  return qty * pemakaian * durasi * harga
-}
+const sumRabRowTotal = (r) =>
+  (Number(r.unit) || 0) *
+  (Number(r.pemakaian) || 1) *
+  (Number(r.durasi) || 1) *
+  (Number(r.harga) || 0)
 const sumRabPerItem = (item) =>
   (item.rab_modal || []).reduce((sum, r) => sum + sumRabRowTotal(r), 0)
 const sumGroupJual = (group) =>
@@ -1621,8 +1648,7 @@ const autoCalculateDuration = () => {
   let days = end.getDate() - start.getDate()
   if (days < 0) {
     months -= 1
-    const lastMonth = new Date(end.getFullYear(), end.getMonth(), 0)
-    days += lastMonth.getDate()
+    days += new Date(end.getFullYear(), end.getMonth(), 0).getDate()
   }
   formSpk.value.durasi = `${months} Bulan ${days} Hari`
 }
@@ -1679,31 +1705,58 @@ const openInternalPreview = (url) => {
   showDocPreview.value = true
 }
 
+// ============================================================================
+// ✅ FETCH DATA — REAL-TIME DUAL LISTENER
+//
+// Sebelumnya: getDocs() (one-shot) untuk SPK → omzet tidak update real-time
+// Sekarang  : dua onSnapshot() yang saling trigger recalcOmzet()
+//   - Listener 1 (unsubProyek)  → koleksi 'proyek'
+//   - Listener 2 (unsubAllSpk)  → koleksi 'spk_customer' (SEMUA dokumen)
+//
+// Alur kerja:
+//   Tambah/edit SPK apa pun → unsubAllSpk trigger → allSpksCache update
+//   → recalcOmzet() → rows.value update → tabel proyek langsung refresh
+// ============================================================================
 const fetchProyek = () => {
   loading.value = true
-  const q = query(collection(db, 'proyek'), orderBy('createdAt', 'desc'))
-  unsubProyek = onSnapshot(
-    q,
-    async (snap) => {
-      const projs = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
-      const spkSnap = await getDocs(collection(db, 'spk_customer'))
-      const allSpks = spkSnap.docs.map((d) => d.data())
 
-      for (let p of projs) {
-        p.total_omzet = allSpks
-          .filter((s) => s.projectId === p.id)
-          .reduce((acc, curr) => acc + (curr.nilai_total || 0), 0)
-      }
-      rows.value = projs
+  // --- LISTENER 1: Perubahan pada koleksi 'proyek' ---
+  const qProyek = query(collection(db, 'proyek'), orderBy('createdAt', 'desc'))
+  unsubProyek = onSnapshot(
+    qProyek,
+    (snap) => {
+      // Simpan ke cache proyek mentah (belum ada omzet)
+      proyekRaw.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+      // Hitung omzet menggunakan cache SPK yang mungkin sudah ada
+      recalcOmzet()
       loading.value = false
     },
     (err) => {
-      console.error(err)
+      console.error('Error listen proyek:', err)
       loading.value = false
+    },
+  )
+
+  // --- LISTENER 2: Perubahan pada SELURUH koleksi 'spk_customer' ---
+  // Ini yang membuat Valuasi Omzet ikut update real-time saat:
+  //   - SPK baru ditambahkan ke proyek mana pun
+  //   - Nilai total SPK diubah (setelah simpan RAB)
+  //   - SPK dihapus
+  unsubAllSpk = onSnapshot(
+    collection(db, 'spk_customer'),
+    (snap) => {
+      // Simpan ke cache semua SPK (include id dokumen)
+      allSpksCache.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+      // Hitung ulang omzet semua proyek
+      recalcOmzet()
+    },
+    (err) => {
+      console.error('Error listen all SPK:', err)
     },
   )
 }
 
+// Listener SPK per-proyek (hanya aktif saat di view detail proyek)
 const fetchSpkByProject = (pid) => {
   if (unsubSpk) unsubSpk()
   const q = query(collection(db, 'spk_customer'), where('projectId', '==', pid))
@@ -1712,6 +1765,9 @@ const fetchSpkByProject = (pid) => {
   })
 }
 
+// ============================================================================
+// VIEW ACTIONS
+// ============================================================================
 const showProjectDetail = (evt, row) => {
   currentProject.value = row
   viewMode.value = 'detail'
@@ -1747,7 +1803,6 @@ const confirmDeleteSpk = (row) => {
     })
     return
   }
-  // DIALOG KONFIRMASI HAPUS KONTRAK PREMIUM
   $q.dialog({
     title: '<div class="text-h5 text-weight-bolder text-negative q-mb-sm">Konfirmasi Hapus</div>',
     message: `Apakah Anda yakin ingin menghapus kontrak <b>${row.nomor_spk}</b> secara permanen?<br/><span class="text-grey-7 text-caption block q-mt-xs">Data yang dihapus tidak dapat dikembalikan lagi.</span>`,
@@ -1772,7 +1827,6 @@ const confirmDeleteSpk = (row) => {
   }).onOk(async () => {
     try {
       await deleteDoc(doc(db, 'spk_customer', row.id))
-      // NOTIFIKASI HAPUS KONTRAK PREMIUM
       $q.notify({
         html: true,
         message:
@@ -1791,12 +1845,19 @@ const confirmDeleteSpk = (row) => {
   })
 }
 
+// ============================================================================
+// SIMPAN / UPDATE SPK
+// ✅ nilai_total dihitung dari calculateGrandTotalJual() dan disimpan ke Firestore
+//    → unsubAllSpk akan mendeteksi perubahan ini dan trigger recalcOmzet()
+// ============================================================================
 const handleSaveSpk = async () => {
   if (!formSpk.value.nomor_spk) return
   submittingSpk.value = true
   try {
     const payload = JSON.parse(JSON.stringify(formSpk.value))
     if (payload.documents) payload.documents.forEach((d) => delete d.fileRaw)
+
+    // Hitung nilai_total dari BOQ sebelum simpan
     payload.nilai_total = calculateGrandTotalJual(payload)
     payload.projectId = currentProject.value.id
 
@@ -1811,7 +1872,6 @@ const handleSaveSpk = async () => {
       await addDoc(collection(db, 'spk_customer'), payload)
     }
     showAddSpk.value = false
-    // NOTIFIKASI SIMPAN KONTRAK PREMIUM (HIJAU PREMIUM)
     $q.notify({
       html: true,
       message:
@@ -1831,6 +1891,10 @@ const handleSaveSpk = async () => {
   }
 }
 
+// ============================================================================
+// SIMPAN RAB
+// ✅ nilai_total juga dihitung ulang setiap kali RAB disimpan
+// ============================================================================
 const saveRabModal = async () => {
   if (!canAction('ubah')) {
     $q.notify({
@@ -1842,11 +1906,12 @@ const saveRabModal = async () => {
   savingRab.value = true
   try {
     const payload = JSON.parse(JSON.stringify(currentSpk.value))
+
+    // Hitung ulang nilai_total dari BOQ terkini sebelum simpan
     payload.nilai_total = calculateGrandTotalJual(payload)
     const sid = payload.id
     delete payload.id
     await updateDoc(doc(db, 'spk_customer', sid), { ...payload, updatedAt: serverTimestamp() })
-    // NOTIFIKASI SINKRONISASI RAB PREMIUM (HIJAU PREMIUM)
     $q.notify({
       html: true,
       message:
@@ -1866,7 +1931,6 @@ const saveRabModal = async () => {
   }
 }
 
-// Handler persetujuan SPK (Approve Action)
 const handleApproveSpk = async (statusVal) => {
   if (!canAction('setuju')) {
     $q.notify({
@@ -1890,8 +1954,6 @@ const handleApproveSpk = async (statusVal) => {
       status: statusVal,
       updatedAt: serverTimestamp(),
     })
-
-    // NOTIFIKASI OTORISASI / PEMBATALAN PREMIUM
     $q.notify({
       html: true,
       message:
@@ -1925,7 +1987,6 @@ const simpanProyek = async () => {
       await addDoc(collection(db, 'proyek'), p)
     }
     showAddDialog.value = false
-    // NOTIFIKASI REKAP PROYEK PREMIUM (HIJAU PREMIUM)
     $q.notify({
       html: true,
       message:
@@ -1948,13 +2009,11 @@ const openAddDialog = () => {
   form.value = { nama: '', kategori: '', konsumen: '', alamat: '' }
   showAddDialog.value = true
 }
-
 const openEditDialog = (row) => {
   isEditMode.value = true
   form.value = { ...row }
   showAddDialog.value = true
 }
-
 const openAddSpkDialog = () => {
   isEditSpkMode.value = false
   formSpk.value = {
@@ -1982,7 +2041,6 @@ const hapusProyek = (row) => {
     })
     return
   }
-  // DIALOG KONFIRMASI HAPUS PROYEK PREMIUM
   $q.dialog({
     title: '<div class="text-h5 text-weight-bolder text-negative q-mb-sm">Konfirmasi Hapus</div>',
     message: `Apakah Anda yakin ingin menghapus proyek <b>${row.nama}</b> secara permanen?<br/><span class="text-grey-7 text-caption block q-mt-xs">Seluruh database, Kontrak, dan RAB SPK terkait proyek ini akan hilang.</span>`,
@@ -2007,7 +2065,6 @@ const hapusProyek = (row) => {
   }).onOk(async () => {
     try {
       await deleteDoc(doc(db, 'proyek', row.id))
-      // NOTIFIKASI HAPUS PROYEK PREMIUM
       $q.notify({
         html: true,
         message:
@@ -2026,6 +2083,9 @@ const hapusProyek = (row) => {
   })
 }
 
+// ============================================================================
+// LIFECYCLE
+// ============================================================================
 onMounted(() => {
   fetchProyek()
   getDocs(collection(db, 'customer')).then(
@@ -2035,14 +2095,11 @@ onMounted(() => {
     (k) => (optionsKategori.value = k.docs.map((d) => d.data().nama)),
   )
 
-  // Real-time listener hak akses user
   const userEmail = authStore.user?.email
   if (userEmail) {
     const qUser = query(collection(db, 'karyawan'), where('email', '==', userEmail))
     unsubUser = onSnapshot(qUser, (snapshot) => {
-      if (!snapshot.empty) {
-        userData.value = snapshot.docs[0].data()
-      }
+      if (!snapshot.empty) userData.value = snapshot.docs[0].data()
     })
   }
 })
@@ -2050,9 +2107,13 @@ onMounted(() => {
 onUnmounted(() => {
   if (unsubProyek) unsubProyek()
   if (unsubSpk) unsubSpk()
+  if (unsubAllSpk) unsubAllSpk() // ✅ cleanup listener global SPK
   if (unsubUser) unsubUser()
 })
 
+// ============================================================================
+// COLUMN DEFINITIONS
+// ============================================================================
 const columns = [
   { name: 'nama', align: 'left', label: 'IDENTITAS PROYEK', field: 'nama' },
   { name: 'customer', align: 'left', label: 'CLIENT / CUSTOMER', field: 'konsumen' },
@@ -2070,11 +2131,9 @@ const spkColumns = [
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
 
-/* ===== GLOBAL THEME OVERRIDES (DARI MASTER BARANG TEAL/TOSCA) ===== */
 .bg-page {
   background-color: #f8fcfb;
 }
-
 .font-pro {
   font-family:
     'Plus Jakarta Sans',
@@ -2088,13 +2147,13 @@ const spkColumns = [
   border-radius: 12px;
 }
 .shadow-premium {
-  box-shadow: 0 10px 30px rgba(54, 173, 163, 0.15); /* Teal accent shadow */
+  box-shadow: 0 10px 30px rgba(54, 173, 163, 0.15);
 }
 .border-dashed {
   border: 2px dashed #e0e0e0;
 }
 
-/* OVERRIDE WARNA INDIGO MENJADI BRAND COLOR TEAL/TOSCA */
+/* ===== BRAND COLOR OVERRIDES (TEAL/TOSCA) ===== */
 .bg-brand-primary,
 :deep(.bg-brand-primary) {
   background-color: #36ada3 !important;
@@ -2104,17 +2163,15 @@ const spkColumns = [
   color: #36ada3 !important;
 }
 .bg-brand-light {
-  background-color: #e6f5f4 !important; /* Soft Teal */
+  background-color: #e6f5f4 !important;
 }
 .text-brand-secondary {
   color: #2a8b83 !important;
 }
 .border-brand-thin {
-  border: 2px solid #b2e5e2 !important; /* Soft Teal border */
+  border: 2px solid #b2e5e2 !important;
 }
-
-/* CARDS ACCENTS */
-.border-indigo {
+.border-brand-primary {
   border: 1px solid #36ada3;
   border-top: 5px solid #36ada3;
 }
@@ -2131,21 +2188,15 @@ const spkColumns = [
 .border-subtle {
   border: 1px solid rgba(0, 0, 0, 0.05);
 }
+.border-bottom {
+  border-bottom: 1px solid #eee;
+}
 
-/* RESPONSIVE CARD TEXT ALIGNMENT HELPER (HP CENTER, LAPTOP RIGHT) */
+/* RESPONSIVE */
 @media (max-width: 599px) {
   .mobile-text-center {
     text-align: center !important;
   }
-}
-@media (min-width: 600px) {
-  .desktop-text-right {
-    text-align: right !important;
-  }
-}
-
-/* BTNS RESPONSIVENESS IN HP (MEMBENTANG PENUH) */
-@media (max-width: 599px) {
   .q-btn.full-width {
     width: 100% !important;
   }
@@ -2154,8 +2205,13 @@ const spkColumns = [
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   }
 }
+@media (min-width: 600px) {
+  .desktop-text-right {
+    text-align: right !important;
+  }
+}
 
-/* ===== ANIMASI BACKGROUND (FLOATING TEAL DENGAN BLUR HALUS) ===== */
+/* ===== FLOATING BACKGROUND ICONS ===== */
 .bg-animation-container {
   position: fixed;
   top: 0;
@@ -2166,18 +2222,15 @@ const spkColumns = [
   pointer-events: none;
   z-index: 0;
 }
-
 .floating-icon {
   position: absolute;
   bottom: -150px;
   animation: floatUp linear infinite;
   opacity: 0.15;
-  filter: blur(1.5px); /* Kebureman tipis dan lembut sesuai contoh */
+  filter: blur(1.5px);
   transform-style: preserve-3d;
   backface-visibility: hidden;
 }
-
-/* Posisi dan durasi masing-masing ikon mengambang */
 .i-1 {
   left: 10%;
   font-size: 100px;
@@ -2234,7 +2287,6 @@ const spkColumns = [
   animation-delay: 25s;
   color: #e74c3c;
 }
-
 @keyframes floatUp {
   0% {
     transform: translateY(0) rotate(0deg);
@@ -2252,7 +2304,7 @@ const spkColumns = [
   }
 }
 
-/* ===== CLICK SPAWN ICONS (MEMANCAR REAKTIF) ===== */
+/* ===== CLICK SPAWN ICONS ===== */
 .click-spawn-container {
   position: fixed;
   top: 0;
@@ -2263,7 +2315,6 @@ const spkColumns = [
   z-index: 9999;
   overflow: hidden;
 }
-
 .spawned-icon {
   position: absolute;
   color: var(--rand-color);
@@ -2271,7 +2322,6 @@ const spkColumns = [
   pointer-events: none;
   animation: spawnBurst 1.4s ease-out forwards;
 }
-
 @keyframes spawnBurst {
   0% {
     transform: translate(-50%, -50%) scale(0) rotate(0deg);
@@ -2286,13 +2336,12 @@ const spkColumns = [
     opacity: 0;
   }
 }
-
 .spawn-enter-active,
 .spawn-leave-active {
   transition: all 1.4s ease;
 }
 
-/* Table Styling */
+/* ===== TABLE STYLES ===== */
 .proyek-table :deep(thead tr th),
 .spk-table-premium :deep(thead tr th) {
   position: sticky;
@@ -2332,7 +2381,7 @@ const spkColumns = [
   padding: 0 !important;
 }
 
-/* Grid Styles BOQ / RAB */
+/* ===== GRID BOQ / RAB ===== */
 .excel-grid-blue :deep(thead th) {
   font-size: 0.7rem;
   font-weight: 800;
@@ -2356,7 +2405,7 @@ const spkColumns = [
   border: 1px solid #fff3e0;
 }
 
-/* Balance Sheet Styles */
+/* ===== BALANCE SHEET ===== */
 .balance-prestige-card {
   border-radius: 20px;
   position: relative;
@@ -2388,8 +2437,12 @@ const spkColumns = [
   padding: 15px;
 }
 
+/* ===== ANIMATIONS ===== */
 .animate-fade {
   animation: fadeIn 0.4s ease-out;
+}
+.animate-fade-up {
+  animation: fadeIn 0.6s ease-out;
 }
 @keyframes fadeIn {
   from {
@@ -2417,5 +2470,8 @@ const spkColumns = [
 .content-relative {
   position: relative;
   z-index: 1;
+}
+.tracking-widest {
+  letter-spacing: 0.15em;
 }
 </style>

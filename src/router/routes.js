@@ -109,6 +109,10 @@ const routes = [
         component: () =>
           import('pages/konstruksi/Pembelian/PesananPembelian/PesananPembelianPage.vue'),
       },
+      {
+        path: 'pembelian/approval-po',
+        component: () => import('pages/konstruksi/Pembelian/PesananPembelian/ApprovalPoPage.vue'),
+      },
       // --- TAMBAHAN ROUTE FINANCE ---
       {
         path: 'finance/invoice',
@@ -145,6 +149,12 @@ const routes = [
       {
         path: 'finance/balansheet',
         component: () => import('pages/konstruksi/Finance/MonitoringBalansheetPage.vue'),
+      },
+
+      // Menambahkan Menu Arsip & Submenu Dokumen Arsip
+      {
+        path: 'arsip/dokumen',
+        component: () => import('pages/konstruksi/Arsip/DokumenArsipPage.vue'),
       },
     ],
   },

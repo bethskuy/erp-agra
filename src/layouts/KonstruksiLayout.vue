@@ -15,6 +15,9 @@
 
         <q-space />
 
+        <!-- =======================================================
+             NOTIFIKASI BELL
+             ======================================================= -->
         <q-btn flat round icon="notifications" class="q-mr-xs">
           <q-badge color="red" floating v-if="totalNotifCount > 0" class="shadow-1 font-bold">
             {{ totalNotifCount }}
@@ -276,7 +279,7 @@
                 </q-item-section>
               </q-item>
 
-              <!-- NEW: NOTIFIKASI PENDING APPROVAL PEMBAYARAN -->
+              <!-- NOTIFIKASI PENDING APPROVAL PEMBAYARAN -->
               <q-item
                 v-if="pendingPaymentApprovalCount > 0"
                 clickable
@@ -298,7 +301,7 @@
                 </q-item-section>
               </q-item>
 
-              <!-- NEW: NOTIFIKASI PEMBAYARAN DISETUJUI / SIAP CAIR -->
+              <!-- NOTIFIKASI PEMBAYARAN DISETUJUI / SIAP CAIR -->
               <q-item
                 v-if="approvedPaymentRequestCount > 0"
                 clickable
@@ -320,7 +323,7 @@
                 </q-item-section>
               </q-item>
 
-              <!-- NEW: NOTIFIKASI KASIR SIAP REALISASI PEMBAYARAN -->
+              <!-- NOTIFIKASI KASIR SIAP REALISASI PEMBAYARAN -->
               <q-item
                 v-if="approvedPaymentRealizationCount > 0"
                 clickable
@@ -340,7 +343,7 @@
                 </q-item-section>
               </q-item>
 
-              <!-- NEW: NOTIFIKASI PEMBAYARAN TEREALISASI (KEMBALI KE APPROVAL SEBAGAI INFORMASI) -->
+              <!-- NOTIFIKASI PEMBAYARAN TEREALISASI -->
               <q-item
                 v-if="realizedPaymentApprovalCount > 0"
                 clickable
@@ -379,6 +382,9 @@
           </q-menu>
         </q-btn>
 
+        <!-- =======================================================
+             QUICK APP SWITCHER
+             ======================================================= -->
         <q-btn flat round icon="apps" class="q-mr-xs">
           <q-menu
             auto-close
@@ -421,6 +427,9 @@
           </q-menu>
         </q-btn>
 
+        <!-- =======================================================
+             TOPBAR USER PROFILE DROPDOWN (AVATAR REAL)
+             ======================================================= -->
         <q-btn flat round no-caps class="q-ml-xs">
           <q-avatar
             size="32px"
@@ -428,7 +437,8 @@
             text-color="brand-primary"
             class="text-weight-bold shadow-1"
           >
-            {{ userData?.nama?.charAt(0) || 'A' }}
+            <img v-if="userData?.fotoUrl" :src="userData.fotoUrl" />
+            <span v-else>{{ userData?.nama?.charAt(0) || 'A' }}</span>
           </q-avatar>
           <q-menu
             auto-close
@@ -437,7 +447,7 @@
             :offset="[0, 10]"
             class="shadow-10 rounded-12 overflow-hidden"
           >
-            <q-list style="min-width: 220px" class="q-pa-sm">
+            <q-list style="min-width: 260px" class="q-pa-sm">
               <q-item class="q-py-md">
                 <q-item-section avatar>
                   <q-avatar
@@ -445,23 +455,24 @@
                     text-color="brand-primary"
                     class="text-weight-bold shadow-sm"
                   >
-                    {{ userData?.nama?.charAt(0) || 'A' }}
+                    <img v-if="userData?.fotoUrl" :src="userData.fotoUrl" />
+                    <span v-else>{{ userData?.nama?.charAt(0) || 'A' }}</span>
                   </q-avatar>
                 </q-item-section>
                 <q-item-section>
-                  <q-item-label class="text-weight-bold text-brand-primary">{{
-                    userData?.nama || 'Administrator'
-                  }}</q-item-label>
-                  <q-item-label caption class="text-blue-grey-6">{{
-                    authStore.user?.role || 'Staff User'
-                  }}</q-item-label>
+                  <q-item-label class="text-weight-bold text-brand-primary uppercase">
+                    {{ userData?.nama || 'Administrator' }}
+                  </q-item-label>
+                  <q-item-label caption class="text-blue-grey-6 text-weight-medium">
+                    {{ userData?.jabatan || authStore.user?.role || 'Staff User' }}
+                  </q-item-label>
                 </q-item-section>
               </q-item>
               <q-separator class="q-my-sm" />
               <q-item clickable v-ripple class="rounded-borders" @click="showProfileDialog = true">
-                <q-item-section avatar
-                  ><q-icon name="person_outline" color="blue-grey-7" size="20px"
-                /></q-item-section>
+                <q-item-section avatar>
+                  <q-icon name="person_outline" color="blue-grey-7" size="20px" />
+                </q-item-section>
                 <q-item-section class="text-weight-medium">Profil Saya</q-item-section>
               </q-item>
               <q-separator class="q-my-sm" />
@@ -480,6 +491,9 @@
       </q-toolbar>
     </q-header>
 
+    <!-- =======================================================
+         SIDEBAR NAVIGATION
+         ======================================================= -->
     <q-drawer
       v-model="leftDrawerOpen"
       show-if-above
@@ -497,11 +511,12 @@
               text-color="white"
               class="font-bold text-h6 shadow-2 profile-avatar"
             >
-              {{ userData?.nama?.charAt(0) || 'A' }}
+              <img v-if="userData?.fotoUrl" :src="userData.fotoUrl" />
+              <span v-else>{{ userData?.nama?.charAt(0) || 'A' }}</span>
             </q-avatar>
             <div class="col overflow-hidden">
               <div
-                class="text-weight-bolder text-subtitle1 ellipsis text-white"
+                class="text-weight-bolder text-subtitle1 ellipsis text-white uppercase"
                 style="line-height: 1.2; font-size: 15px"
               >
                 {{ userData?.nama || 'Administrator' }}
@@ -510,7 +525,7 @@
                 class="text-caption ellipsis text-uppercase tracking-widest font-bold q-mt-xs text-glow"
                 style="color: rgba(255, 255, 255, 0.85); font-size: 10px; opacity: 0.95"
               >
-                {{ authStore.user?.role || 'User' }}
+                {{ userData?.jabatan || authStore.user?.role || 'User' }}
               </div>
             </div>
           </div>
@@ -675,6 +690,7 @@
 
             <div class="sidebar-section-title">OPERASIONAL</div>
 
+            <!-- MENU MARKETING -->
             <q-expansion-item
               v-if="
                 hasSectionAccess([
@@ -766,6 +782,7 @@
               </q-list>
             </q-expansion-item>
 
+            <!-- MENU PROYEK -->
             <q-expansion-item
               v-if="
                 hasSectionAccess([
@@ -846,7 +863,6 @@
                 "
               >
                 <div class="row items-center q-gutter-x-xs">
-                  <!-- Mutasi -->
                   <q-badge
                     v-if="pendingMutasiCount > 0"
                     color="negative"
@@ -867,7 +883,6 @@
                     <q-icon name="local_shipping" size="10px" class="q-mr-xs" />
                     {{ approvedMutasiCount }}
                   </q-badge>
-                  <!-- PR -->
                   <q-badge
                     v-if="approvedPrCount > 0"
                     color="positive"
@@ -890,9 +905,9 @@
               </q-item-section>
             </q-item>
 
-            <!-- MENU PEMBELIAN -->
+            <!-- MENU PEMBELIAN DENGAN SUBMENU BARU APPROVAL PO -->
             <q-expansion-item
-              v-if="checkPermission('pembelian/pesanan')"
+              v-if="hasSectionAccess(['pembelian/pesanan', 'pembelian/approval-po'])"
               icon="shopping_cart"
               label="PEMBELIAN"
               class="menu-expansion-clean"
@@ -900,7 +915,9 @@
               expand-icon-class="text-brand-teal-icon"
             >
               <q-list class="q-pb-sm">
+                <!-- PESANAN PEMBELIAN -->
                 <q-item
+                  v-if="checkPermission('pembelian/pesanan')"
                   clickable
                   v-ripple
                   to="/konstruksi/pembelian/pesanan"
@@ -921,6 +938,21 @@
                       >
                     </div>
                   </q-item-section>
+                </q-item>
+
+                <!-- APPROVAL PO BARU -->
+                <q-item
+                  v-if="checkPermission('pembelian/approval-po')"
+                  clickable
+                  v-ripple
+                  to="/konstruksi/pembelian/approval-po"
+                  class="level-2-item-clean"
+                  active-class="sub-item-active"
+                >
+                  <q-item-section avatar>
+                    <q-icon name="fact_check" size="20px" class="icon-sub" />
+                  </q-item-section>
+                  <q-item-section class="menu-text">Approval PO</q-item-section>
                 </q-item>
               </q-list>
             </q-expansion-item>
@@ -1175,6 +1207,32 @@
               </q-list>
             </q-expansion-item>
 
+            <!-- MENU ARSIP BARU -->
+            <q-expansion-item
+              v-if="hasSectionAccess(['arsip/dokumen'])"
+              icon="folder_open"
+              label="ARSIP"
+              class="menu-expansion-clean"
+              header-class="menu-expansion-header"
+              expand-icon-class="text-brand-teal-icon"
+            >
+              <q-list class="q-pb-sm">
+                <q-item
+                  v-if="checkPermission('arsip/dokumen')"
+                  clickable
+                  v-ripple
+                  to="/konstruksi/arsip/dokumen"
+                  class="level-2-item-clean"
+                  active-class="sub-item-active"
+                >
+                  <q-item-section avatar>
+                    <q-icon name="description" size="20px" class="icon-sub" />
+                  </q-item-section>
+                  <q-item-section class="menu-text">Dokumen Arsip</q-item-section>
+                </q-item>
+              </q-list>
+            </q-expansion-item>
+
             <div style="height: 120px"></div>
           </q-list>
         </q-scroll-area>
@@ -1195,6 +1253,84 @@
       </div>
     </q-drawer>
 
+    <!-- =======================================================
+         DIALOG PROFIL SAYA (UBAH FOTO & PASSWORD)
+         ======================================================= -->
+    <q-dialog v-model="showProfileDialog" persistent backdrop-filter="blur(4px)">
+      <q-card style="width: 400px; max-width: 90vw" class="rounded-20 shadow-24">
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6 text-weight-bold text-brand-primary">Profil Saya</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup color="grey-7" />
+        </q-card-section>
+
+        <q-card-section class="q-pt-md">
+          <div class="text-center q-mb-md relative-position">
+            <q-avatar size="100px" class="shadow-2 border-brand-thin">
+              <img v-if="profileForm.previewUrl" :src="profileForm.previewUrl" />
+              <img v-else-if="userData?.fotoUrl" :src="userData.fotoUrl" />
+              <span v-else class="bg-brand-teal text-white text-h3 font-bold">
+                {{ userData?.nama?.charAt(0) || 'A' }}
+              </span>
+            </q-avatar>
+          </div>
+
+          <div class="text-center q-mb-lg">
+            <div class="text-subtitle1 text-weight-bold uppercase text-blue-grey-10">
+              {{ userData?.nama }}
+            </div>
+            <div class="text-caption text-grey-7 font-bold uppercase tracking-widest">
+              {{ userData?.jabatan || authStore.user?.role || 'Staff' }}
+            </div>
+          </div>
+
+          <q-file
+            v-model="profileForm.fileFoto"
+            label="Ganti Foto Profil Anda"
+            outlined
+            dense
+            accept="image/*"
+            @update:model-value="onProfilePhotoSelected"
+            class="q-mb-md"
+            color="brand-primary"
+          >
+            <template v-slot:prepend><q-icon name="photo_camera" color="brand-primary" /></template>
+          </q-file>
+
+          <q-input
+            v-model="profileForm.passwordBaru"
+            label="Password Baru"
+            placeholder="Kosongkan jika tidak ingin diubah"
+            outlined
+            dense
+            type="password"
+            color="brand-primary"
+            class="q-mb-md"
+          >
+            <template v-slot:prepend><q-icon name="lock" color="brand-primary" /></template>
+          </q-input>
+        </q-card-section>
+
+        <q-card-actions align="right" class="q-pa-md bg-grey-1 border-top-soft">
+          <q-btn
+            flat
+            label="Batal"
+            color="grey-7"
+            v-close-popup
+            class="rounded-8 text-weight-bold"
+          />
+          <q-btn
+            unelevated
+            color="brand-primary"
+            label="Simpan Perubahan"
+            class="rounded-12 text-weight-bold q-px-lg shadow-4"
+            @click="updateProfileInfo"
+            :loading="updatingProfile"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
     <q-page-container class="no-horizontal-scroll">
       <router-view v-slot="{ Component }">
         <transition
@@ -1211,9 +1347,10 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { auth, db } from 'src/boot/firebase'
-import { signOut } from 'firebase/auth'
-import { collection, query, where, onSnapshot } from 'firebase/firestore'
+import { auth, db, storage } from 'src/boot/firebase'
+import { signOut, updatePassword } from 'firebase/auth'
+import { collection, query, where, onSnapshot, doc, updateDoc } from 'firebase/firestore'
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { useAuthStore } from 'src/stores/auth'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
@@ -1222,7 +1359,15 @@ const $q = useQuasar()
 const authStore = useAuthStore()
 const router = useRouter()
 const leftDrawerOpen = ref(false)
+
+// STATE PROFIL
 const showProfileDialog = ref(false)
+const updatingProfile = ref(false)
+const profileForm = ref({
+  fileFoto: null,
+  previewUrl: '',
+  passwordBaru: '',
+})
 
 // STATE NOTIFIKASI
 const pendingApprovalCount = ref(0)
@@ -1241,10 +1386,10 @@ const rejectedInvoiceCount = ref(0)
 const overdueInvoiceCount = ref(0) // Tagihan jatuh tempo monitoring_tagihan_spk
 
 // NEW: PENGAJUAN & REALISASI PEMBAYARAN NOTIFICATION STATES
-const pendingPaymentApprovalCount = ref(0) // (Event 1) Antrean pending approval baru
-const approvedPaymentRequestCount = ref(0) // (Event 2) Pencipta dapat notif "Dana Approved"
-const approvedPaymentRealizationCount = ref(0) // (Event 2) Bendahara dapat notif "Siap Cairkan"
-const realizedPaymentApprovalCount = ref(0) // (Event 3) Pimpinan dapat notif "Transaksi Selesai/Cair"
+const pendingPaymentApprovalCount = ref(0)
+const approvedPaymentRequestCount = ref(0)
+const approvedPaymentRealizationCount = ref(0)
+const realizedPaymentApprovalCount = ref(0)
 
 const userData = ref(null)
 const apps = ref([])
@@ -1258,7 +1403,7 @@ let unsubApps = null
 let unsubPermintaanAll = null
 let unsubInvoiceAll = null
 let unsubMonitoringTagihan = null
-let unsubPembayaranRequests = null // LISTENER NYA
+let unsubPembayaranRequests = null
 
 const totalNotifCount = computed(() => {
   return (
@@ -1274,7 +1419,6 @@ const totalNotifCount = computed(() => {
     approvedInvoiceCount.value +
     rejectedInvoiceCount.value +
     overdueInvoiceCount.value +
-    // NEW COUPLING: PENGAJUAN PEMBAYARAN
     pendingPaymentApprovalCount.value +
     approvedPaymentRequestCount.value +
     approvedPaymentRealizationCount.value +
@@ -1341,6 +1485,70 @@ const handleLogout = () => {
   })
 }
 
+const onProfilePhotoSelected = (file) => {
+  if (file) {
+    profileForm.value.previewUrl = URL.createObjectURL(file)
+  } else {
+    profileForm.value.previewUrl = ''
+  }
+}
+
+const updateProfileInfo = async () => {
+  updatingProfile.value = true
+  try {
+    let newFotoUrl = userData.value.fotoUrl
+
+    // 1. Upload Foto jika diisi
+    if (profileForm.value.fileFoto) {
+      const file = profileForm.value.fileFoto
+      const fRef = storageRef(
+        storage,
+        `karyawan/avatars/${authStore.user.uid}_${Date.now()}_${file.name}`,
+      )
+      await uploadBytes(fRef, file)
+      newFotoUrl = await getDownloadURL(fRef)
+
+      if (newFotoUrl !== userData.value.fotoUrl && userData.value.id) {
+        await updateDoc(doc(db, 'karyawan', userData.value.id), {
+          fotoUrl: newFotoUrl,
+        })
+        userData.value.fotoUrl = newFotoUrl
+      }
+    }
+
+    // 2. Update Password Auth & Firestore (jika diisi)
+    if (profileForm.value.passwordBaru) {
+      await updatePassword(auth.currentUser, profileForm.value.passwordBaru)
+      if (userData.value.id) {
+        await updateDoc(doc(db, 'karyawan', userData.value.id), {
+          password: profileForm.value.passwordBaru,
+        })
+      }
+    }
+
+    $q.notify({ type: 'positive', position: 'top', message: 'Profil Anda berhasil diperbarui!' })
+    showProfileDialog.value = false
+    profileForm.value = { fileFoto: null, previewUrl: '', passwordBaru: '' }
+  } catch (err) {
+    console.error(err)
+    if (err.code === 'auth/requires-recent-login') {
+      $q.notify({
+        type: 'negative',
+        position: 'top',
+        message: 'Untuk mengubah password, Anda harus logout dan login kembali terlebih dahulu.',
+      })
+    } else {
+      $q.notify({
+        type: 'negative',
+        position: 'top',
+        message: 'Gagal memperbarui profil: ' + err.message,
+      })
+    }
+  } finally {
+    updatingProfile.value = false
+  }
+}
+
 onMounted(() => {
   unsubApps = onSnapshot(collection(db, 'modul'), (snapshot) => {
     apps.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
@@ -1353,7 +1561,8 @@ onMounted(() => {
     unsubUser = onSnapshot(qUser, (snapshot) => {
       if (!snapshot.empty) {
         const data = snapshot.docs[0].data()
-        userData.value = data
+        // Capture doc ID inside userData to allow updates
+        userData.value = { id: snapshot.docs[0].id, ...data }
         currentAkses.value = data.akses || []
       }
     })
@@ -1481,14 +1690,13 @@ onMounted(() => {
     snap.docs.forEach((doc) => {
       const d = doc.data()
 
-      // 1. PENDING APPROVAL (Belum disetujui / status == 'Pending') -> Memicu Notif di Approval Pembayaran
+      // 1. PENDING APPROVAL (Belum disetujui / status == 'Pending')
       if (d.status === 'Pending' && d.approver_read !== true) {
         pendingApprove++
       }
 
-      // 2. APPROVED / CAIR -> Memicu Notif di Pengajuan Pembayaran (untuk kreator) & Realisasi Pembayaran (untuk kasir)
+      // 2. APPROVED / CAIR
       if (d.status === 'Cair' || d.status === 'Approved') {
-        // Untuk pencipta (Pengajuan Pembayaran)
         const isMyRequest =
           d.creator_id === userUid ||
           d.pemohon_id === userUid ||
@@ -1498,13 +1706,12 @@ onMounted(() => {
         if (isMyRequest && d.creator_read !== true) {
           approvedReq++
         }
-        // Untuk realizer / bendahara (Realisasi Pembayaran)
         if (d.realizer_read !== true) {
           approvedRealize++
         }
       }
 
-      // 3. TEREALISASI / SELESAI / CAIR SUKSES -> Memicu Notif di Approval Pembayaran (mengabari pimpinan/approver bahwa dana telah cair)
+      // 3. TEREALISASI / SELESAI / CAIR SUKSES
       if (
         (d.status === 'Realisasi' || d.status === 'Selesai' || d.status === 'Cair_Selesai') &&
         d.realized_approved_read !== true
@@ -1529,7 +1736,7 @@ onUnmounted(() => {
   if (unsubPermintaanAll) unsubPermintaanAll()
   if (unsubInvoiceAll) unsubInvoiceAll()
   if (unsubMonitoringTagihan) unsubMonitoringTagihan()
-  if (unsubPembayaranRequests) unsubPembayaranRequests() // Bersihkan listener baru
+  if (unsubPembayaranRequests) unsubPembayaranRequests()
 })
 </script>
 
@@ -1559,10 +1766,22 @@ onUnmounted(() => {
 .rounded-16 {
   border-radius: 16px;
 }
+.rounded-20 {
+  border-radius: 20px;
+}
+.border-brand-thin {
+  border: 1px solid rgba(54, 173, 163, 0.4);
+}
 
 /* ================== NAVBAR COLOR ================== */
 .bg-brand-teal {
   background: linear-gradient(135deg, #36ada3 0%, #2a9089 100%) !important;
+}
+.text-brand-primary {
+  color: #36ada3 !important;
+}
+.bg-brand-primary {
+  background-color: #36ada3 !important;
 }
 
 /* ================== LIGHT TEAL SIDEBAR THEME ================== */
@@ -1586,6 +1805,10 @@ onUnmounted(() => {
 .profile-avatar {
   border: 3px solid rgba(255, 255, 255, 0.7);
   box-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
+  background-color: #2a9089;
+  img {
+    object-fit: cover;
+  }
 }
 
 .text-glow {
@@ -1624,7 +1847,7 @@ onUnmounted(() => {
   color: #36ada3 !important; /* Teal Icons */
 }
 
-/* ITEM MENU LEVEL 1 & 2 UTAMA - SEKARANG BERKONTRAST TINGGI DI ATAS BG GELAP */
+/* ITEM MENU LEVEL 1 & 2 UTAMA */
 .menu-item-clean {
   color: #2d4a48 !important; /* Teks gelap di bg putih */
   margin: 6px 14px;
@@ -1672,7 +1895,7 @@ onUnmounted(() => {
   }
 }
 
-/* EXPANSION MENU OVERHAUL - KARTU GLASS GELAP UNTUK KATEGORI UTAMA */
+/* EXPANSION MENU OVERHAUL */
 .menu-expansion-clean {
   background-color: rgba(54, 173, 163, 0.04) !important;
   border-radius: 10px;
@@ -1812,10 +2035,6 @@ onUnmounted(() => {
 /* ================== PREMIUM LOGOUT BUTTON ================== */
 .border-top-soft {
   border-top: 1px solid rgba(54, 173, 163, 0.15) !important;
-}
-
-.bg-slate-50 {
-  background-color: transparent !important;
 }
 
 .logout-btn {

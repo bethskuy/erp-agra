@@ -271,7 +271,7 @@
                     <q-input
                       outlined
                       v-model="form.nama"
-                      placeholder="Contoh: Semen, Kayu, Besi, Perkakas..."
+                      placeholder="Contoh: Komsumtif, Material, Alat Berat..."
                       bg-color="white"
                       autofocus
                       class="text-weight-bold"

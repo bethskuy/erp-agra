@@ -1,8 +1,5 @@
 <template>
   <q-page class="bg-grey-2 q-pa-md q-pa-lg-lg font-pro">
-    <!-- =====================================================================================
-         HEADER SECTION
-         ===================================================================================== -->
     <div class="row items-center justify-between q-mb-xl animate-fade no-print">
       <div class="col-12 col-md-8">
         <div>
@@ -19,7 +16,6 @@
         </div>
       </div>
       <div class="col-12 col-md-auto q-mt-md q-mt-md-none row items-center q-gutter-md justify-end">
-        <!-- TOMBOL EXPORT -->
         <q-btn-dropdown
           unelevated
           color="white"
@@ -49,7 +45,6 @@
           </q-list>
         </q-btn-dropdown>
 
-        <!-- STATUS AUTO-SYNC -->
         <div class="text-right">
           <div class="text-caption text-grey-6 q-mb-xs uppercase tracking-widest font-bold">
             Status Buku Kas
@@ -62,11 +57,8 @@
       </div>
     </div>
 
-    <!-- =====================================================================================
-         (1) WIDGET RINGKASAN: 3 STAT CARDS UTAMA (Disetujui, Terealisasi, Outstanding)
-         ===================================================================================== -->
+    <!-- KPI CARDS UTAMA (3 card) -->
     <div class="row q-col-gutter-lg q-mb-lg animate-fade-up no-print">
-      <!-- Card 1: Total Disetujui -->
       <div class="col-12 col-sm-4">
         <q-card flat class="rounded-20 kpi-card kpi-teal text-white transition-all hover-shadow">
           <q-card-section class="row items-center no-wrap q-pa-lg">
@@ -85,7 +77,6 @@
               <q-icon name="verified" color="white" size="32px" />
             </div>
           </q-card-section>
-          <!-- Progress bar mini -->
           <div class="q-px-lg q-pb-md">
             <div class="kpi-bar-track">
               <div class="kpi-bar-fill bg-white" style="width: 100%"></div>
@@ -94,7 +85,6 @@
         </q-card>
       </div>
 
-      <!-- Card 2: Total Terealisasi (Cair) -->
       <div class="col-12 col-sm-4">
         <q-card flat class="rounded-20 kpi-card kpi-green text-white transition-all hover-shadow">
           <q-card-section class="row items-center no-wrap q-pa-lg">
@@ -113,7 +103,6 @@
               <q-icon name="price_check" color="white" size="32px" />
             </div>
           </q-card-section>
-          <!-- Progress bar realisasi -->
           <div class="q-px-lg q-pb-md">
             <div class="kpi-bar-track">
               <div class="kpi-bar-fill bg-white" :style="{ width: realisasiPct + '%' }"></div>
@@ -125,7 +114,6 @@
         </q-card>
       </div>
 
-      <!-- Card 3: Outstanding (Approved belum Cair) -->
       <div class="col-12 col-sm-4">
         <q-card flat class="rounded-20 kpi-card kpi-orange text-white transition-all hover-shadow">
           <q-card-section class="row items-center no-wrap q-pa-lg">
@@ -144,7 +132,6 @@
               <q-icon name="pending_actions" color="white" size="32px" />
             </div>
           </q-card-section>
-          <!-- Progress bar outstanding -->
           <div class="q-px-lg q-pb-md">
             <div class="kpi-bar-track">
               <div class="kpi-bar-fill bg-white" :style="{ width: outstandingPct + '%' }"></div>
@@ -157,11 +144,8 @@
       </div>
     </div>
 
-    <!-- =====================================================================================
-         KPI SEKUNDER: Baris info tambahan (Volume, Bulan Ini, Rata-rata)
-         ===================================================================================== -->
+    <!-- KPI SEKUNDER (4 card) -->
     <div class="row q-col-gutter-lg q-mb-lg animate-fade-up no-print">
-      <!-- Card 1: Total Pengeluaran -->
       <div class="col-12 col-sm-6 col-md-3">
         <q-card flat class="rounded-20 kpi-card kpi-sec-red text-white transition-all hover-shadow">
           <q-card-section class="row items-center no-wrap q-pa-md">
@@ -186,7 +170,6 @@
         </q-card>
       </div>
 
-      <!-- Card 2: Pengeluaran Bulan Ini -->
       <div class="col-12 col-sm-6 col-md-3">
         <q-card
           flat
@@ -222,7 +205,6 @@
         </q-card>
       </div>
 
-      <!-- Card 3: Volume Transaksi -->
       <div class="col-12 col-sm-6 col-md-3">
         <q-card
           flat
@@ -251,7 +233,6 @@
         </q-card>
       </div>
 
-      <!-- Card 4: Rata-rata per Transaksi -->
       <div class="col-12 col-sm-6 col-md-3">
         <q-card
           flat
@@ -280,9 +261,7 @@
       </div>
     </div>
 
-    <!-- =====================================================================================
-         (2) WIDGET DISTRIBUSI PENGELUARAN PER DIVISI (Mini Horizontal Bar Chart)
-         ===================================================================================== -->
+    <!-- DISTRIBUSI PENGELUARAN PER DIVISI -->
     <q-card flat bordered class="rounded-20 shadow-sm bg-white q-mb-lg no-print">
       <q-card-section
         class="bg-teal-1 q-py-sm text-teal-10 text-weight-bold flex items-center border-bottom"
@@ -291,24 +270,19 @@
         DISTRIBUSI PENGELUARAN PER DIVISI / TIPE
       </q-card-section>
       <q-card-section class="q-pa-lg">
-        <!-- Pesan jika belum ada data -->
         <div v-if="distribusiDivisi.length === 0" class="text-center q-pa-xl text-grey-5">
           <q-icon name="bar_chart" size="48px" class="q-mb-sm opacity-50" />
           <div>Belum ada data pengeluaran untuk divisualisasikan.</div>
         </div>
-
-        <!-- Bar Chart Horizontal per Divisi -->
         <div v-else class="q-gutter-y-md">
           <div v-for="(divisi, idx) in distribusiDivisi" :key="idx">
             <div class="row items-center q-col-gutter-md no-wrap">
-              <!-- Label Divisi -->
               <div class="col-12 col-md-3">
                 <div class="text-weight-bold text-blue-grey-9 font-11 uppercase truncate-label">
                   {{ divisi.label }}
                 </div>
                 <div class="text-caption text-grey-6">{{ divisi.count }} transaksi</div>
               </div>
-              <!-- Bar Progress (Pure CSS, tanpa library chart) -->
               <div class="col">
                 <div class="dist-bar-track">
                   <div
@@ -320,7 +294,6 @@
                   </div>
                 </div>
               </div>
-              <!-- Nominal -->
               <div class="col-12 col-md-3 text-right">
                 <div class="text-weight-bolder text-negative font-11">
                   Rp {{ formatCompact(divisi.total) }}
@@ -332,13 +305,10 @@
       </q-card-section>
     </q-card>
 
-    <!-- =====================================================================================
-         (4) FILTER INTERAKTIF & PENCARIAN LANJUTAN
-         ===================================================================================== -->
+    <!-- FILTER -->
     <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print border-teal-thin">
       <q-card-section class="q-py-md">
         <div class="row items-center q-col-gutter-md">
-          <!-- Pencarian Lanjutan -->
           <div class="col-12 col-md-4">
             <q-input
               v-model="searchQuery"
@@ -357,8 +327,6 @@
               </template>
             </q-input>
           </div>
-
-          <!-- Filter Status Realisasi -->
           <div class="col-12 col-md-auto">
             <q-tabs
               v-model="statusRealisasiFilter"
@@ -379,8 +347,6 @@
               />
             </q-tabs>
           </div>
-
-          <!-- Filter Metode Bayar -->
           <div class="col-12 col-md-auto">
             <q-select
               v-model="metodeFilter"
@@ -401,9 +367,7 @@
       </q-card-section>
     </q-card>
 
-    <!-- =====================================================================================
-         MAIN TABLE DATA (KAS KELUAR)
-         ===================================================================================== -->
+    <!-- MAIN TABLE -->
     <q-card
       flat
       bordered
@@ -439,7 +403,6 @@
             class="hover-bg transition-all cursor-pointer"
             @click="openVoucher(props.row)"
           >
-            <!-- KOLOM WAKTU & BKK -->
             <q-td key="waktu">
               <div class="text-weight-bold text-blue-grey-10 text-subtitle2 leading-none q-mb-xs">
                 {{ formatDateIndo(props.row.approvedAt || props.row.createdAt) }}
@@ -452,7 +415,6 @@
               </div>
             </q-td>
 
-            <!-- KOLOM PENERIMA -->
             <q-td key="penerima">
               <div class="text-weight-bold text-teal-10 uppercase font-11">
                 {{ props.row.vendor_nama || props.row.supplier_nama || '-' }}
@@ -465,7 +427,6 @@
               </div>
             </q-td>
 
-            <!-- KOLOM METODE -->
             <q-td key="metode" class="text-center">
               <q-chip
                 dense
@@ -484,14 +445,12 @@
               </q-chip>
             </q-td>
 
-            <!-- KOLOM KETERANGAN -->
             <q-td key="keperluan" class="text-left" style="max-width: 250px">
               <div class="text-body2 text-blue-grey-8 ellipsis-2-lines italic">
                 "{{ props.row.keterangan || props.row.keperluan || '-' }}"
               </div>
             </q-td>
 
-            <!-- KOLOM NOMINAL -->
             <q-td key="nominal" class="text-right">
               <div class="text-weight-black text-negative text-subtitle1">
                 - Rp
@@ -501,7 +460,6 @@
               </div>
             </q-td>
 
-            <!-- KOLOM STATUS REALISASI -->
             <q-td key="status_realisasi" class="text-center">
               <q-chip
                 dense
@@ -518,7 +476,6 @@
               </q-chip>
             </q-td>
 
-            <!-- KOLOM AKSI -->
             <q-td key="aksi" class="text-center" @click.stop>
               <q-btn
                 flat
@@ -543,9 +500,7 @@
       </q-table>
     </q-card>
 
-    <!-- =====================================================================================
-         DIALOG VOUCHER BUKTI KAS KELUAR (BKK) - FULLSCREEN - EXPORTABLE PDF
-         ===================================================================================== -->
+    <!-- DIALOG VOUCHER BKK -->
     <q-dialog
       v-model="showVoucher"
       maximized
@@ -554,7 +509,6 @@
       backdrop-filter="blur(8px)"
     >
       <q-card class="bg-grey-3 column no-wrap">
-        <!-- Toolbar Dialog -->
         <q-toolbar class="bg-teal-10 text-white q-py-md shadow-4 shrink no-print">
           <q-btn flat round dense icon="arrow_back" v-close-popup />
           <q-toolbar-title>
@@ -577,18 +531,9 @@
         <q-scroll-area class="col q-pa-md q-pa-lg-xl flex flex-center">
           <div class="row justify-center">
             <div class="col-12 col-md-11 col-xl-8">
-              <!-- ==============================================================
-                   (3) VOUCHER BKK - LAYOUT SETENGAH A4 (CETAK FISIK)
-                   Mengandung:
-                   - Nomor BKK Otomatis
-                   - Fungsi Terbilang Bahasa Indonesia
-                   - Grid Tanda Tangan 4 Kolom
-                   ============================================================== -->
               <div id="voucher-pdf-target" class="voucher-paper shadow-24" v-if="selectedVoucher">
-                <!-- === KOP SURAT / HEADER DOKUMEN === -->
                 <div class="row items-start justify-between q-mb-md border-bottom-thick q-pb-md">
                   <div class="row items-center no-wrap">
-                    <!-- Logo Perusahaan (gunakan fallback jika tidak ada) -->
                     <img
                       :src="compConfig.kopUrl || '/icons/logo-agra.png'"
                       class="voucher-logo q-mr-md"
@@ -610,7 +555,6 @@
                       </div>
                     </div>
                   </div>
-                  <!-- Judul & Nomor BKK -->
                   <div class="text-right">
                     <div
                       class="text-h5 text-weight-black text-teal-10 uppercase tracking-widest leading-none"
@@ -618,15 +562,12 @@
                       BUKTI KAS KELUAR
                     </div>
                     <div class="text-subtitle2 text-weight-bold text-grey-8 font-mono q-mt-xs">
-                      <!-- (3) Nomor BKK Otomatis: format BKK/TAHUN/BULAN/ID -->
                       No: {{ generateNomorBKK(selectedVoucher) }}
                     </div>
                   </div>
                 </div>
 
-                <!-- === INFO TRANSAKSI (2 KOLOM) === -->
                 <div class="row q-col-gutter-lg q-mb-md">
-                  <!-- Kolom Kiri: Penerima, Invoice, Metode, Rekening -->
                   <div class="col-7">
                     <table class="voucher-info-table full-width">
                       <tr>
@@ -670,7 +611,6 @@
                       </tr>
                     </table>
                   </div>
-                  <!-- Kolom Kanan: Tanggal, Pemohon, Otorisator -->
                   <div class="col-5">
                     <table class="voucher-info-table full-width">
                       <tr>
@@ -714,7 +654,6 @@
                   </div>
                 </div>
 
-                <!-- === URAIAN / KEPERLUAN === -->
                 <div class="voucher-box q-mb-md">
                   <div class="voucher-box-header">URAIAN / KEPERLUAN PEMBAYARAN</div>
                   <div
@@ -724,7 +663,6 @@
                   </div>
                 </div>
 
-                <!-- === NOMINAL BESAR + TERBILANG === -->
                 <div class="q-mb-md">
                   <table
                     style="
@@ -781,7 +719,6 @@
                           color: #37474f;
                         "
                       >
-                        <!-- (3) Fungsi Terbilang Bahasa Indonesia -->
                         Terbilang:
                         <strong
                           >{{
@@ -799,9 +736,7 @@
                   </div>
                 </div>
 
-                <!-- === (3) GRID TANDA TANGAN 4 KOLOM (FORMAL AKUNTANSI) === -->
                 <div class="ttd-grid">
-                  <!-- Kolom 1: Disetujui Oleh (Direktur/Pimpinan) -->
                   <div class="ttd-col">
                     <div class="ttd-role">Disetujui Oleh,</div>
                     <div class="ttd-jabatan text-caption text-grey-6">(Direktur / Pimpinan)</div>
@@ -811,26 +746,20 @@
                     </div>
                     <div class="ttd-role-label">Finance / Direksi</div>
                   </div>
-
-                  <!-- Kolom 2: Diperiksa Oleh (Accounting / Internal Audit) -->
                   <div class="ttd-col">
                     <div class="ttd-role">Diperiksa Oleh,</div>
                     <div class="ttd-jabatan text-caption text-grey-6">(Accounting / Audit)</div>
                     <div class="ttd-area"></div>
-                    <div class="ttd-name">.......................<br /></div>
+                    <div class="ttd-name">.......................</div>
                     <div class="ttd-role-label">Accounting Staff</div>
                   </div>
-
-                  <!-- Kolom 3: Dibayarkan Oleh (Kasir / Finance) -->
                   <div class="ttd-col">
                     <div class="ttd-role">Dibayarkan Oleh,</div>
                     <div class="ttd-jabatan text-caption text-grey-6">(Kasir / Finance)</div>
                     <div class="ttd-area"></div>
-                    <div class="ttd-name">.......................<br /></div>
+                    <div class="ttd-name">.......................</div>
                     <div class="ttd-role-label">Finance / Kasir</div>
                   </div>
-
-                  <!-- Kolom 4: Diterima Oleh (Penerima Dana / Vendor) -->
                   <div class="ttd-col">
                     <div class="ttd-role">Diterima Oleh,</div>
                     <div class="ttd-jabatan text-caption text-grey-6">(Penerima Dana)</div>
@@ -846,7 +775,6 @@
                   </div>
                 </div>
 
-                <!-- Footer Dokumen -->
                 <div
                   class="q-mt-md text-center text-grey-4 text-caption font-bold tracking-widest uppercase"
                   style="font-size: 9px; border-top: 1px dashed #ccc; padding-top: 8px"
@@ -855,9 +783,7 @@
                   {{ new Date().toLocaleDateString('id-ID') }}
                 </div>
               </div>
-              <!-- END voucher-pdf-target -->
 
-              <!-- Tombol Buka Lampiran (UI Only, tidak ikut cetak) -->
               <div
                 class="q-mt-lg text-center no-print"
                 v-if="
@@ -977,7 +903,6 @@
                 Tidak ada data.
               </td>
             </tr>
-            <!-- Baris Total -->
             <tr v-if="filteredExpenses.length > 0">
               <td
                 colspan="5"
@@ -1025,10 +950,6 @@ import html2pdf from 'html2pdf.js'
 
 const $q = useQuasar()
 
-// ============================================================================
-// STATE
-// ============================================================================
-/** Data mentah dari Firestore: semua pengajuan yang Approved atau Cair */
 const expenses = ref([])
 const loading = ref(true)
 const searchQuery = ref('')
@@ -1045,9 +966,6 @@ const compConfig = ref({
 
 let unsubExpenses = null
 
-// ============================================================================
-// OPSI FILTER
-// ============================================================================
 const metodeOptions = [
   { label: 'Semua Metode', value: 'ALL' },
   { label: 'Tagihan Supplier', value: 'Tagihan Supplier' },
@@ -1056,7 +974,6 @@ const metodeOptions = [
   { label: 'Tunai / Cash', value: 'Tunai / Cash' },
 ]
 
-// Warna bar distribusi divisi (dirotasi)
 const distBarColors = [
   'bg-teal-6',
   'bg-teal-6',
@@ -1068,9 +985,6 @@ const distBarColors = [
   'bg-cyan-7',
 ]
 
-// ============================================================================
-// KOLOM TABEL
-// ============================================================================
 const columns = [
   { name: 'waktu', align: 'left', label: 'WAKTU & NO BKK', field: 'approvedAt', sortable: true },
   {
@@ -1099,13 +1013,8 @@ const columns = [
   { name: 'aksi', align: 'center', label: 'VOUCHER', field: 'id' },
 ]
 
-// ============================================================================
-// FETCH DATA DARI FIRESTORE
-// ============================================================================
 const fetchData = async () => {
   loading.value = true
-
-  // Ambil konfigurasi profil perusahaan untuk kop surat
   try {
     const confSnap = await getDoc(doc(db, 'config', 'perusahaan'))
     if (confSnap.exists()) compConfig.value = confSnap.data()
@@ -1113,12 +1022,6 @@ const fetchData = async () => {
     console.warn('Config perusahaan tidak ditemukan:', e)
   }
 
-  /**
-   * Ambil semua pengajuan yang statusnya 'Approved' ATAU 'Cair'.
-   * - 'Approved' = sudah disetujui tapi belum ditransfer (outstanding)
-   * - 'Cair'     = sudah ditransfer/terealisasi
-   * Ini menggabungkan data dari alur Approval + Realisasi.
-   */
   const qPengajuan = query(
     collection(db, 'finance_pengajuan_pembayaran'),
     where('status', 'in', ['Approved', 'Cair']),
@@ -1138,56 +1041,33 @@ const fetchData = async () => {
   )
 }
 
-// ============================================================================
-// COMPUTED: KPI UTAMA (WIDGET RINGKASAN)
-// ============================================================================
-
-/** Semua transaksi yang sudah pernah disetujui (Approved + Cair) */
 const approvedExpenses = computed(() => expenses.value)
-
-/** Transaksi yang sudah cair/terealisasi */
 const cairExpenses = computed(() => expenses.value.filter((r) => r.status === 'Cair'))
-
-/** Transaksi yang sudah disetujui tapi belum dicairkan */
 const outstandingExpenses = computed(() => expenses.value.filter((r) => r.status === 'Approved'))
-
-/** Total nominal semua pengajuan yang approved (termasuk yang belum cair) */
 const totalDisetujui = computed(() =>
   approvedExpenses.value.reduce((s, r) => s + (r.nominal || 0), 0),
 )
-
-/** Total nominal yang sudah cair/terealisasi */
 const totalTerealisasi = computed(() =>
   cairExpenses.value.reduce((s, r) => s + (r.nominal_eksekusi || r.nominal || 0), 0),
 )
-
-/** Total outstanding: disetujui belum dicairkan */
 const totalOutstanding = computed(() =>
   outstandingExpenses.value.reduce((s, r) => s + (r.nominal || 0), 0),
 )
-
-/** Persentase realisasi dari total disetujui */
 const realisasiPct = computed(() => {
   if (!totalDisetujui.value) return 0
   return Math.round((totalTerealisasi.value / totalDisetujui.value) * 100)
 })
-
-/** Persentase outstanding dari total disetujui */
 const outstandingPct = computed(() => {
   if (!totalDisetujui.value) return 0
   return Math.round((totalOutstanding.value / totalDisetujui.value) * 100)
 })
-
-/** Total pengeluaran (hanya yang sudah benar-benar cair) */
 const totalPengeluaran = computed(() => totalTerealisasi.value)
-
-/** Pengeluaran bulan berjalan */
 const currentMonthName = computed(() =>
   new Date().toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }),
 )
 
 const pengeluaranBulanIni = computed(() => {
-  const prefix = new Date().toISOString().slice(0, 7) // 'YYYY-MM'
+  const prefix = new Date().toISOString().slice(0, 7)
   return cairExpenses.value
     .filter((r) => {
       let d = ''
@@ -1199,23 +1079,13 @@ const pengeluaranBulanIni = computed(() => {
     .reduce((s, r) => s + (r.nominal_eksekusi || r.nominal || 0), 0)
 })
 
-/** Rata-rata per transaksi yang sudah cair */
 const rataRataPengeluaran = computed(() => {
   if (!cairExpenses.value.length) return 0
   return Math.round(totalTerealisasi.value / cairExpenses.value.length)
 })
 
-// ============================================================================
-// COMPUTED: DISTRIBUSI PENGELUARAN PER DIVISI / TIPE PENGAJUAN
-// ============================================================================
-/**
- * Menghitung distribusi pengeluaran berdasarkan tipe_pengajuan sebagai proxy divisi.
- * Dalam implementasi nyata, bisa diganti dengan field 'divisi' atau 'kategori'.
- */
 const distribusiDivisi = computed(() => {
   if (!approvedExpenses.value.length) return []
-
-  // Kelompokkan berdasarkan tipe_pengajuan atau vendor (proxy divisi)
   const map = {}
   for (const r of approvedExpenses.value) {
     const key = r.tipe_pengajuan || 'Lainnya'
@@ -1223,9 +1093,7 @@ const distribusiDivisi = computed(() => {
     map[key].total += r.nominal || 0
     map[key].count += 1
   }
-
   const grandTotal = approvedExpenses.value.reduce((s, r) => s + (r.nominal || 0), 0)
-
   return Object.entries(map)
     .map(([label, data]) => ({
       label,
@@ -1236,23 +1104,12 @@ const distribusiDivisi = computed(() => {
     .sort((a, b) => b.total - a.total)
 })
 
-// ============================================================================
-// COMPUTED: FILTER DATA TABEL
-// ============================================================================
 const filteredExpenses = computed(() => {
   let res = expenses.value
-
-  // Filter status realisasi
-  if (statusRealisasiFilter.value !== 'ALL') {
+  if (statusRealisasiFilter.value !== 'ALL')
     res = res.filter((r) => r.status === statusRealisasiFilter.value)
-  }
-
-  // Filter metode bayar
-  if (metodeFilter.value !== 'ALL') {
+  if (metodeFilter.value !== 'ALL')
     res = res.filter((r) => (r.tipe_pengajuan || r.metode_bayar || '').includes(metodeFilter.value))
-  }
-
-  // Pencarian teks
   if (searchQuery.value) {
     const lower = searchQuery.value.toLowerCase()
     res = res.filter(
@@ -1264,13 +1121,9 @@ const filteredExpenses = computed(() => {
         r.nomor_invoice?.toLowerCase().includes(lower),
     )
   }
-
   return res
 })
 
-// ============================================================================
-// ACTIONS
-// ============================================================================
 const openVoucher = (row) => {
   selectedVoucher.value = row
   showVoucher.value = true
@@ -1289,8 +1142,7 @@ const openLink = (url) => {
       let n = bstr.length
       const u8arr = new Uint8Array(n)
       while (n--) u8arr[n] = bstr.charCodeAt(n)
-      const blob = new Blob([u8arr], { type: mime })
-      window.open(URL.createObjectURL(blob), '_blank')
+      window.open(URL.createObjectURL(new Blob([u8arr], { type: mime })), '_blank')
       // eslint-disable-next-line no-unused-vars
     } catch (_err) {
       $q.notify({ type: 'negative', message: 'Gagal membuka dokumen.', position: 'top-right' })
@@ -1300,9 +1152,6 @@ const openLink = (url) => {
   }
 }
 
-// ============================================================================
-// UTILITAS: FORMAT TANGGAL
-// ============================================================================
 const formatDateIndo = (d) => {
   if (!d) return '-'
   const date = d?.toDate ? d.toDate() : new Date(d)
@@ -1310,9 +1159,6 @@ const formatDateIndo = (d) => {
   return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
-// ============================================================================
-// UTILITAS: FORMAT ANGKA KOMPAK
-// ============================================================================
 const formatCompact = (num) => {
   if (!num) return '0'
   if (num >= 1_000_000_000) return (num / 1_000_000_000).toFixed(2).replace(/\.00$/, '') + ' M'
@@ -1320,9 +1166,6 @@ const formatCompact = (num) => {
   return num.toLocaleString('id-ID')
 }
 
-// ============================================================================
-// UTILITAS: WARNA METODE BAYAR
-// ============================================================================
 const getMetodeColor = (metode) => {
   if (!metode) return { bg: 'grey-2', text: 'grey-7', icon: 'payments' }
   const m = metode.toLowerCase()
@@ -1335,35 +1178,19 @@ const getMetodeColor = (metode) => {
   return { bg: 'purple-1', text: 'purple-9', icon: 'money' }
 }
 
-// ============================================================================
-// (3) UTILITAS: GENERATE NOMOR BKK OTOMATIS
-// Format: BKK/[TAHUN]/[BULAN]/[ID Unik]
-// ============================================================================
 const generateNomorBKK = (row) => {
   if (!row) return '-'
   let date
-  if (row.approvedAt?.toDate) {
-    date = row.approvedAt.toDate()
-  } else if (row.approvedAt) {
-    date = new Date(row.approvedAt)
-  } else if (row.createdAt?.toDate) {
-    date = row.createdAt.toDate()
-  } else {
-    date = new Date()
-  }
-
+  if (row.approvedAt?.toDate) date = row.approvedAt.toDate()
+  else if (row.approvedAt) date = new Date(row.approvedAt)
+  else if (row.createdAt?.toDate) date = row.createdAt.toDate()
+  else date = new Date()
   const tahun = date.getFullYear()
   const bulan = String(date.getMonth() + 1).padStart(2, '0')
-
-  // Ambil 4 karakter terakhir ID dokumen sebagai nomor urut
   const idSuffix = (row.id || '0000').slice(-4).toUpperCase()
-
   return `BKK/${tahun}/${bulan}/${idSuffix}`
 }
 
-// ============================================================================
-// (3) UTILITAS: KONVERSI ANGKA KE TERBILANG BAHASA INDONESIA
-// ============================================================================
 const convertToTerbilang = (angka) => {
   const satuan = [
     '',
@@ -1387,33 +1214,25 @@ const convertToTerbilang = (angka) => {
     'Delapan Belas',
     'Sembilan Belas',
   ]
-
-  /** Rekursif untuk angka < 1.000 */
   const ratusan = (n) => {
     if (n < 20) return satuan[n]
     if (n < 100) {
-      const puluh = Math.floor(n / 10)
-      const sisa = n % 10
-      return (puluh === 1 ? 'Sepuluh' : satuan[puluh] + ' Puluh') + (sisa ? ' ' + satuan[sisa] : '')
+      const p = Math.floor(n / 10)
+      const s = n % 10
+      return (p === 1 ? 'Sepuluh' : satuan[p] + ' Puluh') + (s ? ' ' + satuan[s] : '')
     }
-    const ratus = Math.floor(n / 100)
-    const sisa = n % 100
-    const prefixRatus = ratus === 1 ? 'Seratus' : satuan[ratus] + ' Ratus'
-    return prefixRatus + (sisa ? ' ' + ratusan(sisa) : '')
+    const r = Math.floor(n / 100)
+    const s = n % 100
+    return (r === 1 ? 'Seratus' : satuan[r] + ' Ratus') + (s ? ' ' + ratusan(s) : '')
   }
-
   if (!angka || angka === 0) return 'Nol'
-
-  angka = Math.round(angka) // Bulatkan ke bilangan bulat
-
+  angka = Math.round(angka)
   let hasil = ''
   let negatif = false
-
   if (angka < 0) {
     negatif = true
     angka = Math.abs(angka)
   }
-
   if (angka >= 1_000_000_000_000) {
     hasil += ratusan(Math.floor(angka / 1_000_000_000_000)) + ' Triliun '
     angka %= 1_000_000_000_000
@@ -1427,24 +1246,17 @@ const convertToTerbilang = (angka) => {
     angka %= 1_000_000
   }
   if (angka >= 1_000) {
-    const ribuan = Math.floor(angka / 1_000)
-    hasil += (ribuan === 1 ? 'Seribu' : ratusan(ribuan) + ' Ribu') + ' '
+    const r = Math.floor(angka / 1_000)
+    hasil += (r === 1 ? 'Seribu' : ratusan(r) + ' Ribu') + ' '
     angka %= 1_000
   }
-  if (angka > 0) {
-    hasil += ratusan(angka)
-  }
-
+  if (angka > 0) hasil += ratusan(angka)
   return (negatif ? 'Minus ' : '') + hasil.trim()
 }
 
-// ============================================================================
-// EXPORT: VOUCHER KE PDF
-// ============================================================================
 const exportVoucherToPDF = () => {
   const element = document.getElementById('voucher-pdf-target')
   if (!element) return
-
   const reqNo = generateNomorBKK(selectedVoucher.value).replace(/\//g, '-')
   const opt = {
     margin: 10,
@@ -1453,7 +1265,6 @@ const exportVoucherToPDF = () => {
     html2canvas: { scale: 2.5, useCORS: true },
     jsPDF: { unit: 'mm', format: 'a5', orientation: 'portrait' },
   }
-
   $q.loading.show({ message: 'Mencetak Voucher Bukti Kas Keluar...' })
   html2pdf()
     .set(opt)
@@ -1471,9 +1282,6 @@ const exportVoucherToPDF = () => {
     })
 }
 
-// ============================================================================
-// EXPORT: LIST TABLE KE PDF
-// ============================================================================
 const exportTablePDF = () => {
   const e = document.getElementById('table-pdf-export')
   if (!e) return
@@ -1501,9 +1309,6 @@ const exportTablePDF = () => {
     })
 }
 
-// ============================================================================
-// EXPORT: LIST TABLE KE EXCEL (HTML-based .xls)
-// ============================================================================
 const exportTableExcel = () => {
   try {
     const thStyle =
@@ -1511,19 +1316,15 @@ const exportTableExcel = () => {
     const tdStyle = 'border: 1px solid #dddddd; padding: 8px; vertical-align: top;'
     const tdNumStyle = tdStyle + ' text-align: right;'
     const tdCenterStyle = tdStyle + ' text-align: center;'
-
-    let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" '
-    html +=
-      'xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">'
-    html += '<head><meta charset="utf-8"></head><body>'
+    let html =
+      '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"></head><body>'
     html +=
       '<h2 style="color:#00695c;font-family:sans-serif">Laporan Monitoring Pengeluaran Kas</h2>'
     html +=
       '<p style="font-family:sans-serif">Diekspor pada: ' +
       new Date().toLocaleString('id-ID') +
       '</p><br>'
-    html += '<table style="border-collapse:collapse;width:100%;font-family:sans-serif">'
-    html += '<thead><tr>'
+    html += '<table style="border-collapse:collapse;width:100%;font-family:sans-serif"><thead><tr>'
     ;[
       'No',
       'No BKK',
@@ -1540,32 +1341,13 @@ const exportTableExcel = () => {
       html += `<th style="${thStyle}">${h}</th>`
     })
     html += '</tr></thead><tbody>'
-
     let total = 0
     filteredExpenses.value.forEach((r, i) => {
       total += r.nominal || r.nominal_pengajuan || 0
-      html += `<tr>
-        <td style="${tdCenterStyle}">${i + 1}</td>
-        <td style="${tdStyle}">${generateNomorBKK(r)}</td>
-        <td style="${tdStyle}">${r.no_request || '-'}</td>
-        <td style="${tdStyle}">${r.vendor_nama || r.supplier_nama || '-'}</td>
-        <td style="${tdCenterStyle}">${r.rek_bank || '-'}</td>
-        <td style="${tdStyle} mso-number-format:'\\@';">${r.rek_nomor || '-'}</td>
-        <td style="${tdCenterStyle}">${r.tipe_pengajuan || r.metode_bayar || '-'}</td>
-        <td style="${tdStyle}">${(r.keterangan || r.keperluan || '-').replace(/\n/g, '<br>')}</td>
-        <td style="${tdCenterStyle}">${formatDateIndo(r.approvedAt || r.createdAt)}</td>
-        <td style="${tdNumStyle}">${r.nominal || r.nominal_pengajuan || 0}</td>
-        <td style="${tdCenterStyle}">${r.status === 'Cair' ? 'SUDAH CAIR' : 'BELUM CAIR'}</td>
-      </tr>`
+      html += `<tr><td style="${tdCenterStyle}">${i + 1}</td><td style="${tdStyle}">${generateNomorBKK(r)}</td><td style="${tdStyle}">${r.no_request || '-'}</td><td style="${tdStyle}">${r.vendor_nama || r.supplier_nama || '-'}</td><td style="${tdCenterStyle}">${r.rek_bank || '-'}</td><td style="${tdStyle} mso-number-format:'\\@';">${r.rek_nomor || '-'}</td><td style="${tdCenterStyle}">${r.tipe_pengajuan || r.metode_bayar || '-'}</td><td style="${tdStyle}">${(r.keterangan || r.keperluan || '-').replace(/\n/g, '<br>')}</td><td style="${tdCenterStyle}">${formatDateIndo(r.approvedAt || r.createdAt)}</td><td style="${tdNumStyle}">${r.nominal || r.nominal_pengajuan || 0}</td><td style="${tdCenterStyle}">${r.status === 'Cair' ? 'SUDAH CAIR' : 'BELUM CAIR'}</td></tr>`
     })
-
-    html += `<tr>
-      <td colspan="9" style="${tdStyle} text-align:right; font-weight:bold; background:#eceff1">GRAND TOTAL</td>
-      <td style="${tdNumStyle} font-weight:bold; background:#00695c; color:white">${total.toLocaleString('id-ID')}</td>
-      <td style="${tdStyle}"></td>
-    </tr>`
+    html += `<tr><td colspan="9" style="${tdStyle} text-align:right;font-weight:bold;background:#eceff1">GRAND TOTAL</td><td style="${tdNumStyle} font-weight:bold;background:#00695c;color:white">${total.toLocaleString('id-ID')}</td><td style="${tdStyle}"></td></tr>`
     html += '</tbody></table></body></html>'
-
     const blob = new Blob([html], { type: 'application/vnd.ms-excel' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
@@ -1573,7 +1355,6 @@ const exportTableExcel = () => {
     link.download = `Monitoring_Pengeluaran_${Date.now()}.xls`
     link.click()
     URL.revokeObjectURL(url)
-
     $q.notify({
       type: 'positive',
       position: 'top-right',
@@ -1592,9 +1373,6 @@ const exportTableExcel = () => {
   }
 }
 
-// ============================================================================
-// LIFECYCLE
-// ============================================================================
 onMounted(() => {
   fetchData()
 })
@@ -1606,7 +1384,6 @@ onUnmounted(() => {
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
 
-/* ─── BASE ───────────────────────────────────────────────── */
 .font-pro {
   font-family: 'Plus Jakarta Sans', sans-serif;
 }
@@ -1619,7 +1396,7 @@ onUnmounted(() => {
 .border-subtle {
   border: 1px solid rgba(0, 0, 0, 0.05);
 }
-.border-indigo-thin {
+.border-teal-thin {
   border: 1px solid rgba(0, 105, 92, 0.1);
 }
 .border-bottom {
@@ -1684,22 +1461,27 @@ onUnmounted(() => {
   overflow: hidden;
 }
 
-/* ─── KPI CARDS ──────────────────────────────────────────── */
+/* ─── KPI CARDS UTAMA ────────────────────────────────────── */
 .kpi-card {
   border: none !important;
 }
-.kpi-indigo {
+
+/* Card 1: Total Disetujui — teal */
+.kpi-teal {
   background: linear-gradient(135deg, #00897b 0%, #00695c 100%) !important;
-  box-shadow: 0 8px 24px rgba(0, 105, 92, 0.35) !important;
+  box-shadow: 0 8px 24px rgba(0, 105, 92, 0.4) !important;
 }
+/* Card 2: Total Terealisasi — hijau */
 .kpi-green {
   background: linear-gradient(135deg, #43a047 0%, #2e7d32 100%) !important;
-  box-shadow: 0 8px 24px rgba(46, 125, 50, 0.35) !important;
+  box-shadow: 0 8px 24px rgba(46, 125, 50, 0.4) !important;
 }
+/* Card 3: Outstanding — oranye */
 .kpi-orange {
   background: linear-gradient(135deg, #fb8c00 0%, #e65100 100%) !important;
-  box-shadow: 0 8px 24px rgba(230, 81, 0, 0.35) !important;
+  box-shadow: 0 8px 24px rgba(230, 81, 0, 0.4) !important;
 }
+
 .kpi-label {
   font-size: 10px;
   letter-spacing: 0.12em;
@@ -1712,7 +1494,43 @@ onUnmounted(() => {
   text-align: center;
 }
 
-/* Mini progress bar dalam KPI card */
+/* ─── KPI CARDS SEKUNDER ─────────────────────────────────── */
+/* Card 1: Total Pengeluaran — merah */
+.kpi-sec-red {
+  background: linear-gradient(135deg, #e53935 0%, #b71c1c 100%) !important;
+  box-shadow: 0 8px 24px rgba(183, 28, 28, 0.38) !important;
+}
+/* Card 2: Bulan Ini — amber/kuning */
+.kpi-sec-amber {
+  background: linear-gradient(135deg, #ffb300 0%, #e65100 100%) !important;
+  box-shadow: 0 8px 24px rgba(230, 81, 0, 0.35) !important;
+}
+/* Card 3: Volume Transaksi — teal gelap */
+.kpi-sec-teal {
+  background: linear-gradient(135deg, #00acc1 0%, #006064 100%) !important;
+  box-shadow: 0 8px 24px rgba(0, 96, 100, 0.38) !important;
+}
+/* Card 4: Rata-rata — slate/biru abu */
+.kpi-sec-slate {
+  background: linear-gradient(135deg, #546e7a 0%, #263238 100%) !important;
+  box-shadow: 0 8px 24px rgba(38, 50, 56, 0.4) !important;
+}
+
+.kpi-sec-label {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  opacity: 0.9;
+  color: rgba(255, 255, 255, 0.9);
+}
+.kpi-sec-icon-wrap {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  padding: 10px;
+  min-width: 46px;
+  text-align: center;
+}
+
+/* Mini progress bar */
 .kpi-bar-track {
   background: rgba(255, 255, 255, 0.25);
   border-radius: 99px;
@@ -1725,7 +1543,7 @@ onUnmounted(() => {
   transition: width 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-/* ─── DISTRIBUSI CHART HORIZONTAL ───────────────────────── */
+/* ─── DISTRIBUSI CHART ───────────────────────────────────── */
 .dist-bar-track {
   background: #f0f0f0;
   border-radius: 99px;
@@ -1770,7 +1588,7 @@ onUnmounted(() => {
 }
 .hover-shadow:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 25px rgba(0, 105, 92, 0.1) !important;
+  box-shadow: 0 12px 25px rgba(0, 105, 92, 0.15) !important;
 }
 .hover-blue-btn:hover {
   background-color: #e0f2f1 !important;
@@ -1813,21 +1631,14 @@ onUnmounted(() => {
   }
 }
 
-/* ─── SEARCH ─────────────────────────────────────────────── */
 .search-input :deep(.q-field__control) {
   border-radius: 30px;
 }
-
-/* ─── DIALOG TABS ────────────────────────────────────────── */
 .p-1 {
   padding: 4px;
 }
 
-/* ─── VOUCHER BKK (TARGET PDF / CETAK) ──────────────────── */
-/*
- * Ukuran A5 Portrait (148mm x 210mm) — cukup untuk voucher kas keluar.
- * Padding 12mm di semua sisi agar aman untuk cetak fisik.
- */
+/* ─── VOUCHER BKK ────────────────────────────────────────── */
 .voucher-paper {
   background: white;
   width: 100%;
@@ -1839,13 +1650,11 @@ onUnmounted(() => {
   box-sizing: border-box;
   font-family: 'Plus Jakarta Sans', Arial, sans-serif;
 }
-
 .voucher-logo {
   height: 48px;
   object-fit: contain;
   max-width: 120px;
 }
-
 .voucher-info-table {
   border-collapse: collapse;
 }
@@ -1854,7 +1663,6 @@ onUnmounted(() => {
   vertical-align: top;
   font-size: 12px;
 }
-
 .voucher-box {
   border: 1.5px solid #cfd8dc;
   border-radius: 6px;
@@ -1873,8 +1681,6 @@ onUnmounted(() => {
   padding: 10px 12px;
   font-size: 12px;
 }
-
-/* Grid Tanda Tangan 4 Kolom */
 .ttd-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -1921,7 +1727,7 @@ onUnmounted(() => {
   font-style: italic;
 }
 
-/* ─── PDF LANDSCAPE TABLE ────────────────────────────────── */
+/* ─── PDF EXPORT ─────────────────────────────────────────── */
 .landscape-paper {
   background: white;
   width: 297mm;
@@ -1954,7 +1760,6 @@ onUnmounted(() => {
   print-color-adjust: exact;
 }
 
-/* ─── PRINT MEDIA ────────────────────────────────────────── */
 @media print {
   body {
     background: white !important;
