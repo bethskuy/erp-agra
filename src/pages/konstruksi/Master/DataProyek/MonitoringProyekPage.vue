@@ -1,6 +1,6 @@
 <template>
   <q-page class="bg-page q-pa-md q-pa-lg-lg font-pro relative-position" @click="spawnIcon($event)">
-    <!-- EFEK ANIMASI KLIK (SPAWN ICONS) -->
+    <!-- CLICK SPAWN ICONS -->
     <div class="click-spawn-container">
       <transition-group name="spawn">
         <div
@@ -20,7 +20,7 @@
       </transition-group>
     </div>
 
-    <!-- EFEK LATAR BELAKANG ANIMASI MENGAMBANG (Warna-Warni Tosca, Kebureman Tipis & Elegan) -->
+    <!-- FLOATING BG ICONS -->
     <div class="bg-animation-container">
       <q-icon name="engineering" class="floating-icon i-1" />
       <q-icon name="construction" class="floating-icon i-2" />
@@ -32,12 +32,10 @@
       <q-icon name="hardware" class="floating-icon i-8" />
     </div>
 
-    <!-- =====================================================================================
-         SCREEN 1: LOCK SCREEN JIKA TIDAK MEMILIKI AKSES LIHAT
-         ===================================================================================== -->
+    <!-- LOCK SCREEN -->
     <template v-if="!canAction('lihat')">
       <div
-        class="row flex-center q-pa-xl text-center font-pro animate-fade content-relative"
+        class="row flex-center q-pa-xl text-center animate-fade content-relative"
         style="min-height: 70vh"
       >
         <div
@@ -45,9 +43,8 @@
         >
           <q-avatar size="100px" color="red-1" text-color="red-10" icon="lock" class="q-mb-md" />
           <div class="text-h5 text-weight-bold text-blue-grey-10 q-mb-xs">Akses Terbatas</div>
-          <div class="text-body2 text-grey-7 q-mb-lg leading-relaxed">
-            Maaf, Anda tidak memiliki izin untuk melihat modul Monitoring Proyek. Silakan hubungi
-            Administrator atau Super Admin untuk konfigurasi hak akses Anda.
+          <div class="text-body2 text-grey-7 q-mb-lg">
+            Maaf, Anda tidak memiliki izin untuk melihat modul Monitoring Proyek.
           </div>
           <q-btn
             label="Kembali ke Beranda"
@@ -63,14 +60,11 @@
       </div>
     </template>
 
-    <!-- =====================================================================================
-         SCREEN 2: MONITORING VIEW JIKA AKSES LIHAT OK
-         ===================================================================================== -->
     <template v-else>
-      <!-- HEADER SECTION (TOMBOL KEMBALI DIHAPUS AGAR PROPORSIAL & LAPANG) -->
-      <div class="row items-center justify-between q-mb-xl animate-fade no-print content-relative">
-        <div class="col-12">
-          <div>
+      <!-- VIEW 1: LIST PROYEK -->
+      <div v-if="viewMode === 'list'" class="animate-fade content-relative">
+        <div class="row items-center justify-between q-mb-xl">
+          <div class="col-12">
             <div class="text-h4 text-weight-bolder text-brand-primary leading-tight">
               Monitoring Proyek
               <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
@@ -82,719 +76,1854 @@
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- SUMMARY CARDS / KPI (WARNA-WARNI KREATIF SEPERTI MONITORINGPROYEK / INVOICE APPROVAL) -->
-      <div class="row q-col-gutter-lg q-mb-lg animate-fade-up no-print content-relative">
-        <!-- Total Proyek -->
-        <div class="col-12 col-sm-6 col-md-3">
-          <q-card flat class="rounded-20 card-teal-gradient text-white transition-all hover-shadow">
-            <q-card-section
-              class="row items-center no-wrap q-pa-md flex-column flex-sm-row text-center text-sm-left q-gutter-y-md q-gutter-sm-none"
-            >
-              <div class="col">
-                <div
-                  class="text-overline leading-none text-weight-bold tracking-widest"
-                  style="color: rgba(255, 255, 255, 0.85)"
-                >
-                  TOTAL PROYEK
-                </div>
-                <div class="text-h4 text-weight-bolder q-mt-xs text-white">
-                  {{ combinedProjects.length }}
-                </div>
-              </div>
-              <div
-                class="bg-white q-pa-md rounded-12 col-sm-auto shadow-sm"
-                style="min-width: 56px; text-align: center"
-              >
-                <q-icon name="domain" color="teal-8" size="28px" />
-              </div>
-            </q-card-section>
-          </q-card>
-        </div>
-
-        <!-- Proyek Berjalan -->
-        <div class="col-12 col-sm-6 col-md-3">
-          <q-card flat class="rounded-20 card-blue-gradient text-white transition-all hover-shadow">
-            <q-card-section
-              class="row items-center no-wrap q-pa-md flex-column flex-sm-row text-center text-sm-left q-gutter-y-md q-gutter-sm-none"
-            >
-              <div class="col">
-                <div
-                  class="text-overline leading-none text-weight-bold tracking-widest"
-                  style="color: rgba(255, 255, 255, 0.85)"
-                >
-                  SEDANG BERJALAN
-                </div>
-                <div class="text-h4 text-weight-bolder q-mt-xs text-white">
-                  {{ countByStatus('On Progress') }}
-                </div>
-              </div>
-              <div
-                class="bg-white q-pa-md rounded-12 col-sm-auto shadow-sm"
-                style="min-width: 56px; text-align: center"
-              >
-                <q-icon name="trending_up" color="blue-8" size="28px" />
-              </div>
-            </q-card-section>
-          </q-card>
-        </div>
-
-        <!-- Proyek Selesai -->
-        <div class="col-12 col-sm-6 col-md-3">
-          <q-card
-            flat
-            class="rounded-20 card-green-gradient text-white transition-all hover-shadow"
-          >
-            <q-card-section
-              class="row items-center no-wrap q-pa-md flex-column flex-sm-row text-center text-sm-left q-gutter-y-md q-gutter-sm-none"
-            >
-              <div class="col">
-                <div
-                  class="text-overline leading-none text-weight-bold tracking-widest"
-                  style="color: rgba(255, 255, 255, 0.85)"
-                >
-                  PROYEK SELESAI
-                </div>
-                <div class="text-h4 text-weight-bolder q-mt-xs text-white">
-                  {{ countByStatus('Selesai') }}
-                </div>
-              </div>
-              <div
-                class="bg-white q-pa-md rounded-12 col-sm-auto shadow-sm"
-                style="min-width: 56px; text-align: center"
-              >
-                <q-icon name="task_alt" color="green-8" size="28px" />
-              </div>
-            </q-card-section>
-          </q-card>
-        </div>
-
-        <!-- Total Valuasi -->
-        <div class="col-12 col-sm-6 col-md-3">
-          <q-card
-            flat
-            class="rounded-20 card-orange-gradient text-white transition-all hover-shadow"
-          >
-            <q-card-section
-              class="row items-center no-wrap q-pa-md flex-column flex-sm-row text-center text-sm-left q-gutter-y-md q-gutter-sm-none"
-            >
-              <div class="col">
-                <div
-                  class="text-overline leading-none text-weight-bold tracking-widest"
-                  style="color: rgba(255, 255, 255, 0.85)"
-                >
-                  TOTAL VALUASI
-                </div>
-                <div class="text-h5 text-weight-bolder q-mt-xs text-white">
-                  Rp {{ formatCompact(totalValuation) }}
-                </div>
-              </div>
-              <div
-                class="bg-white q-pa-md rounded-12 col-sm-auto shadow-sm"
-                style="min-width: 56px; text-align: center"
-              >
-                <q-icon name="account_balance_wallet" color="orange-9" size="28px" />
-              </div>
-            </q-card-section>
-          </q-card>
-        </div>
-      </div>
-
-      <!-- SEARCH & FILTER AREA -->
-      <q-card
-        flat
-        bordered
-        class="q-mb-lg shadow-1 rounded-20 bg-white no-print content-relative border-subtle"
-      >
-        <q-card-section class="q-py-md">
-          <div class="row items-center q-col-gutter-md">
-            <div class="col-12 col-md-5">
-              <q-input
-                v-model="searchQuery"
-                outlined
-                dense
-                rounded
-                placeholder="Cari Proyek atau Klien..."
-                bg-color="white"
-                class="search-input"
-              >
-                <template v-slot:prepend><q-icon name="search" color="brand-primary" /></template>
-                <template v-slot:append v-if="searchQuery">
-                  <q-icon name="close" @click="searchQuery = ''" class="cursor-pointer" />
-                </template>
-              </q-input>
-            </div>
-            <q-space />
-            <q-btn flat round icon="refresh" color="brand-primary" @click="fetchData" />
-          </div>
-        </q-card-section>
-      </q-card>
-
-      <!-- MAIN TABLE DATA -->
-      <q-card
-        flat
-        bordered
-        class="rounded-20 shadow-sm overflow-hidden bg-white no-print border-brand-thin content-relative"
-      >
-        <q-table
-          :rows="combinedProjects"
-          :columns="columns"
-          row-key="id"
-          flat
-          :loading="loading"
-          :filter="searchQuery"
-          binary-state-sort
-          class="monitoring-table"
-          :pagination="{ rowsPerPage: 10 }"
-        >
-          <template v-slot:header="props">
-            <q-tr :props="props" class="bg-brand-primary text-white">
-              <q-th
-                v-for="col in props.cols"
-                :key="col.name"
-                :props="props"
-                class="text-weight-bold uppercase font-11 tracking-widest"
-              >
-                {{ col.label }}
-              </q-th>
-            </q-tr>
-          </template>
-
-          <template v-slot:body="props">
-            <q-tr
-              :props="props"
-              class="hover-bg transition-all cursor-pointer"
-              @click="openDetailDialog(props.row)"
-            >
-              <q-td key="proyek">
-                <div class="row items-center no-wrap">
-                  <q-avatar
-                    size="36px"
-                    color="brand-light"
-                    text-color="brand-primary"
-                    icon="foundation"
-                    class="q-mr-md shadow-sm"
-                  />
-                  <div>
-                    <div
-                      class="text-weight-bold text-blue-grey-10 text-subtitle2 leading-none q-mb-xs"
-                    >
-                      {{ props.row.nama }}
-                    </div>
-                    <div
-                      class="text-caption text-grey-6 uppercase text-weight-medium row items-center q-gutter-x-xs"
-                    >
-                      <span>Klien: {{ props.row.konsumen || 'Internal' }}</span>
-                      <q-badge
-                        v-if="props.row.progress_status === 'Approved'"
-                        color="positive"
-                        dense
-                        class="text-weight-bold font-9 text-white"
-                      >
-                        VERIFIED
-                      </q-badge>
-                    </div>
-                  </div>
-                </div>
-              </q-td>
-
-              <q-td key="timeline">
-                <div class="text-weight-medium text-blue-grey-9">
-                  {{ formatTimeline(props.row) }}
-                </div>
-              </q-td>
-
-              <q-td key="progress">
-                <div class="full-width">
-                  <div class="row items-center justify-between q-mb-xs">
-                    <q-chip
-                      dense
-                      :color="getStatusColor(props.row.status).bg"
-                      :text-color="getStatusColor(props.row.status).text"
-                      class="text-weight-bold font-10 uppercase q-ma-none shadow-sm"
-                    >
-                      {{ props.row.status || 'Perencanaan' }}
-                    </q-chip>
-                    <span class="text-caption text-brand-primary text-weight-bolder"
-                      >{{ props.row.progress || 0 }}%</span
-                    >
-                  </div>
-                  <q-linear-progress
-                    :value="(props.row.progress || 0) / 100"
-                    size="8px"
-                    rounded
-                    color="brand-primary"
-                    track-color="blue-1"
-                  />
-                </div>
-              </q-td>
-
-              <q-td key="valuasi" class="text-right">
-                <div class="text-weight-bolder text-brand-primary text-subtitle2">
-                  Rp {{ (props.row.total_omzet || 0).toLocaleString('id-ID') }}
-                </div>
-              </q-td>
-
-              <q-td key="aksi" class="text-center" @click.stop>
-                <!-- Tombol Update Progress Fisik Terkunci jika status approved -->
-                <q-btn
-                  v-if="canAction('ubah')"
-                  unelevated
-                  rounded
-                  :color="props.row.progress_status === 'Approved' ? 'grey-5' : 'brand-primary'"
-                  :icon="props.row.progress_status === 'Approved' ? 'lock' : 'update'"
-                  label="Update"
-                  size="sm"
-                  class="q-px-md text-weight-bold shadow-2 btn-hover text-white"
-                  @click="openUpdateDialog(props.row)"
-                />
-              </q-td>
-            </q-tr>
-          </template>
-
-          <template v-slot:no-data>
-            <div class="full-width row flex-center q-pa-xl text-grey-5">
-              <q-icon name="find_in_page" size="64px" class="q-mb-md" />
-              <div class="text-h6 full-width text-center">Data proyek tidak ditemukan.</div>
-            </div>
-          </template>
-        </q-table>
-      </q-card>
-
-      <!-- =====================================================================================
-            MODAL 1: DETAIL RINGKASAN EXECUTIVE INFORMATIF (PROYEK PROFILE)
-            ===================================================================================== -->
-      <q-dialog v-model="showDetailDialog" backdrop-filter="blur(6px)">
-        <q-card
-          style="width: 750px; max-width: 95vw"
-          class="rounded-20 shadow-24 bg-grey-1 text-blue-grey-10"
-        >
-          <q-toolbar class="bg-brand-primary text-white q-py-md">
-            <q-avatar icon="assignment" color="white" text-color="brand-primary" size="md" />
-            <q-toolbar-title
-              class="text-weight-bold text-subtitle1 uppercase tracking-widest q-ml-sm animate-fade"
-            >
-              Profil Resmi & Kinerja Proyek
-            </q-toolbar-title>
-            <q-btn flat round dense icon="close" v-close-popup color="white" />
-          </q-toolbar>
-
-          <q-card-section
-            class="q-pa-lg scroll"
-            style="max-height: 75vh"
-            v-if="selectedProjectDetail"
-          >
-            <!-- SECTION 1: HEADER SUMMARY -->
-            <div
-              class="row q-col-gutter-md items-center justify-between bg-white q-pa-md rounded-12 shadow-sm q-mb-lg border-subtle"
-            >
-              <div class="col-12 col-sm-8 text-left">
-                <div
-                  class="text-h5 text-weight-black text-brand-primary uppercase leading-none q-mb-sm"
-                >
-                  {{ selectedProjectDetail.nama }}
-                </div>
-                <div class="text-subtitle2 text-grey-6 uppercase font-bold">
-                  KONSUMEN / KLIEN:
-                  <span class="text-blue-grey-10">{{
-                    selectedProjectDetail.konsumen || 'INTERNAL'
-                  }}</span>
-                </div>
-              </div>
-              <div
-                class="col-12 col-sm-4 text-center text-sm-right row items-center justify-end q-gutter-x-sm"
-              >
-                <q-badge
-                  v-if="selectedProjectDetail.progress_status === 'Approved'"
-                  color="positive"
-                  class="text-weight-bold q-px-sm q-py-xs text-white"
-                >
-                  VERIFIED
-                </q-badge>
-                <q-chip
-                  dense
-                  :color="getStatusColor(selectedProjectDetail.status).bg"
-                  :text-color="getStatusColor(selectedProjectDetail.status).text"
-                  class="text-weight-bold q-px-md q-py-md text-subtitle2 uppercase shadow-sm"
-                >
-                  {{ selectedProjectDetail.status }}
-                </q-chip>
-              </div>
-            </div>
-
-            <!-- SECTION 2: GAUGE PROGRESS DAN TIMELINE -->
-            <div class="row q-col-gutter-lg q-mb-lg">
-              <div class="col-12 col-sm-5 flex flex-center">
-                <q-card
-                  flat
-                  class="full-width rounded-12 bg-white q-pa-lg text-center shadow-sm border-subtle"
-                >
-                  <div class="text-overline text-grey-6 text-weight-bold q-mb-md">
-                    PROGRES PEKERJAAN FISIK
-                  </div>
-                  <q-circular-progress
-                    show-value
-                    class="text-brand-primary text-weight-black text-h4"
-                    :value="selectedProjectDetail.progress"
-                    size="140px"
-                    :thickness="0.18"
-                    color="brand-primary"
-                    track-color="blue-1"
-                    animation-speed="600"
-                  >
-                    {{ selectedProjectDetail.progress }}%
-                  </q-circular-progress>
-                  <div class="text-caption text-grey-6 q-mt-md">
-                    Kemajuan aktual fisik di lapangan.
-                  </div>
-                </q-card>
-              </div>
-
-              <div class="col-12 col-sm-7">
-                <q-card
-                  flat
-                  class="full-width rounded-12 bg-white q-pa-lg shadow-sm border-subtle h-full column justify-between"
-                >
-                  <div class="text-overline text-grey-6 text-weight-bold">
-                    TIMELINE & WAKTU PELAKSANAAN
-                  </div>
-
-                  <div class="q-my-md text-left">
-                    <div class="row items-center q-mb-sm">
-                      <q-icon name="event_available" color="green-8" size="sm" class="q-mr-sm" />
-                      <div>
-                        <div class="text-caption text-grey-6">Tanggal Mulai Pekerjaan</div>
-                        <div class="text-weight-bold text-subtitle2">
-                          {{
-                            selectedProjectDetail.start_date
-                              ? selectedProjectDetail.start_date.toLocaleDateString('id-ID', {
-                                  day: 'numeric',
-                                  month: 'long',
-                                  year: 'numeric',
-                                })
-                              : '-'
-                          }}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="row items-center">
-                      <q-icon name="event_busy" color="red-8" size="sm" class="q-mr-sm" />
-                      <div>
-                        <div class="text-caption text-grey-6">Tanggal Estimasi Selesai</div>
-                        <div class="text-weight-bold text-subtitle2">
-                          {{
-                            selectedProjectDetail.end_date
-                              ? selectedProjectDetail.end_date.toLocaleDateString('id-ID', {
-                                  day: 'numeric',
-                                  month: 'long',
-                                  year: 'numeric',
-                                })
-                              : '-'
-                          }}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <q-separator />
-
-                  <div class="row items-center justify-between q-pt-md">
-                    <div class="text-caption text-grey-6 text-weight-bold">
-                      SISA HARI PEKERJAAN :
-                    </div>
-                    <q-badge
-                      color="brand-primary"
-                      class="q-px-md q-py-xs text-weight-bold text-subtitle2 text-white"
-                    >
-                      {{ getDaysRemaining(selectedProjectDetail.end_date) }}
-                    </q-badge>
-                  </div>
-                </q-card>
-              </div>
-            </div>
-
-            <!-- SECTION 3: FINANSIAL breakdown -->
-            <div class="row q-col-gutter-md q-mb-lg">
-              <div class="col-12">
-                <q-card flat class="rounded-12 bg-white q-pa-lg shadow-sm border-subtle text-left">
-                  <div class="text-overline text-grey-6 text-weight-bold q-mb-md flex items-center">
-                    <q-icon
-                      name="monetization_on"
-                      color="brand-primary"
-                      size="sm"
-                      class="q-mr-xs"
-                    />
-                    RINCIAN VALUASI REALISASI PROYEK
-                  </div>
-
-                  <div class="row q-col-gutter-lg">
-                    <!-- Nilai Kontrak / Omzet -->
-                    <div class="col-12 col-sm-4">
-                      <div class="text-caption text-grey-6 font-bold">TOTAL NILAI KONTRAK</div>
-                      <div class="text-h6 text-weight-black text-brand-primary q-mt-xs">
-                        Rp {{ (selectedProjectDetail.total_omzet || 0).toLocaleString('id-ID') }}
-                      </div>
-                    </div>
-
-                    <!-- Realisasi Progres (Persen ke Rupiah) -->
-                    <div class="col-12 col-sm-4 border-left-gt-xs">
-                      <div class="text-caption text-grey-6 font-bold">REALISASI FISIK (Rp)</div>
-                      <div class="text-h6 text-weight-black text-green-8 q-mt-xs">
-                        Rp
-                        {{
-                          Math.round(
-                            ((selectedProjectDetail.progress || 0) / 100) *
-                              (selectedProjectDetail.total_omzet || 0),
-                          ).toLocaleString('id-ID')
-                        }}
-                      </div>
-                    </div>
-
-                    <!-- Sisa Nilai Pekerjaan -->
-                    <div class="col-12 col-sm-4 border-left-gt-xs">
-                      <div class="text-caption text-grey-6 font-bold">SISA NILAI PEKERJAAN</div>
-                      <div class="text-h6 text-weight-black text-orange-9 q-mt-xs">
-                        Rp
-                        {{
-                          (
-                            (selectedProjectDetail.total_omzet || 0) -
-                            Math.round(
-                              ((selectedProjectDetail.progress || 0) / 100) *
-                                (selectedProjectDetail.total_omzet || 0),
-                            )
-                          ).toLocaleString('id-ID')
-                        }}
-                      </div>
-                    </div>
-                  </div>
-                </q-card>
-              </div>
-            </div>
-
-            <!-- SECTION 4: SPK KONTRAK YANG MENYUSUN VALUASI -->
-            <div class="column">
-              <div class="text-overline text-grey-6 text-weight-bold q-mb-xs text-left">
-                <q-icon name="list_alt" color="brand-primary" class="q-mr-xs" /> DAFTAR SPK KONTRAK
-                YANG TERINTEGRASI
-              </div>
-
-              <q-markup-table
-                flat
-                bordered
-                class="rounded-borders overflow-hidden bg-white shadow-sm border-subtle"
-              >
-                <thead>
-                  <tr class="bg-brand-light text-brand-primary text-left">
-                    <th width="40" class="text-center font-bold">NO</th>
-                    <th class="font-bold">NOMOR SPK / RUJUKAN</th>
-                    <th class="font-bold">NAMA KONTRAK PEKERJAAN</th>
-                    <th width="160" class="text-right font-bold">NILAI TOTAL (Rp)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(spk, idx) in relatedSpksDetail" :key="spk.id">
-                    <td class="text-center font-bold text-grey-6">{{ idx + 1 }}</td>
-                    <td class="text-weight-black text-brand-primary font-mono">
-                      {{ spk.nomor_spk }}
-                    </td>
-                    <td class="text-weight-bold text-uppercase">{{ spk.nama_kontrak }}</td>
-                    <td class="text-right text-weight-bolder text-brand-primary">
-                      Rp {{ (spk.nilai_total || 0).toLocaleString('id-ID') }}
-                    </td>
-                  </tr>
-                  <tr v-if="relatedSpksDetail.length === 0">
-                    <td colspan="4" class="text-center q-pa-md italic text-grey-5">
-                      Belum ada SPK kontrak yang terintegrasi di proyek ini.
-                    </td>
-                  </tr>
-                </tbody>
-              </q-markup-table>
-            </div>
-          </q-card-section>
-
-          <q-separator />
-          <q-card-actions align="right" class="bg-white q-pa-md">
-            <!-- Dynamic Authorization: Approve Progress (setuju Permission) -->
-            <q-btn
-              v-if="canAction('setuju') && selectedProjectDetail?.progress_status !== 'Approved'"
-              unelevated
-              color="positive"
-              icon="verified"
-              label="Verifikasi Progres"
-              @click="toggleVerifyProgress(selectedProjectDetail, 'Approved')"
-              class="q-px-lg text-weight-bold rounded-12 text-white"
-            />
-            <q-btn
-              v-if="canAction('setuju') && selectedProjectDetail?.progress_status === 'Approved'"
-              unelevated
-              color="warning"
-              icon="undo"
-              label="Batalkan Verifikasi"
-              @click="toggleVerifyProgress(selectedProjectDetail, 'Pending')"
-              class="q-px-lg text-weight-bold rounded-12 text-white"
-            />
-            <q-btn
+        <!-- KPI CARDS -->
+        <div class="row q-col-gutter-lg q-mb-lg animate-fade-up">
+          <div class="col-12 col-sm-6 col-md-3">
+            <q-card
               flat
-              label="Tutup"
-              color="brand-primary"
-              class="q-px-lg text-weight-bold rounded-12"
-              v-close-popup
-            />
-          </q-card-actions>
-        </q-card>
-      </q-dialog>
-
-      <!-- =====================================================================================
-            MODAL 2: DIALOG UPDATE PROGRESS (MODAL KECIL UNTUK SUNTIK UPDATE)
-            ===================================================================================== -->
-      <q-dialog v-model="showUpdateDialog" persistent backdrop-filter="blur(4px)">
-        <q-card
-          style="width: 550px; max-width: 95vw"
-          class="rounded-20 shadow-24 bg-grey-2 column no-wrap animate-fade relative-position"
-        >
-          <!-- Background Animation di dalam Dialog -->
-          <div class="bg-animation-container">
-            <q-icon name="engineering" class="floating-icon i-1" />
-            <q-icon name="construction" class="floating-icon i-2" />
-            <q-icon name="architecture" class="floating-icon i-3" />
-          </div>
-
-          <q-toolbar class="bg-white text-brand-primary q-py-md shadow-2 shrink content-relative">
-            <q-btn flat round dense icon="close" v-close-popup color="grey-7" />
-            <q-toolbar-title class="text-weight-bold text-center uppercase tracking-widest font-11">
-              Update Progres Pekerjaan
-            </q-toolbar-title>
-            <q-btn
-              v-if="canAction('ubah')"
-              unelevated
-              color="brand-primary"
-              label="SIMPAN"
-              rounded
-              class="q-px-xl text-weight-bold shadow-3 text-white gt-xs"
-              @click="saveProgress"
-              :loading="submitting"
-            />
-          </q-toolbar>
-
-          <q-card-section class="q-pa-lg scroll content-relative">
-            <!-- Tombol Simpan untuk versi Mobile (Membentang Penuh) -->
-            <div class="lt-sm q-mb-md">
-              <q-btn
-                v-if="canAction('ubah')"
-                unelevated
-                color="brand-primary"
-                label="SIMPAN PERUBAHAN"
-                rounded
-                class="full-width q-py-sm text-weight-bold shadow-3 text-white"
-                @click="saveProgress"
-                :loading="submitting"
-              />
-            </div>
-
-            <!-- CARD UTAMA IDENTITAS PROYEK -->
-            <q-card flat bordered class="rounded-12 bg-white shadow-1 border-subtle q-mb-md">
-              <q-card-section class="text-center">
-                <div class="text-h6 text-weight-black text-brand-primary leading-tight q-mb-xs">
-                  {{ selectedProject?.nama }}
+              class="rounded-20 card-teal-gradient text-white transition-all hover-shadow"
+            >
+              <q-card-section class="row items-center no-wrap q-pa-md">
+                <div class="col">
+                  <div
+                    class="text-overline leading-none text-weight-bold tracking-widest"
+                    style="color: rgba(255, 255, 255, 0.85)"
+                  >
+                    TOTAL PROYEK
+                  </div>
+                  <div class="text-h4 text-weight-bolder q-mt-xs">
+                    {{ combinedProjects.length }}
+                  </div>
                 </div>
-                <div class="text-caption text-grey-7 uppercase tracking-widest text-weight-bold">
-                  Klien: {{ selectedProject?.konsumen || 'Internal' }}
+                <div
+                  class="bg-white q-pa-md rounded-12 shadow-sm"
+                  style="min-width: 56px; text-align: center"
+                >
+                  <q-icon name="domain" color="teal-8" size="28px" />
                 </div>
               </q-card-section>
             </q-card>
-
-            <!-- CARD INPUT PROGRES & AUTO KALKULASI NOMINAL -->
+          </div>
+          <div class="col-12 col-sm-6 col-md-3">
             <q-card
               flat
-              bordered
-              class="rounded-12 bg-white shadow-1 border-subtle q-pa-lg q-gutter-y-lg"
+              class="rounded-20 card-blue-gradient text-white transition-all hover-shadow"
             >
-              <!-- PILIH STATUS -->
-              <div>
-                <div class="label-req q-mb-sm">Status Proyek Saat Ini</div>
-                <q-select
-                  outlined
-                  dense
-                  v-model="formUpdate.status"
-                  :options="['Perencanaan', 'On Progress', 'Tertunda', 'Selesai']"
-                  bg-color="white"
-                  class="text-weight-bold"
-                  :readonly="!canAction('ubah')"
-                >
-                  <template v-slot:selected>
-                    <q-chip
-                      dense
-                      :color="getStatusColor(formUpdate.status).bg"
-                      :text-color="getStatusColor(formUpdate.status).text"
-                      class="text-weight-bold q-ma-none uppercase font-10"
-                    >
-                      {{ formUpdate.status }}
-                    </q-chip>
-                  </template>
-                </q-select>
-              </div>
-
-              <!-- VALUASI KONTRAK SEKARANG (INFO HARGA ACUAN) -->
-              <div
-                class="q-pa-md bg-brand-light text-brand-primary rounded-borders row justify-between items-center"
-              >
-                <div class="text-caption text-weight-bold">NILAI KONTRAK PROYEK :</div>
-                <div class="text-subtitle1 text-weight-black">
-                  Rp {{ (selectedProject?.total_omzet || 0).toLocaleString('id-ID') }}
+              <q-card-section class="row items-center no-wrap q-pa-md">
+                <div class="col">
+                  <div
+                    class="text-overline leading-none text-weight-bold tracking-widest"
+                    style="color: rgba(255, 255, 255, 0.85)"
+                  >
+                    SEDANG BERJALAN
+                  </div>
+                  <div class="text-h4 text-weight-bolder q-mt-xs">
+                    {{ countByStatus('On Progress') }}
+                  </div>
                 </div>
-              </div>
+                <div
+                  class="bg-white q-pa-md rounded-12 shadow-sm"
+                  style="min-width: 56px; text-align: center"
+                >
+                  <q-icon name="trending_up" color="blue-8" size="28px" />
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+          <div class="col-12 col-sm-6 col-md-3">
+            <q-card
+              flat
+              class="rounded-20 card-green-gradient text-white transition-all hover-shadow"
+            >
+              <q-card-section class="row items-center no-wrap q-pa-md">
+                <div class="col">
+                  <div
+                    class="text-overline leading-none text-weight-bold tracking-widest"
+                    style="color: rgba(255, 255, 255, 0.85)"
+                  >
+                    PROYEK SELESAI
+                  </div>
+                  <div class="text-h4 text-weight-bolder q-mt-xs">
+                    {{ countByStatus('Selesai') }}
+                  </div>
+                </div>
+                <div
+                  class="bg-white q-pa-md rounded-12 shadow-sm"
+                  style="min-width: 56px; text-align: center"
+                >
+                  <q-icon name="task_alt" color="green-8" size="28px" />
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+          <div class="col-12 col-sm-6 col-md-3">
+            <q-card
+              flat
+              class="rounded-20 card-orange-gradient text-white transition-all hover-shadow"
+            >
+              <q-card-section class="row items-center no-wrap q-pa-md">
+                <div class="col">
+                  <div
+                    class="text-overline leading-none text-weight-bold tracking-widest"
+                    style="color: rgba(255, 255, 255, 0.85)"
+                  >
+                    TOTAL VALUASI
+                  </div>
+                  <div class="text-h5 text-weight-bolder q-mt-xs">
+                    Rp {{ formatCompact(totalValuation) }}
+                  </div>
+                </div>
+                <div
+                  class="bg-white q-pa-md rounded-12 shadow-sm"
+                  style="min-width: 56px; text-align: center"
+                >
+                  <q-icon name="account_balance_wallet" color="orange-9" size="28px" />
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+        </div>
 
-              <!-- INPUT PERSEN MANUAL DENGAN VALIDASI DESIMAL -->
-              <div>
-                <div class="label-req q-mb-xs">Persentase Progres Selesai Fisik (%)</div>
+        <!-- SEARCH -->
+        <q-card
+          flat
+          bordered
+          class="q-mb-lg shadow-1 rounded-20 bg-white border-subtle content-relative"
+        >
+          <q-card-section class="q-py-md">
+            <div class="row items-center q-col-gutter-md">
+              <div class="col-12 col-md-5">
                 <q-input
+                  v-model="searchQuery"
                   outlined
                   dense
-                  v-model.number="formUpdate.progress"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="100"
-                  placeholder="Contoh: 3.5"
-                  suffix="%"
-                  input-class="text-weight-black text-brand-primary text-h6"
+                  rounded
+                  placeholder="Cari Proyek atau Klien..."
                   bg-color="white"
-                  :readonly="!canAction('ubah')"
-                  :rules="[
-                    (val) => val >= 0 || 'Minimal progres 0%',
-                    (val) => val <= 100 || 'Maksimal progres 100%',
-                  ]"
+                  class="search-input"
+                >
+                  <template v-slot:prepend><q-icon name="search" color="brand-primary" /></template>
+                  <template v-slot:append v-if="searchQuery">
+                    <q-icon name="close" @click="searchQuery = ''" class="cursor-pointer" />
+                  </template>
+                </q-input>
+              </div>
+              <q-space />
+              <q-btn flat round icon="refresh" color="brand-primary" @click="fetchData" />
+            </div>
+          </q-card-section>
+        </q-card>
+
+        <!-- TABLE -->
+        <q-card
+          flat
+          bordered
+          class="rounded-20 shadow-sm overflow-hidden bg-white border-brand-thin content-relative"
+        >
+          <q-table
+            :rows="combinedProjects"
+            :columns="columns"
+            row-key="id"
+            flat
+            :loading="loading"
+            :filter="searchQuery"
+            binary-state-sort
+            class="monitoring-table"
+            :pagination="{ rowsPerPage: 10 }"
+          >
+            <template v-slot:header="props">
+              <q-tr :props="props" class="bg-brand-primary text-white">
+                <q-th
+                  v-for="col in props.cols"
+                  :key="col.name"
+                  :props="props"
+                  class="text-weight-bold uppercase font-11 tracking-widest"
+                  >{{ col.label }}</q-th
+                >
+              </q-tr>
+            </template>
+            <template v-slot:body="props">
+              <q-tr
+                :props="props"
+                class="hover-bg transition-all cursor-pointer"
+                @click="openProjectDashboard(props.row)"
+              >
+                <q-td key="proyek">
+                  <div class="row items-center no-wrap">
+                    <q-avatar
+                      size="36px"
+                      color="brand-light"
+                      text-color="brand-primary"
+                      icon="foundation"
+                      class="q-mr-md shadow-sm"
+                    />
+                    <div>
+                      <div
+                        class="text-weight-bold text-blue-grey-10 text-subtitle2 leading-none q-mb-xs"
+                      >
+                        {{ props.row.nama }}
+                      </div>
+                      <div class="text-caption text-grey-6 uppercase text-weight-medium">
+                        Klien: {{ props.row.konsumen || 'Internal' }}
+                        <q-badge
+                          v-if="props.row.progress_status === 'Approved'"
+                          color="positive"
+                          dense
+                          class="q-ml-xs text-white"
+                          >VERIFIED</q-badge
+                        >
+                      </div>
+                    </div>
+                  </div>
+                </q-td>
+                <q-td key="timeline">
+                  <div class="text-weight-medium text-blue-grey-9">
+                    {{ formatTimeline(props.row) }}
+                  </div>
+                </q-td>
+                <q-td key="progress">
+                  <div class="full-width">
+                    <div class="row items-center justify-between q-mb-xs">
+                      <q-chip
+                        dense
+                        :color="getStatusColor(props.row.status).bg"
+                        :text-color="getStatusColor(props.row.status).text"
+                        class="text-weight-bold font-10 uppercase q-ma-none shadow-sm"
+                        >{{ props.row.status || 'Perencanaan' }}</q-chip
+                      >
+                      <span class="text-caption text-brand-primary text-weight-bolder"
+                        >{{ props.row.progress || 0 }}%</span
+                      >
+                    </div>
+                    <q-linear-progress
+                      :value="(props.row.progress || 0) / 100"
+                      size="8px"
+                      rounded
+                      color="brand-primary"
+                      track-color="blue-1"
+                    />
+                  </div>
+                </q-td>
+                <q-td key="valuasi" class="text-right">
+                  <div class="text-weight-bolder text-brand-primary text-subtitle2">
+                    Rp {{ (props.row.total_omzet || 0).toLocaleString('id-ID') }}
+                  </div>
+                </q-td>
+              </q-tr>
+            </template>
+            <template v-slot:no-data>
+              <div class="full-width row flex-center q-pa-xl text-grey-5">
+                <q-icon name="find_in_page" size="64px" class="q-mb-md" />
+                <div class="text-h6 full-width text-center">Data proyek tidak ditemukan.</div>
+              </div>
+            </template>
+          </q-table>
+        </q-card>
+      </div>
+
+      <!-- VIEW 2: DASHBOARD PROYEK -->
+      <div v-else-if="viewMode === 'project'" class="animate-fade content-relative">
+        <div class="row items-center q-mb-lg">
+          <q-btn
+            flat
+            round
+            icon="arrow_back"
+            color="brand-primary"
+            @click="viewMode = 'list'"
+            class="q-mr-md bg-white shadow-1"
+          />
+          <div class="col">
+            <div class="text-h5 text-weight-bolder text-brand-primary uppercase">
+              Dashboard Proyek
+            </div>
+            <div class="text-caption text-grey-7">{{ currentProject?.nama }}</div>
+          </div>
+        </div>
+
+        <q-card
+          flat
+          bordered
+          class="bg-white rounded-20 shadow-premium q-mb-lg overflow-hidden border-brand-thin"
+        >
+          <div class="row">
+            <div class="col-12 col-md-4 q-pa-xl text-center border-right-sep">
+              <div class="text-overline text-grey-6 text-bold tracking-widest">
+                KLIEN / KONSUMEN
+              </div>
+              <div class="text-h5 text-brand-primary text-weight-bolder text-uppercase q-mt-sm">
+                {{ currentProject?.konsumen || '-' }}
+              </div>
+            </div>
+            <div class="col-12 col-md-4 q-pa-xl text-center border-right-sep bg-brand-light">
+              <div class="text-overline text-brand-primary text-bold tracking-widest">
+                TOTAL VALUASI OMZET
+              </div>
+              <div class="text-h4 text-brand-primary text-weight-black q-mt-sm">
+                Rp {{ formatCompact(currentProject?.total_omzet || 0) }}
+              </div>
+            </div>
+            <div class="col-12 col-md-4 q-pa-xl text-center">
+              <div class="text-overline text-grey-6 text-bold tracking-widest">
+                LOKASI PENGERJAAN
+              </div>
+              <div class="text-body1 text-weight-bold text-blue-grey-9 q-mt-sm">
+                {{ currentProject?.alamat || 'Belum diatur' }}
+              </div>
+            </div>
+          </div>
+        </q-card>
+
+        <!-- GRAFIK ROW -->
+        <div class="row q-col-gutter-lg q-mb-lg">
+          <div class="col-12 col-md-4">
+            <q-card flat bordered class="rounded-20 bg-white shadow-sm border-subtle h-full">
+              <q-card-section class="q-pb-xs">
+                <div class="text-overline text-grey-6 text-weight-bold flex items-center">
+                  <q-icon name="pie_chart" color="brand-primary" class="q-mr-xs" />DISTRIBUSI NILAI
+                  SPK
+                </div>
+              </q-card-section>
+              <q-card-section class="flex flex-center column">
+                <div v-if="projectSpks.length === 0" class="text-grey-5 text-center q-pa-lg">
+                  <q-icon name="insert_chart_outlined" size="48px" />
+                  <div class="q-mt-sm">Belum ada SPK</div>
+                </div>
+                <div v-else style="width: 100%; max-width: 260px">
+                  <svg viewBox="0 0 200 200" style="width: 100%; overflow: visible">
+                    <template v-for="(slice, i) in pieSlices" :key="i">
+                      <path :d="slice.path" :fill="slice.color" stroke="white" stroke-width="2" />
+                    </template>
+                    <circle cx="100" cy="100" r="50" fill="white" />
+                    <text
+                      x="100"
+                      y="96"
+                      text-anchor="middle"
+                      font-size="11"
+                      fill="#36ada3"
+                      font-weight="bold"
+                    >
+                      {{ projectSpks.length }}
+                    </text>
+                    <text x="100" y="110" text-anchor="middle" font-size="9" fill="#888">
+                      Kontrak
+                    </text>
+                  </svg>
+                  <div class="row q-col-gutter-xs q-mt-sm">
+                    <div v-for="(spk, i) in projectSpks.slice(0, 4)" :key="spk.id" class="col-6">
+                      <div class="row items-center no-wrap q-gutter-x-xs">
+                        <div
+                          class="rounded-2"
+                          :style="{
+                            width: '10px',
+                            height: '10px',
+                            background: pieColors[i % pieColors.length],
+                            flexShrink: 0,
+                          }"
+                        ></div>
+                        <div class="text-caption text-grey-7 ellipsis">{{ spk.nomor_spk }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+
+          <div class="col-12 col-md-4">
+            <q-card flat bordered class="rounded-20 bg-white shadow-sm border-subtle h-full">
+              <q-card-section class="q-pb-xs">
+                <div class="text-overline text-grey-6 text-weight-bold flex items-center">
+                  <q-icon name="bar_chart" color="brand-primary" class="q-mr-xs" />PROGRES PER
+                  KONTRAK
+                </div>
+              </q-card-section>
+              <q-card-section>
+                <div v-if="projectSpks.length === 0" class="text-grey-5 text-center q-pa-lg">
+                  <q-icon name="insert_chart_outlined" size="48px" />
+                  <div class="q-mt-sm">Belum ada SPK</div>
+                </div>
+                <div v-else class="q-gutter-y-md">
+                  <div v-for="(spk, i) in projectSpks" :key="spk.id">
+                    <div class="row items-center justify-between q-mb-xs">
+                      <div
+                        class="text-caption text-weight-bold text-blue-grey-9 ellipsis"
+                        style="max-width: 65%"
+                      >
+                        {{ spk.nomor_spk }}
+                      </div>
+                      <div class="text-caption text-brand-primary text-weight-bold">
+                        {{ spkProgress(spk) }}%
+                      </div>
+                    </div>
+                    <q-linear-progress
+                      :value="spkProgress(spk) / 100"
+                      size="10px"
+                      rounded
+                      :color="pieColorsQ[i % pieColorsQ.length]"
+                      track-color="grey-3"
+                    />
+                    <div class="text-caption text-grey-6 q-mt-xs">
+                      <span
+                        :class="spk.status === 'Approved' ? 'text-positive' : 'text-orange-9'"
+                        class="text-weight-bold"
+                        >{{ spk.status || 'Pending' }}</span
+                      >
+                      · Rp {{ formatCompact(spk.nilai_total || 0) }}
+                    </div>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+
+          <div class="col-12 col-md-4">
+            <q-card flat bordered class="rounded-20 bg-white shadow-sm border-subtle h-full">
+              <q-card-section class="q-pb-xs">
+                <div class="text-overline text-grey-6 text-weight-bold flex items-center">
+                  <q-icon name="monetization_on" color="brand-primary" class="q-mr-xs" />RINGKASAN
+                  FINANSIAL
+                </div>
+              </q-card-section>
+              <q-card-section class="q-gutter-y-md">
+                <div class="q-pa-md bg-teal-1 rounded-12">
+                  <div class="text-caption text-grey-6 text-weight-bold">TOTAL NILAI KONTRAK</div>
+                  <div class="text-h6 text-weight-black text-brand-primary q-mt-xs">
+                    Rp {{ (currentProject?.total_omzet || 0).toLocaleString('id-ID') }}
+                  </div>
+                </div>
+                <div class="q-pa-md bg-green-1 rounded-12">
+                  <div class="text-caption text-grey-6 text-weight-bold">
+                    REALISASI FISIK ({{ currentProject?.progress || 0 }}%)
+                  </div>
+                  <div class="text-h6 text-weight-black text-green-8 q-mt-xs">
+                    Rp
+                    {{
+                      Math.round(
+                        ((currentProject?.progress || 0) / 100) *
+                          (currentProject?.total_omzet || 0),
+                      ).toLocaleString('id-ID')
+                    }}
+                  </div>
+                </div>
+                <div class="q-pa-md bg-orange-1 rounded-12">
+                  <div class="text-caption text-grey-6 text-weight-bold">SISA PEKERJAAN</div>
+                  <div class="text-h6 text-weight-black text-orange-9 q-mt-xs">
+                    Rp
+                    {{
+                      (
+                        (currentProject?.total_omzet || 0) -
+                        Math.round(
+                          ((currentProject?.progress || 0) / 100) *
+                            (currentProject?.total_omzet || 0),
+                        )
+                      ).toLocaleString('id-ID')
+                    }}
+                  </div>
+                </div>
+                <div class="q-pa-md bg-blue-1 rounded-12">
+                  <div class="text-caption text-grey-6 text-weight-bold">JUMLAH KONTRAK (SPK)</div>
+                  <div class="text-h6 text-weight-black text-blue-9 q-mt-xs">
+                    {{ projectSpks.length }} Kontrak
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+        </div>
+
+        <!-- LIST SPK -->
+        <div
+          class="text-h6 text-brand-primary text-weight-bold uppercase q-mb-md flex items-center"
+        >
+          <q-icon name="list_alt" class="q-mr-sm" />Kontrak & SPK Terkait
+        </div>
+        <q-card
+          flat
+          bordered
+          class="rounded-20 shadow-sm overflow-hidden bg-white border-brand-thin"
+        >
+          <q-table :rows="projectSpks" :columns="spkColumns" row-key="id" flat class="spk-table">
+            <template v-slot:header="props">
+              <q-tr :props="props" class="bg-blue-grey-10 text-white">
+                <q-th
+                  v-for="col in props.cols"
+                  :key="col.name"
+                  :props="props"
+                  class="text-weight-bold"
+                  >{{ col.label }}</q-th
+                >
+              </q-tr>
+            </template>
+            <template v-slot:body="props">
+              <q-tr
+                :props="props"
+                class="hover-bg transition-all cursor-pointer"
+                @click="openSpkDetail(props.row)"
+              >
+                <q-td key="no_spk">
+                  <div class="row items-center q-gutter-x-sm">
+                    <span class="text-weight-bold text-brand-primary text-subtitle1">{{
+                      props.row.nomor_spk
+                    }}</span>
+                    <q-badge
+                      v-if="props.row.status === 'Approved'"
+                      color="positive"
+                      class="text-weight-bold text-white"
+                      >APPROVED</q-badge
+                    >
+                  </div>
+                  <div class="text-caption text-grey-7 uppercase">{{ props.row.nama_kontrak }}</div>
+                </q-td>
+                <q-td key="durasi">
+                  <div class="text-weight-medium">
+                    {{ props.row.tgl_mulai || '-' }} s/d {{ props.row.tgl_akhir || '-' }}
+                  </div>
+                  <div class="text-caption text-grey-6">{{ props.row.durasi || '-' }}</div>
+                </q-td>
+                <q-td key="nilai" class="text-right">
+                  <div class="text-weight-black text-brand-primary text-h6">
+                    Rp {{ (props.row.nilai_total || 0).toLocaleString('id-ID') }}
+                  </div>
+                </q-td>
+                <q-td key="aksi" class="text-center" @click.stop>
+                  <q-btn
+                    unelevated
+                    rounded
+                    color="brand-primary"
+                    icon="analytics"
+                    label="Lihat Detail"
+                    size="sm"
+                    class="q-px-md text-weight-bold text-white"
+                    @click="openSpkDetail(props.row)"
+                  />
+                </q-td>
+              </q-tr>
+            </template>
+            <template v-slot:no-data>
+              <div class="full-width row flex-center q-pa-xl text-grey-5">
+                <q-icon name="description" size="64px" class="q-mb-md" />
+                <div class="text-h6 full-width text-center">Belum ada SPK untuk proyek ini.</div>
+              </div>
+            </template>
+          </q-table>
+        </q-card>
+      </div>
+
+      <!-- VIEW 3: DETAIL SPK — 4 TAB -->
+      <div v-else-if="viewMode === 'spk'" class="animate-fade content-relative">
+        <!-- HEADER -->
+        <div class="row items-center justify-between q-mb-lg q-col-gutter-sm">
+          <div class="col-12 col-sm-auto row items-center">
+            <q-btn
+              flat
+              round
+              icon="arrow_back"
+              color="brand-primary"
+              @click="viewMode = 'project'"
+              class="q-mr-md bg-white shadow-1"
+            />
+            <div>
+              <div class="text-h5 text-weight-black text-brand-primary uppercase">
+                Detail Kontrak
+              </div>
+              <div class="text-subtitle1 text-grey-7">
+                {{ currentSpk?.nomor_spk }} · {{ currentSpk?.nama_kontrak }}
+              </div>
+            </div>
+          </div>
+          <div v-if="currentSpk?.status === 'Approved'" class="col-12 col-sm-auto">
+            <q-chip
+              color="positive"
+              text-color="white"
+              icon="verified"
+              class="text-weight-bold q-px-lg"
+              >APPROVED</q-chip
+            >
+          </div>
+        </div>
+
+        <!-- SPK INFO BAR -->
+        <q-card
+          flat
+          bordered
+          class="q-mb-lg bg-white rounded-20 shadow-sm border-brand-thin overflow-hidden"
+        >
+          <q-card-section class="row q-col-gutter-lg q-pa-lg">
+            <div class="col-12 col-md-3 border-right-sep">
+              <div class="text-overline text-grey-6 text-bold">REFERENSI SPK</div>
+              <div class="text-subtitle1 text-bold text-blue-grey-10">
+                {{ currentSpk?.nomor_spk }}
+              </div>
+              <div class="text-caption text-brand-primary q-mt-xs">
+                {{ currentSpk?.no_quotation || '-' }}
+              </div>
+            </div>
+            <div class="col-12 col-md-3 border-right-sep">
+              <div class="text-overline text-grey-6 text-bold">NAMA KONTRAK</div>
+              <div class="text-subtitle1 text-brand-primary text-bold">
+                {{ currentSpk?.nama_kontrak || '-' }}
+              </div>
+            </div>
+            <div class="col-12 col-md-3 border-right-sep">
+              <div class="text-overline text-grey-6 text-bold">DURASI</div>
+              <div class="text-subtitle1 text-brand-primary text-bold">
+                {{ currentSpk?.durasi || '-' }}
+              </div>
+              <div class="text-caption text-grey-7">
+                {{ currentSpk?.tgl_mulai }} s/d {{ currentSpk?.tgl_akhir }}
+              </div>
+            </div>
+            <div class="col-12 col-md-3">
+              <div class="text-overline text-grey-6 text-bold">NILAI KONTRAK</div>
+              <div class="text-h6 text-weight-black text-brand-primary">
+                Rp {{ (currentSpk?.nilai_total || 0).toLocaleString('id-ID') }}
+              </div>
+            </div>
+          </q-card-section>
+        </q-card>
+
+        <!-- 4 TABS -->
+        <q-card
+          flat
+          bordered
+          class="rounded-20 bg-white shadow-10 overflow-hidden border-brand-thin"
+        >
+          <q-tabs
+            v-model="activeTab"
+            dense
+            class="bg-brand-primary text-white"
+            active-color="white"
+            indicator-color="orange-9"
+            align="left"
+            inline-label
+            style="height: 60px"
+          >
+            <q-tab
+              name="items"
+              label="Item Pekerjaan"
+              icon="format_list_numbered"
+              class="q-px-lg text-weight-bold"
+            />
+            <q-tab
+              name="plan"
+              label="Perencanaan Harian"
+              icon="event_note"
+              class="q-px-lg text-weight-bold"
+            />
+            <q-tab
+              name="progress"
+              label="Input Progres Harian"
+              icon="edit_calendar"
+              class="q-px-lg text-weight-bold"
+            />
+            <q-tab
+              name="kurva"
+              label="Dashboard Kurva S"
+              icon="insights"
+              class="q-px-lg text-weight-bold"
+            />
+          </q-tabs>
+
+          <q-tab-panels v-model="activeTab" animated class="bg-grey-1">
+            <!-- TAB 1: ITEM PEKERJAAN -->
+            <q-tab-panel name="items" class="q-pa-lg">
+              <div class="row items-center justify-between q-mb-md">
+                <div
+                  class="text-subtitle1 text-weight-bold text-brand-primary uppercase flex items-center"
+                >
+                  <q-icon name="format_list_numbered" class="q-mr-xs" />DAFTAR ITEM PEKERJAAN,
+                  VOLUME & BOBOT
+                </div>
+                <q-btn
+                  v-if="isMonitoringEditable"
+                  unelevated
+                  color="brand-primary"
+                  icon="save"
+                  label="Simpan Perubahan Item"
+                  class="text-weight-bold text-white rounded-12 shadow-2"
+                  @click="saveItemChanges"
+                  :loading="savingItems"
                 />
               </div>
 
-              <!-- HASIL KALKULASI FISIK (RUPIAH) -->
-              <div class="q-pa-md bg-green-1 text-green-10 rounded-borders">
-                <div class="row items-center justify-between">
-                  <span class="text-caption text-weight-bold"
-                    >ESTIMASI VALUASI FISIK REALISASI (Rp) :</span
+              <q-card flat bordered class="rounded-12 bg-white shadow-sm overflow-hidden">
+                <div
+                  class="q-pa-md bg-brand-light text-brand-primary text-caption text-weight-bold rounded-borders q-ma-md"
+                >
+                  Data item pekerjaan diambil dari BOQ kontrak SPK. Kolom <b>Bobot (%)</b> dihitung
+                  otomatis = <b>(Nilai Item ÷ Grand Total) × 100</b>. Total bobot harus = 100%.
+                  <span v-if="isMonitoringEditable" class="q-ml-sm text-orange-9"
+                    >⚠ Anda dapat menghapus item pekerjaan (SPK belum Approved).</span
                   >
-                  <span class="text-caption font-bold font-mono"
-                    >({{ formUpdate.progress || 0 }}%)</span
+                  <span v-else class="q-ml-sm text-positive"
+                    >✓ SPK sudah Approved — item terkunci, tidak dapat dihapus.</span
                   >
                 </div>
-                <div class="text-h5 text-weight-black q-mt-xs">
-                  Rp {{ calculatedValuationNominal.toLocaleString('id-ID') }}
+
+                <q-markup-table flat bordered separator="cell" class="items-table">
+                  <thead>
+                    <tr class="bg-blue-grey-9 text-white text-weight-bold text-center uppercase">
+                      <th width="50">#</th>
+                      <th class="text-left">NAMA PEKERJAAN</th>
+                      <th width="100">SATUAN</th>
+                      <th width="100">VOL. TOTAL</th>
+                      <th width="120">HARGA SATUAN</th>
+                      <th width="150">NILAI TOTAL</th>
+                      <th width="110">BOBOT (%)</th>
+                      <th width="140">KONTRIBUSI MAKS</th>
+                      <th v-if="isMonitoringEditable" width="80">HAPUS</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <template v-for="(group, gi) in currentSpk?.groups || []" :key="gi">
+                      <tr class="bg-blue-grey-1">
+                        <td
+                          colspan="9"
+                          class="text-weight-black text-brand-primary q-px-lg q-py-sm uppercase"
+                        >
+                          <q-icon name="folder" class="q-mr-xs" />{{ group.title }}
+                        </td>
+                      </tr>
+                      <template v-for="(item, ii) in group.items" :key="ii">
+                        <tr v-if="item.is_header" class="bg-teal-1">
+                          <td class="text-center text-grey-6 text-weight-bold">—</td>
+                          <td
+                            colspan="7"
+                            class="q-px-md text-weight-black text-brand-primary uppercase"
+                          >
+                            {{ item.deskripsi }}
+                          </td>
+                          <td v-if="isMonitoringEditable" class="text-center">
+                            <q-btn
+                              flat
+                              round
+                              color="negative"
+                              icon="delete_outline"
+                              size="sm"
+                              @click="confirmDeleteItem(gi, ii)"
+                              ><q-tooltip>Hapus baris ini</q-tooltip></q-btn
+                            >
+                          </td>
+                        </tr>
+                        <tr v-else>
+                          <td class="text-center text-grey-6 text-weight-bold">{{ ii + 1 }}</td>
+                          <td class="q-px-md text-weight-medium">{{ item.deskripsi }}</td>
+                          <td class="text-center text-weight-bold text-brand-primary uppercase">
+                            {{ item.satuan }}
+                          </td>
+                          <td class="text-center text-weight-bold">{{ item.volume }}</td>
+                          <td class="text-right q-px-md text-weight-medium">
+                            Rp {{ (item.harga_satuan || 0).toLocaleString('id-ID') }}
+                          </td>
+                          <td class="text-right q-px-md text-weight-bold text-brand-primary">
+                            Rp
+                            {{
+                              ((item.volume || 0) * (item.harga_satuan || 0)).toLocaleString(
+                                'id-ID',
+                              )
+                            }}
+                          </td>
+                          <td class="text-center">
+                            <span class="text-weight-black text-blue-9 text-subtitle2"
+                              >{{ getItemBobot(item).toFixed(2) }}%</span
+                            >
+                          </td>
+                          <td class="text-center">
+                            <div class="row items-center q-gutter-x-xs justify-center">
+                              <q-linear-progress
+                                :value="getItemBobot(item) / 100"
+                                size="8px"
+                                rounded
+                                color="brand-primary"
+                                track-color="grey-3"
+                                style="width: 70px"
+                              />
+                              <span class="text-caption text-weight-bold text-brand-primary"
+                                >{{ getItemBobot(item).toFixed(2) }}%</span
+                              >
+                            </div>
+                          </td>
+                          <td v-if="isMonitoringEditable" class="text-center">
+                            <q-btn
+                              flat
+                              round
+                              color="negative"
+                              icon="delete_outline"
+                              size="sm"
+                              @click="confirmDeleteItem(gi, ii)"
+                              ><q-tooltip>Hapus item ini</q-tooltip></q-btn
+                            >
+                          </td>
+                        </tr>
+                      </template>
+                    </template>
+                    <tr v-if="!currentSpk?.groups?.length">
+                      <td
+                        :colspan="isMonitoringEditable ? 9 : 8"
+                        class="text-center q-pa-xl text-grey-5 italic"
+                      >
+                        Belum ada data item pekerjaan di SPK ini.
+                      </td>
+                    </tr>
+                  </tbody>
+                  <tfoot v-if="currentSpk?.groups?.length">
+                    <tr class="bg-brand-primary text-white">
+                      <td colspan="5" class="text-right text-weight-bold q-px-lg q-py-sm uppercase">
+                        GRAND TOTAL NILAI KONTRAK
+                      </td>
+                      <td class="text-right q-px-md text-weight-black text-subtitle1">
+                        Rp {{ grandTotalJual.toLocaleString('id-ID') }}
+                      </td>
+                      <td class="text-center text-weight-black text-h6">100.00%</td>
+                      <td></td>
+                      <td v-if="isMonitoringEditable"></td>
+                    </tr>
+                  </tfoot>
+                </q-markup-table>
+              </q-card>
+            </q-tab-panel>
+
+            <!-- TAB 2: PERENCANAAN KUMULATIF HARIAN -->
+            <q-tab-panel name="plan" class="q-pa-lg">
+              <div class="row items-center justify-between q-mb-md">
+                <div
+                  class="text-subtitle1 text-weight-bold text-brand-primary uppercase flex items-center"
+                >
+                  <q-icon name="event_note" class="q-mr-xs" />PERENCANAAN KUMULATIF HARIAN
+                </div>
+                <q-btn
+                  unelevated
+                  color="brand-primary"
+                  icon="save"
+                  label="Simpan Rencana"
+                  class="text-weight-bold text-white rounded-12 shadow-2"
+                  @click="saveDailyPlan"
+                  :loading="savingPlan"
+                />
+              </div>
+
+              <div
+                class="q-pa-md bg-blue-grey-1 text-blue-grey-9 text-caption text-weight-bold q-mb-md rounded-12"
+              >
+                Tentukan target progres kumulatif (%) per hari sesuai rencana kerja. Nilai ini
+                menjadi garis <b>Rencana (S-Curve)</b> pada Dashboard Kurva S.
+              </div>
+
+              <q-card flat bordered class="rounded-20 bg-white shadow-sm q-mb-lg border-brand-thin">
+                <q-card-section class="q-pa-md border-bottom-subtle bg-brand-light">
+                  <div class="row items-center q-gutter-md flex-wrap">
+                    <div
+                      class="text-weight-bold text-brand-primary uppercase font-11 tracking-widest"
+                    >
+                      Pengaturan Hari Rencana
+                    </div>
+                    <q-btn
+                      v-if="currentSpk?.tgl_mulai && currentSpk?.tgl_akhir"
+                      unelevated
+                      size="sm"
+                      color="teal-7"
+                      icon="auto_fix_high"
+                      label="Generate Otomatis dari Tanggal Kontrak"
+                      class="text-weight-bold text-white rounded-12"
+                      @click="generatePlanFromContract"
+                    />
+                    <q-btn
+                      unelevated
+                      size="sm"
+                      color="blue-7"
+                      icon="add_circle"
+                      label="Tambah Hari Manual"
+                      class="text-weight-bold text-white rounded-12"
+                      @click="addPlanRow"
+                    />
+                    <q-btn
+                      v-if="dailyPlan.length > 0"
+                      flat
+                      size="sm"
+                      color="negative"
+                      icon="delete_sweep"
+                      label="Hapus Semua"
+                      class="text-weight-bold rounded-12"
+                      @click="dailyPlan = []"
+                    />
+                  </div>
+                  <div
+                    v-if="currentSpk?.tgl_mulai && currentSpk?.tgl_akhir"
+                    class="text-caption text-grey-7 q-mt-sm"
+                  >
+                    Kontrak: <b>{{ currentSpk.tgl_mulai }}</b> s/d
+                    <b>{{ currentSpk.tgl_akhir }}</b> ({{ contractDays }} hari kalender)
+                  </div>
+                </q-card-section>
+                <q-card-section class="q-pa-lg" v-if="dailyPlan.length === 0">
+                  <div class="text-center text-grey-5 q-pa-xl">
+                    <q-icon name="event_busy" size="64px" class="q-mb-md" />
+                    <div class="text-h6">Belum ada rencana harian.</div>
+                    <div class="text-body2 q-mt-sm">
+                      Klik <b>Generate Otomatis</b> atau <b>Tambah Hari Manual</b> untuk memulai.
+                    </div>
+                  </div>
+                </q-card-section>
+              </q-card>
+
+              <q-card
+                v-if="dailyPlan.length > 0"
+                flat
+                bordered
+                class="rounded-20 bg-white shadow-sm overflow-hidden border-brand-thin"
+              >
+                <div style="overflow-x: auto">
+                  <table class="daily-plan-table full-width">
+                    <thead>
+                      <tr class="bg-brand-primary text-white">
+                        <th style="min-width: 60px; width: 60px" class="text-center">NO</th>
+                        <th style="min-width: 160px" class="text-center">TANGGAL</th>
+                        <th style="min-width: 200px" class="text-center">TARGET KUMULATIF (%)</th>
+                        <th style="min-width: 200px" class="text-center">VISUALISASI TARGET</th>
+                        <th style="min-width: 80px" class="text-center">AKSI</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr
+                        v-for="(row, idx) in dailyPlan"
+                        :key="idx"
+                        :class="idx % 2 === 0 ? 'bg-white' : 'bg-grey-1'"
+                      >
+                        <td class="text-center text-weight-bold text-grey-6 q-pa-sm">
+                          {{ idx + 1 }}
+                        </td>
+                        <td class="q-pa-sm">
+                          <q-input
+                            borderless
+                            dense
+                            v-model="row.tanggal"
+                            type="date"
+                            input-class="text-center text-weight-bold text-brand-primary"
+                            style="min-width: 140px"
+                          />
+                        </td>
+                        <td class="q-pa-sm">
+                          <div class="row items-center q-gutter-x-sm justify-center">
+                            <q-input
+                              borderless
+                              dense
+                              v-model.number="row.rencana_kumulatif"
+                              type="number"
+                              min="0"
+                              max="100"
+                              input-class="text-center text-weight-black text-h6 text-brand-primary"
+                              style="min-width: 100px"
+                              @update:model-value="clampPlan(row)"
+                            />
+                            <span class="text-weight-bold text-grey-7">%</span>
+                          </div>
+                        </td>
+                        <td class="q-pa-sm">
+                          <div class="row items-center q-gutter-x-sm">
+                            <q-linear-progress
+                              :value="(row.rencana_kumulatif || 0) / 100"
+                              size="12px"
+                              rounded
+                              color="brand-primary"
+                              track-color="grey-3"
+                              style="flex: 1"
+                            />
+                            <span
+                              class="text-caption text-weight-bold text-brand-primary"
+                              style="min-width: 42px; text-align: right"
+                              >{{ (row.rencana_kumulatif || 0).toFixed(1) }}%</span
+                            >
+                          </div>
+                        </td>
+                        <td class="text-center q-pa-sm">
+                          <q-btn
+                            flat
+                            round
+                            color="negative"
+                            icon="delete"
+                            size="sm"
+                            @click="dailyPlan.splice(idx, 1)"
+                          />
+                        </td>
+                      </tr>
+                    </tbody>
+                    <tfoot>
+                      <tr class="bg-brand-primary text-white">
+                        <td
+                          colspan="2"
+                          class="text-right q-px-lg q-py-sm text-weight-bold uppercase"
+                        >
+                          Target Akhir (Hari Terakhir)
+                        </td>
+                        <td class="text-center text-weight-black text-h6">
+                          {{
+                            dailyPlan.length
+                              ? (dailyPlan[dailyPlan.length - 1].rencana_kumulatif || 0).toFixed(2)
+                              : 0
+                          }}%
+                        </td>
+                        <td colspan="2"></td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </q-card>
+            </q-tab-panel>
+
+            <!-- TAB 3: INPUT PROGRES HARIAN -->
+            <q-tab-panel name="progress" class="q-pa-lg">
+              <div class="row items-center justify-between q-mb-md">
+                <div
+                  class="text-subtitle1 text-weight-bold text-brand-primary uppercase flex items-center"
+                >
+                  <q-icon name="edit_calendar" class="q-mr-xs" />INPUT PROGRES AKTUAL HARIAN
+                </div>
+                <div class="row q-gutter-sm items-center">
+                  <q-btn
+                    unelevated
+                    size="sm"
+                    color="blue-7"
+                    icon="add_circle"
+                    label="Tambah Hari"
+                    class="text-weight-bold text-white rounded-12"
+                    @click="addProgressRow"
+                  />
+                  <q-btn
+                    unelevated
+                    color="brand-primary"
+                    icon="save"
+                    label="Simpan Progres"
+                    class="text-weight-bold text-white rounded-12 shadow-2"
+                    @click="saveDailyProgress"
+                    :loading="savingProgress"
+                  />
                 </div>
               </div>
-            </q-card>
-          </q-card-section>
+
+              <div
+                class="q-pa-md bg-blue-grey-1 text-blue-grey-9 text-caption text-weight-bold q-mb-md rounded-12"
+              >
+                Isi <b>Volume Aktual</b> yang sudah dikerjakan per item per hari. Persentase aktual
+                dihitung otomatis: <b>(Vol. Aktual ÷ Vol. Total) × Bobot</b>, lalu dijumlah semua
+                item.
+              </div>
+
+              <div
+                v-if="allFlatItems.length === 0"
+                class="text-center text-grey-5 q-pa-xl bg-white rounded-20"
+              >
+                <q-icon name="list_alt" size="64px" class="q-mb-md" />
+                <div class="text-h6">Belum ada item pekerjaan di SPK ini.</div>
+                <div class="text-body2 q-mt-sm">
+                  Isi BOQ terlebih dahulu di halaman Master Proyek.
+                </div>
+              </div>
+
+              <div v-else>
+                <div class="row q-col-gutter-md q-mb-lg">
+                  <div class="col-6 col-md-3">
+                    <q-card flat class="rounded-12 bg-blue-grey-9 text-white q-pa-md text-center">
+                      <div class="text-overline opacity-75">PROGRES AKTUAL</div>
+                      <div class="text-h5 text-weight-black q-mt-xs">
+                        {{ actualCumulative.toFixed(2) }}%
+                      </div>
+                      <div class="text-caption opacity-70">Total kumulatif</div>
+                    </q-card>
+                  </div>
+                  <div class="col-6 col-md-3">
+                    <q-card flat class="rounded-12 bg-positive text-white q-pa-md text-center">
+                      <div class="text-overline opacity-75">RENCANA HARI INI</div>
+                      <div class="text-h5 text-weight-black q-mt-xs">
+                        {{ plannedForToday.toFixed(2) }}%
+                      </div>
+                      <div class="text-caption opacity-70">{{ todayStr }}</div>
+                    </q-card>
+                  </div>
+                  <div class="col-6 col-md-3">
+                    <q-card
+                      flat
+                      :class="deviasi >= 0 ? 'bg-blue-8' : 'bg-negative'"
+                      class="rounded-12 text-white q-pa-md text-center"
+                    >
+                      <div class="text-overline opacity-75">DEVIASI</div>
+                      <div class="text-h5 text-weight-black q-mt-xs">
+                        {{ deviasi >= 0 ? '+' : '' }}{{ deviasi.toFixed(2) }}%
+                      </div>
+                      <div class="text-caption opacity-70">
+                        {{ deviasi >= 0 ? 'On Track' : 'Behind' }}
+                      </div>
+                    </q-card>
+                  </div>
+                  <div class="col-6 col-md-3">
+                    <q-card flat class="rounded-12 bg-orange-9 text-white q-pa-md text-center">
+                      <div class="text-overline opacity-75">TOTAL HARI INPUT</div>
+                      <div class="text-h5 text-weight-black q-mt-xs">
+                        {{ dailyProgress.length }}
+                      </div>
+                      <div class="text-caption opacity-70">Hari tercatat</div>
+                    </q-card>
+                  </div>
+                </div>
+
+                <q-card
+                  flat
+                  bordered
+                  class="rounded-20 bg-white shadow-sm overflow-hidden border-brand-thin"
+                >
+                  <div style="overflow-x: auto">
+                    <table class="progress-input-table full-width">
+                      <thead>
+                        <tr class="bg-blue-grey-9 text-white">
+                          <th class="sticky-col text-center" style="min-width: 60px">NO</th>
+                          <th class="sticky-col2 text-center" style="min-width: 160px">TANGGAL</th>
+                          <th class="text-center" style="min-width: 140px">KONTRIBUSI (%)</th>
+                          <template v-for="(item, idx) in allFlatItems" :key="idx">
+                            <th class="text-center" style="min-width: 140px">
+                              <div class="text-weight-bold">{{ item.deskripsi }}</div>
+                              <div class="text-caption opacity-75">
+                                {{ item.satuan }} / Total: {{ item.volume }}
+                              </div>
+                              <div class="text-caption opacity-60">
+                                Bobot: {{ getItemBobot(item).toFixed(2) }}%
+                              </div>
+                            </th>
+                          </template>
+                          <th class="text-center" style="min-width: 60px">DEL</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr
+                          v-for="(dayRow, dIdx) in dailyProgress"
+                          :key="dIdx"
+                          :class="dIdx % 2 === 0 ? 'bg-white' : 'bg-grey-1'"
+                        >
+                          <td class="sticky-col text-center text-weight-bold text-grey-6 q-pa-sm">
+                            {{ dIdx + 1 }}
+                          </td>
+                          <td class="sticky-col2 q-pa-xs">
+                            <q-input
+                              borderless
+                              dense
+                              v-model="dayRow.tanggal"
+                              type="date"
+                              input-class="text-center text-weight-bold text-brand-primary"
+                            />
+                          </td>
+                          <td class="text-center q-pa-sm">
+                            <span
+                              class="text-weight-black text-subtitle2"
+                              :class="getDayContrib(dIdx) > 0 ? 'text-positive' : 'text-grey-5'"
+                              >{{ getDayContrib(dIdx).toFixed(3) }}%</span
+                            >
+                          </td>
+                          <template v-for="(item, iIdx) in allFlatItems" :key="iIdx">
+                            <td class="q-pa-xs">
+                              <q-input
+                                borderless
+                                dense
+                                v-model.number="dayRow.volumes[iIdx]"
+                                type="number"
+                                min="0"
+                                :max="item.volume"
+                                input-class="text-center text-weight-bold"
+                                style="min-width: 110px"
+                                @update:model-value="clampProgressVol(dayRow, iIdx, item.volume)"
+                              />
+                            </td>
+                          </template>
+                          <td class="text-center q-pa-sm">
+                            <q-btn
+                              flat
+                              round
+                              color="negative"
+                              icon="delete"
+                              size="sm"
+                              @click="dailyProgress.splice(dIdx, 1)"
+                            />
+                          </td>
+                        </tr>
+                      </tbody>
+                      <tfoot>
+                        <tr class="bg-blue-grey-8 text-white">
+                          <td
+                            colspan="2"
+                            class="text-right text-weight-bold q-px-lg q-py-sm uppercase"
+                          >
+                            TOTAL VOLUME AKTUAL KUMULATIF
+                          </td>
+                          <td class="text-center text-weight-black text-green-4 text-h6">
+                            {{ actualCumulative.toFixed(3) }}%
+                          </td>
+                          <template v-for="(item, iIdx) in allFlatItems" :key="iIdx">
+                            <td class="text-center text-weight-bold text-amber">
+                              {{ getTotalActualVolByItem(iIdx) }} / {{ item.volume }}
+                            </td>
+                          </template>
+                          <td></td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </q-card>
+
+                <div class="q-mt-lg">
+                  <div class="text-subtitle2 text-weight-bold text-brand-primary uppercase q-mb-md">
+                    RINGKASAN PROGRES PER ITEM
+                  </div>
+                  <q-card
+                    flat
+                    bordered
+                    class="rounded-20 bg-white shadow-sm overflow-hidden border-brand-thin"
+                  >
+                    <q-markup-table flat dark class="bg-blue-grey-10">
+                      <thead>
+                        <tr
+                          class="bg-blue-grey-8 text-white text-caption text-weight-bold uppercase"
+                        >
+                          <th class="text-left">ITEM PEKERJAAN</th>
+                          <th class="text-center">SATUAN</th>
+                          <th class="text-center">VOL. TOTAL</th>
+                          <th class="text-center">VOL. AKTUAL</th>
+                          <th class="text-center">% SELESAI</th>
+                          <th class="text-center">BOBOT (%)</th>
+                          <th class="text-center">KONTRIBUSI %</th>
+                          <th class="text-right">PROGRESS</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr
+                          v-for="(item, idx) in allFlatItems"
+                          :key="idx"
+                          :class="idx % 2 === 0 ? 'bg-blue-grey-10' : 'bg-blue-grey-9'"
+                        >
+                          <td class="text-weight-bold text-white">{{ item.deskripsi }}</td>
+                          <td class="text-center text-grey-4">{{ item.satuan }}</td>
+                          <td class="text-center text-grey-4">{{ item.volume }}</td>
+                          <td class="text-center">
+                            <span
+                              class="text-weight-bold"
+                              :class="
+                                getTotalActualVolByItem(idx) > 0 ? 'text-amber' : 'text-grey-5'
+                              "
+                              >{{ getTotalActualVolByItem(idx) }}</span
+                            >
+                          </td>
+                          <td class="text-center">
+                            <span
+                              class="text-weight-bold"
+                              :class="getItemPct(idx) > 0 ? 'text-amber' : 'text-red-4'"
+                              >{{ getItemPct(idx).toFixed(1) }}%</span
+                            >
+                          </td>
+                          <td class="text-center text-grey-4">
+                            {{ getItemBobot(item).toFixed(2) }}%
+                          </td>
+                          <td class="text-center">
+                            <span
+                              class="text-weight-bold"
+                              :class="getItemContrib(idx) > 0 ? 'text-green-4' : 'text-grey-5'"
+                              >{{ getItemContrib(idx).toFixed(3) }}%</span
+                            >
+                          </td>
+                          <td class="text-right q-pr-md">
+                            <q-linear-progress
+                              :value="getItemPct(idx) / 100"
+                              size="8px"
+                              rounded
+                              color="amber"
+                              track-color="blue-grey-7"
+                              style="min-width: 80px"
+                            />
+                          </td>
+                        </tr>
+                        <tr class="bg-blue-grey-8">
+                          <td
+                            colspan="6"
+                            class="text-right text-weight-bold text-white q-pr-md uppercase"
+                          >
+                            TOTAL AKTUAL KUMULATIF
+                          </td>
+                          <td class="text-center text-weight-black text-green-4 text-h6">
+                            {{ actualCumulative.toFixed(3) }}%
+                          </td>
+                          <td></td>
+                        </tr>
+                      </tbody>
+                    </q-markup-table>
+                  </q-card>
+                </div>
+              </div>
+            </q-tab-panel>
+
+            <!-- TAB 4: DASHBOARD KURVA S -->
+            <q-tab-panel name="kurva" class="q-pa-lg">
+              <div class="row q-col-gutter-md q-mb-lg">
+                <div class="col-6 col-md-3">
+                  <q-card flat class="rounded-12 bg-blue-grey-9 text-white q-pa-md text-center">
+                    <div class="text-overline opacity-75">RENCANA S/D HARI INI</div>
+                    <div class="text-h5 text-weight-black q-mt-xs">
+                      {{ plannedForToday.toFixed(2) }}%
+                    </div>
+                    <div class="text-caption opacity-70">{{ todayStr }}</div>
+                  </q-card>
+                </div>
+                <div class="col-6 col-md-3">
+                  <q-card flat class="rounded-12 bg-positive text-white q-pa-md text-center">
+                    <div class="text-overline opacity-75">PROGRES AKTUAL</div>
+                    <div class="text-h5 text-weight-black q-mt-xs">
+                      {{ actualCumulative.toFixed(2) }}%
+                    </div>
+                    <div class="text-caption opacity-70">Kumulatif dari input</div>
+                  </q-card>
+                </div>
+                <div class="col-6 col-md-3">
+                  <q-card
+                    flat
+                    :class="deviasi >= 0 ? 'bg-blue-8' : 'bg-negative'"
+                    class="rounded-12 text-white q-pa-md text-center"
+                  >
+                    <div class="text-overline opacity-75">DEVIASI</div>
+                    <div class="text-h5 text-weight-black q-mt-xs">
+                      {{ deviasi >= 0 ? '+' : '' }}{{ deviasi.toFixed(2) }}%
+                    </div>
+                    <div class="text-caption opacity-70">
+                      {{ deviasi >= 0 ? 'On Track' : 'Behind Schedule' }}
+                    </div>
+                  </q-card>
+                </div>
+                <div class="col-6 col-md-3">
+                  <q-card flat class="rounded-12 bg-orange-9 text-white q-pa-md text-center">
+                    <div class="text-overline opacity-75">TOTAL HARI RENCANA</div>
+                    <div class="text-h5 text-weight-black q-mt-xs">{{ dailyPlan.length }}</div>
+                    <div class="text-caption opacity-70">Dari perencanaan</div>
+                  </q-card>
+                </div>
+              </div>
+
+              <!-- KURVA S CHART -->
+              <div class="row q-col-gutter-md q-mb-lg">
+                <div class="col-12 col-md-8">
+                  <q-card
+                    flat
+                    bordered
+                    class="rounded-20 bg-blue-grey-10 shadow-sm overflow-hidden"
+                  >
+                    <q-card-section class="q-pb-xs">
+                      <div class="row items-center justify-between">
+                        <div
+                          class="text-overline text-white text-weight-bold flex items-center q-gutter-x-md"
+                        >
+                          <span>KURVA S — BOBOT KUMULATIF (%)</span>
+                          <div class="row q-gutter-x-md q-ml-md">
+                            <div class="row items-center q-gutter-x-xs">
+                              <div
+                                style="
+                                  width: 24px;
+                                  height: 3px;
+                                  background: #36ada3;
+                                  border-radius: 2px;
+                                "
+                              ></div>
+                              <span class="text-caption text-grey-4">Rencana</span>
+                            </div>
+                            <div class="row items-center q-gutter-x-xs">
+                              <div
+                                style="
+                                  width: 24px;
+                                  height: 3px;
+                                  background: #f29c1f;
+                                  border-radius: 2px;
+                                "
+                              ></div>
+                              <span class="text-caption text-grey-4">Aktual</span>
+                            </div>
+                          </div>
+                        </div>
+                        <q-btn
+                          flat
+                          round
+                          dense
+                          icon="fullscreen"
+                          color="grey-4"
+                          @click="isFullscreenChart = true"
+                        >
+                          <q-tooltip>Perbesar Kurva S</q-tooltip>
+                        </q-btn>
+                      </div>
+                    </q-card-section>
+                    <q-card-section>
+                      <svg
+                        :viewBox="`0 0 ${chartW} ${chartH}`"
+                        style="width: 100%; overflow: visible"
+                      >
+                        <!-- Grid Y -->
+                        <template v-for="i in 11" :key="'gy' + i">
+                          <line
+                            :x1="chartPad"
+                            :y1="chartPad + ((i - 1) * (chartH - chartPad * 2)) / 10"
+                            :x2="chartW - chartPad * 0.5"
+                            :y2="chartPad + ((i - 1) * (chartH - chartPad * 2)) / 10"
+                            stroke="rgba(255,255,255,0.08)"
+                            stroke-width="1"
+                          />
+                          <text
+                            :x="chartPad - 6"
+                            :y="chartPad + ((i - 1) * (chartH - chartPad * 2)) / 10 + 4"
+                            text-anchor="end"
+                            fill="rgba(255,255,255,0.4)"
+                            font-size="9"
+                          >
+                            {{ 100 - (i - 1) * 10 }}%
+                          </text>
+                        </template>
+                        <!-- X labels -->
+                        <template v-for="(lbl, li) in chartXLabels" :key="'xl' + li">
+                          <text
+                            :x="
+                              chartPad +
+                              (li * (chartW - chartPad * 1.5)) /
+                                Math.max(chartXLabels.length - 1, 1)
+                            "
+                            :y="chartH - chartPad * 0.3"
+                            text-anchor="middle"
+                            fill="rgba(255,255,255,0.4)"
+                            font-size="7"
+                          >
+                            {{ lbl }}
+                          </text>
+                        </template>
+                        <!-- Area rencana -->
+                        <polygon
+                          v-if="plannedPoints.length > 1"
+                          :points="
+                            `${chartPad},${chartH - chartPad} ` +
+                            plannedPoints.map((p) => `${p[0]},${p[1]}`).join(' ') +
+                            ` ${plannedPoints[plannedPoints.length - 1][0]},${chartH - chartPad}`
+                          "
+                          fill="rgba(54,173,163,0.08)"
+                        />
+                        <!-- Rencana line -->
+                        <polyline
+                          v-if="plannedPoints.length > 1"
+                          :points="plannedPoints.map((p) => `${p[0]},${p[1]}`).join(' ')"
+                          fill="none"
+                          stroke="#36ada3"
+                          stroke-width="2.5"
+                          stroke-linejoin="round"
+                        />
+                        <!-- Area aktual -->
+                        <polygon
+                          v-if="actualChartPoints.length > 1"
+                          :points="
+                            `${chartPad},${chartH - chartPad} ` +
+                            actualChartPoints.map((p) => `${p[0]},${p[1]}`).join(' ') +
+                            ` ${actualChartPoints[actualChartPoints.length - 1][0]},${chartH - chartPad}`
+                          "
+                          fill="rgba(242,156,31,0.12)"
+                        />
+                        <!-- Aktual line -->
+                        <polyline
+                          v-if="actualChartPoints.length > 1"
+                          :points="actualChartPoints.map((p) => `${p[0]},${p[1]}`).join(' ')"
+                          fill="none"
+                          stroke="#f29c1f"
+                          stroke-width="2.5"
+                          stroke-linejoin="round"
+                        />
+
+                        <!-- Dots Rencana untuk Hover Info -->
+                        <template v-for="(pt, pi) in plannedPoints" :key="'pdot' + pi">
+                          <circle
+                            :cx="pt[0]"
+                            :cy="pt[1]"
+                            r="4"
+                            fill="#36ada3"
+                            stroke="#102a43"
+                            stroke-width="1.5"
+                            class="cursor-pointer transition-all hover-dot"
+                          >
+                            <q-tooltip
+                              class="bg-teal-9 text-white font-pro text-caption shadow-4"
+                              :offset="[0, 10]"
+                            >
+                              <b>Rencana:</b>
+                              {{ pt[2] }}%
+                              <br />
+                              <b>Tgl:</b>
+                              {{ pt[3] }}
+                            </q-tooltip>
+                          </circle>
+                        </template>
+
+                        <!-- Dots Aktual untuk Hover Info -->
+                        <template v-for="(pt, pi) in actualChartPoints" :key="'dot' + pi">
+                          <circle
+                            :cx="pt[0]"
+                            :cy="pt[1]"
+                            r="4"
+                            fill="#f29c1f"
+                            stroke="#102a43"
+                            stroke-width="1.5"
+                            class="cursor-pointer transition-all hover-dot"
+                          >
+                            <q-tooltip
+                              class="bg-orange-9 text-white font-pro text-caption shadow-4"
+                              :offset="[0, 10]"
+                            >
+                              <b>Aktual:</b>
+                              {{ pt[2] }}%
+                              <br />
+                              <b>Tgl:</b>
+                              {{ pt[3] }}
+                            </q-tooltip>
+                          </circle>
+                        </template>
+
+                        <!-- TODAY marker -->
+                        <template v-if="todayPlannedPoint">
+                          <circle
+                            :cx="todayPlannedPoint[0]"
+                            :cy="todayPlannedPoint[1]"
+                            r="5"
+                            fill="#36ada3"
+                            stroke="#fff"
+                            stroke-width="2"
+                          />
+                          <line
+                            :x1="todayPlannedPoint[0]"
+                            :y1="chartPad"
+                            :x2="todayPlannedPoint[0]"
+                            :y2="chartH - chartPad"
+                            stroke="rgba(255,255,255,0.2)"
+                            stroke-width="1"
+                            stroke-dasharray="4,4"
+                          />
+                        </template>
+                        <text
+                          v-if="todayPlannedPoint"
+                          :x="todayPlannedPoint[0]"
+                          :y="chartPad - 4"
+                          text-anchor="middle"
+                          fill="rgba(255,255,255,0.5)"
+                          font-size="8"
+                        >
+                          TODAY
+                        </text>
+                      </svg>
+                    </q-card-section>
+                  </q-card>
+                </div>
+                <div class="col-12 col-md-4">
+                  <q-card flat bordered class="rounded-20 bg-blue-grey-10 shadow-sm h-full">
+                    <q-card-section>
+                      <div class="text-overline text-white text-weight-bold q-mb-md">
+                        STATUS PROYEK
+                      </div>
+                      <div class="q-gutter-y-md">
+                        <div class="bg-blue-grey-9 rounded-12 q-pa-md">
+                          <div class="text-caption text-grey-5">Nama Proyek</div>
+                          <div class="text-white text-weight-bold">
+                            {{ currentProject?.nama || '—' }}
+                          </div>
+                        </div>
+                        <div class="bg-blue-grey-9 rounded-12 q-pa-md">
+                          <div class="text-caption text-grey-5">Kontrak</div>
+                          <div class="text-white text-weight-bold">
+                            {{ currentSpk?.nomor_spk || '—' }}
+                          </div>
+                        </div>
+                        <div class="bg-blue-grey-9 rounded-12 q-pa-md">
+                          <div class="text-caption text-grey-5">Nilai Kontrak</div>
+                          <div class="text-white text-weight-bold">
+                            Rp {{ formatCompact(currentSpk?.nilai_total || 0) }}
+                          </div>
+                        </div>
+                        <div class="bg-blue-grey-9 rounded-12 q-pa-md">
+                          <div class="text-caption text-grey-5">Durasi / Periode</div>
+                          <div class="text-white text-weight-bold">
+                            {{ currentSpk?.durasi || '—' }}
+                          </div>
+                        </div>
+                        <div
+                          class="rounded-12 q-pa-md"
+                          :class="deviasi >= 0 ? 'bg-positive' : 'bg-negative'"
+                        >
+                          <div class="text-caption text-white opacity-80">Deviasi Kumulatif</div>
+                          <div class="text-h5 text-white text-weight-black">
+                            {{ deviasi >= 0 ? '+' : '' }}{{ deviasi.toFixed(3) }}%
+                          </div>
+                          <q-badge
+                            color="white"
+                            :text-color="deviasi >= 0 ? 'positive' : 'negative'"
+                            class="q-mt-xs text-weight-bold"
+                            >{{ deviasi >= 0 ? 'On Track' : 'Behind Schedule' }}</q-badge
+                          >
+                        </div>
+                      </div>
+                    </q-card-section>
+                  </q-card>
+                </div>
+              </div>
+
+              <!-- TABEL PERBANDINGAN -->
+              <q-card flat bordered class="rounded-20 bg-blue-grey-10 shadow-sm overflow-hidden">
+                <q-card-section class="q-pb-xs">
+                  <div class="text-overline text-white text-weight-bold">
+                    PERBANDINGAN RENCANA VS AKTUAL PER HARI
+                  </div>
+                </q-card-section>
+                <q-markup-table flat dark class="bg-blue-grey-10">
+                  <thead>
+                    <tr class="bg-blue-grey-8 text-white text-caption text-weight-bold uppercase">
+                      <th class="text-center">HARI</th>
+                      <th class="text-center">TANGGAL</th>
+                      <th class="text-center">RENCANA (%)</th>
+                      <th class="text-center">AKTUAL (%)</th>
+                      <th class="text-center">DEVIASI</th>
+                      <th class="text-center">STATUS</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr
+                      v-for="(planRow, pIdx) in dailyPlan"
+                      :key="pIdx"
+                      :class="pIdx % 2 === 0 ? 'bg-blue-grey-10' : 'bg-blue-grey-9'"
+                    >
+                      <td class="text-center text-weight-bold text-white">{{ pIdx + 1 }}</td>
+                      <td class="text-center text-grey-4">{{ planRow.tanggal }}</td>
+                      <td class="text-center text-weight-bold text-teal-4">
+                        {{ (planRow.rencana_kumulatif || 0).toFixed(2) }}%
+                      </td>
+                      <td class="text-center text-weight-bold text-amber">
+                        {{ getRowActual(planRow.tanggal).toFixed(2) }}%
+                      </td>
+                      <td
+                        class="text-center text-weight-bold"
+                        :class="
+                          getRowDeviasi(planRow.tanggal, planRow.rencana_kumulatif) > 0
+                            ? 'text-green-4'
+                            : getRowDeviasi(planRow.tanggal, planRow.rencana_kumulatif) < 0
+                              ? 'text-red-4'
+                              : 'text-grey-5'
+                        "
+                      >
+                        {{ getRowDeviasi(planRow.tanggal, planRow.rencana_kumulatif) > 0 ? '+' : ''
+                        }}{{
+                          getRowDeviasi(planRow.tanggal, planRow.rencana_kumulatif).toFixed(2)
+                        }}%
+                      </td>
+                      <td class="text-center">
+                        <q-badge
+                          :color="getRowStatus(planRow.tanggal, planRow.rencana_kumulatif).color"
+                          class="text-white text-weight-bold q-px-sm"
+                        >
+                          {{ getRowStatus(planRow.tanggal, planRow.rencana_kumulatif).label }}
+                        </q-badge>
+                      </td>
+                    </tr>
+                    <tr v-if="dailyPlan.length === 0">
+                      <td colspan="6" class="text-center text-grey-5 italic q-pa-xl">
+                        Belum ada data perencanaan harian.
+                      </td>
+                    </tr>
+                  </tbody>
+                </q-markup-table>
+              </q-card>
+            </q-tab-panel>
+          </q-tab-panels>
         </q-card>
-      </q-dialog>
+      </div>
     </template>
 
-    <div class="q-py-xl no-print"></div>
+    <!-- DIALOG FULLSCREEN KURVA S -->
+    <q-dialog
+      v-model="isFullscreenChart"
+      maximized
+      transition-show="slide-up"
+      transition-hide="slide-down"
+    >
+      <q-card class="bg-blue-grey-10 text-white column no-wrap font-pro">
+        <q-toolbar class="bg-blue-grey-9 q-py-md shadow-2">
+          <q-icon name="insights" size="md" color="brand-primary" class="q-mr-sm" />
+          <q-toolbar-title class="text-weight-bolder"
+            >KURVA S FULLSCREEN — {{ currentProject?.nama }}</q-toolbar-title
+          >
+          <q-btn flat round dense icon="close" v-close-popup />
+        </q-toolbar>
+        <q-card-section class="col flex flex-center q-pa-xl">
+          <div class="full-width" style="max-width: 1200px">
+            <svg
+              :viewBox="`0 0 ${chartW} ${chartH}`"
+              style="width: 100%; max-height: 80vh; overflow: visible"
+            >
+              <!-- Grid Y -->
+              <template v-for="i in 11" :key="'gy_full' + i">
+                <line
+                  :x1="chartPad"
+                  :y1="chartPad + ((i - 1) * (chartH - chartPad * 2)) / 10"
+                  :x2="chartW - chartPad * 0.5"
+                  :y2="chartPad + ((i - 1) * (chartH - chartPad * 2)) / 10"
+                  stroke="rgba(255,255,255,0.08)"
+                  stroke-width="1"
+                />
+                <text
+                  :x="chartPad - 6"
+                  :y="chartPad + ((i - 1) * (chartH - chartPad * 2)) / 10 + 4"
+                  text-anchor="end"
+                  fill="rgba(255,255,255,0.6)"
+                  font-size="9"
+                  font-weight="bold"
+                >
+                  {{ 100 - (i - 1) * 10 }}%
+                </text>
+              </template>
+              <!-- X labels -->
+              <template v-for="(lbl, li) in chartXLabels" :key="'xl_full' + li">
+                <text
+                  :x="
+                    chartPad +
+                    (li * (chartW - chartPad * 1.5)) / Math.max(chartXLabels.length - 1, 1)
+                  "
+                  :y="chartH - chartPad * 0.2"
+                  text-anchor="middle"
+                  fill="rgba(255,255,255,0.6)"
+                  font-size="8"
+                  font-weight="bold"
+                >
+                  {{ lbl }}
+                </text>
+              </template>
+              <!-- Area rencana -->
+              <polygon
+                v-if="plannedPoints.length > 1"
+                :points="
+                  `${chartPad},${chartH - chartPad} ` +
+                  plannedPoints.map((p) => `${p[0]},${p[1]}`).join(' ') +
+                  ` ${plannedPoints[plannedPoints.length - 1][0]},${chartH - chartPad}`
+                "
+                fill="rgba(54,173,163,0.08)"
+              />
+              <!-- Rencana line -->
+              <polyline
+                v-if="plannedPoints.length > 1"
+                :points="plannedPoints.map((p) => `${p[0]},${p[1]}`).join(' ')"
+                fill="none"
+                stroke="#36ada3"
+                stroke-width="3"
+                stroke-linejoin="round"
+              />
+              <!-- Area aktual -->
+              <polygon
+                v-if="actualChartPoints.length > 1"
+                :points="
+                  `${chartPad},${chartH - chartPad} ` +
+                  actualChartPoints.map((p) => `${p[0]},${p[1]}`).join(' ') +
+                  ` ${actualChartPoints[actualChartPoints.length - 1][0]},${chartH - chartPad}`
+                "
+                fill="rgba(242,156,31,0.12)"
+              />
+              <!-- Aktual line -->
+              <polyline
+                v-if="actualChartPoints.length > 1"
+                :points="actualChartPoints.map((p) => `${p[0]},${p[1]}`).join(' ')"
+                fill="none"
+                stroke="#f29c1f"
+                stroke-width="3"
+                stroke-linejoin="round"
+              />
+
+              <!-- Dots Rencana untuk Hover Info -->
+              <template v-for="(pt, pi) in plannedPoints" :key="'pdot_full' + pi">
+                <circle
+                  :cx="pt[0]"
+                  :cy="pt[1]"
+                  r="5"
+                  fill="#36ada3"
+                  stroke="#102a43"
+                  stroke-width="2"
+                  class="cursor-pointer transition-all hover-dot"
+                >
+                  <q-tooltip
+                    class="bg-teal-9 text-white font-pro text-caption shadow-4"
+                    :offset="[0, 10]"
+                  >
+                    <b>Rencana:</b>
+                    {{ pt[2] }}%
+                    <br />
+                    <b>Tgl:</b>
+                    {{ pt[3] }}
+                  </q-tooltip>
+                </circle>
+              </template>
+
+              <!-- Dots Aktual untuk Hover Info -->
+              <template v-for="(pt, pi) in actualChartPoints" :key="'dot_full' + pi">
+                <circle
+                  :cx="pt[0]"
+                  :cy="pt[1]"
+                  r="5"
+                  fill="#f29c1f"
+                  stroke="#102a43"
+                  stroke-width="2"
+                  class="cursor-pointer transition-all hover-dot"
+                >
+                  <q-tooltip
+                    class="bg-orange-9 text-white font-pro text-caption shadow-4"
+                    :offset="[0, 10]"
+                  >
+                    <b>Aktual:</b>
+                    {{ pt[2] }}%
+                    <br />
+                    <b>Tgl:</b>
+                    {{ pt[3] }}
+                  </q-tooltip>
+                </circle>
+              </template>
+
+              <!-- TODAY marker -->
+              <template v-if="todayPlannedPoint">
+                <circle
+                  :cx="todayPlannedPoint[0]"
+                  :cy="todayPlannedPoint[1]"
+                  r="6"
+                  fill="#36ada3"
+                  stroke="#fff"
+                  stroke-width="2"
+                />
+                <line
+                  :x1="todayPlannedPoint[0]"
+                  :y1="chartPad"
+                  :x2="todayPlannedPoint[0]"
+                  :y2="chartH - chartPad"
+                  stroke="rgba(255,255,255,0.3)"
+                  stroke-width="1.5"
+                  stroke-dasharray="4,4"
+                />
+              </template>
+              <text
+                v-if="todayPlannedPoint"
+                :x="todayPlannedPoint[0]"
+                :y="chartPad - 6"
+                text-anchor="middle"
+                fill="rgba(255,255,255,0.7)"
+                font-size="10"
+                font-weight="bold"
+              >
+                TODAY
+              </text>
+            </svg>
+          </div>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+
+    <div class="q-py-xl"></div>
   </q-page>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { db } from 'src/boot/firebase'
 import {
@@ -811,34 +1940,41 @@ import { useAuthStore } from 'src/stores/auth'
 const $q = useQuasar()
 const authStore = useAuthStore()
 
-// State
+// ============================================================
+// STATE
+// ============================================================
 const loading = ref(true)
-const submitting = ref(false)
+const savingPlan = ref(false)
+const savingProgress = ref(false)
+const savingItems = ref(false)
 const searchQuery = ref('')
+const viewMode = ref('list')
+const activeTab = ref('items')
+const isFullscreenChart = ref(false) // Untuk modal fullscreen Kurva S
+
 const rawProjects = ref([])
-const rawSpks = ref([])
+const allSpksCache = ref([])
+const projectSpks = ref([])
 
-// Dialog Update Progres State
-const showUpdateDialog = ref(false)
-const selectedProject = ref(null)
-const formUpdate = ref({ status: 'Perencanaan', progress: 0 })
-
-// Executive Detail Dialog
-const showDetailDialog = ref(false)
-const selectedProjectDetail = ref(null)
-
-let unsubProyek = null
-let unsubSpk = null
-let unsubUser = null
-
+const currentProject = ref(null)
+const currentSpk = ref(null)
 const userData = ref(null)
 
-// ==========================================
-// ANIMASI KLIK & MENGAMBANG
-// ==========================================
+const dailyPlan = ref([])
+const dailyProgress = ref([])
+
+let unsubProyek = null
+let unsubAllSpk = null
+let unsubUser = null
+
+const todayStr = new Date().toISOString().slice(0, 10)
+
+// ============================================================
+// SPAWN ANIMATION
+// ============================================================
 const spawnedIcons = ref([])
 let spawnIdCounter = 0
-const clickIcons = [
+const clickIconsList = [
   'construction',
   'engineering',
   'handyman',
@@ -850,7 +1986,6 @@ const clickIcons = [
   'electrical_services',
   'hardware',
 ]
-
 const spawnIcon = (e) => {
   const target = e.target
   if (
@@ -861,35 +1996,28 @@ const spawnIcon = (e) => {
     target.closest('.q-dialog') ||
     target.closest('.q-table') ||
     target.closest('.q-card')
-  ) {
+  )
     return
-  }
-
-  const iconName = clickIcons[Math.floor(Math.random() * clickIcons.length)]
+  const iconName = clickIconsList[Math.floor(Math.random() * clickIconsList.length)]
   const colors = ['#36ada3', '#2a8b83', '#56c2b9', '#f29c1f', '#e67e22', '#e74c3c']
-  const randColor = colors[Math.floor(Math.random() * colors.length)]
-  const randRotate = Math.floor(Math.random() * 90) - 45
-  const randSize = Math.floor(Math.random() * 25) + 35
-
   const newIcon = {
     id: spawnIdCounter++,
     x: e.clientX,
     y: e.clientY,
     name: iconName,
-    color: randColor,
-    rotate: randRotate,
-    size: randSize,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    rotate: Math.floor(Math.random() * 90) - 45,
+    size: Math.floor(Math.random() * 25) + 35,
   }
-
   spawnedIcons.value.push(newIcon)
-
   setTimeout(() => {
     spawnedIcons.value = spawnedIcons.value.filter((i) => i.id !== newIcon.id)
   }, 1400)
 }
-// ==========================================
 
-// INTEGRATED REAL-TIME PERMISSION CONTROL MATRIX
+// ============================================================
+// PERMISSION
+// ============================================================
 const canAction = (actionType) => {
   if (authStore.user?.role === 'Super Admin') return true
   if (!userData.value?.permissions_detail) return false
@@ -905,22 +2033,23 @@ const canAction = (actionType) => {
   return menu[actionType] || false
 }
 
+const isMonitoringEditable = computed(
+  () => canAction('ubah') && currentSpk.value?.status !== 'Approved',
+)
+
+// ============================================================
+// COLUMNS
+// ============================================================
 const columns = [
   { name: 'proyek', align: 'left', label: 'IDENTITAS PROYEK', field: 'nama', sortable: true },
-  {
-    name: 'monitoring_timeline',
-    align: 'left',
-    label: 'TIMELINE PELAKSANAAN',
-    field: 'start_date',
-    sortable: true,
-  },
+  { name: 'timeline', align: 'left', label: 'TIMELINE', field: 'start_date', sortable: true },
   {
     name: 'progress',
     align: 'left',
     label: 'STATUS & KEMAJUAN',
     field: 'progress',
     sortable: true,
-    style: 'width: 250px',
+    style: 'width:250px',
   },
   {
     name: 'valuasi',
@@ -929,44 +2058,79 @@ const columns = [
     field: 'total_omzet',
     sortable: true,
   },
-  { name: 'aksi', align: 'center', label: 'UPDATE', field: 'id' },
+]
+const spkColumns = [
+  { name: 'no_spk', align: 'left', label: 'INFORMASI KONTRAK (SPK)', field: 'nomor_spk' },
+  { name: 'durasi', align: 'left', label: 'DURASI KONTRAK', field: 'tgl_mulai' },
+  { name: 'nilai', align: 'right', label: 'TOTAL NILAI KONTRAK', field: 'nilai_total' },
+  { name: 'aksi', align: 'center', label: 'AKSI', field: 'id' },
 ]
 
-// Real-time calculation nominal Rp pada modal update progres
-const calculatedValuationNominal = computed(() => {
-  const contractValue = selectedProject.value?.total_omzet || 0
-  const pct = Number(formUpdate.value.progress) || 0
-  return Math.round((pct / 100) * contractValue)
+// ============================================================
+// STATUS & KONDISI BARIS TABEL
+// ============================================================
+const maxProgressDate = computed(() => {
+  if (!dailyProgress.value || dailyProgress.value.length === 0) return null
+  const dates = dailyProgress.value.map((r) => r.tanggal).sort()
+  return dates[dates.length - 1]
 })
 
-// Real-time SPK List yang menyusun valuasi proyek terpilih di detail
-const relatedSpksDetail = computed(() => {
-  if (!selectedProjectDetail.value) return []
-  return rawSpks.value.filter((spk) => spk.projectId === selectedProjectDetail.value.id)
-})
+const getRowActual = (date) => {
+  if (maxProgressDate.value && date > maxProgressDate.value) return 0
+  return getActualCumulativeAtDate(date)
+}
 
-// Fetch Data Real-time
+const getRowDeviasi = (date, plan) => {
+  if (maxProgressDate.value && date > maxProgressDate.value) return 0
+  return getActualCumulativeAtDate(date) - (plan || 0)
+}
+
+const getRowStatus = (date, plan) => {
+  if (maxProgressDate.value && date > maxProgressDate.value)
+    return { label: 'BELUM MULAI', color: 'grey-7' }
+  const actual = getActualCumulativeAtDate(date)
+  const dev = actual - (plan || 0)
+
+  if (dev > 0.01) return { label: 'LEBIH CEPAT', color: 'info' } // info = biru di Quasar default
+  if (dev < -0.01) return { label: 'LEBIH LAMBAT', color: 'negative' }
+  return { label: 'SESUAI TARGET', color: 'positive' }
+}
+
+// ============================================================
+// FETCH DATA
+// ============================================================
 const fetchData = () => {
   loading.value = true
   unsubProyek = onSnapshot(collection(db, 'proyek'), (snap) => {
     rawProjects.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
     loading.value = false
   })
-  unsubSpk = onSnapshot(collection(db, 'spk_customer'), (snap) => {
-    rawSpks.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+  unsubAllSpk = onSnapshot(collection(db, 'spk_customer'), (snap) => {
+    allSpksCache.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+    if (currentSpk.value?.id) {
+      const updated = allSpksCache.value.find((s) => s.id === currentSpk.value.id)
+      if (updated) {
+        currentSpk.value = {
+          ...updated,
+          daily_plan: currentSpk.value.daily_plan,
+          daily_progress: currentSpk.value.daily_progress,
+        }
+      }
+    }
   })
 }
 
-// Computed: Gabungkan data Proyek dengan kalkulasi dari SPK
+// ============================================================
+// COMPUTED: combinedProjects
+// ============================================================
 const combinedProjects = computed(() => {
   return rawProjects.value
     .map((proj) => {
-      const relatedSpks = rawSpks.value.filter((spk) => spk.projectId === proj.id)
-      const totalOmzet = relatedSpks.reduce((sum, spk) => sum + (spk.nilai_total || 0), 0)
-
-      let startDate = null
-      let endDate = null
-      relatedSpks.forEach((spk) => {
+      const spks = allSpksCache.value.filter((s) => s.projectId === proj.id)
+      const totalOmzet = spks.reduce((sum, s) => sum + (Number(s.nilai_total) || 0), 0)
+      let startDate = null,
+        endDate = null
+      spks.forEach((spk) => {
         if (spk.tgl_mulai) {
           const d = new Date(spk.tgl_mulai)
           if (!startDate || d < startDate) startDate = d
@@ -976,7 +2140,6 @@ const combinedProjects = computed(() => {
           if (!endDate || d > endDate) endDate = d
         }
       })
-
       return {
         ...proj,
         total_omzet: totalOmzet,
@@ -990,163 +2153,451 @@ const combinedProjects = computed(() => {
     .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
 })
 
-// Kalkulasi KPI
-const totalValuation = computed(() => {
-  return combinedProjects.value.reduce((sum, p) => sum + (p.total_omzet || 0), 0)
+const totalValuation = computed(() =>
+  combinedProjects.value.reduce((s, p) => s + (p.total_omzet || 0), 0),
+)
+const countByStatus = (st) => combinedProjects.value.filter((p) => p.status === st).length
+
+// ============================================================
+// OPEN VIEWS
+// ============================================================
+const openProjectDashboard = (proj) => {
+  currentProject.value = proj
+  projectSpks.value = allSpksCache.value.filter((s) => s.projectId === proj.id)
+  viewMode.value = 'project'
+  window.scrollTo(0, 0)
+}
+
+const openSpkDetail = (spk) => {
+  currentSpk.value = JSON.parse(JSON.stringify(spk))
+  activeTab.value = 'items'
+  dailyPlan.value = (spk.daily_plan || []).map((r) => ({ ...r }))
+  dailyProgress.value = (spk.daily_progress || []).map((r) => ({
+    tanggal: r.tanggal,
+    volumes: [...(r.volumes || Array(allFlatItems.value.length).fill(0))],
+  }))
+  viewMode.value = 'spk'
+  window.scrollTo(0, 0)
+}
+
+// ============================================================
+// HAPUS ITEM
+// ============================================================
+const confirmDeleteItem = (groupIdx, itemIdx) => {
+  const item = currentSpk.value.groups[groupIdx]?.items[itemIdx]
+  if (!item) return
+  $q.dialog({
+    title: '<div class="text-weight-bolder text-negative">Konfirmasi Hapus Item</div>',
+    message: `Hapus item <b>"${item.deskripsi || 'item ini'}"</b>?<br/><span class="text-caption text-grey-7">Bobot akan dihitung ulang otomatis setelah item dihapus.</span>`,
+    html: true,
+    cancel: {
+      label: 'Batal',
+      color: 'grey-7',
+      outline: true,
+      rounded: true,
+      class: 'q-px-lg text-weight-bold',
+    },
+    ok: {
+      label: 'Ya, Hapus',
+      color: 'negative',
+      unelevated: true,
+      rounded: true,
+      class: 'q-px-lg text-weight-bold',
+    },
+    class: 'rounded-20 q-pa-sm',
+    persistent: true,
+  }).onOk(() => {
+    currentSpk.value.groups[groupIdx].items.splice(itemIdx, 1)
+    $q.notify({
+      type: 'warning',
+      icon: 'delete_outline',
+      position: 'top',
+      message: `Item "${item.deskripsi || ''}" dihapus. Klik "Simpan Perubahan Item" untuk menyimpan ke database.`,
+      timeout: 5000,
+    })
+  })
+}
+
+// ============================================================
+// SIMPAN PERUBAHAN ITEM
+// ============================================================
+const saveItemChanges = async () => {
+  if (!currentSpk.value?.id) return
+  savingItems.value = true
+  try {
+    const newGrandTotal = grandTotalJual.value
+    await updateDoc(doc(db, 'spk_customer', currentSpk.value.id), {
+      groups: JSON.parse(JSON.stringify(currentSpk.value.groups)),
+      nilai_total: newGrandTotal,
+      updatedAt: serverTimestamp(),
+    })
+    currentSpk.value.nilai_total = newGrandTotal
+    $q.notify({
+      type: 'positive',
+      position: 'top',
+      icon: 'save',
+      message: 'Perubahan item berhasil disimpan! Grand total diperbarui.',
+      timeout: 3000,
+    })
+  } catch (e) {
+    console.error(e)
+    $q.notify({ type: 'negative', message: 'Gagal menyimpan perubahan item.' })
+  } finally {
+    savingItems.value = false
+  }
+}
+
+// ============================================================
+// ITEM HELPERS
+// ============================================================
+const allFlatItems = computed(() => {
+  if (!currentSpk.value?.groups) return []
+  const items = []
+  currentSpk.value.groups.forEach((g) => {
+    g.items.forEach((item) => {
+      if (!item.is_header) items.push(item)
+    })
+  })
+  return items
 })
 
-const countByStatus = (status) => {
-  return combinedProjects.value.filter((p) => p.status === status).length
+const grandTotalJual = computed(() => {
+  if (!currentSpk.value?.groups) return 0
+  return currentSpk.value.groups.reduce(
+    (s, g) => s + g.items.reduce((ss, i) => ss + (i.volume || 0) * (i.harga_satuan || 0), 0),
+    0,
+  )
+})
+
+const getItemBobot = (item) => {
+  if (!grandTotalJual.value) return 0
+  return (((item.volume || 0) * (item.harga_satuan || 0)) / grandTotalJual.value) * 100
 }
 
-// Dialog Logic
-const openDetailDialog = (proj) => {
-  selectedProjectDetail.value = proj
-  showDetailDialog.value = true
+// ============================================================
+// KONTRAK HARI
+// ============================================================
+const contractDays = computed(() => {
+  if (!currentSpk.value?.tgl_mulai || !currentSpk.value?.tgl_akhir) return 0
+  return Math.max(
+    Math.ceil(
+      (new Date(currentSpk.value.tgl_akhir) - new Date(currentSpk.value.tgl_mulai)) /
+        (1000 * 60 * 60 * 24),
+    ),
+    1,
+  )
+})
+
+// ============================================================
+// DAILY PLAN
+// ============================================================
+const clampPlan = (row) => {
+  if (row.rencana_kumulatif < 0) row.rencana_kumulatif = 0
+  if (row.rencana_kumulatif > 100) row.rencana_kumulatif = 100
 }
 
-const openUpdateDialog = (proj) => {
-  if (!canAction('ubah')) {
-    $q.notify({
-      type: 'negative',
-      message: 'Anda tidak memiliki hak akses untuk merubah data ini!',
-    })
-    return
-  }
-
-  // Jika progres sudah disetujui (Approved) secara resmi oleh PM, kunci update bagi staf biasa
-  if (proj.progress_status === 'Approved' && !canAction('setuju')) {
-    $q.notify({
-      type: 'warning',
-      message:
-        'Progres proyek ini sudah dikunci & diverifikasi oleh PM. Perubahan hanya bisa dilakukan oleh PM / Super Admin.',
-    })
-    return
-  }
-
-  selectedProject.value = proj
-  formUpdate.value = {
-    status: proj.status || 'Perencanaan',
-    progress: proj.progress || 0,
-  }
-  showUpdateDialog.value = true
-}
-
-const saveProgress = async () => {
-  if (!canAction('ubah')) {
-    $q.notify({
-      type: 'negative',
-      message: 'Anda tidak memiliki hak akses untuk merubah data ini!',
-    })
-    return
-  }
-
-  if (formUpdate.value.progress < 0 || formUpdate.value.progress > 100) {
-    return $q.notify({
-      type: 'warning',
-      message: 'Input persentase progres harus berada di rentang 0 - 100%',
-    })
-  }
-  submitting.value = true
-  try {
-    const projRef = doc(db, 'proyek', selectedProject.value.id)
-    await updateDoc(projRef, {
-      status: formUpdate.value.status,
-      progress: Number(formUpdate.value.progress),
-      updatedAt: serverTimestamp(),
-    })
-
-    // NOTIFIKASI SIMPAN PROGRES PREMIUM
-    $q.notify({
-      html: true,
-      message:
-        '<div class="text-weight-bold text-subtitle1 q-mb-none leading-none">Pembaruan Sukses!</div><div class="text-caption q-mt-xs" style="opacity: 0.85">Kemajuan proyek berhasil diperbarui dan disinkronisasi ke sistem.</div>',
-      color: 'positive',
-      icon: 'task_alt',
-      position: 'top',
-      timeout: 4000,
-      progress: true,
-      classes: 'rounded-12 shadow-premium q-pl-md q-pr-lg q-py-sm border-white-2',
-      actions: [{ icon: 'close', color: 'white', round: true, size: 'sm', dense: true }],
-    })
-
-    showUpdateDialog.value = false
-  } catch (e) {
-    console.error(e)
-    $q.notify({ type: 'negative', message: 'Gagal mengupdate proyek.' })
-  } finally {
-    submitting.value = false
-  }
-}
-
-// Fungsi Persetujuan / Verifikasi Progres Lapangan (setuju Permission)
-const toggleVerifyProgress = async (proj, statusVal) => {
-  if (!canAction('setuju')) {
-    $q.notify({
-      type: 'negative',
-      message: 'Anda tidak memiliki hak akses persetujuan untuk modul ini!',
-    })
-    return
-  }
-  $q.loading.show({
-    message:
-      statusVal === 'Approved' ? 'Memverifikasi Progres Lapangan...' : 'Membatalkan Verifikasi...',
+const addPlanRow = () => {
+  const lastDate = dailyPlan.value.length
+    ? dailyPlan.value[dailyPlan.value.length - 1].tanggal
+    : currentSpk.value?.tgl_mulai || todayStr
+  const nextDate = new Date(lastDate)
+  nextDate.setDate(nextDate.getDate() + 1)
+  const lastPct = dailyPlan.value.length
+    ? dailyPlan.value[dailyPlan.value.length - 1].rencana_kumulatif || 0
+    : 0
+  dailyPlan.value.push({
+    tanggal: nextDate.toISOString().slice(0, 10),
+    rencana_kumulatif: Math.min(lastPct + 100 / Math.max(contractDays.value, 1), 100),
   })
+}
+
+const generatePlanFromContract = () => {
+  if (!currentSpk.value?.tgl_mulai || !currentSpk.value?.tgl_akhir) return
+  const start = new Date(currentSpk.value.tgl_mulai)
+  const end = new Date(currentSpk.value.tgl_akhir)
+  const days = Math.max(Math.ceil((end - start) / (1000 * 60 * 60 * 24)), 1)
+  const rows = []
+  for (let i = 0; i <= days; i++) {
+    const d = new Date(start)
+    d.setDate(d.getDate() + i)
+    rows.push({
+      tanggal: d.toISOString().slice(0, 10),
+      rencana_kumulatif: parseFloat(Math.min((i / days) * 100, 100).toFixed(2)),
+    })
+  }
+  dailyPlan.value = rows
+  $q.notify({
+    type: 'positive',
+    position: 'top',
+    message: `${rows.length} hari rencana berhasil dibuat otomatis.`,
+  })
+}
+
+const saveDailyPlan = async () => {
+  if (!currentSpk.value?.id) return
+  savingPlan.value = true
   try {
-    const projRef = doc(db, 'proyek', proj.id)
-    await updateDoc(projRef, {
-      progress_status: statusVal,
+    await updateDoc(doc(db, 'spk_customer', currentSpk.value.id), {
+      daily_plan: dailyPlan.value.map((r) => ({
+        tanggal: r.tanggal,
+        rencana_kumulatif: Number(r.rencana_kumulatif) || 0,
+      })),
       updatedAt: serverTimestamp(),
     })
-    proj.progress_status = statusVal
-
-    // NOTIFIKASI PERSUBALAN/OTORISASI PREMIUM (DENGAN TIMELINE PROGRESS BAR & CLOSE BUTTON)
     $q.notify({
-      html: true,
-      message:
-        statusVal === 'Approved'
-          ? '<div class="text-weight-bold text-subtitle1 q-mb-none leading-none">Verifikasi Berhasil!</div><div class="text-caption q-mt-xs" style="opacity: 0.85">Progres kemajuan proyek resmi diverifikasi!</div>'
-          : '<div class="text-weight-bold text-subtitle1 q-mb-none leading-none">Verifikasi Dibatalkan!</div><div class="text-caption q-mt-xs" style="opacity: 0.85">Verifikasi progres telah berhasil dibatalkan.</div>',
-      color: statusVal === 'Approved' ? 'positive' : 'warning',
-      icon: statusVal === 'Approved' ? 'verified' : 'undo',
+      type: 'positive',
       position: 'top',
-      timeout: 4000,
-      progress: true,
-      classes: 'rounded-12 shadow-premium q-pl-md q-pr-lg q-py-sm border-white-2',
-      actions: [{ icon: 'close', color: 'white', round: true, size: 'sm', dense: true }],
+      icon: 'event_note',
+      message: 'Perencanaan harian berhasil disimpan!',
+      timeout: 3000,
     })
   } catch (e) {
     console.error(e)
-    $q.notify({ type: 'negative', message: 'Terjadi kesalahan sistem.' })
+    $q.notify({ type: 'negative', message: 'Gagal menyimpan rencana.' })
   } finally {
-    $q.loading.hide()
+    savingPlan.value = false
   }
 }
 
-// Utils
+// ============================================================
+// DAILY PROGRESS
+// ============================================================
+const clampProgressVol = (dayRow, iIdx, maxVol) => {
+  if (dayRow.volumes[iIdx] < 0) dayRow.volumes[iIdx] = 0
+  if (dayRow.volumes[iIdx] > maxVol) dayRow.volumes[iIdx] = maxVol
+}
+
+const addProgressRow = () => {
+  const lastDate = dailyProgress.value.length
+    ? dailyProgress.value[dailyProgress.value.length - 1].tanggal
+    : currentSpk.value?.tgl_mulai || todayStr
+  const nextDate = new Date(lastDate)
+  nextDate.setDate(nextDate.getDate() + 1)
+  dailyProgress.value.push({
+    tanggal: nextDate.toISOString().slice(0, 10),
+    volumes: Array(allFlatItems.value.length).fill(0),
+  })
+}
+
+const getTotalActualVolByItem = (itemIdx) =>
+  dailyProgress.value.reduce((sum, row) => sum + (Number(row.volumes?.[itemIdx]) || 0), 0)
+const getItemPct = (itemIdx) => {
+  const item = allFlatItems.value[itemIdx]
+  if (!item || !item.volume) return 0
+  return Math.min((getTotalActualVolByItem(itemIdx) / item.volume) * 100, 100)
+}
+const getItemContrib = (itemIdx) => {
+  const item = allFlatItems.value[itemIdx]
+  return (getItemPct(itemIdx) / 100) * getItemBobot(item)
+}
+const getDayContrib = (dIdx) =>
+  allFlatItems.value.reduce((sum, item, iIdx) => {
+    const vol = Number(dailyProgress.value[dIdx]?.volumes?.[iIdx]) || 0
+    return sum + (item.volume ? (vol / item.volume) * getItemBobot(item) : 0)
+  }, 0)
+
+const actualCumulative = computed(() =>
+  allFlatItems.value.reduce((sum, _, idx) => sum + getItemContrib(idx), 0),
+)
+
+// ✅ getActualCumulativeAtDate — kumulatif aktual hingga tanggal tertentu
+const getActualCumulativeAtDate = (targetDate) => {
+  return allFlatItems.value.reduce((sum, item, iIdx) => {
+    const totalVol = dailyProgress.value
+      .filter((r) => r.tanggal <= targetDate)
+      .reduce((s, r) => s + (Number(r.volumes?.[iIdx]) || 0), 0)
+    return sum + (item.volume ? (totalVol / item.volume) * getItemBobot(item) : 0)
+  }, 0)
+}
+
+const plannedForToday = computed(() => {
+  const row = [...dailyPlan.value]
+    .filter((r) => r.tanggal <= todayStr)
+    .sort((a, b) => b.tanggal.localeCompare(a.tanggal))[0]
+  return row ? row.rencana_kumulatif || 0 : 0
+})
+
+const deviasi = computed(() => actualCumulative.value - plannedForToday.value)
+
+const saveDailyProgress = async () => {
+  if (!currentSpk.value?.id) return
+  savingProgress.value = true
+  try {
+    const nItems = allFlatItems.value.length
+    const payload = dailyProgress.value.map((r) => ({
+      tanggal: r.tanggal,
+      volumes: Array.from({ length: nItems }, (_, i) => Number(r.volumes?.[i]) || 0),
+    }))
+    await updateDoc(doc(db, 'spk_customer', currentSpk.value.id), {
+      daily_progress: payload,
+      updatedAt: serverTimestamp(),
+    })
+    $q.notify({
+      type: 'positive',
+      position: 'top',
+      icon: 'edit_calendar',
+      message: 'Progres harian berhasil disimpan!',
+      timeout: 3000,
+    })
+  } catch (e) {
+    console.error(e)
+    $q.notify({ type: 'negative', message: 'Gagal menyimpan progres.' })
+  } finally {
+    savingProgress.value = false
+  }
+}
+
+// ============================================================
+// ✅ KURVA S CHART — FIXED actualChartPoints & todayPlannedPoint
+// Dengan penambahan nilai dan tanggal untuk fitur Tooltip (Hover)
+// ============================================================
+const chartW = 680,
+  chartH = 280,
+  chartPad = 45
+
+const chartXLabels = computed(() => {
+  if (!dailyPlan.value.length) return []
+  const n = Math.min(dailyPlan.value.length, 12)
+  const step = Math.max(Math.ceil(dailyPlan.value.length / n), 1)
+  const labels = []
+  for (let i = 0; i < dailyPlan.value.length; i += step)
+    labels.push(dailyPlan.value[i].tanggal?.slice(5) || '')
+  const lastLabel = dailyPlan.value[dailyPlan.value.length - 1]?.tanggal?.slice(5) || ''
+  if (labels[labels.length - 1] !== lastLabel) labels.push(lastLabel)
+  return labels
+})
+
+const totalPlanDays = computed(() => Math.max(dailyPlan.value.length, 1))
+const toChartX = (idx) =>
+  chartPad + (idx / Math.max(totalPlanDays.value - 1, 1)) * (chartW - chartPad * 1.5)
+const toChartY = (pct) => chartPad + (1 - pct / 100) * (chartH - chartPad * 2)
+
+// plannedPoints dengan info [x, y, percent, date]
+const plannedPoints = computed(() =>
+  dailyPlan.value.map((row, i) => [
+    toChartX(i),
+    toChartY(row.rencana_kumulatif || 0),
+    (row.rencana_kumulatif || 0).toFixed(2),
+    row.tanggal,
+  ]),
+)
+
+// FIX actualChartPoints: Berhenti menggambar titik progress apabila tanggalnya melampaui hari input terakhir
+const actualChartPoints = computed(() => {
+  if (!dailyPlan.value.length || !dailyProgress.value.length) return []
+
+  const planDates = dailyPlan.value.map((r) => r.tanggal).sort()
+  const firstPlanDate = planDates[0]
+  const lastPlanDate = planDates[planDates.length - 1]
+  const totalPlanMs = new Date(lastPlanDate) - new Date(firstPlanDate)
+
+  if (totalPlanMs <= 0) return []
+
+  const progressDates = [...new Set(dailyProgress.value.map((r) => r.tanggal))].sort()
+  const pts = []
+
+  pts.push([chartPad, toChartY(0), '0.00', firstPlanDate])
+
+  progressDates.forEach((tgl) => {
+    if (tgl < firstPlanDate || tgl > lastPlanDate) return
+    // TIdak ada blokir ke masa depan (todayStr) karena inputan progress mendikte batas grafis aktual
+    const xRatio = (new Date(tgl) - new Date(firstPlanDate)) / totalPlanMs
+    const x = chartPad + xRatio * (chartW - chartPad * 1.5)
+    const cumActual = getActualCumulativeAtDate(tgl)
+    pts.push([x, toChartY(Math.min(cumActual, 100)), cumActual.toFixed(2), tgl])
+  })
+
+  return pts
+})
+
+const todayPlannedPoint = computed(() => {
+  if (!dailyPlan.value.length) return null
+  const planDates = dailyPlan.value.map((r) => r.tanggal).sort()
+  const firstPlanDate = planDates[0]
+  const lastPlanDate = planDates[planDates.length - 1]
+  if (todayStr < firstPlanDate || todayStr > lastPlanDate) return null
+  const totalPlanMs = new Date(lastPlanDate) - new Date(firstPlanDate)
+  if (totalPlanMs <= 0) return null
+  const xRatio = (new Date(todayStr) - new Date(firstPlanDate)) / totalPlanMs
+  const x = chartPad + xRatio * (chartW - chartPad * 1.5)
+  const y = toChartY(plannedForToday.value)
+  return [x, y]
+})
+
+// ============================================================
+// PIE CHART
+// ============================================================
+const pieColors = [
+  '#36ada3',
+  '#0284c7',
+  '#10b981',
+  '#f59e0b',
+  '#8b5cf6',
+  '#ef4444',
+  '#06b6d4',
+  '#84cc16',
+]
+const pieColorsQ = ['brand-primary', 'blue-8', 'green-8', 'orange-8', 'purple-8', 'red-8']
+
+const pieSlices = computed(() => {
+  const spks = projectSpks.value
+  if (!spks.length) return []
+  const total = spks.reduce((s, k) => s + (k.nilai_total || 0), 0)
+  if (!total) return []
+  const cx = 100,
+    cy = 100,
+    r = 80
+  let startAngle = -Math.PI / 2
+  return spks.map((spk, i) => {
+    const pct = (spk.nilai_total || 0) / total
+    const angle = pct * 2 * Math.PI
+    const endAngle = startAngle + angle
+    const x1 = cx + r * Math.cos(startAngle),
+      y1 = cy + r * Math.sin(startAngle)
+    const x2 = cx + r * Math.cos(endAngle),
+      y2 = cy + r * Math.sin(endAngle)
+    const largeArc = angle > Math.PI ? 1 : 0
+    const path = `M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${largeArc} 1 ${x2},${y2} Z`
+    startAngle = endAngle
+    return { path, color: pieColors[i % pieColors.length], spk, pct }
+  })
+})
+
+const spkProgress = (spk) => {
+  if (!spk.daily_progress || !spk.groups) return 0
+  const items = []
+  spk.groups.forEach((g) =>
+    g.items.forEach((i) => {
+      if (!i.is_header) items.push(i)
+    }),
+  )
+  const total = items.reduce((s, i) => s + (i.volume || 0) * (i.harga_satuan || 0), 0)
+  if (!total) return 0
+  let cum = 0
+  items.forEach((item, idx) => {
+    const totalVol = spk.daily_progress.reduce((s, row) => s + (Number(row.volumes?.[idx]) || 0), 0)
+    const bobot = item.volume ? ((item.volume * (item.harga_satuan || 0)) / total) * 100 : 0
+    cum += item.volume ? (totalVol / item.volume) * bobot : 0
+  })
+  return Math.min(Math.round(cum * 100) / 100, 100)
+}
+
+// ============================================================
+// UTILS
+// ============================================================
 const formatTimeline = (proj) => {
   if (!proj.start_date && !proj.end_date) return 'Belum ada SPK'
-  const formatOpt = { day: 'numeric', month: 'short', year: 'numeric' }
-  const startStr = proj.start_date ? proj.start_date.toLocaleDateString('id-ID', formatOpt) : '?'
-  const endStr = proj.end_date ? proj.end_date.toLocaleDateString('id-ID', formatOpt) : '?'
-  return `${startStr} - ${endStr}`
+  const fmt = { day: 'numeric', month: 'short', year: 'numeric' }
+  const s = proj.start_date ? proj.start_date.toLocaleDateString('id-ID', fmt) : '?'
+  const e = proj.end_date ? proj.end_date.toLocaleDateString('id-ID', fmt) : '?'
+  return `${s} - ${e}`
 }
-
-const getDaysRemaining = (endDate) => {
-  if (!endDate) return 'Belum Diatur'
-  const today = new Date()
-  const diffTime = endDate - today
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-  return diffDays > 0 ? `${diffDays} Hari` : 'Waktu Habis / Selesai'
-}
-
 const formatCompact = (num) => {
   if (!num) return '0'
   if (num >= 1000000000) return (num / 1000000000).toFixed(2).replace(/\.00$/, '') + ' Miliar'
   if (num >= 1000000) return (num / 1000000).toFixed(2).replace(/\.00$/, '') + ' Juta'
   return num.toLocaleString('id-ID')
 }
-
 const getStatusColor = (status) => {
   switch (status) {
     case 'Perencanaan':
@@ -1162,34 +2613,37 @@ const getStatusColor = (status) => {
   }
 }
 
+watch(allSpksCache, () => {
+  if (currentProject.value)
+    projectSpks.value = allSpksCache.value.filter((s) => s.projectId === currentProject.value.id)
+})
+
+// ============================================================
+// LIFECYCLE
+// ============================================================
 onMounted(() => {
   fetchData()
-
-  // Pantau Hak Akses User Aktif secara Real-time
   const userEmail = authStore.user?.email
   if (userEmail) {
     const qUser = query(collection(db, 'karyawan'), where('email', '==', userEmail))
-    unsubUser = onSnapshot(qUser, (snapshot) => {
-      if (!snapshot.empty) {
-        userData.value = snapshot.docs[0].data()
-      }
+    unsubUser = onSnapshot(qUser, (snap) => {
+      if (!snap.empty) userData.value = snap.docs[0].data()
     })
   }
 })
-
 onUnmounted(() => {
   if (unsubProyek) unsubProyek()
-  if (unsubSpk) unsubSpk()
+  if (unsubAllSpk) unsubAllSpk()
   if (unsubUser) unsubUser()
 })
 </script>
 
 <style scoped>
-/* ===== GLOBAL THEME OVERRIDES ===== */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
+
 .bg-page {
   background-color: #f8fcfb;
 }
-
 .font-pro {
   font-family:
     'Plus Jakarta Sans',
@@ -1202,20 +2656,22 @@ onUnmounted(() => {
 .rounded-12 {
   border-radius: 12px;
 }
+.rounded-2 {
+  border-radius: 2px;
+}
 .shadow-premium {
-  box-shadow: 0 10px 30px rgba(54, 173, 163, 0.15); /* Teal accent shadow */
+  box-shadow: 0 10px 30px rgba(54, 173, 163, 0.15);
 }
 .border-subtle {
   border: 1px solid rgba(0, 0, 0, 0.05);
 }
-.border-indigo-thin {
-  border: 1px solid rgba(54, 173, 163, 0.15); /* Soft Teal border */
+.border-right-sep {
+  border-right: 1px solid rgba(0, 0, 0, 0.05);
 }
-.border-white-2 {
-  border: 2px solid rgba(255, 255, 255, 0.4);
+.border-bottom-subtle {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-/* OVERRIDE WARNA LAMA (INDIGO) MENJADI BRAND COLOR BARU (TEAL) */
 .bg-brand-primary,
 :deep(.bg-brand-primary) {
   background-color: #36ada3 !important;
@@ -1225,18 +2681,12 @@ onUnmounted(() => {
   color: #36ada3 !important;
 }
 .bg-brand-light {
-  background-color: #e6f5f4 !important; /* Soft Teal */
-}
-.text-brand-secondary {
-  color: #2a8b83 !important;
+  background-color: #e6f5f4 !important;
 }
 .border-brand-thin {
-  border: 2px solid #b2e5e2 !important; /* Soft Teal border */
+  border: 2px solid #b2e5e2 !important;
 }
 
-/* =============================================
-   WARNA-WARNI GRADIEN KPI BARU (IDENTIK SEPERTI GAMBAR KEDUA)
-   ============================================= */
 .card-teal-gradient {
   background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%) !important;
   box-shadow: 0 8px 24px rgba(13, 148, 136, 0.35) !important;
@@ -1254,36 +2704,8 @@ onUnmounted(() => {
   box-shadow: 0 8px 24px rgba(245, 158, 11, 0.35) !important;
 }
 
-/* QUASAR COMPONENT OVERRIDES */
-:deep(.q-btn.bg-brand-primary) {
-  background-color: #36ada3 !important;
-}
-:deep(.q-field--focused .q-field__control) {
-  border-color: #36ada3 !important;
-}
-:deep(.q-field--focused .q-field__label) {
-  color: #36ada3 !important;
-}
-:deep(.q-icon[color='brand-primary']),
-:deep(.q-field__prepend .q-icon) {
-  color: #36ada3 !important;
-}
-
-/* RESPONSIVE SUMMARY CARDS AT ALIGNMENT ON MOBILE */
-@media (max-width: 599px) {
-  .flex-column {
-    flex-direction: column !important;
-  }
-  .text-center {
-    text-align: center !important;
-  }
-  .items-center {
-    align-items: center !important;
-  }
-}
-
-/* Table Styling */
-.monitoring-table :deep(thead tr th) {
+.monitoring-table :deep(thead tr th),
+.spk-table :deep(thead tr th) {
   position: sticky;
   top: 0;
   z-index: 1;
@@ -1294,19 +2716,15 @@ onUnmounted(() => {
 .hover-bg:hover {
   background-color: #e6f5f4 !important;
 }
-.transition-all {
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
 .hover-shadow:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 25px rgba(54, 173, 163, 0.1) !important;
 }
-
-.btn-hover:hover {
-  filter: brightness(1.1);
-  transform: scale(1.02);
-  transition: 0.3s;
+.hover-dot:hover {
+  stroke-width: 3;
+  filter: brightness(1.2);
+}
+.transition-all {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .animate-fade {
@@ -1336,21 +2754,11 @@ onUnmounted(() => {
   }
 }
 
-.label-req {
-  font-size: 11px;
-  font-weight: 800;
-  color: #444;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
 .search-input :deep(.q-field__control) {
   border-radius: 30px;
 }
-.block {
-  display: block;
-}
-.uppercase {
-  text-transform: uppercase;
+.tracking-widest {
+  letter-spacing: 0.15em;
 }
 .font-11 {
   font-size: 11px;
@@ -1358,21 +2766,93 @@ onUnmounted(() => {
 .font-10 {
   font-size: 10px;
 }
-.tracking-widest {
-  letter-spacing: 0.15em;
+.leading-tight {
+  line-height: 1.1;
 }
-.border-left-gt-xs {
-  border-left: 1px solid #edf2f7;
+.block {
+  display: block;
 }
-@media (max-width: 600px) {
-  .border-left-gt-xs {
-    border-left: none;
-    border-top: 1px solid #edf2f7;
-    padding-top: 16px;
-  }
+.uppercase {
+  text-transform: uppercase;
+}
+.ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.h-full {
+  height: 100%;
 }
 
-/* ===== ANIMASI BACKGROUND (FLOATING TEAL DENGAN BLUR HALUS) ===== */
+.items-table :deep(thead th) {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 12px;
+}
+.items-table :deep(td) {
+  border: 1px solid #f0f0f0;
+  padding: 10px;
+}
+.items-table :deep(tfoot td) {
+  font-size: 13px;
+  padding: 14px;
+}
+
+.daily-plan-table {
+  border-collapse: collapse;
+}
+.daily-plan-table th {
+  padding: 12px 10px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #36ada3;
+  color: white;
+}
+.daily-plan-table td {
+  border: 1px solid #f0f0f0;
+  padding: 4px 8px;
+}
+
+.progress-input-table {
+  border-collapse: collapse;
+}
+.progress-input-table th {
+  padding: 10px 8px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  white-space: nowrap;
+  background: #37474f;
+  color: white;
+}
+.progress-input-table td {
+  border: 1px solid #f0f0f0;
+  padding: 2px 4px;
+}
+.progress-input-table tfoot td {
+  background: #37474f;
+  color: white;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sticky-col {
+  position: sticky;
+  left: 0;
+  background: inherit;
+  z-index: 2;
+}
+.sticky-col2 {
+  position: sticky;
+  left: 60px;
+  background: inherit;
+  z-index: 2;
+}
+
 .bg-animation-container {
   position: fixed;
   top: 0;
@@ -1383,18 +2863,13 @@ onUnmounted(() => {
   pointer-events: none;
   z-index: 0;
 }
-
 .floating-icon {
   position: absolute;
   bottom: -150px;
   animation: floatUp linear infinite;
-  opacity: 0.15;
-  filter: blur(1.5px); /* Kebureman tipis dan lembut sesuai contoh */
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
+  opacity: 0.1;
+  filter: blur(1.5px);
 }
-
-/* Posisi dan durasi masing-masing ikon mengambang */
 .i-1 {
   left: 10%;
   font-size: 100px;
@@ -1451,17 +2926,16 @@ onUnmounted(() => {
   animation-delay: 25s;
   color: #e74c3c;
 }
-
 @keyframes floatUp {
   0% {
     transform: translateY(0) rotate(0deg);
     opacity: 0;
   }
   10% {
-    opacity: 0.15;
+    opacity: 0.1;
   }
   90% {
-    opacity: 0.15;
+    opacity: 0.1;
   }
   100% {
     transform: translateY(-120vh) rotate(360deg);
@@ -1469,7 +2943,6 @@ onUnmounted(() => {
   }
 }
 
-/* ===== CLICK SPAWN ICONS (MEMANCAR REAKTIF) ===== */
 .click-spawn-container {
   position: fixed;
   top: 0;
@@ -1480,7 +2953,6 @@ onUnmounted(() => {
   z-index: 9999;
   overflow: hidden;
 }
-
 .spawned-icon {
   position: absolute;
   color: var(--rand-color);
@@ -1488,7 +2960,6 @@ onUnmounted(() => {
   pointer-events: none;
   animation: spawnBurst 1.4s ease-out forwards;
 }
-
 @keyframes spawnBurst {
   0% {
     transform: translate(-50%, -50%) scale(0) rotate(0deg);
@@ -1503,17 +2974,19 @@ onUnmounted(() => {
     opacity: 0;
   }
 }
-
 .spawn-enter-active,
 .spawn-leave-active {
   transition: all 1.4s ease;
 }
-
-.shrink {
-  flex: 0 0 auto;
-}
 .content-relative {
   position: relative;
   z-index: 1;
+}
+
+@media (max-width: 599px) {
+  .border-right-sep {
+    border-right: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  }
 }
 </style>
