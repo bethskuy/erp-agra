@@ -589,6 +589,39 @@ const getFileTypeBadge = (type) => {
 }
 
 // ============================================================================
+// HELPER: SAFE CONVERT TANGGAL KE MILLISECONDS (FIX UTAMA)
+// Menangani semua kemungkinan tipe: Firestore Timestamp, seconds object, string, Date
+// ============================================================================
+const toMs = (t) => {
+  if (!t) return 0
+  // Firestore Timestamp object dengan method toDate()
+  if (typeof t?.toDate === 'function') {
+    try {
+      return t.toDate().getTime()
+    } catch {
+      return 0
+    }
+  }
+  // Plain object dengan field seconds (Firestore Timestamp serialized)
+  if (t?.seconds) return t.seconds * 1000
+  // String atau number
+  const d = new Date(t)
+  return isNaN(d.getTime()) ? 0 : d.getTime()
+}
+
+// ============================================================================
+// HELPER: FORMAT TANGGAL INDONESIA (SAFE VERSION)
+// ============================================================================
+const formatDateIndo = (d) => {
+  if (!d) return '-'
+  const ms = toMs(d)
+  if (!ms) return '-'
+  const dateObj = new Date(ms)
+  if (isNaN(dateObj.getTime())) return '-'
+  return dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+// ============================================================================
 // REAL-TIME SINKRONISASI SEMUA BERKAS DARI MASTER & TRANSACTIONAL ERP
 // ============================================================================
 const allFiles = computed(() => {
@@ -596,18 +629,29 @@ const allFiles = computed(() => {
 
   // 1. SINKRONISASI BERKAS DARI MODUL GUDANG & LOGISTIK (permintaan_barang)
   rawPermintaan.value.forEach((p) => {
-    if (p.dokumen_lampiran && Array.isArray(p.dokumen_lampiran)) {
-      p.dokumen_lampiran.forEach((docItem, idx) => {
-        if (docItem.url) {
+    // Cek berbagai kemungkinan nama field lampiran
+    const lampiranArr = p.dokumen_lampiran || p.lampiran || p.files || p.attachments || []
+    if (Array.isArray(lampiranArr)) {
+      lampiranArr.forEach((docItem, idx) => {
+        const url =
+          docItem?.url ||
+          docItem?.fileUrl ||
+          docItem?.link ||
+          (typeof docItem === 'string' ? docItem : null)
+        if (url) {
           list.push({
             id: `gudang-pr-${p.id}-${idx}`,
-            nama: docItem.label || `Lampiran PR ${p.nomor || p.kode_tagihan || ''}`,
-            url: docItem.url,
+            nama:
+              docItem?.label ||
+              docItem?.name ||
+              docItem?.nama ||
+              `Lampiran PR ${p.nomor || p.kode_tagihan || ''}`,
+            url,
             folder: 'Gudang & Logistik',
-            sumber: `PR No: ${p.nomor || p.kode_tagihan || '-'}`,
+            sumber: `PR No: ${p.nomor || p.kode_tagihan || p.id || '-'}`,
             tanggal: p.updatedAt || p.createdAt || null,
-            tipe: detectFileType(docItem.url, docItem.label),
-            pembuat: p.requestor_nama || p.pemohon?.nama || 'Logistik',
+            tipe: detectFileType(url, docItem?.label || docItem?.name),
+            pembuat: p.requestor_nama || p.pemohon?.nama || p.dibuat_oleh || 'Logistik',
             isManualUpload: false,
           })
         }
@@ -617,32 +661,38 @@ const allFiles = computed(() => {
 
   // 2. SINKRONISASI BERKAS DARI MODUL KEPEGAWAIAN / KARYAWAN
   rawKaryawan.value.forEach((k) => {
-    if (k.docs && Array.isArray(k.docs)) {
-      k.docs.forEach((docItem, idx) => {
-        if (docItem.url) {
+    // Cek berbagai kemungkinan nama field dokumen
+    const docsArr = k.docs || k.dokumen || k.lampiran || k.files || []
+    if (Array.isArray(docsArr)) {
+      docsArr.forEach((docItem, idx) => {
+        const url =
+          docItem?.url || docItem?.fileUrl || (typeof docItem === 'string' ? docItem : null)
+        if (url) {
           list.push({
             id: `karyawan-legal-${k.id}-${idx}`,
-            nama: docItem.name || `Arsip Legalitas - ${k.nama}`,
-            url: docItem.url,
+            nama: docItem?.name || docItem?.nama || docItem?.label || `Arsip Legalitas - ${k.nama}`,
+            url,
             folder: 'Kepegawaian / Karyawan',
-            sumber: `NIK: ${k.nik} (${k.nama})`,
+            sumber: `NIK: ${k.nik || '-'} (${k.nama || '-'})`,
             tanggal: k.updatedAt || k.createdAt || null,
-            tipe: detectFileType(docItem.url, docItem.name),
+            tipe: detectFileType(url, docItem?.name || docItem?.nama),
             pembuat: k.nama || 'HRD',
             isManualUpload: false,
           })
         }
       })
     }
-    // Tambah Foto Biometrik Absensi sebagai arsip penting
-    if (k.foto_registrasi) {
+
+    // Foto Biometrik / Foto Registrasi Karyawan
+    const fotoUrl = k.foto_registrasi || k.foto || k.photo || k.fotoUrl || null
+    if (fotoUrl) {
       list.push({
         id: `karyawan-bio-${k.id}`,
-        nama: `Biometrik Absensi Resmi - ${k.nama}`,
-        url: k.foto_registrasi,
+        nama: `Biometrik Absensi Resmi - ${k.nama || '-'}`,
+        url: fotoUrl,
         folder: 'Kepegawaian / Karyawan',
-        sumber: `Master Face Database NIK: ${k.nik}`,
-        tanggal: k.createdAt || null,
+        sumber: `Master Face Database NIK: ${k.nik || '-'}`,
+        tanggal: k.createdAt || k.updatedAt || null,
         tipe: 'image',
         pembuat: 'System AI Registrasi',
         isManualUpload: false,
@@ -652,35 +702,45 @@ const allFiles = computed(() => {
 
   // 3. SINKRONISASI BERKAS FINANCE & INVOICE (Tagihan Supplier & AP)
   rawTagihanSupplier.value.forEach((t) => {
-    if (t.lampiran && Array.isArray(t.lampiran)) {
-      t.lampiran.forEach((docItem, idx) => {
-        if (docItem.url || docItem.base64) {
+    const lampiranArr = t.lampiran || t.dokumen_lampiran || t.files || []
+    if (Array.isArray(lampiranArr)) {
+      lampiranArr.forEach((docItem, idx) => {
+        const url =
+          docItem?.url ||
+          docItem?.base64 ||
+          docItem?.fileUrl ||
+          (typeof docItem === 'string' ? docItem : null)
+        if (url) {
           list.push({
             id: `finance-ap-${t.id}-${idx}`,
-            nama: docItem.label || `Lampiran AP No: ${t.nomor_invoice || ''}`,
-            url: docItem.url || docItem.base64,
+            nama: docItem?.label || docItem?.name || `Lampiran AP No: ${t.nomor_invoice || ''}`,
+            url,
             folder: 'Finance & Invoice',
-            sumber: `Vendor: ${t.supplier_nama} (Inv: ${t.nomor_invoice || '-'})`,
+            sumber: `Vendor: ${t.supplier_nama || t.vendor || '-'} (Inv: ${t.nomor_invoice || '-'})`,
             tanggal: t.updatedAt || t.createdAt || null,
-            tipe: detectFileType(docItem.url || docItem.base64, docItem.label),
-            pembuat: t.pembuat || 'Finance',
+            tipe: detectFileType(url, docItem?.label || docItem?.name),
+            pembuat: t.pembuat || t.dibuat_oleh || 'Finance',
             isManualUpload: false,
           })
         }
       })
     }
-    if (t.riwayat_pembayaran && Array.isArray(t.riwayat_pembayaran)) {
-      t.riwayat_pembayaran.forEach((h) => {
-        if (h.bukti_url) {
+
+    // Riwayat Pembayaran / Bukti Bayar
+    const riwayatArr = t.riwayat_pembayaran || t.pembayaran || []
+    if (Array.isArray(riwayatArr)) {
+      riwayatArr.forEach((h) => {
+        const buktiUrl = h?.bukti_url || h?.bukti || h?.url || null
+        if (buktiUrl) {
           list.push({
-            id: `finance-pay-ap-${t.id}-${h.id}`,
-            nama: h.catatan || `Bukti Bayar AP - ${t.supplier_nama}`,
-            url: h.bukti_url,
+            id: `finance-pay-ap-${t.id}-${h.id || Math.random()}`,
+            nama: h.catatan || h.keterangan || `Bukti Bayar AP - ${t.supplier_nama || '-'}`,
+            url: buktiUrl,
             folder: 'Finance & Invoice',
             sumber: `Pencairan AP (Inv: ${t.nomor_invoice || '-'})`,
-            tanggal: h.tanggal || null,
-            tipe: detectFileType(h.bukti_url, h.catatan),
-            pembuat: 'Kasir Utama',
+            tanggal: h.tanggal || t.updatedAt || null,
+            tipe: detectFileType(buktiUrl, h.catatan),
+            pembuat: h.kasir || 'Kasir Utama',
             isManualUpload: false,
           })
         }
@@ -688,20 +748,23 @@ const allFiles = computed(() => {
     }
   })
 
-  // SINKRONISASI BERKAS AR INVOICE CUSTOMER (finance_invoice_customer)
+  // SINKRONISASI BERKAS AR INVOICE CUSTOMER
   rawTagihanCustomer.value.forEach((c) => {
-    if (c.lampiran && Array.isArray(c.lampiran)) {
-      c.lampiran.forEach((docItem, idx) => {
-        if (docItem.url) {
+    const lampiranArr = c.lampiran || c.dokumen_lampiran || c.files || []
+    if (Array.isArray(lampiranArr)) {
+      lampiranArr.forEach((docItem, idx) => {
+        const url =
+          docItem?.url || docItem?.fileUrl || (typeof docItem === 'string' ? docItem : null)
+        if (url) {
           list.push({
             id: `finance-ar-${c.id}-${idx}`,
-            nama: docItem.label || `Lampiran Invoice AR ${c.nomor_invoice || ''}`,
-            url: docItem.url,
+            nama: docItem?.label || docItem?.name || `Lampiran Invoice AR ${c.nomor_invoice || ''}`,
+            url,
             folder: 'Finance & Invoice',
-            sumber: `Client: ${c.customer_nama} (Inv: ${c.nomor_invoice || '-'})`,
+            sumber: `Client: ${c.customer_nama || c.pelanggan || '-'} (Inv: ${c.nomor_invoice || '-'})`,
             tanggal: c.updatedAt || c.createdAt || null,
-            tipe: detectFileType(docItem.url, docItem.label),
-            pembuat: 'Billing Coordinator',
+            tipe: detectFileType(url, docItem?.label || docItem?.name),
+            pembuat: c.pembuat || 'Billing Coordinator',
             isManualUpload: false,
           })
         }
@@ -731,18 +794,17 @@ const filteredFiles = computed(() => {
     const q = searchQuery.value.toLowerCase()
     list = list.filter(
       (f) =>
-        f.nama.toLowerCase().includes(q) ||
-        f.sumber.toLowerCase().includes(q) ||
-        f.pembuat.toLowerCase().includes(q),
+        (f.nama || '').toLowerCase().includes(q) ||
+        (f.sumber || '').toLowerCase().includes(q) ||
+        (f.pembuat || '').toLowerCase().includes(q),
     )
   }
 
-  // Sorting: Terbaru ditaruh paling atas
-  return list.sort((a, b) => {
-    const tA = a.tanggal?.seconds ? a.tanggal.toDate() : new Date(a.tanggal)
-    const tB = b.tanggal?.seconds ? b.tanggal.toDate() : new Date(b.tanggal)
-    return tB - tA
-  })
+  // ============================================================
+  // SORTING AMAN — FIX UTAMA: tidak pakai .toDate() langsung
+  // Menggunakan helper toMs() yang menangani semua tipe tanggal
+  // ============================================================
+  return list.sort((a, b) => toMs(b.tanggal) - toMs(a.tanggal))
 })
 
 // ============================================================================
@@ -789,7 +851,6 @@ const uploadManualDoc = async () => {
     await uploadBytes(fileRef, file)
     const downloadUrl = await getDownloadURL(fileRef)
 
-    // Save metadata ke Firestore
     const payload = {
       nama: uploadForm.value.nama,
       deskripsi: uploadForm.value.deskripsi || 'Unggah Manual via Dashboard Arsip',
@@ -877,19 +938,8 @@ const fetchData = () => {
   })
 }
 
-// ============================================================================
-// UTILS
-// ============================================================================
-const formatDateIndo = (d) => {
-  if (!d) return '-'
-  const dateObj = d?.toDate ? d.toDate() : new Date(d)
-  if (isNaN(dateObj)) return '-'
-  return dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
-}
-
 onMounted(() => {
   fetchData()
-  // Floating icons animation interval
   floatingIconInterval = setInterval(spawnFloatingIcon, 1500)
   spawnFloatingIcon()
 })
@@ -1005,12 +1055,14 @@ onUnmounted(() => {
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 .line-clamp-1 {
   display: -webkit-box;
   -webkit-line-clamp: 1;
+  line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
