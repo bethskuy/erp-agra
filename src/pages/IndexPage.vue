@@ -18,7 +18,7 @@
 
     <!-- Konten Utama -->
     <div class="full-width container-modern" style="max-width: 1000px">
-      <!-- Header Section: Logo & Greeting -->
+      <!-- Header Section -->
       <div class="text-center q-mb-xl animate-fade-down">
         <div class="logo-wrapper q-mb-md">
           <div class="logo-container shadow-premium">
@@ -67,9 +67,9 @@
         </q-input>
       </div>
 
-      <!-- Apps Grid Section -->
+      <!-- Apps Grid -->
       <div class="row q-col-gutter-lg justify-center items-start animate-fade-up">
-        <!-- ✅ Modul Aktif: dari Firestore, difilter berdasarkan akses -->
+        <!-- Modul Aktif dari Firestore (kecuali 'aset') -->
         <div
           v-for="(app, index) in filteredApps"
           :key="app.aksesKey"
@@ -107,19 +107,18 @@
           </div>
         </div>
 
-        <!-- ✅ MODUL ASET — Selalu tampil, status "SOON", warna abu-abu, klik muncul dialog info -->
+        <!-- Modul Aset — selalu tampil, abu-abu, SOON, klik → dialog -->
         <div
-          v-show="!searchQuery || 'aset'.includes(searchQuery.toLowerCase())"
+          v-show="!searchQuery || 'modul aset'.includes(searchQuery.toLowerCase())"
           class="col-4 col-sm-3 col-md-2 flex justify-center"
-          :style="{ '--delay': filteredApps.length * 0.05 + 0.1 + 's' }"
+          :style="{ '--delay': filteredApps.length * 0.05 + 0.05 + 's' }"
         >
-          <div class="app-container full-width" @click="showAsetComingSoon">
+          <div class="app-container full-width" @click="showAsetDialog = true">
             <div class="app-card-wrapper column items-center">
               <q-card
                 flat
-                class="app-icon-card flex flex-center transition-all cursor-pointer app-icon-card-soon"
+                class="app-icon-card app-icon-card-soon flex flex-center transition-all cursor-pointer"
               >
-                <!-- Ikon Aset abu-abu + badge SOON di pojok -->
                 <div class="relative-position">
                   <q-icon name="warehouse" color="grey-5" size="44px" />
                   <div class="soon-badge">SOON</div>
@@ -127,7 +126,7 @@
               </q-card>
               <div class="text-center q-mt-sm">
                 <div class="text-weight-bold text-grey-5 text-caption text-uppercase tracking-wide">
-                  Aset
+                  Modul Aset
                 </div>
               </div>
             </div>
@@ -138,7 +137,9 @@
       <!-- Empty State -->
       <div
         v-if="
-          filteredApps.length === 0 && searchQuery && !'aset'.includes(searchQuery.toLowerCase())
+          filteredApps.length === 0 &&
+          searchQuery &&
+          !'modul aset'.includes(searchQuery.toLowerCase())
         "
         class="text-center q-pa-xl empty-state animate-fade"
       >
@@ -147,34 +148,32 @@
       </div>
     </div>
 
-    <!-- =====================================================================================
-         DIALOG: MODUL ASET COMING SOON
-         ===================================================================================== -->
+    <!-- =====================================================================
+         DIALOG: MODUL ASET SEGERA HADIR
+         ===================================================================== -->
     <q-dialog v-model="showAsetDialog" backdrop-filter="blur(6px)">
-      <q-card style="width: 400px; max-width: 95vw" class="rounded-24 overflow-hidden shadow-24">
-        <!-- Header bergradient abu-abu -->
+      <q-card style="width: 380px; max-width: 95vw" class="rounded-24 overflow-hidden shadow-24">
+        <!-- Header -->
         <div class="aset-dialog-header text-center q-pa-xl">
           <div class="aset-icon-wrap q-mb-md">
             <q-icon name="warehouse" color="grey-5" size="64px" />
           </div>
           <div class="soon-badge-lg q-mb-sm">COMING SOON</div>
-          <div class="text-h6 text-weight-bolder text-grey-7">Modul Aset</div>
+          <div class="text-h6 text-weight-bolder text-grey-7 q-mt-sm">Modul Aset</div>
           <div class="text-caption text-grey-5">Asset Management System</div>
         </div>
 
-        <!-- Body Info -->
+        <!-- Body -->
         <q-card-section class="q-pa-lg text-center">
-          <div class="text-body1 text-grey-7 leading-relaxed q-mb-md">
-            Modul <strong>Manajemen Aset</strong> akan segera hadir! 🚀
+          <div class="text-body1 text-grey-7 leading-relaxed">
+            Modul <strong>Manajemen Aset</strong> segera hadir! 🚀
           </div>
-          <div class="text-body2 text-grey-6 leading-relaxed">
-            Fitur ini sedang dalam tahap pengembangan dan akan mencakup:
+          <div class="text-body2 text-grey-6 q-mt-sm leading-relaxed">
+            Fitur ini sedang dalam pengembangan dan akan mencakup:
           </div>
-
-          <!-- Daftar fitur yang akan datang -->
           <q-list dense class="q-mt-md text-left">
             <q-item v-for="(feat, i) in asetFeatures" :key="i" class="q-px-none">
-              <q-item-section avatar style="min-width: 32px">
+              <q-item-section avatar style="min-width: 28px">
                 <q-icon name="schedule" color="grey-4" size="xs" />
               </q-item-section>
               <q-item-section>
@@ -220,33 +219,25 @@ const showAsetDialog = ref(false)
 
 let unsubscribeUser = null
 
-// ============================================================================
-// KONSTANTA — daftar jabatan / role yang otomatis dapat full access
-// Sesuaikan dengan nilai jabatan di Firestore Anda
-// ============================================================================
 const SUPER_ROLES = ['super admin', 'superadmin', 'direktur', 'owner', 'administrator']
 
-/**
- * ✅ FIX UTAMA: Cek apakah user adalah Super Admin / role tinggi
- * Pengecekan dilakukan di DUA sumber:
- *  1. authStore.user.role  — dari session login (Firebase Auth custom claims / store)
- *  2. userData.jabatan     — dari dokumen Firestore koleksi 'karyawan'
- *  3. userData.is_super_admin — flag eksplisit yang disimpan oleh AksesPage saat simpan
- *
- * Jika salah satu true → user mendapat full access
- */
-const isCurrentUserSuperAdmin = computed(() => {
-  // Flag eksplisit dari AksesPage (paling reliable setelah dikonfirmasi)
-  if (userData.value?.is_super_admin === true) return true
+// aksesKey yang disembunyikan dari grid aktif (ditangani manual sebagai SOON)
+const HIDDEN_KEYS = ['aset']
 
-  // Cek dari jabatan di Firestore
+const asetFeatures = [
+  'Pencatatan & Registrasi Aset Perusahaan',
+  'Tracking Lokasi & Status Aset',
+  'Jadwal Pemeliharaan & Servis Berkala',
+  'Laporan Depresiasi & Nilai Buku Aset',
+  'Manajemen Peminjaman Aset Karyawan',
+]
+
+const isCurrentUserSuperAdmin = computed(() => {
+  if (userData.value?.is_super_admin === true) return true
   const jabatan = (userData.value?.jabatan || '').toLowerCase().trim()
   if (SUPER_ROLES.includes(jabatan)) return true
-
-  // Cek dari role di authStore (fallback)
   const role = (authStore.user?.role || '').toLowerCase().trim()
   if (SUPER_ROLES.includes(role)) return true
-
   return false
 })
 
@@ -258,36 +249,22 @@ const toggleTheme = () => {
   localStorage.setItem(themeStorageKey, isDarkMode.value ? 'dark' : 'light')
 }
 
-// ============================================================================
-// FILTER APPS — unik + cek hak akses
-// ============================================================================
 const filteredApps = computed(() => {
-  // Hapus duplikasi berdasarkan aksesKey
   const uniqueMap = new Map()
   apps.value.forEach((app) => {
-    if (!uniqueMap.has(app.aksesKey)) {
-      uniqueMap.set(app.aksesKey, app)
-    }
+    if (!uniqueMap.has(app.aksesKey)) uniqueMap.set(app.aksesKey, app)
   })
-  const uniqueApps = Array.from(uniqueMap.values())
-
-  // Filter berdasarkan pencarian & izin akses
-  return uniqueApps.filter(
-    (app) => app.name.toLowerCase().includes(searchQuery.value.toLowerCase()) && canShow(app),
+  return Array.from(uniqueMap.values()).filter(
+    (app) =>
+      !HIDDEN_KEYS.includes(app.aksesKey) &&
+      app.name.toLowerCase().includes(searchQuery.value.toLowerCase()) &&
+      canShow(app),
   )
 })
 
-/**
- * ✅ FIX: canShow sekarang menggunakan isCurrentUserSuperAdmin
- * yang mengecek TIGA sumber sekaligus (flag, jabatan Firestore, role authStore)
- */
 const canShow = (app) => {
   if (!authStore.user) return false
-
-  // Super Admin / Direktur → tampilkan semua modul tanpa terkecuali
   if (isCurrentUserSuperAdmin.value) return true
-
-  // Admin panel hanya untuk Admin ke atas
   if (app.aksesKey === 'admin') {
     return (
       isCurrentUserSuperAdmin.value ||
@@ -295,32 +272,11 @@ const canShow = (app) => {
       (userData.value?.jabatan || '').toLowerCase() === 'admin'
     )
   }
-
-  // Karyawan biasa: cek field akses dari Firestore
   return currentAkses.value.includes(app.aksesKey)
 }
 
-// ============================================================================
-// MODUL ASET COMING SOON
-// ============================================================================
-const showAsetComingSoon = () => {
-  showAsetDialog.value = true
-}
-
-const asetFeatures = [
-  'Pencatatan & Registrasi Aset Perusahaan',
-  'Tracking Lokasi & Status Aset',
-  'Jadwal Pemeliharaan & Servis Berkala',
-  'Laporan Depresiasi & Nilai Buku Aset',
-  'Manajemen Peminjaman Aset Karyawan',
-]
-
-// ============================================================================
-// SETUP MODUL DEFAULT (upsert berdasarkan ID unik)
-// ============================================================================
 const setupDefaultModuls = async () => {
   const querySnapshot = await getDocs(collection(db, 'modul'))
-
   if (querySnapshot.size < 4) {
     const batch = writeBatch(db)
     const defaultData = [
@@ -357,19 +313,13 @@ const setupDefaultModuls = async () => {
         aksesKey: 'admin',
       },
     ]
-
     defaultData.forEach((m) => {
-      const docRef = doc(db, 'modul', `modul_${m.aksesKey}`)
-      batch.set(docRef, m)
+      batch.set(doc(db, 'modul', `modul_${m.aksesKey}`), m)
     })
-
     await batch.commit()
   }
 }
 
-// ============================================================================
-// LIFECYCLE
-// ============================================================================
 onMounted(async () => {
   isDarkMode.value = localStorage.getItem(themeStorageKey) === 'dark'
   await setupDefaultModuls()
@@ -397,7 +347,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* ─── BASE LAYOUT ──────────────────────────────────────────────────── */
 .bg-modern-dashboard {
   background: linear-gradient(135deg, #f8fafd 0%, #ffffff 100%);
   min-height: 100vh;
@@ -421,7 +370,6 @@ onUnmounted(() => {
   border-radius: 24px;
 }
 
-/* ─── THEME TOGGLE ─────────────────────────────────────────────────── */
 .theme-toggle-wrap {
   position: absolute;
   top: 18px;
@@ -442,7 +390,6 @@ onUnmounted(() => {
   gap: 8px;
 }
 
-/* ─── LOGO ─────────────────────────────────────────────────────────── */
 .logo-container {
   width: 140px;
   height: 140px;
@@ -457,7 +404,6 @@ onUnmounted(() => {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
 }
 
-/* ─── APP CARDS ────────────────────────────────────────────────────── */
 .app-icon-card {
   width: 90px;
   height: 90px;
@@ -476,7 +422,6 @@ onUnmounted(() => {
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
 }
 
-/* Warna background light per modul */
 .bg-light-blue-1 {
   background-color: #f0f7ff !important;
 }
@@ -490,25 +435,18 @@ onUnmounted(() => {
   background-color: #faf5ff !important;
 }
 
-/* ─── MODUL ASET "SOON" ────────────────────────────────────────────── */
-/*
- * Card abu-abu khusus untuk modul yang belum tersedia.
- * Hover tetap ada tapi lebih subtle dibanding modul aktif.
- */
+/* ── Modul SOON (Aset) ── */
 .app-icon-card-soon {
   background: #f5f5f5 !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
   border: 1.5px dashed #d1d5db !important;
-  opacity: 0.8;
-  cursor: not-allowed !important;
+  opacity: 0.85;
 }
 .app-card-wrapper:hover .app-icon-card-soon {
   transform: translateY(-4px);
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.07) !important;
   opacity: 1;
 }
-
-/* Badge "SOON" di pojok kanan atas ikon */
 .soon-badge {
   position: absolute;
   top: -8px;
@@ -524,8 +462,6 @@ onUnmounted(() => {
   white-space: nowrap;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
 }
-
-/* Badge "COMING SOON" di dialog popup */
 .soon-badge-lg {
   display: inline-block;
   background: linear-gradient(135deg, #9e9e9e, #757575);
@@ -538,7 +474,7 @@ onUnmounted(() => {
   text-transform: uppercase;
 }
 
-/* ─── DIALOG ASET ──────────────────────────────────────────────────── */
+/* ── Dialog Aset ── */
 .aset-dialog-header {
   background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
   border-bottom: 1px solid #e5e7eb;
@@ -555,21 +491,18 @@ onUnmounted(() => {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
 }
 
-/* ─── TEXT GRADIENT ────────────────────────────────────────────────── */
 .text-gradient {
   background: linear-gradient(135deg, #1976d2, #64b5f6);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
-
-/* ─── SEARCH ───────────────────────────────────────────────────────── */
 .search-odoo {
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
   transition: box-shadow 0.3s ease;
 }
 
-/* ─── DARK MODE ────────────────────────────────────────────────────── */
+/* ── Dark Mode ── */
 .bg-modern-dashboard.theme-dark {
   color: #f8fafc;
   background:
@@ -610,7 +543,6 @@ onUnmounted(() => {
 .theme-dark :deep(.q-field__native::placeholder) {
   color: rgba(226, 232, 240, 0.58) !important;
 }
-
 .theme-dark .app-icon-card {
   background: rgba(15, 23, 42, 0.74) !important;
   border: 1px solid rgba(148, 163, 184, 0.14);
@@ -635,7 +567,7 @@ onUnmounted(() => {
   border-color: rgba(148, 163, 184, 0.2);
 }
 
-/* ─── ANIMASI ──────────────────────────────────────────────────────── */
+/* ── Animasi ── */
 @keyframes appAppear {
   from {
     transform: scale(0.85);
@@ -684,7 +616,6 @@ onUnmounted(() => {
   }
 }
 
-/* ─── RESPONSIVE ───────────────────────────────────────────────────── */
 @media (max-width: 600px) {
   .text-h3 {
     font-size: 2rem;
