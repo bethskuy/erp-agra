@@ -18,7 +18,7 @@ export default defineConfig(async () => {
     node: 'node20',
   },
 
-  vueRouterMode: 'hash',
+  vueRouterMode: 'history',
 
   env: {
     APP_VERSION: process.env.APP_VERSION || pkg.version,

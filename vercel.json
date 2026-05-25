@@ -1,16 +1,8 @@
 {
-  "routes": [
+  "rewrites": [
     {
-      "src": "/version.json",
-      "dest": "/version.json"
-    },
-    {
-      "src": "/app-debug.apk",
-      "dest": "/app-debug.apk"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/((?!version.json|app-debug.apk).*)",
+      "destination": "/index.html"
     }
   ]
 }
