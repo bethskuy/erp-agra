@@ -450,7 +450,8 @@
                 </div>
 
                 <div
-                  class="col-12 col-md-5 q-pa-sm q-pa-md-md bg-grey-1 flex column justify-between camera-control-panel"
+                  class="col-12 col-md-5 q-pa-sm q-pa-md-md bg-grey-1 flex column justify-between camera-control-panel relative-position"
+                  style="z-index: 999999"
                 >
                   <div
                     class="bg-white q-pa-sm q-pa-md-md rounded-12 border-grey shadow-sm info-summary-card"
@@ -1090,7 +1091,6 @@ const startAbsensi = (mode) => {
         position: 'top',
       })
     }
-    
   } else {
     if (!documentId.value) {
       $q.notify({
@@ -1588,11 +1588,26 @@ onUnmounted(() => {
   position: relative;
   z-index: 1;
 }
-.video-stream {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.video-stream,
+.scanner-overlay,
+.scanner-frame,
+.scan-laser,
+.corner,
+canvas {
+  pointer-events: none !important;
 }
+
+.camera-control-panel {
+  position: relative;
+  z-index: 99999 !important;
+}
+
+.camera-control-panel .q-btn {
+  position: relative;
+  z-index: 999999 !important;
+  pointer-events: auto !important;
+}
+
 .scanner-overlay {
   position: absolute;
   top: 0;
