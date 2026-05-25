@@ -1,5 +1,10 @@
 {
   "appId": "com.agra.erp",
   "appName": "Agra ERP",
-  "webDir": "dist/spa"
+  "webDir": "dist/spa",
+  "plugins": {
+    "CapacitorUpdater": {
+      "autoUpdate": false
+    }
+  }
 }

@@ -71,7 +71,7 @@
             color="primary"
             label="Install Update APK"
             :loading="isInstallingUpdate"
-            @click="installApkUpdate"
+            @click="installUpdate"
           />
         </q-card-actions>
       </q-card>
@@ -88,6 +88,7 @@
 </template>
 
 <script setup>
+import { CapacitorUpdater } from '@capgo/capacitor-updater'
 import { Capacitor } from '@capacitor/core'
 import { auth } from 'src/boot/firebase'
 import { signOut } from 'firebase/auth'
@@ -97,28 +98,23 @@ import { useQuasar } from 'quasar'
 
 const router = useRouter()
 const $q = useQuasar()
-const UPDATE_MANIFEST_URL = 'https://raw.githubusercontent.com/bethskuy/erp-agra/refs/heads/main/public/version.json'
-
+const UPDATE_MANIFEST_URL = 'https://agra-erp.vercel.app/version.json'
 const FALLBACK_APK_URL = 'https://agra-erp.vercel.app/app-debug.apk'
+const DEFAULT_UPDATE_INFO = {
+  version: '',
+  apk: '',
+  notes: '',
+}
 
 const showUpdateDialog = ref(false)
 const isCheckingUpdate = ref(false)
 const isInstallingUpdate = ref(false)
-const dismissedUpdateVersion = ref('')
-const updateInfo = ref({
-  version: '',
-  apk: '',
-  notes: '',
-})
-
-const currentAppVersion = computed(
-  () => import.meta.env.APP_VERSION || import.meta.env.PACKAGE_VERSION || '0.0.0',
+const currentAppVersion = ref(
+  String(import.meta.env.APP_VERSION || import.meta.env.PACKAGE_VERSION || '0.0.0'),
 )
+const updateInfo = ref({ ...DEFAULT_UPDATE_INFO })
 const isNativeAndroid = computed(
   () => Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android',
-)
-const isAndroidClient = computed(
-  () => isNativeAndroid.value || /android/i.test(window.navigator.userAgent || ''),
 )
 
 const normalizeVersion = (version) =>
@@ -153,12 +149,15 @@ const compareVersions = (currentVersion, nextVersion) => {
 
 const resolveAbsoluteUrl = (url) => new URL(url, window.location.origin).toString()
 
-const openExternalUrl = async (url) => {
-  const popup = window.open(url, '_blank', 'noopener,noreferrer')
-
-  if (!popup) {
-    window.location.href = url
-  }
+const downloadApkFromUrl = (url) => {
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.target = '_blank'
+  anchor.rel = 'noopener noreferrer'
+  anchor.download = ''
+  document.body.appendChild(anchor)
+  anchor.click()
+  anchor.remove()
 }
 
 const fetchUpdateManifest = async () => {
@@ -176,8 +175,27 @@ const fetchUpdateManifest = async () => {
   return response.json()
 }
 
-const checkForAppUpdate = async () => {
-  if (isCheckingUpdate.value || !isAndroidClient.value) {
+const loadCurrentAppVersion = async () => {
+  currentAppVersion.value = normalizeVersion(currentAppVersion.value)
+
+  if (!isNativeAndroid.value) {
+    return
+  }
+
+  try {
+    await CapacitorUpdater.notifyAppReady()
+    const { version } = await CapacitorUpdater.getBuiltinVersion()
+
+    if (version) {
+      currentAppVersion.value = normalizeVersion(version)
+    }
+  } catch (error) {
+    console.warn('Capgo updater tidak bisa membaca versi native:', error)
+  }
+}
+
+const checkForUpdate = async () => {
+  if (isCheckingUpdate.value || !isNativeAndroid.value) {
     return
   }
 
@@ -186,16 +204,16 @@ const checkForAppUpdate = async () => {
   try {
     const manifest = await fetchUpdateManifest()
     const remoteVersion = normalizeVersion(manifest?.version)
-    const remoteApkUrl = manifest?.apk ? resolveAbsoluteUrl(manifest.apk) : ''
+    const remoteApkUrl = manifest?.apk ? resolveAbsoluteUrl(manifest.apk) : FALLBACK_APK_URL
 
     if (!remoteVersion || !remoteApkUrl) {
+      updateInfo.value = { ...DEFAULT_UPDATE_INFO }
       return
     }
 
-    const hasNewerVersion = compareVersions(currentAppVersion.value, remoteVersion) < 0
-    const isDismissed = dismissedUpdateVersion.value === remoteVersion
-
-    if (!hasNewerVersion || isDismissed) {
+    if (compareVersions(currentAppVersion.value, remoteVersion) >= 0) {
+      updateInfo.value = { ...DEFAULT_UPDATE_INFO }
+      showUpdateDialog.value = false
       return
     }
 
@@ -212,7 +230,7 @@ const checkForAppUpdate = async () => {
   }
 }
 
-const installApkUpdate = async () => {
+const installUpdate = async () => {
   const apkUrl = updateInfo.value.apk || resolveAbsoluteUrl(FALLBACK_APK_URL)
 
   if (!apkUrl) {
@@ -228,15 +246,12 @@ const installApkUpdate = async () => {
   isInstallingUpdate.value = true
 
   try {
-    await openExternalUrl(apkUrl)
+    downloadApkFromUrl(apkUrl)
     showUpdateDialog.value = false
-    dismissedUpdateVersion.value = updateInfo.value.version
 
     $q.notify({
       color: 'info',
-      message: isNativeAndroid.value
-        ? 'Download APK dimulai. Lanjutkan instalasi dari browser Android Anda.'
-        : 'Halaman download APK dibuka.',
+      message: 'Download APK dimulai. Lanjutkan instalasi APK terbaru di Android Anda.',
       icon: 'system_update_alt',
       position: 'top',
       timeout: 3500,
@@ -291,7 +306,9 @@ const handleLogout = () => {
 }
 
 onMounted(() => {
-  checkForAppUpdate()
+  loadCurrentAppVersion().finally(() => {
+    checkForUpdate()
+  })
 })
 </script>
 

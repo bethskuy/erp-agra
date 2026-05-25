@@ -1,8 +1,28 @@
 {
-  "rewrites": [
+  "builds": [
     {
-      "source": "/((?!version.json|app-debug.apk).*)",
-      "destination": "/index.html"
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist/spa"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/version\\.json",
+      "dest": "/version.json"
+    },
+    {
+      "src": "/app-debug\\.apk",
+      "dest": "/app-debug.apk"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }
