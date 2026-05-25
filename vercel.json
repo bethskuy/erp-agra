@@ -10,14 +10,6 @@
   ],
   "routes": [
     {
-      "src": "/version\\.json",
-      "dest": "/version.json"
-    },
-    {
-      "src": "/app-debug\\.apk",
-      "dest": "/app-debug.apk"
-    },
-    {
       "handle": "filesystem"
     },
     {
