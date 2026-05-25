@@ -477,6 +477,10 @@ const routes = [
         path: 'akses',
         component: () => import('pages/managementkaryawan/AksesPage.vue'),
       },
+      {
+        path: '/verifikasi-karyawan/:id',
+        component: () => import('pages/VerifikasiPage.vue'),
+      },
     ],
   },
 

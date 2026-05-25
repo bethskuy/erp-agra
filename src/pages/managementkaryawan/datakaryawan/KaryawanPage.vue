@@ -145,7 +145,6 @@
                     {{ props.row.divisi }}
                   </q-badge>
 
-                  <!-- REVISI POIN 15: Rendering Multi-Lokasi Dinas dengan Indah di List View (ss 3) -->
                   <template v-if="Array.isArray(props.row.lokasi_dinas)">
                     <q-badge
                       v-for="loc in props.row.lokasi_dinas"
@@ -229,61 +228,119 @@
       </div>
 
       <div class="row q-col-gutter-lg justify-center animate-fade-up" v-if="selectedKaryawan">
-        <!-- ID CARD PREVIEW (KOLOM KIRI: INTEGRASI BARCODE & BIOMETRIK WAJAH) -->
+        <!-- ID CARD PREVIEW (KOLOM KIRI: DESAIN ULTRA PREMIUM CYBER-GLASS TITANIUM BEZEL) -->
         <div class="col-12 col-md-4 flex flex-center">
           <div class="column items-center full-width">
             <div
-              class="text-subtitle1 text-weight-bolder text-blue-grey-9 q-mb-sm text-center uppercase tracking-wide"
+              class="text-subtitle1 text-weight-bolder text-blue-grey-9 q-mb-md text-center uppercase tracking-wide font-pro"
             >
               Access Badge Resmi Perusahaan
             </div>
 
-            <div id="digital-id-card-badge" class="id-card-container shadow-24 relative-position">
-              <div class="lanyard-hole"></div>
+            <!-- ID CARD CONTAINER UTAMA (ULTRAPREMIUM HIGH-TECH GLASS) -->
+            <div id="digital-id-card-badge" class="id-card-container relative-position">
+              <!-- Metal Screws in Corners (Mekanikal Presisi) -->
+              <div class="bezel-screw tl"></div>
+              <div class="bezel-screw tr"></div>
+              <div class="bezel-screw bl"></div>
+              <div class="bezel-screw br"></div>
 
-              <div class="id-card-header text-center column flex-center">
-                <q-icon name="corporate_fare" size="28px" class="q-mb-xs" />
-                <div class="id-company-title">PT AGRA ABHINAYA PERKASA</div>
-                <div class="id-company-sub">Sistem Integrasi ERP Cloud</div>
+              <!-- Top Lanyard Mount (Klip Logam Industri) -->
+              <div class="bezel-hanger-mount">
+                <div class="bezel-hanger-core"></div>
               </div>
 
-              <!-- Foto Registrasi Absen (Bukan foto profil sosial, melainkan master biometrik acuan AI) -->
-              <div class="id-card-photo-box flex flex-center relative-position">
-                <img
-                  :src="selectedKaryawan.foto_registrasi || 'https://cdn.quasar.dev/img/avatar.png'"
-                  class="id-photo-element"
-                />
-                <div class="id-lock-tag">
-                  <q-icon name="verified" size="10px" class="q-mr-xs" />BIOMETRIC VALID
+              <!-- Cyber Schematic Grids & Glow Layers -->
+              <div class="cyber-grid-overlay"></div>
+              <div class="cyber-glow-blue"></div>
+              <div class="cyber-glow-purple"></div>
+
+              <!-- Top Telemetry & Status Bar -->
+              <div class="cyber-status-bar row no-wrap justify-between items-center full-width">
+                <span class="status-indicator">
+                  <span class="status-pulse-dot"></span>
+                  SYS.SECURE // LIVE_PASS
+                </span>
+                <span class="tech-serial font-mono">AGR.026_X</span>
+              </div>
+
+              <!-- Header dengan Logo Resmi & Branding Modern -->
+              <div class="id-card-header text-center column flex-center">
+                <div class="id-logo-box q-mb-xs">
+                  <img
+                    src="/icons/logo-agra.png"
+                    class="id-logo-element"
+                    @error="useFallbackLogo = true"
+                    v-if="!useFallbackLogo"
+                    alt="AGRA Logo"
+                  />
+                  <q-icon name="corporate_fare" size="24px" class="text-indigo-10" v-else />
+                </div>
+                <div class="id-company-title">PT AGRA ABHINAYA PERKASA</div>
+                <div class="id-company-sub">SISTEM INTEGRASI ERP CLOUD</div>
+              </div>
+
+              <!-- Biometric Scanning Target Frame & Glowing Pulse -->
+              <div class="id-card-photo-wrapper flex flex-center relative-position">
+                <div class="photo-glow-ring"></div>
+                <div class="biometric-scanner-reticle"></div>
+                <div class="scanner-sweep-line"></div>
+
+                <q-avatar size="108px" class="id-card-photo-box">
+                  <img
+                    :src="selectedKaryawan.fotoUrl || 'https://cdn.quasar.dev/img/avatar.png'"
+                    style="object-fit: cover"
+                  />
+                </q-avatar>
+
+                <!-- Shield Security Badge (Plat Logam Holografik) -->
+                <div class="id-official-badge">
+                  <q-icon name="verified" size="12px" class="text-cyan-4 animate-pulse" />OFFICIAL
+                  ID
                 </div>
               </div>
 
+              <!-- Grid Informasi Karyawan & Pembagian Visual -->
               <div class="id-card-info text-center">
                 <div class="id-employee-name uppercase">{{ selectedKaryawan.nama }}</div>
                 <div class="id-employee-job">{{ selectedKaryawan.jabatan }}</div>
-                <q-badge
-                  color="indigo-10"
-                  text-color="white"
-                  class="q-px-sm text-weight-bold text-overline font-mono q-mt-xs"
-                >
-                  {{ selectedKaryawan.divisi || 'STAFF' }}
-                </q-badge>
+
+                <div class="row justify-center q-mt-sm">
+                  <span
+                    class="id-custom-divisi-tag"
+                    :class="selectedKaryawan.divisi?.toLowerCase() || 'staff'"
+                  >
+                    <q-icon
+                      name="engineering"
+                      size="11px"
+                      class="q-mr-xs"
+                      v-if="selectedKaryawan.divisi?.toLowerCase() === 'konstruksi'"
+                    />
+                    <q-icon
+                      name="settings_suggest"
+                      size="11px"
+                      class="q-mr-xs"
+                      v-else-if="selectedKaryawan.divisi?.toLowerCase() === 'manufaktur'"
+                    />
+                    {{ selectedKaryawan.divisi || 'STAFF' }}
+                  </span>
+                </div>
               </div>
 
-              <!-- QR Code Absensi Otomatis dari NIK (Saat Di-scan akan memunculkan NIK) -->
+              <!-- Enclosed QR Code & Barcode Telemetry -->
               <div class="id-card-qr-box text-center column flex-center">
-                <div class="qr-white-wrapper shadow-soft">
-                  <img
-                    :src="
-                      'https://api.qrserver.com/v1/create-qr-code/?size=120x120&color=1a237e&data=' +
-                      selectedKaryawan.nik
-                    "
-                    class="qr-element"
-                  />
+                <div class="qr-cyber-wrapper">
+                  <img :src="generateQrUrl(selectedKaryawan)" class="qr-element" />
+                  <!-- Cyberpunk Angle brackets -->
+                  <div class="corner-accent tl"></div>
+                  <div class="corner-accent tr"></div>
+                  <div class="corner-accent bl"></div>
+                  <div class="corner-accent br"></div>
                 </div>
                 <div class="id-employee-nik font-mono">{{ selectedKaryawan.nik }}</div>
               </div>
 
+              <!-- Premium Footer Strip -->
               <div class="id-card-footer text-center">KARTU IDENTITAS DIGITAL RESMI PERUSAHAAN</div>
             </div>
           </div>
@@ -306,6 +363,7 @@
                     <img
                       :src="selectedKaryawan.fotoUrl || 'https://cdn.quasar.dev/img/avatar.png'"
                       alt="Avatar"
+                      style="object-fit: cover"
                     />
                   </q-avatar>
                 </div>
@@ -320,7 +378,7 @@
               </div>
             </div>
 
-            <!-- Tab Selector Asli -->
+            <!-- Tab Selector -->
             <q-tabs
               v-model="tab"
               dense
@@ -336,7 +394,7 @@
               <q-tab name="dokumen" label="Dokumen" class="text-weight-bold" />
             </q-tabs>
 
-            <!-- Tab Panels Asli -->
+            <!-- Tab Panels -->
             <q-tab-panels v-model="tab" animated class="q-pa-md">
               <!-- PANEL 1: PERSONAL -->
               <q-tab-panel name="personal">
@@ -403,8 +461,6 @@
                         {{ calculateTenorDays(selectedKaryawan.tglMasuk) }}
                       </td>
                     </tr>
-
-                    <!-- REVISI POIN 5 & 15: Penampilan dinamis untuk Jadwal & Multi-Lokasi Dinas -->
                     <tr>
                       <td>Jam Dinas / Shift Kerja</td>
                       <td>
@@ -553,7 +609,7 @@
     </template>
 
     <!-- =====================================================================================
-         VIEW 3: FORM REGISTRASI / EDIT (DENGAN INTEGRASI SHIFT DINAMIS)
+         VIEW 3: FORM REGISTRASI / EDIT
          ===================================================================================== -->
     <template v-else-if="currentView === 'form'">
       <div class="row items-center justify-between q-mb-xl animate-fade">
@@ -671,7 +727,7 @@
                 </div>
               </q-card>
 
-              <!-- CARD 2: KEPEGAWAIAN & SHIFT DINAMIS (REVISI INTEGRASI POIN 5) -->
+              <!-- CARD 2: KEPEGAWAIAN & SHIFT DINAMIS -->
               <q-card flat bordered class="rounded-borders q-pa-lg bg-white shadow-soft q-mb-lg">
                 <div class="row items-center q-mb-lg border-bottom-subtle q-pb-md">
                   <q-avatar
@@ -703,7 +759,6 @@
                     dense
                   />
 
-                  <!-- Pengaturan Jam Shift Masuk dan Pulang untuk Karyawan -->
                   <div class="col-12 col-sm-6">
                     <div
                       class="text-caption text-weight-bold text-blue-grey-8 uppercase letter-spacing-1 q-mb-xs"
@@ -735,7 +790,6 @@
                     />
                   </div>
 
-                  <!-- REVISI POIN 15: Dropdown Multi-select Lokasi Dinas penugasan pada form registrasi utama -->
                   <div class="col-12">
                     <div
                       class="text-caption text-weight-bold text-blue-grey-8 uppercase letter-spacing-1 q-mb-xs"
@@ -886,7 +940,7 @@
                 <q-select
                   outlined
                   v-model="form.divisi"
-                  :options="divisiOptions"
+                  :options="divOptions"
                   label="Pilih Divisi Kerja *"
                   dense
                   @update:model-value="onDivisiChange"
@@ -1008,8 +1062,150 @@
     </template>
 
     <!-- =====================================================================================
-         REVISI EMAS: DIALOG POPUP SHIFT & MULTI LOKASI PENUGASAN REAKTIF (BISA DIUBAH KAPAN SAJA)
+         VIEW 4: HALAMAN VERIFIKASI PROFIL PUBLIK (OVERLAY RESPONSIF BAGI SCANNED VISITOR)
          ===================================================================================== -->
+    <template v-else-if="currentView === 'public-profile'">
+      <div class="fixed-full bg-slate-100 flex flex-center q-pa-md z-max overflow-y-auto font-pro">
+        <div
+          class="absolute-top bg-white q-py-md q-px-lg shadow-sm flex items-center justify-between full-width no-print border-bottom-subtle"
+        >
+          <div class="row items-center q-gutter-sm">
+            <q-icon name="verified_user" color="teal-7" size="sm" />
+            <span class="text-subtitle2 text-weight-bold text-blue-grey-10"
+              >PORTAL VERIFIKASI RESMI</span
+            >
+          </div>
+          <div class="text-caption text-weight-bold text-indigo-10">PT AGRA ABHINAYA PERKASA</div>
+        </div>
+
+        <div v-if="loading" class="text-center">
+          <q-spinner-oval color="primary" size="50px" />
+          <div class="text-subtitle2 q-mt-md text-grey-7">
+            Menghubungkan ke database terenkripsi AGRA...
+          </div>
+        </div>
+
+        <div
+          v-else-if="publicKaryawan"
+          class="q-mt-xl text-center animate-fade-up"
+          style="max-width: 450px; width: 100%"
+        >
+          <q-card flat bordered class="rounded-24 shadow-24 bg-white overflow-hidden border-subtle">
+            <!-- Header Status Verified -->
+            <div class="bg-teal-50 q-py-md q-px-lg flex flex-center border-bottom-subtle">
+              <div class="row items-center q-gutter-md text-teal-10">
+                <q-icon name="check_circle" size="md" />
+                <div class="text-left">
+                  <div class="text-subtitle2 text-weight-bolder leading-none">
+                    KARYAWAN TERVERIFIKASI
+                  </div>
+                  <div class="text-caption text-weight-medium">
+                    Tercatat Aktif di Database Cloud ERP
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Profile Frame Bulat Sempurna -->
+            <div class="q-pt-xl q-pb-md flex flex-center">
+              <div class="profile-verified-photo-box shadow-md">
+                <img
+                  :src="publicKaryawan.fotoUrl || 'https://cdn.quasar.dev/img/avatar.png'"
+                  class="profile-verified-img"
+                />
+              </div>
+            </div>
+
+            <q-card-section class="q-px-lg q-pt-none">
+              <div class="text-h5 text-weight-bolder text-blue-grey-10 uppercase q-mb-xs">
+                {{ publicKaryawan.nama }}
+              </div>
+              <div class="text-subtitle2 text-weight-bold text-indigo-10 q-mb-md">
+                {{ publicKaryawan.jabatan }}
+              </div>
+
+              <q-separator inset class="q-my-md" />
+
+              <!-- Data Non-Sensitif / Publik -->
+              <div class="text-left q-gutter-y-sm">
+                <div class="row items-center justify-between q-py-xs border-bottom-subtle">
+                  <span class="text-caption text-grey-6 font-weight-bold"
+                    >Nomor Induk Karyawan (NIK)</span
+                  >
+                  <span class="text-body2 text-weight-bold font-mono text-indigo-10">{{
+                    publicKaryawan.nik
+                  }}</span>
+                </div>
+                <div class="row items-center justify-between q-py-xs border-bottom-subtle">
+                  <span class="text-caption text-grey-6 font-weight-bold">Divisi Bisnis</span>
+                  <span class="text-body2 text-weight-bold text-blue-grey-9 uppercase">{{
+                    publicKaryawan.divisi
+                  }}</span>
+                </div>
+                <div class="row items-center justify-between q-py-xs border-bottom-subtle">
+                  <span class="text-caption text-grey-6 font-weight-bold">Masa Kerja</span>
+                  <span class="text-body2 text-weight-bold text-blue-grey-9">{{
+                    formatDateIndo(publicKaryawan.tglMasuk)
+                  }}</span>
+                </div>
+                <div class="row items-start justify-between q-py-xs border-bottom-subtle">
+                  <span class="text-caption text-grey-6 font-weight-bold q-pt-xs"
+                    >Lokasi Dinas Aktif</span
+                  >
+                  <div class="text-right">
+                    <template v-if="Array.isArray(publicKaryawan.lokasi_dinas)">
+                      <q-badge
+                        v-for="loc in publicKaryawan.lokasi_dinas"
+                        :key="loc"
+                        color="teal-1"
+                        text-color="teal-10"
+                        class="q-px-sm q-py-xs text-weight-bold q-ml-xs q-mb-xs"
+                      >
+                        <q-icon name="place" size="10px" class="q-mr-xs" />{{ loc }}
+                      </q-badge>
+                    </template>
+                    <template v-else-if="publicKaryawan.lokasi_dinas">
+                      <q-badge
+                        color="teal-1"
+                        text-color="teal-10"
+                        class="q-px-sm q-py-xs text-weight-bold"
+                      >
+                        <q-icon name="place" size="10px" class="q-mr-xs" />{{
+                          publicKaryawan.lokasi_dinas
+                        }}
+                      </q-badge>
+                    </template>
+                  </div>
+                </div>
+                <div class="row items-center justify-between q-py-xs">
+                  <span class="text-caption text-grey-6 font-weight-bold">Status Kepegawaian</span>
+                  <q-badge
+                    color="positive"
+                    class="q-px-md q-py-xs text-weight-bold rounded-pill text-overline"
+                    >AKTIF</q-badge
+                  >
+                </div>
+              </div>
+            </q-card-section>
+
+            <div class="bg-blue-grey-1 q-py-md text-caption text-grey-6 text-center border-top">
+              Sistem Informasi SDM Terintegrasi AGRA ERP<br />
+              <span class="font-bold text-indigo-10">Valid &amp; Tercatat Resmi</span>
+            </div>
+          </q-card>
+        </div>
+
+        <div v-else class="text-center animate-fade-up">
+          <q-icon name="error_outline" color="negative" size="64px" />
+          <div class="text-h6 q-mt-md text-red-7">Verifikasi Profil Gagal</div>
+          <div class="text-caption text-grey-6 q-px-md">
+            ID Karyawan tidak terdaftar atau telah dinonaktifkan dari PT AGRA ABHINAYA PERKASA.
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- DIALOG POPUP SHIFT & MULTI LOKASI PENUGASAN -->
     <q-dialog v-model="dialogShift" persistent backdrop-filter="blur(5px)">
       <q-card
         style="width: 500px; max-width: 95vw"
@@ -1047,7 +1243,6 @@
 
         <q-card-section class="q-pa-lg">
           <div class="q-gutter-y-md">
-            <!-- Jam Masuk & Pulang -->
             <div class="row q-col-gutter-md">
               <div class="col-6">
                 <div
@@ -1069,7 +1264,6 @@
               </div>
             </div>
 
-            <!-- REVISI POIN 15: Dropdown Multi-select Lokasi Dinas penugasan reaktif pada dialog cepat admin -->
             <div>
               <div
                 class="text-caption text-weight-bold text-blue-grey-8 uppercase letter-spacing-1 q-mb-xs"
@@ -1197,6 +1391,7 @@ import {
   addDoc,
   updateDoc,
   doc,
+  getDoc,
   onSnapshot,
   deleteDoc,
   query,
@@ -1204,10 +1399,9 @@ import {
   serverTimestamp,
 } from 'firebase/firestore'
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
-import { createUserWithEmailAndPassword } from 'firebase/auth'
+import { createUserWithEmailAndPassword, signInAnonymously } from 'firebase/auth'
 import { useQuasar } from 'quasar'
 import { useAuthStore } from 'src/stores/auth'
-import html2pdf from 'html2pdf.js'
 
 const $q = useQuasar()
 const authStore = useAuthStore()
@@ -1220,13 +1414,12 @@ const submitting = ref(false)
 const loading = ref(true)
 const tab = ref('personal')
 
-// REVISI POIN 5 & 15: Variabel dynamic modal shift & list opsi lokasi dinas
 const dialogShift = ref(false)
 const shiftForm = ref({
   karyawanId: '',
   jam_masuk: '08:00',
   jam_pulang: '17:00',
-  lokasi_dinas: [], // Diinisialisasi sebagai array kosong agar aman untuk multi-select
+  lokasi_dinas: [],
 })
 const lokasiOptions = ref([])
 
@@ -1236,9 +1429,14 @@ const docList = ref([{ name: '', file: null }])
 const fotoFile = ref(null)
 const fotoRegistrasiFile = ref(null)
 
-const divisiOptions = ['Konstruksi', 'Manufaktur']
+// Fallback jika asset logo-agra.png tidak berhasil dipanggil
+const useFallbackLogo = ref(false)
 
-// REVISI UTAMA: selectedKaryawan diubah menjadi computed agar reaktif secara live dari data Firestore
+const divOptions = ['Konstruksi', 'Manufaktur']
+
+// Variable khusus menyimpan data verifikasi karyawan publik
+const publicKaryawan = ref(null)
+
 const selectedKaryawan = computed(() => {
   return karyawanList.value.find((k) => k.id === selectedKaryawanId.value) || null
 })
@@ -1262,9 +1460,10 @@ const formDefault = {
   nama_bank: '',
   akses: [],
   foto_registrasi: '',
+  fotoUrl: '',
   jam_masuk: '08:00',
   jam_pulang: '17:00',
-  lokasi_dinas: [], // Diubah menjadi array kosong secara default
+  lokasi_dinas: [],
 }
 const form = ref({ ...formDefault })
 
@@ -1302,6 +1501,9 @@ const loadExternalLibraries = async () => {
     await Promise.all([
       loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'),
       loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'),
+      loadScript(
+        'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js',
+      ),
     ])
     await loadScript(
       'https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js',
@@ -1333,7 +1535,6 @@ const calculateTenorDays = (tglMasuk) => {
   }
 }
 
-// Mengunci ke ID reaktif
 const viewDetail = (data) => {
   selectedKaryawanId.value = data.id
   currentView.value = 'detail'
@@ -1342,8 +1543,6 @@ const viewDetail = (data) => {
 
 const editKaryawan = (data) => {
   isEditMode.value = true
-
-  // Konversi database lama (jika ada string) menjadi array lokasi dinas
   let initialLocs = data.lokasi_dinas || []
   if (typeof initialLocs === 'string') {
     initialLocs = initialLocs ? [initialLocs] : []
@@ -1363,7 +1562,6 @@ const editKaryawan = (data) => {
   window.scrollTo(0, 0)
 }
 
-// REVISI EMAS: Logic pembuka quick dialog penyesuaian shift hrd dinamis
 const openShiftDialog = (karyawan) => {
   let initialLocs = karyawan.lokasi_dinas || []
   if (typeof initialLocs === 'string') {
@@ -1379,7 +1577,6 @@ const openShiftDialog = (karyawan) => {
   dialogShift.value = true
 }
 
-// REVISI EMAS: Handler penyimpanan shift & lokasi dinas dinamis di detail page (Auto-sync reaktif)
 const saveShiftSettings = async () => {
   if (!shiftForm.value.lokasi_dinas || shiftForm.value.lokasi_dinas.length === 0) {
     $q.notify({ type: 'warning', message: 'Silakan tentukan Lokasi Dinas proyek aktif!' })
@@ -1521,7 +1718,8 @@ const cetakIdCardLokal = () => {
   }
 
   $q.loading.show({ message: 'Mengolah ID Card Biometrik...' })
-  html2pdf()
+  window
+    .html2pdf()
     .set(opt)
     .from(element)
     .save()
@@ -1560,7 +1758,8 @@ const exportToPDF = () => {
     jsPDF: { orientation: 'landscape' },
   }
   $q.loading.show()
-  html2pdf()
+  window
+    .html2pdf()
     .set(opt)
     .from(element)
     .save()
@@ -1576,37 +1775,85 @@ const formatDateIndo = (d) =>
     ? new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
     : '-'
 
+// METODE KHUSUS: Membuat Link Enkripsi QR Code Ke Halaman Validasi Publik
+const generateQrUrl = (karyawan) => {
+  if (!karyawan || !karyawan.id) return ''
+  const baseUrl = window.location.origin + window.location.pathname
+  const fullUrl = `${baseUrl}?public_id=${karyawan.id}`
+  return (
+    'https://api.qrserver.com/v1/create-qr-code/?size=150x150&color=1a237e&data=' +
+    encodeURIComponent(fullUrl)
+  )
+}
+
+// METODE KHUSUS: Cek apakah visitor men-scan QR Code & mengarah ke halaman verifikasi publik
+const checkPublicVerificationRoute = async () => {
+  const searchStr =
+    window.location.search ||
+    (window.location.hash.includes('?') ? window.location.hash.split('?')[1] : '')
+  const urlParams = new URLSearchParams(searchStr)
+  const publicId = urlParams.get('public_id')
+
+  if (publicId) {
+    currentView.value = 'public-profile'
+    loading.value = true
+    try {
+      // Jika visitor tidak login, gunakan login anonim agar dapat bypass Firebase Rule pembacaan data
+      if (!auth.currentUser) {
+        await signInAnonymously(auth)
+      }
+      const docRef = doc(db, 'karyawan', publicId)
+      const docSnap = await getDoc(docRef)
+      if (docSnap.exists()) {
+        publicKaryawan.value = { ...docSnap.data(), id: docSnap.id }
+      } else {
+        $q.notify({ type: 'negative', message: 'Data verifikasi karyawan tidak ditemukan.' })
+      }
+    } catch (err) {
+      console.error('Portal Verifikasi Publik Error:', err)
+      $q.notify({ type: 'negative', message: 'Koneksi ke sistem database terhambat.' })
+    } finally {
+      loading.value = false
+    }
+  }
+}
+
 onMounted(async () => {
   await loadExternalLibraries()
-  if (authStore.user?.email) {
-    unsubUser = onSnapshot(
-      query(collection(db, 'karyawan'), where('email', '==', authStore.user.email)),
-      (snap) => {
-        if (!snap.empty) userData.value = snap.docs[0].data()
-      },
-    )
-  }
-  unsubKaryawan = onSnapshot(query(collection(db, 'karyawan')), (s) => {
-    karyawanList.value = s.docs
-      .map((d) => ({ ...d.data(), id: d.id }))
-      .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
-  })
-  unsubJabatan = onSnapshot(query(collection(db, 'jabatan')), (s) => {
-    jabatanOptions.value = s.docs.map((d) => ({
-      label: d.data().namaJabatan,
-      value: d.data().namaJabatan,
-    }))
-  })
-  // REVISI POIN 15: Sinkronisasi real-time dropdown Lokasi Dinas dengan menu Pengaturan Absensi menggunakan model objek berlabel
-  unsubLokasi = onSnapshot(query(collection(db, 'lokasi_kantor')), (s) => {
-    lokasiOptions.value = s.docs.map((d) => {
-      const name = d.data().nama_lokasi || ''
-      return {
-        label: name.toUpperCase(),
-        value: name,
-      }
+
+  // Cek apakah ini adalah link hasil scan QR ID Card karyawan
+  await checkPublicVerificationRoute()
+
+  if (currentView.value !== 'public-profile') {
+    if (authStore.user?.email) {
+      unsubUser = onSnapshot(
+        query(collection(db, 'karyawan'), where('email', '==', authStore.user.email)),
+        (snap) => {
+          if (!snap.empty) userData.value = snap.docs[0].data()
+        },
+      )
+    }
+    unsubKaryawan = onSnapshot(query(collection(db, 'karyawan')), (s) => {
+      karyawanList.value = s.docs
+        .map((d) => ({ ...d.data(), id: d.id }))
+        .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
     })
-  })
+    unsubJabatan = onSnapshot(query(collection(db, 'jabatan')), (s) => {
+      jabatanOptions.value = s.docs.map((d) => ({
+        label: d.data().namaJabatan,
+        value: d.data().namaJabatan,
+      }))
+    })
+    unsubLokasi = onSnapshot(query(collection(db, 'lokasi_kantor')), (s) => {
+      lokasiOptions.value = s.docs.map((d) => {
+        const name = d.data().nama_lokasi || ''
+        return {
+          label: name.toUpperCase(),
+          value: name,
+        }
+      })
+    })
+  }
 })
 
 onUnmounted(() => {
@@ -1639,6 +1886,9 @@ const columns = [
 .rounded-20 {
   border-radius: 20px;
 }
+.rounded-24 {
+  border-radius: 24px;
+}
 .border-subtle {
   border: 1px solid #f1f5f9 !important;
 }
@@ -1662,115 +1912,393 @@ const columns = [
   line-height: 1;
 }
 
+/* =========================================================================
+   ULTRAPREMIUM CYBER-GLASSMOPHISM ID CARD (FUTURISTIC SCI-FI TECH BADGE)
+   ========================================================================= */
 .id-card-container {
   width: 280px;
   height: 440px;
-  background: #ffffff;
-  border-radius: 16px;
-  border: 1px solid #cbd5e1;
-  padding: 16px;
+  background: rgba(255, 255, 255, 0.82); /* Frosted Ice-glass */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 18px;
+  border: 4px solid #94a3b8; /* Brushed Titanium Matte Frame */
+  padding: 14px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
   overflow: hidden;
-  background-image: radial-gradient(circle at 100% 0%, #e0e7ff 0%, #ffffff 60%);
+  position: relative;
+  box-shadow:
+    0 15px 35px rgba(15, 23, 42, 0.15),
+    inset 0 0 20px rgba(99, 102, 241, 0.06);
 }
-.lanyard-hole {
-  width: 35px;
-  height: 8px;
-  background: #cbd5e1;
-  border-radius: 10px;
-  margin-top: -4px;
-  margin-bottom: 8px;
+
+/* Metal Screws on Corners (Mekanikal Hardware) */
+.bezel-screw {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  background: radial-gradient(circle, #cbd5e1 30%, #475569 80%);
+  border-radius: 50%;
+  border: 0.5px solid #94a3b8;
+  z-index: 4;
 }
+.bezel-screw.tl {
+  top: 6px;
+  left: 6px;
+}
+.bezel-screw.tr {
+  top: 6px;
+  right: 6px;
+}
+.bezel-screw.bl {
+  bottom: 6px;
+  left: 6px;
+}
+.bezel-screw.br {
+  bottom: 6px;
+  right: 6px;
+}
+
+/* Titanium Lanyard Holder (Klip Gantung Atas) */
+.bezel-hanger-mount {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 48px;
+  height: 12px;
+  background: linear-gradient(180deg, #94a3b8 0%, #475569 100%);
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+.bezel-hanger-core {
+  width: 22px;
+  height: 3px;
+  background: #1e293b;
+  border-radius: 2px;
+}
+
+/* High-tech Background Schematic Grid Lines */
+.cyber-grid-overlay {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(99, 102, 241, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99, 102, 241, 0.04) 1px, transparent 1px);
+  background-size: 14px 14px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Back-glow Ambient Orbs */
+.cyber-glow-blue {
+  position: absolute;
+  top: -40px;
+  left: -40px;
+  width: 140px;
+  height: 140px;
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+  pointer-events: none;
+  z-index: 1;
+}
+.cyber-glow-purple {
+  position: absolute;
+  bottom: -40px;
+  right: -40px;
+  width: 140px;
+  height: 140px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, rgba(255, 255, 255, 0) 70%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Tech Telemetry Bar */
+.cyber-status-bar {
+  font-size: 7px;
+  font-weight: 800;
+  color: #64748b;
+  letter-spacing: 0.8px;
+  z-index: 3;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+  padding: 4px 6px 2px 6px;
+  margin-top: 4px;
+}
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.status-pulse-dot {
+  width: 4px;
+  height: 4px;
+  background-color: #06b6d4;
+  border-radius: 50%;
+  box-shadow: 0 0 6px #06b6d4;
+  animation: pulseNeon 1.5s infinite ease-in-out;
+}
+
+/* Header & Logo */
 .id-card-header {
   width: 100%;
-  color: #1a237e;
+  z-index: 3;
+  margin-top: 2px;
+}
+.id-logo-box {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.id-logo-element {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
 }
 .id-company-title {
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.5px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+  color: #0f172a; /* Dark Navy Slate */
 }
 .id-company-sub {
-  font-size: 9px;
-  color: #64748b;
-  font-weight: 600;
+  font-size: 8px;
+  color: #4f46e5;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+}
+
+/* Biometric Scanner Frame with Circular Sweep Line */
+.id-card-photo-wrapper {
+  z-index: 3;
+  margin: 4px 0;
+}
+.photo-glow-ring {
+  position: absolute;
+  width: 116px;
+  height: 116px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, #6366f1, #06b6d4, #6366f1);
+  animation: spinRing 5s linear infinite;
+  opacity: 0.8;
+  filter: blur(1.5px);
+}
+.biometric-scanner-reticle {
+  position: absolute;
+  width: 122px;
+  height: 122px;
+  border-radius: 50%;
+  border: 1px dashed rgba(6, 182, 212, 0.6);
+  animation: pulseNeon 2s infinite ease-in-out;
+  pointer-events: none;
+}
+.scanner-sweep-line {
+  position: absolute;
+  width: 110px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #06b6d4, transparent);
+  box-shadow: 0 0 8px #06b6d4;
+  z-index: 3;
+  animation: sweepAction 3.5s infinite ease-in-out;
+}
+.id-card-photo-box {
+  width: 106px;
+  height: 106px;
+  border: 3px solid #ffffff !important;
+  background: #f8fafc;
+  z-index: 2;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.12);
+  box-sizing: border-box;
+}
+
+/* Premium Shield Badge (Plat Keamanan Biometrik) */
+.id-official-badge {
+  position: absolute;
+  bottom: -6px;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #22d3ee; /* Glowing Electric Cyan */
+  font-size: 8px;
+  font-weight: 900;
+  text-align: center;
+  padding: 3px 12px;
+  border-radius: 20px;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 10px rgba(6, 182, 212, 0.25);
+  z-index: 4;
+  text-transform: uppercase;
+  border: 1.5px solid #06b6d4;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Karyawan Metadata Area */
+.id-card-info {
+  width: 100%;
+  z-index: 3;
+}
+.id-employee-name {
+  font-size: 14px;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+}
+.id-employee-job {
+  font-size: 10px;
+  color: #475569;
+  font-weight: 700;
+  margin-top: 1px;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
 }
 
-.id-card-photo-box {
-  width: 110px;
-  height: 135px;
-  border: 3px solid #1a237e;
-  border-radius: 8px;
-  overflow: hidden;
-  background: #f8fafc;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-}
-.id-photo-element {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.id-lock-tag {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(20, 184, 166, 0.9);
-  color: white;
+/* Custom Cyberpunk Division Chips with Glowing Border */
+.id-custom-divisi-tag {
   font-size: 8px;
-  font-weight: 800;
-  text-align: center;
-  padding: 2px 0;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 3px 14px;
+  border-radius: 6px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+.id-custom-divisi-tag.konstruksi {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.08) 0%, rgba(99, 102, 241, 0.12) 100%);
+  color: #4f46e5;
+  border: 1.2px solid rgba(79, 70, 229, 0.35);
+}
+.id-custom-divisi-tag.manufaktur {
+  background: linear-gradient(135deg, rgba(236, 72, 153, 0.08) 0%, rgba(219, 39, 119, 0.12) 100%);
+  color: #db2777;
+  border: 1.2px solid rgba(236, 72, 153, 0.35);
+}
+.id-custom-divisi-tag.staff {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.12) 100%);
+  color: #059669;
+  border: 1.2px solid rgba(16, 185, 129, 0.35);
 }
 
-.id-employee-name {
-  font-size: 15px;
-  font-weight: 800;
-  color: #0f172a;
-  margin-bottom: 2px;
-  letter-spacing: -0.3px;
-}
-.id-employee-job {
-  font-size: 11px;
-  color: #475569;
-  font-weight: 600;
-}
-
-.id-card-qr-box {
-  margin-top: 4px;
-}
-.qr-white-wrapper {
-  background: white;
+/* QR Code Bracket Enclosure */
+.qr-cyber-wrapper {
+  background: #ffffff;
   padding: 6px;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  position: relative;
+  z-index: 3;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
 }
 .qr-element {
-  width: 75px;
-  height: 75px;
+  width: 58px;
+  height: 58px;
   display: block;
 }
-.id-employee-nik {
-  font-size: 11px;
-  font-weight: 700;
-  color: #1a237e;
-  margin-top: 4px;
+
+/* Cyberpunk Corner Highlight Brackets */
+.corner-accent {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-color: #06b6d4;
+  border-style: solid;
+  pointer-events: none;
+}
+.corner-accent.tl {
+  top: -1px;
+  left: -1px;
+  border-width: 1.5px 0 0 1.5px;
+}
+.corner-accent.tr {
+  top: -1px;
+  right: -1px;
+  border-width: 1.5px 1.5px 0 0;
+}
+.corner-accent.bl {
+  bottom: -1px;
+  left: -1px;
+  border-width: 0 0 1.5px 1.5px;
+}
+.corner-accent.br {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 1.5px 1.5px 0;
 }
 
+/* Secure digital hash code NIK */
+.id-employee-nik {
+  font-size: 11px;
+  font-weight: 900;
+  color: #1e1b4b;
+  margin-top: 4px;
+  letter-spacing: 0.8px;
+  font-family: 'Courier New', Courier, monospace;
+  background: rgba(99, 102, 241, 0.07);
+  padding: 1.5px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  z-index: 3;
+}
+
+/* Secure Bottom Branding Strip */
 .id-card-footer {
   width: 100%;
-  background: #1a237e;
-  color: white;
-  font-size: 8px;
-  font-weight: 700;
-  padding: 6px 0;
-  border-radius: 6px;
-  letter-spacing: 0.5px;
+  background: linear-gradient(90deg, #1e1b4b 0%, #312e81 100%);
+  color: #22d3ee; /* Glowing cyan font */
+  font-size: 7px;
+  font-weight: 900;
+  padding: 4px 0;
+  border-radius: 5px;
+  letter-spacing: 0.8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  z-index: 3;
+  text-transform: uppercase;
+}
+
+/* =========================================================================
+   SCI-FI MICRO-ANIMATIONS
+   ========================================================================= */
+@keyframes spinRing {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulseNeon {
+  0%,
+  100% {
+    opacity: 0.6;
+    box-shadow: 0 0 4px rgba(6, 182, 212, 0.3);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 10px rgba(6, 182, 212, 0.7);
+  }
+}
+
+@keyframes sweepAction {
+  0%,
+  100% {
+    top: 4px;
+    opacity: 0.2;
+  }
+  50% {
+    top: 102px;
+    opacity: 0.9;
+  }
 }
 
 /* Landscape Export Hidden View */
@@ -1823,7 +2351,25 @@ const columns = [
   position: relative;
   overflow: hidden;
 }
+
 .border-white-5 {
-  border: 5px solid white;
+  border: 4px solid white;
+  box-sizing: border-box;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* CSS Khusus Portal Verifikasi Publik */
+.profile-verified-photo-box {
+  width: 140px;
+  height: 140px;
+  border: 4px solid #009688;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #f8fafc;
+}
+.profile-verified-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 </style>

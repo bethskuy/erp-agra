@@ -1,142 +1,182 @@
 <template>
-  <q-page class="bg-blue-grey-1 q-pa-md q-pa-md-lg font-pro">
-    <!-- GREETING SECTION -->
-    <div class="row items-center justify-between q-mb-xl animate-fade">
-      <div class="col-12 col-md-8">
-        <div class="text-h4 text-weight-bold text-blue-grey-10">Admin Dashboard</div>
-        <div class="text-subtitle1 text-grey-7">
-          Selamat datang kembali,
-          <span class="text-weight-bold text-primary">{{
-            authStore.user?.nama || 'Administrator'
-          }}</span
-          >. Pantau aktivitas sistem Anda di sini.
+  <q-page class="bg-blue-grey-1 q-pa-sm q-pa-md-md q-pa-lg-xl font-pro">
+    <div class="bento-container mx-auto">
+      <!-- ========================================== -->
+      <!-- GREETING SECTION                           -->
+      <!-- ========================================== -->
+      <div class="row items-center justify-between q-mb-md q-mb-md-lg animate-fade">
+        <div class="col-12 col-md-8 text-center text-md-left">
+          <div class="text-overline text-primary text-weight-bolder tracking-widest q-mb-xs">
+            SISTEM INTEGRASI AGRA
+          </div>
+          <div class="text-h4 text-weight-bold text-blue-grey-10 title-fluid">Admin Dashboard</div>
+          <div class="text-subtitle1 text-grey-7 q-mt-xs text-fluid">
+            Selamat datang kembali,
+            <span class="text-weight-bold text-primary">
+              {{ authStore.user?.nama || 'Administrator' }} </span
+            >. Pantau aktivitas sistem Anda di sini.
+          </div>
+        </div>
+
+        <div class="col-12 col-md-auto q-mt-md q-md-mt-none flex justify-center">
+          <q-btn
+            unelevated
+            color="white"
+            text-color="blue-grey-9"
+            icon="refresh"
+            label="Segarkan Data"
+            @click="refreshPage"
+            class="rounded-borders shadow-soft border-subtle q-px-md text-weight-bold"
+          />
         </div>
       </div>
-      <div class="col-12 col-md-auto q-mt-md q-mt-md-none">
-        <q-btn
-          unelevated
-          color="white"
-          text-color="blue-grey-9"
-          icon="refresh"
-          label="Segarkan Data"
-          @click="refreshPage"
-          class="rounded-borders shadow-1"
-        />
-      </div>
-    </div>
 
-    <!-- STATS CARDS GRID -->
-    <div class="row q-col-gutter-lg q-mb-xl">
-      <div class="col-12 col-sm-6 col-md-3" v-for="stat in stats" :key="stat.title">
-        <q-card flat class="stat-card shadow-sm border-subtle transition-all">
-          <q-card-section class="row items-center no-wrap">
-            <div class="col">
-              <div class="text-overline text-grey-6 leading-none">{{ stat.title }}</div>
-              <div class="text-h4 text-weight-bolder q-mt-xs text-blue-grey-10">
-                {{ stat.value }}
+      <!-- ========================================== -->
+      <!-- STATS CARDS GRID (COMPACT 2x2 ON MOBILE)   -->
+      <!-- ========================================== -->
+      <div class="row q-col-gutter-sm q-col-gutter-md-md q-mb-lg q-mb-md-xl">
+        <div class="col-6 col-sm-6 col-md-3" v-for="stat in stats" :key="stat.title">
+          <q-card
+            flat
+            class="stat-card shadow-soft border-subtle transition-all full-height relative-position overflow-hidden"
+          >
+            <q-card-section class="q-pa-sm q-pa-md-md row items-center no-wrap">
+              <div class="col overflow-hidden">
+                <div
+                  class="text-overline text-grey-6 leading-none ellipsis text-uppercase tracking-wider font-9"
+                >
+                  {{ stat.title }}
+                </div>
+                <div
+                  class="text-h4 text-weight-bolder q-mt-xs q-mt-sm-sm text-blue-grey-10 number-fluid"
+                >
+                  {{ stat.value }}
+                </div>
               </div>
-            </div>
-            <div
-              :class="`bg-${stat.color}-1 q-pa-md rounded-borders shadow-sm`"
-              style="min-width: 64px; text-align: center"
-            >
-              <q-icon :name="stat.icon" size="32px" :color="stat.color" />
-            </div>
-          </q-card-section>
-          <!-- Indikator loading kecil jika data sedang fetch -->
-          <q-inner-loading :showing="loading">
-            <q-spinner-dots color="primary" />
-          </q-inner-loading>
-        </q-card>
-      </div>
-    </div>
 
-    <div class="row q-col-gutter-lg">
-      <!-- RECENT EMPLOYEES LIST -->
-      <div class="col-12 col-md-8">
-        <q-card flat bordered class="rounded-borders shadow-1 bg-white full-height">
-          <q-card-section class="row items-center justify-between">
-            <div class="text-h6 text-weight-bold text-blue-grey-10">Karyawan Terbaru</div>
-            <q-btn
-              flat
-              dense
-              color="primary"
-              label="Lihat Semua"
-              to="/management-karyawan/database"
-              no-caps
-            />
-          </q-card-section>
-
-          <q-separator inset />
-
-          <q-card-section class="q-pa-none">
-            <q-list separator v-if="recentUsers.length > 0">
-              <q-item
-                v-for="user in recentUsers"
-                :key="user.id"
-                class="q-py-md hover-bg transition-all cursor-pointer"
-                @click="navigateToUser"
+              <div
+                :class="`bg-${stat.color}-1 q-pa-sm q-pa-md-md rounded-borders shadow-inner-soft flex flex-center icon-container`"
               >
-                <q-item-section avatar>
-                  <q-avatar size="48px" class="shadow-1">
-                    <img :src="user.fotoUrl || 'https://cdn.quasar.dev/img/avatar.png'" />
-                  </q-avatar>
-                </q-item-section>
+                <q-icon :name="stat.icon" size="24px" class="icon-fluid" :color="stat.color" />
+              </div>
+            </q-card-section>
 
-                <q-item-section>
-                  <q-item-label class="text-weight-bold text-subtitle1">{{
-                    user.nama
-                  }}</q-item-label>
-                  <q-item-label caption class="flex items-center">
-                    <q-icon name="work" size="14px" class="q-mr-xs" /> {{ user.jabatan }}
-                  </q-item-label>
-                </q-item-section>
-
-                <q-item-section side class="gt-xs">
-                  <div class="text-caption text-grey-6">Masuk: {{ formatDate(user.tglMasuk) }}</div>
-                </q-item-section>
-
-                <q-item-section side>
-                  <q-badge color="blue-1" text-color="primary" class="q-pa-sm text-weight-bold">
-                    {{ user.nik || 'N/A' }}
-                  </q-badge>
-                </q-item-section>
-              </q-item>
-            </q-list>
-            <div v-else class="q-pa-xl text-center text-grey-5">
-              <q-icon name="group_add" size="64px" />
-              <div class="text-h6 q-mt-sm">Belum ada data karyawan</div>
-            </div>
-          </q-card-section>
-        </q-card>
+            <q-inner-loading :showing="loading">
+              <q-spinner-dots color="primary" />
+            </q-inner-loading>
+          </q-card>
+        </div>
       </div>
 
-      <!-- SIDEBAR INFO & STATUS -->
-      <div class="col-12 col-md-4">
-        <!-- INFO SYSTEM CARD -->
-        <q-card
-          flat
-          class="bg-indigo-10 text-white rounded-borders shadow-6 overflow-hidden relative-position"
-        >
-          <q-card-section class="q-pa-lg">
-            <div class="text-h5 text-weight-bold">Status Server</div>
-            <div class="text-body2 q-mt-sm opacity-80">
-              Sinkronisasi database dengan Cloud Firestore berjalan normal.
-            </div>
-            <q-btn
-              flat
-              dense
-              label="Bantuan Sistem"
-              class="q-mt-md text-white border-white-30 no-caps"
-              icon-right="help_outline"
+      <!-- ========================================== -->
+      <!-- MAIN CONTENT SECTION                       -->
+      <!-- ========================================== -->
+      <div class="row q-col-gutter-lg">
+        <!-- RECENT EMPLOYEES LIST -->
+        <div class="col-12 col-md-8">
+          <q-card
+            flat
+            bordered
+            class="rounded-borders shadow-soft bg-white full-height overflow-hidden"
+          >
+            <q-card-section class="row items-center justify-between q-pa-md q-pa-md-lg">
+              <div class="text-h6 text-weight-bold text-blue-grey-10">Karyawan Terbaru</div>
+              <!-- REVISI: Mengarahkan rute "Lihat Semua" ke /karyawan yang valid -->
+              <q-btn
+                flat
+                dense
+                color="primary"
+                label="Lihat Semua"
+                to="/management-karyawan/karyawan"
+                no-caps
+                class="text-weight-bold"
+              />
+            </q-card-section>
+
+            <q-separator />
+
+            <q-card-section class="q-pa-none">
+              <q-list separator v-if="recentUsers.length > 0">
+                <q-item
+                  v-for="user in recentUsers"
+                  :key="user.id"
+                  class="q-py-md q-px-md hover-bg transition-all cursor-pointer"
+                  @click="navigateToUser"
+                >
+                  <q-item-section avatar>
+                    <q-avatar size="44px" class="shadow-soft border-subtle">
+                      <img :src="user.fotoUrl || 'https://cdn.quasar.dev/img/avatar.png'" />
+                    </q-avatar>
+                  </q-item-section>
+
+                  <q-item-section>
+                    <q-item-label
+                      class="text-weight-bold text-subtitle2 text-blue-grey-9 text-uppercase"
+                    >
+                      {{ user.nama }}
+                    </q-item-label>
+                    <q-item-label caption class="flex items-center text-grey-7 q-mt-xs">
+                      <q-icon name="work" size="12px" class="q-mr-xs text-primary" />
+                      {{ user.jabatan }}
+                    </q-item-label>
+                  </q-item-section>
+
+                  <q-item-section side class="gt-xs">
+                    <div class="text-caption text-grey-5">
+                      Masuk: {{ formatDate(user.tglMasuk) }}
+                    </div>
+                  </q-item-section>
+
+                  <q-item-section side>
+                    <q-badge
+                      color="blue-1"
+                      text-color="primary"
+                      class="q-pa-sm text-weight-bold font-mono rounded-6"
+                    >
+                      {{ user.nik || 'N/A' }}
+                    </q-badge>
+                  </q-item-section>
+                </q-item>
+              </q-list>
+              <div v-else class="q-pa-xl text-center text-grey-5">
+                <q-icon name="group_add" size="64px" />
+                <div class="text-h6 q-mt-sm">Belum ada data karyawan</div>
+              </div>
+            </q-card-section>
+          </q-card>
+        </div>
+
+        <!-- SIDEBAR INFO & STATUS -->
+        <div class="col-12 col-md-4">
+          <q-card
+            flat
+            class="bg-indigo-10 text-white rounded-borders shadow-soft overflow-hidden relative-position full-height flex column justify-between"
+            style="min-height: 200px"
+          >
+            <q-card-section class="q-pa-lg z-content">
+              <div class="text-h5 text-weight-bold">Status Server AGRA</div>
+              <div class="text-body2 q-mt-sm opacity-85 line-height-normal text-weight-medium">
+                Sinkronisasi database dengan Cloud Firestore berjalan normal tanpa hambatan.
+              </div>
+            </q-card-section>
+
+            <q-card-section class="q-pa-lg z-content q-pt-none">
+              <q-btn
+                outline
+                dense
+                label="Bantuan Sistem"
+                class="text-white border-white-30 no-caps q-px-md q-py-xs rounded-8"
+                icon-right="help_outline"
+              />
+            </q-card-section>
+
+            <q-icon
+              name="cloud_done"
+              size="120px"
+              class="absolute-bottom-right opacity-10 q-mr-n-lg q-mb-n-lg"
             />
-          </q-card-section>
-          <q-icon
-            name="cloud_done"
-            size="120px"
-            class="absolute-bottom-right opacity-10 q-mr-n-lg q-mb-n-lg"
-          />
-        </q-card>
+          </q-card>
+        </div>
       </div>
     </div>
   </q-page>
@@ -176,8 +216,9 @@ const refreshPage = () => {
   }, 1000)
 }
 
+// REVISI: Mengarahkan klik karyawan ke /karyawan yang valid
 const navigateToUser = () => {
-  router.push('/management-karyawan/database')
+  router.push('/management-karyawan/karyawan')
 }
 
 const formatDate = (dateStr) => {
@@ -309,9 +350,11 @@ onUnmounted(() => {
   font-family:
     'Inter',
     -apple-system,
-    Helvetica,
-    Arial,
     sans-serif;
+}
+
+.bento-container {
+  max-width: 1400px;
 }
 
 .stat-card {
@@ -322,8 +365,8 @@ onUnmounted(() => {
 }
 
 .stat-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1) !important;
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08) !important;
   border-bottom-color: var(--q-primary);
 }
 
@@ -339,12 +382,24 @@ onUnmounted(() => {
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
+.shadow-soft {
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05) !important;
+}
+
+.shadow-inner-soft {
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.03);
+}
+
 .hover-bg:hover {
   background-color: rgba(25, 118, 210, 0.04);
 }
 
 .opacity-80 {
   opacity: 0.8;
+}
+
+.opacity-85 {
+  opacity: 0.85;
 }
 
 .opacity-10 {
@@ -355,18 +410,22 @@ onUnmounted(() => {
   line-height: 1;
 }
 
+.line-height-normal {
+  line-height: 1.4;
+}
+
 .transition-all {
-  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .animate-fade {
-  animation: fadeIn 0.8s ease-out;
+  animation: fadeIn 0.6s ease-out;
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(15px);
   }
   to {
     opacity: 1;
@@ -374,10 +433,29 @@ onUnmounted(() => {
   }
 }
 
-/* Penyesuaian Mobile */
-@media (max-width: 600px) {
-  .text-h4 {
-    font-size: 1.7rem;
+/* =======================================================================
+   RESPONSIVE LAYOUT ADJUSTMENTS FOR SMALL DEVICES
+   ======================================================================= */
+@media (max-width: 599px) {
+  .title-fluid {
+    font-size: 1.8rem !important;
+    line-height: 1.1;
+  }
+  .text-fluid {
+    font-size: 13px !important;
+  }
+  .font-9 {
+    font-size: 9px !important;
+  }
+  .number-fluid {
+    font-size: 1.8rem !important;
+  }
+  .icon-container {
+    min-width: 44px !important;
+    padding: 8px !important;
+  }
+  .icon-fluid {
+    font-size: 20px !important;
   }
 }
 </style>

@@ -74,7 +74,7 @@
       </q-toolbar>
     </q-header>
 
-    <q-drawer v-model="leftDrawerOpen" show-if-above :width="310" class="bg-white">
+    <q-drawer v-model="leftDrawerOpen" show-if-above :width="285" class="bg-white">
       <div class="column fit">
         <div class="q-pa-lg bg-blue-1 text-blue-10">
           <div class="row items-center q-gutter-md">
@@ -92,13 +92,7 @@
                 class="text-caption text-grey-7 text-uppercase"
                 style="font-size: 10px; letter-spacing: 1px"
               >
-                {{
-                  isSuperAdmin
-                    ? 'SUPER ADMIN'
-                    : isDireksi
-                      ? 'DIREKTUR'
-                      : userData.jabatan || userData.role || 'Karyawan'
-                }}
+                {{ isSuperAdmin ? 'SUPER ADMIN' : userData.jabatan || userData.role || 'Karyawan' }}
               </div>
             </div>
           </div>
@@ -116,18 +110,12 @@
                 class="menu-item q-mb-xs"
                 active-class="menu-item-active"
               >
-                <q-item-section avatar>
-                  <q-icon :name="menu.icon" size="22px" />
-                </q-item-section>
+                <q-item-section avatar><q-icon :name="menu.icon" size="22px" /></q-item-section>
                 <q-item-section class="text-weight-bold uppercase">{{ menu.label }}</q-item-section>
 
-                <!-- Badge notif khusus menu Persetujuan Cuti (Cuti Tahunan) -->
+                <!-- Badge Notifikasi Cuti (Merah) -->
                 <q-item-section
-                  v-if="
-                    menu.path === '/absensi/admin/persetujuan' &&
-                    pendingCutiCount > 0 &&
-                    (isSuperAdmin || isDireksi)
-                  "
+                  v-if="menu.path === '/absensi/admin/persetujuan' && pendingCutiCount > 0"
                   side
                 >
                   <q-badge
@@ -144,13 +132,9 @@
                   />
                 </q-item-section>
 
-                <!-- Badge notif khusus menu Persetujuan Izin (Izin & Sakit) -->
+                <!-- Badge Notifikasi Izin/Sakit/Manual (Oranye) -->
                 <q-item-section
-                  v-if="
-                    menu.path === '/absensi/admin/persetujuan-izin' &&
-                    pendingIzinCount > 0 &&
-                    (isSuperAdmin || isDireksi || isHRDAdmin)
-                  "
+                  v-if="menu.path === '/absensi/admin/persetujuan-izin' && pendingIzinCount > 0"
                   side
                 >
                   <q-badge
@@ -199,7 +183,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { db, auth } from 'src/boot/firebase'
@@ -213,7 +197,7 @@ const leftDrawerOpen = ref(false)
 const userData = ref({ nama: '', jabatan: '', role: '', fotoUrl: '', email: '', akses: [] })
 const userPermissions = ref([])
 
-// Penampung data pengajuan pending asinkron
+// State Notifikasi Real-time
 const pendingList = ref([])
 let unsubscribePending = null
 
@@ -276,25 +260,6 @@ const isSuperAdmin = computed(() => {
   return isAdminIdentity || isAdminRole
 })
 
-// DETEKSI ROLE DIREKSI SECARA DINAMIS
-const isDireksi = computed(() => {
-  const role = userData.value.role ? userData.value.role.toLowerCase() : ''
-  const jabatan = userData.value.jabatan ? userData.value.jabatan.toLowerCase() : ''
-  return (
-    role.includes('direktur') ||
-    role.includes('direksi') ||
-    jabatan.includes('direktur') ||
-    jabatan.includes('direksi')
-  )
-})
-
-// DETEKSI ADMIN HRD / OPERASIONAL BIASA
-const isHRDAdmin = computed(() => {
-  const roleLower = userData.value.role?.toLowerCase() || ''
-  const jabatanLower = userData.value.jabatan?.toLowerCase() || ''
-  return roleLower.includes('admin') || jabatanLower.includes('admin') || roleLower.includes('hrd')
-})
-
 const filteredApps = computed(() => {
   if (isSuperAdmin.value) return availableApps
 
@@ -304,72 +269,101 @@ const filteredApps = computed(() => {
   return []
 })
 
-// LOGIKA PENGATURAN MENU DINAMIS BERDASARKAN ROLE
+// REVISI EMAS: INTEGRASI TOTAL HAK AKSES MATRIKS FIRESTORE (ANTI TERBALIK / SEJAJAR 100%)
 const menuListFiltered = computed(() => {
-  // 1. MENU UNTUK SUPER ADMIN DAN DIREKTUR (BISA LIHAT DUA SUB-MODUL)
-  if (isSuperAdmin.value || isDireksi.value) {
-    return [
-      { label: 'DASHBOARD ADMIN', icon: 'admin_panel_settings', path: '/absensi/admin/dashboard' },
-      { label: 'PENGATURAN ABSENSI', icon: 'settings_suggest', path: '/absensi/admin/pengaturan' },
-      { label: 'CATATAN ABSENSI', icon: 'fact_check', path: '/absensi/admin/catatan' },
-      { label: 'PERSETUJUAN CUTI', icon: 'event_available', path: '/absensi/admin/persetujuan' },
-      { label: 'PERSETUJUAN IZIN', icon: 'rule_folder', path: '/absensi/admin/persetujuan-izin' },
-      { label: 'PEMBERITAHUAN UMUM', icon: 'campaign', path: '/absensi/admin/pemberitahuan' },
-      { label: 'DASHBOARD KARYAWAN', icon: 'dashboard', path: '/absensi/dashboard' },
-      { label: 'PROFIL', icon: 'account_circle', path: '/absensi/profil' },
-      { label: 'RIWAYAT ABSENSI', icon: 'history', path: '/absensi/riwayat' },
-      { label: 'PENGAJUAN CUTI/IZIN', icon: 'event_note', path: '/absensi/pengajuan-izin' },
-      { label: 'ABSENSI MANUAL', icon: 'history_edu', path: '/absensi/manual' },
-    ]
-  }
-
-  // 2. MENU UNTUK ADMIN HRD / OPERASIONAL BIASA (HANYA BISA LIHAT PERSETUJUAN IZIN, TIDAK BISA CUTI)
-  if (isHRDAdmin.value) {
-    return [
-      { label: 'DASHBOARD ADMIN', icon: 'admin_panel_settings', path: '/absensi/admin/dashboard' },
-      { label: 'PENGATURAN ABSENSI', icon: 'settings_suggest', path: '/absensi/admin/pengaturan' },
-      { label: 'CATATAN ABSENSI', icon: 'fact_check', path: '/absensi/admin/catatan' },
-      { label: 'PERSETUJUAN IZIN', icon: 'rule_folder', path: '/absensi/admin/persetujuan-izin' }, // Cuti Tahunan disembunyikan
-      { label: 'PEMBERITAHUAN UMUM', icon: 'campaign', path: '/absensi/admin/pemberitahuan' },
-      { label: 'DASHBOARD KARYAWAN', icon: 'dashboard', path: '/absensi/dashboard' },
-      { label: 'PROFIL', icon: 'account_circle', path: '/absensi/profil' },
-      { label: 'RIWAYAT ABSENSI', icon: 'history', path: '/absensi/riwayat' },
-      { label: 'PENGAJUAN CUTI/IZIN', icon: 'event_note', path: '/absensi/pengajuan-izin' },
-      { label: 'ABSENSI MANUAL', icon: 'history_edu', path: '/absensi/manual' },
-    ]
-  }
-
-  // 3. MENU UNTUK STAF / KARYAWAN BIASA
-  const absensiModule = userPermissions.value.find((p) => p.id === 'absensi')
-  if (!absensiModule || !absensiModule.isActive) return []
-
-  const canSee = (searchKey) => {
-    if (!absensiModule.menus) return false
-    const found = absensiModule.menus.find(
-      (m) =>
-        m.id.toLowerCase().includes(searchKey.toLowerCase()) ||
-        m.label.toLowerCase().includes(searchKey.toLowerCase()),
-    )
-    return found ? found.lihat : false
-  }
-
-  const baseMenus = [
-    { label: 'DASHBOARD', icon: 'dashboard', path: '/absensi/dashboard', key: 'dashboard' },
-    { label: 'PROFIL', icon: 'account_circle', path: '/absensi/profil', key: 'profil' },
-    { label: 'RIWAYAT ABSENSI', icon: 'history', path: '/absensi/riwayat', key: 'riwayat' },
+  // Master Blueprint Susunan Menu Absensi Utama PT AGRA (Total 11 Sub-Modul Sejajar Baris DB)
+  const masterMenus = [
+    {
+      label: 'DASHBOARD ADMIN',
+      icon: 'admin_panel_settings',
+      path: '/absensi/admin/dashboard',
+      dbKey: 'DASHBOARD',
+      isAdminRow: true,
+    },
+    {
+      label: 'PENGATURAN ABSENSI',
+      icon: 'settings_suggest',
+      path: '/absensi/admin/pengaturan',
+      dbKey: 'PENGATURAN',
+    },
+    {
+      label: 'CATATAN ABSENSI',
+      icon: 'fact_check',
+      path: '/absensi/admin/catatan',
+      dbKey: 'CATATAN',
+    },
+    {
+      label: 'PERSETUJUAN CUTI',
+      icon: 'event_available',
+      path: '/absensi/admin/persetujuan',
+      dbKey: 'PERSETUJUAN',
+    },
+    {
+      label: 'PERSETUJUAN IZIN',
+      icon: 'rule_folder',
+      path: '/absensi/admin/persetujuan-izin',
+      dbKey: 'PERSETUJUAN IZIN',
+    },
+    {
+      label: 'PEMBERITAHUAN UMUM',
+      icon: 'campaign',
+      path: '/absensi/admin/pemberitahuan',
+      dbKey: 'PEMBERITAHUAN',
+    },
+    { label: 'PROFIL', icon: 'account_circle', path: '/absensi/profil', dbKey: 'PROFIL' },
+    {
+      label: 'DASHBOARD KARYAWAN',
+      icon: 'dashboard',
+      path: '/absensi/dashboard',
+      dbKey: 'DASHBOARD',
+      isAdminRow: false,
+    },
+    { label: 'RIWAYAT ABSENSI', icon: 'history', path: '/absensi/riwayat', dbKey: 'RIWAYAT' },
     {
       label: 'PENGAJUAN CUTI/IZIN',
       icon: 'event_note',
       path: '/absensi/pengajuan-izin',
-      key: 'pengajuan',
-    },
-    { label: 'ABSENSI MANUAL', icon: 'history_edu', path: '/absensi/manual', key: 'pengajuan' },
+      dbKey: 'PENGAJUAN IZIN',
+    }, // FIX: dbKey disesuaikan dengan Firestore "PENGAJUAN IZIN"
+    { label: 'ABSENSI MANUAL', icon: 'history_edu', path: '/absensi/manual', dbKey: 'MANUAL' },
   ]
 
-  return baseMenus.filter((m) => canSee(m.key))
+  // 1. Jika akun adalah Super Admin, berikan bypass akses penuh langsung
+  if (isSuperAdmin.value) {
+    return masterMenus
+  }
+
+  // 2. Filter Hak Akses secara Dinamis & Presisi berdasarkan baris Centangan di Firestore Karyawan
+  const absensiModule = userPermissions.value.find((p) => p.id === 'absensi')
+  if (!absensiModule || !absensiModule.menus || !absensiModule.isActive) return []
+
+  return masterMenus.filter((menuItem) => {
+    // Cari semua item di Firestore yang cocok dengan dbKey ini
+    const matchedDbMenus = absensiModule.menus.filter((m) => {
+      const idUpper = m.id?.toUpperCase() || ''
+      const labelUpper = m.label?.toUpperCase() || ''
+      return idUpper === menuItem.dbKey || labelUpper === menuItem.dbKey
+    })
+
+    if (matchedDbMenus.length === 0) return false
+
+    // Kasus khusus untuk kunci ganda seperti 'DASHBOARD'
+    if (menuItem.dbKey === 'DASHBOARD') {
+      // DASHBOARD ADMIN (isAdminRow: true) mengambil index ke-0
+      // DASHBOARD KARYAWAN (isAdminRow: false) mengambil index ke-1 (atau ke-0 jika cuma ada 1 di DB)
+      const dbMenu = menuItem.isAdminRow
+        ? matchedDbMenus[0]
+        : matchedDbMenus[1] || matchedDbMenus[0]
+      return dbMenu ? dbMenu.lihat === true : false
+    }
+
+    // Untuk menu biasa lainnya (PENGATURAN, PROFIL, PENGAJUAN IZIN, MANUAL, dll.)
+    // Ambil item pertama yang cocok
+    const dbMenu = matchedDbMenus[0]
+    return dbMenu ? dbMenu.lihat === true : false
+  })
 })
 
-// REALTIME LISTENER: Hitung pengajuan pending secara aman (Rule 2)
 const loadPendingCount = () => {
   if (unsubscribePending) unsubscribePending()
   const qPending = query(collection(db, 'pengajuan'), where('status_approval', '==', 'Pending'))
@@ -418,7 +412,7 @@ const syncData = () => {
               userData.value = {
                 ...userData.value,
                 nama: data.nama || userData.value.nama,
-                jabatan: data.jabatan || userData.value.jabatan,
+                jabatan: data.jabatan || data.role || userData.value.jabatan,
                 role: data.role || userData.value.role,
                 fotoUrl: data.foto_profil || data.fotoUrl || userData.value.fotoUrl,
                 akses: data.akses || userData.value.akses,
@@ -444,6 +438,10 @@ onMounted(() => {
   loadPendingCount()
 })
 
+onUnmounted(() => {
+  if (unsubscribePending) unsubscribePending()
+})
+
 const handleLogout = () => {
   $q.dialog({ title: 'Logout', message: 'Yakin ingin keluar dari sistem?', cancel: true }).onOk(
     async () => {
@@ -464,8 +462,7 @@ const handleLogout = () => {
 <style lang="scss" scoped>
 .menu-item {
   border-radius: 0 25px 25px 0;
-  margin-right: 20px;
-  position: relative;
+  margin-right: 12px;
   color: #546e7a;
   text-transform: uppercase;
   font-size: 13px;

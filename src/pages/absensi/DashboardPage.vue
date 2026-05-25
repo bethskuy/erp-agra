@@ -1,11 +1,7 @@
 <template>
   <q-page class="bg-slate-50 q-pa-md q-pa-lg-xl font-inter">
     <div class="bento-container mx-auto">
-      <!-- ========================================== -->
-      <!-- BAGIAN ATAS: PROFIL & WAKTU                -->
-      <!-- ========================================== -->
       <div class="row q-col-gutter-lg q-mb-lg" v-if="!showCamera">
-        <!-- WIDGET 1: PROFIL KARYAWAN -->
         <div class="col-12 col-md-7 col-lg-8 hide-on-mobile">
           <q-card flat class="bento-card bg-white full-height relative-position overflow-hidden">
             <div class="decor-circle-1"></div>
@@ -66,7 +62,6 @@
           </q-card>
         </div>
 
-        <!-- WIDGET 2: JAM "AURORA HOLOGRAPHIC" PREMIUM -->
         <div class="col-12 col-md-5 col-lg-4">
           <q-card
             flat
@@ -97,11 +92,7 @@
         </div>
       </div>
 
-      <!-- ========================================== -->
-      <!-- BAGIAN TENGAH: RADAR LOKASI & ACTION       -->
-      <!-- ========================================== -->
       <div class="row q-col-gutter-lg q-mb-lg flex" v-if="!showCamera">
-        <!-- WIDGET 3: RADAR GPS -->
         <div class="col-12 col-md-6 mobile-order-2 desktop-order-1">
           <q-card flat class="bento-card bg-white full-height">
             <q-card-section class="q-pa-lg">
@@ -112,7 +103,6 @@
                     Sistem Radar Lokasi
                   </div>
                 </div>
-                <!-- Tampilan Jam Kerja Shift membaca secara dinamis dari Firestore Karyawan -->
                 <q-badge
                   outline
                   color="indigo-5"
@@ -230,7 +220,6 @@
           </q-card>
         </div>
 
-        <!-- WIDGET 4: TOMBOL AKSI -->
         <div class="col-12 col-md-6 mobile-order-1 desktop-order-2">
           <q-card flat class="bento-card bg-white full-height flex column justify-center">
             <q-card-section class="q-pa-lg">
@@ -273,7 +262,6 @@
                 </div>
               </div>
 
-              <!-- SENSOR ENGINE & AI STATUS BOARD -->
               <div
                 class="row items-center q-mt-md q-pa-sm rounded-8 border-grey"
                 :class="isAiReady ? 'bg-teal-50 border-teal-200' : 'bg-orange-50 border-orange-200'"
@@ -307,9 +295,6 @@
         </div>
       </div>
 
-      <!-- ========================================== -->
-      <!-- BAGIAN BAWAH: RIWAYAT                      -->
-      <!-- ========================================== -->
       <div class="row q-col-gutter-lg" v-if="!showCamera">
         <div class="col-12">
           <q-card flat class="bento-card bg-white full-height">
@@ -388,12 +373,9 @@
         </div>
       </div>
 
-      <!-- ========================================== -->
-      <!-- MODAL SCREEN ABSEN DIGITAL VERIFICATION    -->
-      <!-- ========================================== -->
       <q-slide-transition>
         <div v-if="showCamera" class="row justify-center camera-outer-wrapper">
-          <div class="col-12 col-xl-10">
+          <div class="col-12 col-xl-10 height-fill-dvh">
             <q-card flat class="bento-card bg-white overflow-hidden shadow-soft camera-modal-card">
               <div
                 class="bg-blue-grey-9 text-white row items-center q-pa-sm q-px-md z-top relative-position camera-header"
@@ -450,7 +432,7 @@
                 </div>
 
                 <div
-                  class="col-12 col-md-5 q-pa-sm q-pa-md-md bg-grey-1 flex column justify-between camera-control-panel"
+                  class="col-12 col-md-5 bg-grey-1 flex column justify-between camera-control-panel"
                 >
                   <div
                     class="bg-white q-pa-sm q-pa-md-md rounded-12 border-grey shadow-sm info-summary-card"
@@ -510,7 +492,7 @@
                     </div>
                   </div>
 
-                  <div class="q-mt-sm">
+                  <div class="q-mt-sm action-button-container">
                     <div v-if="!capturedImage">
                       <q-btn
                         unelevated
@@ -1090,7 +1072,6 @@ const startAbsensi = (mode) => {
         position: 'top',
       })
     }
-    
   } else {
     if (!documentId.value) {
       $q.notify({
@@ -1675,6 +1656,14 @@ onUnmounted(() => {
    REVISI RESPONSIF LAYOUT MOBILE - ZERO-SCROLL SINGLE PANEL CONFIG
    ======================================================================= */
 @media (max-width: 767px) {
+  /* Fluid text scaling prevent layout break */
+  .time-hhmm {
+    font-size: 3.8rem !important;
+  }
+  .time-ss {
+    font-size: 1.8rem !important;
+  }
+
   .camera-outer-wrapper {
     position: fixed;
     top: 0;
@@ -1686,17 +1675,19 @@ onUnmounted(() => {
     padding: 0 !important;
     margin: 0 !important;
     overflow: hidden;
+    height: 100dvh !important; /* REVISI: Paksa ikut tinggi dynamic screen */
   }
 
-  .camera-outer-wrapper > div {
+  .height-fill-dvh {
     height: 100% !important;
-    width: 100% !important;
+    display: flex;
+    flex-direction: column;
   }
 
   .camera-modal-card {
     border-radius: 0 !important;
-    height: 100vh !important;
-    max-height: 100vh !important;
+    height: 100dvh !important; /* REVISI: Mengunci tinggi bodi modal penuh */
+    max-height: 100dvh !important;
     display: flex;
     flex-direction: column;
     margin: 0 !important;
@@ -1704,7 +1695,7 @@ onUnmounted(() => {
   }
 
   .camera-header {
-    padding: 10px 16px !important;
+    padding: 12px 16px !important;
     flex: none;
   }
 
@@ -1717,9 +1708,9 @@ onUnmounted(() => {
   }
 
   .camera-video-container {
-    height: 42vh !important;
+    height: 38vh !important; /* REVISI: Pangkas sedikit area stream video agar control naik */
     min-height: 180px !important;
-    max-height: 240px !important;
+    max-height: 230px !important;
     flex: none !important;
     background: #000000 !important;
   }
@@ -1733,22 +1724,29 @@ onUnmounted(() => {
   }
 
   .camera-control-panel {
-    padding: 12px !important;
+    padding: 14px 14px calc(14px + env(safe-area-inset-bottom)) 14px !important; /* REVISI: Inject safe-area-inset otomatis naik */
     flex: 1;
     display: flex !important;
     flex-direction: column !important;
     flex-wrap: nowrap !important;
     justify-content: space-between !important;
     background-color: #f8fafc !important;
-    overflow: hidden;
+    overflow-y: auto; /* Mencegah crash jika screen super cebol */
   }
 
   .info-summary-card {
-    padding: 8px 12px !important;
+    padding: 10px 14px !important;
     border-radius: 12px !important;
-    margin-bottom: 0 !important;
+    margin-bottom: 8px !important;
     border: 1px solid #e2e8f0;
     background: white;
+    flex-shrink: 0;
+  }
+
+  .action-button-container {
+    margin-top: auto !important; /* REVISI: Paksa tombol nempel di atas margin aman navigasi HP */
+    padding-bottom: 4px !important;
+    flex-shrink: 0;
   }
 
   .info-summary-card .text-subtitle2 {
@@ -1769,7 +1767,7 @@ onUnmounted(() => {
   }
 
   .q-mt-sm {
-    margin-top: 8px !important;
+    margin-top: 6px !important;
   }
 
   .text-subtitle2 {
