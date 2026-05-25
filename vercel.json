@@ -1,7 +1,7 @@
 {
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/((?!version.json|app-debug.apk).*)",
       "destination": "/index.html"
     }
   ]
