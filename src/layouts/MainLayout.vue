@@ -43,6 +43,40 @@
       <router-view />
     </q-page-container>
 
+    <q-dialog v-model="showUpdateDialog" persistent>
+      <q-card class="update-dialog">
+        <q-card-section class="q-pb-none">
+          <div class="text-h6 text-weight-bold text-primary">Update APK Tersedia</div>
+          <div class="text-body2 text-grey-8 q-mt-sm">
+            Versi baru aplikasi tersedia untuk Android.
+          </div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-md">
+          <div class="text-body2 q-mb-sm">
+            Versi saat ini: <span class="text-weight-bold">{{ currentAppVersion }}</span>
+          </div>
+          <div class="text-body2 q-mb-sm">
+            Versi terbaru: <span class="text-weight-bold">{{ updateInfo.version }}</span>
+          </div>
+          <div v-if="updateInfo.notes" class="text-body2 text-grey-8">
+            {{ updateInfo.notes }}
+          </div>
+        </q-card-section>
+
+        <q-card-actions align="right" class="q-pa-md">
+          <q-btn flat label="Nanti" color="grey-7" @click="showUpdateDialog = false" />
+          <q-btn
+            unelevated
+            color="primary"
+            label="Install Update APK"
+            :loading="isInstallingUpdate"
+            @click="installUpdate"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
     <!-- FOOTER CREDIT (PERBAIKAN: Warna putih agar menyatu dengan background)
     <q-footer class="bg-white text-blue-grey-4 q-pa-md border-top-subtle">
       <div class="text-center text-caption text-weight-bold tracking-widest uppercase">
@@ -54,13 +88,185 @@
 </template>
 
 <script setup>
+import { CapacitorUpdater } from '@capgo/capacitor-updater'
+import { Capacitor } from '@capacitor/core'
 import { auth } from 'src/boot/firebase'
 import { signOut } from 'firebase/auth'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 
 const router = useRouter()
 const $q = useQuasar()
+const UPDATE_MANIFEST_URL = 'https://agra-erp.vercel.app/version.json'
+const FALLBACK_APK_URL = 'https://agra-erp.vercel.app/app-debug.apk'
+const DEFAULT_UPDATE_INFO = {
+  version: '',
+  apk: '',
+  notes: '',
+}
+
+const showUpdateDialog = ref(false)
+const isCheckingUpdate = ref(false)
+const isInstallingUpdate = ref(false)
+const currentAppVersion = ref(
+  String(import.meta.env.APP_VERSION || import.meta.env.PACKAGE_VERSION || '0.0.0'),
+)
+const updateInfo = ref({ ...DEFAULT_UPDATE_INFO })
+const isNativeAndroid = computed(
+  () => Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android',
+)
+
+const normalizeVersion = (version) =>
+  String(version || '')
+    .trim()
+    .replace(/^v/i, '')
+
+const compareVersions = (currentVersion, nextVersion) => {
+  const currentParts = normalizeVersion(currentVersion)
+    .split('.')
+    .map((part) => Number.parseInt(part, 10) || 0)
+  const nextParts = normalizeVersion(nextVersion)
+    .split('.')
+    .map((part) => Number.parseInt(part, 10) || 0)
+  const maxLength = Math.max(currentParts.length, nextParts.length)
+
+  for (let index = 0; index < maxLength; index += 1) {
+    const currentPart = currentParts[index] || 0
+    const nextPart = nextParts[index] || 0
+
+    if (nextPart > currentPart) {
+      return 1
+    }
+
+    if (nextPart < currentPart) {
+      return -1
+    }
+  }
+
+  return 0
+}
+
+const resolveAbsoluteUrl = (url) => new URL(url, window.location.origin).toString()
+
+const downloadApkFromUrl = (url) => {
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.target = '_blank'
+  anchor.rel = 'noopener noreferrer'
+  anchor.download = ''
+  document.body.appendChild(anchor)
+  anchor.click()
+  anchor.remove()
+}
+
+const fetchUpdateManifest = async () => {
+  const response = await fetch(`${UPDATE_MANIFEST_URL}?t=${Date.now()}`, {
+    cache: 'no-store',
+    headers: {
+      Accept: 'application/json',
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error(`Gagal memuat manifest update (${response.status})`)
+  }
+
+  return response.json()
+}
+
+const loadCurrentAppVersion = async () => {
+  currentAppVersion.value = normalizeVersion(currentAppVersion.value)
+
+  if (!isNativeAndroid.value) {
+    return
+  }
+
+  try {
+    await CapacitorUpdater.notifyAppReady()
+    const { version } = await CapacitorUpdater.getBuiltinVersion()
+
+    if (version) {
+      currentAppVersion.value = normalizeVersion(version)
+    }
+  } catch (error) {
+    console.warn('Capgo updater tidak bisa membaca versi native:', error)
+  }
+}
+
+const checkForUpdate = async () => {
+  if (isCheckingUpdate.value || !isNativeAndroid.value) {
+    return
+  }
+
+  isCheckingUpdate.value = true
+
+  try {
+    const manifest = await fetchUpdateManifest()
+    const remoteVersion = normalizeVersion(manifest?.version)
+    const remoteApkUrl = manifest?.apk ? resolveAbsoluteUrl(manifest.apk) : FALLBACK_APK_URL
+
+    if (!remoteVersion || !remoteApkUrl) {
+      updateInfo.value = { ...DEFAULT_UPDATE_INFO }
+      return
+    }
+
+    if (compareVersions(currentAppVersion.value, remoteVersion) >= 0) {
+      updateInfo.value = { ...DEFAULT_UPDATE_INFO }
+      showUpdateDialog.value = false
+      return
+    }
+
+    updateInfo.value = {
+      version: remoteVersion,
+      apk: remoteApkUrl,
+      notes: manifest?.notes || '',
+    }
+    showUpdateDialog.value = true
+  } catch (error) {
+    console.error('Update check gagal:', error)
+  } finally {
+    isCheckingUpdate.value = false
+  }
+}
+
+const installUpdate = async () => {
+  const apkUrl = updateInfo.value.apk || resolveAbsoluteUrl(FALLBACK_APK_URL)
+
+  if (!apkUrl) {
+    $q.notify({
+      color: 'negative',
+      message: 'Link APK update tidak ditemukan.',
+      icon: 'error',
+      position: 'top',
+    })
+    return
+  }
+
+  isInstallingUpdate.value = true
+
+  try {
+    downloadApkFromUrl(apkUrl)
+    showUpdateDialog.value = false
+
+    $q.notify({
+      color: 'info',
+      message: 'Download APK dimulai. Lanjutkan instalasi APK terbaru di Android Anda.',
+      icon: 'system_update_alt',
+      position: 'top',
+      timeout: 3500,
+    })
+  } catch (error) {
+    $q.notify({
+      color: 'negative',
+      message: `Gagal membuka link update: ${error.message}`,
+      icon: 'error',
+      position: 'top',
+    })
+  } finally {
+    isInstallingUpdate.value = false
+  }
+}
 
 const handleLogout = () => {
   $q.dialog({
@@ -98,6 +304,12 @@ const handleLogout = () => {
     }
   })
 }
+
+onMounted(() => {
+  loadCurrentAppVersion().finally(() => {
+    checkForUpdate()
+  })
+})
 </script>
 
 <style scoped>
@@ -192,6 +404,10 @@ const handleLogout = () => {
 .app-page-container {
   position: relative;
   z-index: 1;
+}
+.update-dialog {
+  width: min(92vw, 420px);
+  border-radius: 20px;
 }
 .opacity-70 {
   opacity: 0.7;

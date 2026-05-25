@@ -3,6 +3,7 @@
     class="flex flex-center bg-modern-dashboard q-pa-md overflow-hidden"
     :class="{ 'theme-dark': isDarkMode }"
   >
+    <!-- TOMBOL TOGGLE TEMA -->
     <div class="theme-toggle-wrap">
       <q-btn
         unelevated
@@ -17,7 +18,7 @@
 
     <!-- Konten Utama -->
     <div class="full-width container-modern" style="max-width: 1000px">
-      <!-- Header Section: Logo & Greeting -->
+      <!-- Header Section -->
       <div class="text-center q-mb-xl animate-fade-down">
         <div class="logo-wrapper q-mb-md">
           <div class="logo-container shadow-premium">
@@ -66,14 +67,14 @@
         </q-input>
       </div>
 
-      <!-- Apps Grid Section -->
+      <!-- Apps Grid -->
       <div class="row q-col-gutter-lg justify-center items-start animate-fade-up">
+        <!-- Modul Aktif dari Firestore (kecuali 'aset') -->
         <div
           v-for="(app, index) in filteredApps"
           :key="app.aksesKey"
           class="col-4 col-sm-3 col-md-2 flex justify-center"
         >
-          <!-- Tombol Modul -->
           <div
             class="app-container full-width"
             @click="$router.push(app.path)"
@@ -105,14 +106,98 @@
             </div>
           </div>
         </div>
+
+        <!-- Modul Aset — selalu tampil, abu-abu, SOON, klik → dialog -->
+        <div
+          v-show="!searchQuery || 'modul aset'.includes(searchQuery.toLowerCase())"
+          class="col-4 col-sm-3 col-md-2 flex justify-center"
+          :style="{ '--delay': filteredApps.length * 0.05 + 0.05 + 's' }"
+        >
+          <div class="app-container full-width" @click="showAsetDialog = true">
+            <div class="app-card-wrapper column items-center">
+              <q-card
+                flat
+                class="app-icon-card app-icon-card-soon flex flex-center transition-all cursor-pointer"
+              >
+                <div class="relative-position">
+                  <q-icon name="warehouse" color="grey-5" size="44px" />
+                  <div class="soon-badge">SOON</div>
+                </div>
+              </q-card>
+              <div class="text-center q-mt-sm">
+                <div class="text-weight-bold text-grey-5 text-caption text-uppercase tracking-wide">
+                  Modul Aset
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Empty State -->
-      <div v-if="filteredApps.length === 0" class="text-center q-pa-xl empty-state animate-fade">
+      <div
+        v-if="
+          filteredApps.length === 0 &&
+          searchQuery &&
+          !'modul aset'.includes(searchQuery.toLowerCase())
+        "
+        class="text-center q-pa-xl empty-state animate-fade"
+      >
         <q-icon name="apps_outage" size="64px" color="grey-3" />
         <div class="text-h6 text-grey-5 q-mt-md font-weight-light">Modul tidak ditemukan</div>
       </div>
     </div>
+
+    <!-- =====================================================================
+         DIALOG: MODUL ASET SEGERA HADIR
+         ===================================================================== -->
+    <q-dialog v-model="showAsetDialog" backdrop-filter="blur(6px)">
+      <q-card style="width: 380px; max-width: 95vw" class="rounded-24 overflow-hidden shadow-24">
+        <!-- Header -->
+        <div class="aset-dialog-header text-center q-pa-xl">
+          <div class="aset-icon-wrap q-mb-md">
+            <q-icon name="warehouse" color="grey-5" size="64px" />
+          </div>
+          <div class="soon-badge-lg q-mb-sm">COMING SOON</div>
+          <div class="text-h6 text-weight-bolder text-grey-7 q-mt-sm">Modul Aset</div>
+          <div class="text-caption text-grey-5">Asset Management System</div>
+        </div>
+
+        <!-- Body -->
+        <q-card-section class="q-pa-lg text-center">
+          <div class="text-body1 text-grey-7 leading-relaxed">
+            Modul <strong>Manajemen Aset</strong> segera hadir! 🚀
+          </div>
+          <div class="text-body2 text-grey-6 q-mt-sm leading-relaxed">
+            Fitur ini sedang dalam pengembangan dan akan mencakup:
+          </div>
+          <q-list dense class="q-mt-md text-left">
+            <q-item v-for="(feat, i) in asetFeatures" :key="i" class="q-px-none">
+              <q-item-section avatar style="min-width: 28px">
+                <q-icon name="schedule" color="grey-4" size="xs" />
+              </q-item-section>
+              <q-item-section>
+                <q-item-label class="text-caption text-grey-6">{{ feat }}</q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </q-card-section>
+
+        <!-- Footer -->
+        <q-card-actions align="center" class="q-pa-lg bg-grey-1">
+          <q-btn
+            unelevated
+            rounded
+            no-caps
+            color="grey-6"
+            text-color="white"
+            label="Tutup"
+            class="q-px-xl text-weight-bold"
+            v-close-popup
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
@@ -130,7 +215,31 @@ const searchQuery = ref('')
 const userData = ref(null)
 const currentAkses = ref([])
 const isDarkMode = ref(false)
+const showAsetDialog = ref(false)
+
 let unsubscribeUser = null
+
+const SUPER_ROLES = ['super admin', 'superadmin', 'direktur', 'owner', 'administrator']
+
+// aksesKey yang disembunyikan dari grid aktif (ditangani manual sebagai SOON)
+const HIDDEN_KEYS = ['aset']
+
+const asetFeatures = [
+  'Pencatatan & Registrasi Aset Perusahaan',
+  'Tracking Lokasi & Status Aset',
+  'Jadwal Pemeliharaan & Servis Berkala',
+  'Laporan Depresiasi & Nilai Buku Aset',
+  'Manajemen Peminjaman Aset Karyawan',
+]
+
+const isCurrentUserSuperAdmin = computed(() => {
+  if (userData.value?.is_super_admin === true) return true
+  const jabatan = (userData.value?.jabatan || '').toLowerCase().trim()
+  if (SUPER_ROLES.includes(jabatan)) return true
+  const role = (authStore.user?.role || '').toLowerCase().trim()
+  if (SUPER_ROLES.includes(role)) return true
+  return false
+})
 
 const isManufactureApp = (app) => app.name?.toUpperCase() === 'MANUFACTURE'
 const themeStorageKey = 'index-page-theme'
@@ -140,39 +249,34 @@ const toggleTheme = () => {
   localStorage.setItem(themeStorageKey, isDarkMode.value ? 'dark' : 'light')
 }
 
-// Filter Apps agar unik (berdasarkan aksesKey) dan sesuai hak akses
 const filteredApps = computed(() => {
-  // Langkah 1: Hilangkan duplikasi dari data mentah database
   const uniqueMap = new Map()
   apps.value.forEach((app) => {
-    if (!uniqueMap.has(app.aksesKey)) {
-      uniqueMap.set(app.aksesKey, app)
-    }
+    if (!uniqueMap.has(app.aksesKey)) uniqueMap.set(app.aksesKey, app)
   })
-
-  const uniqueApps = Array.from(uniqueMap.values())
-
-  // Langkah 2: Filter berdasarkan pencarian dan ijin akses
-  return uniqueApps.filter(
-    (app) => app.name.toLowerCase().includes(searchQuery.value.toLowerCase()) && canShow(app),
+  return Array.from(uniqueMap.values()).filter(
+    (app) =>
+      !HIDDEN_KEYS.includes(app.aksesKey) &&
+      app.name.toLowerCase().includes(searchQuery.value.toLowerCase()) &&
+      canShow(app),
   )
 })
 
 const canShow = (app) => {
   if (!authStore.user) return false
-  if (authStore.user.role === 'Super Admin') return true
-  if (app.aksesKey === 'admin')
-    return authStore.user.role === 'Admin' || authStore.user.role === 'Super Admin'
+  if (isCurrentUserSuperAdmin.value) return true
+  if (app.aksesKey === 'admin') {
+    return (
+      isCurrentUserSuperAdmin.value ||
+      (authStore.user.role || '').toLowerCase() === 'admin' ||
+      (userData.value?.jabatan || '').toLowerCase() === 'admin'
+    )
+  }
   return currentAkses.value.includes(app.aksesKey)
 }
 
-/**
- * Perbaikan: Menggunakan SetDoc dengan ID unik agar tidak duplikat
- */
 const setupDefaultModuls = async () => {
   const querySnapshot = await getDocs(collection(db, 'modul'))
-
-  // Jika database masih kosong atau kurang dari 4, jalankan inisialisasi cerdas
   if (querySnapshot.size < 4) {
     const batch = writeBatch(db)
     const defaultData = [
@@ -209,13 +313,9 @@ const setupDefaultModuls = async () => {
         aksesKey: 'admin',
       },
     ]
-
-    // Gunakan aksesKey sebagai ID Dokumen agar tidak pernah duplikat (Upsert)
     defaultData.forEach((m) => {
-      const docRef = doc(db, 'modul', `modul_${m.aksesKey}`)
-      batch.set(docRef, m)
+      batch.set(doc(db, 'modul', `modul_${m.aksesKey}`), m)
     })
-
     await batch.commit()
   }
 }
@@ -225,7 +325,7 @@ onMounted(async () => {
   await setupDefaultModuls()
 
   onSnapshot(collection(db, 'modul'), (snapshot) => {
-    apps.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+    apps.value = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))
   })
 
   const userEmail = authStore.user?.email
@@ -254,6 +354,22 @@ onUnmounted(() => {
     background 0.3s ease,
     color 0.3s ease;
 }
+.container-modern {
+  position: relative;
+}
+.tracking-widest {
+  letter-spacing: 0.35em;
+}
+.leading-tight {
+  line-height: 1.15;
+}
+.leading-relaxed {
+  line-height: 1.6;
+}
+.rounded-24 {
+  border-radius: 24px;
+}
+
 .theme-toggle-wrap {
   position: absolute;
   top: 18px;
@@ -273,9 +389,7 @@ onUnmounted(() => {
 .theme-toggle :deep(.q-btn__content) {
   gap: 8px;
 }
-.container-modern {
-  position: relative;
-}
+
 .logo-container {
   width: 140px;
   height: 140px;
@@ -286,6 +400,10 @@ onUnmounted(() => {
   justify-content: center;
   padding: 10px;
 }
+.shadow-premium {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+}
+
 .app-icon-card {
   width: 90px;
   height: 90px;
@@ -296,13 +414,14 @@ onUnmounted(() => {
 }
 .app-container {
   animation: appAppear 0.5s ease-out forwards;
-  animation-delay: var(--delay);
+  animation-delay: var(--delay, 0s);
   opacity: 0;
 }
 .app-card-wrapper:hover .app-icon-card {
   transform: translateY(-8px);
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
 }
+
 .bg-light-blue-1 {
   background-color: #f0f7ff !important;
 }
@@ -316,22 +435,74 @@ onUnmounted(() => {
   background-color: #faf5ff !important;
 }
 
+/* ── Modul SOON (Aset) ── */
+.app-icon-card-soon {
+  background: #f5f5f5 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+  border: 1.5px dashed #d1d5db !important;
+  opacity: 0.85;
+}
+.app-card-wrapper:hover .app-icon-card-soon {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.07) !important;
+  opacity: 1;
+}
+.soon-badge {
+  position: absolute;
+  top: -8px;
+  right: -22px;
+  background: #9e9e9e;
+  color: white;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  line-height: 1.4;
+  white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+.soon-badge-lg {
+  display: inline-block;
+  background: linear-gradient(135deg, #9e9e9e, #757575);
+  color: white;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  padding: 4px 16px;
+  border-radius: 20px;
+  text-transform: uppercase;
+}
+
+/* ── Dialog Aset ── */
+.aset-dialog-header {
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+  border-bottom: 1px solid #e5e7eb;
+}
+.aset-icon-wrap {
+  width: 100px;
+  height: 100px;
+  background: #f0f0f0;
+  border-radius: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed #d1d5db;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
 .text-gradient {
   background: linear-gradient(135deg, #1976d2, #64b5f6);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
-.tracking-widest {
-  letter-spacing: 0.35em;
-}
-.leading-tight {
-  line-height: 1.15;
-}
 .search-odoo {
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
   transition: box-shadow 0.3s ease;
 }
+
+/* ── Dark Mode ── */
 .bg-modern-dashboard.theme-dark {
   color: #f8fafc;
   background:
@@ -383,6 +554,20 @@ onUnmounted(() => {
 .theme-dark .bg-light-purple-1 {
   background-color: rgba(15, 23, 42, 0.74) !important;
 }
+.theme-dark .app-icon-card-soon {
+  background: rgba(30, 41, 59, 0.6) !important;
+  border-color: rgba(148, 163, 184, 0.2) !important;
+}
+.theme-dark .aset-dialog-header {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border-bottom-color: rgba(148, 163, 184, 0.1);
+}
+.theme-dark .aset-icon-wrap {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(148, 163, 184, 0.2);
+}
+
+/* ── Animasi ── */
 @keyframes appAppear {
   from {
     transform: scale(0.85);
@@ -398,6 +583,9 @@ onUnmounted(() => {
 }
 .animate-fade-up {
   animation: fadeUp 0.8s ease-out;
+}
+.animate-fade {
+  animation: fadeIn 0.5s ease-out;
 }
 @keyframes fadeDown {
   from {
@@ -419,6 +607,15 @@ onUnmounted(() => {
     opacity: 1;
   }
 }
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 @media (max-width: 600px) {
   .text-h3 {
     font-size: 2rem;
@@ -431,8 +628,5 @@ onUnmounted(() => {
   .q-icon {
     font-size: 36px !important;
   }
-}
-.shadow-premium {
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
 }
 </style>

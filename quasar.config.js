@@ -2,6 +2,7 @@
 
 import { defineConfig } from '#q-app/wrappers'
 import 'dotenv/config'
+import pkg from './package.json' with { type: 'json' }
 
 export default defineConfig(async () => {
   return {
@@ -17,9 +18,10 @@ export default defineConfig(async () => {
     node: 'node20',
   },
 
-  vueRouterMode: 'hash',
+  vueRouterMode: 'history',
 
   env: {
+    APP_VERSION: process.env.APP_VERSION || pkg.version,
     FIREBASE_API_KEY: process.env.FIREBASE_API_KEY,
     FIREBASE_AUTH_DOMAIN: process.env.FIREBASE_AUTH_DOMAIN,
     FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID,

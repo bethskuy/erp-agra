@@ -1569,11 +1569,26 @@ onUnmounted(() => {
   position: relative;
   z-index: 1;
 }
-.video-stream {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.video-stream,
+.scanner-overlay,
+.scanner-frame,
+.scan-laser,
+.corner,
+canvas {
+  pointer-events: none !important;
 }
+
+.camera-control-panel {
+  position: relative;
+  z-index: 99999 !important;
+}
+
+.camera-control-panel .q-btn {
+  position: relative;
+  z-index: 999999 !important;
+  pointer-events: auto !important;
+}
+
 .scanner-overlay {
   position: absolute;
   top: 0;
