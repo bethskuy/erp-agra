@@ -480,7 +480,6 @@
             <div class="col-12 col-md-6 flex items-center justify-end">
               <div class="text-right q-mr-lg">
                 <div class="text-overline text-grey-6 text-bold">DOKUMEN LAMPIRAN</div>
-                <!-- ✅ FIX: Tampilkan semua lampiran yang sudah tersimpan -->
                 <div
                   v-if="currentSpk.documents?.length"
                   class="row q-gutter-xs q-mt-xs justify-end"
@@ -686,7 +685,7 @@
                 class="full-width q-py-lg rounded-20 text-weight-black shadow-3 text-white"
               />
 
-              <!-- ✅ GRAND TOTAL + TABEL PPN -->
+              <!-- ✅ GRAND TOTAL + TABEL PPN DINAMIS -->
               <div class="q-mt-xl">
                 <!-- Grand Total BOQ -->
                 <div
@@ -700,35 +699,128 @@
                   </div>
                 </div>
 
-                <!-- ✅ TABEL PPN — Dengan toggle aktif/nonaktif per SPK -->
+                <!-- ✅ TABEL PPN DINAMIS -->
                 <q-card
                   flat
                   bordered
                   class="rounded-20 bg-white shadow-sm border-brand-thin overflow-hidden"
                 >
+                  <!-- Header PPN: Judul + Toggle Aktif/Nonaktif -->
                   <div class="row items-center justify-between q-pa-md bg-grey-1 border-bottom">
                     <div class="row items-center">
                       <q-icon name="receipt_long" color="brand-primary" size="sm" class="q-mr-sm" />
-                      <span class="text-subtitle2 text-weight-bold text-brand-primary uppercase"
-                        >Perhitungan PPN</span
-                      >
+                      <span class="text-subtitle2 text-weight-bold text-brand-primary uppercase">
+                        Perhitungan PPN
+                      </span>
                     </div>
                     <div class="row items-center q-gutter-sm">
-                      <span class="text-caption text-grey-6">{{
-                        currentSpk.ppn_aktif ? 'Aktif' : 'Nonaktif'
-                      }}</span>
+                      <span class="text-caption text-grey-6">
+                        {{ currentSpk.ppn_aktif ? 'Aktif' : 'Nonaktif' }}
+                      </span>
                       <q-toggle
                         v-model="currentSpk.ppn_aktif"
                         color="brand-primary"
                         :disable="!isEditable"
-                        @update:model-value="(v) => !v && null"
                       />
                     </div>
                   </div>
 
                   <div v-if="currentSpk.ppn_aktif">
+                    <!-- ✅ ROW KONFIGURASI DINAMIS (Tarif PPN + DPP Nilai Lain) -->
+                    <div
+                      class="row items-center q-pa-md q-col-gutter-md bg-teal-1 border-bottom flex-wrap"
+                    >
+                      <div class="col-12 col-sm-auto row items-center no-wrap">
+                        <q-icon name="tune" color="brand-primary" size="xs" class="q-mr-xs" />
+                        <span class="text-caption text-grey-7 text-weight-bold uppercase q-mr-sm">
+                          Konfigurasi PPN:
+                        </span>
+                      </div>
+
+                      <!-- Input Tarif PPN % -->
+                      <div class="col-12 col-sm-auto row items-center q-gutter-xs no-wrap">
+                        <span class="text-caption text-grey-6 no-wrap">Tarif PPN</span>
+                        <q-input
+                          dense
+                          outlined
+                          v-model.number="currentSpk.ppn_persen"
+                          type="number"
+                          style="width: 80px"
+                          bg-color="white"
+                          :readonly="!isEditable"
+                          min="0"
+                          max="100"
+                          class="ppn-config-input"
+                        >
+                          <template v-slot:append>
+                            <span class="text-caption text-brand-primary text-weight-bold">%</span>
+                          </template>
+                        </q-input>
+                      </div>
+
+                      <!-- Divider -->
+                      <div class="col-12 col-sm-auto text-grey-4 gt-xs">|</div>
+
+                      <!-- Input Pembilang / Penyebut DPP Nilai Lain -->
+                      <div class="col-12 col-sm-auto row items-center q-gutter-xs no-wrap">
+                        <span class="text-caption text-grey-6 no-wrap">DPP Nilai Lain</span>
+                        <q-input
+                          dense
+                          outlined
+                          v-model.number="currentSpk.ppn_pembilang"
+                          type="number"
+                          style="width: 68px"
+                          bg-color="white"
+                          :readonly="!isEditable"
+                          min="1"
+                          class="ppn-config-input text-center"
+                          input-class="text-center text-weight-bold"
+                        />
+                        <span class="text-subtitle1 text-grey-5 text-weight-bold">/</span>
+                        <q-input
+                          dense
+                          outlined
+                          v-model.number="currentSpk.ppn_penyebut"
+                          type="number"
+                          style="width: 68px"
+                          bg-color="white"
+                          :readonly="!isEditable"
+                          min="1"
+                          class="ppn-config-input text-center"
+                          input-class="text-center text-weight-bold"
+                        />
+                        <q-btn flat round size="xs" color="grey-5" icon="help_outline">
+                          <q-tooltip
+                            class="bg-blue-grey-10 text-white text-caption"
+                            max-width="220px"
+                          >
+                            DPP Nilai Lain = Jumlah (A) × Pembilang / Penyebut.<br />
+                            Contoh standar: 11/12 sesuai PMK 131/2024.
+                          </q-tooltip>
+                        </q-btn>
+                      </div>
+
+                      <!-- Preview formula ringkas -->
+                      <div class="col-12 col-sm-auto">
+                        <q-chip
+                          dense
+                          color="brand-light"
+                          text-color="brand-primary"
+                          icon="functions"
+                          class="text-weight-bold text-caption"
+                        >
+                          DPP = A × {{ currentSpk.ppn_pembilang || 11 }}/{{
+                            currentSpk.ppn_penyebut || 12
+                          }}
+                          &nbsp;→&nbsp; PPN = DPP × {{ currentSpk.ppn_persen || 12 }}%
+                        </q-chip>
+                      </div>
+                    </div>
+
+                    <!-- ✅ TABEL KALKULASI DINAMIS -->
                     <q-markup-table flat separator="cell" class="ppn-table">
                       <tbody>
+                        <!-- Baris A: Jumlah -->
                         <tr>
                           <td class="text-weight-bold text-grey-8 q-pa-md" style="width: 70%">
                             Jumlah (A)
@@ -739,32 +831,34 @@
                             Rp {{ formatMoney(calculateGrandTotalJual(currentSpk)) }}
                           </td>
                         </tr>
+
+                        <!-- Baris B: DPP Nilai Lain -->
                         <tr class="bg-grey-1">
                           <td class="text-grey-7 q-pa-md">
-                            Dasar Pengenaan Pajak Nilai Lain (Jumlah × 11/12) (B) = A × 11/12
+                            Dasar Pengenaan Pajak Nilai Lain (Jumlah ×
+                            {{ currentSpk.ppn_pembilang || 11 }}/{{
+                              currentSpk.ppn_penyebut || 12
+                            }}) (B) = A × {{ currentSpk.ppn_pembilang || 11 }}/{{
+                              currentSpk.ppn_penyebut || 12
+                            }}
                           </td>
                           <td class="text-right text-weight-bold text-grey-8 q-pa-md">
-                            Rp
-                            {{
-                              formatMoney(
-                                Math.round((calculateGrandTotalJual(currentSpk) * 11) / 12),
-                              )
-                            }}
+                            Rp {{ formatMoney(calcDPP(currentSpk)) }}
                           </td>
                         </tr>
+
+                        <!-- Baris C: PPN -->
                         <tr>
-                          <td class="text-grey-7 q-pa-md">PPN 12% (C) = B × 12%</td>
+                          <td class="text-grey-7 q-pa-md">
+                            PPN {{ currentSpk.ppn_persen || 12 }}% (C) = B ×
+                            {{ currentSpk.ppn_persen || 12 }}%
+                          </td>
                           <td class="text-right text-weight-bold text-orange-10 q-pa-md">
-                            Rp
-                            {{
-                              formatMoney(
-                                Math.round(
-                                  ((calculateGrandTotalJual(currentSpk) * 11) / 12) * 0.12,
-                                ),
-                              )
-                            }}
+                            Rp {{ formatMoney(calcPPN(currentSpk)) }}
                           </td>
                         </tr>
+
+                        <!-- Baris D: Total -->
                         <tr class="bg-brand-light">
                           <td class="text-weight-black text-brand-primary q-pa-md text-subtitle1">
                             Total (D) = A + C
@@ -772,20 +866,13 @@
                           <td
                             class="text-right text-weight-black text-brand-primary q-pa-md text-subtitle1"
                           >
-                            Rp
-                            {{
-                              formatMoney(
-                                Math.round(
-                                  calculateGrandTotalJual(currentSpk) +
-                                    ((calculateGrandTotalJual(currentSpk) * 11) / 12) * 0.12,
-                                ),
-                              )
-                            }}
+                            Rp {{ formatMoney(calcTotalDenganPPN(currentSpk)) }}
                           </td>
                         </tr>
                       </tbody>
                     </q-markup-table>
                   </div>
+
                   <div v-else class="q-pa-lg text-center text-grey-5">
                     <q-icon name="toggle_off" size="32px" class="q-mb-xs" />
                     <div class="text-caption">Perhitungan PPN dinonaktifkan untuk kontrak ini</div>
@@ -1255,7 +1342,7 @@
                       />
                     </div>
 
-                    <!-- ✅ LAMPIRAN DIGITAL — Preview + Ganti jika sudah ada -->
+                    <!-- ✅ LAMPIRAN DIGITAL -->
                     <div
                       class="text-subtitle1 text-brand-primary q-mt-xl q-mb-lg uppercase text-weight-black"
                     >
@@ -1285,7 +1372,6 @@
                         />
                       </div>
 
-                      <!-- ✅ Jika sudah ada URL: tampilkan preview chip + opsi ganti -->
                       <div v-if="docItem.url && !docItem.fileRaw" class="q-gutter-y-sm">
                         <div class="row items-center q-gutter-sm">
                           <q-chip
@@ -1320,7 +1406,6 @@
                         />
                       </div>
 
-                      <!-- Jika belum ada URL atau sedang diganti: tampilkan file picker -->
                       <div v-else>
                         <div v-if="docItem.uploading" class="row items-center q-gutter-sm q-pa-sm">
                           <q-spinner color="brand-primary" size="sm" />
@@ -1621,6 +1706,8 @@ const filter = ref('')
 const userData = ref(null)
 
 const form = ref({ nama: '', kategori: '', konsumen: '', alamat: '' })
+
+// ✅ formSpk dengan field PPN dinamis
 const formSpk = ref({
   nomor_spk: '',
   no_quotation: '',
@@ -1632,6 +1719,9 @@ const formSpk = ref({
   documents: [],
   status: 'Pending',
   ppn_aktif: false,
+  ppn_persen: 12,
+  ppn_pembilang: 11,
+  ppn_penyebut: 12,
 })
 const optionsKonsumen = ref([])
 const optionsKategori = ref([])
@@ -1727,7 +1817,7 @@ const canAction = (actionType) => {
 const isEditable = computed(() => canAction('ubah') && currentSpk.value?.status !== 'Approved')
 
 // ============================================================================
-// KALKULASI
+// KALKULASI DASAR
 // ============================================================================
 const formatMoney = (v) => (v ? v.toLocaleString('id-ID') : '0')
 const sumRabRowTotal = (r) =>
@@ -1745,6 +1835,39 @@ const calculateGrandTotalJual = (spk) =>
 const calculateGrandTotalModal = (spk) =>
   (spk?.groups || []).reduce((s, g) => s + sumGroupModal(g), 0)
 
+// ============================================================================
+// ✅ KALKULASI PPN DINAMIS
+// ============================================================================
+/**
+ * Hitung DPP Nilai Lain = Grand Total Jual × (ppn_pembilang / ppn_penyebut)
+ */
+const calcDPP = (spk) => {
+  const total = calculateGrandTotalJual(spk)
+  const pembilang = Number(spk?.ppn_pembilang) || 11
+  const penyebut = Number(spk?.ppn_penyebut) || 12
+  if (penyebut === 0) return 0
+  return Math.round((total * pembilang) / penyebut)
+}
+
+/**
+ * Hitung PPN = DPP × (ppn_persen / 100)
+ */
+const calcPPN = (spk) => {
+  const dpp = calcDPP(spk)
+  const persen = Number(spk?.ppn_persen) || 12
+  return Math.round(dpp * (persen / 100))
+}
+
+/**
+ * Hitung Total Dengan PPN = Grand Total Jual + PPN
+ */
+const calcTotalDenganPPN = (spk) => {
+  return Math.round(calculateGrandTotalJual(spk) + calcPPN(spk))
+}
+
+// ============================================================================
+// DURASI OTOMATIS
+// ============================================================================
 const autoCalculateDuration = () => {
   if (!formSpk.value.tgl_mulai || !formSpk.value.tgl_akhir) return
   const start = new Date(formSpk.value.tgl_mulai)
@@ -1763,7 +1886,7 @@ const autoCalculateDuration = () => {
 }
 
 // ============================================================================
-// ✅ PROCESS FILE — Upload ke Firebase Storage, dengan flag uploading
+// PROCESS FILE
 // ============================================================================
 const processFile = async (docObj) => {
   const file = docObj.fileRaw
@@ -1791,15 +1914,17 @@ const handleBoqHeaderToggle = (item) => {
     item.volume = 1
   }
 }
+
 const addTableGroup = (target) => {
   if (!target.groups) target.groups = []
   target.groups.push({ title: 'KATEGORI BARU', items: [] })
 }
-// ✅ TAMBAH DOKUMEN — Inisialisasi dengan flag uploading
+
 const addDocumentRow = () => {
   if (!formSpk.value.documents) formSpk.value.documents = []
   formSpk.value.documents.push({ label: '', fileRaw: null, url: '', uploading: false })
 }
+
 const addRabRowComplex = (item) => {
   if (!item.rab_modal) item.rab_modal = []
   item.rab_modal.push({
@@ -1813,6 +1938,7 @@ const addRabRowComplex = (item) => {
     harga: 0,
   })
 }
+
 const openInternalPreview = (url) => {
   previewUrl.value = url
   showDocPreview.value = true
@@ -1866,14 +1992,19 @@ const showProjectDetail = (evt, row) => {
   fetchSpkByProject(row.id)
   window.scrollTo(0, 0)
 }
+
+// ✅ showSpkDetail: backward-compatible — isi default jika field PPN belum ada
 const showSpkDetail = (evt, row) => {
   currentSpk.value = JSON.parse(JSON.stringify(row))
-  // Pastikan field ppn_aktif ada (default false untuk SPK lama)
   if (currentSpk.value.ppn_aktif === undefined) currentSpk.value.ppn_aktif = false
+  if (currentSpk.value.ppn_persen === undefined) currentSpk.value.ppn_persen = 12
+  if (currentSpk.value.ppn_pembilang === undefined) currentSpk.value.ppn_pembilang = 11
+  if (currentSpk.value.ppn_penyebut === undefined) currentSpk.value.ppn_penyebut = 12
   activeTab.value = 'boq'
   viewMode.value = 'spk_detail'
   window.scrollTo(0, 0)
 }
+
 const editSpk = (row) => {
   if (!canAction('ubah')) {
     $q.notify({ type: 'negative', message: 'Tidak ada hak akses.' })
@@ -1881,7 +2012,10 @@ const editSpk = (row) => {
   }
   isEditSpkMode.value = true
   formSpk.value = JSON.parse(JSON.stringify(row))
-  // ✅ Pastikan setiap dokumen punya flag uploading
+  // ✅ Backward-compatible: isi default jika field PPN belum ada di data lama
+  if (formSpk.value.ppn_persen === undefined) formSpk.value.ppn_persen = 12
+  if (formSpk.value.ppn_pembilang === undefined) formSpk.value.ppn_pembilang = 11
+  if (formSpk.value.ppn_penyebut === undefined) formSpk.value.ppn_penyebut = 12
   if (formSpk.value.documents) {
     formSpk.value.documents = formSpk.value.documents.map((d) => ({
       ...d,
@@ -1923,7 +2057,6 @@ const handleSaveSpk = async () => {
   submittingSpk.value = true
   try {
     const payload = JSON.parse(JSON.stringify(formSpk.value))
-    // Bersihkan field runtime sebelum simpan
     if (payload.documents)
       payload.documents.forEach((d) => {
         delete d.fileRaw
@@ -2028,11 +2161,14 @@ const openAddDialog = () => {
   form.value = { nama: '', kategori: '', konsumen: '', alamat: '' }
   showAddDialog.value = true
 }
+
 const openEditDialog = (row) => {
   isEditMode.value = true
   form.value = { ...row }
   showAddDialog.value = true
 }
+
+// ✅ openAddSpkDialog: sertakan field PPN default
 const openAddSpkDialog = () => {
   isEditSpkMode.value = false
   formSpk.value = {
@@ -2044,6 +2180,9 @@ const openAddSpkDialog = () => {
     durasi: '',
     status: 'Pending',
     ppn_aktif: false,
+    ppn_persen: 12,
+    ppn_pembilang: 11,
+    ppn_penyebut: 12,
     groups: [
       { title: '1. PEKERJAAN PERSIAPAN', items: [] },
       { title: '2. PEKERJAAN UTAMA', items: [] },
@@ -2397,6 +2536,16 @@ const spkColumns = [
   border-bottom: none;
 }
 
+/* ✅ Input konfigurasi PPN */
+.ppn-config-input :deep(.q-field__control) {
+  border-radius: 8px;
+  min-height: 36px;
+}
+.ppn-config-input :deep(.q-field__native) {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
 .balance-prestige-card {
   border-radius: 20px;
   position: relative;
@@ -2463,5 +2612,10 @@ const spkColumns = [
 }
 .tracking-widest {
   letter-spacing: 0.15em;
+}
+
+/* Teal-1 bg untuk baris konfigurasi PPN */
+.bg-teal-1 {
+  background-color: #e0f2f1 !important;
 }
 </style>
