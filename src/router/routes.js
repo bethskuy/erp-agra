@@ -367,6 +367,51 @@ const routes = [
         name: 'manufaktur-finance-invoice',
         component: () => import('pages/manufaktur/finance/InvoiceCustomerPage.vue'),
       },
+      {
+        path: 'finance/approval-invoice',
+        name: 'manufaktur-finance-approval-invoice',
+        component: () => import('pages/manufaktur/finance/ApprovalInvoicePage.vue'),
+      },
+      {
+        path: 'finance/tagihan',
+        name: 'manufaktur-finance-tagihan',
+        component: () => import('pages/manufaktur/finance/MonitoringTagihanPage.vue'),
+      },
+      {
+        path: 'finance/tagihan-supplier',
+        name: 'manufaktur-finance-tagihan-supplier',
+        component: () => import('pages/manufaktur/finance/TagihanSupplierPage.vue'),
+      },
+      {
+        path: 'finance/invoice-supplier',
+        name: 'manufaktur-finance-invoice-supplier',
+        component: () => import('pages/manufaktur/finance/InvoiceSupplierPage.vue'),
+      },
+      {
+        path: 'finance/pengeluaran',
+        name: 'manufaktur-finance-pengeluaran',
+        component: () => import('pages/manufaktur/finance/MonitoringPengeluaranPage.vue'),
+      },
+      {
+        path: 'finance/pembayaran',
+        name: 'manufaktur-finance-pembayaran',
+        component: () => import('pages/manufaktur/finance/PengajuanPembayaranPage.vue'),
+      },
+      {
+        path: 'finance/approval-pembayaran',
+        name: 'manufaktur-finance-approval-pembayaran',
+        component: () => import('pages/manufaktur/finance/ApprovalPembayaranPage.vue'),
+      },
+      {
+        path: 'finance/realisasi-pembayaran',
+        name: 'manufaktur-finance-realisasi-pembayaran',
+        component: () => import('pages/manufaktur/finance/RealisasiPembayaranPage.vue'),
+      },
+      {
+        path: 'finance/balance-sheet',
+        name: 'manufaktur-finance-balance-sheet',
+        component: () => import('pages/manufaktur/finance/MonitoringBalanceSheetPage.vue'),
+      },
       // --- SECTION 7: GUDANG MANUFAKTUR ---
       {
         path: 'gudang',

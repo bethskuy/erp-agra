@@ -662,13 +662,26 @@
           </q-expansion-item>
 
           <q-expansion-item
-            v-if="checkPermission('finance/invoice')"
+            v-if="
+              hasSectionAccess([
+                'finance-manufactur/invoice',
+                'finance-manufactur/approval-invoice',
+                'finance-manufactur/tagihan',
+                'finance-manufactur/tagihan-supplier',
+                'finance-manufactur/pembayaran',
+                'finance-manufactur/approval-pembayaran',
+                'finance-manufactur/realisasi-pembayaran',
+                'finance-manufactur/pengeluaran',
+                'finance-manufactur/balance-sheet',
+              ])
+            "
             icon="account_balance_wallet"
             label="Finance"
             header-class="nav-group"
             expand-icon-class="nav-expand-icon"
           >
             <q-item
+              v-if="checkPermission('finance-manufactur/invoice')"
               clickable
               v-ripple
               to="/manufaktur/finance/invoice"
@@ -680,6 +693,118 @@
                 ><q-icon name="request_quote" size="xs"
               /></q-item-section>
               <q-item-section class="submenu-text">Invoice Customer</q-item-section>
+            </q-item>
+            <q-item
+              v-if="checkPermission('finance-manufactur/approval-invoice')"
+              clickable
+              v-ripple
+              to="/manufaktur/finance/approval-invoice"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="verified" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Approval Invoice</q-item-section>
+            </q-item>
+            <q-item
+              v-if="checkPermission('finance-manufactur/tagihan')"
+              clickable
+              v-ripple
+              to="/manufaktur/finance/tagihan"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="timeline" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Monitoring Tagihan</q-item-section>
+            </q-item>
+            <q-item
+              v-if="checkPermission('finance-manufactur/tagihan-supplier')"
+              clickable
+              v-ripple
+              to="/manufaktur/finance/tagihan-supplier"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="receipt_long" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Tagihan Supplier</q-item-section>
+            </q-item>
+            <q-item
+              v-if="checkPermission('finance-manufactur/pembayaran')"
+              clickable
+              v-ripple
+              to="/manufaktur/finance/pembayaran"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="payments" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Pengajuan Pembayaran</q-item-section>
+            </q-item>
+            <q-item
+              v-if="checkPermission('finance-manufactur/approval-pembayaran')"
+              clickable
+              v-ripple
+              to="/manufaktur/finance/approval-pembayaran"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="fact_check" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Approval Pembayaran</q-item-section>
+            </q-item>
+            <q-item
+              v-if="checkPermission('finance-manufactur/realisasi-pembayaran')"
+              clickable
+              v-ripple
+              to="/manufaktur/finance/realisasi-pembayaran"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="account_balance" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Realisasi Pembayaran</q-item-section>
+            </q-item>
+            <q-item
+              v-if="checkPermission('finance-manufactur/pengeluaran')"
+              clickable
+              v-ripple
+              to="/manufaktur/finance/pengeluaran"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="trending_down" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Monitoring Pengeluaran</q-item-section>
+            </q-item>
+            <q-item
+              v-if="checkPermission('finance-manufactur/balance-sheet')"
+              clickable
+              v-ripple
+              to="/manufaktur/finance/balance-sheet"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="monitoring" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Monitoring Balance Sheet</q-item-section>
             </q-item>
           </q-expansion-item>
         </q-list>
