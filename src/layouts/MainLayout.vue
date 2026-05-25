@@ -97,7 +97,7 @@ import { useQuasar } from 'quasar'
 
 const router = useRouter()
 const $q = useQuasar()
-const UPDATE_MANIFEST_URL = 'https://agra-erp.vercel.app/version.json'
+const UPDATE_MANIFEST_URL = 'https://raw.githubusercontent.com/bethskuy/erp-agra/refs/heads/main/public/version.json'
 
 const FALLBACK_APK_URL = 'https://agra-erp.vercel.app/app-debug.apk'
 
