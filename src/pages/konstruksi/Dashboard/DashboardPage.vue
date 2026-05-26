@@ -2,29 +2,73 @@
   <q-page class="bg-grey-2 q-pa-md q-pa-lg-xl font-pro">
     <template v-if="canAction('lihat')">
       <!-- =====================================================================================
-           HEADER & GREETING SECTION
+           HEADER & GREETING SECTION (MODERN BANNER)
            ===================================================================================== -->
-      <div class="row items-end justify-between q-mb-xl animate-fade">
-        <div class="col-12 col-md-8">
-          <div class="text-h3 text-weight-black text-teal-10 leading-tight greeting-text">
-            Halo, {{ userFirstName }}! 👋
+      <q-card
+        flat
+        class="bg-dashboard-header q-mb-md shadow-premium rounded-20 relative-position overflow-hidden animate-fade"
+      >
+        <!-- Background Overlay Image -->
+        <div class="header-bg-overlay"></div>
+
+        <q-card-section class="q-pa-xl row items-center justify-between relative-position z-1">
+          <!-- Left Side: Greeting -->
+          <div class="col-12 col-md-7">
+            <div class="text-h6 text-weight-medium text-teal-1 q-mb-xs opacity-80">
+              {{ greetingTime }},
+            </div>
+            <div
+              class="text-h3 text-weight-black text-white q-mb-md uppercase"
+              style="letter-spacing: -0.5px"
+            >
+              {{ userData?.nama || 'AGRA ADMIN' }} <span class="wave-emoji">👋</span>
+            </div>
+            <div class="text-body1 text-teal-1 q-mb-xl font-weight-medium opacity-90">
+              Kelola operasional konstruksi Anda dengan efisien hari ini.
+            </div>
+
+            <div class="row items-center q-gutter-x-lg text-teal-1 text-weight-bold">
+              <div class="row items-center">
+                <q-icon name="calendar_today" size="20px" class="q-mr-sm opacity-70" />
+                {{ currentDate }}
+              </div>
+              <div class="row items-center">
+                <q-icon name="schedule" size="20px" class="q-mr-sm opacity-70" />
+                {{ currentTime }}
+              </div>
+            </div>
           </div>
-          <div class="text-h6 text-grey-6 q-mt-sm font-weight-medium">
-            Pusat Kendali Agra ERP. Hari ini adalah
-            <span class="text-teal-8 text-bold">{{ currentDate }}</span
-            >.
+
+          <!-- Right Side: Quote (Rata tengah di HP, Kanan di Desktop) -->
+          <div
+            class="col-12 col-md-5 relative-position flex justify-center justify-md-end q-mt-xl q-mt-md-none"
+          >
+            <!-- Peningkatan Kartu Glassmorphism -->
+            <div class="quote-box glassmorphism-card q-pa-lg" style="width: 100%; max-width: 400px">
+              <q-icon name="format_quote" size="40px" class="quote-icon text-teal-3" />
+              <div class="text-body1 text-white text-italic q-mb-md" style="line-height: 1.6">
+                "Satu-satunya cara untuk menghasilkan pekerjaan hebat adalah dengan mencintai apa
+                yang Anda kerjakan."
+              </div>
+              <div class="text-caption text-teal-2 text-weight-bold tracking-widest uppercase">
+                - Agra Abhinaya Perkasa
+              </div>
+            </div>
           </div>
-        </div>
-        <div class="col-12 col-md-auto q-mt-md q-mt-md-none">
+        </q-card-section>
+      </q-card>
+
+      <!-- Tombol Action (Membentang penuh di layar HP) -->
+      <div class="row justify-end q-mb-xl animate-fade" v-if="canActionProyek('buat')">
+        <div class="col-12 col-sm-auto">
           <q-btn
-            v-if="canActionProyek('buat')"
             icon="rocket_launch"
             to="/konstruksi/master/proyek-data"
             label="Luncurkan Proyek Baru"
             unelevated
             rounded
             no-caps
-            class="q-px-xl q-py-sm shadow-premium text-weight-bold text-subtitle1 btn-seafoam text-white"
+            class="full-width q-px-xl q-py-sm shadow-premium text-weight-bold text-subtitle1 btn-seafoam text-white"
           />
         </div>
       </div>
@@ -211,13 +255,8 @@
             </q-card-section>
           </q-card>
         </div>
-      </div>
 
-      <!-- =====================================================================================
-           ANALYTICS SECTION
-           ===================================================================================== -->
-      <div class="row q-col-gutter-xl q-mb-xl items-stretch">
-        <!-- Chart 1: Donut Breakdown -->
+        <!-- Chart 3: Radial Efficiency & Komposisi -->
         <div class="col-12 col-md-4">
           <q-card
             flat
@@ -523,10 +562,25 @@ const currentDate = new Date().toLocaleDateString('id-ID', {
   day: 'numeric',
 })
 
-const userFirstName = computed(() => {
-  if (!userData.value?.nama) return 'Agra Team'
-  return userData.value.nama.split(' ')[0]
-})
+// === Realtime Clock & Dynamic Greeting ===
+const currentTime = ref('')
+const greetingTime = ref('Selamat Pagi')
+
+const updateTime = () => {
+  const now = new Date()
+  currentTime.value = now.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  })
+  const hour = now.getHours()
+  if (hour < 12) greetingTime.value = 'Selamat Pagi'
+  else if (hour < 15) greetingTime.value = 'Selamat Siang'
+  else if (hour < 18) greetingTime.value = 'Selamat Sore'
+  else greetingTime.value = 'Selamat Malam'
+}
+
+let timeInterval = null
 
 const stats = ref({
   totalPenawaran: 0,
@@ -731,6 +785,9 @@ const fetchData = async () => {
 }
 
 onMounted(() => {
+  updateTime()
+  timeInterval = setInterval(updateTime, 60000)
+
   const userEmail = authStore.user?.email
   if (userEmail) {
     const qUser = query(collection(db, 'karyawan'), where('email', '==', userEmail))
@@ -742,6 +799,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  if (timeInterval) clearInterval(timeInterval)
   if (unsubscribeUser) unsubscribeUser()
 })
 </script>
@@ -763,6 +821,76 @@ onUnmounted(() => {
 }
 .rounded-20 {
   border-radius: 20px;
+}
+
+/* ─── NEW BANNER CUSTOM THEME ────────────────────────── */
+.bg-dashboard-header {
+  background: linear-gradient(135deg, #094b41 0%, #158577 100%);
+}
+.header-bg-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('https://images.unsplash.com/photo-1541888086225-ee53fb39dfdc?q=80&w=2000&auto=format&fit=crop');
+  background-size: cover;
+  background-position: center 30%;
+  opacity: 0.12;
+  mix-blend-mode: overlay;
+  z-index: 0;
+}
+.z-1 {
+  z-index: 1;
+}
+
+/* KARTU GLASSMORPHISM PREMIUM */
+.glassmorphism-card {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.quote-icon {
+  position: absolute;
+  top: -15px;
+  right: 20px;
+  opacity: 0.4;
+}
+.wave-emoji {
+  display: inline-block;
+  animation: wave 2.5s infinite;
+  transform-origin: 70% 70%;
+}
+@keyframes wave {
+  0% {
+    transform: rotate(0deg);
+  }
+  10% {
+    transform: rotate(14deg);
+  }
+  20% {
+    transform: rotate(-8deg);
+  }
+  30% {
+    transform: rotate(14deg);
+  }
+  40% {
+    transform: rotate(-4deg);
+  }
+  50% {
+    transform: rotate(10deg);
+  }
+  60% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
 }
 
 /* ─── SEAFOAM CUSTOM THEME (#3aab9e) ─────────────────── */
@@ -791,6 +919,9 @@ onUnmounted(() => {
 .shadow-premium {
   box-shadow: 0 8px 25px rgba(58, 171, 158, 0.3) !important;
 }
+.shadow-soft {
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
 .shadow-inner {
   box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.06);
 }
@@ -805,7 +936,7 @@ onUnmounted(() => {
   border: 1px solid rgba(229, 57, 53, 0.15);
 }
 
-/* ─── KPI SOLID CARDS (gaya gambar referensi) ────────── */
+/* ─── KPI SOLID CARDS ────────── */
 .kpi-solid-card {
   border: none !important;
   transition:
