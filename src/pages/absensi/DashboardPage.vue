@@ -1,7 +1,123 @@
 <template>
   <q-page class="bg-slate-50 q-pa-md q-pa-lg-xl font-inter">
     <div class="bento-container mx-auto">
+      <!-- ======================================================================= -->
+      <!-- REVOLUSI DESAIN: BANNER SIARAN PEMBERITAHUAN ULTRA PREMIUM (APPLE STYLE)-->
+      <!-- ======================================================================= -->
+      <div
+        v-if="pemberitahuanList.length > 0 && !showCamera && !isAnnouncementDismissed"
+        class="q-mb-lg animate-fade-in"
+      >
+        <q-card
+          flat
+          class="bento-card announcement-cyber-card relative-position overflow-hidden shadow-2xl"
+        >
+          <!-- Abstract Tech Glowing Mesh in Background -->
+          <div class="cyber-mesh"></div>
+          <div class="glow-orb blue"></div>
+          <div class="glow-orb orange"></div>
+          <div class="cyber-grid-light"></div>
+
+          <!-- Floating Cyber Dust Particles -->
+          <div class="particle-emitter">
+            <div class="particle p1"></div>
+            <div class="particle p2"></div>
+            <div class="particle p3"></div>
+            <div class="particle p4"></div>
+          </div>
+
+          <q-card-section class="q-pa-md q-pa-sm-lg relative-position z-content">
+            <div class="row items-center no-wrap">
+              <!-- Pulsing Holographic Megaphone with 3 radar ripples -->
+              <div class="q-mr-md relative-position">
+                <div class="tech-icon-glow"></div>
+                <div class="tech-icon-container text-white rounded-16 flex flex-center">
+                  <q-icon name="campaign" size="30px" class="floating-icon" />
+                </div>
+                <div class="radar-ripple ring-1"></div>
+                <div class="radar-ripple ring-2"></div>
+                <div class="radar-ripple ring-3"></div>
+              </div>
+
+              <!-- Content Area with Styled Carousel -->
+              <div class="col overflow-hidden">
+                <div class="row items-center q-gutter-x-sm q-mb-xs">
+                  <!-- Live Badge Tech -->
+                  <div class="tech-live-tag">
+                    <span class="live-dot"></span>
+                    PENGUMUMAN RESMI
+                  </div>
+                  <span class="tech-brand-sub font-mono">• AGR.SECURE // BROADCAST SYSTEM</span>
+                </div>
+
+                <q-carousel
+                  v-model="activeAnnouncementSlide"
+                  transition-prev="scale"
+                  transition-next="scale"
+                  swipeable
+                  animated
+                  infinite
+                  autoplay
+                  :autoplay-timeout="6000"
+                  class="bg-transparent text-slate-800 q-pa-none no-shadow announcement-carousel"
+                  height="65px"
+                  :navigation="pemberitahuanList.length > 1"
+                  navigation-icon="fiber_manual_record"
+                  navigation-color="orange-5"
+                  arrows
+                  :arrows-color="pemberitahuanList.length > 1 ? 'orange-8' : 'transparent'"
+                >
+                  <q-carousel-slide
+                    v-for="(item, idx) in pemberitahuanList"
+                    :key="item.id"
+                    :name="idx"
+                    class="q-pa-none flex column justify-center"
+                  >
+                    <div
+                      class="text-subtitle2 text-weight-black text-slate-900 ellipsis tracking-tight"
+                      style="font-size: 14.5px"
+                    >
+                      <q-icon name="shield" size="16px" class="q-mr-xs text-orange-7" />
+                      {{ item.judul }}
+                    </div>
+                    <div
+                      class="text-caption text-slate-600 ellipsis-2-lines line-height-tight q-mt-xs font-medium"
+                      style="font-size: 11.5px; max-width: 90%"
+                    >
+                      {{ item.isi }}
+                    </div>
+                  </q-carousel-slide>
+                </q-carousel>
+              </div>
+
+              <!-- Dismiss Button with Glass Hover Effect -->
+              <q-btn
+                flat
+                round
+                dense
+                icon="close"
+                color="grey-9"
+                size="sm"
+                class="glass-dismiss-btn self-start q-ml-sm"
+                @click="dismissAnnouncement"
+              >
+                <q-tooltip class="bg-blue-grey-9 text-weight-bold">Tutup Siaran</q-tooltip>
+              </q-btn>
+            </div>
+          </q-card-section>
+
+          <!-- Auto-play progress bar track synced to 6s interval -->
+          <div class="tech-progress-track">
+            <div class="tech-progress-bar"></div>
+          </div>
+        </q-card>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- BAGIAN ATAS: PROFIL & WAKTU                -->
+      <!-- ========================================== -->
       <div class="row q-col-gutter-lg q-mb-lg" v-if="!showCamera">
+        <!-- WIDGET 1: PROFIL KARYAWAN -->
         <div class="col-12 col-md-7 col-lg-8 hide-on-mobile">
           <q-card flat class="bento-card bg-white full-height relative-position overflow-hidden">
             <div class="decor-circle-1"></div>
@@ -62,6 +178,7 @@
           </q-card>
         </div>
 
+        <!-- WIDGET 2: JAM "AURORA HOLOGRAPHIC" PREMIUM -->
         <div class="col-12 col-md-5 col-lg-4">
           <q-card
             flat
@@ -92,7 +209,11 @@
         </div>
       </div>
 
+      <!-- ========================================== -->
+      <!-- BAGIAN TENGAH: RADAR LOKASI & ACTION       -->
+      <!-- ========================================== -->
       <div class="row q-col-gutter-lg q-mb-lg flex" v-if="!showCamera">
+        <!-- WIDGET 3: RADAR GPS -->
         <div class="col-12 col-md-6 mobile-order-2 desktop-order-1">
           <q-card flat class="bento-card bg-white full-height">
             <q-card-section class="q-pa-lg">
@@ -103,6 +224,7 @@
                     Sistem Radar Lokasi
                   </div>
                 </div>
+                <!-- Tampilan Jam Kerja Shift membaca secara dinamis dari Firestore Karyawan -->
                 <q-badge
                   outline
                   color="indigo-5"
@@ -220,6 +342,7 @@
           </q-card>
         </div>
 
+        <!-- WIDGET 4: TOMBOL AKSI -->
         <div class="col-12 col-md-6 mobile-order-1 desktop-order-2">
           <q-card flat class="bento-card bg-white full-height flex column justify-center">
             <q-card-section class="q-pa-lg">
@@ -262,6 +385,7 @@
                 </div>
               </div>
 
+              <!-- SENSOR ENGINE & AI STATUS BOARD -->
               <div
                 class="row items-center q-mt-md q-pa-sm rounded-8 border-grey"
                 :class="isAiReady ? 'bg-teal-50 border-teal-200' : 'bg-orange-50 border-orange-200'"
@@ -295,6 +419,9 @@
         </div>
       </div>
 
+      <!-- ========================================== -->
+      <!-- BAGIAN BAWAH: RIWAYAT                      -->
+      <!-- ========================================== -->
       <div class="row q-col-gutter-lg" v-if="!showCamera">
         <div class="col-12">
           <q-card flat class="bento-card bg-white full-height">
@@ -373,6 +500,9 @@
         </div>
       </div>
 
+      <!-- ======================================================================= -->
+      <!-- MODAL SCREEN ABSEN DIGITAL VERIFICATION (RESPONSIF FIXED TOTAL)        -->
+      <!-- ======================================================================= -->
       <q-slide-transition>
         <div v-if="showCamera" class="row justify-center camera-outer-wrapper">
           <div class="col-12 col-xl-10 height-fill-dvh">
@@ -571,7 +701,7 @@ const $q = useQuasar()
 const router = useRouter()
 
 // Deklarasi Listener
-let timer, unsubMe, unsubAll, unsubUser, unsubLokasi, locationTimer
+let timer, unsubMe, unsubAll, unsubUser, unsubLokasi, locationTimer, unsubPemberitahuan
 
 // State Engine Waktu
 const currentHours = ref('')
@@ -581,6 +711,11 @@ const currentDate = ref('')
 
 const riwayatData = ref([])
 const dataSeluruhKaryawan = ref([])
+
+// SINKRONISASI EMAS: Real-time Pemberitahuan Umum untuk Karyawan
+const pemberitahuanList = ref([])
+const activeAnnouncementSlide = ref(0)
+const isAnnouncementDismissed = ref(false)
 
 // Profil Karyawan Terintegrasi
 const userData = ref({
@@ -629,6 +764,10 @@ const ulangiPindai = () => {
   isFaceMatched.value = false
 }
 
+const dismissAnnouncement = () => {
+  isAnnouncementDismissed.value = true
+}
+
 const updateTime = () => {
   const nowObj = new Date()
   currentHours.value = date.formatDate(nowObj, 'HH')
@@ -651,6 +790,32 @@ const updateTime = () => {
       'Desember',
     ],
   })
+}
+
+// SINKRONISASI EMAS: Monitor siaran pengumuman aktif secara realtime
+const loadPemberitahuanRealtime = () => {
+  const q = query(collection(db, 'pemberitahuan'), orderBy('tgl_publikasi', 'desc'))
+  unsubPemberitahuan = onSnapshot(
+    q,
+    (snap) => {
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+
+      pemberitahuanList.value = snap.docs
+        .map((docObj) => {
+          const data = docObj.data()
+          return { id: docObj.id, ...data }
+        })
+        .filter((item) => {
+          if (!item.tgl_kadaluarsa) return true
+          const kadaluarsa = new Date(item.tgl_kadaluarsa)
+          return kadaluarsa >= today
+        })
+    },
+    (err) => {
+      console.warn('Gagal realtime sync pemberitahuan:', err.message)
+    },
+  )
 }
 
 const loadFaceApiScript = () => {
@@ -1107,6 +1272,27 @@ const executeAbsensiAction = async () => {
   }
 }
 
+// UTILITY: Fungsi penentu penempatan storage vs direct Base64 berdasarkan ukuran file (threshold 500 KB)
+const uploadOrGetBase64 = async (base64Data, filename) => {
+  if (!base64Data) return null
+
+  // Menghitung ukuran biner asli dari string base64
+  const stringLength = base64Data.split(',')[1]?.length || base64Data.length
+  const sizeInBytes = stringLength * 0.75
+  const sizeInKb = sizeInBytes / 1024
+
+  if (sizeInKb < 500) {
+    // Di bawah 500 KB: simpan string Base64 langsung ke Firestore
+    return base64Data
+  } else {
+    // Di atas 500 KB: unggah ke Firebase Storage dan kembalikan URL HTTPS unduhannya
+    const fRef = storageRef(storage, `absensi/${filename}_${Date.now()}.jpg`)
+    await uploadString(fRef, base64Data, 'data_url')
+    return await getDownloadURL(fRef)
+  }
+}
+
+// REVISI EMAS: SISTEM HYBRID STORAGE PENYIMPANAN ABSENSI MASUK (<500KB = Base64, >500KB = Storage)
 const saveAbsensi = async () => {
   if (!locationData.value.inRange || locationData.value.securityRisk || !isFaceMatched.value) return
 
@@ -1118,12 +1304,8 @@ const saveAbsensi = async () => {
 
     const isLate = timeStr > lateLimit.value
 
-    let fotoUrl = null
-    if (capturedImage.value) {
-      const fRef = storageRef(storage, `absensi/${formattedName}_IN_${Date.now()}.jpg`)
-      await uploadString(fRef, capturedImage.value, 'data_url')
-      fotoUrl = await getDownloadURL(fRef)
-    }
+    // Proses penentuan alokasi penyimpanan file
+    const fotoUrl = await uploadOrGetBase64(capturedImage.value, `${formattedName}_IN`)
 
     await addDoc(collection(db, 'absensi'), {
       nama_karyawan: formattedName,
@@ -1144,13 +1326,15 @@ const saveAbsensi = async () => {
       icon: 'check_circle',
     })
     stopCamera()
-  } catch {
+  } catch (err) {
+    console.error('Gagal simpan absensi in:', err)
     $q.notify({ color: 'negative', message: 'Koneksi gagal, coba lagi.' })
   } finally {
     $q.loading.hide()
   }
 }
 
+// REVISI EMAS: SISTEM HYBRID STORAGE PENYIMPANAN ABSENSI PULANG (<500KB = Base64, >500KB = Storage)
 const saveAbsensiOut = async () => {
   if (
     !documentId.value ||
@@ -1164,12 +1348,8 @@ const saveAbsensiOut = async () => {
   try {
     const formattedName = (userData.value.nama || 'USER').toUpperCase()
 
-    let fotoPulangUrl = null
-    if (capturedImage.value) {
-      const fRef = storageRef(storage, `absensi/${formattedName}_OUT_${Date.now()}.jpg`)
-      await uploadString(fRef, capturedImage.value, 'data_url')
-      fotoPulangUrl = await getDownloadURL(fRef)
-    }
+    // Proses penentuan alokasi penyimpanan file
+    const fotoPulangUrl = await uploadOrGetBase64(capturedImage.value, `${formattedName}_OUT`)
 
     await updateDoc(doc(db, 'absensi', documentId.value), {
       waktu_pulang: serverTimestamp(),
@@ -1186,7 +1366,7 @@ const saveAbsensiOut = async () => {
     })
     stopCamera()
   } catch (err) {
-    console.error(err)
+    console.error('Gagal simpan absensi out:', err)
     $q.notify({ color: 'negative', message: 'Gagal memproses pengakhiran shift.' })
   } finally {
     $q.loading.hide()
@@ -1199,6 +1379,7 @@ onMounted(() => {
   updateTime()
   timer = setInterval(updateTime, 1000)
   initFaceEngine()
+  loadPemberitahuanRealtime() // SINKRONISASI EMAS: Mengaktifkan sinkronisasi pengumuman resmi dari Firestore
 
   unsubLokasi = onSnapshot(collection(db, 'lokasi_kantor'), (snap) => {
     daftarLokasiKantor.value = snap.docs.map((docItem) => docItem.data())
@@ -1283,6 +1464,7 @@ onUnmounted(() => {
   if (unsubAll) unsubAll()
   if (unsubUser) unsubUser()
   if (unsubLokasi) unsubLokasi()
+  if (unsubPemberitahuan) unsubPemberitahuan() // Hapus listener saat halaman ditutup
 })
 </script>
 
@@ -1340,6 +1522,283 @@ onUnmounted(() => {
   border: 1px solid #f97316;
 }
 
+/* =======================================================================
+   REVOLUSI DESAIN: BANNER SIARAN PEMBERITAHUAN UTRA-PREMIUM CYBER METRO
+   ======================================================================= */
+.announcement-cyber-card {
+  background: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(20px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(190%) !important;
+  border: 1.5px solid rgba(249, 115, 22, 0.25) !important; /* Elegant neon orange border */
+  box-shadow:
+    0 20px 45px -12px rgba(249, 115, 22, 0.12),
+    inset 0 1px 1px rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Cyber mesh abstract lines */
+.cyber-mesh {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(at 10% 20%, rgba(59, 130, 246, 0.05) 0px, transparent 45%),
+    radial-gradient(at 90% 10%, rgba(249, 115, 22, 0.06) 0px, transparent 45%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Floating Light Orbs */
+.glow-orb {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  filter: blur(55px);
+  mix-blend-mode: color-burn;
+  z-index: 0;
+  pointer-events: none;
+}
+.glow-orb.blue {
+  background: rgba(37, 99, 235, 0.08);
+  top: -40px;
+  left: 20%;
+  animation: floatOrb1 12s infinite alternate ease-in-out;
+}
+.glow-orb.orange {
+  background: rgba(249, 115, 22, 0.09);
+  bottom: -40px;
+  right: 25%;
+  animation: floatOrb2 10s infinite alternate ease-in-out;
+}
+
+@keyframes floatOrb1 {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    transform: translate(40px, 20px) scale(1.35);
+  }
+}
+@keyframes floatOrb2 {
+  0% {
+    transform: translate(0, 0) scale(1.15);
+  }
+  100% {
+    transform: translate(-30px, -25px) scale(0.85);
+  }
+}
+
+.cyber-grid-light {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(249, 115, 22, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(249, 115, 22, 0.02) 1px, transparent 1px);
+  background-size: 20px 20px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Floating Particles */
+.particle-emitter {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(249, 115, 22, 0.45);
+  animation: floatParticle 7s infinite linear;
+}
+.particle.p1 {
+  top: 15%;
+  left: 35%;
+  animation-delay: 0s;
+}
+.particle.p2 {
+  top: 75%;
+  left: 75%;
+  animation-delay: 1.8s;
+  width: 6px;
+  height: 6px;
+}
+.particle.p3 {
+  top: 35%;
+  left: 10%;
+  animation-delay: 3.5s;
+}
+.particle.p4 {
+  top: 85%;
+  left: 50%;
+  animation-delay: 5s;
+}
+
+@keyframes floatParticle {
+  0% {
+    transform: translateY(15px);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(-35px);
+    opacity: 0;
+  }
+}
+
+/* Futuristic Hologram Megaphone Container */
+.tech-icon-container {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  width: 50px;
+  height: 50px;
+  box-shadow: 0 8px 22px -6px rgba(249, 115, 22, 0.55);
+  z-index: 2;
+  position: relative;
+}
+.tech-icon-glow {
+  position: absolute;
+  inset: -3px;
+  background: linear-gradient(135deg, #fb923c, #f97316);
+  border-radius: 18px;
+  filter: blur(8px);
+  opacity: 0.45;
+  z-index: 1;
+}
+.floating-icon {
+  animation: floatIcon 3.5s infinite ease-in-out;
+}
+@keyframes floatIcon {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(-3deg);
+  }
+}
+
+/* Radar Pulse Waves */
+.radar-ripple {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1.5px solid rgba(249, 115, 22, 0.25);
+  pointer-events: none;
+  z-index: 0;
+}
+.radar-ripple.ring-1 {
+  animation: ripple 4.5s infinite linear;
+}
+.radar-ripple.ring-2 {
+  animation: ripple 4.5s infinite linear;
+  animation-delay: 1.5s;
+}
+.radar-ripple.ring-3 {
+  animation: ripple 4.5s infinite linear;
+  animation-delay: 3s;
+}
+
+@keyframes ripple {
+  0% {
+    width: 44px;
+    height: 44px;
+    opacity: 0.9;
+  }
+  100% {
+    width: 150px;
+    height: 150px;
+    opacity: 0;
+  }
+}
+
+/* Glass Live Tag Badge */
+.tech-live-tag {
+  background: linear-gradient(90deg, #fffbeb, #ffedd5);
+  border: 1px solid rgba(249, 115, 22, 0.35);
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 9px;
+  font-weight: 900;
+  color: #ea580c;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  box-shadow: 0 2px 6px rgba(249, 115, 22, 0.06);
+}
+.live-dot {
+  width: 6px;
+  height: 6px;
+  background-color: #ef4444;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #ef4444;
+  animation: pulseNeon 1.3s infinite ease-in-out;
+}
+@keyframes pulseNeon {
+  0%,
+  100% {
+    opacity: 0.5;
+    box-shadow: 0 0 4px #ef4444;
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 12px #ef4444;
+  }
+}
+
+.tech-brand-sub {
+  font-size: 10px;
+  color: #475569;
+  letter-spacing: 0.6px;
+  font-weight: 800;
+}
+
+/* Liqueur Glass close icon */
+.glass-dismiss-btn {
+  background: rgba(148, 163, 184, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.glass-dismiss-btn:hover {
+  background: rgba(239, 68, 68, 0.18);
+  color: #ef4444 !important;
+  border-color: rgba(239, 68, 68, 0.35);
+  transform: rotate(90deg) scale(1.1);
+}
+
+/* Bottom Progress Tracker corresponding to 6s autoplay */
+.tech-progress-track {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(249, 115, 22, 0.12);
+  z-index: 10;
+}
+.tech-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #f97316, #ea580c);
+  width: 0%;
+  animation: progressRun 6s infinite linear;
+}
+@keyframes progressRun {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+/* =======================================================================
+   STYLING BAGIAN LAIN
+   ======================================================================= */
 .mx-auto {
   margin-left: auto;
   margin-right: auto;
@@ -1569,26 +2028,11 @@ onUnmounted(() => {
   position: relative;
   z-index: 1;
 }
-.video-stream,
-.scanner-overlay,
-.scanner-frame,
-.scan-laser,
-.corner,
-canvas {
-  pointer-events: none !important;
+.video-stream {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
-
-.camera-control-panel {
-  position: relative;
-  z-index: 99999 !important;
-}
-
-.camera-control-panel .q-btn {
-  position: relative;
-  z-index: 999999 !important;
-  pointer-events: auto !important;
-}
-
 .scanner-overlay {
   position: absolute;
   top: 0;

@@ -74,7 +74,8 @@
       </q-toolbar>
     </q-header>
 
-    <q-drawer v-model="leftDrawerOpen" show-if-above :width="285" class="bg-white">
+    <!-- Lebar drawer kembali seimbang dan pas di 290px karena badge ditarik ke dalam -->
+    <q-drawer v-model="leftDrawerOpen" show-if-above :width="290" class="bg-white">
       <div class="column fit">
         <div class="q-pa-lg bg-blue-1 text-blue-10">
           <div class="row items-center q-gutter-md">
@@ -111,44 +112,42 @@
                 active-class="menu-item-active"
               >
                 <q-item-section avatar><q-icon :name="menu.icon" size="22px" /></q-item-section>
-                <q-item-section class="text-weight-bold uppercase">{{ menu.label }}</q-item-section>
 
-                <!-- Badge Notifikasi Cuti (Merah) -->
-                <q-item-section
-                  v-if="menu.path === '/absensi/admin/persetujuan' && pendingCutiCount > 0"
-                  side
-                >
-                  <q-badge
-                    color="red-6"
-                    :label="pendingCutiCount > 99 ? '99+' : String(pendingCutiCount)"
-                    class="text-weight-bolder shadow-2 notif-badge-pulse"
-                    style="
-                      font-size: 11px;
-                      min-width: 22px;
-                      height: 22px;
-                      border-radius: 11px;
-                      margin-right: 8px;
-                    "
-                  />
-                </q-item-section>
+                <!-- REVISI: Menggabungkan teks label dan badge ke sampingnya secara inline -->
+                <q-item-section>
+                  <div class="row items-center no-wrap">
+                    <span class="text-weight-bold">{{ menu.label }}</span>
 
-                <!-- Badge Notifikasi Izin/Sakit/Manual (Oranye) -->
-                <q-item-section
-                  v-if="menu.path === '/absensi/admin/persetujuan-izin' && pendingIzinCount > 0"
-                  side
-                >
-                  <q-badge
-                    color="orange-6"
-                    :label="pendingIzinCount > 99 ? '99+' : String(pendingIzinCount)"
-                    class="text-weight-bolder shadow-2 notif-badge-pulse"
-                    style="
-                      font-size: 11px;
-                      min-width: 22px;
-                      height: 22px;
-                      border-radius: 11px;
-                      margin-right: 8px;
-                    "
-                  />
+                    <!-- Badge Notifikasi Cuti (Merah - Di samping teks persis) -->
+                    <q-badge
+                      v-if="menu.path === '/absensi/admin/persetujuan' && pendingCutiCount > 0"
+                      color="red-6"
+                      :label="pendingCutiCount > 99 ? '99+' : String(pendingCutiCount)"
+                      class="text-weight-bolder shadow-2 notif-badge-pulse flex flex-center q-ml-sm"
+                      style="
+                        font-size: 11px;
+                        min-width: 22px;
+                        height: 22px;
+                        border-radius: 50%;
+                        padding: 0;
+                      "
+                    />
+
+                    <!-- Badge Notifikasi Izin/Sakit/Manual (Oranye - Di samping teks persis) -->
+                    <q-badge
+                      v-if="menu.path === '/absensi/admin/persetujuan-izin' && pendingIzinCount > 0"
+                      color="orange-6"
+                      :label="pendingIzinCount > 99 ? '99+' : String(pendingIzinCount)"
+                      class="text-weight-bolder shadow-2 notif-badge-pulse flex flex-center q-ml-sm"
+                      style="
+                        font-size: 11px;
+                        min-width: 22px;
+                        height: 22px;
+                        border-radius: 50%;
+                        padding: 0;
+                      "
+                    />
+                  </div>
                 </q-item-section>
               </q-item>
             </template>
@@ -169,7 +168,7 @@
             <q-separator spaced class="q-my-md" />
             <q-item clickable v-ripple @click="handleLogout" class="menu-item text-negative">
               <q-item-section avatar><q-icon name="logout" /></q-item-section>
-              <q-item-section class="text-weight-bold uppercase">KELUAR SISTEM</q-item-section>
+              <q-item-section class="text-weight-bold">KELUAR SISTEM</q-item-section>
             </q-item>
           </q-list>
         </q-scroll-area>
@@ -462,11 +461,11 @@ const handleLogout = () => {
 <style lang="scss" scoped>
 .menu-item {
   border-radius: 0 25px 25px 0;
-  margin-right: 12px;
+  margin-right: 8px;
   color: #546e7a;
   text-transform: uppercase;
-  font-size: 13px;
-  letter-spacing: 0.5px;
+  font-size: 12.5px; /* REVISI: Ukuran font adaptif kustom agar hemat ruang samping */
+  letter-spacing: 0.3px;
   transition: all 0.3s;
   &:hover {
     background: rgba(0, 0, 0, 0.03);
@@ -508,7 +507,7 @@ const handleLogout = () => {
     box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.6);
   }
   70% {
-    box-shadow: 0 0 0 7px rgba(229, 57, 53, 0);
+    box-shadow: 0 0 0 6px rgba(229, 57, 53, 0);
   }
   100% {
     box-shadow: 0 0 0 0 rgba(229, 57, 53, 0);

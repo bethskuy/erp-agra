@@ -92,7 +92,7 @@
                     ]"
                     @click="bukaDetailFullPage(props.row)"
                   >
-                    <!-- Info Karyawan -->
+                    <!-- Info Karyawan (Dinamis Foto Profil) -->
                     <q-td key="karyawan" class="text-left">
                       <div class="row items-center no-wrap">
                         <q-avatar
@@ -101,7 +101,12 @@
                           text-color="white"
                           class="q-mr-sm text-weight-bold shadow-1"
                         >
-                          {{ getInitial(props.row.nama_karyawan) }}
+                          <img
+                            v-if="getFotoProfil(props.row.nama_karyawan)"
+                            :src="getFotoProfil(props.row.nama_karyawan)"
+                            style="object-fit: cover"
+                          />
+                          <span v-else>{{ getInitial(props.row.nama_karyawan) }}</span>
                         </q-avatar>
                         <div>
                           <div
@@ -245,20 +250,25 @@
             </q-card>
           </div>
 
-          <!-- KOLOM KANAN: Panel Detail + View Switcher (muncul saat baris diklik) -->
+          <!-- KOLOM KANAN: Panel Detail + View Switcher (Dinamis Foto Profil) -->
           <div v-if="selectedCuti" class="col-12 col-lg-6">
             <q-card flat class="bento-card bg-white shadow-soft detail-panel-card">
               <!-- ── Header Panel ── -->
               <div class="detail-panel-header q-pa-lg q-pb-md">
                 <div class="row items-center no-wrap">
-                  <!-- Avatar besar -->
+                  <!-- Avatar dinamis terhubung database -->
                   <q-avatar
                     size="52px"
                     :color="getRandomColor(selectedCuti.nama_karyawan)"
                     text-color="white"
                     class="q-mr-md text-weight-bolder shadow-2 text-subtitle1"
                   >
-                    {{ getInitial(selectedCuti.nama_karyawan) }}
+                    <img
+                      v-if="getFotoProfil(selectedCuti.nama_karyawan)"
+                      :src="getFotoProfil(selectedCuti.nama_karyawan)"
+                      style="object-fit: cover"
+                    />
+                    <span v-else>{{ getInitial(selectedCuti.nama_karyawan) }}</span>
                   </q-avatar>
                   <div class="col">
                     <div
@@ -636,7 +646,7 @@
         </div>
 
         <!-- ========================================== -->
-        <!-- TABEL 2: RIWAYAT KEPUTUSAN DIREKSI         -->
+        <!-- TABEL 2: RIWAYAT KEPUTUSAN DIREKSI (DINAMIS FOTO PROFIL) -->
         <!-- ========================================== -->
         <div class="q-mb-md q-mt-xl flex items-center">
           <q-icon name="history" color="blue-grey-5" size="sm" class="q-mr-sm" />
@@ -680,7 +690,12 @@
                       text-color="white"
                       class="q-mr-md text-weight-bold shadow-1 opacity-80"
                     >
-                      {{ getInitial(props.row.nama_karyawan) }}
+                      <img
+                        v-if="getFotoProfil(props.row.nama_karyawan)"
+                        :src="getFotoProfil(props.row.nama_karyawan)"
+                        style="object-fit: cover"
+                      />
+                      <span v-else>{{ getInitial(props.row.nama_karyawan) }}</span>
                     </q-avatar>
                     <div>
                       <div class="text-weight-bold text-blue-grey-9 text-uppercase">
@@ -944,7 +959,7 @@
       <!-- END VIEW LIST -->
 
       <!-- =====================================================================================
-           VIEW 2: DETAIL FULL PAGE (VIEW SWITCHER)
+           VIEW 2: DETAIL FULL PAGE (VIEW SWITCHER - DINAMIS FOTO PROFIL)
            ===================================================================================== -->
       <div v-else-if="viewMode === 'detail-full' && selectedCuti" class="animate-fade-in">
         <!-- BACK HEADER -->
@@ -997,7 +1012,7 @@
 
         <div class="row justify-center">
           <div class="col-12 col-xl-10">
-            <!-- PROFILE HEADER CARD -->
+            <!-- PROFILE HEADER CARD (Dinamis Foto Profil) -->
             <q-card flat bordered class="rounded-24 shadow-soft q-mb-xl bg-white overflow-hidden">
               <div class="row">
                 <!-- Avatar Side -->
@@ -1013,7 +1028,12 @@
                       class="shadow-10 text-weight-bolder text-h3 q-mb-md"
                       style="border: 5px solid white"
                     >
-                      {{ getInitial(selectedCuti.nama_karyawan) }}
+                      <img
+                        v-if="getFotoProfil(selectedCuti.nama_karyawan)"
+                        :src="getFotoProfil(selectedCuti.nama_karyawan)"
+                        style="object-fit: cover"
+                      />
+                      <span v-else>{{ getInitial(selectedCuti.nama_karyawan) }}</span>
                     </q-avatar>
                     <q-badge
                       color="indigo-1"
@@ -1558,6 +1578,12 @@ const getSisaKuota = (nama) => {
   return karyawanMap.value[nama.toUpperCase()]?.kuota_cuti || 12
 }
 
+// METODE KHUSUS: Mengambil Foto Profil Karyawan terdaftar di database secara dinamis (Anti-Dummy)
+const getFotoProfil = (nama) => {
+  if (!nama) return ''
+  return karyawanMap.value[nama.toUpperCase()]?.foto_profil || ''
+}
+
 const getStatusBadgeColor = (status) => {
   if (!status) return 'orange-5'
   const s = status.toLowerCase()
@@ -1625,7 +1651,7 @@ const bukaDialogRevisi = (row) => {
 
 let unsubscribeData = null
 
-// Load Data Karyawan (untuk NIK dan ID Pengurangan Kuota Cuti secara dinamis)
+// Load Data Karyawan (untuk NIK, ID Pengurangan Kuota Cuti, dan FOTO PROFIL AKTIF secara dinamis)
 const loadKaryawan = async () => {
   try {
     const snap = await getDocs(collection(db, 'karyawan'))
@@ -1636,6 +1662,7 @@ const loadKaryawan = async () => {
           id: docObj.id,
           nik: data.nik || 'Tidak Tersedia',
           kuota_cuti: typeof data.kuota_cuti !== 'undefined' ? data.kuota_cuti : 12,
+          foto_profil: data.fotoUrl || data.foto_profil || '', // REVISI: Tarik foto asli dari database (Anti-Dummy)
         }
       }
     })
@@ -1979,7 +2006,7 @@ const HOLIDAY_DATA = {
     { tanggal: '2026/02/17', nama: 'Tahun Baru Imlek 2577', type: 'holiday' },
     { tanggal: '2026/03/19', nama: 'Hari Raya Nyepi', type: 'holiday' },
     { tanggal: '2026/03/20', nama: 'Wafat Yesus Kristus', type: 'holiday' },
-    { tanggal: '2026/03/21', nama: 'Idul Fitri 1447 H', type: 'holiday' },
+    { tanggal: '2026/03/21', module: 'absensi', nama: 'Idul Fitri 1447 H', type: 'holiday' },
     { tanggal: '2026/03/22', nama: 'Idul Fitri 1447 H', type: 'holiday' },
     { tanggal: '2026/03/18', nama: 'Cuti Bersama Idul Fitri', type: 'cuti_bersama' },
     { tanggal: '2026/03/23', nama: 'Cuti Bersama Idul Fitri', type: 'cuti_bersama' },
