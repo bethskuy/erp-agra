@@ -2,12 +2,17 @@
   <q-layout view="lHh Lpr lFf">
     <q-page-container>
       <q-page class="login-page">
+        <!-- Ambient Glowing Background Blobs (Soft Dark Theme Glow) -->
+        <div class="bg-glow bg-glow-1"></div>
+        <div class="bg-glow bg-glow-2"></div>
+        <div class="bg-glow bg-glow-3"></div>
+
         <!-- Page center wrapper -->
         <div class="page-center">
-          <!-- Outer floating card -->
+          <!-- Outer unified glassmorphic card (Dark Premium Glass) -->
           <div class="outer-card animate-slide-up">
             <div class="split-wrapper">
-              <!-- ── LEFT PANEL: Ilustrasi Flat Office ── -->
+              <!-- ── LEFT PANEL: Ilustrasi dengan Nuansa Putih Kebiru-biruan Terang (Sesuai Permintaan) ── -->
               <div class="panel-left" aria-hidden="true">
                 <div class="ambient-blob ab1"></div>
                 <div class="ambient-blob ab2"></div>
@@ -250,7 +255,7 @@
                 </div>
               </div>
 
-              <!-- ── RIGHT PANEL: Login Card ── -->
+              <!-- ── RIGHT PANEL: Login Form Area (Tema Gelap Mewah Tetap Dipertahankan) ── -->
               <div class="panel-right">
                 <div class="login-card animate-slide-up">
                   <!-- Logo Circle -->
@@ -345,7 +350,7 @@
                       />
                     </div>
 
-                    <!-- Submit -->
+                    <!-- Submit Button -->
                     <q-btn
                       label="MASUK"
                       type="submit"
@@ -476,55 +481,128 @@ const handleLogin = async () => {
 
 .login-page {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: hidden !important; /* Hilangkan scroll bar vertikal halaman utama */
+  background: #090c1b; /* Kembali ke gelap elegan untuk background utama */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── AMBIENT BACKGROUND GLOWS ── */
+.bg-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(140px);
+  pointer-events: none;
+  opacity: 0.35; /* Disesuaikan untuk mode gelap */
+  z-index: 1;
+}
+.bg-glow-1 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, #3b82f6 0%, transparent 70%);
+  top: -10%;
+  left: 10%;
+}
+.bg-glow-2 {
+  width: 550px;
+  height: 550px;
+  background: radial-gradient(circle, #6366f1 0%, transparent 70%);
+  bottom: -15%;
+  right: 15%;
+}
+.bg-glow-3 {
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle, #06b6d4 0%, transparent 70%);
+  top: 30%;
+  right: -5%;
+}
+
+/* Center Layout Wrapper */
+.page-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  padding: 1.5rem;
+  z-index: 2;
+  box-sizing: border-box;
+  overflow: hidden !important; /* Mematikan scrolling internal */
+}
+
+/* ── UNIFIED OUTER GLASS CARD (Desktop Dark Glassmorphism) ── */
+.outer-card {
+  width: 100%;
+  max-width: 1080px; /* Ukuran kotak besar megah dipertahankan */
+  background: rgba(15, 20, 48, 0.45); /* Kembali ke Kaca Gelap */
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08); /* Border putih tipis elegan */
+  border-radius: 28px;
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   overflow: hidden;
-  background: #e8eef8;
 }
 
 .split-wrapper {
   display: flex;
-  min-height: 100vh;
+  width: 100%;
+  height: 640px; /* Ketinggian proporsional besar dipertahankan */
 }
 
-/* ── LEFT PANEL ── */
+/* ── PANEL KIRI: Putih Kebiru-biruan Terang Premium (Khusus Sisi Kiri) ── */
 .panel-left {
-  flex: 1;
+  flex: 1.15;
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(160deg, #dbeafe 0%, #e0f2fe 40%, #eff6ff 100%);
+  background: linear-gradient(
+    135deg,
+    #ffffff 0%,
+    #f0f6ff 50%,
+    #dbeafe 100%
+  ); /* Transisi Putih ke Biru Muda */
+  border-right: 1px solid rgba(37, 99, 235, 0.08);
+  padding: 2.5rem;
   overflow: hidden;
-  padding: 2rem;
 }
 
 .ambient-blob {
   position: absolute;
   border-radius: 50%;
-  filter: blur(70px);
+  filter: blur(80px);
   pointer-events: none;
 }
 .ab1 {
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, #bfdbfe, #93c5fd);
-  top: -120px;
-  right: -80px;
-  opacity: 0.55;
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.15), transparent 70%);
+  top: -100px;
+  right: -50px;
+  opacity: 0.8;
 }
 .ab2 {
-  width: 300px;
-  height: 300px;
-  background: radial-gradient(circle, #a5f3fc, #67e8f9);
+  width: 260px;
+  height: 260px;
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.1), transparent 70%);
   bottom: -80px;
-  left: -60px;
-  opacity: 0.4;
+  left: -40px;
+  opacity: 0.7;
 }
 
 .illus-wrap {
   width: 100%;
-  max-width: 480px;
+  max-width: 360px;
   position: relative;
   z-index: 2;
 }
@@ -536,58 +614,35 @@ const handleLogin = async () => {
 
 .illus-caption {
   text-align: center;
-  margin-top: 1.5rem;
+  margin-top: 1.75rem;
   position: relative;
   z-index: 2;
 }
 .illus-title {
-  font-size: 1.6rem;
+  font-size: 1.65rem;
   font-weight: 800;
-  color: #1e40af;
-  margin: 0 0 0.35rem;
+  color: #1e40af; /* Biru gelap berkelas agar terbaca jelas di background putih-biru */
+  margin: 0 0 0.4rem;
   letter-spacing: -0.02em;
 }
 .illus-sub {
-  font-size: 0.82rem;
-  color: #3b6fc9;
+  font-size: 0.85rem;
+  color: #3b6fc9; /* Biru medium agar kontras */
   margin: 0;
   line-height: 1.55;
   font-weight: 500;
 }
 
-/* ── RIGHT PANEL ── */
+/* ── PANEL KANAN: Login Form Area (Tetap Gelap Mewah) ── */
 .panel-right {
-  width: 480px;
-  min-width: 380px;
+  flex: 0.85;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(175deg, #1a1f4e 0%, #141836 55%, #0c0e22 100%);
-  padding: 2.5rem 2rem;
+  background: rgba(10, 13, 34, 0.25);
+  padding: 2.5rem;
   position: relative;
   overflow: hidden;
-}
-.panel-right::before {
-  content: '';
-  position: absolute;
-  width: 320px;
-  height: 320px;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.25), transparent 70%);
-  top: -80px;
-  right: -80px;
-  border-radius: 50%;
-  pointer-events: none;
-}
-.panel-right::after {
-  content: '';
-  position: absolute;
-  width: 240px;
-  height: 240px;
-  background: radial-gradient(circle, rgba(6, 182, 212, 0.15), transparent 70%);
-  bottom: -60px;
-  left: -60px;
-  border-radius: 50%;
-  pointer-events: none;
 }
 
 .login-card {
@@ -602,13 +657,13 @@ const handleLogin = async () => {
 
 /* Logo */
 .logo-ring {
-  width: 72px;
-  height: 72px;
+  width: 68px;
+  height: 68px;
   border-radius: 50%;
-  padding: 4px;
+  padding: 3px;
   background: linear-gradient(135deg, #6366f1, #3b82f6);
   margin-bottom: 1.5rem;
-  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.45);
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.35);
 }
 .logo-circle {
   width: 100%;
@@ -624,18 +679,18 @@ const handleLogin = async () => {
 /* Heading */
 .card-heading {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1.75rem;
 }
 .card-title {
-  font-size: 2rem;
+  font-size: 1.85rem;
   font-weight: 800;
-  color: #ffffff;
+  color: #ffffff; /* Kembali ke putih kontras */
   margin: 0 0 0.4rem;
   letter-spacing: -0.03em;
 }
 .card-subtitle {
   font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.55); /* Kembali ke abu-abu transparan */
   margin: 0;
 }
 
@@ -643,8 +698,8 @@ const handleLogin = async () => {
 .error-banner {
   width: 100%;
   background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.35);
-  border-radius: 10px;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 12px;
   padding: 10px 14px;
   display: flex;
   align-items: center;
@@ -660,7 +715,7 @@ const handleLogin = async () => {
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: 1.1rem;
+  gap: 1.15rem;
 }
 .field-group {
   display: flex;
@@ -671,7 +726,7 @@ const handleLogin = async () => {
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.65); /* Label putih pudar */
   text-transform: uppercase;
 }
 .label-row {
@@ -680,7 +735,7 @@ const handleLogin = async () => {
   justify-content: space-between;
 }
 .link-forgot {
-  font-size: 0.76rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: #60a5fa;
   text-decoration: none;
@@ -691,20 +746,20 @@ const handleLogin = async () => {
   text-decoration: underline;
 }
 
-/* Dark Input - warna gelap navy, no white bg */
+/* Glassmorphic Dark Inputs (Kembali ke Gelap Mewah) */
 .dark-input :deep(.q-field__control) {
-  background: #0f1232 !important;
+  background: rgba(15, 18, 48, 0.45) !important; /* Input gelap transparan */
   border-radius: 14px !important;
-  border: 1px solid rgba(99, 102, 241, 0.28) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
   transition: all 0.25s ease;
   overflow: hidden;
 }
 .dark-input :deep(.q-field__control:hover) {
-  border-color: rgba(99, 102, 241, 0.5) !important;
+  border-color: rgba(99, 102, 241, 0.4) !important;
 }
 .dark-input :deep(.q-field--focused .q-field__control) {
   border-color: #6366f1 !important;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
 }
 .dark-input :deep(.q-field__control *) {
   background: transparent !important;
@@ -712,7 +767,7 @@ const handleLogin = async () => {
 .dark-input :deep(.q-field__native) {
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 0.9rem;
-  color: #c7d2fe !important;
+  color: #e2e8f0 !important; /* Input teks putih */
   caret-color: #818cf8;
   background: transparent !important;
 }
@@ -728,7 +783,7 @@ const handleLogin = async () => {
 .dark-input :deep(input:-webkit-autofill:hover),
 .dark-input :deep(input:-webkit-autofill:focus) {
   -webkit-box-shadow: 0 0 0 1000px #0f1232 inset !important;
-  -webkit-text-fill-color: #c7d2fe !important;
+  -webkit-text-fill-color: #e2e8f0 !important;
   caret-color: #818cf8;
 }
 .dark-input :deep(.q-field__messages) {
@@ -740,7 +795,7 @@ const handleLogin = async () => {
   margin-top: -0.25rem;
 }
 .remember-cb :deep(.q-checkbox__bg) {
-  border-color: rgba(99, 102, 241, 0.6) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
 }
 .remember-cb :deep(.q-checkbox__label) {
   font-size: 0.82rem;
@@ -753,26 +808,26 @@ const handleLogin = async () => {
   background: linear-gradient(135deg, #6366f1 0%, #3b82f6 100%);
   color: white !important;
   border-radius: 999px;
-  padding: 0.9rem 0;
+  padding: 0.85rem 0;
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 0.875rem;
   font-weight: 800;
-  letter-spacing: 0.1em;
-  box-shadow: 0 8px 28px rgba(99, 102, 241, 0.45);
+  letter-spacing: 0.08em;
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.35);
   transition: all 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
-  margin-top: 0.4rem;
+  margin-top: 0.3rem;
 }
 .btn-masuk:hover {
-  transform: translateY(-2px) scale(1.015);
-  box-shadow: 0 14px 36px rgba(99, 102, 241, 0.6);
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 12px 30px rgba(99, 102, 241, 0.5);
   filter: brightness(1.08);
 }
 
 /* Footer */
 .card-footer {
-  margin-top: 2rem;
+  margin-top: 1.75rem;
   text-align: center;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 0.06em;
   color: rgba(255, 255, 255, 0.3);
@@ -830,102 +885,110 @@ const handleLogin = async () => {
   }
 }
 
-/* ── RESPONSIVE MOBILE ── */
-/* RESPONSIVE MOBILE */
+/* ── RESPONSIVE MOBILE (Tetap Sesuai Gambar Kedua Anda) ── */
 @media (max-width: 860px) {
   .panel-left {
-    display: none !important;
+    display: none !important; /* Panel kiri disembunyikan di HP */
+  }
+
+  .page-center {
+    padding: 1rem;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden !important;
+  }
+
+  /* Hilangkan border/background outer-card agar login-card terlihat sebagai kartu melayang tunggal */
+  .outer-card {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .split-wrapper {
-    min-height: 100vh;
-    min-height: 100dvh;
+    display: block;
+    height: auto;
   }
 
   .panel-right {
     width: 100%;
     min-width: unset;
-    /* Pas tepat di layar, tanpa scroll */
-    height: 100vh;
-    height: 100dvh;
-    overflow: hidden;
-    padding: 1rem;
+    height: auto;
+    padding: 0;
+    background: transparent !important;
+    display: flex;
     align-items: center;
     justify-content: center;
   }
 
-  .panel-right::before {
-    width: 280px;
-    height: 280px;
-    top: -60px;
-    right: -60px;
-    display: block;
-  }
-  .panel-right::after {
-    width: 200px;
-    height: 200px;
-    bottom: -40px;
-    left: -40px;
-    display: block;
-  }
-
-  /* Card glassmorphism diperkecil agar muat di HP */
+  /* Card glassmorphism melayang indah di HP (Versi Gelap Tanpa Scrollbar) */
   .login-card {
     width: 100%;
-    max-width: 380px;
-    background: rgba(255, 255, 255, 0.06);
-    backdrop-filter: blur(28px);
-    -webkit-backdrop-filter: blur(28px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 1.75rem;
-    padding: 1.75rem 1.5rem 1.5rem;
+    max-width: 340px;
+    background: rgba(255, 255, 255, 0.04) !important; /* Gelap transparan di HP */
+    backdrop-filter: blur(30px) !important;
+    -webkit-backdrop-filter: blur(30px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 1.5rem !important;
+    padding: 1.5rem 1.25rem 1.25rem !important;
     box-shadow:
       0 24px 60px rgba(0, 0, 0, 0.45),
       0 0 0 1px rgba(99, 102, 241, 0.15),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
   }
 
-  /* Perkecil elemen-elemen di dalam card */
+  /* Skala layout di HP */
   .logo-ring {
-    width: 58px;
-    height: 58px;
-    margin-bottom: 1rem;
+    width: 52px;
+    height: 52px;
+    margin-bottom: 0.75rem;
   }
   .card-heading {
-    margin-bottom: 1.25rem;
+    margin-bottom: 1rem;
   }
   .card-title {
-    font-size: 1.6rem;
+    font-size: 1.45rem;
+    color: #ffffff;
   }
   .card-subtitle {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.55);
   }
   .field-label {
-    font-size: 0.65rem;
+    font-size: 0.62rem;
+    color: rgba(255, 255, 255, 0.65);
   }
   .login-form {
-    gap: 0.85rem;
+    gap: 0.75rem;
   }
   .btn-masuk {
     padding: 0.75rem 0;
-    font-size: 0.82rem;
+    font-size: 0.8rem;
   }
   .card-footer {
-    margin-top: 1.25rem;
+    margin-top: 1rem;
+    color: rgba(255, 255, 255, 0.3);
   }
 }
 
 @media (max-width: 390px) {
   .login-card {
-    padding: 1.5rem 1.25rem 1.25rem;
-    border-radius: 1.5rem;
+    padding: 1.5rem 1.15rem 1.15rem !important;
+    border-radius: 1.5rem !important;
   }
   .card-title {
-    font-size: 1.45rem;
+    font-size: 1.35rem;
   }
   .logo-ring {
-    width: 52px;
-    height: 52px;
+    width: 48px;
+    height: 48px;
   }
 }
 </style>

@@ -20,7 +20,7 @@
       </transition-group>
     </div>
 
-    <!-- EFEK LATAR BELAKANG ANIMASI MENGAMBANG (Warna-Warni Tosca, Kebureman Tipis & Elegan) -->
+    <!-- EFEK LATAR BELAKANG ANIMASI MENGAMBANG -->
     <div class="bg-animation-container">
       <q-icon name="engineering" class="floating-icon i-1" />
       <q-icon name="construction" class="floating-icon i-2" />
@@ -125,7 +125,7 @@
             </q-td>
             <q-td key="total_harga" class="text-right text-weight-bolder text-brand-primary">
               <span class="text-caption text-grey-6 q-mr-xs">IDR</span>
-              {{ (props.row.total_harga || 0).toLocaleString() }}
+              {{ Math.round(props.row.total_harga || 0).toLocaleString() }}
             </q-td>
             <q-td key="status" class="text-center">
               <q-chip
@@ -212,7 +212,7 @@
             <q-tooltip>Unduh/Buka Berkas Analisa Pendukung (PDF/Word/Excel)</q-tooltip>
           </q-btn>
 
-          <!-- GROUP TOMBOL PDF (Cetak dihilangkan, hanya Export PDF) -->
+          <!-- GROUP TOMBOL PDF -->
           <q-btn-group unelevated rounded class="q-mr-xs q-mr-md-md shadow-1">
             <q-btn
               color="red-9"
@@ -265,6 +265,14 @@
                 <div class="label-grey-pro uppercase">KEPADA YTH :</div>
                 <div class="client-name-pro uppercase">{{ selectedData.nama_customer }}</div>
                 <div class="text-body2 text-weight-medium">Di Tempat</div>
+
+                <!-- ATTN PLACEMENT: EXACTLY BELOW "DI TEMPAT" -->
+                <div
+                  v-if="selectedData.attn"
+                  class="text-body2 text-weight-medium q-mt-xs text-grey-9"
+                >
+                  Attn: {{ selectedData.attn }}
+                </div>
               </div>
               <div class="col-5 text-right">
                 <div class="quotation-title-pro uppercase">Quotation</div>
@@ -298,9 +306,11 @@
                   <td class="text-left uppercase text-weight-medium">{{ it.deskripsi }}</td>
                   <td class="text-center">{{ it.qty }}</td>
                   <td class="text-center uppercase text-caption">{{ it.satuan }}</td>
-                  <td class="text-right">{{ it.harga.toLocaleString() }}</td>
-                  <td class="text-right text-weight-bolder text-indigo-10">
-                    {{ it.total.toLocaleString() }}
+                  <td class="text-right">
+                    {{ Math.round(it.harga || 0).toLocaleString('id-ID') }}
+                  </td>
+                  <td class="text-right text-weight-bolder text-indigo-10 bg-indigo-0">
+                    {{ Math.round(it.total || 0).toLocaleString('id-ID') }}
                   </td>
                 </tr>
               </tbody>
@@ -310,7 +320,9 @@
                   <td class="text-right text-bold text-indigo-10">
                     IDR
                     {{
-                      selectedData.items.reduce((a, b) => a + (b.total || 0), 0).toLocaleString()
+                      Math.round(
+                        selectedData.items.reduce((a, b) => a + (b.total || 0), 0),
+                      ).toLocaleString('id-ID')
                     }}
                   </td>
                 </tr>
@@ -321,11 +333,11 @@
                   <td class="text-right text-weight-bold text-indigo-10">
                     IDR
                     {{
-                      (
+                      Math.round(
                         (selectedData.items.reduce((a, b) => a + (b.total || 0), 0) *
                           selectedData.tax_rate) /
-                        100
-                      ).toLocaleString()
+                          100,
+                      ).toLocaleString('id-ID')
                     }}
                   </td>
                 </tr>
@@ -334,18 +346,19 @@
                     {{ selectedData.biaya_lain_label || 'BIAYA LAIN' }}
                   </td>
                   <td class="text-right text-weight-bold text-indigo-10">
-                    IDR {{ (selectedData.biaya_lain || 0).toLocaleString() }}
+                    IDR {{ Math.round(selectedData.biaya_lain || 0).toLocaleString('id-ID') }}
                   </td>
                 </tr>
+                <!-- SINKRONISASI BANNER GRAND TOTAL DUA NADA WARNA ELEGAN -->
                 <tr class="row-grand-total">
                   <td
                     colspan="5"
-                    class="text-right text-bold text-h6 uppercase tracking-extra-wide"
+                    class="text-right text-bold uppercase tracking-extra-wide text-white border-none-pro bg-indigo-left"
                   >
                     Grand Total Amount
                   </td>
-                  <td class="text-right text-white text-bold text-h5">
-                    IDR {{ (selectedData.total_harga || 0).toLocaleString() }}
+                  <td class="text-right text-white text-bold border-none-pro bg-indigo-right">
+                    IDR {{ Math.round(selectedData.total_harga || 0).toLocaleString('id-ID') }}
                   </td>
                 </tr>
               </tfoot>
@@ -357,12 +370,16 @@
               <div class="terms-content-box leading-relaxed" v-html="selectedData.terms"></div>
             </div>
 
+            <!-- CLOSING MESSAGE (DIPINDAHKAN DI BAWAH SYARAT DAN KONDISI - SESUAI GAMBAR 3) -->
+            <div
+              class="text-closing-final text-left q-mt-lg font-11 leading-relaxed text-grey-9"
+              v-html="selectedData.closing"
+            ></div>
+
             <!-- Signature Area -->
             <div class="signature-container text-left q-mt-xl">
-              <div class="text-closing-final q-mb-sm" v-html="selectedData.closing"></div>
-              <div class="row q-mt-md">
-                <div class="col-5 gt-xs"></div>
-                <div class="col-12 col-sm-7 text-right">
+              <div class="row q-mt-md justify-end">
+                <div class="col-6 text-right">
                   <div class="q-mb-xs text-body2 uppercase">Hormat Kami,</div>
                   <div class="text-weight-bold text-indigo-10 uppercase q-mb-xs">
                     {{ selectedData.nama_pt }}
@@ -441,9 +458,7 @@ const userData = ref(null)
 let unsubUser = null
 let unsubApproval = null
 
-// ==========================================
-// ANIMASI KLIK & MENGAMBANG (SAMA SEPERTI MASTER BARANG)
-// ==========================================
+// ANIMASI KLIK & MENGAMBANG
 const spawnedIcons = ref([])
 let spawnIdCounter = 0
 const clickIcons = [
@@ -495,7 +510,6 @@ const spawnIcon = (e) => {
     spawnedIcons.value = spawnedIcons.value.filter((i) => i.id !== newIcon.id)
   }, 1400)
 }
-// ==========================================
 
 const columns = [
   { name: 'nomor', align: 'left', label: 'REFERENCE NO', field: 'nomor', sortable: true },
@@ -570,7 +584,6 @@ const fetchApprovalData = () => {
 }
 
 const handleApproval = (row, status, alasan = null) => {
-  // MEMPERBAIKI DIALOG BUTTONS AGAR ELEGAN, RAPI, TIDAK SALING TABRAKAN ATAU INVISIBLE
   $q.dialog({
     title:
       '<div class="text-h5 text-weight-bolder text-brand-primary q-mb-sm">Konfirmasi Otorisasi</div>',
@@ -600,19 +613,18 @@ const handleApproval = (row, status, alasan = null) => {
         status: status,
         updatedAt: serverTimestamp(),
         processedAt: serverTimestamp(),
-        marketing_read: false, // Mengaktifkan notifikasi Tanda Terima Baca (Read Receipt) untuk marketing
+        marketing_read: false,
       }
       if (status === 'Rejected' && alasan) data.alasan_reject = alasan
       await updateDoc(doc(db, 'penawaran', row.id), data)
       showPreview.value = false
 
-      // SINKRONISASI NOTIFIKASI OTORISASI PREMIUM (HIJAU UNTUK APPROVED, MERAH UNTUK REJECTED DI BAGIAN ATAS DENGAN PROGRESS BAR & CLOSE BUTTON)
       $q.notify({
         html: true,
         message: `<div class="text-weight-bold text-subtitle1 q-mb-none leading-none">Otorisasi Berhasil!</div><div class="text-caption q-mt-xs" style="opacity: 0.85">Status dokumen penawaran diperbarui menjadi <b>${status}</b>.</div>`,
         color: status === 'Approved' ? 'positive' : 'negative',
         icon: status === 'Approved' ? 'verified' : 'cancel',
-        position: 'top', // Penempatan digeser ke bagian atas layar
+        position: 'top',
         timeout: 4000,
         progress: true,
         classes: 'rounded-12 shadow-premium q-pl-md q-pr-lg q-py-sm border-white-2',
@@ -674,7 +686,6 @@ const formatDateIndo = (d) =>
 const exportToPDF = () => {
   $q.loading.show({ message: 'Menyiapkan Dokumen PDF...' })
 
-  // Memberi jeda 1 detik agar canvas merender gambar dengan sempurna
   setTimeout(() => {
     const element = document.getElementById('quotation-print')
     const opt = {
@@ -715,7 +726,7 @@ onUnmounted(() => {
 
 <style>
 /* =======================================================================
-   ANIMASI BACKGROUND GLOBAL STYLES (Mencegah Typo & Kegagalan Scoped CSS)
+   ANIMASI BACKGROUND GLOBAL STYLES
    ======================================================================= */
 .bg-animation-container {
   position: fixed;
@@ -738,7 +749,6 @@ onUnmounted(() => {
   backface-visibility: hidden;
 }
 
-/* Posisi dan durasi masing-masing ikon mengambang */
 .i-1 {
   left: 10%;
   font-size: 100px;
@@ -882,6 +892,22 @@ onUnmounted(() => {
   color: #36ada3 !important;
 }
 
+.animate-pulse {
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
 /* Table Styling */
 .approval-table :deep(thead tr th) {
   position: sticky;
@@ -920,20 +946,20 @@ onUnmounted(() => {
     align-items: flex-start !important;
   }
   .letter-paper {
-    transform: scale(0.42); /* Menyesuaikan agar pas di lebar HP */
+    transform: scale(0.42);
     transform-origin: top center;
-    margin-bottom: -150mm; /* Menarik konten bawah agar tidak banyak sisa ruang */
+    margin-bottom: -150mm;
   }
 }
 
 .final-kop-img {
-  height: 80px;
+  height: 70px;
   width: auto;
   object-fit: contain;
 }
 .final-pt-name {
-  font-size: 26px;
-  font-weight: 800;
+  font-size: 24px;
+  font-weight: 900;
   color: #1a237e;
   letter-spacing: -0.5px;
   line-height: 1.1;
@@ -954,17 +980,18 @@ onUnmounted(() => {
 
 .client-name-pro {
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 900;
   color: #1a237e;
   margin: 2px 0;
 }
 .quotation-title-pro {
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 900;
   color: #1a237e;
   letter-spacing: 6px;
   border-bottom: 1.5px solid #eee;
   margin-bottom: 5px;
+  display: inline-block;
 }
 .quotation-no-pro {
   font-size: 13px;
@@ -987,20 +1014,21 @@ onUnmounted(() => {
   width: 100%;
   border-collapse: collapse;
   margin-top: 5px;
+  border: 1px solid #1a237e;
 }
 .final-pro-table th {
   background: #1a237e !important;
   color: white !important;
   padding: 10px 8px;
   font-size: 10px;
-  font-weight: 800;
-  border: 1px solid #1a237e;
+  font-weight: 900;
+  border: 1px solid white;
   text-align: center;
 }
 .final-pro-table td {
   padding: 8px 8px;
   border: 1px solid #ddd;
-  font-size: 11px;
+  font-size: 11.5px;
   color: #222;
 }
 
@@ -1010,42 +1038,55 @@ onUnmounted(() => {
 .row-calculation td {
   padding: 6px 12px !important;
   border: 1px solid #ddd !important;
-  font-size: 10px;
+  font-size: 10.5px;
 }
+
+/* SINKRONISASI STYLE GRAND TOTAL BLUE INDIGO DENGAN DUA NADA WARNA ELEGAN */
 .row-grand-total {
-  background: #1a237e !important;
+  background-color: #1a237e !important;
 }
-.row-grand-total td {
-  padding: 10px 12px !important;
-  color: white !important;
-  border: 1px solid #1a237e !important;
+
+.bg-indigo-left {
+  background-color: #1a237e !important;
+  padding: 16px 20px !important;
+  font-size: 14px !important;
+  letter-spacing: 0.1em;
+}
+
+.bg-indigo-right {
+  background-color: #151b68 !important;
+  padding: 16px 20px !important;
+  font-size: 14px !important;
+  min-width: 180px;
+}
+
+.border-none-pro {
+  border: none !important;
 }
 
 .terms-container {
-  border: 1px solid #1a237e;
+  border: 1.5px solid #1a237e;
   margin-top: 15px;
   border-radius: 2px;
   overflow: hidden;
 }
 .terms-header {
   background: #1a237e;
-  padding: 5px 10px;
-  font-weight: 800;
+  padding: 6px 10px;
+  font-weight: 900;
   color: white;
-  font-size: 10px;
+  font-size: 10.5px;
   letter-spacing: 0.5px;
 }
 .terms-content-box {
   padding: 8px 12px;
-  font-size: 10.5px;
   color: #333;
-  line-height: 1.5;
 }
 
 /* Signature Area Styles - MATCH WITH PenawaranPage for Safe PDF Export */
 .signature-container {
   margin-top: auto;
-  padding-top: 20px;
+  padding-top: 5px;
 }
 .final-sign-space {
   position: relative;
@@ -1058,7 +1099,7 @@ onUnmounted(() => {
   position: absolute;
   width: 110px;
   height: auto;
-  right: 70px; /* Geser sedikit ke kiri menimpa TTD */
+  right: 70px;
   bottom: 5px;
   z-index: 2;
 }
@@ -1072,8 +1113,7 @@ onUnmounted(() => {
 }
 .text-signer-final {
   font-size: 14px;
-  font-weight: 800;
-  color: #1a237e;
+  font-weight: 900;
   border-bottom: 2px solid #1a237e;
   display: inline-block;
   padding: 0 5px;
@@ -1092,6 +1132,10 @@ onUnmounted(() => {
 .content-relative {
   position: relative;
   z-index: 1;
+}
+
+.bg-indigo-0 {
+  background-color: rgba(26, 35, 126, 0.03);
 }
 
 /* ===== CLICK SPAWN ICONS ===== */
@@ -1179,8 +1223,15 @@ onUnmounted(() => {
   }
   .final-pro-table th,
   .row-grand-total,
+  .bg-indigo-left,
   .terms-header {
     background-color: #1a237e !important;
+    color: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .bg-indigo-right {
+    background-color: #151b68 !important;
     color: white !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
