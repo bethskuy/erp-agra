@@ -233,6 +233,16 @@ const routes = [
         component: () => import('pages/manufaktur/DashboardPage.vue'),
       },
       {
+        path: 'departemen',
+        name: 'manufaktur-departemen',
+        component: () => import('pages/manufaktur/DepartemenPage.vue'),
+      },
+      {
+        path: 'departemen/detail/:id?',
+        name: 'manufaktur-departemen-detail',
+        component: () => import('pages/manufaktur/DepartemenDetailPage.vue'),
+      },
+      {
         path: 'marketing/customer',
         name: 'manufaktur-master-customer',
         component: () => import('pages/manufaktur/Master/Customer/CustomerPage.vue'),
@@ -278,19 +288,9 @@ const routes = [
         component: () => import('pages/manufaktur/Master/MasterQcChecklistPage.vue'),
       },
       {
-        path: 'master-produksi/tools',
-        name: 'manufaktur-master-produksi-tools',
-        component: () => import('pages/manufaktur/Master/MasterToolsPage.vue'),
-      },
-      {
-        path: 'master-produksi/tim-produksi',
-        name: 'manufaktur-master-produksi-tim-produksi',
-        component: () => import('pages/manufaktur/Master/MasterTimProduksiPage.vue'),
-      },
-      {
-        path: 'master-produksi/jenis-pekerjaan',
-        name: 'manufaktur-master-produksi-jenis-pekerjaan',
-        component: () => import('pages/manufaktur/Master/MasterJenisPekerjaanPage.vue'),
+        path: 'master-produksi/departemen',
+        name: 'manufaktur-master-produksi-departemen',
+        component: () => import('pages/manufaktur/Master/MasterDepartemenPage.vue'),
       },
       // --- MENU SISTEM PENAWARAN (REVISI SESUAI GAMBAR) ---
       {

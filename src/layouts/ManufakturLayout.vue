@@ -331,43 +331,15 @@
                   <q-item
                     clickable
                     v-ripple
-                    to="/manufaktur/master-produksi/tools"
+                    to="/manufaktur/master-produksi/departemen"
                     active-class="active-menu"
                     class="submenu-item master-grandchild-item"
                     dense
                   >
                     <q-item-section avatar class="submenu-icon">
-                      <q-icon name="handyman" size="xs" />
+                      <q-icon name="corporate_fare" size="xs" />
                     </q-item-section>
-                    <q-item-section class="submenu-text">Tools & Peralatan</q-item-section>
-                  </q-item>
-
-                  <q-item
-                    clickable
-                    v-ripple
-                    to="/manufaktur/master-produksi/tim-produksi"
-                    active-class="active-menu"
-                    class="submenu-item master-grandchild-item"
-                    dense
-                  >
-                    <q-item-section avatar class="submenu-icon">
-                      <q-icon name="groups" size="xs" />
-                    </q-item-section>
-                    <q-item-section class="submenu-text">Tim Produksi</q-item-section>
-                  </q-item>
-
-                  <q-item
-                    clickable
-                    v-ripple
-                    to="/manufaktur/master-produksi/jenis-pekerjaan"
-                    active-class="active-menu"
-                    class="submenu-item master-grandchild-item"
-                    dense
-                  >
-                    <q-item-section avatar class="submenu-icon">
-                      <q-icon name="work_outline" size="xs" />
-                    </q-item-section>
-                    <q-item-section class="submenu-text">Jenis Pekerjaan</q-item-section>
+                    <q-item-section class="submenu-text">Departemen</q-item-section>
                   </q-item>
                 </q-list>
               </q-expansion-item>
@@ -397,6 +369,20 @@
 
           <q-separator class="sidebar-separator" />
           <q-item-label header class="section-title">OPERASIONAL</q-item-label>
+
+          <q-item
+            v-if="checkPermission('departemen')"
+            clickable
+            v-ripple
+            to="/manufaktur/departemen"
+            active-class="active-menu"
+            class="menu-item nav-item"
+          >
+            <q-item-section avatar class="menu-icon">
+              <q-icon name="corporate_fare" />
+            </q-item-section>
+            <q-item-section class="menu-text">Departemen</q-item-section>
+          </q-item>
 
           <q-expansion-item
             v-if="checkPermission('sales/po-customer')"
