@@ -95,6 +95,222 @@
     </div>
 
     <q-card flat bordered class="filter-card q-mb-md bg-white">
+      <q-card-section class="row items-center q-col-gutter-md">
+        <div class="col-12 col-md-auto">
+          <q-btn-dropdown unelevated color="green-10" icon="account_tree" label="Departemen" no-caps>
+            <q-list dense>
+              <q-item clickable v-close-popup @click="departmentViewTab = 'spk'">
+                <q-item-section avatar><q-icon name="assignment" color="green-10" /></q-item-section>
+                <q-item-section>SPK Masuk</q-item-section>
+                <q-item-section side>
+                  <q-badge color="orange-9">{{ spkBaruCount }}</q-badge>
+                </q-item-section>
+              </q-item>
+              <q-item clickable v-close-popup @click="departmentViewTab = 'planning'">
+                <q-item-section avatar><q-icon name="event_note" color="primary" /></q-item-section>
+                <q-item-section>Planning Produksi</q-item-section>
+                <q-item-section side>
+                  <q-badge color="primary">{{ planningBaruCount }}</q-badge>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-btn-dropdown>
+        </div>
+        <div class="col">
+          <q-tabs
+            v-model="departmentViewTab"
+            dense
+            align="left"
+            active-color="green-10"
+            indicator-color="green-10"
+            class="text-grey-7"
+          >
+            <q-tab name="spk" icon="assignment" label="SPK Masuk" />
+            <q-tab name="planning" icon="event_note" label="Planning Produksi" />
+          </q-tabs>
+        </div>
+      </q-card-section>
+    </q-card>
+
+    <div v-show="departmentViewTab === 'spk'" class="row q-col-gutter-md q-mb-lg">
+      <div class="col-12 col-lg-4">
+        <q-card flat bordered class="spk-section-card bg-white">
+          <q-card-section class="row items-center q-pb-sm">
+            <q-icon name="fiber_new" color="orange-9" size="sm" class="q-mr-sm" />
+            <div class="text-subtitle1 text-weight-bolder text-green-10">SPK Masuk</div>
+            <q-space />
+            <q-badge color="orange-9" class="text-weight-bold">{{ spkBaruCount }}</q-badge>
+          </q-card-section>
+          <q-separator />
+          <q-card-section class="spk-card-list">
+            <q-inner-loading :showing="spkLoading" />
+            <div v-if="!spkBaruRows.length && !spkLoading" class="text-grey-6 text-center q-pa-md">
+              Belum ada SPK masuk.
+            </div>
+            <q-card v-for="spk in spkBaruRows" :key="spk.id" flat bordered class="spk-inbox-card q-mb-sm">
+              <q-card-section class="q-pa-sm">
+                <div class="row items-start no-wrap">
+                  <div class="col">
+                    <div class="text-weight-bolder text-green-10">{{ spk.nomor_spk }}</div>
+                    <div class="text-caption text-grey-7">PO: {{ spk.nomor_po || '-' }}</div>
+                    <div class="text-body2 text-weight-bold q-mt-xs">{{ spk.nama_produk || '-' }}</div>
+                    <div class="text-caption text-grey-7">
+                      {{ spk.customer_nama || '-' }} - Qty {{ formatNumber(spk.qty_target) }} {{ spk.satuan || '' }}
+                    </div>
+                  </div>
+                  <q-chip dense color="orange-9" text-color="white">{{ spk.prioritas || 'Normal' }}</q-chip>
+                </div>
+                <q-btn
+                  unelevated
+                  dense
+                  color="green-10"
+                  icon="play_arrow"
+                  label="Mulai Produksi"
+                  no-caps
+                  class="full-width q-mt-sm"
+                  @click="updateSpkStatus(spk, 'On Production')"
+                />
+              </q-card-section>
+            </q-card>
+          </q-card-section>
+        </q-card>
+      </div>
+
+      <div class="col-12 col-lg-4">
+        <q-card flat bordered class="spk-section-card bg-white">
+          <q-card-section class="row items-center q-pb-sm">
+            <q-icon name="precision_manufacturing" color="primary" size="sm" class="q-mr-sm" />
+            <div class="text-subtitle1 text-weight-bolder text-green-10">Sedang Diproduksi</div>
+            <q-space />
+            <q-badge color="primary" class="text-weight-bold">{{ spkProduksiRows.length }}</q-badge>
+          </q-card-section>
+          <q-separator />
+          <q-card-section class="spk-card-list">
+            <div v-if="!spkProduksiRows.length && !spkLoading" class="text-grey-6 text-center q-pa-md">
+              Belum ada SPK berjalan.
+            </div>
+            <q-card v-for="spk in spkProduksiRows" :key="spk.id" flat bordered class="spk-inbox-card q-mb-sm">
+              <q-card-section class="q-pa-sm">
+                <div class="text-weight-bolder text-green-10">{{ spk.nomor_spk }}</div>
+                <div class="text-body2 text-weight-bold">{{ spk.nama_produk || '-' }}</div>
+                <div class="text-caption text-grey-7 q-mb-sm">
+                  Status: {{ spk.status }} - Hasil {{ formatNumber(spk.qty_hasil_jadi) }}/{{ formatNumber(spk.qty_target) }}
+                </div>
+                <div class="row q-col-gutter-sm">
+                  <div class="col-6">
+                    <q-btn
+                      outline
+                      dense
+                      color="indigo-7"
+                      icon="fact_check"
+                      label="QC"
+                      no-caps
+                      class="full-width"
+                      :disable="spk.status === 'QC Process'"
+                      @click="updateSpkStatus(spk, 'QC Process')"
+                    />
+                  </div>
+                  <div class="col-6">
+                    <q-btn
+                      unelevated
+                      dense
+                      color="positive"
+                      icon="check_circle"
+                      label="Finished"
+                      no-caps
+                      class="full-width"
+                      @click="finishSpk(spk)"
+                    />
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+          </q-card-section>
+        </q-card>
+      </div>
+
+      <div class="col-12 col-lg-4">
+        <q-card flat bordered class="spk-section-card bg-white">
+          <q-card-section class="row items-center q-pb-sm">
+            <q-icon name="task_alt" color="positive" size="sm" class="q-mr-sm" />
+            <div class="text-subtitle1 text-weight-bolder text-green-10">Selesai</div>
+            <q-space />
+            <q-badge color="positive" class="text-weight-bold">{{ spkSelesaiRows.length }}</q-badge>
+          </q-card-section>
+          <q-separator />
+          <q-card-section class="spk-card-list">
+            <div v-if="!spkSelesaiRows.length && !spkLoading" class="text-grey-6 text-center q-pa-md">
+              Belum ada SPK selesai.
+            </div>
+            <q-card v-for="spk in spkSelesaiRows" :key="spk.id" flat bordered class="spk-inbox-card q-mb-sm">
+              <q-card-section class="q-pa-sm">
+                <div class="text-weight-bolder text-green-10">{{ spk.nomor_spk }}</div>
+                <div class="text-body2 text-weight-bold">{{ spk.nama_produk || '-' }}</div>
+                <div class="text-caption text-grey-7">
+                  Hasil {{ formatNumber(spk.qty_hasil_jadi) }}/{{ formatNumber(spk.qty_target) }} {{ spk.satuan || '' }}
+                </div>
+              </q-card-section>
+            </q-card>
+          </q-card-section>
+        </q-card>
+      </div>
+    </div>
+
+    <div v-show="departmentViewTab === 'planning'" class="q-mb-lg">
+      <q-card flat bordered class="spk-section-card bg-white">
+        <q-card-section class="row items-center">
+          <q-icon name="event_note" color="primary" size="sm" class="q-mr-sm" />
+          <div class="text-subtitle1 text-weight-bolder text-green-10">Planning Produksi</div>
+          <q-space />
+          <q-badge color="primary" class="text-weight-bold">{{ activePlanningRows.length }}</q-badge>
+        </q-card-section>
+        <q-separator />
+        <q-table
+          :rows="activePlanningRows"
+          :columns="planningColumns"
+          row-key="id"
+          flat
+          :loading="planningLoading"
+          :pagination="{ rowsPerPage: 8 }"
+        >
+          <template #body="props">
+            <q-tr :props="props">
+              <q-td key="nomor_planning" :props="props" class="text-weight-bolder text-green-10">
+                {{ props.row.nomor_planning || props.row.no_planning || '-' }}
+                <div class="text-caption text-grey-6">{{ props.row.nomor_spk || '-' }}</div>
+              </q-td>
+              <q-td key="customer" :props="props">{{ props.row.customer_nama || props.row.customer || '-' }}</q-td>
+              <q-td key="produk" :props="props">
+                <div class="text-weight-bold">{{ props.row.nama_produk || props.row.item_produksi || '-' }}</div>
+                <div class="text-caption text-grey-6">{{ props.row.kode_produk || '-' }}</div>
+              </q-td>
+              <q-td key="qty_target" :props="props" class="text-right text-weight-bold">
+                {{ formatNumber(props.row.qty_target || props.row.qty) }} {{ props.row.satuan || '' }}
+              </q-td>
+              <q-td key="deadline" :props="props">{{ formatDate(props.row.deadline) }}</q-td>
+              <q-td key="prioritas" :props="props">
+                <q-badge :color="priorityColor(props.row.prioritas)" class="text-weight-bold">
+                  {{ props.row.prioritas || 'Medium' }}
+                </q-badge>
+              </q-td>
+              <q-td key="status_planning" :props="props">
+                <q-badge :color="planningStatusColor(props.row.status_planning || props.row.status)" class="text-weight-bold">
+                  {{ props.row.status_planning || props.row.status || '-' }}
+                </q-badge>
+              </q-td>
+            </q-tr>
+          </template>
+          <template #no-data>
+            <div class="full-width row flex-center text-grey-7 q-pa-lg">
+              <q-icon name="event_note" size="24px" class="q-mr-sm" />
+              Belum ada planning produksi untuk departemen ini.
+            </div>
+          </template>
+        </q-table>
+      </q-card>
+    </div>
+
+    <q-card flat bordered class="filter-card q-mb-md bg-white">
       <q-card-section>
         <div class="row q-col-gutter-md items-center">
           <div class="col-12 col-md-7">
@@ -271,6 +487,24 @@
                         stack-label
                         :rules="[required]"
                       />
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                      <q-select
+                        v-model="produksiForm.spk_obj"
+                        :options="availableSpkOptions"
+                        option-label="label"
+                        option-value="value"
+                        dense
+                        outlined
+                        label="SPK Produksi"
+                        :loading="spkLoading"
+                        @update:model-value="handleSpkSelected"
+                      >
+                        <template #prepend>
+                          <q-icon name="assignment" color="green-10" />
+                        </template>
+                      </q-select>
                     </div>
 
                     <div class="col-12 col-md-6">
@@ -850,25 +1084,33 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { date, useQuasar } from 'quasar'
 import { useRoute } from 'vue-router'
 import {
-  createManufacturingDepartemenProduksi,
-  createManufacturingPermintaanBarang,
-  deleteManufacturingDepartemenProduksi,
-  getManufacturingMasterDepartemen,
-  listenManufacturingApprovedPoOptions,
-  listenManufacturingBarangOptions,
-  listenManufacturingCustomerOptions,
-  listenManufacturingDepartemenProduksi,
-  listenManufacturingKategoriBarangOptions,
-  listenManufacturingMasterProdukOptions,
-  listenManufacturingPermintaanBarang,
-  listenManufacturingSatuanOptions,
-} from 'src/services/manufaktur/departemenProduksiService'
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  onSnapshot,
+  orderBy,
+  query,
+  runTransaction,
+  serverTimestamp,
+  updateDoc,
+  where,
+} from 'firebase/firestore'
+import { db } from 'src/boot/firebase'
 
 const $q = useQuasar()
 const route = useRoute()
 
 const rows = ref([])
+const spkRows = ref([])
+const knownSpkIds = ref(new Set())
+const planningRows = ref([])
+const knownPlanningIds = ref(new Set())
+const departmentViewTab = ref('spk')
 const loading = ref(true)
+const spkLoading = ref(true)
+const planningLoading = ref(true)
 const search = ref('')
 const departemen = ref(null)
 const produksiDialog = ref(false)
@@ -900,6 +1142,8 @@ const barangOptionsLoading = ref(true)
 const kategoriBarangOptionsLoading = ref(true)
 const permintaanRowsLoading = ref(true)
 let unsubscribeProduksi = null
+let unsubscribeSpk = null
+let unsubscribePlanning = null
 let unsubscribeSatuanOptions = null
 let unsubscribeCustomerOptions = null
 let unsubscribePoOptions = null
@@ -910,10 +1154,256 @@ let unsubscribePermintaanRows = null
 
 const statusProduksiOptions = ['Belum Mulai', 'Proses', 'Selesai', 'Tertunda', 'Batal']
 
+const PRODUKSI_COLLECTION = 'manufactur_departemen_produksi'
+const PERMINTAAN_BARANG_COLLECTION = 'manufactur_permintaan_barang'
+const MASTER_DEPARTEMEN_COLLECTION = 'manufactur_master_departemen'
+const MASTER_SATUAN_COLLECTION = 'manufactur_master_satuan'
+const MASTER_CUSTOMER_COLLECTION = 'manufacturing_customers'
+const MASTER_BARANG_COLLECTION = 'manufactur_master_barang'
+const KATEGORI_BARANG_COLLECTION = 'manufactur_master_kategori_barang'
+const MASTER_PRODUK_COLLECTION = 'master_produk'
+const PO_CUSTOMER_COLLECTION = 'manufacturing_po_customer'
+const RUNNING_NUMBER_COLLECTION = 'manufactur_running_number'
+const MANUFACTURING_DEPARTEMEN_COLLECTION = 'manufacturing_departemen'
+const SPK_SUBCOLLECTION = 'spk'
+const PLANNING_COLLECTION = 'planning_produksi_manufaktur'
+
+const produksiCollection = collection(db, PRODUKSI_COLLECTION)
+const permintaanBarangCollection = collection(db, PERMINTAAN_BARANG_COLLECTION)
+const getSpkCollection = (departemenIdValue) =>
+  collection(db, MANUFACTURING_DEPARTEMEN_COLLECTION, departemenIdValue, SPK_SUBCOLLECTION)
+
+const mapOption = (itemDoc, labelKeys = ['nama']) => {
+  const data = itemDoc.data()
+  const label =
+    labelKeys.map((key) => data[key]).find((value) => value !== undefined && value !== null) ||
+    data.nama ||
+    itemDoc.id
+
+  return {
+    id: itemDoc.id,
+    value: itemDoc.id,
+    label,
+    ...data,
+  }
+}
+
+const listenCollectionOptions = (collectionName, orderField, callback, errorCallback, labelKeys) =>
+  onSnapshot(
+    query(collection(db, collectionName), orderBy(orderField)),
+    (snapshot) => callback(snapshot.docs.map((itemDoc) => mapOption(itemDoc, labelKeys))),
+    errorCallback,
+  )
+
+const listenManufacturingDepartemenProduksi = (callback, errorCallback) =>
+  onSnapshot(
+    query(produksiCollection, orderBy('created_at', 'desc')),
+    (snapshot) => callback(snapshot.docs.map((itemDoc) => ({ id: itemDoc.id, ...itemDoc.data() }))),
+    errorCallback,
+  )
+
+const createManufacturingDepartemenProduksi = (payload) =>
+  addDoc(produksiCollection, {
+    ...payload,
+    created_at: serverTimestamp(),
+    updated_at: serverTimestamp(),
+  })
+
+const deleteManufacturingDepartemenProduksi = (id) => deleteDoc(doc(db, PRODUKSI_COLLECTION, id))
+
+const getManufacturingMasterDepartemen = async (id) => {
+  const snapshot = await getDoc(doc(db, MASTER_DEPARTEMEN_COLLECTION, id))
+  if (!snapshot.exists()) return null
+  return { id: snapshot.id, ...snapshot.data() }
+}
+
+const listenManufacturingDepartemenSpk = (departemenIdValue, callback, errorCallback) => {
+  if (!departemenIdValue) {
+    callback([])
+    return () => {}
+  }
+
+  return onSnapshot(
+    query(getSpkCollection(departemenIdValue), orderBy('created_at', 'desc')),
+    (snapshot) =>
+      callback(
+        snapshot.docs.map((spkDoc) => ({
+          id: spkDoc.id,
+          departemen_path_id: departemenIdValue,
+          ...spkDoc.data(),
+        })),
+      ),
+    errorCallback,
+  )
+}
+
+const updateManufacturingSpkProduksi = (departemenIdValue, spkId, payload) =>
+  updateDoc(doc(db, MANUFACTURING_DEPARTEMEN_COLLECTION, departemenIdValue, SPK_SUBCOLLECTION, spkId), {
+    ...payload,
+    updated_at: serverTimestamp(),
+  })
+
+const listenManufacturingDepartemenPlanning = (departemenIdValue, callback, errorCallback) =>
+  onSnapshot(
+    query(collection(db, PLANNING_COLLECTION), orderBy('created_at', 'desc')),
+    (snapshot) => {
+      const mappedRows = snapshot.docs
+        .map((planningDoc) => ({ id: planningDoc.id, ...planningDoc.data() }))
+        .filter(
+          (row) =>
+            row.departemen_id === departemenIdValue ||
+            row.tujuan_departemen?.id === departemenIdValue ||
+            row.departemen_nama === departemenTitle.value,
+        )
+      callback(mappedRows)
+    },
+    errorCallback,
+  )
+
+const listenManufacturingSatuanOptions = (callback, errorCallback) =>
+  listenCollectionOptions(MASTER_SATUAN_COLLECTION, 'nama', callback, errorCallback, ['nama'])
+
+const listenManufacturingCustomerOptions = (callback, errorCallback) =>
+  onSnapshot(
+    query(collection(db, MASTER_CUSTOMER_COLLECTION), where('module', '==', 'manufacturing')),
+    (snapshot) =>
+      callback(
+        snapshot.docs
+          .map((itemDoc) => mapOption(itemDoc, ['nama', 'nama_customer', 'customerName']))
+          .filter((item) => item.module === 'manufacturing')
+          .sort((a, b) => String(a.label || '').localeCompare(String(b.label || ''))),
+      ),
+    errorCallback,
+  )
+
+const listenManufacturingBarangOptions = (callback, errorCallback) =>
+  listenCollectionOptions(MASTER_BARANG_COLLECTION, 'nama', callback, errorCallback, [
+    'nama',
+    'nama_barang',
+    'nama_material',
+  ])
+
+const listenManufacturingKategoriBarangOptions = (callback, errorCallback) =>
+  listenCollectionOptions(KATEGORI_BARANG_COLLECTION, 'nama', callback, errorCallback, ['nama'])
+
+const listenManufacturingMasterProdukOptions = (callback, errorCallback) =>
+  onSnapshot(
+    query(collection(db, MASTER_PRODUK_COLLECTION), orderBy('nama_produk')),
+    (snapshot) =>
+      callback(
+        snapshot.docs.map((itemDoc) => {
+          const data = itemDoc.data()
+          return {
+            id: itemDoc.id,
+            value: itemDoc.id,
+            label: data.nama_produk || data.nama || itemDoc.id,
+            ...data,
+          }
+        }),
+      ),
+    errorCallback,
+  )
+
+const listenManufacturingApprovedPoOptions = (callback, errorCallback) =>
+  onSnapshot(
+    query(collection(db, PO_CUSTOMER_COLLECTION), where('status', '==', 'Approved')),
+    (snapshot) =>
+      callback(
+        snapshot.docs.map((poDoc) => {
+          const data = poDoc.data()
+          const nomorPo = data.nomor || data.nomor_po || data.no_po || poDoc.id
+          return {
+            id: poDoc.id,
+            value: poDoc.id,
+            label: nomorPo,
+            nomor: nomorPo,
+            customerName:
+              data.customerName ||
+              data.customer_nama ||
+              data.customer?.nama ||
+              data.customer ||
+              '',
+            customer_id: data.customer_id || data.customer?.id || null,
+            produk_id: data.produk_id || data.produk?.id || null,
+            kode_produk: data.kode_produk || data.produk?.kode_produk || '',
+            nama_produk:
+              data.nama_produk ||
+              data.produk?.nama_produk ||
+              data.produk?.nama ||
+              data.produk ||
+              '',
+            qty_po: Number(data.qty_po || data.qty || data.total_qty || data.qty_target || 0),
+            total_po: Number(data.total_po || data.total_estimasi || data.total || 0),
+            satuan: data.satuan || data.produk?.satuan || '',
+            ...data,
+          }
+        }),
+      ),
+    errorCallback,
+  )
+
+const sanitizeKodeDepartemen = (value) =>
+  String(value || 'MFG')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '')
+    .slice(0, 12) || 'MFG'
+
+const getSpbDateParts = (value) => {
+  const rawDate = value ? new Date(value) : new Date()
+  const safeDate = Number.isNaN(rawDate.getTime()) ? new Date() : rawDate
+  return {
+    bulan: date.formatDate(safeDate, 'MM'),
+    tahun: date.formatDate(safeDate, 'YYYY'),
+  }
+}
+
+const createManufacturingPermintaanBarang = async (payload) => {
+  const kodeDepartemen = sanitizeKodeDepartemen(payload.tujuan_departemen?.kode_departemen)
+  const { bulan, tahun } = getSpbDateParts(payload.tanggal)
+  const counterId = `SPB_${kodeDepartemen}_${tahun}_${bulan}`
+  const counterRef = doc(db, RUNNING_NUMBER_COLLECTION, counterId)
+  const suratRef = doc(permintaanBarangCollection)
+
+  return runTransaction(db, async (transaction) => {
+    const counterSnapshot = await transaction.get(counterRef)
+    const nextNumber = Number(counterSnapshot.data()?.last_number || 0) + 1
+    const nomorSurat = `SPB-${kodeDepartemen}/${bulan}/${tahun}/${String(nextNumber).padStart(4, '0')}`
+
+    transaction.set(
+      counterRef,
+      {
+        last_number: nextNumber,
+        updated_at: serverTimestamp(),
+      },
+      { merge: true },
+    )
+    transaction.set(suratRef, {
+      ...payload,
+      nomor_surat: nomorSurat,
+      status: 'Pending',
+      created_at: serverTimestamp(),
+      updated_at: serverTimestamp(),
+    })
+
+    return {
+      id: suratRef.id,
+      nomor_surat: nomorSurat,
+    }
+  })
+}
+
+const listenManufacturingPermintaanBarang = (callback, errorCallback) =>
+  onSnapshot(
+    query(permintaanBarangCollection, orderBy('created_at', 'desc')),
+    (snapshot) => callback(snapshot.docs.map((itemDoc) => ({ id: itemDoc.id, ...itemDoc.data() }))),
+    errorCallback,
+  )
+
 const today = () => date.formatDate(new Date(), 'YYYY-MM-DD')
 
 const emptyProduksiForm = () => ({
   tanggal: today(),
+  spk_obj: null,
   nomor_po_obj: null,
   customer_obj: null,
   produk_obj: null,
@@ -978,6 +1468,16 @@ const columns = [
   { name: 'aksi', label: 'Aksi', field: 'aksi', align: 'center' },
 ]
 
+const planningColumns = [
+  { name: 'nomor_planning', label: 'Nomor Planning / SPK', field: 'nomor_planning', align: 'left', sortable: true },
+  { name: 'customer', label: 'Customer', field: 'customer_nama', align: 'left', sortable: true },
+  { name: 'produk', label: 'Produk', field: 'nama_produk', align: 'left', sortable: true },
+  { name: 'qty_target', label: 'Qty Target', field: 'qty_target', align: 'right', sortable: true },
+  { name: 'deadline', label: 'Deadline', field: 'deadline', align: 'left', sortable: true },
+  { name: 'prioritas', label: 'Prioritas', field: 'prioritas', align: 'center', sortable: true },
+  { name: 'status_planning', label: 'Status Planning', field: 'status_planning', align: 'center', sortable: true },
+]
+
 const permintaanColumns = [
   { name: 'nomor_surat', label: 'Nomor Surat', field: 'nomor_surat', align: 'left', sortable: true },
   { name: 'tanggal', label: 'Tanggal', field: 'tanggal', align: 'left', sortable: true },
@@ -1037,6 +1537,40 @@ const filteredRows = computed(() => {
     return matchesDepartment && matchesSearch
   })
 })
+
+const spkBaruRows = computed(() =>
+  spkRows.value.filter((row) => row.status === 'Menunggu Produksi'),
+)
+
+const spkProduksiRows = computed(() =>
+  spkRows.value.filter((row) => ['On Production', 'QC Process'].includes(row.status)),
+)
+
+const spkSelesaiRows = computed(() => spkRows.value.filter((row) => row.status === 'Finished'))
+
+const spkBaruCount = computed(() => spkBaruRows.value.length)
+
+const activePlanningRows = computed(() =>
+  planningRows.value.filter((row) => !['Selesai', 'Finished', 'Cancelled'].includes(row.status_planning || row.status)),
+)
+
+const planningBaruCount = computed(
+  () =>
+    planningRows.value.filter((row) => {
+      const status = row.status_planning || row.status
+      return row.is_new !== false && !['Selesai', 'Finished', 'Cancelled'].includes(status)
+    }).length,
+)
+
+const availableSpkOptions = computed(() =>
+  spkRows.value
+    .filter((row) => row.status !== 'Finished')
+    .map((row) => ({
+      label: `${row.nomor_spk} - ${row.nama_produk || '-'} (${row.status})`,
+      value: row.id,
+      item: row,
+    })),
+)
 
 const filteredPermintaanRows = computed(() =>
   permintaanRows.value.filter((row) => {
@@ -1169,6 +1703,20 @@ const statusColor = (status) => {
   if (status === 'Tertunda') return 'orange-9'
   if (status === 'Batal') return 'negative'
   return 'grey-7'
+}
+
+const priorityColor = (priority) => {
+  if (priority === 'High') return 'negative'
+  if (priority === 'Low') return 'green-8'
+  return 'orange-9'
+}
+
+const planningStatusColor = (status) => {
+  if (status === 'Selesai' || status === 'Finished') return 'positive'
+  if (status === 'On Progress') return 'primary'
+  if (status === 'Scheduled') return 'indigo-7'
+  if (status === 'Draft') return 'orange-9'
+  return 'blue-grey-6'
 }
 
 const filterByLabel = (options, needle) => {
@@ -1312,6 +1860,84 @@ const handlePoSelected = (po) => {
   }
 }
 
+const handleSpkSelected = (option) => {
+  const spk = option?.item || option
+  if (!spk) return
+
+  const poOption =
+    approvedPoRawOptions.value.find((po) => po.id === spk.po_id || po.nomor === spk.nomor_po) || {
+      id: spk.po_id,
+      label: spk.nomor_po,
+      nomor: spk.nomor_po,
+      customerName: spk.customer_nama,
+      customer_id: spk.customer_id,
+      produk_id: spk.produk_id,
+      kode_produk: spk.kode_produk,
+      nama_produk: spk.nama_produk,
+      qty_po: spk.qty_target,
+      satuan: spk.satuan,
+    }
+
+  produksiForm.value.nomor_po_obj = poOption
+  produksiForm.value.total_po = Number(spk.total_po || 0)
+  produksiForm.value.qty_po = Number(spk.qty_target || 0)
+  produksiForm.value.qty_hasil_jadi = Number(spk.qty_hasil_jadi || spk.qty_target || 0)
+  produksiForm.value.customer_obj =
+    findCustomerFromPo(poOption) ||
+    (spk.customer_nama
+      ? { id: spk.customer_id || spk.customer_nama, label: spk.customer_nama, nama: spk.customer_nama }
+      : null)
+  produksiForm.value.produk_obj =
+    findProdukFromPo(poOption) ||
+    (spk.nama_produk
+      ? {
+          id: spk.produk_id || spk.nama_produk,
+          label: spk.nama_produk,
+          nama_produk: spk.nama_produk,
+          kode_produk: spk.kode_produk || '',
+        }
+      : null)
+  produksiForm.value.satuan_obj = findSatuanFromValue(spk.satuan)
+  produksiForm.value.status_produksi = spk.status === 'Finished' ? 'Selesai' : 'Proses'
+}
+
+const updateSpkStatus = async (spk, status, extraPayload = {}) => {
+  const departemenPathId = spk.departemen_path_id || spk.departemen_id || departemenId.value
+  if (!departemenPathId || !spk?.id) return
+
+  try {
+    await updateManufacturingSpkProduksi(departemenPathId, spk.id, {
+      status,
+      status_pekerjaan: status,
+      is_new: false,
+      ...extraPayload,
+    })
+    notify('positive', `Status SPK ${spk.nomor_spk || ''} menjadi ${status}.`)
+  } catch (error) {
+    console.error(error)
+    notify('negative', 'Gagal memperbarui status SPK.')
+  }
+}
+
+const finishSpk = (spk) => {
+  $q.dialog({
+    title: 'Selesaikan SPK',
+    message: `Input qty hasil jadi untuk ${spk.nomor_spk || 'SPK'}:`,
+    prompt: {
+      model: Number(spk.qty_hasil_jadi || spk.qty_target || 0),
+      type: 'number',
+    },
+    cancel: true,
+    persistent: true,
+    ok: { label: 'Finished', color: 'positive', unelevated: true },
+  }).onOk((qty) => {
+    updateSpkStatus(spk, 'Finished', {
+      qty_hasil_jadi: Number(qty || 0),
+      finished_at: new Date().toISOString(),
+    })
+  })
+}
+
 const findKategoriFromBarang = (barang) => {
   if (!barang) return null
   const kategoriValue = String(barang.kategori || barang.kategori_barang || '').trim()
@@ -1380,12 +2006,15 @@ const saveProduksi = async () => {
   savingProduksi.value = true
   try {
     const selectedPo = produksiForm.value.nomor_po_obj
+    const selectedSpk = produksiForm.value.spk_obj?.item || produksiForm.value.spk_obj
     const selectedCustomer = produksiForm.value.customer_obj
     const selectedProduk = produksiForm.value.produk_obj
     const selectedSatuan = produksiForm.value.satuan_obj
 
     await createManufacturingDepartemenProduksi({
       tanggal: produksiForm.value.tanggal,
+      spk_id: selectedSpk?.id || null,
+      nomor_spk: selectedSpk?.nomor_spk || '',
       nomor_po: selectedPo?.nomor || selectedPo?.label || '',
       po_id: selectedPo?.id || null,
       customer: {
@@ -1411,6 +2040,21 @@ const saveProduksi = async () => {
       departemen: departemenPayload.value,
       departemen_id: departemenId.value || null,
     })
+
+    if (selectedSpk?.id) {
+      const qtyHasil = Number(produksiForm.value.qty_hasil_jadi || 0)
+      const qtyTarget = Number(selectedSpk.qty_target || produksiForm.value.qty_po || 0)
+      await updateManufacturingSpkProduksi(
+        selectedSpk.departemen_path_id || selectedSpk.departemen_id || departemenId.value,
+        selectedSpk.id,
+        {
+          status: qtyTarget > 0 && qtyHasil >= qtyTarget ? 'Finished' : 'On Production',
+          status_pekerjaan: qtyTarget > 0 && qtyHasil >= qtyTarget ? 'Finished' : 'On Production',
+          qty_hasil_jadi: qtyHasil,
+          is_new: false,
+        },
+      )
+    }
     closeProduksiDialog()
     notify('positive', 'Data produksi berhasil disimpan.')
   } catch (error) {
@@ -1703,6 +2347,52 @@ onMounted(async () => {
     notify('warning', 'Master departemen tidak ditemukan, memakai data dari route.')
   }
 
+  unsubscribeSpk = listenManufacturingDepartemenSpk(
+    departemenId.value,
+    (nextRows) => {
+      const previousIds = knownSpkIds.value
+      const nextIds = new Set(nextRows.map((row) => row.id))
+      const hasNewIncoming = nextRows.some(
+        (row) => row.status === 'Menunggu Produksi' && !previousIds.has(row.id),
+      )
+
+      spkRows.value = nextRows
+      knownSpkIds.value = nextIds
+      spkLoading.value = false
+
+      if (previousIds.size > 0 && hasNewIncoming) {
+        notify('info', 'SPK Baru Diterima')
+      }
+    },
+    (error) => {
+      console.error(error)
+      spkLoading.value = false
+      notify('negative', 'Gagal memuat SPK departemen realtime.')
+    },
+  )
+
+  unsubscribePlanning = listenManufacturingDepartemenPlanning(
+    departemenId.value,
+    (nextRows) => {
+      const previousIds = knownPlanningIds.value
+      const nextIds = new Set(nextRows.map((row) => row.id))
+      const hasNewIncoming = nextRows.some((row) => row.is_new !== false && !previousIds.has(row.id))
+
+      planningRows.value = nextRows
+      knownPlanningIds.value = nextIds
+      planningLoading.value = false
+
+      if (previousIds.size > 0 && hasNewIncoming) {
+        notify('info', 'Planning Produksi Baru Diterima')
+      }
+    },
+    (error) => {
+      console.error(error)
+      planningLoading.value = false
+      notify('negative', 'Gagal memuat planning produksi realtime.')
+    },
+  )
+
   unsubscribeProduksi = listenManufacturingDepartemenProduksi(
     (nextRows) => {
       rows.value = nextRows
@@ -1832,6 +2522,8 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  if (unsubscribeSpk) unsubscribeSpk()
+  if (unsubscribePlanning) unsubscribePlanning()
   if (unsubscribeProduksi) unsubscribeProduksi()
   if (unsubscribeSatuanOptions) unsubscribeSatuanOptions()
   if (unsubscribeCustomerOptions) unsubscribeCustomerOptions()
@@ -1863,6 +2555,23 @@ onUnmounted(() => {
 
 .table-card {
   overflow: hidden;
+}
+
+.spk-section-card {
+  border-color: rgba(15, 60, 45, 0.1);
+  border-radius: 8px;
+  min-height: 280px;
+}
+
+.spk-card-list {
+  max-height: 360px;
+  overflow-y: auto;
+  position: relative;
+}
+
+.spk-inbox-card {
+  border-color: rgba(15, 60, 45, 0.12);
+  border-radius: 8px;
 }
 
 .detail-dialog {

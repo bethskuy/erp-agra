@@ -363,6 +363,8 @@ import {
   where,
   doc,
   updateDoc,
+  setDoc,
+  deleteDoc,
   onSnapshot,
   serverTimestamp,
   orderBy,
@@ -566,6 +568,24 @@ const updateStatus = (row, status, alasan = null) => {
       if (status === 'Rejected') payload.alasan_reject = String(alasan || '').trim()
 
       await updateDoc(doc(db, 'penawaran_manufaktur', row.id), payload)
+      if (status === 'Approved') {
+        await setDoc(
+          doc(db, 'manufacturing_approval_quotation', row.id),
+          {
+            ...row,
+            ...payload,
+            id: row.id,
+            quotation_id: row.id,
+            source_collection: 'penawaran_manufaktur',
+            source_document_id: row.id,
+            module: 'manufacturing',
+            syncedAt: serverTimestamp(),
+          },
+          { merge: true },
+        )
+      } else {
+        await deleteDoc(doc(db, 'manufacturing_approval_quotation', row.id))
+      }
       syncQuotation({ ...row, ...payload })
       showPreview.value = false
       $q.notify({ type: 'positive', message: `Status diperbarui menjadi ${status}` })

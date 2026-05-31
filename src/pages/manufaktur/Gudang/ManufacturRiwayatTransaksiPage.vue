@@ -714,7 +714,7 @@ const syncPoCustomerFromActivities = async (logs) => {
       syncedPoActivity.add(syncKey)
 
       try {
-        const poSnap = await getDoc(doc(db, 'purchase_order_manufactur', poId))
+  const poSnap = await getDoc(doc(db, 'manufacturing_po_customer', poId))
         const totalRequested = poSnap.exists() ? getPoTotalQty(poSnap.data()) : 0
         const totalOut = poLogs
           .filter((log) => log.tipe === 'KELUAR')
@@ -722,7 +722,7 @@ const syncPoCustomerFromActivities = async (logs) => {
         const gudangStatus =
           totalRequested > 0 && totalOut >= totalRequested ? 'STOCK_OUT_DONE' : 'STOCK_OUT_PARTIAL'
 
-        await updateDoc(doc(db, 'purchase_order_manufactur', poId), {
+      await updateDoc(doc(db, 'manufacturing_po_customer', poId), {
           gudang_status: gudangStatus,
           gudang_processed_qty: totalOut,
           gudang_requested_qty: totalRequested,

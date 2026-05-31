@@ -1797,7 +1797,7 @@ const fetchData = async () => {
   optProyek.value = [...allProyek.value]
   optProyekFilter.value = [...allProyek.value]
 
-  const snapPo = await getDocs(collection(db, 'purchase_order_manufactur'))
+  const snapPo = await getDocs(collection(db, 'manufacturing_po_customer'))
   optPO.value = snapPo.docs.map((d) => ({ id: d.id, ...d.data() }))
 
   unsubTagihan = onSnapshot(collection(db, 'finance_tagihan_manufactur'), (snap) => {

@@ -4,8 +4,8 @@
       <div class="col-12 col-md-8">
         <div class="text-h4 text-weight-bolder text-green-10 leading-tight">
           Planning Produksi
-          <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs">
-            Perencanaan target produksi project dan fabrikasi
+            <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs">
+            Planning produksi dari SPK PPIC ke departemen manufacturing
           </span>
         </div>
       </div>
@@ -47,7 +47,7 @@
               dense
               rounded
               debounce="250"
-              placeholder="Cari planning, project, customer, item, atau PIC..."
+              placeholder="Cari planning, SPK, customer, produk, atau departemen..."
               bg-color="white"
             >
               <template #prepend>
@@ -129,47 +129,29 @@
         <template #body="props">
           <q-tr :props="props" class="planning-row">
             <q-td key="no_planning" :props="props" class="text-weight-bolder text-green-10">
-              {{ props.row.no_planning }}
-              <div class="text-caption text-grey-6">{{ props.row.no_so }}</div>
+              {{ props.row.nomor_planning || props.row.no_planning }}
+              <div class="text-caption text-grey-6">{{ props.row.nomor_spk || '-' }}</div>
             </q-td>
 
-            <q-td key="project" :props="props">
-              <div class="text-weight-bold text-green-10">{{ props.row.project }}</div>
-              <div class="text-caption text-grey-6">{{ props.row.customer }}</div>
+            <q-td key="customer" :props="props">
+              <div class="text-weight-bold text-green-10">{{ props.row.customer_nama || props.row.customer || '-' }}</div>
             </q-td>
 
-            <q-td key="item_produksi" :props="props">
-              <div>{{ props.row.item_produksi }}</div>
-              <div class="text-caption text-grey-6">{{ props.row.work_center }}</div>
+            <q-td key="produk" :props="props">
+              <div>{{ props.row.nama_produk || props.row.item_produksi || '-' }}</div>
+              <div class="text-caption text-grey-6">{{ props.row.kode_produk || '-' }}</div>
             </q-td>
 
-            <q-td key="qty" :props="props" class="text-right text-weight-bold">
-              {{ formatNumber(props.row.qty) }} {{ props.row.satuan }}
+            <q-td key="qty_target" :props="props" class="text-right text-weight-bold">
+              {{ formatNumber(props.row.qty_target || props.row.qty) }} {{ props.row.satuan }}
             </q-td>
 
-            <q-td key="tanggal_planning" :props="props">
-              {{ formatDate(props.row.tanggal_planning) }}
+            <q-td key="departemen" :props="props">
+              {{ props.row.departemen_nama || props.row.tujuan_departemen?.nama_departemen || '-' }}
             </q-td>
 
             <q-td key="deadline" :props="props">
               {{ formatDate(props.row.deadline) }}
-            </q-td>
-
-            <q-td key="material_status" :props="props">
-              <q-badge :color="materialColor(props.row.material_status)" class="status-badge">
-                {{ props.row.material_status }}
-              </q-badge>
-            </q-td>
-
-            <q-td key="progress" :props="props">
-              <q-linear-progress
-                rounded
-                size="9px"
-                :value="props.row.progress / 100"
-                :color="progressColor(props.row.progress)"
-                class="q-mb-xs"
-              />
-              <div class="text-caption text-weight-bold">{{ props.row.progress }}%</div>
             </q-td>
 
             <q-td key="prioritas" :props="props">
@@ -178,14 +160,10 @@
               </q-badge>
             </q-td>
 
-            <q-td key="status" :props="props">
-              <q-badge :color="statusColor(props.row.status)" class="status-badge">
-                {{ props.row.status }}
+            <q-td key="status_planning" :props="props">
+              <q-badge :color="statusColor(props.row.status_planning || props.row.status)" class="status-badge">
+                {{ props.row.status_planning || props.row.status }}
               </q-badge>
-            </q-td>
-
-            <q-td key="pic" :props="props">
-              {{ props.row.pic }}
             </q-td>
 
             <q-td key="action" :props="props" class="text-center">
@@ -209,9 +187,6 @@
                   @click="openEditDialog(props.row)"
                 >
                   <q-tooltip>Edit</q-tooltip>
-                </q-btn>
-                <q-btn flat round dense color="orange-9" icon="factory">
-                  <q-tooltip>Generate SPK</q-tooltip>
                 </q-btn>
                 <q-btn
                   flat
@@ -242,7 +217,7 @@
         <q-card-section class="row items-center justify-between bg-green-10 text-white">
           <div>
             <div class="text-h6 text-weight-bold">{{ formTitle }}</div>
-            <div class="text-caption">Data utama planning akan tersinkron realtime ke menu PPIC.</div>
+            <div class="text-caption">Data planning tersinkron realtime ke departemen tujuan.</div>
           </div>
           <q-btn flat round dense icon="close" v-close-popup />
         </q-card-section>
@@ -255,54 +230,77 @@
                   v-model="form.no_planning"
                   outlined
                   dense
-                  label="No Planning"
+                  readonly
+                  label="Nomor Planning"
                   :rules="[(val) => !!val || 'No planning wajib diisi']"
                 />
               </div>
               <div class="col-12 col-md-4">
-                <q-input v-model="form.no_so" outlined dense label="No SO" />
+                <q-select
+                  v-model="form.spk_obj"
+                  :options="spkOptions"
+                  outlined
+                  dense
+                  use-input
+                  input-debounce="200"
+                  label="Nomor SPK"
+                  :loading="loadingSpk"
+                  :rules="[(val) => !!val || 'SPK wajib dipilih']"
+                  @filter="filterSpk"
+                  @update:model-value="handleSpkSelected"
+                />
               </div>
               <div class="col-12 col-md-4">
                 <q-select
-                  v-model="form.status"
+                  v-model="form.status_planning"
                   :options="statusOptions"
                   outlined
                   dense
-                  label="Status"
+                  label="Status Planning"
                   :rules="[(val) => !!val || 'Status wajib dipilih']"
                 />
               </div>
 
               <div class="col-12 col-md-6">
                 <q-input
-                  v-model="form.project"
+                  v-model="form.customer_nama"
                   outlined
                   dense
-                  label="Project"
-                  :rules="[(val) => !!val || 'Project wajib diisi']"
+                  readonly
+                  label="Customer"
                 />
               </div>
               <div class="col-12 col-md-6">
-                <q-input v-model="form.customer" outlined dense label="Customer" />
+                <q-select
+                  v-model="form.departemen_obj"
+                  :options="departemenOptions"
+                  outlined
+                  dense
+                  label="Departemen Tujuan"
+                  :loading="loadingDepartemen"
+                  :rules="[(val) => !!val || 'Departemen tujuan wajib dipilih']"
+                  @update:model-value="handleDepartemenSelected"
+                />
               </div>
 
               <div class="col-12 col-md-6">
                 <q-input
-                  v-model="form.item_produksi"
+                  v-model="form.nama_produk"
                   outlined
                   dense
-                  label="Item Produksi"
-                  :rules="[(val) => !!val || 'Item produksi wajib diisi']"
+                  readonly
+                  label="Produk"
                 />
               </div>
               <div class="col-12 col-md-3">
                 <q-input
-                  v-model.number="form.qty"
+                  v-model.number="form.qty_target"
                   outlined
                   dense
                   type="number"
                   min="0"
-                  label="Qty"
+                  readonly
+                  label="Qty Target"
                   :rules="[(val) => Number(val) > 0 || 'Qty wajib lebih dari 0']"
                 />
               </div>
@@ -310,77 +308,16 @@
                 <q-input v-model="form.satuan" outlined dense label="Satuan" />
               </div>
 
-              <div class="col-12 col-md-4">
-                <q-input
-                  v-model="form.tanggal_planning"
-                  outlined
-                  dense
-                  type="date"
-                  label="Tanggal Planning"
-                />
-              </div>
-              <div class="col-12 col-md-4">
+              <div class="col-12 col-md-6">
                 <q-input v-model="form.deadline" outlined dense type="date" label="Deadline" />
               </div>
-              <div class="col-12 col-md-4">
-                <q-select
-                  v-model="form.tahapan_fabrikasi_id"
-                  :options="tahapanOptions"
-                  outlined
-                  dense
-                  emit-value
-                  map-options
-                  option-label="label"
-                  option-value="value"
-                  label="Tahapan Fabrikasi"
-                  :loading="loadingMasterTahapan"
-                  :rules="[(val) => !!val || 'Tahapan fabrikasi wajib dipilih']"
-                />
-              </div>
-
-              <div class="col-12 col-md-4">
-                <q-select
-                  v-model="form.material_status"
-                  :options="materialStatusOptions"
-                  outlined
-                  dense
-                  label="Status Material"
-                />
-              </div>
-              <div class="col-12 col-md-4">
+              <div class="col-12 col-md-6">
                 <q-select
                   v-model="form.prioritas"
                   :options="priorityOptions"
                   outlined
                   dense
                   label="Prioritas"
-                />
-              </div>
-              <div class="col-12 col-md-4">
-                <q-input
-                  v-model.number="form.progress"
-                  outlined
-                  dense
-                  type="number"
-                  min="0"
-                  max="100"
-                  label="Progress (%)"
-                />
-              </div>
-
-              <div class="col-12 col-md-6">
-                <q-select
-                  v-model="form.tim_produksi_id"
-                  :options="timProduksiOptions"
-                  outlined
-                  dense
-                  emit-value
-                  map-options
-                  option-label="label"
-                  option-value="value"
-                  label="Tim Produksi"
-                  :loading="loadingMasterTim"
-                  :rules="[(val) => !!val || 'Tim produksi wajib dipilih']"
                 />
               </div>
               <div class="col-12">
@@ -426,44 +363,30 @@
         <q-card-section v-if="selectedRow" class="q-pa-lg">
           <div class="row q-col-gutter-md">
             <div class="col-12 col-md-6">
-              <div class="detail-label">No SO</div>
-              <div class="detail-value">{{ selectedRow.no_so || '-' }}</div>
+              <div class="detail-label">Nomor SPK</div>
+              <div class="detail-value">{{ selectedRow.nomor_spk || '-' }}</div>
             </div>
             <div class="col-12 col-md-6">
-              <div class="detail-label">Project</div>
-              <div class="detail-value">{{ selectedRow.project }}</div>
+              <div class="detail-label">Departemen Tujuan</div>
+              <div class="detail-value">{{ selectedRow.departemen_nama || selectedRow.tujuan_departemen?.nama_departemen || '-' }}</div>
             </div>
             <div class="col-12 col-md-6">
               <div class="detail-label">Customer</div>
-              <div class="detail-value">{{ selectedRow.customer }}</div>
+              <div class="detail-value">{{ selectedRow.customer_nama || selectedRow.customer || '-' }}</div>
             </div>
             <div class="col-12 col-md-6">
-              <div class="detail-label">Item Produksi</div>
-              <div class="detail-value">{{ selectedRow.item_produksi }}</div>
+              <div class="detail-label">Produk</div>
+              <div class="detail-value">{{ selectedRow.nama_produk || selectedRow.item_produksi || '-' }}</div>
             </div>
             <div class="col-12 col-md-6">
-              <div class="detail-label">Work Center</div>
-              <div class="detail-value">{{ selectedRow.work_center }}</div>
-            </div>
-            <div class="col-12 col-md-6">
-              <div class="detail-label">Qty</div>
+              <div class="detail-label">Qty Target</div>
               <div class="detail-value">
-                {{ formatNumber(selectedRow.qty) }} {{ selectedRow.satuan }}
+                {{ formatNumber(selectedRow.qty_target || selectedRow.qty) }} {{ selectedRow.satuan }}
               </div>
-            </div>
-            <div class="col-12 col-md-6">
-              <div class="detail-label">Tanggal Planning</div>
-              <div class="detail-value">{{ formatDate(selectedRow.tanggal_planning) }}</div>
             </div>
             <div class="col-12 col-md-6">
               <div class="detail-label">Deadline</div>
               <div class="detail-value">{{ formatDate(selectedRow.deadline) }}</div>
-            </div>
-            <div class="col-12 col-md-6">
-              <div class="detail-label">Material</div>
-              <q-badge :color="materialColor(selectedRow.material_status)" class="status-badge">
-                {{ selectedRow.material_status }}
-              </q-badge>
             </div>
             <div class="col-12 col-md-6">
               <div class="detail-label">Prioritas</div>
@@ -472,18 +395,10 @@
               </q-badge>
             </div>
             <div class="col-12 col-md-6">
-              <div class="detail-label">Status</div>
-              <q-badge :color="statusColor(selectedRow.status)" class="status-badge">
-                {{ selectedRow.status }}
+              <div class="detail-label">Status Planning</div>
+              <q-badge :color="statusColor(selectedRow.status_planning || selectedRow.status)" class="status-badge">
+                {{ selectedRow.status_planning || selectedRow.status }}
               </q-badge>
-            </div>
-            <div class="col-12 col-md-6">
-              <div class="detail-label">Progress</div>
-              <div class="detail-value">{{ selectedRow.progress }}%</div>
-            </div>
-            <div class="col-12 col-md-6">
-              <div class="detail-label">PIC Produksi</div>
-              <div class="detail-value">{{ selectedRow.pic }}</div>
             </div>
           </div>
 
@@ -500,16 +415,25 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useQuasar } from 'quasar'
-import { collection, onSnapshot, orderBy, query } from 'firebase/firestore'
-import { db } from 'src/boot/firebase'
 import {
-  createPlanningProduksi,
-  deletePlanningProduksi,
-  listenPlanningProduksi,
-  updatePlanningProduksi,
-} from 'src/services/manufaktur/planningProduksiService'
+  addDoc,
+  collection,
+  collectionGroup,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  updateDoc,
+} from 'firebase/firestore'
+import { db } from 'src/boot/firebase'
 
 const $q = useQuasar()
+const PLANNING_COLLECTION = 'planning_produksi_manufaktur'
+const MASTER_DEPARTEMEN_COLLECTION = 'manufactur_master_departemen'
+const SPK_SUBCOLLECTION = 'spk'
+
 const search = ref('')
 const statusFilter = ref('all')
 const priorityFilter = ref('all')
@@ -518,20 +442,81 @@ const detailDialog = ref(false)
 const selectedRow = ref(null)
 const editingId = ref(null)
 const rows = ref([])
+const departemenRows = ref([])
+const spkRows = ref([])
+const filteredSpkOptions = ref([])
 const loading = ref(true)
+const loadingDepartemen = ref(true)
+const loadingSpk = ref(true)
 const submitting = ref(false)
 const errorMessage = ref('')
-const masterTahapan = ref([])
-const masterTimProduksi = ref([])
-const loadingMasterTahapan = ref(true)
-const loadingMasterTim = ref(true)
 let unsubscribePlanning = null
-let unsubscribeMasterTahapan = null
-let unsubscribeMasterTim = null
+let unsubscribeDepartemen = null
+let unsubscribeSpk = null
 
-const statusOptions = ['Draft', 'Approved', 'Scheduled', 'On Progress', 'Selesai']
+const statusOptions = ['Draft', 'Scheduled', 'On Progress', 'Selesai']
 const priorityOptions = ['High', 'Medium', 'Low']
-const materialStatusOptions = ['Ready', 'Partial', 'Waiting']
+
+const planningCollection = collection(db, PLANNING_COLLECTION)
+
+const listenPlanningProduksi = (callback, errorCallback) =>
+  onSnapshot(
+    query(planningCollection, orderBy('created_at', 'desc')),
+    (snapshot) =>
+      callback(snapshot.docs.map((planningDoc) => ({ id: planningDoc.id, ...planningDoc.data() }))),
+    errorCallback,
+  )
+
+const createPlanningProduksi = (payload) =>
+  addDoc(planningCollection, {
+    ...payload,
+    created_at: serverTimestamp(),
+    updated_at: serverTimestamp(),
+  })
+
+const updatePlanningProduksi = (id, payload) =>
+  updateDoc(doc(db, PLANNING_COLLECTION, id), {
+    ...payload,
+    updated_at: serverTimestamp(),
+  })
+
+const deletePlanningProduksi = (id) => deleteDoc(doc(db, PLANNING_COLLECTION, id))
+
+const mapDepartemen = (departemenDoc) => {
+  const data = departemenDoc.data()
+  return {
+    id: departemenDoc.id,
+    value: departemenDoc.id,
+    label: `${data.nama_departemen || departemenDoc.id}${data.kode_departemen ? ` - ${data.kode_departemen}` : ''}`,
+    ...data,
+  }
+}
+
+const listenMasterDepartemen = (callback, errorCallback) =>
+  onSnapshot(
+    query(collection(db, MASTER_DEPARTEMEN_COLLECTION), orderBy('nama_departemen', 'asc')),
+    (snapshot) =>
+      callback(
+        snapshot.docs
+          .map(mapDepartemen)
+          .filter((item) => String(item.status || 'Aktif').toLowerCase() !== 'nonaktif'),
+      ),
+    errorCallback,
+  )
+
+const listenSpkProduksi = (callback, errorCallback) =>
+  onSnapshot(
+    collectionGroup(db, SPK_SUBCOLLECTION),
+    (snapshot) =>
+      callback(
+        snapshot.docs.map((spkDoc) => ({
+          id: spkDoc.id,
+          departemen_path_id: spkDoc.ref.parent.parent?.id || '',
+          ...spkDoc.data(),
+        })),
+      ),
+    errorCallback,
+  )
 
 const statusFilterOptions = [
   { label: 'Semua Status', value: 'all' },
@@ -543,26 +528,44 @@ const priorityFilterOptions = [
   ...priorityOptions.map((priority) => ({ label: priority, value: priority })),
 ]
 
+const generatePlanningNumber = () => {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const countThisMonth = rows.value.filter((row) =>
+    String(row.no_planning || row.nomor_planning || '').includes(`PLN-MFG/${year}${month}`),
+  ).length
+  return `PLN-MFG/${year}${month}/${String(countThisMonth + 1).padStart(4, '0')}`
+}
+
 const defaultForm = () => ({
-  no_planning: '',
+  no_planning: generatePlanningNumber(),
+  nomor_planning: generatePlanningNumber(),
+  spk_obj: null,
+  spk_id: '',
+  nomor_spk: '',
   no_so: '',
   project: '',
   customer: '',
+  customer_id: '',
+  customer_nama: '',
   item_produksi: '',
+  produk_id: '',
+  kode_produk: '',
+  nama_produk: '',
   qty: null,
+  qty_target: null,
   satuan: 'Unit',
   tanggal_planning: '',
   deadline: '',
-  work_center: '',
-  tahapan_fabrikasi_id: '',
-  tahapan_fabrikasi: '',
-  material_status: 'Waiting',
+  departemen_obj: null,
+  departemen_id: '',
+  departemen_nama: '',
+  departemen_kode: '',
   prioritas: 'Medium',
   status: 'Draft',
+  status_planning: 'Draft',
   progress: 0,
-  pic: '',
-  tim_produksi_id: '',
-  tim_produksi: '',
   catatan: '',
 })
 
@@ -576,16 +579,13 @@ const columns = [
     field: 'no_planning',
     sortable: true,
   },
-  { name: 'project', align: 'left', label: 'Project / Customer', field: 'project', sortable: true },
-  { name: 'item_produksi', align: 'left', label: 'Item / Work Center', field: 'item_produksi' },
-  { name: 'qty', align: 'right', label: 'Qty', field: 'qty', sortable: true },
-  { name: 'tanggal_planning', align: 'left', label: 'Tgl Planning', field: 'tanggal_planning' },
+  { name: 'customer', align: 'left', label: 'Customer', field: 'customer_nama', sortable: true },
+  { name: 'produk', align: 'left', label: 'Produk', field: 'nama_produk' },
+  { name: 'qty_target', align: 'right', label: 'Qty Target', field: 'qty_target', sortable: true },
+  { name: 'departemen', align: 'left', label: 'Departemen Tujuan', field: 'departemen_nama' },
   { name: 'deadline', align: 'left', label: 'Deadline', field: 'deadline', sortable: true },
-  { name: 'material_status', align: 'center', label: 'Material', field: 'material_status' },
-  { name: 'progress', align: 'left', label: 'Progress', field: 'progress', sortable: true },
   { name: 'prioritas', align: 'center', label: 'Prioritas', field: 'prioritas', sortable: true },
-  { name: 'status', align: 'center', label: 'Status', field: 'status', sortable: true },
-  { name: 'pic', align: 'left', label: 'PIC', field: 'pic' },
+  { name: 'status_planning', align: 'center', label: 'Status Planning', field: 'status_planning', sortable: true },
   { name: 'action', align: 'center', label: 'Action' },
 ]
 
@@ -593,20 +593,23 @@ const filteredRows = computed(() => {
   const keyword = search.value.trim().toLowerCase()
 
   return rows.value.filter((row) => {
-    const matchesStatus = statusFilter.value === 'all' || row.status === statusFilter.value
+    const rowStatus = row.status_planning || row.status
+    const matchesStatus = statusFilter.value === 'all' || rowStatus === statusFilter.value
     const matchesPriority = priorityFilter.value === 'all' || row.prioritas === priorityFilter.value
     const matchesSearch =
       !keyword ||
       [
+        row.nomor_planning,
         row.no_planning,
-        row.no_so,
-        row.project,
+        row.nomor_spk,
+        row.customer_nama,
         row.customer,
+        row.nama_produk,
         row.item_produksi,
-        row.work_center,
-        row.status,
+        row.departemen_nama,
+        row.tujuan_departemen?.nama_departemen,
+        rowStatus,
         row.prioritas,
-        row.pic,
       ]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(keyword))
@@ -624,95 +627,164 @@ const summaryCards = computed(() => [
   },
   {
     title: 'Planning Aktif',
-    value: rows.value.filter((row) => ['Approved', 'Scheduled', 'On Progress'].includes(row.status))
-      .length,
+    value: rows.value.filter((row) => ['Draft', 'Scheduled', 'On Progress'].includes(row.status_planning || row.status)).length,
     icon: 'assignment_turned_in',
     color: 'blue-grey-7',
   },
   {
-    title: 'Material Ready',
-    value: rows.value.filter((row) => row.material_status === 'Ready').length,
-    icon: 'inventory_2',
+    title: 'SPK Terhubung',
+    value: rows.value.filter((row) => row.spk_id || row.nomor_spk).length,
+    icon: 'assignment',
     color: 'teal-8',
   },
   {
-    title: 'Avg Progress',
-    value: `${averageProgress.value}%`,
-    icon: 'monitoring',
+    title: 'Planning Baru',
+    value: rows.value.filter((row) => row.is_new !== false && (row.status_planning || row.status) !== 'Selesai').length,
+    icon: 'fiber_new',
     color: 'positive',
   },
 ])
 
-const averageProgress = computed(() => {
-  if (!rows.value.length) return 0
-  return Math.round(
-    rows.value.reduce((total, row) => total + Number(row.progress || 0), 0) / rows.value.length,
-  )
-})
-
 const formTitle = computed(() => (editingId.value ? 'Edit Planning Produksi' : 'Tambah Planning Produksi'))
 
-const tahapanOptions = computed(() =>
-  masterTahapan.value.map((item) => ({
-    label: `${item.urutan ? `${item.urutan}. ` : ''}${item.nama_tahapan}`,
+const departemenOptions = computed(() =>
+  departemenRows.value.map((item) => ({
+    label: item.label,
     value: item.id,
     item,
   })),
 )
 
-const timProduksiOptions = computed(() =>
-  masterTimProduksi.value.map((item) => ({
-    label: `${item.nama}${item.jabatan ? ` - ${item.jabatan}` : ''}`,
-    value: item.id,
-    item,
-  })),
-)
+const spkOptions = computed(() => filteredSpkOptions.value)
 
-const selectedTahapan = computed(
-  () => tahapanOptions.value.find((option) => option.value === form.value.tahapan_fabrikasi_id)?.item,
-)
-
-const selectedTimProduksi = computed(
-  () => timProduksiOptions.value.find((option) => option.value === form.value.tim_produksi_id)?.item,
-)
-
-const buildPayload = () => ({
-  no_planning: form.value.no_planning,
-  no_so: form.value.no_so,
-  project: form.value.project,
-  customer: form.value.customer,
-  item_produksi: form.value.item_produksi,
-  qty: Number(form.value.qty || 0),
-  satuan: form.value.satuan,
-  tanggal_planning: form.value.tanggal_planning,
-  deadline: form.value.deadline,
-  work_center: selectedTahapan.value?.nama_tahapan || form.value.work_center,
-  tahapan_fabrikasi_id: form.value.tahapan_fabrikasi_id,
-  tahapan_fabrikasi: selectedTahapan.value?.nama_tahapan || form.value.tahapan_fabrikasi,
-  urutan_tahapan: Number(selectedTahapan.value?.urutan || form.value.urutan_tahapan || 0),
-  material_status: form.value.material_status,
-  prioritas: form.value.prioritas,
-  status: form.value.status,
-  progress: Math.min(Math.max(Number(form.value.progress || 0), 0), 100),
-  pic: selectedTimProduksi.value?.nama || form.value.pic,
-  tim_produksi_id: form.value.tim_produksi_id,
-  tim_produksi: selectedTimProduksi.value?.nama || form.value.tim_produksi,
-  jabatan_tim_produksi: selectedTimProduksi.value?.jabatan || form.value.jabatan_tim_produksi || '',
-  catatan: form.value.catatan,
+const mapSpkOption = (row) => ({
+  label: `${row.nomor_spk || row.id} - ${row.nama_produk || '-'} (${row.tujuan_departemen?.nama_departemen || row.departemen_nama || '-'})`,
+  value: row.id,
+  item: row,
 })
+
+const refreshSpkOptions = (needle = '') => {
+  const searchText = needle.toLowerCase()
+  filteredSpkOptions.value = spkRows.value
+    .filter((row) => row.status !== 'Finished')
+    .filter((row) =>
+      !searchText ||
+      [row.nomor_spk, row.nama_produk, row.customer_nama, row.tujuan_departemen?.nama_departemen]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(searchText)),
+    )
+    .map(mapSpkOption)
+}
+
+const filterSpk = (value, update) => {
+  update(() => refreshSpkOptions(value || ''))
+}
+
+const findDepartemenOption = (id, name) =>
+  departemenOptions.value.find((option) => option.value === id) ||
+  departemenOptions.value.find((option) => option.item.nama_departemen === name)
+
+const handleDepartemenSelected = (option) => {
+  const item = option?.item || option
+  form.value.departemen_id = item?.id || item?.value || ''
+  form.value.departemen_nama = item?.nama_departemen || item?.label || ''
+  form.value.departemen_kode = item?.kode_departemen || ''
+}
+
+const handleSpkSelected = (option) => {
+  const spk = option?.item || option
+  if (!spk) return
+
+  form.value.spk_id = spk.id
+  form.value.nomor_spk = spk.nomor_spk || ''
+  form.value.no_so = spk.nomor_po || ''
+  form.value.project = spk.nomor_po || spk.nomor_spk || ''
+  form.value.customer_id = spk.customer_id || ''
+  form.value.customer_nama = spk.customer_nama || spk.customer?.nama || ''
+  form.value.customer = form.value.customer_nama
+  form.value.produk_id = spk.produk_id || ''
+  form.value.kode_produk = spk.kode_produk || ''
+  form.value.nama_produk = spk.nama_produk || spk.produk?.nama_produk || ''
+  form.value.item_produksi = form.value.nama_produk
+  form.value.qty_target = Number(spk.qty_target || spk.qty_po || 0)
+  form.value.qty = form.value.qty_target
+  form.value.satuan = spk.satuan || 'Unit'
+  form.value.deadline = form.value.deadline || spk.deadline || ''
+
+  const departemenOption = findDepartemenOption(
+    spk.departemen_id || spk.departemen_path_id || spk.tujuan_departemen?.id,
+    spk.departemen_nama || spk.tujuan_departemen?.nama_departemen,
+  )
+  if (departemenOption) {
+    form.value.departemen_obj = departemenOption
+    handleDepartemenSelected(departemenOption)
+  }
+}
+
+const buildPayload = () => {
+  const qtyTarget = Number(form.value.qty_target || form.value.qty || 0)
+  const statusPlanning = form.value.status_planning || form.value.status || 'Draft'
+
+  return {
+    no_planning: form.value.no_planning,
+    nomor_planning: form.value.no_planning,
+    nomor_spk: form.value.nomor_spk,
+    spk_id: form.value.spk_id,
+    no_so: form.value.no_so,
+    customer_id: form.value.customer_id,
+    customer_nama: form.value.customer_nama,
+    customer: form.value.customer_nama,
+    produk_id: form.value.produk_id,
+    kode_produk: form.value.kode_produk,
+    nama_produk: form.value.nama_produk,
+    item_produksi: form.value.nama_produk,
+    qty_target: qtyTarget,
+    qty: qtyTarget,
+    satuan: form.value.satuan,
+    departemen_id: form.value.departemen_id,
+    departemen_nama: form.value.departemen_nama,
+    departemen_kode: form.value.departemen_kode,
+    tujuan_departemen: {
+      id: form.value.departemen_id,
+      nama_departemen: form.value.departemen_nama,
+      kode_departemen: form.value.departemen_kode,
+    },
+    deadline: form.value.deadline,
+    prioritas: form.value.prioritas,
+    status_planning: statusPlanning,
+    status: statusPlanning,
+    progress: statusPlanning === 'Selesai' ? 100 : 0,
+    is_new: editingId.value ? form.value.is_new !== false : true,
+    catatan: form.value.catatan,
+  }
+}
 
 const openCreateDialog = () => {
   editingId.value = null
   form.value = defaultForm()
+  refreshSpkOptions()
   formDialog.value = true
 }
 
 const openEditDialog = (row) => {
   editingId.value = row.id
+  const spkOption = spkRows.value.find((item) => item.id === row.spk_id || item.nomor_spk === row.nomor_spk)
+  const departemenOption = findDepartemenOption(
+    row.departemen_id || row.tujuan_departemen?.id,
+    row.departemen_nama || row.tujuan_departemen?.nama_departemen,
+  )
   form.value = {
     ...defaultForm(),
     ...row,
-    qty: Number(row.qty || 0),
+    no_planning: row.no_planning || row.nomor_planning || '',
+    nomor_planning: row.nomor_planning || row.no_planning || '',
+    spk_obj: spkOption ? mapSpkOption(spkOption) : null,
+    departemen_obj: departemenOption || null,
+    customer_nama: row.customer_nama || row.customer || '',
+    nama_produk: row.nama_produk || row.item_produksi || '',
+    qty_target: Number(row.qty_target || row.qty || 0),
+    qty: Number(row.qty_target || row.qty || 0),
+    status_planning: row.status_planning || row.status || 'Draft',
     progress: Number(row.progress || 0),
   }
   formDialog.value = true
@@ -783,38 +855,37 @@ const listenPlanning = () => {
   )
 }
 
-const listenMasterTahapan = () => {
-  loadingMasterTahapan.value = true
-  unsubscribeMasterTahapan = onSnapshot(
-    query(collection(db, 'master_tahapan_fabrikasi'), orderBy('urutan', 'asc')),
-    (snapshot) => {
-      masterTahapan.value = snapshot.docs
-        .map((item) => ({ id: item.id, ...item.data() }))
-        .filter((item) => item.status !== 'Nonaktif')
-      loadingMasterTahapan.value = false
+const listenDepartemenOptions = () => {
+  loadingDepartemen.value = true
+  if (unsubscribeDepartemen) unsubscribeDepartemen()
+
+  unsubscribeDepartemen = listenMasterDepartemen(
+    (options) => {
+      departemenRows.value = options
+      loadingDepartemen.value = false
     },
     (error) => {
       console.error(error)
-      loadingMasterTahapan.value = false
-      $q.notify({ type: 'negative', message: 'Gagal memuat master tahapan fabrikasi' })
+      loadingDepartemen.value = false
+      $q.notify({ type: 'negative', message: 'Gagal memuat departemen manufacturing' })
     },
   )
 }
 
-const listenMasterTimProduksi = () => {
-  loadingMasterTim.value = true
-  unsubscribeMasterTim = onSnapshot(
-    query(collection(db, 'master_tim_produksi'), orderBy('nama', 'asc')),
-    (snapshot) => {
-      masterTimProduksi.value = snapshot.docs
-        .map((item) => ({ id: item.id, ...item.data() }))
-        .filter((item) => item.status !== 'Nonaktif')
-      loadingMasterTim.value = false
+const listenSpkOptions = () => {
+  loadingSpk.value = true
+  if (unsubscribeSpk) unsubscribeSpk()
+
+  unsubscribeSpk = listenSpkProduksi(
+    (nextRows) => {
+      spkRows.value = nextRows
+      refreshSpkOptions()
+      loadingSpk.value = false
     },
     (error) => {
       console.error(error)
-      loadingMasterTim.value = false
-      $q.notify({ type: 'negative', message: 'Gagal memuat master tim produksi' })
+      loadingSpk.value = false
+      $q.notify({ type: 'negative', message: 'Gagal memuat SPK produksi realtime' })
     },
   )
 }
@@ -845,21 +916,6 @@ const priorityColor = (priority) => {
   return colors[priority] || 'grey-6'
 }
 
-const materialColor = (status) => {
-  const colors = {
-    Ready: 'green-10',
-    Partial: 'orange-9',
-    Waiting: 'negative',
-  }
-  return colors[status] || 'grey-6'
-}
-
-const progressColor = (progress) => {
-  if (progress >= 75) return 'green-10'
-  if (progress >= 40) return 'orange-9'
-  return 'negative'
-}
-
 const formatNumber = (value) => Number(value || 0).toLocaleString('id-ID')
 
 const formatDate = (value) => {
@@ -876,14 +932,14 @@ const formatDate = (value) => {
 
 onMounted(() => {
   listenPlanning()
-  listenMasterTahapan()
-  listenMasterTimProduksi()
+  listenDepartemenOptions()
+  listenSpkOptions()
 })
 
 onUnmounted(() => {
   if (unsubscribePlanning) unsubscribePlanning()
-  if (unsubscribeMasterTahapan) unsubscribeMasterTahapan()
-  if (unsubscribeMasterTim) unsubscribeMasterTim()
+  if (unsubscribeDepartemen) unsubscribeDepartemen()
+  if (unsubscribeSpk) unsubscribeSpk()
 })
 </script>
 

@@ -1567,8 +1567,12 @@ const fetchData = async () => {
   const confSnap = await getDoc(doc(db, 'config_manufaktur', 'perusahaan'))
   if (confSnap.exists()) config.value = confSnap.data()
 
-  const snapCust = await getDocs(collection(db, 'manufactur_master_customer'))
-  masterCustomer.value = snapCust.docs.map((d) => ({ id: d.id, ...d.data() }))
+  const snapCust = await getDocs(
+    query(collection(db, 'manufacturing_customers'), where('module', '==', 'manufacturing')),
+  )
+  masterCustomer.value = snapCust.docs
+    .map((d) => ({ id: d.id, ...d.data() }))
+    .filter((item) => item.module === 'manufacturing')
   optCustomer.value = [...masterCustomer.value]
 
   const snapProj = await getDocs(collection(db, 'manufactur_master_proyek'))

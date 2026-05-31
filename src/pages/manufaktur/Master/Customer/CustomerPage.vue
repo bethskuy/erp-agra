@@ -595,7 +595,6 @@ import {
   deleteDoc,
   doc,
   query,
-  orderBy,
   where,
   serverTimestamp,
 } from 'firebase/firestore'
@@ -698,17 +697,18 @@ const simpanCustomer = async () => {
 
     const payload = JSON.parse(JSON.stringify(form.value))
     payload.status_aktif = payload.status_aktif || 'Aktif'
+    payload.module = 'manufacturing'
     payload.updatedAt = serverTimestamp()
     payload.updatedBy = authStore.user?.email || authStore.user?.nama || 'system'
     const docId = payload.id
     delete payload.id
 
     if (isEditMode.value) {
-      await updateDoc(doc(db, 'manufactur_master_customer', docId), payload)
+      await updateDoc(doc(db, 'manufacturing_customers', docId), payload)
     } else {
       payload.createdAt = serverTimestamp()
       payload.createdBy = authStore.user?.email || authStore.user?.nama || 'system'
-      await addDoc(collection(db, 'manufactur_master_customer'), payload)
+      await addDoc(collection(db, 'manufacturing_customers'), payload)
     }
 
     showDialog.value = false
@@ -755,7 +755,7 @@ const confirmHapus = (r) => {
     persistent: true,
   }).onOk(async () => {
     try {
-      await deleteDoc(doc(db, 'manufactur_master_customer', r.id))
+      await deleteDoc(doc(db, 'manufacturing_customers', r.id))
       $q.notify({ icon: 'delete', message: 'Data klien telah dihapus dari sistem.' })
       // eslint-disable-next-line no-unused-vars
     } catch (e) {
@@ -775,11 +775,18 @@ onMounted(() => {
   }
 
   // 2. Ambil Data Customer Real-time
-  const qCustomer = query(collection(db, 'manufactur_master_customer'), orderBy('createdAt', 'desc'))
+  const qCustomer = query(collection(db, 'manufacturing_customers'), where('module', '==', 'manufacturing'))
   unsubCustomer = onSnapshot(
     qCustomer,
     (snap) => {
-      rows.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+      rows.value = snap.docs
+        .map((d) => ({ id: d.id, ...d.data() }))
+        .filter((item) => item.module === 'manufacturing')
+        .sort((a, b) => {
+          const left = a.createdAt?.toMillis?.() || 0
+          const right = b.createdAt?.toMillis?.() || 0
+          return right - left
+        })
       loading.value = false
     },
     (err) => {

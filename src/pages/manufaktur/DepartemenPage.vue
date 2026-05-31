@@ -112,6 +112,22 @@
                 {{ departemen.pic }}
               </q-chip>
             </div>
+            <q-badge
+              v-if="spkMasukCount(departemen.id)"
+              color="orange-9"
+              floating
+              class="department-spk-badge text-weight-bold"
+            >
+              {{ spkMasukCount(departemen.id) }} SPK baru
+            </q-badge>
+            <q-badge
+              v-if="planningBaruCount(departemen.id)"
+              color="primary"
+              floating
+              class="department-planning-badge text-weight-bold"
+            >
+              {{ planningBaruCount(departemen.id) }} planning
+            </q-badge>
           </q-card-section>
 
           <q-separator inset />
@@ -172,18 +188,24 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
-import { collection, onSnapshot, orderBy, query } from 'firebase/firestore'
+import { collection, collectionGroup, onSnapshot, orderBy, query } from 'firebase/firestore'
 import { db } from 'src/boot/firebase'
 
-const MANUFACTURING_DEPARTEMEN_COLLECTION = 'manufactur_master_departemen'
+const MASTER_DEPARTEMEN_COLLECTION = 'manufactur_master_departemen'
+const PLANNING_COLLECTION = 'planning_produksi_manufaktur'
+const SPK_SUBCOLLECTION = 'spk'
 
 const $q = useQuasar()
 const router = useRouter()
 const departments = ref([])
+const spkRows = ref([])
+const planningRows = ref([])
 const loading = ref(true)
 const search = ref('')
 const statusFilter = ref('Semua')
 let unsubscribeDepartments = null
+let unsubscribeSpk = null
+let unsubscribePlanning = null
 
 const statusFilterOptions = [
   { label: 'Semua Status', value: 'Semua' },
@@ -225,6 +247,23 @@ const departmentIcon = (departemen) => {
   return 'corporate_fare'
 }
 
+const spkMasukCount = (departemenId) =>
+  spkRows.value.filter(
+    (spk) =>
+      spk.status === 'Menunggu Produksi' &&
+      (spk.departemen_path_id === departemenId || spk.departemen_id === departemenId),
+  ).length
+
+const planningBaruCount = (departemenId) =>
+  planningRows.value.filter((planning) => {
+    const status = planning.status_planning || planning.status
+    return (
+      planning.is_new !== false &&
+      status !== 'Selesai' &&
+      (planning.departemen_id === departemenId || planning.tujuan_departemen?.id === departemenId)
+    )
+  }).length
+
 const enterDepartment = (departemen) => {
   router.push({
     name: 'manufaktur-departemen-detail',
@@ -239,7 +278,7 @@ const enterDepartment = (departemen) => {
 onMounted(() => {
   loading.value = true
   unsubscribeDepartments = onSnapshot(
-    query(collection(db, MANUFACTURING_DEPARTEMEN_COLLECTION), orderBy('created_at', 'desc')),
+    query(collection(db, MASTER_DEPARTEMEN_COLLECTION), orderBy('created_at', 'desc')),
     (snapshot) => {
       departments.value = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }))
       loading.value = false
@@ -250,10 +289,41 @@ onMounted(() => {
       $q.notify({ type: 'negative', message: 'Gagal memuat departemen manufacturing.' })
     },
   )
+
+  unsubscribeSpk = onSnapshot(
+    collectionGroup(db, SPK_SUBCOLLECTION),
+    (snapshot) => {
+      spkRows.value = snapshot.docs.map((spkDoc) => ({
+        id: spkDoc.id,
+        departemen_path_id: spkDoc.ref.parent.parent?.id || '',
+        ...spkDoc.data(),
+      }))
+    },
+    (error) => {
+      console.error(error)
+      $q.notify({ type: 'negative', message: 'Gagal memuat badge SPK departemen.' })
+    },
+  )
+
+  unsubscribePlanning = onSnapshot(
+    query(collection(db, PLANNING_COLLECTION), orderBy('created_at', 'desc')),
+    (snapshot) => {
+      planningRows.value = snapshot.docs.map((planningDoc) => ({
+        id: planningDoc.id,
+        ...planningDoc.data(),
+      }))
+    },
+    (error) => {
+      console.error(error)
+      $q.notify({ type: 'negative', message: 'Gagal memuat badge planning produksi.' })
+    },
+  )
 })
 
 onUnmounted(() => {
   if (unsubscribeDepartments) unsubscribeDepartments()
+  if (unsubscribeSpk) unsubscribeSpk()
+  if (unsubscribePlanning) unsubscribePlanning()
 })
 </script>
 
@@ -278,6 +348,17 @@ onUnmounted(() => {
 .department-card {
   min-height: 292px;
   overflow: hidden;
+  position: relative;
+}
+
+.department-spk-badge {
+  right: 12px;
+  top: 12px;
+}
+
+.department-planning-badge {
+  right: 12px;
+  top: 42px;
 }
 
 .department-card__footer {

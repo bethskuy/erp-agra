@@ -1111,7 +1111,7 @@ const getStockIcon = (item) => {
 const loadPoCustomerOptions = async () => {
   loadingPoCustomer.value = true
   try {
-    const poSnap = await getDocs(collection(db, 'purchase_order_manufactur'))
+  const poSnap = await getDocs(collection(db, 'manufacturing_po_customer'))
     poCustomerOptions.value = poSnap.docs
       .map((poDoc) => {
         const po = { id: poDoc.id, ...poDoc.data() }
@@ -1163,7 +1163,7 @@ const applyPoCustomer = async (po) => {
 
 const syncPoCustomerStatus = async (poId, status, extra = {}) => {
   if (!poId) return
-  await updateDoc(doc(db, 'purchase_order_manufactur', poId), {
+  await updateDoc(doc(db, 'manufacturing_po_customer', poId), {
     gudang_status: status,
     last_pr_nomor: form.value.nomor || '',
     last_pr_status: form.value.status || '',
@@ -1282,7 +1282,7 @@ const ajukanPR = (row) => {
         updatedAt: serverTimestamp(),
       })
       if (row.po_customer_id) {
-        await updateDoc(doc(db, 'purchase_order_manufactur', row.po_customer_id), {
+      await updateDoc(doc(db, 'manufacturing_po_customer', row.po_customer_id), {
           gudang_status: 'PR_PENDING_APPROVAL',
           approval_sync_status: 'Pending',
           pending_pr_id: row.id,

@@ -300,7 +300,6 @@
                         option-label="nama"
                         placeholder="Cari atau pilih nama klien..."
                         @filter="filterCustomer"
-                        @new-value="createValueCustomer"
                         @update:model-value="onCustomerSelect"
                         class="rounded-10"
                       >
@@ -1376,24 +1375,19 @@ const canAction = (actionType) => {
 // SINKRONISASI MASTER CUSTOMER TANPA PILIHAN HARDCODED
 const loadCustomers = async () => {
   try {
-    const cSnap = await getDocs(collection(db, 'customer'))
+    const cSnap = await getDocs(
+      query(collection(db, 'manufacturing_customers'), where('module', '==', 'manufacturing')),
+    )
     let customersList = []
 
     if (cSnap && !cSnap.empty) {
-      customersList = cSnap.docs.map((d) => ({
-        id: d.id,
-        nama: d.data().nama_customer || d.data().nama || '',
-      }))
-    }
-
-    // Ambil juga customer yang sudah terdaftar di penawaran_manufaktur sebelumnya agar aman
-    const penawaranSnap = await getDocs(collection(db, 'penawaran_manufaktur')).catch(() => null)
-    if (penawaranSnap && !penawaranSnap.empty) {
-      const existing = penawaranSnap.docs.map((d) => ({
-        id: null,
-        nama: d.data().nama_customer,
-      }))
-      customersList = [...customersList, ...existing]
+      customersList = cSnap.docs
+        .map((d) => ({ id: d.id, ...d.data() }))
+        .filter((item) => item.module === 'manufacturing')
+        .map((item) => ({
+          id: item.id,
+          nama: item.nama_customer || item.nama || '',
+        }))
     }
 
     // Pembersihan duplikasi
@@ -1424,20 +1418,6 @@ const filterCustomer = (val, update) => {
       (v) => v.nama.toLowerCase().indexOf(needle) > -1,
     )
   })
-}
-
-// MEMBUAT CUSTOMER BARU LANGSUNG DENGAN MENGETIK DI DROPDOWN
-const createValueCustomer = (val, done) => {
-  if (val.length > 0) {
-    const newCust = { id: null, nama: val }
-    if (!rawCustomerList.value.some((c) => c.nama.toLowerCase() === val.toLowerCase())) {
-      rawCustomerList.value.push(newCust)
-    }
-    selectedCustomer.value = newCust
-    form.customer_id = null
-    form.nama_customer = val
-    done(newCust, 'toggle')
-  }
 }
 
 const openAddDialog = () => {

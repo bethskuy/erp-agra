@@ -9,7 +9,7 @@
           </span>
         </div>
         <div class="text-subtitle1 text-grey-7 q-mt-sm">
-          Data realtime dari input produksi tiap departemen manufacturing dan Master Produk.
+          Data realtime SPK dan planning produksi dari PPIC ke tiap departemen manufacturing.
         </div>
       </div>
 
@@ -179,6 +179,9 @@
               <div class="text-caption text-grey-6">{{ props.row.kode_departemen || '-' }}</div>
             </q-td>
             <q-td key="tanggal" :props="props">{{ formatDate(props.row.tanggal) }}</q-td>
+            <q-td key="nomor_spk" :props="props" class="text-weight-bold text-green-10">
+              {{ props.row.nomor_spk || '-' }}
+            </q-td>
             <q-td key="customer" :props="props">{{ props.row.customer_nama || '-' }}</q-td>
             <q-td key="nomor_po" :props="props" class="text-weight-bold">
               {{ props.row.nomor_po || '-' }}
@@ -228,7 +231,7 @@
         <template #no-data>
           <div class="full-width row flex-center text-grey-7 q-pa-xl">
             <q-icon name="monitoring" size="28px" class="q-mr-sm" />
-            Belum ada data produksi departemen.
+            Belum ada SPK produksi departemen.
           </div>
         </template>
       </q-table>
@@ -239,17 +242,23 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { date, useQuasar } from 'quasar'
-import { listenManufacturingDepartemenProduksi } from 'src/services/manufaktur/departemenProduksiService'
+import { collection, collectionGroup, onSnapshot, orderBy, query } from 'firebase/firestore'
+import { db } from 'src/boot/firebase'
 
 const $q = useQuasar()
+const SPK_SUBCOLLECTION = 'spk'
+const PLANNING_COLLECTION = 'planning_produksi_manufaktur'
 
 const rows = ref([])
+const spkRows = ref([])
+const planningRows = ref([])
 const loading = ref(true)
 const search = ref('')
 const statusFilter = ref('all')
-let unsubscribeProduksi = null
+let unsubscribeSpk = null
+let unsubscribePlanning = null
 
-const statusOptions = ['Belum Mulai', 'Proses', 'Selesai', 'Tertunda', 'Batal']
+const statusOptions = ['Menunggu Produksi', 'On Production', 'QC Process', 'Finished', 'Draft', 'Scheduled', 'On Progress', 'Selesai']
 const statusFilterOptions = [
   { label: 'Semua Status', value: 'all' },
   ...statusOptions.map((status) => ({ label: status, value: status })),
@@ -257,7 +266,8 @@ const statusFilterOptions = [
 
 const columns = [
   { name: 'departemen', align: 'left', label: 'Nama Departemen', field: 'nama_departemen', sortable: true },
-  { name: 'tanggal', align: 'left', label: 'Hari / Tanggal', field: 'tanggal', sortable: true },
+  { name: 'tanggal', align: 'left', label: 'Tanggal SPK', field: 'tanggal', sortable: true },
+  { name: 'nomor_spk', align: 'left', label: 'Nomor SPK', field: 'nomor_spk', sortable: true },
   { name: 'customer', align: 'left', label: 'Customer', field: 'customer_nama', sortable: true },
   { name: 'nomor_po', align: 'left', label: 'Nomor PO', field: 'nomor_po', sortable: true },
   { name: 'nama_produk', align: 'left', label: 'Master Produk', field: 'nama_produk', sortable: true },
@@ -281,19 +291,29 @@ const columns = [
 ]
 
 const normalizeRow = (row) => {
-  const qtyPo = Number(row.qty_po ?? row.total_po ?? 0)
+  const qtyPo = Number(row.qty_target ?? row.qty_po ?? row.total_po ?? 0)
   const qtyHasilJadi = Number(row.qty_hasil_jadi || 0)
-  const progress = qtyPo ? Math.min(100, Math.round((qtyHasilJadi / qtyPo) * 100)) : 0
+  const isPlanning = row.source_type === 'planning'
+  const progress = isPlanning ? Number(row.progress || 0) : qtyPo ? Math.min(100, Math.round((qtyHasilJadi / qtyPo) * 100)) : 0
 
   return {
     ...row,
-    nama_departemen: row.departemen?.nama_departemen || row.departemen || 'Departemen Manufacturing',
-    kode_departemen: row.departemen?.kode_departemen || '',
-    customer_nama: row.customer_nama || row.customer?.nama || '',
-    nama_produk: row.nama_produk || row.produk?.nama_produk || '',
+    tanggal: row.created_at || row.tanggal_planning || row.updated_at || row.deadline || '',
+    nomor_spk: row.nomor_spk || '-',
+    nama_departemen:
+      row.tujuan_departemen?.nama_departemen ||
+      row.departemen_nama ||
+      row.departemen?.nama_departemen ||
+      row.departemen ||
+      'Departemen Manufacturing',
+    kode_departemen:
+      row.tujuan_departemen?.kode_departemen || row.departemen_kode || row.departemen?.kode_departemen || '',
+    customer_nama: row.customer_nama || row.customer?.nama || row.customer || '',
+    nama_produk: row.nama_produk || row.item_produksi || row.produk?.nama_produk || '',
     kode_produk: row.kode_produk || row.produk?.kode_produk || '',
     qty_po: qtyPo,
     qty_hasil_jadi: qtyHasilJadi,
+    status_produksi: row.status_planning || row.status || row.status_produksi || 'Menunggu Produksi',
     progress,
   }
 }
@@ -311,6 +331,7 @@ const filteredRows = computed(() => {
         row.nama_departemen,
         row.kode_departemen,
         row.tanggal,
+        row.nomor_spk,
         row.customer_nama,
         row.nomor_po,
         row.nama_produk,
@@ -399,18 +420,18 @@ const timelineItems = computed(() =>
 )
 
 const statusColor = (status) => {
-  if (status === 'Selesai') return 'positive'
-  if (status === 'Proses') return 'primary'
-  if (status === 'Tertunda') return 'orange-9'
-  if (status === 'Batal') return 'negative'
+  if (status === 'Finished') return 'positive'
+  if (status === 'On Production') return 'primary'
+  if (status === 'QC Process') return 'indigo-7'
+  if (status === 'Menunggu Produksi') return 'orange-9'
   return 'blue-grey-6'
 }
 
 const statusIcon = (status) => {
-  if (status === 'Selesai') return 'task_alt'
-  if (status === 'Proses') return 'precision_manufacturing'
-  if (status === 'Tertunda') return 'pending_actions'
-  if (status === 'Batal') return 'cancel'
+  if (status === 'Finished') return 'task_alt'
+  if (status === 'On Production') return 'precision_manufacturing'
+  if (status === 'QC Process') return 'fact_check'
+  if (status === 'Menunggu Produksi') return 'pending_actions'
   return 'radio_button_unchecked'
 }
 
@@ -430,11 +451,46 @@ const formatDate = (value) => {
   return date.formatDate(rawDate, 'dddd, DD MMM YYYY')
 }
 
+const listenSpkProduksi = (callback, errorCallback) =>
+  onSnapshot(
+    collectionGroup(db, SPK_SUBCOLLECTION),
+    (snapshot) => {
+      callback(
+        snapshot.docs.map((spkDoc) => ({
+          id: spkDoc.id,
+          departemen_path_id: spkDoc.ref.parent.parent?.id || '',
+          ...spkDoc.data(),
+        })),
+      )
+    },
+    errorCallback,
+  )
+
+const listenPlanningProduksi = (callback, errorCallback) =>
+  onSnapshot(
+    query(collection(db, PLANNING_COLLECTION), orderBy('created_at', 'desc')),
+    (snapshot) => {
+      callback(
+        snapshot.docs.map((planningDoc) => ({
+          id: planningDoc.id,
+          source_type: 'planning',
+          ...planningDoc.data(),
+        })),
+      )
+    },
+    errorCallback,
+  )
+
+const syncRows = () => {
+  rows.value = [...spkRows.value, ...planningRows.value]
+}
+
 onMounted(() => {
   loading.value = true
-  unsubscribeProduksi = listenManufacturingDepartemenProduksi(
+  unsubscribeSpk = listenSpkProduksi(
     (nextRows) => {
-      rows.value = nextRows
+      spkRows.value = nextRows.map((row) => ({ ...row, source_type: 'spk' }))
+      syncRows()
       loading.value = false
     },
     (error) => {
@@ -443,10 +499,24 @@ onMounted(() => {
       $q.notify({ type: 'negative', message: 'Gagal memuat monitoring produksi realtime.' })
     },
   )
+
+  unsubscribePlanning = listenPlanningProduksi(
+    (nextRows) => {
+      planningRows.value = nextRows
+      syncRows()
+      loading.value = false
+    },
+    (error) => {
+      console.error(error)
+      loading.value = false
+      $q.notify({ type: 'negative', message: 'Gagal memuat monitoring planning produksi realtime.' })
+    },
+  )
 })
 
 onUnmounted(() => {
-  if (unsubscribeProduksi) unsubscribeProduksi()
+  if (unsubscribeSpk) unsubscribeSpk()
+  if (unsubscribePlanning) unsubscribePlanning()
 })
 </script>
 

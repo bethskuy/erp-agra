@@ -558,7 +558,7 @@ const createIncomingMaterialFromPO = async (po) => {
       list_item_barang: getPoItems(po),
       status: 'Pending',
       source_po_id: po.id,
-      source_collection: 'purchase_order_manufactur',
+      source_collection: 'manufacturing_po_customer',
       created_at: serverTimestamp(),
       updated_at: serverTimestamp(),
     })
@@ -601,14 +601,14 @@ const loadManufacturData = () => {
   })
 
   const manufacturUnsubPo = onSnapshot(
-    collection(db, 'purchase_order_manufactur'),
+    collection(db, 'manufacturing_po_customer'),
     (manufacturSnap) => {
       manufacturPoRows = manufacturSnap.docs
         .map((manufacturDoc) => ({ id: manufacturDoc.id, ...manufacturDoc.data() }))
         .filter((manufacturItem) => manufacturItem.status !== 'Draft')
         .map((manufacturItem) => ({
           ...manufacturItem,
-          source_collection: 'purchase_order_manufactur',
+          source_collection: 'manufacturing_po_customer',
           source_type: 'PO_CUSTOMER',
         }))
       manufacturMergeRows()
@@ -680,7 +680,7 @@ const manufacturHandleApproval = (manufacturRow, manufacturStatus, manufacturAla
           const manufacturRelatedPoId =
             manufacturRow.po_customer_id || manufacturRow.po_customer_document_id
           if (manufacturRelatedPoId) {
-            await updateDoc(doc(db, 'purchase_order_manufactur', manufacturRelatedPoId), {
+            await updateDoc(doc(db, 'manufacturing_po_customer', manufacturRelatedPoId), {
               gudang_status:
                 manufacturStatus === 'Approved' ? 'PR_APPROVED' : 'PR_REJECTED',
               last_pr_id: manufacturRow.pr_id,
@@ -713,7 +713,7 @@ const manufacturHandleApproval = (manufacturRow, manufacturStatus, manufacturAla
           manufacturData.approve_signature_url = manufacturRow.approve_signature_url
         }
 
-        await updateDoc(doc(db, 'purchase_order_manufactur', manufacturRow.id), manufacturData)
+        await updateDoc(doc(db, 'manufacturing_po_customer', manufacturRow.id), manufacturData)
         if (manufacturStatus === 'Approved') {
           await createIncomingMaterialFromPO({ ...manufacturRow, ...manufacturData })
         }

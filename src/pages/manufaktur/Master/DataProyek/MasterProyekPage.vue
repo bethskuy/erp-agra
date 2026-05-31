@@ -1535,8 +1535,12 @@ const hapusProyek = (row) => {
 
 onMounted(() => {
   fetchProyek()
-  getDocs(collection(db, 'manufactur_master_customer')).then(
-    (c) => (optionsKonsumen.value = c.docs.map((d) => d.data().nama)),
+  getDocs(query(collection(db, 'manufacturing_customers'), where('module', '==', 'manufacturing'))).then(
+    (c) =>
+      (optionsKonsumen.value = c.docs
+        .map((d) => d.data())
+        .filter((item) => item.module === 'manufacturing')
+        .map((item) => item.nama)),
   )
   getDocs(collection(db, 'manufactur_master_kategori_proyek')).then(
     (k) => (optionsKategori.value = k.docs.map((d) => d.data().nama)),
