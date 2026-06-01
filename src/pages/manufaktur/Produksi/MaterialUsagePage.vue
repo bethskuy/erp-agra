@@ -356,7 +356,7 @@ import {
 import { db } from 'src/boot/firebase'
 
 const COLLECTION_NAME = 'material_usage_manufaktur'
-const MASTER_MATERIAL_COLLECTION = 'master_material'
+const MASTER_BARANG_COLLECTION = 'manufactur_master_barang'
 const statusOptions = ['READY', 'KURANG_MATERIAL', 'HABIS']
 const statusFilterOptions = [
   { label: 'Semua Status', value: 'all' },
@@ -389,10 +389,34 @@ const form = ref(defaultForm())
 
 const columns = [
   { name: 'nomor_spk', align: 'left', label: 'Nomor SPK', field: 'nomor_spk', sortable: true },
-  { name: 'nama_produk', align: 'left', label: 'Nama Produk', field: 'nama_produk', sortable: true },
-  { name: 'nama_material', align: 'left', label: 'Nama Material', field: 'nama_material', sortable: true },
-  { name: 'qty_incoming', align: 'right', label: 'Qty Incoming', field: 'qty_incoming', sortable: true },
-  { name: 'qty_dipakai', align: 'right', label: 'Qty Dipakai', field: 'qty_dipakai', sortable: true },
+  {
+    name: 'nama_produk',
+    align: 'left',
+    label: 'Nama Produk',
+    field: 'nama_produk',
+    sortable: true,
+  },
+  {
+    name: 'nama_material',
+    align: 'left',
+    label: 'Nama Material',
+    field: 'nama_material',
+    sortable: true,
+  },
+  {
+    name: 'qty_incoming',
+    align: 'right',
+    label: 'Qty Incoming',
+    field: 'qty_incoming',
+    sortable: true,
+  },
+  {
+    name: 'qty_dipakai',
+    align: 'right',
+    label: 'Qty Dipakai',
+    field: 'qty_dipakai',
+    sortable: true,
+  },
   { name: 'qty_sisa', align: 'right', label: 'Qty Sisa', field: 'qty_sisa', sortable: true },
   {
     name: 'reject_material',
@@ -507,25 +531,36 @@ const rowClass = (row) => (materialStatus(row) === 'KURANG_MATERIAL' ? 'row-shor
 
 const formatNumber = (value) => Number(value || 0).toLocaleString('id-ID')
 
-const normalizeMaterialKey = (value) => String(value || '').trim().toLowerCase()
+const normalizeMaterialKey = (value) =>
+  String(value || '')
+    .trim()
+    .toLowerCase()
 
 const findMasterMaterialRef = async (materialName) => {
   const key = normalizeMaterialKey(materialName)
   const materialSnap = await getDocs(
-    query(collection(db, MASTER_MATERIAL_COLLECTION), orderBy('nama_material', 'asc')),
+    query(collection(db, MASTER_BARANG_COLLECTION), orderBy('nama', 'asc')),
   )
   const materialDoc = materialSnap.docs.find((item) => {
     const data = item.data()
-    return [item.id, data.kode_material, data.kode_barang, data.nama_material, data.nama_barang]
+    return [
+      item.id,
+      data.kode,
+      data.kode_material,
+      data.kode_barang,
+      data.nama,
+      data.nama_material,
+      data.nama_barang,
+    ]
       .map(normalizeMaterialKey)
       .includes(key)
   })
 
   if (!materialDoc) {
-    throw new Error(`Material "${materialName}" tidak ditemukan di master material.`)
+    throw new Error(`Material "${materialName}" tidak ditemukan di data barang.`)
   }
 
-  return doc(db, MASTER_MATERIAL_COLLECTION, materialDoc.id)
+  return doc(db, MASTER_BARANG_COLLECTION, materialDoc.id)
 }
 
 const formatDate = (value) => {
@@ -572,9 +607,7 @@ const saveUsage = async () => {
   try {
     const previousQtyDipakai = Number(selectedRow.value?.qty_dipakai || 0)
     const usageDelta = payload.qty_dipakai - previousQtyDipakai
-    const masterMaterialRef = usageDelta
-      ? await findMasterMaterialRef(payload.nama_material)
-      : null
+    const masterMaterialRef = usageDelta ? await findMasterMaterialRef(payload.nama_material) : null
     const usageRef = selectedRow.value?.id
       ? doc(db, COLLECTION_NAME, selectedRow.value.id)
       : doc(collection(db, COLLECTION_NAME))
@@ -583,7 +616,7 @@ const saveUsage = async () => {
       if (masterMaterialRef) {
         const masterSnap = await transaction.get(masterMaterialRef)
         if (!masterSnap.exists()) {
-          throw new Error(`Material "${payload.nama_material}" tidak ditemukan di master material.`)
+          throw new Error(`Material "${payload.nama_material}" tidak ditemukan di data barang.`)
         }
 
         const masterData = masterSnap.data()

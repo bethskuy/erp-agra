@@ -335,9 +335,34 @@ const getDocumentItems = (data) =>
           ? data.item
           : []
 
+const normalizeProductionItem = (item = {}, index = 0) => {
+  const qty = Number(item.qty ?? item.quantity ?? item.qty_target ?? item.qty_po ?? 0)
+  const harga = Number(item.harga ?? item.price ?? item.harga_satuan ?? item.unit_price ?? 0)
+  const namaProduk =
+    item.nama_produk ||
+    item.nama_barang ||
+    item.deskripsi ||
+    item.produk ||
+    item.product ||
+    `Item ${index + 1}`
+
+  return {
+    ...item,
+    item_id: item.item_id || item.id || `item-${index + 1}`,
+    nama_produk: namaProduk,
+    deskripsi: item.deskripsi || namaProduk,
+    qty,
+    satuan: item.satuan || item.unit || 'Unit',
+    harga,
+    subtotal: Number(item.subtotal ?? item.total ?? qty * harga),
+    produk_id: item.produk_id || item.product_id || item.id_produk || null,
+    kode_produk: item.kode_produk || item.kode_barang || '',
+  }
+}
+
 const normalizeApprovedDocument = (sourceCollection, sourceLabel, sourceDoc) => {
   const data = sourceDoc.data()
-  const items = getDocumentItems(data)
+  const items = getDocumentItems(data).map(normalizeProductionItem)
   const firstItem = items[0] || {}
   const nomor =
     data.nomor_po ||
@@ -392,6 +417,25 @@ const normalizeApprovedDocument = (sourceCollection, sourceLabel, sourceDoc) => 
       '',
     items,
   }
+}
+
+const getPayloadItems = (payload) => {
+  const items = Array.isArray(payload.items) && payload.items.length
+    ? payload.items
+    : [
+        {
+          item_id: payload.item_id || 'item-1',
+          nama_produk: payload.nama_produk,
+          qty: payload.qty_target,
+          satuan: payload.satuan,
+          harga: payload.harga,
+          subtotal: payload.subtotal,
+          produk_id: payload.produk_id,
+          kode_produk: payload.kode_produk,
+        },
+      ]
+
+  return items.map(normalizeProductionItem)
 }
 
 const listenApprovedPoOptions = (callback, errorCallback) => {
@@ -454,28 +498,45 @@ const createSpkProduksi = async (payload) => {
       ? [payload.tujuan_departemen]
       : []
 
+  const items = getPayloadItems(payload)
+
   targets.forEach((departemen) => {
     const departemenId = departemen?.id || departemen?.value
     if (!departemenId || departemenId === ALL_DEPARTEMEN_VALUE) return
 
-    const spkRef = doc(getSpkCollection(departemenId))
-    createdIds.push(spkRef.id)
-    batch.set(spkRef, {
-      ...payload,
-      id: spkRef.id,
-      group_spk_id: targetDepartemen.length ? groupSpkId : null,
-      departemen_id: departemenId,
-      tujuan_departemen: {
-        id: departemenId,
-        kode_departemen: departemen.kode_departemen || '',
-        nama_departemen: departemen.nama_departemen || departemen.label || '',
-      },
-      target_mode: targetDepartemen.length ? 'ALL_DEPARTEMEN' : 'SINGLE_DEPARTEMEN',
-      status: 'Menunggu Produksi',
-      status_pekerjaan: 'Menunggu Produksi',
-      is_new: true,
-      created_at: serverTimestamp(),
-      updated_at: serverTimestamp(),
+    items.forEach((item, index) => {
+      const spkRef = doc(getSpkCollection(departemenId))
+      createdIds.push(spkRef.id)
+      batch.set(spkRef, {
+        ...payload,
+        id: spkRef.id,
+        group_spk_id: items.length > 1 || targetDepartemen.length ? groupSpkId : null,
+        item_id: item.item_id,
+        item_index: index,
+        items,
+        produk_id: item.produk_id || payload.produk_id || null,
+        kode_produk: item.kode_produk || payload.kode_produk || '',
+        nama_produk: item.nama_produk || payload.nama_produk || '',
+        item_produksi: item.nama_produk || payload.nama_produk || '',
+        qty_target: Number(item.qty || 0),
+        qty: Number(item.qty || 0),
+        qty_hasil_jadi: 0,
+        satuan: item.satuan || payload.satuan || '',
+        harga: Number(item.harga || 0),
+        subtotal: Number(item.subtotal || 0),
+        departemen_id: departemenId,
+        tujuan_departemen: {
+          id: departemenId,
+          kode_departemen: departemen.kode_departemen || '',
+          nama_departemen: departemen.nama_departemen || departemen.label || '',
+        },
+        target_mode: targetDepartemen.length ? 'ALL_DEPARTEMEN' : 'SINGLE_DEPARTEMEN',
+        status: 'Menunggu Produksi',
+        status_pekerjaan: 'Menunggu Produksi',
+        is_new: true,
+        created_at: serverTimestamp(),
+        updated_at: serverTimestamp(),
+      })
     })
   })
 
@@ -583,16 +644,17 @@ const filterApprovedPo = (val, update) => {
 }
 
 const handlePoSelected = (po) => {
+  const firstItem = Array.isArray(po?.items) && po.items.length ? po.items[0] : {}
   form.value.nomor_po = po?.nomor || po?.label || ''
   form.value.po_id = po?.source_document_id || po?.id || null
   form.value.customer_id = po?.customer_id || null
   form.value.customer_nama =
     po?.customerName || po?.customer_nama || po?.nama_customer || po?.kepada_yth || ''
-  form.value.produk_id = po?.produk_id || null
-  form.value.kode_produk = po?.kode_produk || ''
-  form.value.nama_produk = po?.nama_produk || po?.produk || po?.item_produksi || ''
-  form.value.qty_target = Number(po?.qty_po || po?.qty || po?.total_qty || po?.qty_target || 0)
-  form.value.satuan = po?.satuan || ''
+  form.value.produk_id = firstItem.produk_id || po?.produk_id || null
+  form.value.kode_produk = firstItem.kode_produk || po?.kode_produk || ''
+  form.value.nama_produk = firstItem.nama_produk || po?.nama_produk || po?.produk || po?.item_produksi || ''
+  form.value.qty_target = Number(firstItem.qty || po?.qty_po || po?.qty || po?.total_qty || po?.qty_target || 0)
+  form.value.satuan = firstItem.satuan || po?.satuan || ''
 }
 
 const buildPayload = () => {
@@ -609,6 +671,9 @@ const buildPayload = () => {
     po_source_document_id: form.value.po_obj?.source_document_id || form.value.po_id,
     customer_id: form.value.customer_id,
     customer_nama: form.value.customer_nama,
+    items: Array.isArray(form.value.po_obj?.items) && form.value.po_obj.items.length
+      ? form.value.po_obj.items
+      : [],
     produk_id: form.value.produk_id,
     kode_produk: form.value.kode_produk,
     nama_produk: form.value.nama_produk,

@@ -298,6 +298,29 @@
                   {{ props.row.status_planning || props.row.status || '-' }}
                 </q-badge>
               </q-td>
+              <q-td key="aksi" :props="props" class="text-center">
+                <div class="row justify-center q-gutter-xs no-wrap">
+                  <q-btn
+                    v-if="canStartPlanning(props.row)"
+                    dense
+                    unelevated
+                    color="green-10"
+                    icon="play_arrow"
+                    label="Mulai"
+                    no-caps
+                    @click="startPlanningStep(props.row)"
+                  />
+                  <q-btn
+                    dense
+                    unelevated
+                    color="positive"
+                    icon="check_circle"
+                    :label="hasNextPlanningRoute(props.row) ? 'Teruskan' : 'Selesai'"
+                    no-caps
+                    @click="finishPlanningStep(props.row)"
+                  />
+                </div>
+              </q-td>
             </q-tr>
           </template>
           <template #no-data>
@@ -448,13 +471,14 @@
             no-caps
             class="produksi-save-desktop q-px-lg text-weight-bold shadow-3"
             :loading="savingProduksi"
-            @click="produksiFormRef?.submit()"
+            :disable="savingProduksi"
+            @click="handleSaveProduksiClick"
           />
         </q-toolbar>
 
         <q-card-section class="produksi-dialog-body col scroll">
           <div class="produksi-form-shell">
-            <q-form ref="produksiFormRef" class="produksi-form" @submit.prevent="saveProduksi">
+            <q-form ref="produksiFormRef" class="produksi-form" @submit.prevent="handleSaveProduksiClick">
               <q-card flat bordered class="produksi-form-card bg-white">
                 <q-card-section class="produksi-form-section">
                   <div class="row items-center q-mb-md">
@@ -470,8 +494,7 @@
                         Form Hasil Produksi
                       </div>
                       <div class="text-caption text-grey-7">
-                        Nomor PO approved, customer, produk, qty PO, dan satuan ditarik dari master
-                        data manufacturing.
+                        Data ditarik dari Planning Produksi, SPK Produksi, atau Approved PO manufacturing.
                       </div>
                     </div>
                   </div>
@@ -491,40 +514,22 @@
 
                     <div class="col-12 col-md-6">
                       <q-select
-                        v-model="produksiForm.spk_obj"
-                        :options="availableSpkOptions"
-                        option-label="label"
-                        option-value="value"
-                        dense
-                        outlined
-                        label="SPK Produksi"
-                        :loading="spkLoading"
-                        @update:model-value="handleSpkSelected"
-                      >
-                        <template #prepend>
-                          <q-icon name="assignment" color="green-10" />
-                        </template>
-                      </q-select>
-                    </div>
-
-                    <div class="col-12 col-md-6">
-                      <q-select
-                        v-model="produksiForm.nomor_po_obj"
-                        :options="approvedPoOptions"
+                        v-model="produksiForm.source_obj"
+                        :options="productionSourceOptions"
                         option-label="label"
                         option-value="value"
                         dense
                         outlined
                         use-input
                         input-debounce="250"
-                        label="Nomor PO Approved"
-                        :loading="poOptionsLoading"
+                        label="Planning / SPK / Approved PO"
+                        :loading="planningLoading || spkLoading || poOptionsLoading"
                         :rules="[required]"
-                        @filter="filterApprovedPo"
-                        @update:model-value="handlePoSelected"
+                        @filter="filterProductionSource"
+                        @update:model-value="handleProductionSourceSelected"
                       >
                         <template #prepend>
-                          <q-icon name="receipt_long" color="green-10" />
+                          <q-icon name="assignment_turned_in" color="green-10" />
                         </template>
                         <template #option="scope">
                           <q-item v-bind="scope.itemProps">
@@ -533,9 +538,8 @@
                                 {{ scope.opt.label }}
                               </q-item-label>
                               <q-item-label caption>
-                                {{ scope.opt.customerName || '-' }} - Produk:
-                                {{ scope.opt.nama_produk || '-' }} - Qty:
-                                {{ formatNumber(scope.opt.qty_po) }}
+                                {{ scope.opt.typeLabel }} - {{ scope.opt.customer_nama || '-' }} -
+                                {{ scope.opt.nama_produk || '-' }} - Qty {{ formatNumber(scope.opt.qty_target) }}
                               </q-item-label>
                             </q-item-section>
                           </q-item>
@@ -544,25 +548,19 @@
                     </div>
 
                     <div class="col-12 col-md-6">
-                      <q-select
-                        v-model="produksiForm.customer_obj"
-                        :options="customerOptions"
-                        option-label="label"
-                        option-value="value"
-                        dense
-                        outlined
-                        use-input
-                        input-debounce="250"
-                        label="Customer"
-                        :loading="customerOptionsLoading"
-                        :readonly="!!produksiForm.nomor_po_obj"
-                        :rules="[required]"
-                        @filter="filterCustomers"
-                      >
+                      <q-input v-model="produksiForm.nomor_po" dense outlined label="Nomor PO" readonly>
+                        <template #prepend>
+                          <q-icon name="receipt_long" color="green-10" />
+                        </template>
+                      </q-input>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                      <q-input v-model="produksiForm.customer_nama" dense outlined label="Customer" readonly>
                         <template #prepend>
                           <q-icon name="business" color="green-10" />
                         </template>
-                      </q-select>
+                      </q-input>
                     </div>
 
                     <div class="col-12 col-md-6">
@@ -570,7 +568,7 @@
                         :model-value="formatNumber(produksiForm.qty_po)"
                         dense
                         outlined
-                        label="Qty PO"
+                        label="Qty Target"
                         readonly
                         :rules="[() => requiredNumber(produksiForm.qty_po)]"
                       >
@@ -581,37 +579,11 @@
                     </div>
 
                     <div class="col-12 col-md-6">
-                      <q-select
-                        v-model="produksiForm.produk_obj"
-                        :options="produkOptions"
-                        option-label="label"
-                        option-value="value"
-                        dense
-                        outlined
-                        use-input
-                        input-debounce="250"
-                        label="Master Produk"
-                        :loading="produkOptionsLoading"
-                        :readonly="!!produksiForm.nomor_po_obj"
-                        :rules="[required]"
-                        @filter="filterProduk"
-                      >
+                      <q-input v-model="produksiForm.nama_produk" dense outlined label="Produk" readonly>
                         <template #prepend>
                           <q-icon name="inventory" color="green-10" />
                         </template>
-                        <template #option="scope">
-                          <q-item v-bind="scope.itemProps">
-                            <q-item-section>
-                              <q-item-label class="text-weight-bold">
-                                {{ scope.opt.label }}
-                              </q-item-label>
-                              <q-item-label caption>
-                                {{ scope.opt.kode_produk || '-' }} - {{ scope.opt.satuan || '-' }}
-                              </q-item-label>
-                            </q-item-section>
-                          </q-item>
-                        </template>
-                      </q-select>
+                      </q-input>
                     </div>
 
                     <div class="col-12 col-md-6">
@@ -620,31 +592,18 @@
                         dense
                         outlined
                         type="number"
-                        label="Qty Hasil Jadi"
+                        min="0"
+                        label="Qty Hasil Hari Ini"
                         :rules="[requiredNumber]"
                       />
                     </div>
 
                     <div class="col-12 col-md-6">
-                      <q-select
-                        v-model="produksiForm.satuan_obj"
-                        :options="satuanOptions"
-                        option-label="label"
-                        option-value="value"
-                        dense
-                        outlined
-                        use-input
-                        input-debounce="250"
-                        label="Satuan"
-                        :loading="satuanOptionsLoading"
-                        :readonly="!!produksiForm.nomor_po_obj"
-                        :rules="[required]"
-                        @filter="filterSatuan"
-                      >
+                      <q-input v-model="produksiForm.satuan" dense outlined label="Satuan" readonly>
                         <template #prepend>
                           <q-icon name="straighten" color="green-10" />
                         </template>
-                      </q-select>
+                      </q-input>
                     </div>
 
                     <div class="col-12 col-md-6">
@@ -671,8 +630,92 @@
                         </template>
                       </q-input>
                     </div>
+
+                    <div class="col-12">
+                      <q-input
+                        v-model.trim="produksiForm.catatan"
+                        dense
+                        outlined
+                        type="textarea"
+                        autogrow
+                        label="Catatan"
+                      />
+                    </div>
                   </div>
                 </q-card-section>
+              </q-card>
+
+              <q-card flat bordered class="produksi-form-card bg-white q-mt-md">
+                <q-card-section>
+                  <div class="row q-col-gutter-md">
+                    <div class="col-6 col-md-3">
+                      <div class="metric-label">Total Progress</div>
+                      <div class="metric-value">{{ formatNumber(projectedTotalProduced) }}</div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                      <div class="metric-label">Sisa Qty</div>
+                      <div class="metric-value">{{ formatNumber(projectedRemainingQty) }}</div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <div class="row items-center justify-between q-mb-xs">
+                        <div class="metric-label">Progress</div>
+                        <div class="text-weight-bold text-green-10">{{ projectedProgressPercent }}%</div>
+                      </div>
+                      <q-linear-progress
+                        rounded
+                        size="12px"
+                        color="green-10"
+                        track-color="green-1"
+                        :value="projectedProgressPercent / 100"
+                      />
+                    </div>
+                  </div>
+                </q-card-section>
+              </q-card>
+
+              <q-card flat bordered class="produksi-form-card bg-white q-mt-md">
+                <q-card-section class="row items-center">
+                  <div>
+                    <div class="text-subtitle1 text-weight-bolder text-green-10">Histori Produksi</div>
+                    <div class="text-caption text-grey-7">Data realtime dari histori produksi sumber terpilih.</div>
+                  </div>
+                  <q-space />
+                  <q-badge color="green-10" class="text-weight-bold">
+                    {{ selectedProductionHistoryRows.length }}
+                  </q-badge>
+                </q-card-section>
+                <q-separator />
+                <q-table
+                  :rows="selectedProductionHistoryRows"
+                  :columns="productionHistoryColumns"
+                  row-key="id"
+                  flat
+                  dense
+                  :pagination="{ rowsPerPage: 5 }"
+                >
+                  <template #body-cell-qty_hasil_jadi="props">
+                    <q-td :props="props" class="text-right text-weight-bold">
+                      {{ formatNumber(props.row.qty_hasil_hari_ini || props.row.qty_hasil_jadi) }}
+                    </q-td>
+                  </template>
+                  <template #body-cell-progress_percent="props">
+                    <q-td :props="props">
+                      <q-linear-progress
+                        rounded
+                        size="9px"
+                        color="green-10"
+                        track-color="green-1"
+                        :value="Number(props.row.progress_percent || 0) / 100"
+                      />
+                      <div class="text-caption text-right">{{ Number(props.row.progress_percent || 0) }}%</div>
+                    </q-td>
+                  </template>
+                  <template #no-data>
+                    <div class="full-width row flex-center text-grey-7 q-pa-md">
+                      Belum ada histori produksi untuk sumber ini.
+                    </div>
+                  </template>
+                </q-table>
               </q-card>
             </q-form>
           </div>
@@ -687,7 +730,8 @@
             no-caps
             class="full-width text-weight-bold"
             :loading="savingProduksi"
-            @click="produksiFormRef?.submit()"
+            :disable="savingProduksi"
+            @click="handleSaveProduksiClick"
           />
         </div>
       </q-card>
@@ -1080,7 +1124,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { date, useQuasar } from 'quasar'
 import { useRoute } from 'vue-router'
 import {
@@ -1152,7 +1196,7 @@ let unsubscribeBarangOptions = null
 let unsubscribeKategoriBarangOptions = null
 let unsubscribePermintaanRows = null
 
-const statusProduksiOptions = ['Belum Mulai', 'Proses', 'Selesai', 'Tertunda', 'Batal']
+const statusProduksiOptions = ['Proses', 'Finished', 'Tertunda', 'Batal']
 
 const PRODUKSI_COLLECTION = 'manufactur_departemen_produksi'
 const PERMINTAAN_BARANG_COLLECTION = 'manufactur_permintaan_barang'
@@ -1195,19 +1239,89 @@ const listenCollectionOptions = (collectionName, orderField, callback, errorCall
     errorCallback,
   )
 
-const listenManufacturingDepartemenProduksi = (callback, errorCallback) =>
+const normalizeComparable = (value) =>
+  String(value ?? '')
+    .trim()
+    .toLowerCase()
+
+const productionRowMatchesDepartment = (row, departemenIdValue, departemenNameValue, departemenCodeValue) => {
+  const targetId = normalizeComparable(departemenIdValue)
+  const targetName = normalizeComparable(departemenNameValue)
+  const targetCode = normalizeComparable(departemenCodeValue)
+  const rowDepartmentValues = [
+    row.departemen_id,
+    row.current_departemen_id,
+    row.departemen?.id,
+    row.departemen?.value,
+    row.tujuan_departemen?.id,
+    row.departemen_nama,
+    row.nama_departemen,
+    row.current_departemen_nama,
+    row.departemen?.nama_departemen,
+    row.departemen?.nama,
+    row.departemen?.label,
+    row.tujuan_departemen?.nama_departemen,
+    row.departemen_kode,
+    row.kode_departemen,
+    row.departemen?.kode_departemen,
+    row.tujuan_departemen?.kode_departemen,
+    typeof row.departemen === 'string' ? row.departemen : '',
+  ].map(normalizeComparable)
+
+  if (targetId && rowDepartmentValues.includes(targetId)) return true
+  if (targetName && rowDepartmentValues.includes(targetName)) return true
+  if (targetCode && rowDepartmentValues.includes(targetCode)) return true
+
+  return !targetId && !targetName && !targetCode
+}
+
+const listenManufacturingDepartemenProduksi = (departemenIdValue, callback, errorCallback) =>
   onSnapshot(
-    query(produksiCollection, orderBy('created_at', 'desc')),
-    (snapshot) => callback(snapshot.docs.map((itemDoc) => ({ id: itemDoc.id, ...itemDoc.data() }))),
+    query(collection(db, PRODUKSI_COLLECTION), orderBy('created_at', 'desc')),
+    (snapshot) => {
+      const nextRows = snapshot.docs
+        .map((itemDoc) => ({ id: itemDoc.id, ...itemDoc.data() }))
+        .filter((row) =>
+          productionRowMatchesDepartment(
+            row,
+            departemenIdValue,
+            departemenTitle.value,
+            departemenKode.value,
+          ),
+        )
+
+      callback(nextRows)
+    },
     errorCallback,
   )
 
+const cleanFirestorePayload = (value) => {
+  if (Array.isArray(value)) return value.map(cleanFirestorePayload)
+  if (value && typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype) {
+    return Object.fromEntries(
+      Object.entries(value)
+        .filter(([, itemValue]) => itemValue !== undefined)
+        .map(([key, itemValue]) => [key, cleanFirestorePayload(itemValue)]),
+    )
+  }
+  return value
+}
+
 const createManufacturingDepartemenProduksi = (payload) =>
-  addDoc(produksiCollection, {
+  addDoc(produksiCollection, cleanFirestorePayload({
     ...payload,
     created_at: serverTimestamp(),
     updated_at: serverTimestamp(),
-  })
+  })).then((docRef) => docRef.id)
+
+const updateManufacturingDepartemenProduksi = (id, payload) =>
+  updateDoc(doc(db, PRODUKSI_COLLECTION, id), cleanFirestorePayload({
+    ...payload,
+    updated_at: serverTimestamp(),
+  })).then(() => id)
+
+const saveManufacturingDepartemenProduksi = (id, payload) =>
+  id ? updateManufacturingDepartemenProduksi(id, payload) : createManufacturingDepartemenProduksi(payload)
 
 const deleteManufacturingDepartemenProduksi = (id) => deleteDoc(doc(db, PRODUKSI_COLLECTION, id))
 
@@ -1238,10 +1352,40 @@ const listenManufacturingDepartemenSpk = (departemenIdValue, callback, errorCall
 }
 
 const updateManufacturingSpkProduksi = (departemenIdValue, spkId, payload) =>
-  updateDoc(doc(db, MANUFACTURING_DEPARTEMEN_COLLECTION, departemenIdValue, SPK_SUBCOLLECTION, spkId), {
+  updateDoc(doc(db, MANUFACTURING_DEPARTEMEN_COLLECTION, departemenIdValue, SPK_SUBCOLLECTION, spkId), cleanFirestorePayload({
     ...payload,
     updated_at: serverTimestamp(),
-  })
+  }))
+
+const updateManufacturingPlanningProduksi = (planningId, payload) =>
+  updateDoc(doc(db, PLANNING_COLLECTION, planningId), cleanFirestorePayload({
+    ...payload,
+    updated_at: serverTimestamp(),
+  }))
+
+const updateManufacturingApprovedPo = (poId, payload) =>
+  updateDoc(doc(db, PO_CUSTOMER_COLLECTION, poId), cleanFirestorePayload({
+    ...payload,
+    updated_at: serverTimestamp(),
+  }))
+
+const planningMatchesDepartemen = (row, departemenIdValue) => {
+  if (row.all_departemen || row.routing_mode === 'all') {
+    return Array.isArray(row.route_departemen)
+      ? row.route_departemen.some((item) => item.id === departemenIdValue)
+      : true
+  }
+
+  if (Array.isArray(row.route_departemen) && row.route_departemen.length) {
+    return row.current_departemen_id === departemenIdValue
+  }
+
+  return (
+    row.departemen_id === departemenIdValue ||
+    row.tujuan_departemen?.id === departemenIdValue ||
+    row.departemen_nama === departemenTitle.value
+  )
+}
 
 const listenManufacturingDepartemenPlanning = (departemenIdValue, callback, errorCallback) =>
   onSnapshot(
@@ -1249,12 +1393,7 @@ const listenManufacturingDepartemenPlanning = (departemenIdValue, callback, erro
     (snapshot) => {
       const mappedRows = snapshot.docs
         .map((planningDoc) => ({ id: planningDoc.id, ...planningDoc.data() }))
-        .filter(
-          (row) =>
-            row.departemen_id === departemenIdValue ||
-            row.tujuan_departemen?.id === departemenIdValue ||
-            row.departemen_nama === departemenTitle.value,
-        )
+        .filter((row) => planningMatchesDepartemen(row, departemenIdValue))
       callback(mappedRows)
     },
     errorCallback,
@@ -1403,15 +1542,26 @@ const today = () => date.formatDate(new Date(), 'YYYY-MM-DD')
 
 const emptyProduksiForm = () => ({
   tanggal: today(),
+  source_obj: null,
+  source_type: '',
+  source_id: '',
+  planning_obj: null,
   spk_obj: null,
   nomor_po_obj: null,
   customer_obj: null,
   produk_obj: null,
+  nomor_po: '',
+  customer_nama: '',
+  produk_id: null,
+  kode_produk: '',
+  nama_produk: '',
   qty_po: null,
   total_po: null,
   qty_hasil_jadi: null,
   satuan_obj: null,
+  satuan: '',
   status_produksi: 'Proses',
+  catatan: '',
 })
 
 const emptyPermintaanForm = () => ({
@@ -1468,6 +1618,22 @@ const columns = [
   { name: 'aksi', label: 'Aksi', field: 'aksi', align: 'center' },
 ]
 
+const productionHistoryColumns = [
+  { name: 'tanggal', label: 'Tanggal', field: 'tanggal', align: 'left', sortable: true },
+  {
+    name: 'qty_hasil_jadi',
+    label: 'Qty Hari Ini',
+    field: (row) => row.qty_hasil_hari_ini || row.qty_hasil_jadi,
+    align: 'right',
+    sortable: true,
+  },
+  { name: 'total_hasil_produksi', label: 'Total', field: 'total_hasil_produksi', align: 'right', sortable: true },
+  { name: 'sisa_qty', label: 'Sisa', field: 'sisa_qty', align: 'right', sortable: true },
+  { name: 'progress_percent', label: 'Progress', field: 'progress_percent', align: 'left', sortable: true },
+  { name: 'status_produksi', label: 'Status', field: 'status_produksi', align: 'left', sortable: true },
+  { name: 'catatan', label: 'Catatan', field: 'catatan', align: 'left' },
+]
+
 const planningColumns = [
   { name: 'nomor_planning', label: 'Nomor Planning / SPK', field: 'nomor_planning', align: 'left', sortable: true },
   { name: 'customer', label: 'Customer', field: 'customer_nama', align: 'left', sortable: true },
@@ -1476,6 +1642,7 @@ const planningColumns = [
   { name: 'deadline', label: 'Deadline', field: 'deadline', align: 'left', sortable: true },
   { name: 'prioritas', label: 'Prioritas', field: 'prioritas', align: 'center', sortable: true },
   { name: 'status_planning', label: 'Status Planning', field: 'status_planning', align: 'center', sortable: true },
+  { name: 'aksi', label: 'Aksi', field: 'aksi', align: 'center' },
 ]
 
 const permintaanColumns = [
@@ -1498,17 +1665,22 @@ const permintaanColumns = [
 ]
 
 const required = (val) => !!val || 'Field wajib diisi'
-const requiredNumber = (val) => (Number(val) > 0 ? true : 'Nilai harus lebih dari 0')
+const toFiniteNumber = (value) => {
+  if (value === null || value === undefined || value === '') return 0
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : 0
+}
+const requiredNumber = (val) => {
+  if (val === null || val === undefined || val === '') return 'Nilai wajib diisi'
+  return Number.isFinite(Number(val)) && Number(val) > 0 ? true : 'Nilai harus berupa angka lebih dari 0'
+}
 
 const departmentMatches = (row) => {
-  if (!departemenId.value) {
-    return row.departemen?.nama_departemen === departemenTitle.value || row.departemen === departemenTitle.value
-  }
-
-  return (
-    row.departemen?.id === departemenId.value ||
-    row.departemen_id === departemenId.value ||
-    row.departemen === departemenTitle.value
+  return productionRowMatchesDepartment(
+    row,
+    departemenId.value,
+    departemenTitle.value,
+    departemenKode.value,
   )
 }
 
@@ -1550,17 +1722,84 @@ const spkSelesaiRows = computed(() => spkRows.value.filter((row) => row.status =
 
 const spkBaruCount = computed(() => spkBaruRows.value.length)
 
+const currentPlanningRouteStep = (row) =>
+  Array.isArray(row.route_departemen)
+    ? row.route_departemen.find((item) => item.id === departemenId.value)
+    : null
+
+const isPlanningActiveForCurrentDepartemen = (row) => {
+  const status = row.status_planning || row.status
+  if (['Selesai', 'Finished', 'Cancelled'].includes(status)) return false
+
+  const routeStep = currentPlanningRouteStep(row)
+  if (row.all_departemen || row.routing_mode === 'all') {
+    return !['Selesai', 'Finished', 'Diteruskan'].includes(routeStep?.status)
+  }
+
+  if (Array.isArray(row.route_departemen) && row.route_departemen.length) {
+    return row.current_departemen_id === departemenId.value
+  }
+
+  return true
+}
+
 const activePlanningRows = computed(() =>
-  planningRows.value.filter((row) => !['Selesai', 'Finished', 'Cancelled'].includes(row.status_planning || row.status)),
+  planningRows.value.filter(isPlanningActiveForCurrentDepartemen),
 )
 
 const planningBaruCount = computed(
   () =>
     planningRows.value.filter((row) => {
-      const status = row.status_planning || row.status
-      return row.is_new !== false && !['Selesai', 'Finished', 'Cancelled'].includes(status)
+      const routeStep = currentPlanningRouteStep(row)
+      const routeIsNew = row.all_departemen || row.routing_mode === 'all' ? routeStep?.is_new !== false : row.is_new !== false
+      return routeIsNew && isPlanningActiveForCurrentDepartemen(row)
     }).length,
 )
+
+const productionSourceMatches = (row, source) => {
+  if (!source) return false
+  const matchesItem = !source.item_id || !row.item_id || row.item_id === source.item_id
+  if (source.type === 'planning') return row.planning_id === source.id && matchesItem
+  if (source.type === 'spk') return row.spk_id === source.id && matchesItem
+  if (source.type === 'po') return row.po_id === source.id && matchesItem
+  return false
+}
+
+const selectedProductionHistoryRows = computed(() => {
+  const source = produksiForm.value.source_obj
+  if (!source) return []
+  return rows.value.filter((row) => departmentMatches(row) && productionSourceMatches(row, source))
+})
+
+const producedQtyBeforeInput = computed(() =>
+  selectedProductionHistoryRows.value.reduce(
+    (total, row) => total + toFiniteNumber(row.qty_hasil_hari_ini || row.qty_hasil_jadi),
+    0,
+  ),
+)
+
+const currentInputQty = computed(() => toFiniteNumber(produksiForm.value.qty_hasil_jadi))
+
+const targetQty = computed(() => toFiniteNumber(produksiForm.value.qty_po))
+
+const projectedTotalProduced = computed(() => producedQtyBeforeInput.value + currentInputQty.value)
+
+const projectedRemainingQty = computed(() => Math.max(targetQty.value - projectedTotalProduced.value, 0))
+
+const projectedProgressPercent = computed(() => {
+  if (!targetQty.value) return 0
+  return Math.min(100, Math.round((projectedTotalProduced.value / targetQty.value) * 100))
+})
+
+const syncProductionRowState = (row) => {
+  if (!row?.id) return
+  const index = rows.value.findIndex((item) => item.id === row.id)
+  if (index >= 0) {
+    rows.value.splice(index, 1, { ...rows.value[index], ...row })
+    return
+  }
+  rows.value = [{ ...row }, ...rows.value]
+}
 
 const availableSpkOptions = computed(() =>
   spkRows.value
@@ -1570,6 +1809,101 @@ const availableSpkOptions = computed(() =>
       value: row.id,
       item: row,
     })),
+)
+
+const normalizeProductionItem = (item = {}, index = 0) => {
+  const qty = toFiniteNumber(item.qty ?? item.quantity ?? item.qty_target ?? item.qty_po)
+  const harga = toFiniteNumber(item.harga ?? item.price ?? item.harga_satuan ?? item.unit_price)
+  const namaProduk =
+    item.nama_produk ||
+    item.nama_barang ||
+    item.deskripsi ||
+    item.produk ||
+    item.product ||
+    `Item ${index + 1}`
+
+  return {
+    ...item,
+    item_id: item.item_id || item.id || `item-${index + 1}`,
+    nama_produk: namaProduk,
+    deskripsi: item.deskripsi || namaProduk,
+    qty,
+    satuan: item.satuan || item.unit || 'Unit',
+    harga,
+    subtotal: toFiniteNumber(item.subtotal ?? item.total ?? qty * harga),
+    produk_id: item.produk_id || item.product_id || item.id_produk || null,
+    kode_produk: item.kode_produk || item.kode_barang || '',
+  }
+}
+
+const getProductionSourceItems = (row) =>
+  Array.isArray(row.items) && row.items.length ? row.items.map(normalizeProductionItem) : []
+
+const normalizeProductionSource = (type, row, item = null, itemIndex = 0) => {
+  const selectedItem = item ? normalizeProductionItem(item, itemIndex) : null
+  const typeLabel = type === 'planning' ? 'Planning Produksi' : type === 'spk' ? 'SPK Produksi' : 'Approved PO'
+  const nomorPo =
+    row.nomor_po ||
+    row.no_so ||
+    row.nomor ||
+    row.nomor_approved ||
+    row.nomor_spk ||
+    row.label ||
+    ''
+  const nomorRef =
+    row.nomor_planning ||
+    row.no_planning ||
+    row.nomor_spk ||
+    row.nomor ||
+    row.nomor_approved ||
+    row.id
+  const customerNama = row.customer_nama || row.customerName || row.nama_customer || row.customer?.nama || row.customer || ''
+  const namaProduk = selectedItem?.nama_produk || row.nama_produk || row.item_produksi || row.produk?.nama_produk || row.produk?.nama || ''
+  const qtyTarget = toFiniteNumber(selectedItem?.qty || row.qty_target || row.qty_po || row.qty || row.total_qty)
+  const satuan = selectedItem?.satuan || row.satuan || row.produk?.satuan || ''
+
+  return {
+    id: row.id,
+    value: `${type}:${row.id}${selectedItem?.item_id ? `:${selectedItem.item_id}` : ''}`,
+    type,
+    typeLabel,
+    item_id: selectedItem?.item_id || row.item_id || null,
+    item_index: itemIndex,
+    label: `${typeLabel} - ${nomorRef}${namaProduk ? ` - ${namaProduk}` : ''}`,
+    item: row,
+    nomor_ref: nomorRef,
+    nomor_po: nomorPo,
+    customer_id: row.customer_id || row.customer?.id || null,
+    customer_nama: customerNama,
+    produk_id: selectedItem?.produk_id || row.produk_id || row.produk?.id || null,
+    kode_produk: selectedItem?.kode_produk || row.kode_produk || row.produk?.kode_produk || '',
+    nama_produk: namaProduk,
+    qty_target: qtyTarget,
+    total_po: toFiniteNumber(selectedItem?.subtotal || row.total_po || row.total_estimasi || row.total),
+    satuan,
+    harga: toFiniteNumber(selectedItem?.harga),
+    subtotal: toFiniteNumber(selectedItem?.subtotal),
+  }
+}
+
+const allProductionSourceOptions = computed(() => [
+  ...activePlanningRows.value.map((row) => normalizeProductionSource('planning', row)),
+  ...availableSpkOptions.value.map((option) => normalizeProductionSource('spk', option.item)),
+  ...approvedPoRawOptions.value.flatMap((row) => {
+    const items = getProductionSourceItems(row)
+    if (!items.length) return [normalizeProductionSource('po', row)]
+    return items.map((item, index) => normalizeProductionSource('po', row, item, index))
+  }),
+])
+
+const productionSourceOptions = ref([])
+
+watch(
+  allProductionSourceOptions,
+  (options) => {
+    productionSourceOptions.value = options
+  },
+  { immediate: true },
 )
 
 const filteredPermintaanRows = computed(() =>
@@ -1698,7 +2032,7 @@ const getSuratHtml = (row) => {
 const selectedSuratHtml = computed(() => getSuratHtml(selectedSurat.value))
 
 const statusColor = (status) => {
-  if (status === 'Selesai') return 'positive'
+  if (status === 'Selesai' || status === 'Finished') return 'positive'
   if (status === 'Proses') return 'primary'
   if (status === 'Tertunda') return 'orange-9'
   if (status === 'Batal') return 'negative'
@@ -1729,7 +2063,10 @@ const filterByLabel = (options, needle) => {
       option.nama_barang,
       option.nama_customer,
       option.customerName,
+      option.customer_nama,
       option.nomor,
+      option.nomor_ref,
+      option.typeLabel,
       option.kode_produk,
       option.nama_produk,
       option.kategori,
@@ -1759,9 +2096,9 @@ const filterApprovedPo = (val, update) => {
   })
 }
 
-const filterProduk = (val, update) => {
+const filterProductionSource = (val, update) => {
   update(() => {
-    produkOptions.value = filterByLabel(produkRawOptions.value, val)
+    productionSourceOptions.value = filterByLabel(allProductionSourceOptions.value, val)
   })
 }
 
@@ -1841,69 +2178,81 @@ const findSatuanFromValue = (value) => {
   )
 }
 
-const handlePoSelected = (po) => {
-  produksiForm.value.total_po = Number(po?.total_po || po?.total_estimasi || po?.total || 0)
-  produksiForm.value.qty_po = Number(po?.qty_po || po?.qty || po?.total_qty || 0)
-  produksiForm.value.customer_obj = findCustomerFromPo(po)
-  produksiForm.value.produk_obj = findProdukFromPo(po)
-  produksiForm.value.satuan_obj =
-    findSatuanFromValue(po?.satuan) || findSatuanFromValue(produksiForm.value.produk_obj?.satuan)
+const sourceToOption = (source) => source || null
 
-  if (po && !produksiForm.value.customer_obj) {
-    notify('warning', 'Customer pada PO belum cocok dengan Master Customer manufacturing.')
-  }
-  if (po && !produksiForm.value.produk_obj) {
-    notify('warning', 'Produk pada PO belum cocok dengan Master Produk manufacturing.')
-  }
-  if (po && !produksiForm.value.satuan_obj) {
-    notify('warning', 'Satuan pada PO belum cocok dengan Master Satuan manufacturing.')
-  }
-}
-
-const handleSpkSelected = (option) => {
-  const spk = option?.item || option
-  if (!spk) return
+const applyProductionSource = (source) => {
+  const selected = sourceToOption(source)
+  if (!selected) return
 
   const poOption =
-    approvedPoRawOptions.value.find((po) => po.id === spk.po_id || po.nomor === spk.nomor_po) || {
-      id: spk.po_id,
-      label: spk.nomor_po,
-      nomor: spk.nomor_po,
-      customerName: spk.customer_nama,
-      customer_id: spk.customer_id,
-      produk_id: spk.produk_id,
-      kode_produk: spk.kode_produk,
-      nama_produk: spk.nama_produk,
-      qty_po: spk.qty_target,
-      satuan: spk.satuan,
-    }
-
-  produksiForm.value.nomor_po_obj = poOption
-  produksiForm.value.total_po = Number(spk.total_po || 0)
-  produksiForm.value.qty_po = Number(spk.qty_target || 0)
-  produksiForm.value.qty_hasil_jadi = Number(spk.qty_hasil_jadi || spk.qty_target || 0)
-  produksiForm.value.customer_obj =
-    findCustomerFromPo(poOption) ||
-    (spk.customer_nama
-      ? { id: spk.customer_id || spk.customer_nama, label: spk.customer_nama, nama: spk.customer_nama }
-      : null)
-  produksiForm.value.produk_obj =
-    findProdukFromPo(poOption) ||
-    (spk.nama_produk
+    approvedPoRawOptions.value.find(
+      (po) => po.id === selected.item?.po_id || po.nomor === selected.nomor_po || po.id === selected.id,
+    ) ||
+    (selected.nomor_po
       ? {
-          id: spk.produk_id || spk.nama_produk,
-          label: spk.nama_produk,
-          nama_produk: spk.nama_produk,
-          kode_produk: spk.kode_produk || '',
+          id: selected.item?.po_id || selected.id,
+          label: selected.nomor_po,
+          nomor: selected.nomor_po,
+          customerName: selected.customer_nama,
+          customer_id: selected.customer_id,
+          produk_id: selected.produk_id,
+          kode_produk: selected.kode_produk,
+          nama_produk: selected.nama_produk,
+          qty_po: selected.qty_target,
+          total_po: selected.total_po,
+          satuan: selected.satuan,
         }
       : null)
-  produksiForm.value.satuan_obj = findSatuanFromValue(spk.satuan)
-  produksiForm.value.status_produksi = spk.status === 'Finished' ? 'Selesai' : 'Proses'
+  const customerOption =
+    findCustomerFromPo(poOption) ||
+    (selected.customer_nama
+      ? { id: selected.customer_id || selected.customer_nama, label: selected.customer_nama, nama: selected.customer_nama }
+      : null)
+  const produkOption =
+    findProdukFromPo(poOption) ||
+    (selected.nama_produk
+      ? {
+          id: selected.produk_id || selected.nama_produk,
+          label: selected.nama_produk,
+          nama_produk: selected.nama_produk,
+          kode_produk: selected.kode_produk || '',
+          satuan: selected.satuan || '',
+        }
+      : null)
+  const satuanOption = findSatuanFromValue(selected.satuan || produkOption?.satuan)
+  const spkOption = selected.type === 'spk' ? selected.item : null
+  const planningOption = selected.type === 'planning' ? selected.item : null
+
+  produksiForm.value.source_type = selected.type
+  produksiForm.value.source_id = selected.id
+  produksiForm.value.planning_obj = planningOption
+  produksiForm.value.spk_obj = spkOption
+  produksiForm.value.nomor_po_obj = poOption
+  produksiForm.value.customer_obj = customerOption
+  produksiForm.value.produk_obj = produkOption
+  produksiForm.value.satuan_obj = satuanOption
+  produksiForm.value.nomor_po = selected.nomor_po || poOption?.nomor || poOption?.label || ''
+  produksiForm.value.customer_nama = selected.customer_nama || customerOption?.label || customerOption?.nama || ''
+  produksiForm.value.produk_id = selected.produk_id || produkOption?.id || null
+  produksiForm.value.kode_produk = selected.kode_produk || produkOption?.kode_produk || ''
+  produksiForm.value.nama_produk = selected.nama_produk || produkOption?.label || produkOption?.nama_produk || ''
+  produksiForm.value.qty_po = Number(selected.qty_target || 0)
+  produksiForm.value.total_po = Number(selected.total_po || 0)
+  produksiForm.value.satuan = selected.satuan || satuanOption?.label || satuanOption?.nama || ''
+  produksiForm.value.qty_hasil_jadi = null
+  produksiForm.value.status_produksi = 'Proses'
+}
+
+const handleProductionSourceSelected = (source) => {
+  applyProductionSource(source)
 }
 
 const updateSpkStatus = async (spk, status, extraPayload = {}) => {
   const departemenPathId = spk.departemen_path_id || spk.departemen_id || departemenId.value
-  if (!departemenPathId || !spk?.id) return
+  if (!departemenPathId || !spk?.id) {
+    notify('warning', 'Path SPK tidak valid, status SPK tidak diperbarui.')
+    return
+  }
 
   try {
     await updateManufacturingSpkProduksi(departemenPathId, spk.id, {
@@ -1936,6 +2285,108 @@ const finishSpk = (spk) => {
       finished_at: new Date().toISOString(),
     })
   })
+}
+
+const buildUpdatedRoute = (planning, status, extra = {}) =>
+  (Array.isArray(planning.route_departemen) ? planning.route_departemen : []).map((item, index) =>
+    item.id === departemenId.value
+      ? {
+          ...item,
+          status,
+          is_new: false,
+          updated_at: new Date().toISOString(),
+          ...extra,
+        }
+      : {
+          ...item,
+          urutan: item.urutan || index + 1,
+        },
+  )
+
+const canStartPlanning = (planning) => {
+  const status = planning.status_planning || planning.status
+  if (['Selesai', 'Finished'].includes(status)) return false
+  const step = currentPlanningRouteStep(planning)
+  if (!step && status === 'On Progress') return false
+  return !['Proses', 'Selesai', 'Finished', 'Diteruskan'].includes(step?.status)
+}
+
+const hasNextPlanningRoute = (planning) => {
+  if (planning.all_departemen || planning.routing_mode === 'all') return false
+  const route = Array.isArray(planning.route_departemen) ? planning.route_departemen : []
+  if (!route.length) return false
+  const currentIndex = Math.max(0, Number(planning.current_route_index || 0))
+  return currentIndex < route.length - 1
+}
+
+const startPlanningStep = async (planning) => {
+  try {
+    if (!planning?.id) {
+      notify('warning', 'Dokumen planning tidak valid.')
+      return
+    }
+    const route = buildUpdatedRoute(planning, 'Proses')
+    await updateManufacturingPlanningProduksi(planning.id, {
+      route_departemen: route,
+      status_planning: 'On Progress',
+      status: 'On Progress',
+      is_new: false,
+    })
+    notify('positive', 'Planning produksi mulai diproses.')
+  } catch (error) {
+    console.error(error)
+    notify('negative', 'Gagal memperbarui status planning.')
+  }
+}
+
+const finishPlanningStep = async (planning, metricsPayload = {}, options = {}) => {
+  const silent = options.silent === true
+  if (!planning?.id) {
+    if (!silent) notify('warning', 'Dokumen planning tidak valid.')
+    return
+  }
+
+  const route = buildUpdatedRoute(planning, 'Selesai', { finished_at: new Date().toISOString() })
+  const currentIndex = Math.max(0, Number(planning.current_route_index || 0))
+  const nextIndex = currentIndex + 1
+  const nextDepartemen = route[nextIndex]
+  const isAllMode = planning.all_departemen || planning.routing_mode === 'all'
+
+  if (nextDepartemen && !isAllMode) {
+    route[nextIndex] = {
+      ...nextDepartemen,
+      status: 'Menunggu Produksi',
+      is_new: true,
+    }
+  }
+
+  const allDone = isAllMode
+    ? route.every((item) => ['Selesai', 'Finished'].includes(item.status))
+    : !nextDepartemen
+
+  try {
+    await updateManufacturingPlanningProduksi(planning.id, {
+      route_departemen: route,
+      current_route_index: nextDepartemen && !isAllMode ? nextIndex : currentIndex,
+      current_departemen_id: nextDepartemen && !isAllMode ? nextDepartemen.id : planning.current_departemen_id || departemenId.value,
+      current_departemen_nama:
+        nextDepartemen && !isAllMode
+          ? nextDepartemen.nama_departemen
+          : planning.current_departemen_nama || departemenTitle.value,
+      departemen_id: nextDepartemen && !isAllMode ? nextDepartemen.id : planning.departemen_id || departemenId.value,
+      status_planning: allDone ? 'Selesai' : 'On Progress',
+      status: allDone ? 'Selesai' : 'On Progress',
+      is_new: nextDepartemen && !isAllMode,
+      ...metricsPayload,
+    })
+    if (!silent) {
+      notify('positive', nextDepartemen && !isAllMode ? 'Planning diteruskan ke departemen berikutnya.' : 'Planning produksi selesai.')
+    }
+  } catch (error) {
+    console.error(error)
+    if (!silent) notify('negative', 'Gagal menyelesaikan planning produksi.')
+    if (silent) throw error
+  }
 }
 
 const findKategoriFromBarang = (barang) => {
@@ -1984,6 +2435,7 @@ const handleBarangSelected = (barang) => {
 
 const openProduksiDialog = () => {
   produksiForm.value = emptyProduksiForm()
+  productionSourceOptions.value = allProductionSourceOptions.value
   produksiDialog.value = true
 }
 
@@ -2002,63 +2454,213 @@ const closePermintaanDialog = () => {
   permintaanForm.value = emptyPermintaanForm()
 }
 
-const saveProduksi = async () => {
+const handleSaveProduksiClick = async () => {
+  if (savingProduksi.value) return
+
+  const isValid = await produksiFormRef.value?.validate?.()
+  if (!isValid) {
+    notify('warning', 'Lengkapi data input produksi terlebih dahulu.')
+    return
+  }
+
+  await saveProduction()
+}
+
+const saveProduction = async () => {
   savingProduksi.value = true
+  let productionHistorySaved = false
   try {
+    const selectedSource = produksiForm.value.source_obj
+    if (!selectedSource) {
+      notify('warning', 'Pilih Planning/SPK/Approved PO terlebih dahulu.')
+      return
+    }
+
     const selectedPo = produksiForm.value.nomor_po_obj
     const selectedSpk = produksiForm.value.spk_obj?.item || produksiForm.value.spk_obj
+    const selectedPlanning = produksiForm.value.planning_obj
     const selectedCustomer = produksiForm.value.customer_obj
     const selectedProduk = produksiForm.value.produk_obj
     const selectedSatuan = produksiForm.value.satuan_obj
+    const qtyHariIniRaw = produksiForm.value.qty_hasil_jadi
+    const qtyHariIni = toFiniteNumber(qtyHariIniRaw)
+    const qtyTarget = toFiniteNumber(produksiForm.value.qty_po)
+    const totalSebelumnya = selectedProductionHistoryRows.value.reduce(
+      (total, row) => total + toFiniteNumber(row.qty_hasil_hari_ini || row.qty_hasil_jadi),
+      0,
+    )
+    const totalHasil = totalSebelumnya + qtyHariIni
+    const sisaQty = Math.max(qtyTarget - totalHasil, 0)
+    const progressPercent = qtyTarget > 0 ? Math.min(100, Math.round((totalHasil / qtyTarget) * 100)) : 0
+    const isFinished = qtyTarget > 0 && totalHasil >= qtyTarget
+    const finalStatus = isFinished ? 'Finished' : 'Proses'
 
-    await createManufacturingDepartemenProduksi({
+    if (qtyHariIniRaw === null || qtyHariIniRaw === undefined || qtyHariIniRaw === '') {
+      notify('warning', 'Qty hasil hari ini wajib diisi.')
+      return
+    }
+
+    if (!Number.isFinite(Number(qtyHariIniRaw)) || qtyHariIni <= 0) {
+      notify('warning', 'Qty hasil hari ini wajib berupa angka lebih dari 0.')
+      return
+    }
+
+    if (!departemenId.value) {
+      notify('warning', 'Departemen tidak valid.')
+      return
+    }
+
+    const productionPayload = {
       tanggal: produksiForm.value.tanggal,
+      source_type: selectedSource.type,
+      source_id: selectedSource.id,
+      source_label: selectedSource.label,
+      item_id: selectedSource.item_id || null,
+      item_index: selectedSource.item_index ?? null,
+      planning_id: selectedPlanning?.id || null,
+      nomor_planning: selectedPlanning?.nomor_planning || selectedPlanning?.no_planning || '',
       spk_id: selectedSpk?.id || null,
       nomor_spk: selectedSpk?.nomor_spk || '',
-      nomor_po: selectedPo?.nomor || selectedPo?.label || '',
+      nomor_po: produksiForm.value.nomor_po || selectedPo?.nomor || selectedPo?.label || '',
       po_id: selectedPo?.id || null,
       customer: {
         id: selectedCustomer?.id || null,
-        nama: selectedCustomer?.label || selectedCustomer?.nama || '',
+        nama: produksiForm.value.customer_nama || selectedCustomer?.label || selectedCustomer?.nama || '',
       },
       customer_id: selectedCustomer?.id || null,
-      customer_nama: selectedCustomer?.label || selectedCustomer?.nama || '',
+      customer_nama: produksiForm.value.customer_nama || selectedCustomer?.label || selectedCustomer?.nama || '',
       produk: {
-        id: selectedProduk?.id || null,
-        kode_produk: selectedProduk?.kode_produk || '',
-        nama_produk: selectedProduk?.label || selectedProduk?.nama_produk || '',
+        id: produksiForm.value.produk_id || selectedProduk?.id || null,
+        kode_produk: produksiForm.value.kode_produk || selectedProduk?.kode_produk || '',
+        nama_produk: produksiForm.value.nama_produk || selectedProduk?.label || selectedProduk?.nama_produk || '',
       },
-      produk_id: selectedProduk?.id || null,
-      kode_produk: selectedProduk?.kode_produk || '',
-      nama_produk: selectedProduk?.label || selectedProduk?.nama_produk || '',
-      qty_po: Number(produksiForm.value.qty_po),
-      total_po: Number(produksiForm.value.total_po),
-      qty_hasil_jadi: Number(produksiForm.value.qty_hasil_jadi),
-      satuan: selectedSatuan?.label || selectedSatuan?.nama || '',
+      produk_id: produksiForm.value.produk_id || selectedProduk?.id || null,
+      kode_produk: produksiForm.value.kode_produk || selectedProduk?.kode_produk || '',
+      nama_produk: produksiForm.value.nama_produk || selectedProduk?.label || selectedProduk?.nama_produk || '',
+      qty_po: qtyTarget,
+      qty_target: qtyTarget,
+      total_po: toFiniteNumber(produksiForm.value.total_po),
+      qty_hasil_hari_ini: qtyHariIni,
+      qty_hasil_jadi: qtyHariIni,
+      total_hasil_sebelumnya: totalSebelumnya,
+      total_hasil_produksi: totalHasil,
+      total_progress: totalHasil,
+      sisa_qty: sisaQty,
+      progress_percent: progressPercent,
+      satuan: produksiForm.value.satuan || selectedSatuan?.label || selectedSatuan?.nama || '',
       satuan_id: selectedSatuan?.id || null,
-      status_produksi: produksiForm.value.status_produksi,
+      status_produksi: finalStatus,
+      catatan: produksiForm.value.catatan || '',
       departemen: departemenPayload.value,
       departemen_id: departemenId.value || null,
-    })
-
-    if (selectedSpk?.id) {
-      const qtyHasil = Number(produksiForm.value.qty_hasil_jadi || 0)
-      const qtyTarget = Number(selectedSpk.qty_target || produksiForm.value.qty_po || 0)
-      await updateManufacturingSpkProduksi(
-        selectedSpk.departemen_path_id || selectedSpk.departemen_id || departemenId.value,
-        selectedSpk.id,
-        {
-          status: qtyTarget > 0 && qtyHasil >= qtyTarget ? 'Finished' : 'On Production',
-          status_pekerjaan: qtyTarget > 0 && qtyHasil >= qtyTarget ? 'Finished' : 'On Production',
-          qty_hasil_jadi: qtyHasil,
-          is_new: false,
-        },
-      )
+      departemen_nama: departemenTitle.value,
+      departemen_kode: departemenKode.value || '',
+      current_departemen_id: departemenId.value || null,
+      current_departemen_nama: departemenTitle.value,
+      nama_departemen: departemenTitle.value,
+      kode_departemen: departemenKode.value || '',
     }
-    closeProduksiDialog()
-    notify('positive', 'Data produksi berhasil disimpan.')
+
+    let savedProductionId = null
+    try {
+      savedProductionId = await saveManufacturingDepartemenProduksi(null, productionPayload)
+      productionHistorySaved = true
+    } catch (error) {
+      console.error('Gagal menyimpan histori produksi departemen:', error)
+      notify('negative', 'Gagal menyimpan data produksi.')
+      return
+    }
+
+    try {
+      const savedProductionSnapshot = await getDoc(doc(db, PRODUKSI_COLLECTION, savedProductionId))
+      const savedProductionRow = savedProductionSnapshot.exists()
+        ? { id: savedProductionSnapshot.id, ...savedProductionSnapshot.data() }
+        : {
+            id: savedProductionId,
+            ...productionPayload,
+          }
+      syncProductionRowState(savedProductionRow)
+    } catch (error) {
+      console.error('Histori produksi tersimpan, tetapi refresh row lokal gagal:', error)
+      syncProductionRowState({
+        id: savedProductionId,
+        ...productionPayload,
+      })
+    }
+
+    const progressPayload = {
+      status_produksi: finalStatus,
+      qty_hasil_jadi: totalHasil,
+      total_progress: totalHasil,
+      sisa_qty: sisaQty,
+      progress_percent: progressPercent,
+    }
+
+    try {
+      if (selectedSpk?.id) {
+        const departemenPathId = selectedSpk.departemen_path_id || selectedSpk.departemen_id || departemenId.value
+        if (!departemenPathId) {
+          console.error('Histori produksi tersimpan, tetapi path SPK tidak valid:', selectedSpk)
+        } else {
+          await updateManufacturingSpkProduksi(
+            departemenPathId,
+            selectedSpk.id,
+            {
+              status: isFinished ? 'Finished' : 'On Production',
+              status_pekerjaan: isFinished ? 'Finished' : 'On Production',
+              ...progressPayload,
+              is_new: false,
+            },
+          )
+        }
+      }
+
+      if (selectedPo?.id) {
+        await updateManufacturingApprovedPo(selectedPo.id, progressPayload)
+      }
+
+      if (selectedPlanning?.id) {
+        if (isFinished) {
+          await finishPlanningStep(
+            selectedPlanning,
+            {
+              progress: progressPercent,
+              ...progressPayload,
+            },
+            { silent: true },
+          )
+        } else {
+          await updateManufacturingPlanningProduksi(selectedPlanning.id, {
+            status_planning: 'On Progress',
+            status: 'On Progress',
+            progress: progressPercent,
+            ...progressPayload,
+            is_new: false,
+          })
+        }
+      }
+    } catch (error) {
+      console.error('Histori produksi tersimpan, tetapi update progress planning/SPK gagal:', error)
+    }
+
+    try {
+      closeProduksiDialog()
+    } catch (error) {
+      console.error('Histori produksi tersimpan, tetapi close/reset dialog gagal:', error)
+    }
+
+    notify(
+      'positive',
+      `Data produksi berhasil disimpan. Total progress ${formatNumber(totalHasil)} dari ${formatNumber(qtyTarget)}.`,
+    )
   } catch (error) {
-    console.error(error)
+    if (productionHistorySaved) {
+      console.error('Histori produksi sudah tersimpan, tetapi proses lanjutan gagal:', error)
+      notify('positive', 'Data produksi berhasil disimpan.')
+      return
+    }
+
+    console.error('Gagal menyimpan produksi departemen:', error)
     notify('negative', 'Gagal menyimpan data produksi.')
   } finally {
     savingProduksi.value = false
@@ -2394,6 +2996,7 @@ onMounted(async () => {
   )
 
   unsubscribeProduksi = listenManufacturingDepartemenProduksi(
+    departemenId.value,
     (nextRows) => {
       rows.value = nextRows
       loading.value = false
@@ -2668,6 +3271,22 @@ onUnmounted(() => {
 .status-chip {
   min-width: 86px;
   justify-content: center;
+}
+
+.metric-label {
+  color: #667085;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.metric-value {
+  color: #1b5e20;
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1.1;
+  margin-top: 4px;
 }
 
 .search-input :deep(.q-field__control) {

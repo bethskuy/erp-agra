@@ -52,7 +52,7 @@
               dense
               rounded
               debounce="250"
-              placeholder="Cari nomor WO, produk, atau material..."
+              placeholder="Cari nomor PO, produk, atau material..."
               bg-color="white"
             >
               <template #prepend>
@@ -115,8 +115,8 @@
 
         <template #body="props">
           <q-tr :props="props" class="mrp-row">
-            <q-td key="nomor_wo" :props="props" class="text-weight-bolder text-green-10">
-              {{ props.row.nomor_wo }}
+            <q-td key="nomor_po" :props="props" class="text-weight-bolder text-green-10">
+              {{ props.row.nomor_po || props.row.nomor_wo || '-' }}
             </q-td>
             <q-td key="produk" :props="props">
               <div class="text-weight-bold text-green-10">{{ props.row.produk }}</div>
@@ -140,48 +140,37 @@
               <span v-else class="text-positive text-weight-bold">0</span>
             </q-td>
             <q-td key="status_material" :props="props">
-              <q-chip
+              <q-badge
                 dense
-                square
-                text-color="white"
                 :color="statusColor(props.row.status_material)"
-                class="status-chip"
+                class="status-chip text-white"
               >
                 {{ statusLabel(props.row.status_material) }}
-              </q-chip>
+              </q-badge>
+            </q-td>
+            <q-td key="status_pr" :props="props">
+              <q-badge
+                dense
+                :color="statusPrColor(props.row.status_pr)"
+                class="status-chip text-white"
+              >
+                {{ props.row.status_pr || DEFAULT_PR_STATUS }}
+              </q-badge>
             </q-td>
             <q-td key="aksi" :props="props" class="text-center">
               <div class="row justify-center q-gutter-xs no-wrap">
                 <q-btn
-                  flat
-                  round
+                  v-if="canSendToWarehousePr(props.row)"
+                  unelevated
                   dense
-                  color="green-10"
-                  icon="check_circle"
-                  :disable="!canApproveMaterialRequest(props.row)"
-                  @click="approveMaterialRequest(props.row)"
+                  no-caps
+                  color="orange-9"
+                  icon="send"
+                  label="Kirim ke PR Gudang"
+                  class="text-weight-bold"
+                  @click="openPrDialog(props.row)"
                 >
-                  <q-tooltip>Approve material request</q-tooltip>
-                </q-btn>
-                <q-btn
-                  flat
-                  round
-                  dense
-                  color="green-10"
-                  icon="inventory"
-                  @click="openStockDialog(props.row)"
-                >
-                  <q-tooltip>Cek stok material</q-tooltip>
-                </q-btn>
-                <q-btn
-                  flat
-                  round
-                  dense
-                  color="blue-grey-7"
-                  icon="edit"
-                  @click="openEditDialog(props.row)"
-                >
-                  <q-tooltip>Edit requirement</q-tooltip>
+                  <q-tooltip>Kirim ke Purchase Request Gudang</q-tooltip>
                 </q-btn>
               </div>
             </q-td>
@@ -213,11 +202,11 @@
             <div class="row q-col-gutter-md">
               <div class="col-12 col-md-6">
                 <q-input
-                  v-model="form.nomor_wo"
+                  v-model="form.nomor_po"
                   outlined
                   dense
-                  label="Nomor WO"
-                  :rules="[(val) => !!val || 'Nomor WO wajib diisi']"
+                  label="Nomor PO"
+                  :rules="[(val) => !!val || 'Nomor PO wajib diisi']"
                 />
               </div>
               <div class="col-12 col-md-6">
@@ -284,7 +273,9 @@
               <div class="col-12">
                 <q-banner
                   rounded
-                  :class="calculatedShortage > 0 ? 'bg-red-1 text-negative' : 'bg-green-1 text-green-10'"
+                  :class="
+                    calculatedShortage > 0 ? 'bg-red-1 text-negative' : 'bg-green-1 text-green-10'
+                  "
                 >
                   <template #avatar>
                     <q-icon :name="calculatedShortage > 0 ? 'warning' : 'verified'" />
@@ -312,43 +303,81 @@
       </q-card>
     </q-dialog>
 
-    <q-dialog v-model="showStockDialog">
-      <q-card class="stock-dialog">
-        <q-card-section class="dialog-header row items-center">
-          <div>
-            <div class="text-h6 text-weight-bold">Cek Stok Material</div>
-            <div class="text-caption">{{ selectedRow?.nomor_wo }} - {{ selectedRow?.material }}</div>
-          </div>
-          <q-space />
-          <q-btn flat round dense icon="close" v-close-popup />
-        </q-card-section>
-
-        <q-card-section class="q-pa-lg">
-          <div class="stock-grid">
-            <div class="stock-metric">
-              <div class="metric-label">Qty Kebutuhan</div>
-              <div class="metric-value">{{ formatNumber(selectedRow?.qty_kebutuhan) }}</div>
-            </div>
-            <div class="stock-metric">
-              <div class="metric-label">Stok Tersedia</div>
-              <div class="metric-value">{{ formatNumber(selectedRow?.stok_tersedia) }}</div>
-            </div>
-            <div class="stock-metric" :class="{ 'stock-metric--warning': selectedRow?.qty_kurang > 0 }">
-              <div class="metric-label">Qty Kurang</div>
-              <div class="metric-value">{{ formatNumber(selectedRow?.qty_kurang) }}</div>
-            </div>
-          </div>
-
-          <q-linear-progress
-            rounded
-            size="14px"
-            :value="stockCoverage(selectedRow)"
-            :color="selectedRow?.qty_kurang > 0 ? 'orange-9' : 'green-10'"
-            track-color="green-1"
-            class="q-mt-lg"
+    <q-dialog v-model="showPrDialog" maximized persistent>
+      <q-card class="pr-dialog column no-wrap">
+        <q-toolbar class="bg-white text-green-10 shadow-2">
+          <q-btn flat round dense icon="close" color="grey-7" @click="closePrDialog" />
+          <q-toolbar-title class="text-weight-bold">Kirim ke PR Gudang</q-toolbar-title>
+          <q-btn
+            unelevated
+            color="green-10"
+            icon="send"
+            label="Kirim Request"
+            no-caps
+            class="text-weight-bold gt-xs"
+            :loading="submittingPr"
+            @click="sendToWarehousePr"
           />
-          <div class="text-caption text-grey-7 q-mt-sm">
-            Coverage stok {{ Math.round(stockCoverage(selectedRow) * 100) }}% dari kebutuhan.
+        </q-toolbar>
+
+        <q-card-section class="col scroll q-pa-md q-pa-lg-lg">
+          <div class="pr-shell">
+            <q-card flat bordered class="bg-white pr-detail-card">
+              <q-card-section>
+                <div class="text-h6 text-weight-bold text-green-10 q-mb-md">
+                  Detail Material Kurang
+                </div>
+                <div class="row q-col-gutter-md">
+                  <div class="col-12 col-sm-6 col-md-4">
+                    <div class="detail-label">Nomor PO</div>
+                    <div class="detail-value">
+                      {{ selectedPrRow?.nomor_po || selectedPrRow?.nomor_wo || '-' }}
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-6 col-md-4">
+                    <div class="detail-label">Nama Material</div>
+                    <div class="detail-value">{{ selectedPrRow?.material || '-' }}</div>
+                  </div>
+                  <div class="col-12 col-sm-6 col-md-4">
+                    <div class="detail-label">Qty Kebutuhan</div>
+                    <div class="detail-value">{{ formatNumber(selectedPrRow?.qty_kebutuhan) }}</div>
+                  </div>
+                  <div class="col-12 col-sm-6 col-md-4">
+                    <div class="detail-label">Stok Tersedia</div>
+                    <div class="detail-value">{{ formatNumber(selectedPrRow?.stok_tersedia) }}</div>
+                  </div>
+                  <div class="col-12 col-sm-6 col-md-4">
+                    <div class="detail-label">Qty Kurang</div>
+                    <div class="detail-value text-negative">
+                      {{ formatNumber(selectedPrRow?.qty_kurang) }}
+                    </div>
+                  </div>
+                  <div class="col-12 col-sm-6 col-md-4">
+                    <div class="detail-label">Status PR</div>
+                    <q-badge
+                      :color="statusPrColor(selectedPrRow?.status_pr)"
+                      class="text-white text-weight-bold q-px-sm q-py-xs"
+                    >
+                      {{ selectedPrRow?.status_pr || DEFAULT_PR_STATUS }}
+                    </q-badge>
+                  </div>
+                </div>
+              </q-card-section>
+              <q-separator />
+              <q-card-actions align="right" class="q-pa-md">
+                <q-btn flat color="grey-8" label="Batal" no-caps @click="closePrDialog" />
+                <q-btn
+                  unelevated
+                  color="green-10"
+                  icon="send"
+                  label="Kirim Request"
+                  no-caps
+                  class="text-weight-bold"
+                  :loading="submittingPr"
+                  @click="sendToWarehousePr"
+                />
+              </q-card-actions>
+            </q-card>
           </div>
         </q-card-section>
       </q-card>
@@ -363,29 +392,25 @@ import {
   addDoc,
   collection,
   doc,
-  increment,
   onSnapshot,
   orderBy,
   query,
-  runTransaction,
   serverTimestamp,
   updateDoc,
 } from 'firebase/firestore'
 import { db } from 'src/boot/firebase'
 
 const COLLECTION_NAME = 'material_requirement_manufaktur'
-const MASTER_MATERIAL_COLLECTION = 'master_material'
-const APPROVED_STATUS = 'APPROVED'
+const MASTER_BARANG_COLLECTION = 'manufactur_master_barang'
+const PURCHASE_REQUEST_COLLECTION = 'permintaan_barang_manufaktur'
+const PURCHASE_REQUEST_TABLE_COLLECTION = 'purchase_request'
+const DEFAULT_PR_STATUS = 'Belum Diajukan'
+const PENDING_PR_STATUS = 'Menunggu ACC Atasan'
 const statusOptions = [
-  { label: 'READY', value: 'READY' },
-  { label: 'KURANG MATERIAL', value: 'KURANG_MATERIAL' },
-  { label: 'WAITING PURCHASE', value: 'WAITING_PURCHASE' },
-  { label: 'APPROVED', value: APPROVED_STATUS },
+  { label: 'Material Ready', value: 'Material Ready' },
+  { label: 'Material Kurang', value: 'Material Kurang' },
 ]
-const statusFilterOptions = [
-  { label: 'Semua Status', value: 'all' },
-  ...statusOptions,
-]
+const statusFilterOptions = [{ label: 'Semua Status', value: 'all' }, ...statusOptions]
 
 const $q = useQuasar()
 const rows = ref([])
@@ -396,14 +421,15 @@ const submitting = ref(false)
 const search = ref('')
 const statusFilter = ref('all')
 const showFormDialog = ref(false)
-const showStockDialog = ref(false)
-const selectedRow = ref(null)
+const showPrDialog = ref(false)
+const selectedPrRow = ref(null)
 const editingId = ref(null)
+const submittingPr = ref(false)
 let unsubscribeRequirements = null
 let unsubscribeMasterMaterials = null
 
 const defaultForm = () => ({
-  nomor_wo: '',
+  nomor_po: '',
   produk: '',
   material_id: '',
   material: '',
@@ -416,7 +442,7 @@ const defaultForm = () => ({
 const form = ref(defaultForm())
 
 const columns = [
-  { name: 'nomor_wo', align: 'left', label: 'Nomor WO', field: 'nomor_wo', sortable: true },
+  { name: 'nomor_po', align: 'left', label: 'Nomor PO', field: 'nomor_po', sortable: true },
   { name: 'produk', align: 'left', label: 'Produk', field: 'produk', sortable: true },
   { name: 'material', align: 'left', label: 'Material', field: 'material', sortable: true },
   {
@@ -441,6 +467,7 @@ const columns = [
     field: 'status_material',
     sortable: true,
   },
+  { name: 'status_pr', align: 'center', label: 'Status PR', field: 'status_pr', sortable: true },
   { name: 'aksi', align: 'center', label: 'Aksi' },
 ]
 
@@ -450,7 +477,8 @@ const enrichedRows = computed(() =>
     return {
       ...row,
       qty_kurang: shortage,
-      status_material: row.status_material || deriveStatus(shortage),
+      status_material: deriveStatus(row.qty_kebutuhan, row.stok_tersedia),
+      status_pr: row.status_pr || DEFAULT_PR_STATUS,
     }
   }),
 )
@@ -461,7 +489,7 @@ const filteredRows = computed(() => {
     const matchesStatus = statusFilter.value === 'all' || row.status_material === statusFilter.value
     const matchesSearch =
       !keyword ||
-      [row.nomor_wo, row.produk, row.material, row.status_material]
+      [row.nomor_po, row.nomor_wo, row.produk, row.material, row.status_material, row.status_pr]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(keyword))
 
@@ -472,19 +500,19 @@ const filteredRows = computed(() => {
 const summaryCards = computed(() => [
   {
     title: 'Material Ready',
-    value: enrichedRows.value.filter((row) => row.status_material === 'READY').length,
+    value: enrichedRows.value.filter((row) => row.status_material === 'Material Ready').length,
     icon: 'verified',
     color: 'green-10',
   },
   {
     title: 'Material Kurang',
-    value: enrichedRows.value.filter((row) => row.status_material === 'KURANG_MATERIAL').length,
+    value: enrichedRows.value.filter((row) => row.status_material === 'Material Kurang').length,
     icon: 'warning',
     color: 'negative',
   },
   {
-    title: 'Waiting Purchase',
-    value: enrichedRows.value.filter((row) => row.status_material === 'WAITING_PURCHASE').length,
+    title: 'Menunggu ACC PR',
+    value: enrichedRows.value.filter((row) => row.status_pr === PENDING_PR_STATUS).length,
     icon: 'pending_actions',
     color: 'orange-9',
   },
@@ -505,7 +533,7 @@ const formModeLabel = computed(() => (editingId.value ? 'Edit' : 'Tambah'))
 
 const materialOptions = computed(() =>
   masterMaterials.value.map((item) => ({
-    label: `${item.kode_material ? `${item.kode_material} - ` : ''}${item.nama_material}`,
+    label: `${item.kode || item.kode_barang || item.kode_material ? `${item.kode || item.kode_barang || item.kode_material} - ` : ''}${item.nama || item.nama_barang || item.nama_material}`,
     value: item.id,
     item,
   })),
@@ -518,28 +546,12 @@ const selectedMaterial = computed(
 const calculateShortage = (required, available) =>
   Math.max(Number(required || 0) - Number(available || 0), 0)
 
-const deriveStatus = (shortage) => (shortage > 0 ? 'KURANG_MATERIAL' : 'READY')
+const deriveStatus = (required, available) =>
+  Number(available || 0) >= Number(required || 0) ? 'Material Ready' : 'Material Kurang'
 
-const findMasterMaterial = (row) => {
-  if (row?.material_id) {
-    const byId = masterMaterials.value.find((item) => item.id === row.material_id)
-    if (byId) return byId
-  }
-
-  const materialKey = String(row?.material || '').trim().toLowerCase()
-  const codeKey = String(row?.kode_material || '').trim().toLowerCase()
-  return masterMaterials.value.find((item) =>
-    [item.nama_material, item.kode_material]
-      .filter(Boolean)
-      .some((value) => [materialKey, codeKey].includes(String(value).trim().toLowerCase())),
-  )
-}
-
-const canApproveMaterialRequest = (row) =>
-  Boolean(row?.id) &&
-  !row.material_request_stock_synced &&
-  Number(row.qty_kebutuhan || 0) > 0 &&
-  calculateShortage(row.qty_kebutuhan, row.stok_tersedia) === 0
+const canSendToWarehousePr = (row) =>
+  row?.status_material === 'Material Kurang' &&
+  (row.status_pr || DEFAULT_PR_STATUS) === DEFAULT_PR_STATUS
 
 const statusLabel = (status) => {
   const option = statusOptions.find((item) => item.value === status)
@@ -548,20 +560,23 @@ const statusLabel = (status) => {
 
 const statusColor = (status) => {
   const colors = {
-    READY: 'green-10',
-    KURANG_MATERIAL: 'negative',
-    WAITING_PURCHASE: 'orange-9',
+    'Material Ready': 'green-10',
+    'Material Kurang': 'negative',
   }
   return colors[status] || 'grey-6'
 }
 
-const formatNumber = (value) => Number(value || 0).toLocaleString('id-ID')
-
-const stockCoverage = (row) => {
-  const required = Number(row?.qty_kebutuhan || 0)
-  if (!required) return 0
-  return Math.min(Number(row?.stok_tersedia || 0) / required, 1)
+const statusPrColor = (status = DEFAULT_PR_STATUS) => {
+  const colors = {
+    'Belum Diajukan': 'grey-7',
+    'Menunggu ACC Atasan': 'orange-9',
+    Disetujui: 'positive',
+    Ditolak: 'negative',
+  }
+  return colors[status] || 'grey-7'
 }
+
+const formatNumber = (value) => Number(value || 0).toLocaleString('id-ID')
 
 const buildPayload = () => {
   const qtyKebutuhan = Number(form.value.qty_kebutuhan || 0)
@@ -569,18 +584,28 @@ const buildPayload = () => {
   const qtyKurang = calculateShortage(qtyKebutuhan, stokTersedia)
 
   return {
-    nomor_wo: form.value.nomor_wo,
+    nomor_po: form.value.nomor_po,
+    nomor_wo: form.value.nomor_po,
     produk: form.value.produk,
     material_id: form.value.material_id,
-    material: selectedMaterial.value?.nama_material || form.value.material,
-    kode_material: selectedMaterial.value?.kode_material || form.value.kode_material,
-    satuan: selectedMaterial.value?.satuan || form.value.satuan,
+    material:
+      selectedMaterial.value?.nama ||
+      selectedMaterial.value?.nama_barang ||
+      selectedMaterial.value?.nama_material ||
+      form.value.material,
+    kode_material:
+      selectedMaterial.value?.kode ||
+      selectedMaterial.value?.kode_barang ||
+      selectedMaterial.value?.kode_material ||
+      form.value.kode_material,
+    satuan: selectedMaterial.value?.unit || selectedMaterial.value?.satuan || form.value.satuan,
     kategori_material: selectedMaterial.value?.kategori || '',
     ukuran_material: selectedMaterial.value?.ukuran || '',
     qty_kebutuhan: qtyKebutuhan,
     stok_tersedia: stokTersedia,
     qty_kurang: qtyKurang,
-    status_material: deriveStatus(qtyKurang),
+    status_material: deriveStatus(qtyKebutuhan, stokTersedia),
+    status_pr: form.value.status_pr || DEFAULT_PR_STATUS,
     updated_at: serverTimestamp(),
   }
 }
@@ -591,24 +616,14 @@ const openCreateDialog = () => {
   showFormDialog.value = true
 }
 
-const openEditDialog = (row) => {
-  editingId.value = row.id
-  form.value = {
-    nomor_wo: row.nomor_wo || '',
-    produk: row.produk || '',
-    material_id: row.material_id || '',
-    material: row.material || '',
-    kode_material: row.kode_material || '',
-    satuan: row.satuan || '',
-    qty_kebutuhan: Number(row.qty_kebutuhan || 0),
-    stok_tersedia: Number(row.stok_tersedia || 0),
-  }
-  showFormDialog.value = true
+const openPrDialog = (row) => {
+  selectedPrRow.value = row
+  showPrDialog.value = true
 }
 
-const openStockDialog = (row) => {
-  selectedRow.value = row
-  showStockDialog.value = true
+const closePrDialog = () => {
+  showPrDialog.value = false
+  selectedPrRow.value = null
 }
 
 const saveRequirement = async () => {
@@ -636,55 +651,60 @@ const saveRequirement = async () => {
   }
 }
 
-const approveMaterialRequest = async (row) => {
-  const masterMaterial = findMasterMaterial(row)
-  if (!masterMaterial) {
-    $q.notify({ type: 'negative', message: 'Master material tidak ditemukan' })
-    return
-  }
+const buildWarehousePrPayload = (row) => ({
+  nomor: `PR-${Date.now()}`,
+  no_reff: row.nomor_po || row.nomor_wo || '',
+  nomor_po: row.nomor_po || row.nomor_wo || '',
+  pemohon: 'PPIC',
+  id_gudang: 'UTAMA',
+  gudang_tujuan: 'Gudang Utama',
+  status: 'Pending',
+  status_pr: PENDING_PR_STATUS,
+  gudang_status: 'PR_PENDING_APPROVAL',
+  workflow_status: 'PENDING_APPROVAL',
+  approval_sync_status: 'Pending',
+  source: 'MATERIAL_REQUIREMENT',
+  material_requirement_id: row.id,
+  items: [
+    {
+      id_barang: row.material_id || '',
+      kode_barang: row.kode_material || '',
+      nama_barang: row.material || '',
+      qty: Number(row.qty_kurang || 0),
+      jumlah: Number(row.qty_kurang || 0),
+      satuan: row.satuan || '',
+      keterangan: `Kekurangan material dari PO ${row.nomor_po || row.nomor_wo || '-'}`,
+    },
+  ],
+  created_at: serverTimestamp(),
+  updated_at: serverTimestamp(),
+})
 
+const sendToWarehousePr = async () => {
+  if (!selectedPrRow.value) return
+  submittingPr.value = true
   try {
-    await runTransaction(db, async (transaction) => {
-      const requirementRef = doc(db, COLLECTION_NAME, row.id)
-      const materialRef = doc(db, MASTER_MATERIAL_COLLECTION, masterMaterial.id)
-      const [requirementSnap, materialSnap] = await Promise.all([
-        transaction.get(requirementRef),
-        transaction.get(materialRef),
-      ])
-
-      if (!requirementSnap.exists()) throw new Error('Material request tidak ditemukan.')
-      if (!materialSnap.exists()) throw new Error('Master material tidak ditemukan.')
-      if (requirementSnap.data().material_request_stock_synced) return
-
-      const currentAvailable = Number(materialSnap.data().stok_tersedia || 0)
-      const qtyKebutuhan = Number(requirementSnap.data().qty_kebutuhan || row.qty_kebutuhan || 0)
-      const nextAvailable = currentAvailable - qtyKebutuhan
-
-      if (nextAvailable < 0) {
-        throw new Error(
-          `Stok tersedia tidak cukup. Tersedia ${formatNumber(currentAvailable)}, dibutuhkan ${formatNumber(qtyKebutuhan)}.`,
-        )
-      }
-
-      transaction.update(materialRef, {
-        stok_tersedia: nextAvailable,
-        kebutuhan_produksi: increment(qtyKebutuhan),
-        updated_at: serverTimestamp(),
-      })
-      transaction.update(requirementRef, {
-        stok_tersedia: nextAvailable,
-        qty_kurang: 0,
-        status_material: APPROVED_STATUS,
-        material_request_stock_synced: true,
-        material_request_stock_synced_at: serverTimestamp(),
-        updated_at: serverTimestamp(),
-      })
+    const row = selectedPrRow.value
+    const payload = buildWarehousePrPayload(row)
+    await Promise.all([
+      addDoc(collection(db, PURCHASE_REQUEST_COLLECTION), payload),
+      addDoc(collection(db, PURCHASE_REQUEST_TABLE_COLLECTION), payload),
+    ])
+    await updateDoc(doc(db, COLLECTION_NAME, row.id), {
+      status_pr: PENDING_PR_STATUS,
+      pr_sent_at: serverTimestamp(),
+      updated_at: serverTimestamp(),
     })
-
-    $q.notify({ type: 'positive', message: 'Material request berhasil di-approve' })
+    $q.notify({
+      type: 'positive',
+      message: 'Material berhasil dikirim ke Purchase Request Gudang',
+    })
+    closePrDialog()
   } catch (error) {
     console.error(error)
-    $q.notify({ type: 'negative', message: error.message || 'Gagal approve material request' })
+    $q.notify({ type: 'negative', message: 'Gagal mengirim material ke Purchase Request Gudang' })
+  } finally {
+    submittingPr.value = false
   }
 }
 
@@ -713,17 +733,17 @@ const loadRequirements = () => {
 const loadMasterMaterials = () => {
   loadingMasterMaterial.value = true
   unsubscribeMasterMaterials = onSnapshot(
-    query(collection(db, 'master_material'), orderBy('nama_material', 'asc')),
+    query(collection(db, MASTER_BARANG_COLLECTION), orderBy('nama', 'asc')),
     (snapshot) => {
       masterMaterials.value = snapshot.docs
         .map((materialDoc) => ({ id: materialDoc.id, ...materialDoc.data() }))
-        .filter((item) => item.status !== 'Nonaktif')
+        .filter((item) => item.status !== 'Nonaktif' && item.status_aktif !== 'Nonaktif')
       loadingMasterMaterial.value = false
     },
     (error) => {
       console.error(error)
       loadingMasterMaterial.value = false
-      $q.notify({ type: 'negative', message: 'Gagal memuat master material' })
+      $q.notify({ type: 'negative', message: 'Gagal memuat data barang' })
     },
   )
 }

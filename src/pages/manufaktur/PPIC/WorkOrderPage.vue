@@ -548,7 +548,7 @@ import {
 import { db } from 'src/boot/firebase'
 
 const COLLECTION_NAME = 'work_order_manufaktur'
-const MASTER_MATERIAL_COLLECTION = 'master_material'
+const MASTER_BARANG_COLLECTION = 'manufactur_master_barang'
 const WORKSPACE_BODY_CLASS = 'manufacturing-work-order-form-workspace'
 const statusOptions = [
   { label: 'DRAFT', value: 'DRAFT' },
@@ -726,7 +726,10 @@ const normalizeMaterials = (materials) =>
     }))
     .filter((material) => material.nama || material.qty || material.satuan)
 
-const normalizeMaterialKey = (value) => String(value || '').trim().toLowerCase()
+const normalizeMaterialKey = (value) =>
+  String(value || '')
+    .trim()
+    .toLowerCase()
 
 const findMasterMaterial = (material, masterMaterials) => {
   const key = normalizeMaterialKey(material.nama)
@@ -735,6 +738,10 @@ const findMasterMaterial = (material, masterMaterials) => {
   return masterMaterials.find(
     (item) =>
       normalizeMaterialKey(item.id) === key ||
+      normalizeMaterialKey(item.kode) === key ||
+      normalizeMaterialKey(item.nama) === key ||
+      normalizeMaterialKey(item.kode_barang) === key ||
+      normalizeMaterialKey(item.nama_barang) === key ||
       normalizeMaterialKey(item.kode_material) === key ||
       normalizeMaterialKey(item.nama_material) === key,
   )
@@ -745,7 +752,7 @@ const buildMaterialAllocations = async (materials) => {
   if (!requestedMaterials.length) return []
 
   const materialSnapshot = await getDocs(
-    query(collection(db, MASTER_MATERIAL_COLLECTION), orderBy('nama_material', 'asc')),
+    query(collection(db, MASTER_BARANG_COLLECTION), orderBy('nama', 'asc')),
   )
   const masterMaterials = materialSnapshot.docs.map((materialDoc) => ({
     id: materialDoc.id,
@@ -756,7 +763,7 @@ const buildMaterialAllocations = async (materials) => {
   requestedMaterials.forEach((material) => {
     const masterMaterial = findMasterMaterial(material, masterMaterials)
     if (!masterMaterial) {
-      throw new Error(`Material "${material.nama}" tidak ditemukan di master material.`)
+      throw new Error(`Material "${material.nama}" tidak ditemukan di data barang.`)
     }
 
     const qty = Number(material.qty || 0)
@@ -767,9 +774,13 @@ const buildMaterialAllocations = async (materials) => {
     }
 
     allocationMap.set(masterMaterial.id, {
-      ref: doc(db, MASTER_MATERIAL_COLLECTION, masterMaterial.id),
+      ref: doc(db, MASTER_BARANG_COLLECTION, masterMaterial.id),
       id: masterMaterial.id,
-      nama: masterMaterial.nama_material || material.nama,
+      nama:
+        masterMaterial.nama ||
+        masterMaterial.nama_barang ||
+        masterMaterial.nama_material ||
+        material.nama,
       qty,
       stokFisik: Number(masterMaterial.stok_fisik || 0),
       stokTerpesan: Number(masterMaterial.stok_terpesan || 0),

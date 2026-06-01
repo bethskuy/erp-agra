@@ -275,21 +275,7 @@
                   <q-item
                     clickable
                     v-ripple
-                    to="/manufaktur/master-produksi/material"
-                    active-class="active-menu"
-                    class="submenu-item master-grandchild-item"
-                    dense
-                  >
-                    <q-item-section avatar class="submenu-icon">
-                      <q-icon name="inventory_2" size="xs" />
-                    </q-item-section>
-                    <q-item-section class="submenu-text">Material</q-item-section>
-                  </q-item>
-
-                  <q-item
-                    clickable
-                    v-ripple
-                    to="/manufaktur/master-produksi/produk"
+                    to="/manufaktur/master-material"
                     active-class="active-menu"
                     class="submenu-item master-grandchild-item"
                     dense
@@ -297,7 +283,7 @@
                     <q-item-section avatar class="submenu-icon">
                       <q-icon name="inventory" size="xs" />
                     </q-item-section>
-                    <q-item-section class="submenu-text">Master Produk</q-item-section>
+                    <q-item-section class="submenu-text">Master Material</q-item-section>
                   </q-item>
 
                   <q-item
@@ -409,10 +395,11 @@
           <q-expansion-item
             v-if="
               hasSectionAccess([
-                'ppic/work-order',
                 'ppic/planning-produksi',
-                'ppic/proses-fabrikasi',
+                'ppic/work-order',
                 'ppic/material-requirement',
+                'ppic/stock-forecast',
+                'ppic/proses-fabrikasi',
               ])
             "
             icon="assignment"
@@ -420,20 +407,6 @@
             header-class="nav-group"
             expand-icon-class="nav-expand-icon"
           >
-            <q-item
-              v-if="checkPermission('ppic/work-order')"
-              clickable
-              v-ripple
-              to="/manufaktur/ppic/work-order"
-              active-class="active-menu"
-              class="submenu-item"
-              dense
-            >
-              <q-item-section avatar class="submenu-icon"
-                ><q-icon name="description" size="xs"
-              /></q-item-section>
-              <q-item-section class="submenu-text">SPK Produksi</q-item-section>
-            </q-item>
             <q-item
               v-if="checkPermission('ppic/planning-produksi')"
               clickable
@@ -449,18 +422,18 @@
               <q-item-section class="submenu-text">Planning Produksi</q-item-section>
             </q-item>
             <q-item
-              v-if="checkPermission('ppic/proses-fabrikasi')"
+              v-if="checkPermission('ppic/work-order')"
               clickable
               v-ripple
-              to="/manufaktur/ppic/proses-fabrikasi"
+              to="/manufaktur/ppic/work-order"
               active-class="active-menu"
               class="submenu-item"
               dense
             >
               <q-item-section avatar class="submenu-icon"
-                ><q-icon name="precision_manufacturing" size="xs"
+                ><q-icon name="description" size="xs"
               /></q-item-section>
-              <q-item-section class="submenu-text">Proses Fabrikasi</q-item-section>
+              <q-item-section class="submenu-text">SPK Produksi</q-item-section>
             </q-item>
             <q-item
               v-if="checkPermission('ppic/material-requirement')"
@@ -475,6 +448,34 @@
                 ><q-icon name="inventory" size="xs"
               /></q-item-section>
               <q-item-section class="submenu-text">Material Requirement</q-item-section>
+            </q-item>
+            <q-item
+              v-if="checkPermission('ppic/stock-forecast')"
+              clickable
+              v-ripple
+              to="/manufaktur/ppic/stock-forecast"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="query_stats" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Stock Forecast</q-item-section>
+            </q-item>
+            <q-item
+              v-if="checkPermission('ppic/proses-fabrikasi')"
+              clickable
+              v-ripple
+              to="/manufaktur/ppic/proses-fabrikasi"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="precision_manufacturing" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Proses Fabrikasi</q-item-section>
             </q-item>
           </q-expansion-item>
 
@@ -543,7 +544,6 @@
               hasSectionAccess([
                 'warehouse/incoming-material',
                 'warehouse/finished-goods',
-                'warehouse/stock-forecast',
                 'warehouse/bahan-mentah',
                 'warehouse/bahan-jadi',
               ])
@@ -580,20 +580,6 @@
                 ><q-icon name="inventory" size="xs"
               /></q-item-section>
               <q-item-section class="submenu-text">Finished Goods</q-item-section>
-            </q-item>
-            <q-item
-              v-if="checkPermission('warehouse/stock-forecast')"
-              clickable
-              v-ripple
-              to="/manufaktur/warehouse/stock-forecast"
-              active-class="active-menu"
-              class="submenu-item"
-              dense
-            >
-              <q-item-section avatar class="submenu-icon"
-                ><q-icon name="query_stats" size="xs"
-              /></q-item-section>
-              <q-item-section class="submenu-text">Stock Forecast</q-item-section>
             </q-item>
             <q-item
               v-if="checkPermission('warehouse/bahan-mentah')"

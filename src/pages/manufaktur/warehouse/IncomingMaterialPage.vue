@@ -501,13 +501,8 @@ const STATUS_QC_APPROVED = 'QC_APPROVED'
 const STATUS_QC_REJECTED = 'QC_REJECTED'
 const STATUS_DISTRIBUSI = 'DISTRIBUSI_MATERIAL'
 const STATUS_DATA_TIDAK_SESUAI = 'DATA TIDAK SESUAI'
-const MASTER_MATERIAL_COLLECTION = 'master_material'
-const STOCK_SYNC_STATUSES = new Set([
-  'DITERIMA',
-  'COMPLETE',
-  STATUS_QC_APPROVED,
-  STATUS_DISTRIBUSI,
-])
+const MASTER_BARANG_COLLECTION = 'manufactur_master_barang'
+const STOCK_SYNC_STATUSES = new Set(['DITERIMA', 'COMPLETE', STATUS_QC_APPROVED, STATUS_DISTRIBUSI])
 
 const STATUS_LABEL = {
   [STATUS_DATANG]: 'Barang Datang',
@@ -978,7 +973,11 @@ const getIncomingStockQty = (item = {}) => {
 
 const shouldSyncIncomingStock = (row, status) =>
   !row?.master_material_stock_synced &&
-  STOCK_SYNC_STATUSES.has(String(status || '').trim().toUpperCase())
+  STOCK_SYNC_STATUSES.has(
+    String(status || '')
+      .trim()
+      .toUpperCase(),
+  )
 
 const buildIncomingStockAllocations = (row) => {
   const allocationMap = new Map()
@@ -990,7 +989,7 @@ const buildIncomingStockAllocations = (row) => {
     const masterMaterial = findMasterBarangForIncomingItem(item)
     if (!masterMaterial) {
       throw new Error(
-        `Material "${item.nama_barang || item.nama_material || item.material || '-'}" tidak ditemukan di master material.`,
+        `Material "${item.nama_barang || item.nama_material || item.material || '-'}" tidak ditemukan di data barang.`,
       )
     }
 
@@ -1001,8 +1000,8 @@ const buildIncomingStockAllocations = (row) => {
     }
 
     allocationMap.set(masterMaterial.id, {
-      ref: doc(db, MASTER_MATERIAL_COLLECTION, masterMaterial.id),
-      nama: masterMaterial.nama_material || getMasterBarangName(masterMaterial),
+      ref: doc(db, MASTER_BARANG_COLLECTION, masterMaterial.id),
+      nama: getMasterBarangName(masterMaterial),
       qty,
     })
   })
@@ -1033,7 +1032,7 @@ const applyIncomingStatusUpdate = async (row, status, payload) => {
     for (const allocation of stockAllocations) {
       const materialSnap = await transaction.get(allocation.ref)
       if (!materialSnap.exists()) {
-        throw new Error(`Master material ${allocation.nama} tidak ditemukan.`)
+        throw new Error(`Data barang ${allocation.nama} tidak ditemukan.`)
       }
 
       const materialData = materialSnap.data()
@@ -1066,16 +1065,23 @@ const loadMasterReferences = () => {
   if (unsubMasterBarang) unsubMasterBarang()
 
   unsubMasterBarang = onSnapshot(
-    query(collection(db, 'master_material'), orderBy('nama_material', 'asc')),
+    query(collection(db, MASTER_BARANG_COLLECTION), orderBy('nama', 'asc')),
     (snapshot) => {
       masterBarangRows.value = snapshot.docs
         .map((docSnap) => ({
           id: docSnap.id,
           ...docSnap.data(),
         }))
-        .filter((item) => item.status !== 'Nonaktif' && isIncomingMaterialType(item))
+        .filter(
+          (item) =>
+            item.status !== 'Nonaktif' &&
+            item.status_aktif !== 'Nonaktif' &&
+            isIncomingMaterialType(item),
+        )
       masterKategoriRows.value = Array.from(
-        new Set(masterBarangRows.value.map((item) => getMasterBarangCategory(item)).filter(Boolean)),
+        new Set(
+          masterBarangRows.value.map((item) => getMasterBarangCategory(item)).filter(Boolean),
+        ),
       ).map((nama) => ({ id: nama, nama }))
       masterSatuanRows.value = Array.from(
         new Set(masterBarangRows.value.map((item) => getMasterBarangUnit(item)).filter(Boolean)),
@@ -1087,7 +1093,7 @@ const loadMasterReferences = () => {
     },
     (error) => {
       console.error(error)
-      $q.notify({ type: 'negative', message: 'Gagal memuat master material' })
+      $q.notify({ type: 'negative', message: 'Gagal memuat data barang' })
     },
   )
 }
@@ -1449,7 +1455,8 @@ const applyMasterBarangToRow = (row, barang) => {
   setNativeInputValue(kategoriInput, kategori)
   setNativeInputValue(satuanInput, satuan)
   row.dataset.masterBarangId = barang.id || ''
-  row.dataset.masterBarangKode = barang.kode_material || barang.kode || barang.kode_barang || barang.sku || ''
+  row.dataset.masterBarangKode =
+    barang.kode_material || barang.kode || barang.kode_barang || barang.sku || ''
 }
 
 const injectMasterBarangControls = (dialog) => {
@@ -1663,12 +1670,21 @@ const buildPayload = (form) => {
   const checkerSignatureBase64 = captureCheckerSignaturePad()
   const items = getIncomingItems(form).map((item) => ({
     ...item,
-    master_material_id: findMasterBarang(item.nama_barang || item.nama_material || item.material)?.id || item.master_material_id || '',
+    master_material_id:
+      findMasterBarang(item.nama_barang || item.nama_material || item.material)?.id ||
+      item.master_material_id ||
+      '',
+    data_barang_id:
+      findMasterBarang(item.nama_barang || item.nama_material || item.material)?.id ||
+      item.data_barang_id ||
+      '',
     kode_material:
       findMasterBarang(item.nama_barang || item.nama_material || item.material)?.kode_material ||
       item.kode_material ||
       '',
-    tipe_material: getMaterialType(findMasterBarang(item.nama_barang || item.nama_material || item.material) || item),
+    tipe_material: getMaterialType(
+      findMasterBarang(item.nama_barang || item.nama_material || item.material) || item,
+    ),
     qty_surat_jalan: toSafeNumber(item.qty_surat_jalan),
     qty_actual: toSafeNumber(item.qty_actual),
     selisih_qty:

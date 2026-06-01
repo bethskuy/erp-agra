@@ -390,7 +390,7 @@ let unsubUser = null
 let unsubApproval = null
 let signaturePad = null
 
-const defaultItem = { deskripsi: '-', qty: 0, satuan: '-', harga: 0 }
+const defaultItem = { nama_produk: '-', deskripsi: '-', qty: 0, satuan: '-', harga: 0, subtotal: 0 }
 const defaultSigner = { nama: '', jabatan: '' }
 
 const columns = [
@@ -414,11 +414,39 @@ const columns = [
 ]
 
 // --- HELPER FUNCTIONS ---
+const normalizeQuotationItem = (item = {}, index = 0) => {
+  const qty = Number(item.qty ?? item.quantity ?? item.qty_target ?? item.qty_po ?? 0)
+  const harga = Number(item.harga ?? item.price ?? item.harga_satuan ?? item.unit_price ?? 0)
+  const namaProduk =
+    item.nama_produk ||
+    item.product ||
+    item.produk ||
+    item.nama_barang ||
+    item.deskripsi ||
+    `Item ${index + 1}`
+
+  return {
+    ...item,
+    item_id: item.item_id || item.id || `item-${index + 1}`,
+    nama_produk: namaProduk,
+    deskripsi: item.deskripsi || namaProduk,
+    qty,
+    satuan: item.satuan || item.unit || 'Unit',
+    harga,
+    subtotal: Number(item.subtotal ?? item.total ?? qty * harga),
+  }
+}
+
+const normalizeQuotationItems = (row) => {
+  const rawItems = Array.isArray(row.items) && row.items.length ? row.items : [{ ...defaultItem }]
+  return rawItems.map(normalizeQuotationItem)
+}
+
 const normalizeQuotation = (row) => ({
   ...row,
   logo: row.logo || null,
   status: row.status || 'Pending',
-  items: Array.isArray(row.items) && row.items.length ? row.items : [{ ...defaultItem }],
+  items: normalizeQuotationItems(row),
   signers:
     Array.isArray(row.signers) && row.signers.length
       ? row.signers
@@ -566,6 +594,7 @@ const updateStatus = (row, status, alasan = null) => {
         marketing_read: false,
       }
       if (status === 'Rejected') payload.alasan_reject = String(alasan || '').trim()
+      const normalizedItems = normalizeQuotationItems(row)
 
       await updateDoc(doc(db, 'penawaran_manufaktur', row.id), payload)
       if (status === 'Approved') {
@@ -576,6 +605,7 @@ const updateStatus = (row, status, alasan = null) => {
             ...payload,
             id: row.id,
             quotation_id: row.id,
+            items: normalizedItems,
             source_collection: 'penawaran_manufaktur',
             source_document_id: row.id,
             module: 'manufacturing',

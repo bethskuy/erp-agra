@@ -83,7 +83,7 @@ import { useQuasar } from 'quasar'
 import { collection, onSnapshot, orderBy, query } from 'firebase/firestore'
 import { db } from 'src/boot/firebase'
 
-const COLLECTION_NAME = 'master_material'
+const COLLECTION_NAME = 'manufactur_master_barang'
 const $q = useQuasar()
 const masterMaterials = ref([])
 const search = ref('')
@@ -91,12 +91,36 @@ const loading = ref(false)
 let unsubscribeRows = null
 
 const columns = [
-  { name: 'kode_barang', label: 'Kode Barang', field: 'kode_barang', align: 'left', sortable: true },
-  { name: 'nama_barang', label: 'Nama Barang', field: 'nama_barang', align: 'left', sortable: true },
+  {
+    name: 'kode_barang',
+    label: 'Kode Barang',
+    field: 'kode_barang',
+    align: 'left',
+    sortable: true,
+  },
+  {
+    name: 'nama_barang',
+    label: 'Nama Barang',
+    field: 'nama_barang',
+    align: 'left',
+    sortable: true,
+  },
   { name: 'kategori', label: 'Tipe', field: 'kategori', align: 'left', sortable: true },
   { name: 'ukuran', label: 'Ukuran', field: 'ukuran', align: 'left', sortable: true },
-  { name: 'stok_tersedia', label: 'Stok Tersedia', field: 'stok_tersedia', align: 'right', sortable: true },
-  { name: 'stok_minimum', label: 'Stok Min.', field: 'stok_minimum', align: 'right', sortable: true },
+  {
+    name: 'stok_tersedia',
+    label: 'Stok Tersedia',
+    field: 'stok_tersedia',
+    align: 'right',
+    sortable: true,
+  },
+  {
+    name: 'stok_minimum',
+    label: 'Stok Min.',
+    field: 'stok_minimum',
+    align: 'right',
+    sortable: true,
+  },
   { name: 'satuan', label: 'Satuan', field: 'satuan', align: 'left' },
   { name: 'supplier_default', label: 'Supplier Default', field: 'supplier_default', align: 'left' },
   { name: 'status', label: 'Status', field: 'status', align: 'left' },
@@ -112,14 +136,18 @@ const getMaterialType = (data = {}) =>
 const normalizeRow = (id, data) => ({
   id,
   kode_barang: data.kode_material || data.kode_barang || data.kode || '-',
-  nama_barang: data.nama_material || data.nama_barang || data.nama_produk || '-',
+  nama_barang: data.nama || data.nama_material || data.nama_barang || data.nama_produk || '-',
   kategori: getMaterialType(data) || '-',
   ukuran: data.ukuran || '-',
   stok_tersedia: Number(data.stok_tersedia ?? data.stok_saat_ini ?? data.stok ?? 0),
   stok_minimum: Number(data.stok_minimum ?? 0),
-  satuan: data.satuan || 'PCS',
-  supplier_default: data.supplier_default || '-',
-  status: data.status || 'AVAILABLE',
+  satuan: data.unit || data.satuan || 'PCS',
+  supplier_default:
+    data.supplier_default ||
+    data.vendor_prices?.[0]?.vendor?.nama ||
+    data.vendor_prices?.[0]?.vendor ||
+    '-',
+  status: data.status || data.status_aktif || 'AVAILABLE',
 })
 
 const isLowStock = (row) => Number(row?.stok_tersedia || 0) <= Number(row?.stok_minimum || 0)
@@ -127,7 +155,12 @@ const isLowStock = (row) => Number(row?.stok_tersedia || 0) <= Number(row?.stok_
 const rows = computed(() => {
   const keyword = search.value.trim().toLowerCase()
   return masterMaterials.value
-    .filter((item) => item.status !== 'Nonaktif' && getMaterialType(item) === 'bahan_jadi')
+    .filter(
+      (item) =>
+        item.status !== 'Nonaktif' &&
+        item.status_aktif !== 'Nonaktif' &&
+        getMaterialType(item) === 'bahan_jadi',
+    )
     .map((item) => normalizeRow(item.id, item))
     .filter((row) => {
       if (!keyword) return true
@@ -141,7 +174,7 @@ const loadRows = () => {
   loading.value = true
   if (unsubscribeRows) unsubscribeRows()
   unsubscribeRows = onSnapshot(
-    query(collection(db, COLLECTION_NAME), orderBy('nama_material', 'asc')),
+    query(collection(db, COLLECTION_NAME), orderBy('nama', 'asc')),
     (snapshot) => {
       masterMaterials.value = snapshot.docs.map((docItem) => ({
         id: docItem.id,

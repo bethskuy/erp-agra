@@ -138,9 +138,7 @@
                     placeholder="Masukkan identitas pihak luar..."
                     :rules="[(val) => !!val || 'Nama penerima wajib diisi']"
                   >
-                    <template v-slot:prepend
-                      ><q-icon name="apartment" color="green-10"
-                    /></template>
+                    <template v-slot:prepend><q-icon name="apartment" color="green-10" /></template>
                   </q-input>
                 </div>
 
@@ -605,7 +603,7 @@ const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 const gudangId = route.params.id || 'UTAMA'
-const MASTER_MATERIAL_COLLECTION = 'master_material'
+const MASTER_BARANG_COLLECTION = 'manufactur_master_barang'
 
 const loading = ref(false)
 const processDone = ref(false)
@@ -704,7 +702,10 @@ const fetchData = async () => {
         gudangName.value = 'Gudang ' + foundProj.nama
         selectedProyek.value = foundProj
         form.lokasi_detail = foundProj.alamat || ''
-        const qSpk = query(collection(db, 'spk_customer_manufaktur'), where('projectId', '==', foundProj.id))
+        const qSpk = query(
+          collection(db, 'spk_customer_manufaktur'),
+          where('projectId', '==', foundProj.id),
+        )
         const spkSnap = await getDocs(qSpk)
         spkOptions.value = spkSnap.docs.map((d) => ({ id: d.id, ...d.data() }))
       }
@@ -742,7 +743,10 @@ const onTipeChange = () => {
   generateSjNumber()
 }
 
-const normalizeMaterialKey = (value) => String(value || '').trim().toLowerCase()
+const normalizeMaterialKey = (value) =>
+  String(value || '')
+    .trim()
+    .toLowerCase()
 
 const findMasterMaterial = (item, masterMaterials) => {
   const keys = [item.id_barang, item.kode_barang, item.nama_barang].map(normalizeMaterialKey)
@@ -750,6 +754,8 @@ const findMasterMaterial = (item, masterMaterials) => {
   return masterMaterials.find((material) =>
     [
       material.id,
+      material.kode,
+      material.nama,
       material.kode_material,
       material.kode_barang,
       material.nama_material,
@@ -762,7 +768,7 @@ const findMasterMaterial = (item, masterMaterials) => {
 
 const buildMaterialIssueMap = async (items) => {
   const materialSnap = await getDocs(
-    query(collection(db, MASTER_MATERIAL_COLLECTION), orderBy('nama_material', 'asc')),
+    query(collection(db, MASTER_BARANG_COLLECTION), orderBy('nama', 'asc')),
   )
   const masterMaterials = materialSnap.docs.map((materialDoc) => ({
     id: materialDoc.id,
@@ -774,7 +780,7 @@ const buildMaterialIssueMap = async (items) => {
   items.forEach((item) => {
     const masterMaterial = findMasterMaterial(item, masterMaterials)
     if (!masterMaterial) {
-      throw new Error(`Material "${item.nama_barang}" tidak ditemukan di master material.`)
+      throw new Error(`Material "${item.nama_barang}" tidak ditemukan di data barang.`)
     }
 
     const qty = Number(item.jumlah || 0)
@@ -786,8 +792,12 @@ const buildMaterialIssueMap = async (items) => {
     }
 
     const allocation = {
-      ref: doc(db, MASTER_MATERIAL_COLLECTION, masterMaterial.id),
-      nama: masterMaterial.nama_material || item.nama_barang,
+      ref: doc(db, MASTER_BARANG_COLLECTION, masterMaterial.id),
+      nama:
+        masterMaterial.nama ||
+        masterMaterial.nama_barang ||
+        masterMaterial.nama_material ||
+        item.nama_barang,
       qty,
     }
     issueMap.set(masterMaterial.id, allocation)
@@ -867,7 +877,7 @@ const prosesBarangKeluar = async () => {
         for (const masterMaterial of materialIssueMap.allocations) {
           const masterSnap = await transaction.get(masterMaterial.ref)
           if (!masterSnap.exists()) {
-            throw new Error(`Master material ${masterMaterial.nama} tidak ditemukan.`)
+            throw new Error(`Data barang ${masterMaterial.nama} tidak ditemukan.`)
           }
 
           const masterData = masterSnap.data()

@@ -248,15 +248,18 @@ import { db } from 'src/boot/firebase'
 const $q = useQuasar()
 const SPK_SUBCOLLECTION = 'spk'
 const PLANNING_COLLECTION = 'planning_produksi_manufaktur'
+const PRODUKSI_COLLECTION = 'manufactur_departemen_produksi'
 
 const rows = ref([])
 const spkRows = ref([])
 const planningRows = ref([])
+const productionRows = ref([])
 const loading = ref(true)
 const search = ref('')
 const statusFilter = ref('all')
 let unsubscribeSpk = null
 let unsubscribePlanning = null
+let unsubscribeProduction = null
 
 const statusOptions = ['Menunggu Produksi', 'On Production', 'QC Process', 'Finished', 'Draft', 'Scheduled', 'On Progress', 'Selesai']
 const statusFilterOptions = [
@@ -292,9 +295,8 @@ const columns = [
 
 const normalizeRow = (row) => {
   const qtyPo = Number(row.qty_target ?? row.qty_po ?? row.total_po ?? 0)
-  const qtyHasilJadi = Number(row.qty_hasil_jadi || 0)
-  const isPlanning = row.source_type === 'planning'
-  const progress = isPlanning ? Number(row.progress || 0) : qtyPo ? Math.min(100, Math.round((qtyHasilJadi / qtyPo) * 100)) : 0
+  const qtyHasilJadi = Number(row.total_hasil_produksi || row.total_progress || row.qty_hasil_jadi || 0)
+  const progress = Number(row.progress_percent ?? row.progress ?? (qtyPo ? Math.min(100, Math.round((qtyHasilJadi / qtyPo) * 100)) : 0))
 
   return {
     ...row,
@@ -304,6 +306,7 @@ const normalizeRow = (row) => {
       row.tujuan_departemen?.nama_departemen ||
       row.departemen_nama ||
       row.departemen?.nama_departemen ||
+      row.departemen?.nama ||
       row.departemen ||
       'Departemen Manufacturing',
     kode_departemen:
@@ -313,12 +316,61 @@ const normalizeRow = (row) => {
     kode_produk: row.kode_produk || row.produk?.kode_produk || '',
     qty_po: qtyPo,
     qty_hasil_jadi: qtyHasilJadi,
-    status_produksi: row.status_planning || row.status || row.status_produksi || 'Menunggu Produksi',
+    status_produksi: row.status_produksi || row.status_planning || row.status || 'Menunggu Produksi',
     progress,
   }
 }
 
-const monitoringRows = computed(() => rows.value.map(normalizeRow))
+const normalizeItem = (item = {}, index = 0) => {
+  const qty = Number(item.qty ?? item.quantity ?? item.qty_target ?? item.qty_po ?? 0)
+  const harga = Number(item.harga ?? item.price ?? item.harga_satuan ?? item.unit_price ?? 0)
+  const namaProduk =
+    item.nama_produk ||
+    item.nama_barang ||
+    item.deskripsi ||
+    item.produk ||
+    item.product ||
+    `Item ${index + 1}`
+
+  return {
+    ...item,
+    item_id: item.item_id || item.id || `item-${index + 1}`,
+    nama_produk: namaProduk,
+    deskripsi: item.deskripsi || namaProduk,
+    qty,
+    satuan: item.satuan || item.unit || 'Unit',
+    harga,
+    subtotal: Number(item.subtotal ?? item.total ?? qty * harga),
+    produk_id: item.produk_id || item.product_id || item.id_produk || null,
+    kode_produk: item.kode_produk || item.kode_barang || '',
+  }
+}
+
+const expandRowItems = (row) => {
+  if (row.item_id || !Array.isArray(row.items) || row.items.length <= 1) return [row]
+
+  return row.items.map((rawItem, index) => {
+    const item = normalizeItem(rawItem, index)
+    return {
+      ...row,
+      id: `${row.id}-${item.item_id}`,
+      item_id: item.item_id,
+      item_index: index,
+      produk_id: item.produk_id || row.produk_id || null,
+      kode_produk: item.kode_produk || row.kode_produk || '',
+      nama_produk: item.nama_produk || row.nama_produk || '',
+      item_produksi: item.nama_produk || row.item_produksi || '',
+      qty_target: Number(item.qty || 0),
+      qty_po: Number(item.qty || 0),
+      qty: Number(item.qty || 0),
+      satuan: item.satuan || row.satuan || '',
+      harga: Number(item.harga || 0),
+      subtotal: Number(item.subtotal || 0),
+    }
+  })
+}
+
+const monitoringRows = computed(() => rows.value.flatMap(expandRowItems).map(normalizeRow))
 
 const filteredRows = computed(() => {
   const keyword = search.value.trim().toLowerCase()
@@ -420,18 +472,20 @@ const timelineItems = computed(() =>
 )
 
 const statusColor = (status) => {
-  if (status === 'Finished') return 'positive'
-  if (status === 'On Production') return 'primary'
+  if (status === 'Finished' || status === 'Selesai') return 'positive'
+  if (status === 'On Production' || status === 'Proses') return 'primary'
   if (status === 'QC Process') return 'indigo-7'
-  if (status === 'Menunggu Produksi') return 'orange-9'
+  if (status === 'Menunggu Produksi' || status === 'Belum Mulai') return 'orange-9'
+  if (status === 'Tertunda') return 'warning'
+  if (status === 'Batal') return 'negative'
   return 'blue-grey-6'
 }
 
 const statusIcon = (status) => {
-  if (status === 'Finished') return 'task_alt'
-  if (status === 'On Production') return 'precision_manufacturing'
+  if (status === 'Finished' || status === 'Selesai') return 'task_alt'
+  if (status === 'On Production' || status === 'Proses') return 'precision_manufacturing'
   if (status === 'QC Process') return 'fact_check'
-  if (status === 'Menunggu Produksi') return 'pending_actions'
+  if (status === 'Menunggu Produksi' || status === 'Belum Mulai') return 'pending_actions'
   return 'radio_button_unchecked'
 }
 
@@ -481,8 +535,23 @@ const listenPlanningProduksi = (callback, errorCallback) =>
     errorCallback,
   )
 
+const listenProductionHistory = (callback, errorCallback) =>
+  onSnapshot(
+    query(collection(db, PRODUKSI_COLLECTION), orderBy('created_at', 'desc')),
+    (snapshot) => {
+      callback(
+        snapshot.docs.map((productionDoc) => ({
+          id: productionDoc.id,
+          source_type: productionDoc.data().source_type || 'production',
+          ...productionDoc.data(),
+        })),
+      )
+    },
+    errorCallback,
+  )
+
 const syncRows = () => {
-  rows.value = [...spkRows.value, ...planningRows.value]
+  rows.value = [...productionRows.value, ...spkRows.value, ...planningRows.value]
 }
 
 onMounted(() => {
@@ -512,11 +581,25 @@ onMounted(() => {
       $q.notify({ type: 'negative', message: 'Gagal memuat monitoring planning produksi realtime.' })
     },
   )
+
+  unsubscribeProduction = listenProductionHistory(
+    (nextRows) => {
+      productionRows.value = nextRows
+      syncRows()
+      loading.value = false
+    },
+    (error) => {
+      console.error(error)
+      loading.value = false
+      $q.notify({ type: 'negative', message: 'Gagal memuat histori produksi realtime.' })
+    },
+  )
 })
 
 onUnmounted(() => {
   if (unsubscribeSpk) unsubscribeSpk()
   if (unsubscribePlanning) unsubscribePlanning()
+  if (unsubscribeProduction) unsubscribeProduction()
 })
 </script>
 

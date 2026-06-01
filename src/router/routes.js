@@ -268,14 +268,10 @@ const routes = [
         component: () => import('pages/manufaktur/Master/DataSatuan/MasterSatuanPage.vue'),
       },
       {
-        path: 'master-produksi/material',
-        name: 'manufaktur-master-produksi-material',
-        component: () => import('pages/manufaktur/Master/MasterMaterialPage.vue'),
-      },
-      {
-        path: 'master-produksi/produk',
-        name: 'manufaktur-master-produksi-produk',
-        component: () => import('pages/manufaktur/Master/DataProduk/MasterProdukPage.vue'),
+        path: 'master-material',
+        alias: '/manufactur/master-material',
+        name: 'manufaktur-master-material',
+        component: () => import('pages/manufaktur/Master/DataProduk/MasterMaterialPage.vue'),
       },
       {
         path: 'master-produksi/tahapan-fabrikasi',
@@ -336,6 +332,11 @@ const routes = [
         path: 'ppic/material-requirement',
         name: 'manufaktur-ppic-material-requirement',
         component: () => import('pages/manufaktur/PPIC/MaterialRequirementPage.vue'),
+      },
+      {
+        path: 'ppic/stock-forecast',
+        name: 'manufaktur-ppic-stock-forecast',
+        component: () => import('pages/manufaktur/PPIC/StockForecastPage.vue'),
       },
 
       // --- SECTION 3: PRODUKSI ---
@@ -454,11 +455,6 @@ const routes = [
         path: 'warehouse/finished-goods',
         name: 'warehouse-finished-goods',
         component: () => import('pages/manufaktur/warehouse/FinishedGoodsPage.vue'),
-      },
-      {
-        path: 'warehouse/stock-forecast',
-        name: 'warehouse-stock-forecast',
-        component: () => import('pages/manufaktur/warehouse/StockForecastPage.vue'),
       },
       {
         path: 'warehouse/bahan-mentah',
