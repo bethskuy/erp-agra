@@ -1011,9 +1011,9 @@ onUnmounted(() => {
 /* Document Preview Paper - optimized for A4 */
 .letter-paper {
   background: white;
-  width: 210mm;
-  min-height: 296mm;
-  padding: 15mm 15mm;
+  width: min(210mm, 100%);
+  min-height: 297mm;
+  padding: 15mm;
   margin: 0 auto;
   color: #1a1a1a;
   line-height: 1.4;
@@ -1103,14 +1103,14 @@ onUnmounted(() => {
 .final-pro-table th {
   background: #1a237e !important;
   color: white !important;
-  padding: 10px 8px;
+  padding: 8px 7px;
   font-size: 10px;
   font-weight: 900;
   border: 1px solid white;
   text-align: center;
 }
 .final-pro-table td {
-  padding: 8px 8px;
+  padding: 7px;
   border: 1px solid #ddd;
   font-size: 11.5px;
   color: #222;
@@ -1207,6 +1207,56 @@ onUnmounted(() => {
   margin-top: 4px;
 }
 
+.terms-container,
+.signature-container,
+.final-sign-space {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+/* Mode khusus saat export PDF: lebih padat, aman overflow */
+:global(body.is-exporting) .letter-paper {
+  width: 210mm;
+  min-height: auto;
+  padding: 12mm;
+  overflow: visible;
+  box-shadow: none;
+}
+:global(body.is-exporting) .letter-paper .final-kop-img {
+  height: 62px;
+}
+:global(body.is-exporting) .letter-paper .final-pt-name {
+  font-size: 22px;
+}
+:global(body.is-exporting) .letter-paper .quotation-title-pro {
+  font-size: 24px;
+}
+:global(body.is-exporting) .letter-paper .final-divider {
+  margin-top: 10px;
+}
+:global(body.is-exporting) .letter-paper .final-pro-table th {
+  padding: 7px 6px;
+  font-size: 9.5px;
+}
+:global(body.is-exporting) .letter-paper .final-pro-table td {
+  padding: 6px;
+  font-size: 11px;
+}
+:global(body.is-exporting) .letter-paper .final-sign-space {
+  height: 110px;
+}
+
+/* Tighten spacing utility Quasar hanya saat export */
+:global(body.is-exporting) .letter-paper :deep(.q-mt-lg) {
+  margin-top: 10px !important;
+}
+:global(body.is-exporting) .letter-paper :deep(.q-mt-xl) {
+  margin-top: 14px !important;
+}
+:global(body.is-exporting) .letter-paper :deep(.q-mb-md) {
+  margin-bottom: 10px !important;
+}
+
 .shrink {
   flex: 0 0 auto;
 }
@@ -1300,7 +1350,7 @@ onUnmounted(() => {
     transform: scale(1) !important;
     margin: 0 !important;
     width: 210mm !important;
-    height: 297mm !important;
+    min-height: 297mm !important;
     padding: 15mm !important;
     page-break-after: always;
     overflow: visible !important;
