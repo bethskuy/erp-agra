@@ -66,6 +66,22 @@
                   <q-input v-model="form.satuan" outlined label="Satuan" />
                 </div>
                 <div class="col-12 col-md-6 col-xl-4">
+                  <q-input
+                    v-model="form.departemen_terkait"
+                    outlined
+                    label="Departemen Terkait"
+                    hint="Contoh: Welding, Painting, Fabrikasi"
+                  />
+                </div>
+                <div class="col-12 col-md-6 col-xl-4">
+                  <q-input
+                    v-model="form.kategori_produk"
+                    outlined
+                    label="Kategori Produk"
+                    hint="Contoh: metal, finishing, struktur"
+                  />
+                </div>
+                <div class="col-12 col-md-6 col-xl-4">
                   <q-select
                     v-model="form.status"
                     :options="statusOptions"
@@ -244,6 +260,8 @@ const emptyForm = () => ({
   parameter: '',
   toleransi: '',
   satuan: '',
+  departemen_terkait: '',
+  kategori_produk: '',
   status: 'Aktif',
 })
 
@@ -260,6 +278,8 @@ const columns = [
   { name: 'parameter', label: 'Parameter', field: 'parameter', align: 'left', sortable: true },
   { name: 'toleransi', label: 'Toleransi', field: 'toleransi', align: 'left', sortable: true },
   { name: 'satuan', label: 'Satuan', field: 'satuan', align: 'left', sortable: true },
+  { name: 'departemen_terkait', label: 'Departemen', field: 'departemen_terkait', align: 'left', sortable: true },
+  { name: 'kategori_produk', label: 'Kategori Produk', field: 'kategori_produk', align: 'left', sortable: true },
   { name: 'status', label: 'Status', field: 'status', align: 'left', sortable: true },
   { name: 'aksi', label: 'Aksi', field: 'aksi', align: 'center' },
 ]
@@ -279,10 +299,18 @@ const filteredRows = computed(() => {
     const matchesStatus = statusFilter.value === 'Semua' || row.status === statusFilter.value
     const matchesSearch =
       !term ||
-      [row.kode_qc, row.nama_pengecekan, row.parameter, row.toleransi, row.satuan]
-        .join(' ')
-        .toLowerCase()
-        .includes(term)
+      [
+        row.kode_qc,
+        row.nama_pengecekan,
+        row.parameter,
+        row.toleransi,
+        row.satuan,
+        row.departemen_terkait,
+        row.kategori_produk,
+      ]
+      .join(' ')
+      .toLowerCase()
+      .includes(term)
 
     return matchesStatus && matchesSearch
   })
@@ -310,6 +338,8 @@ const payloadFromForm = () => ({
   parameter: form.value.parameter,
   toleransi: form.value.toleransi,
   satuan: form.value.satuan,
+  departemen_terkait: form.value.departemen_terkait,
+  kategori_produk: form.value.kategori_produk,
   status: form.value.status,
 })
 

@@ -18,7 +18,9 @@
 
         <div class="q-gutter-sm row items-center no-wrap app-header-actions">
           <q-btn round flat icon="notifications" class="header-icon-btn">
-            <q-badge color="red" floating>2</q-badge>
+            <q-badge v-if="newPurchaseRequestCount > 0" color="red" floating>
+              {{ newPurchaseRequestCount }}
+            </q-badge>
           </q-btn>
 
           <q-btn round flat icon="apps" class="header-icon-btn">
@@ -801,8 +803,10 @@ const backgroundRiveSrc = '/animations/bg.riv'
 const bgRiveCanvas = ref(null)
 const leftDrawerOpen = ref(false)
 const pendingCount = ref(0)
+const newPurchaseRequestCount = ref(0)
 const userData = ref(null)
 let unsub = null
+let unsubPurchaseRequest = null
 let unsubUser = null
 let bgRive = null
 let bgRivePlaybackTarget = null
@@ -907,6 +911,15 @@ onMounted(() => {
     pendingCount.value = snap.size
   })
 
+  const qPurchaseRequest = query(
+    collection(db, 'manufactur_gudang_notifications'),
+    where('type', '==', 'PR_BARU_DARI_PPIC'),
+    where('is_read_gudang', '==', 0),
+  )
+  unsubPurchaseRequest = onSnapshot(qPurchaseRequest, (snap) => {
+    newPurchaseRequestCount.value = snap.size
+  })
+
   const userEmail = authStore.user?.email
   if (userEmail) {
     const qUser = query(collection(db, 'karyawan'), where('email', '==', userEmail))
@@ -919,6 +932,7 @@ onMounted(() => {
 onUnmounted(() => {
   destroyBackgroundRive()
   if (unsub) unsub()
+  if (unsubPurchaseRequest) unsubPurchaseRequest()
   if (unsubUser) unsubUser()
 })
 </script>

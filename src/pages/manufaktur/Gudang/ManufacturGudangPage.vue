@@ -189,6 +189,13 @@
                 <q-item-label class="text-weight-bold">Purchase Request (PR)</q-item-label>
                 <q-item-label caption>Pengajuan pembelian material baru</q-item-label>
               </q-item-section>
+              <q-item-section side v-if="newPurchaseRequestCount > 0">
+                <q-badge
+                  color="negative"
+                  rounded
+                  :label="`${newPurchaseRequestCount} PR Baru dari PPIC`"
+                />
+              </q-item-section>
             </q-item>
           </q-list>
         </q-btn-dropdown>
@@ -471,10 +478,12 @@ const kategoriBarang = ref([])
 const masterBarang = ref([])
 const filteredBarangOptions = ref([])
 const pendingRequestCount = ref(0)
+const newPurchaseRequestCount = ref(0)
 
 const formStok = ref({ kategori: null, barang: null, jumlah: null, satuan: '', keterangan: '' })
 
 let unsubPermintaan = null
+let unsubPurchaseRequest = null
 let unsubStok = null
 let unsubMasterBarang = null
 let unsubKategoriBarang = null
@@ -768,6 +777,18 @@ const listenPermintaan = () => {
   })
 }
 
+const listenNewPurchaseRequests = () => {
+  if (unsubPurchaseRequest) unsubPurchaseRequest()
+  const q = query(
+    collection(db, 'manufactur_gudang_notifications'),
+    where('type', '==', 'PR_BARU_DARI_PPIC'),
+    where('is_read_gudang', '==', 0),
+  )
+  unsubPurchaseRequest = onSnapshot(q, (snap) => {
+    newPurchaseRequestCount.value = snap.size
+  })
+}
+
 watch(selectedGudang, (newVal) => {
   if (unsubStok) unsubStok()
   if (newVal) {
@@ -787,10 +808,12 @@ onMounted(() => {
   fetchKategoriBarang()
   fetchDataBarang()
   listenPermintaan()
+  listenNewPurchaseRequests()
 })
 
 onUnmounted(() => {
   if (unsubPermintaan) unsubPermintaan()
+  if (unsubPurchaseRequest) unsubPurchaseRequest()
   if (unsubStok) unsubStok()
   if (unsubMasterBarang) unsubMasterBarang()
   if (unsubKategoriBarang) unsubKategoriBarang()

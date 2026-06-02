@@ -207,7 +207,7 @@
                 :color="statusColor(props.row.status_produksi)"
                 class="status-chip"
               >
-                {{ props.row.status_produksi || '-' }}
+                {{ productionStatusLabel(props.row.status_produksi) }}
               </q-chip>
             </q-td>
             <q-td key="progress" :props="props">
@@ -224,6 +224,23 @@
                   track-color="green-1"
                 />
               </div>
+            </q-td>
+            <q-td key="aksi" :props="props" class="text-center" @click.stop>
+              <q-btn
+                v-if="canFinishProduction(props.row)"
+                unelevated
+                dense
+                rounded
+                no-caps
+                color="green-10"
+                icon="task_alt"
+                label="Produksi Selesai"
+                :loading="finishingId === props.row.id"
+                @click="finishProduction(props.row)"
+              />
+              <q-badge v-else color="grey-6" class="q-px-sm">
+                {{ productionStatusLabel(props.row.status_produksi) }}
+              </q-badge>
             </q-td>
           </q-tr>
         </template>
@@ -242,13 +259,26 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { date, useQuasar } from 'quasar'
-import { collection, collectionGroup, onSnapshot, orderBy, query } from 'firebase/firestore'
+import {
+  addDoc,
+  collection,
+  collectionGroup,
+  doc,
+  getDocs,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  updateDoc,
+  where,
+} from 'firebase/firestore'
 import { db } from 'src/boot/firebase'
 
 const $q = useQuasar()
 const SPK_SUBCOLLECTION = 'spk'
 const PLANNING_COLLECTION = 'planning_produksi_manufaktur'
 const PRODUKSI_COLLECTION = 'manufactur_departemen_produksi'
+const QC_COLLECTION = 'qc_produksi_manufaktur'
 
 const rows = ref([])
 const spkRows = ref([])
@@ -257,11 +287,25 @@ const productionRows = ref([])
 const loading = ref(true)
 const search = ref('')
 const statusFilter = ref('all')
+const finishingId = ref(null)
 let unsubscribeSpk = null
 let unsubscribePlanning = null
 let unsubscribeProduction = null
 
-const statusOptions = ['Menunggu Produksi', 'On Production', 'QC Process', 'Finished', 'Draft', 'Scheduled', 'On Progress', 'Selesai']
+const statusOptions = [
+  'Menunggu Produksi',
+  'On Production',
+  'QC Process',
+  'Finished',
+  'Draft',
+  'Scheduled',
+  'On Progress',
+  'Selesai',
+  'Menunggu QC',
+  'QC Approved',
+  'QC Reject',
+  'Rework',
+]
 const statusFilterOptions = [
   { label: 'Semua Status', value: 'all' },
   ...statusOptions.map((status) => ({ label: status, value: status })),
@@ -291,6 +335,7 @@ const columns = [
     sortable: true,
   },
   { name: 'progress', align: 'left', label: 'Progress', field: 'progress', sortable: true },
+  { name: 'aksi', align: 'center', label: 'Aksi' },
 ]
 
 const normalizeRow = (row) => {
@@ -314,9 +359,11 @@ const normalizeRow = (row) => {
     customer_nama: row.customer_nama || row.customer?.nama || row.customer || '',
     nama_produk: row.nama_produk || row.item_produksi || row.produk?.nama_produk || '',
     kode_produk: row.kode_produk || row.produk?.kode_produk || '',
+    no_spk: row.no_spk || row.nomor_spk || '',
     qty_po: qtyPo,
     qty_hasil_jadi: qtyHasilJadi,
     status_produksi: row.status_produksi || row.status_planning || row.status || 'Menunggu Produksi',
+    operator: row.operator || row.operator_nama || row.created_by || row.createdBy || row.updatedBy || '',
     progress,
   }
 }
@@ -376,7 +423,11 @@ const filteredRows = computed(() => {
   const keyword = search.value.trim().toLowerCase()
 
   return monitoringRows.value.filter((row) => {
-    const matchesStatus = statusFilter.value === 'all' || row.status_produksi === statusFilter.value
+    const normalizedStatus = normalizeStatus(row.status_produksi)
+    const matchesStatus =
+      statusFilter.value === 'all' ||
+      normalizedStatus === normalizeStatus(statusFilter.value) ||
+      (statusFilter.value === 'Menunggu Produksi' && normalizedStatus === 'menunggu produksi')
     const matchesSearch =
       !keyword ||
       [
@@ -464,28 +515,64 @@ const departmentSummary = computed(() => {
 const timelineItems = computed(() =>
   monitoringRows.value.slice(0, 6).map((row) => ({
     id: row.id,
-    title: `${row.nama_departemen} - ${row.status_produksi || '-'}`,
+    title: `${row.nama_departemen} - ${productionStatusLabel(row.status_produksi)}`,
     subtitle: `${formatDate(row.tanggal)} | PO ${row.nomor_po || '-'}`,
     caption: `${row.customer_nama || 'Customer belum tersedia'} | Qty ${formatNumber(row.qty_hasil_jadi)} ${row.satuan || ''} | Progress ${row.progress}%`,
     status_produksi: row.status_produksi,
   })),
 )
 
+const normalizeStatus = (status) => {
+  const normalized = String(status || '').trim().toLowerCase()
+  if (['qc process', 'qc_process', 'menunggu qc', 'pending_qc'].includes(normalized)) return 'pending_qc'
+  if (['qc approved', 'qc_approved', 'approved'].includes(normalized)) return 'qc_approved'
+  if (['qc reject', 'qc_reject', 'qc_rejected', 'reject'].includes(normalized)) return 'qc_reject'
+  if (['qc rework', 'qc_rework', 'rework'].includes(normalized)) return 'rework'
+  if (['finished', 'selesai'].includes(normalized)) return 'selesai'
+  if (['on production', 'proses'].includes(normalized)) return 'on production'
+  if (['menunggu produksi', 'belum mulai'].includes(normalized)) return 'menunggu produksi'
+  return normalized
+}
+
+const productionStatusLabel = (status) => {
+  const normalized = normalizeStatus(status)
+  if (['finished', 'selesai'].includes(normalized)) return 'Selesai'
+  if (['on production', 'proses'].includes(normalized)) return 'On Production'
+  if (normalized === 'qc process') return 'QC Process'
+  if (['menunggu produksi', 'belum mulai'].includes(normalized)) return 'Menunggu Produksi'
+  if (normalized === 'pending_qc' || normalized === 'menunggu qc') return 'Menunggu QC'
+  if (normalized === 'qc_approved') return 'QC Approved'
+  if (normalized === 'qc_reject') return 'QC Reject'
+  if (normalized === 'rework') return 'Rework'
+  if (normalized === 'tertunda') return 'Tertunda'
+  if (normalized === 'batal') return 'Batal'
+  return status || '-'
+}
+
 const statusColor = (status) => {
-  if (status === 'Finished' || status === 'Selesai') return 'positive'
-  if (status === 'On Production' || status === 'Proses') return 'primary'
-  if (status === 'QC Process') return 'indigo-7'
-  if (status === 'Menunggu Produksi' || status === 'Belum Mulai') return 'orange-9'
-  if (status === 'Tertunda') return 'warning'
-  if (status === 'Batal') return 'negative'
+  const normalized = normalizeStatus(status)
+  if (['finished', 'selesai'].includes(normalized)) return 'positive'
+  if (['on production', 'proses'].includes(normalized)) return 'primary'
+  if (normalized === 'qc process') return 'indigo-7'
+  if (['menunggu produksi', 'belum mulai'].includes(normalized)) return 'orange-9'
+  if (normalized === 'pending_qc' || normalized === 'menunggu qc') return 'orange-9'
+  if (normalized === 'qc_approved') return 'positive'
+  if (normalized === 'qc_reject') return 'negative'
+  if (normalized === 'rework') return 'purple-7'
+  if (normalized === 'tertunda') return 'warning'
+  if (normalized === 'batal') return 'negative'
   return 'blue-grey-6'
 }
 
 const statusIcon = (status) => {
-  if (status === 'Finished' || status === 'Selesai') return 'task_alt'
-  if (status === 'On Production' || status === 'Proses') return 'precision_manufacturing'
-  if (status === 'QC Process') return 'fact_check'
-  if (status === 'Menunggu Produksi' || status === 'Belum Mulai') return 'pending_actions'
+  const normalized = normalizeStatus(status)
+  if (['finished', 'selesai'].includes(normalized)) return 'task_alt'
+  if (['on production', 'proses'].includes(normalized)) return 'precision_manufacturing'
+  if (normalized === 'qc process') return 'fact_check'
+  if (['menunggu produksi', 'belum mulai', 'pending_qc', 'menunggu qc'].includes(normalized)) return 'pending_actions'
+  if (normalized === 'qc_approved') return 'task_alt'
+  if (normalized === 'qc_reject') return 'cancel'
+  if (normalized === 'rework') return 'restart_alt'
   return 'radio_button_unchecked'
 }
 
@@ -494,6 +581,74 @@ const progressColor = (value) => {
   if (value >= 60) return 'green-7'
   if (value >= 30) return 'orange-9'
   return 'blue-grey-6'
+}
+
+const canFinishProduction = (row) =>
+  Number(row.qty_hasil_jadi || 0) > 0 &&
+  !['pending_qc', 'qc_approved', 'qc_reject', 'rework', 'qc process'].includes(normalizeStatus(row.status_produksi))
+
+const buildQcQueuePayload = (row) => ({
+  id: row.id,
+  production_source_id: row.id,
+  source_type: row.source_type || 'monitoring',
+  no_spk: row.no_spk || row.nomor_spk || '',
+  nomor_spk: row.nomor_spk || row.no_spk || '',
+  nama_produk: row.nama_produk || '',
+  kode_produk: row.kode_produk || '',
+  produk_id: row.produk_id || row.id_produk || '',
+  departemen_asal: row.departemen_asal || row.nama_departemen || '',
+  departemen_id: row.departemen_id || row.departemen_path_id || row.tujuan_departemen?.id || '',
+  departemen_terkait: row.departemen_terkait || row.nama_departemen || '',
+  kategori_produk: row.kategori_produk || row.kategori || '',
+  qty_produksi: Number(row.qty_hasil_jadi || row.qty_produksi || 0),
+  satuan: row.satuan || 'Unit',
+  operator: row.operator || row.operator_nama || row.created_by || row.createdBy || '',
+  tanggal_finish: serverTimestamp(),
+  status_qc: 'pending_qc',
+  status_produksi: 'pending_qc',
+  status: 'pending_qc',
+  qty_passed: 0,
+  qty_rework: 0,
+  qty_reject: 0,
+  customer_nama: row.customer_nama || '',
+  nomor_po: row.nomor_po || '',
+  created_at: serverTimestamp(),
+  updated_at: serverTimestamp(),
+})
+
+const finishProduction = async (row) => {
+  finishingId.value = row.id
+  try {
+    const duplicateSnap = await getDocs(
+      query(collection(db, QC_COLLECTION), where('production_source_id', '==', row.id)),
+    )
+    const hasOpenQueue = duplicateSnap.docs.some((qcDoc) =>
+      ['menunggu_qc', 'pending_qc', 'qc_process'].includes(normalizeStatus(qcDoc.data().status_qc)),
+    )
+    if (hasOpenQueue) {
+      $q.notify({ type: 'warning', message: 'Antrean QC untuk produksi ini sudah ada.' })
+      return
+    }
+
+    await addDoc(collection(db, QC_COLLECTION), buildQcQueuePayload(row))
+
+    if (row.source_type === 'production') {
+      await updateDoc(doc(db, PRODUKSI_COLLECTION, row.id), {
+        status_produksi: 'pending_qc',
+        status: 'pending_qc',
+        status_qc: 'pending_qc',
+        finished_at: serverTimestamp(),
+        updated_at: serverTimestamp(),
+      })
+    }
+
+    $q.notify({ type: 'positive', message: 'Produksi selesai dan antrean QC berhasil dibuat.' })
+  } catch (error) {
+    console.error('[Monitoring->QC] Gagal membuat antrean QC', { row, error })
+    $q.notify({ type: 'negative', message: 'Gagal membuat antrean QC produksi.' })
+  } finally {
+    finishingId.value = null
+  }
 }
 
 const formatNumber = (value) => Number(value || 0).toLocaleString('id-ID')

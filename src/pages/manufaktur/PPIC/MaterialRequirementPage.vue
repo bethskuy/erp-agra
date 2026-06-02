@@ -392,20 +392,27 @@ import {
   addDoc,
   collection,
   doc,
+  getDocs,
   onSnapshot,
   orderBy,
   query,
   serverTimestamp,
   updateDoc,
+  where,
+  writeBatch,
 } from 'firebase/firestore'
-import { db } from 'src/boot/firebase'
+import { auth, db } from 'src/boot/firebase'
 
 const COLLECTION_NAME = 'material_requirement_manufaktur'
 const MASTER_BARANG_COLLECTION = 'manufactur_master_barang'
-const PURCHASE_REQUEST_COLLECTION = 'permintaan_barang_manufaktur'
-const PURCHASE_REQUEST_TABLE_COLLECTION = 'purchase_request'
+const PURCHASE_REQUESTS_COLLECTION = 'purchase_requests'
+const PURCHASE_REQUEST_ITEMS_COLLECTION = 'purchase_request_items'
+const PURCHASE_REQUEST_MIRROR_COLLECTION = 'manufactur_purchase_request'
+const GUDANG_NOTIFICATION_COLLECTION = 'manufactur_gudang_notifications'
 const DEFAULT_PR_STATUS = 'Belum Diajukan'
 const PENDING_PR_STATUS = 'Menunggu ACC Atasan'
+const WAITING_PR_REVIEW_STATUS = 'waiting_pr_review'
+const DRAFT_PR_STATUS = 'draft'
 const statusOptions = [
   { label: 'Material Ready', value: 'Material Ready' },
   { label: 'Material Kurang', value: 'Material Kurang' },
@@ -551,7 +558,10 @@ const deriveStatus = (required, available) =>
 
 const canSendToWarehousePr = (row) =>
   row?.status_material === 'Material Kurang' &&
-  (row.status_pr || DEFAULT_PR_STATUS) === DEFAULT_PR_STATUS
+  !row.draft_queue_id &&
+  !row.purchase_request_id &&
+  !row.pr_id &&
+  !['Disetujui', 'Ditolak'].includes(row.status_pr)
 
 const statusLabel = (status) => {
   const option = statusOptions.find((item) => item.value === status)
@@ -569,6 +579,7 @@ const statusColor = (status) => {
 const statusPrColor = (status = DEFAULT_PR_STATUS) => {
   const colors = {
     'Belum Diajukan': 'grey-7',
+    'Menunggu Review Gudang': 'orange-9',
     'Menunggu ACC Atasan': 'orange-9',
     Disetujui: 'positive',
     Ditolak: 'negative',
@@ -599,6 +610,20 @@ const buildPayload = () => {
       selectedMaterial.value?.kode_material ||
       form.value.kode_material,
     satuan: selectedMaterial.value?.unit || selectedMaterial.value?.satuan || form.value.satuan,
+    supplier_id:
+      selectedMaterial.value?.supplier_id ||
+      selectedMaterial.value?.supplier_default_id ||
+      getBestVendor(selectedMaterial.value)?.id ||
+      '',
+    supplier:
+      selectedMaterial.value?.supplier ||
+      selectedMaterial.value?.supplier_nama ||
+      selectedMaterial.value?.supplier_default ||
+      getBestVendor(selectedMaterial.value)?.nama ||
+      '',
+    estimasi_harga:
+      Number(selectedMaterial.value?.harga_terendah || selectedMaterial.value?.estimasi_harga || 0) ||
+      Number(getBestVendor(selectedMaterial.value)?.harga || 0),
     kategori_material: selectedMaterial.value?.kategori || '',
     ukuran_material: selectedMaterial.value?.ukuran || '',
     qty_kebutuhan: qtyKebutuhan,
@@ -608,6 +633,31 @@ const buildPayload = () => {
     status_pr: form.value.status_pr || DEFAULT_PR_STATUS,
     updated_at: serverTimestamp(),
   }
+}
+
+const getBestVendor = (material) => {
+  const prices = Array.isArray(material?.vendor_prices) ? material.vendor_prices : []
+  return prices
+    .filter((item) => item?.vendor || item?.vendor_id || item?.supplier_id)
+    .map((item) => ({
+      id: item.vendor?.id || item.vendor_id || item.supplier_id || '',
+      nama: item.vendor?.nama || item.vendor_nama || item.supplier_nama || item.supplier || '',
+      harga: Number(item.harga || item.harga_terendah || item.estimasi_harga || 0),
+    }))
+    .sort((a, b) => (a.harga || Number.MAX_SAFE_INTEGER) - (b.harga || Number.MAX_SAFE_INTEGER))[0]
+}
+
+const removeUndefinedFields = (value) => {
+  if (Array.isArray(value)) return value.map(removeUndefinedFields)
+  const isPlainObject =
+    value &&
+    typeof value === 'object' &&
+    (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null)
+  if (!isPlainObject) return value
+  return Object.entries(value).reduce((next, [key, entry]) => {
+    if (entry !== undefined) next[key] = removeUndefinedFields(entry)
+    return next
+  }, {})
 }
 
 const openCreateDialog = () => {
@@ -651,58 +701,230 @@ const saveRequirement = async () => {
   }
 }
 
-const buildWarehousePrPayload = (row) => ({
-  nomor: `PR-${Date.now()}`,
-  no_reff: row.nomor_po || row.nomor_wo || '',
-  nomor_po: row.nomor_po || row.nomor_wo || '',
-  pemohon: 'PPIC',
-  id_gudang: 'UTAMA',
-  gudang_tujuan: 'Gudang Utama',
-  status: 'Pending',
-  status_pr: PENDING_PR_STATUS,
-  gudang_status: 'PR_PENDING_APPROVAL',
-  workflow_status: 'PENDING_APPROVAL',
-  approval_sync_status: 'Pending',
-  source: 'MATERIAL_REQUIREMENT',
-  material_requirement_id: row.id,
-  items: [
-    {
-      id_barang: row.material_id || '',
-      kode_barang: row.kode_material || '',
-      nama_barang: row.material || '',
-      qty: Number(row.qty_kurang || 0),
-      jumlah: Number(row.qty_kurang || 0),
-      satuan: row.satuan || '',
-      keterangan: `Kekurangan material dari PO ${row.nomor_po || row.nomor_wo || '-'}`,
+const buildPurchaseRequestDraft = (row) => {
+  const prRef = doc(collection(db, PURCHASE_REQUESTS_COLLECTION))
+  const itemRef = doc(collection(db, PURCHASE_REQUEST_ITEMS_COLLECTION))
+  const notificationRef = doc(collection(db, GUDANG_NOTIFICATION_COLLECTION))
+  const qtyKebutuhan = Number(row.qty_kebutuhan || 0)
+  const qtyKurang = Number(row.qty_kurang || calculateShortage(row.qty_kebutuhan, row.stok_tersedia) || 0)
+  const estimasiHarga = Number(row.estimasi_harga || row.harga_estimasi || 0)
+  const prNumber = `DRAFT-PR/MFG/${Date.now().toString().slice(-6)}`
+  const poCustomer = row.nomor_po || row.nomor_wo || row.po_customer || ''
+  const customer = row.customer || row.nama_customer || row.customer_nama || row.produk || ''
+  const note =
+    row.note ||
+    row.catatan ||
+    `Draft PR otomatis dari Material Requirement PPIC untuk PO ${poCustomer || '-'}.`
+  const createdByPpic = {
+    uid: auth.currentUser?.uid || '',
+    email: auth.currentUser?.email || '',
+    nama: auth.currentUser?.displayName || auth.currentUser?.email || 'PPIC',
+  }
+
+  const itemBasePayload = {
+    id: itemRef.id,
+    purchase_request_id: prRef.id,
+    pr_id: prRef.id,
+    material_requirement_id: row.id,
+    source: 'MATERIAL_REQUIREMENT',
+    source_module: 'PPIC',
+    material_id: row.material_id || '',
+    id_barang: row.material_id || '',
+    kode_material: row.kode_material || '',
+    kode_barang: row.kode_material || '',
+    material: row.material || '',
+    nama_barang: row.material || '',
+    barang: {
+      id: row.material_id || '',
+      nama: row.material || '',
+      unit: row.satuan || '',
     },
-  ],
-  created_at: serverTimestamp(),
-  updated_at: serverTimestamp(),
-})
+    qty_kebutuhan: qtyKebutuhan,
+    qty_kurang: qtyKurang,
+    qty: qtyKurang,
+    jumlah: qtyKurang,
+    satuan: row.satuan || row.unit || '',
+    unit: row.satuan || row.unit || '',
+    supplier_id: row.supplier_id || '',
+    supplier: row.supplier || row.supplier_nama || '',
+    supplier_nama: row.supplier || row.supplier_nama || '',
+    customer,
+    po_customer: poCustomer,
+    nomor_po: poCustomer,
+    note,
+    catatan: note,
+    estimasi_harga: estimasiHarga,
+    total: qtyKurang * estimasiHarga,
+    status_workflow: WAITING_PR_REVIEW_STATUS,
+  }
+  const itemPayload = removeUndefinedFields({
+    ...itemBasePayload,
+    created_at: serverTimestamp(),
+    updated_at: serverTimestamp(),
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  })
+
+  const prPayload = removeUndefinedFields({
+    id_draft_queue: prRef.id,
+    id: prRef.id,
+    nomor: prNumber,
+    no_reff: poCustomer,
+    nomor_po: poCustomer,
+    po_customer: poCustomer,
+    customer,
+    requestor_nama: 'PPIC',
+    pemohon: createdByPpic,
+    id_gudang: 'UTAMA',
+    gudang_id: 'UTAMA',
+    gudang_tujuan: 'Gudang Utama',
+    gudang_nama: 'Gudang Utama Center',
+    proyek_id: 'UTAMA',
+    proyek_nama: 'Gudang Utama Center',
+    tipe: 'PURCHASE_REQUEST',
+    status: DRAFT_PR_STATUS,
+    status_workflow: WAITING_PR_REVIEW_STATUS,
+    workflow_status: WAITING_PR_REVIEW_STATUS,
+    gudang_status: WAITING_PR_REVIEW_STATUS,
+    approval_sync_status: WAITING_PR_REVIEW_STATUS,
+    workflow_status_label: 'Waiting PR Review',
+    status_pr: PENDING_PR_STATUS,
+    is_read_gudang: 0,
+    source: 'MATERIAL_REQUIREMENT',
+    source_module: 'PPIC',
+    created_by_ppic: createdByPpic,
+    material_requirement_id: row.id,
+    purchase_request_item_ids: [itemRef.id],
+    item_count: 1,
+    catatan: note,
+    note,
+    items: [removeUndefinedFields(itemBasePayload)],
+    total_estimasi: itemPayload.total,
+    created_at: serverTimestamp(),
+    updated_at: serverTimestamp(),
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+    timestamp: serverTimestamp(),
+  })
+
+  const notificationPayload = removeUndefinedFields({
+    id: notificationRef.id,
+    type: 'PR_BARU_DARI_PPIC',
+    title: 'PR Baru dari PPIC',
+    message: `PR baru dari PPIC untuk ${row.material || 'material'} (${poCustomer || '-'})`,
+    module: 'MANUFAKTUR_GUDANG',
+    target_menu: 'purchase_request',
+    purchase_request_id: prRef.id,
+    material_requirement_id: row.id,
+    source: 'MATERIAL_REQUIREMENT',
+    source_module: 'PPIC',
+    status_workflow: WAITING_PR_REVIEW_STATUS,
+    is_read_gudang: 0,
+    created_at: serverTimestamp(),
+    updated_at: serverTimestamp(),
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  })
+
+  return {
+    prRef,
+    itemRef,
+    notificationRef,
+    prPayload,
+    itemPayload,
+    notificationPayload,
+  }
+}
 
 const sendToWarehousePr = async () => {
   if (!selectedPrRow.value) return
   submittingPr.value = true
   try {
     const row = selectedPrRow.value
-    const payload = buildWarehousePrPayload(row)
-    await Promise.all([
-      addDoc(collection(db, PURCHASE_REQUEST_COLLECTION), payload),
-      addDoc(collection(db, PURCHASE_REQUEST_TABLE_COLLECTION), payload),
-    ])
-    await updateDoc(doc(db, COLLECTION_NAME, row.id), {
+    console.info('[MRP->PR] Mulai create draft PR Gudang Manufaktur', {
+      material_requirement_id: row.id,
+      nomor_po: row.nomor_po || row.nomor_wo || '',
+      material: row.material || '',
+      qty_kebutuhan: row.qty_kebutuhan || 0,
+      qty_kurang: row.qty_kurang || 0,
+    })
+    const duplicateSnap = await getDocs(
+      query(collection(db, PURCHASE_REQUESTS_COLLECTION), where('material_requirement_id', '==', row.id)),
+    )
+    const hasActiveDraft = duplicateSnap.docs.some((draftDoc) =>
+      ['waiting_pr_review', 'draft', 'submitted'].includes(
+        draftDoc.data().status_workflow || draftDoc.data().workflow_status || draftDoc.data().status,
+      ),
+    )
+    if (hasActiveDraft) {
+      $q.notify({ type: 'warning', message: 'Draft PR untuk material requirement ini sudah ada.' })
+      closePrDialog()
+      return
+    }
+
+    const draft = buildPurchaseRequestDraft(row)
+    console.info('[MRP->PR] Payload draft siap dibuat', {
+      purchase_request_id: draft.prRef.id,
+      purchase_request_item_id: draft.itemRef.id,
+      notification_id: draft.notificationRef.id,
+      collections: {
+        purchase_requests: PURCHASE_REQUESTS_COLLECTION,
+        purchase_request_items: PURCHASE_REQUEST_ITEMS_COLLECTION,
+        mirror: PURCHASE_REQUEST_MIRROR_COLLECTION,
+        notifications: GUDANG_NOTIFICATION_COLLECTION,
+      },
+      required_fields: {
+        workflow_status: draft.prPayload.workflow_status,
+        status_workflow: draft.prPayload.status_workflow,
+        material: draft.itemPayload.material,
+        qty_kurang: draft.itemPayload.qty_kurang,
+        satuan: draft.itemPayload.satuan,
+      },
+    })
+    const batch = writeBatch(db)
+    batch.set(draft.prRef, draft.prPayload)
+    batch.set(doc(db, PURCHASE_REQUEST_MIRROR_COLLECTION, draft.prRef.id), draft.prPayload)
+    batch.set(draft.itemRef, draft.itemPayload)
+    batch.set(draft.notificationRef, draft.notificationPayload)
+    batch.update(doc(db, COLLECTION_NAME, row.id), {
       status_pr: PENDING_PR_STATUS,
       pr_sent_at: serverTimestamp(),
+      draft_queue_id: draft.prRef.id,
+      purchase_request_id: draft.prRef.id,
+      purchase_request_item_id: draft.itemRef.id,
+      notification_gudang_id: draft.notificationRef.id,
+      workflow_status: WAITING_PR_REVIEW_STATUS,
       updated_at: serverTimestamp(),
+    })
+    await batch.commit()
+    console.info('[MRP->PR] Draft PR, item, mirror, dan notifikasi berhasil dibuat', {
+      purchase_request_id: draft.prRef.id,
+      purchase_request_item_id: draft.itemRef.id,
+      notification_id: draft.notificationRef.id,
     })
     $q.notify({
       type: 'positive',
-      message: 'Material berhasil dikirim ke Purchase Request Gudang',
+      message: 'Draft PR dan notifikasi Gudang berhasil dibuat',
     })
     closePrDialog()
   } catch (error) {
-    console.error(error)
-    $q.notify({ type: 'negative', message: 'Gagal mengirim material ke Purchase Request Gudang' })
+    console.error('[MRP->PR] Gagal create draft PR Gudang Manufaktur', {
+      code: error?.code,
+      message: error?.message,
+      stack: error?.stack,
+      material_requirement: selectedPrRow.value,
+      collections: {
+        purchase_requests: PURCHASE_REQUESTS_COLLECTION,
+        purchase_request_items: PURCHASE_REQUEST_ITEMS_COLLECTION,
+        mirror: PURCHASE_REQUEST_MIRROR_COLLECTION,
+        notifications: GUDANG_NOTIFICATION_COLLECTION,
+      },
+    })
+    $q.notify({
+      type: 'negative',
+      message: `Gagal mengirim material ke Purchase Request Gudang${error?.code ? ` (${error.code})` : ''}`,
+      caption: error?.message || 'Cek console untuk detail error.',
+    })
   } finally {
     submittingPr.value = false
   }

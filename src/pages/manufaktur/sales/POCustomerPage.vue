@@ -587,8 +587,8 @@ const manufacturNormalizePendingPr = (manufacturDoc) => {
       manufacturPr.kepada_yth ||
       manufacturPr.proyek_nama ||
       'Purchase Request Gudang',
-    gudang_status: manufacturPr.gudang_status || 'PR_PENDING_APPROVAL',
-    status: manufacturPr.status || 'Pending',
+    gudang_status: manufacturPr.gudang_status || manufacturPr.status_workflow || 'Submitted',
+    status: manufacturPr.status_workflow || manufacturPr.status || 'Submitted',
     total_estimasi: manufacturPr.total_estimasi || manufacturPr.total || 0,
   }
 }
@@ -618,10 +618,11 @@ const loadManufacturData = () => {
   const manufacturPendingPrQuery = query(
     collection(db, 'permintaan_barang_manufaktur'),
     where('tipe', '==', 'PURCHASE_REQUEST'),
-    where('status', '==', 'Pending'),
   )
   const manufacturUnsubPr = onSnapshot(manufacturPendingPrQuery, (manufacturSnap) => {
-    manufacturPendingPrRows = manufacturSnap.docs.map(manufacturNormalizePendingPr)
+    manufacturPendingPrRows = manufacturSnap.docs
+      .map(manufacturNormalizePendingPr)
+      .filter((row) => ['Pending', 'Submitted'].includes(row.status))
     manufacturMergeRows()
   })
 
@@ -634,7 +635,6 @@ const loadManufacturData = () => {
 const manufacturHandleApproval = (manufacturRow, manufacturStatus, manufacturAlasan = null) => {
   if (
     manufacturStatus === 'Approved' &&
-    manufacturRow.source_type !== 'PURCHASE_REQUEST_GUDANG' &&
     !manufacturRow.approve_signature_url &&
     !manufacturSignaturePad
   ) {
@@ -658,10 +658,17 @@ const manufacturHandleApproval = (manufacturRow, manufacturStatus, manufacturAla
         if (manufacturRow.source_type === 'PURCHASE_REQUEST_GUDANG') {
           const manufacturPrData = {
             status: manufacturStatus,
-            gudang_status: manufacturStatus === 'Approved' ? 'PR_APPROVED' : 'PR_REJECTED',
-            workflow_status: manufacturStatus === 'Approved' ? 'PR_APPROVED' : 'PR_REJECTED',
+            status_workflow: manufacturStatus,
+            gudang_status: manufacturStatus,
+            workflow_status: manufacturStatus,
             approval_source: 'PO_CUSTOMER',
             approval_sync_status: manufacturStatus,
+            approved_by: {
+              uid: manufacturUserData.value?.id || '',
+              nama: manufacturUserData.value?.nama || 'Admin Manufaktur',
+              email: manufacturUserData.value?.email || '',
+              jabatan: manufacturUserData.value?.jabatan || 'Manager',
+            },
             approve_nama: manufacturUserData.value?.nama || 'Admin Manufaktur',
             approve_jabatan: manufacturUserData.value?.jabatan || 'Manager',
             approve_at: serverTimestamp(),
@@ -681,8 +688,7 @@ const manufacturHandleApproval = (manufacturRow, manufacturStatus, manufacturAla
             manufacturRow.po_customer_id || manufacturRow.po_customer_document_id
           if (manufacturRelatedPoId) {
             await updateDoc(doc(db, 'manufacturing_po_customer', manufacturRelatedPoId), {
-              gudang_status:
-                manufacturStatus === 'Approved' ? 'PR_APPROVED' : 'PR_REJECTED',
+              gudang_status: manufacturStatus,
               last_pr_id: manufacturRow.pr_id,
               last_pr_nomor: manufacturRow.nomor || '',
               last_pr_status: manufacturStatus,
@@ -720,10 +726,17 @@ const manufacturHandleApproval = (manufacturRow, manufacturStatus, manufacturAla
         if (manufacturRow.last_pr_id) {
           await updateDoc(doc(db, 'permintaan_barang_manufaktur', manufacturRow.last_pr_id), {
             status: manufacturStatus,
-            gudang_status: manufacturStatus === 'Approved' ? 'PR_APPROVED' : 'PR_REJECTED',
-            workflow_status: manufacturStatus === 'Approved' ? 'PR_APPROVED' : 'PR_REJECTED',
+            status_workflow: manufacturStatus,
+            gudang_status: manufacturStatus,
+            workflow_status: manufacturStatus,
             approval_source: 'PO_CUSTOMER',
             approval_sync_status: manufacturStatus,
+            approved_by: {
+              uid: manufacturUserData.value?.id || '',
+              nama: manufacturUserData.value?.nama || 'Admin Manufaktur',
+              email: manufacturUserData.value?.email || '',
+              jabatan: manufacturUserData.value?.jabatan || 'Manager',
+            },
             approve_nama: manufacturUserData.value?.nama || 'Admin Manufaktur',
             approve_jabatan: manufacturUserData.value?.jabatan || 'Manager',
             approve_at: serverTimestamp(),
