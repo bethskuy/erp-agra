@@ -464,15 +464,49 @@
                     <tr>
                       <td>Jam Dinas / Shift Kerja</td>
                       <td>
-                        <q-badge
-                          color="orange-1"
-                          text-color="orange-9"
-                          class="q-px-md q-py-xs text-weight-bolder rounded-6"
+                        <!-- Jadwal per hari jika ada, fallback ke jam lama -->
+                        <template
+                          v-if="
+                            Array.isArray(selectedKaryawan.jadwal_harian) &&
+                            selectedKaryawan.jadwal_harian.length
+                          "
                         >
-                          <q-icon name="schedule" size="14px" class="q-mr-xs" />
-                          {{ selectedKaryawan.jam_masuk || '08:00' }} -
-                          {{ selectedKaryawan.jam_pulang || '17:00' }}
-                        </q-badge>
+                          <div class="q-gutter-y-xs">
+                            <div
+                              v-for="j in selectedKaryawan.jadwal_harian"
+                              :key="j.hari"
+                              class="row items-center q-gutter-xs"
+                            >
+                              <q-badge
+                                :color="j.aktif ? 'orange-1' : 'grey-2'"
+                                :text-color="j.aktif ? 'orange-9' : 'grey-5'"
+                                class="q-px-sm q-py-xs text-weight-bold"
+                                style="min-width: 52px; font-size: 11px"
+                                >{{ j.hari }}</q-badge
+                              >
+                              <span
+                                v-if="j.aktif"
+                                class="text-weight-bold text-blue-grey-8"
+                                style="font-size: 12px"
+                              >
+                                <q-icon name="schedule" size="12px" class="q-mr-xs text-orange-7" />
+                                {{ j.jam_masuk }} – {{ j.jam_pulang }}
+                              </span>
+                              <span v-else class="text-grey-5 text-caption">Libur</span>
+                            </div>
+                          </div>
+                        </template>
+                        <template v-else>
+                          <q-badge
+                            color="orange-1"
+                            text-color="orange-9"
+                            class="q-px-md q-py-xs text-weight-bolder rounded-6"
+                          >
+                            <q-icon name="schedule" size="14px" class="q-mr-xs" />
+                            {{ selectedKaryawan.jam_masuk || '08:00' }} -
+                            {{ selectedKaryawan.jam_pulang || '17:00' }}
+                          </q-badge>
+                        </template>
                       </td>
                     </tr>
                     <tr>
@@ -1205,12 +1239,13 @@
       </div>
     </template>
 
-    <!-- DIALOG POPUP SHIFT & MULTI LOKASI PENUGASAN -->
+    <!-- DIALOG POPUP SHIFT PER HARI & MULTI LOKASI PENUGASAN -->
     <q-dialog v-model="dialogShift" persistent backdrop-filter="blur(5px)">
       <q-card
-        style="width: 500px; max-width: 95vw"
+        style="width: 640px; max-width: 98vw"
         class="rounded-24 bg-white overflow-hidden shadow-soft"
       >
+        <!-- Header -->
         <q-card-section class="row items-center q-pb-none q-pt-lg q-px-lg">
           <div class="row items-center">
             <q-avatar
@@ -1225,7 +1260,7 @@
                 Atur Shift & Lokasi Dinas
               </div>
               <div class="text-caption text-blue-grey-5">
-                Ubah penugasan waktu dan lokasi dikoordinasikan secara reaktif kapan saja.
+                Atur jam kerja per hari, bisa campur shift berbeda tiap hari.
               </div>
             </div>
           </div>
@@ -1241,33 +1276,157 @@
           />
         </q-card-section>
 
-        <q-card-section class="q-pa-lg">
+        <q-card-section class="q-pa-lg q-pt-md">
           <div class="q-gutter-y-md">
-            <div class="row q-col-gutter-md">
-              <div class="col-6">
-                <div
-                  class="text-caption text-weight-bold text-blue-grey-8 uppercase letter-spacing-1 q-mb-xs"
-                  style="font-size: 11px"
-                >
-                  Jam Masuk Shift *
-                </div>
-                <q-input outlined v-model="shiftForm.jam_masuk" type="time" dense />
+            <!-- PANEL: Terapkan jam ke range hari sekaligus -->
+            <q-card flat bordered class="rounded-12 bg-orange-1 border-subtle q-pa-md">
+              <div
+                class="text-caption text-weight-bold text-orange-9 uppercase q-mb-sm"
+                style="font-size: 11px; letter-spacing: 1px"
+              >
+                ⚡ Terapkan Cepat ke Beberapa Hari
               </div>
-              <div class="col-6">
-                <div
-                  class="text-caption text-weight-bold text-blue-grey-8 uppercase letter-spacing-1 q-mb-xs"
-                  style="font-size: 11px"
-                >
-                  Jam Pulang Shift *
+              <div class="row q-col-gutter-sm items-end">
+                <div class="col-12 col-sm-3">
+                  <div class="text-caption text-blue-grey-7 q-mb-xs">Dari Hari</div>
+                  <q-select
+                    outlined
+                    v-model="applyRangeJam.dari"
+                    :options="hariList.map((h, i) => ({ label: h, value: i }))"
+                    emit-value
+                    map-options
+                    dense
+                    bg-color="white"
+                  />
                 </div>
-                <q-input outlined v-model="shiftForm.jam_pulang" type="time" dense />
+                <div class="col-12 col-sm-3">
+                  <div class="text-caption text-blue-grey-7 q-mb-xs">Sampai Hari</div>
+                  <q-select
+                    outlined
+                    v-model="applyRangeJam.sampai"
+                    :options="hariList.map((h, i) => ({ label: h, value: i }))"
+                    emit-value
+                    map-options
+                    dense
+                    bg-color="white"
+                  />
+                </div>
+                <div class="col-6 col-sm-2">
+                  <div class="text-caption text-blue-grey-7 q-mb-xs">Jam Masuk</div>
+                  <q-input
+                    outlined
+                    v-model="applyRangeJam.jam_masuk"
+                    type="time"
+                    dense
+                    bg-color="white"
+                  />
+                </div>
+                <div class="col-6 col-sm-2">
+                  <div class="text-caption text-blue-grey-7 q-mb-xs">Jam Pulang</div>
+                  <q-input
+                    outlined
+                    v-model="applyRangeJam.jam_pulang"
+                    type="time"
+                    dense
+                    bg-color="white"
+                  />
+                </div>
+                <div class="col-12 col-sm-2">
+                  <q-btn
+                    unelevated
+                    color="orange-8"
+                    label="Terapkan"
+                    icon="bolt"
+                    @click="terapkanRange"
+                    class="full-width text-weight-bold rounded-8"
+                    dense
+                  />
+                </div>
               </div>
-            </div>
+            </q-card>
 
+            <!-- TABEL JADWAL PER HARI -->
             <div>
               <div
-                class="text-caption text-weight-bold text-blue-grey-8 uppercase letter-spacing-1 q-mb-xs"
-                style="font-size: 11px"
+                class="text-caption text-weight-bold text-blue-grey-8 uppercase q-mb-sm"
+                style="font-size: 11px; letter-spacing: 1px"
+              >
+                Jadwal Harian (Senin – Sabtu)
+              </div>
+              <q-card flat bordered class="rounded-12 overflow-hidden border-subtle">
+                <!-- Header tabel -->
+                <div
+                  class="row bg-blue-grey-9 text-white q-px-md q-py-xs"
+                  style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px"
+                >
+                  <div class="col-1 text-center">AKTIF</div>
+                  <div class="col-3 q-pl-sm">HARI</div>
+                  <div class="col-4 text-center">JAM MASUK</div>
+                  <div class="col-4 text-center">JAM PULANG</div>
+                </div>
+                <!-- Row per hari -->
+                <div
+                  v-for="jadwal in shiftForm.jadwal"
+                  :key="jadwal.hari"
+                  class="row items-center q-px-md q-py-sm shift-row-item"
+                  :class="jadwal.aktif ? 'bg-white' : 'bg-grey-1'"
+                  style="border-bottom: 1px solid #f1f5f9"
+                >
+                  <!-- Toggle aktif -->
+                  <div class="col-1 flex flex-center">
+                    <q-toggle v-model="jadwal.aktif" color="primary" dense size="sm" />
+                  </div>
+                  <!-- Nama hari -->
+                  <div class="col-3 q-pl-sm">
+                    <span
+                      class="text-weight-bold"
+                      :class="jadwal.aktif ? 'text-blue-grey-9' : 'text-grey-5'"
+                      style="font-size: 13px"
+                    >
+                      {{ jadwal.hari }}
+                    </span>
+                    <q-badge
+                      v-if="!jadwal.aktif"
+                      color="grey-3"
+                      text-color="grey-6"
+                      class="q-ml-xs"
+                      style="font-size: 9px"
+                      >LIBUR</q-badge
+                    >
+                  </div>
+                  <!-- Jam masuk -->
+                  <div class="col-4 q-px-xs">
+                    <q-input
+                      outlined
+                      v-model="jadwal.jam_masuk"
+                      type="time"
+                      dense
+                      :disable="!jadwal.aktif"
+                      :bg-color="jadwal.aktif ? 'white' : 'grey-2'"
+                      style="font-size: 13px"
+                    />
+                  </div>
+                  <!-- Jam pulang -->
+                  <div class="col-4 q-px-xs">
+                    <q-input
+                      outlined
+                      v-model="jadwal.jam_pulang"
+                      type="time"
+                      dense
+                      :disable="!jadwal.aktif"
+                      :bg-color="jadwal.aktif ? 'white' : 'grey-2'"
+                      style="font-size: 13px"
+                    />
+                  </div>
+                </div>
+              </q-card>
+            </div>
+
+            <!-- Lokasi Dinas -->
+            <div>
+              <div
+                class="text-caption text-weight-bold text-blue-grey-8 uppercase q-mb-xs"
+                style="font-size: 11px; letter-spacing: 1px"
               >
                 Lokasi Dinas Penugasan (Bisa Pilih Beberapa) *
               </div>
@@ -1415,12 +1574,48 @@ const loading = ref(true)
 const tab = ref('personal')
 
 const dialogShift = ref(false)
+
+// Struktur jadwal per hari: setiap hari punya jam_masuk, jam_pulang, aktif
+const hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
+
+const defaultJadwalHarian = () =>
+  hariList.map((hari) => ({
+    hari,
+    aktif: hari !== 'Sabtu',
+    jam_masuk: '08:00',
+    jam_pulang: '17:00',
+  }))
+
 const shiftForm = ref({
   karyawanId: '',
+  lokasi_dinas: [],
+  jadwal: defaultJadwalHarian(),
+})
+
+const applyRangeJam = ref({
+  dari: 0,
+  sampai: 4,
   jam_masuk: '08:00',
   jam_pulang: '17:00',
-  lokasi_dinas: [],
 })
+
+const terapkanRange = () => {
+  const dari = parseInt(applyRangeJam.value.dari)
+  const sampai = parseInt(applyRangeJam.value.sampai)
+  if (dari > sampai) {
+    $q.notify({ type: 'warning', message: 'Hari "Dari" tidak boleh lebih besar dari "Sampai"' })
+    return
+  }
+  for (let i = dari; i <= sampai; i++) {
+    shiftForm.value.jadwal[i].jam_masuk = applyRangeJam.value.jam_masuk
+    shiftForm.value.jadwal[i].jam_pulang = applyRangeJam.value.jam_pulang
+    shiftForm.value.jadwal[i].aktif = true
+  }
+  $q.notify({
+    type: 'positive',
+    message: `Jam diterapkan ke ${hariList[dari]}–${hariList[sampai]}`,
+  })
+}
 const lokasiOptions = ref([])
 
 const karyawanList = ref([])
@@ -1568,12 +1763,26 @@ const openShiftDialog = (karyawan) => {
     initialLocs = initialLocs ? [initialLocs] : []
   }
 
+  // Load jadwal per hari dari data karyawan, fallback ke default jika belum ada
+  let jadwalLoaded = defaultJadwalHarian()
+  if (Array.isArray(karyawan.jadwal_harian) && karyawan.jadwal_harian.length === 6) {
+    jadwalLoaded = karyawan.jadwal_harian
+  } else if (karyawan.jam_masuk || karyawan.jam_pulang) {
+    // Migrasi dari data lama: apply jam lama ke semua hari aktif
+    jadwalLoaded = jadwalLoaded.map((j) => ({
+      ...j,
+      jam_masuk: karyawan.jam_masuk || '08:00',
+      jam_pulang: karyawan.jam_pulang || '17:00',
+    }))
+  }
+
   shiftForm.value = {
     karyawanId: karyawan.id,
-    jam_masuk: karyawan.jam_masuk || '08:00',
-    jam_pulang: karyawan.jam_pulang || '17:00',
     lokasi_dinas: initialLocs,
+    jadwal: jadwalLoaded,
   }
+
+  applyRangeJam.value = { dari: 0, sampai: 4, jam_masuk: '08:00', jam_pulang: '17:00' }
   dialogShift.value = true
 }
 
@@ -1582,12 +1791,20 @@ const saveShiftSettings = async () => {
     $q.notify({ type: 'warning', message: 'Silakan tentukan Lokasi Dinas proyek aktif!' })
     return
   }
+  const hariAktif = shiftForm.value.jadwal.filter((j) => j.aktif)
+  if (hariAktif.length === 0) {
+    $q.notify({ type: 'warning', message: 'Minimal satu hari kerja harus aktif!' })
+    return
+  }
   $q.loading.show({ message: 'Memproses perubahan dinas reaktif...' })
   try {
+    // Ambil jam dari hari pertama yang aktif sebagai backward compat
+    const firstAktif = hariAktif[0]
     const userRef = doc(db, 'karyawan', shiftForm.value.karyawanId)
     await updateDoc(userRef, {
-      jam_masuk: shiftForm.value.jam_masuk,
-      jam_pulang: shiftForm.value.jam_pulang,
+      jadwal_harian: shiftForm.value.jadwal,
+      jam_masuk: firstAktif.jam_masuk,
+      jam_pulang: firstAktif.jam_pulang,
       lokasi_dinas: shiftForm.value.lokasi_dinas,
     })
 
@@ -2345,6 +2562,14 @@ const columns = [
 }
 .detail-table td:last-child {
   color: #1e293b;
+}
+
+/* Shift row item hover */
+.shift-row-item {
+  transition: background 0.15s;
+}
+.shift-row-item:last-child {
+  border-bottom: none !important;
 }
 .saas-gradient-primary {
   background: linear-gradient(135deg, #1a237e 0%, #3b82f6 100%);
