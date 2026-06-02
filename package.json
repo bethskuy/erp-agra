@@ -26,6 +26,7 @@
     "@rive-app/canvas": "^2.37.7",
     "axios": "^1.2.1",
     "firebase": "^12.12.1",
+    "html2canvas": "^1.4.1",
     "html2pdf.js": "^0.14.0",
     "leaflet": "^1.9.4",
     "lottie-web": "^5.13.0",

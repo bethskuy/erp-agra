@@ -247,17 +247,21 @@
           class="col scroll q-pa-none q-pa-md-md flex flex-center preview-container content-relative"
         >
           <div id="quotation-print" class="letter-paper shadow-24" v-if="selectedData">
-            <!-- Kop Surat -->
-            <div class="row no-wrap items-center">
-              <div v-if="config.kopUrl" class="col-auto q-mr-md q-mr-md-xl">
-                <img :src="config.kopUrl" class="final-kop-img" />
+            <div id="quotation-header" class="quotation-header">
+              <!-- Kop Surat -->
+              <div class="row no-wrap items-center">
+                <div v-if="config.kopUrl" class="col-auto q-mr-md q-mr-md-xl">
+                  <img :src="config.kopUrl" class="final-kop-img" />
+                </div>
+                <div class="col text-left">
+                  <div class="final-pt-name uppercase">{{ selectedData.nama_pt }}</div>
+                  <div class="final-pt-tagline italic text-grey-8">
+                    {{ selectedData.tagline_pt }}
+                  </div>
+                </div>
               </div>
-              <div class="col text-left">
-                <div class="final-pt-name uppercase">{{ selectedData.nama_pt }}</div>
-                <div class="final-pt-tagline italic text-grey-8">{{ selectedData.tagline_pt }}</div>
-              </div>
+              <div class="final-divider"></div>
             </div>
-            <div class="final-divider"></div>
 
             <!-- Meta Dokumen -->
             <div class="row justify-between items-start q-mt-lg q-mb-md text-left">
@@ -428,7 +432,6 @@
 </template>
 
 <script setup>
-// eslint-disable-next-line no-unused-vars
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useQuasar } from 'quasar'
 import { db } from 'src/boot/firebase'
@@ -444,6 +447,7 @@ import {
 } from 'firebase/firestore'
 import { useAuthStore } from 'src/stores/auth'
 import html2pdf from 'html2pdf.js'
+import html2canvas from 'html2canvas'
 
 const $q = useQuasar()
 const authStore = useAuthStore()
@@ -683,28 +687,108 @@ const formatDateIndo = (d) =>
     ? new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
     : ''
 
-const exportToPDF = () => {
+const waitForNextFrame = () => new Promise((resolve) => requestAnimationFrame(() => resolve()))
+
+const exportToPDF = async () => {
   $q.loading.show({ message: 'Menyiapkan Dokumen PDF...' })
 
-  setTimeout(() => {
-    const element = document.getElementById('quotation-print')
-    const opt = {
-      margin: 0,
-      filename: `Quotation_${selectedData.value?.nomor?.replace(/\//g, '-') || 'Doc'}.pdf`,
-      image: { type: 'jpeg', quality: 1 },
-      html2canvas: { scale: 2, useCORS: true },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+  const element = document.getElementById('quotation-print')
+  if (!element || !selectedData.value?.nomor) {
+    $q.loading.hide()
+    return $q.notify({ type: 'negative', message: 'Dokumen belum siap untuk diekspor.' })
+  }
+
+  const body = document.body
+  const headerEl = document.getElementById('quotation-header')
+  const original = {
+    headerDisplay: headerEl?.style?.display || '',
+  }
+
+  try {
+    body.classList.add('is-exporting')
+    await nextTick()
+    await waitForNextFrame()
+
+    // Margin base (mm)
+    const marginLeft = 10
+    const marginRight = 10
+    const marginBottom = 12
+    const headerYmm = 6
+    let marginTop = 12
+
+    let headerImgData = null
+    let headerHeightMm = 0
+    if (headerEl) {
+      const headerCanvas = await html2canvas(headerEl, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+      })
+      headerImgData = headerCanvas.toDataURL('image/png')
+
+      headerEl.style.display = 'none'
+
+      const img = new Image()
+      img.src = headerImgData
+      await new Promise((resolve, reject) => {
+        img.onload = resolve
+        img.onerror = reject
+      })
+
+      const a4WidthMm = 210
+      const headerWidthMm = a4WidthMm - marginLeft - marginRight
+      headerHeightMm = (img.height / img.width) * headerWidthMm
+      marginTop = headerYmm + headerHeightMm + 4
+
+      await nextTick()
+      await waitForNextFrame()
     }
 
-    html2pdf()
-      .set(opt)
-      .from(element)
-      .save()
-      .then(() => {
-        $q.loading.hide()
-        $q.notify({ type: 'positive', message: 'PDF Berhasil Diekspor!' })
-      })
-  }, 1000)
+    const opt = {
+      margin: [marginTop, marginRight, marginBottom, marginLeft],
+      filename: `Quotation_${selectedData.value.nomor.replace(/\//g, '-')}.pdf`,
+      image: { type: 'jpeg', quality: 1 },
+      html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: {
+        mode: ['css', 'legacy'],
+        avoid: ['tr', '.terms-container', '.signature-container', '.final-sign-space'],
+      },
+    }
+
+    const worker = html2pdf().set(opt).from(element).toPdf()
+    const pdf = await worker.get('pdf')
+
+    if (headerImgData) {
+      const pageWidth = pdf.internal.pageSize.getWidth()
+      const headerWidthMm = pageWidth - marginLeft - marginRight
+      const pageCount = pdf.getNumberOfPages()
+
+      for (let i = 1; i <= pageCount; i++) {
+        pdf.setPage(i)
+        pdf.addImage(
+          headerImgData,
+          'PNG',
+          marginLeft,
+          headerYmm,
+          headerWidthMm,
+          headerHeightMm,
+          undefined,
+          'FAST',
+        )
+      }
+    }
+
+    pdf.save(opt.filename)
+    $q.notify({ type: 'positive', message: 'PDF Berhasil Diekspor!' })
+  } catch (e) {
+    console.error(e)
+    $q.notify({ type: 'negative', message: 'Gagal export PDF: ' + (e?.message || e) })
+  } finally {
+    if (headerEl) headerEl.style.display = original.headerDisplay
+    body.classList.remove('is-exporting')
+    $q.loading.hide()
+  }
 }
 
 onMounted(() => {
