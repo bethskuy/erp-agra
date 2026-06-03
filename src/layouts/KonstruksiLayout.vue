@@ -1,12 +1,19 @@
 <template>
   <q-layout view="lHh Lpr lFf" class="bg-grey-2 layout-container">
-    <q-header borderless class="bg-brand-teal text-white shadow-1">
-      <q-toolbar class="q-py-xs">
-        <q-btn flat dense round icon="menu" @click="leftDrawerOpen = !leftDrawerOpen" />
+    <q-header borderless class="bg-brand-teal text-white shadow-1 q-safe-area-top">
+      <q-toolbar class="q-py-sm q-px-md">
+        <q-btn
+          flat
+          round
+          icon="menu"
+          size="md"
+          class="q-mr-md"
+          @click="leftDrawerOpen = !leftDrawerOpen"
+        />
 
         <q-toolbar-title class="text-weight-bolder">
           <div class="row items-center no-wrap">
-            <div class="row items-center no-wrap text-h6 text-md-h5">
+            <div class="row items-center no-wrap text-subtitle1 text-md-h6">
               <span class="q-mr-xs tracking-tighter">AGRA</span>
               <span class="text-weight-light text-brand-light-text">ERP</span>
             </div>
@@ -16,7 +23,7 @@
         <q-space />
 
         <!-- NOTIFIKASI BELL -->
-        <q-btn flat round icon="notifications" class="q-mr-xs">
+        <q-btn flat round icon="notifications" size="md" class="q-mr-md">
           <q-badge color="red" floating v-if="totalNotifCount > 0" class="shadow-1 font-bold">
             {{ totalNotifCount }}
           </q-badge>
@@ -366,7 +373,7 @@
         </q-btn>
 
         <!-- QUICK APP SWITCHER -->
-        <q-btn flat round icon="apps" class="q-mr-xs">
+        <q-btn flat round icon="apps" size="md" class="q-mr-md">
           <q-menu
             auto-close
             anchor="bottom right"
@@ -374,9 +381,9 @@
             :offset="[0, 10]"
             class="app-launcher-menu shadow-10"
           >
-            <div class="q-pa-md bg-white" style="width: 320px; border-radius: 12px">
-              <div class="text-overline q-px-sm q-pb-sm text-grey-7">Modul Agra ERP</div>
-              <div class="row q-col-gutter-sm">
+            <div class="q-pa-lg bg-white" style="width: 320px; border-radius: 12px">
+              <div class="text-overline q-px-sm q-pb-md text-grey-7">Modul Agra ERP</div>
+              <div class="row q-col-gutter-md">
                 <template v-for="app in filteredUniqueApps" :key="app.aksesKey">
                   <div class="col-4">
                     <q-btn
@@ -387,13 +394,13 @@
                       no-caps
                       :to="app.path"
                     >
-                      <q-icon :name="app.icon" :color="app.color || 'primary'" size="32px" />
-                      <div class="app-label text-center">{{ app.name }}</div>
+                      <q-icon :name="app.icon" :color="app.color || 'primary'" size="36px" />
+                      <div class="app-label text-center q-mt-sm">{{ app.name }}</div>
                     </q-btn>
                   </div>
                 </template>
               </div>
-              <q-separator class="q-my-md" />
+              <q-separator class="q-my-lg" />
               <q-btn
                 outline
                 color="teal-6"
@@ -409,9 +416,9 @@
         </q-btn>
 
         <!-- TOPBAR USER PROFILE -->
-        <q-btn flat round no-caps class="q-ml-xs">
+        <q-btn flat round no-caps class="q-ml-sm">
           <q-avatar
-            size="32px"
+            size="38px"
             color="white"
             text-color="brand-primary"
             class="text-weight-bold shadow-1"
@@ -480,7 +487,7 @@
     >
       <div class="column fit hide-horizontal-scroll">
         <!-- USER PROFILE HEADER -->
-        <div class="q-pa-lg border-bottom-soft bg-profile-header">
+        <div class="q-pa-lg border-bottom-soft bg-profile-header q-safe-area-top">
           <div class="row items-center q-gutter-md">
             <q-avatar
               size="54px"
@@ -1695,6 +1702,7 @@ onUnmounted(() => {
   position: relative;
   overflow: hidden;
   border-bottom: 2px solid rgba(54, 173, 163, 0.3) !important;
+  padding: 24px 20px;
 }
 
 .profile-avatar {
@@ -1715,7 +1723,7 @@ onUnmounted(() => {
   font-weight: 800;
   color: #1e7a74 !important;
   letter-spacing: 2px;
-  margin: 22px 0 10px 24px;
+  margin: 28px 0 14px 24px;
   text-shadow: none;
   position: relative;
   display: flex;
@@ -1727,7 +1735,7 @@ onUnmounted(() => {
     height: 6px;
     border-radius: 50%;
     background-color: #ad3640;
-    margin-right: 8px;
+    margin-right: 10px;
     box-shadow: 0 0 6px rgba(173, 54, 64, 0.4);
   }
 }
@@ -1742,10 +1750,10 @@ onUnmounted(() => {
 
 .menu-item-clean {
   color: #2d4a48 !important;
-  margin: 6px 14px;
-  border-radius: 10px;
-  min-height: 48px;
-  padding: 8px 16px;
+  margin: 8px 16px;
+  border-radius: 12px;
+  min-height: 52px;
+  padding: 10px 18px;
   background-color: transparent !important;
   border: 1px solid transparent !important;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1781,13 +1789,13 @@ onUnmounted(() => {
 
 .menu-expansion-clean {
   background-color: rgba(54, 173, 163, 0.04) !important;
-  border-radius: 10px;
-  margin: 6px 14px;
+  border-radius: 12px;
+  margin: 8px 16px;
   border: 1px solid rgba(54, 173, 163, 0.1) !important;
   transition: all 0.3s ease;
   :deep(.q-item) {
-    border-radius: 10px;
-    min-height: 48px;
+    border-radius: 12px;
+    min-height: 52px;
     color: #2d4a48 !important;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
@@ -1825,18 +1833,18 @@ onUnmounted(() => {
 }
 
 .level-2-expansion {
-  margin-bottom: 2px;
+  margin-bottom: 4px;
   :deep(.q-item) {
-    min-height: 44px;
-    border-radius: 8px;
+    min-height: 48px;
+    border-radius: 10px;
     color: #2d4a48 !important;
   }
 }
 
 .level-2-item-clean {
-  border-radius: 8px;
-  margin: 3px 10px 3px 20px;
-  min-height: 42px;
+  border-radius: 10px;
+  margin: 6px 14px 6px 28px;
+  min-height: 46px;
   font-size: 13.5px;
   color: #2d4a48 !important;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1854,15 +1862,15 @@ onUnmounted(() => {
 }
 
 .level-3-item-clean {
-  border-radius: 8px;
-  margin: 3px 10px 3px 36px;
-  min-height: 38px;
+  border-radius: 10px;
+  margin: 6px 14px 6px 44px;
+  min-height: 42px;
   font-size: 13px;
   color: #3a5a57 !important;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   :deep(.q-icon) {
     color: #36ada3 !important;
-    margin-right: 8px;
+    margin-right: 10px;
     transition: color 0.25s ease;
   }
   &:hover {
