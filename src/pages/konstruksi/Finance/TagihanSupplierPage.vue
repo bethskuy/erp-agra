@@ -126,7 +126,7 @@
                   BELUM DIBAYAR
                 </div>
                 <div class="text-h4 text-weight-bolder q-mt-xs text-white">
-                  {{ countByStatus('Menunggu Pembayaran') + countByStatus('Dibayar Sebagian') }}
+                  {{ countOutstanding() }}
                 </div>
               </div>
               <div
@@ -408,7 +408,7 @@
                 <div
                   class="text-caption font-11"
                   :class="
-                    isOverdue(props.row.jatuh_tempo, props.row.status)
+                    isOverdue(props.row.jatuh_tempo, props.row)
                       ? 'text-negative text-weight-bold'
                       : 'text-grey-8'
                   "
@@ -420,7 +420,22 @@
 
               <q-td key="nominal" class="text-right">
                 <div class="text-weight-bolder text-teal-10 text-subtitle2">
-                  Rp {{ (props.row.grand_total || 0).toLocaleString('id-ID') }}
+                  Rp {{ props.row.grand_total.toLocaleString('id-ID') }}
+                </div>
+                <div class="text-caption text-grey-7">
+                  Telah dibayar:
+                  <span class="text-weight-bold text-primary"
+                    >Rp {{ props.row.total_dibayar.toLocaleString('id-ID') }}</span
+                  >
+                </div>
+                <div
+                  class="text-caption"
+                  :class="props.row.sisa_tagihan > 0 ? 'text-negative' : 'text-positive'"
+                >
+                  Sisa:
+                  <span class="text-weight-bold"
+                    >Rp {{ props.row.sisa_tagihan.toLocaleString('id-ID') }}</span
+                  >
                 </div>
               </q-td>
 
@@ -795,40 +810,48 @@
                   <div class="text-weight-bold text-indigo-10 uppercase tracking-widest font-11">
                     STATUS PEMBAYARAN
                   </div>
-                  <!-- Tombol Update Pembayaran: hanya jika canApprove -->
-                  <q-btn
-                    v-if="canApprove && selectedTagihan.status !== 'Lunas'"
-                    outline
-                    rounded
-                    size="sm"
-                    color="indigo-10"
-                    icon="add"
-                    label="Update Pembayaran"
-                    @click="openPaymentDialog"
-                  />
+                  <div class="row q-gutter-sm">
+                    <!-- Tombol Ajukan Tagihan: hanya jika status Draft dan canEdit -->
+                    <q-btn
+                      v-if="canEdit && selectedTagihan.status === 'Draft'"
+                      unelevated
+                      rounded
+                      size="sm"
+                      color="teal-10"
+                      icon="send"
+                      label="Ajukan Tagihan"
+                      @click="ajukanTagihan"
+                    />
+                    <!-- Tombol Update Pembayaran: hanya jika canApprove dan status bukan Lunas dan bukan Draft -->
+                    <q-btn
+                      v-if="
+                        canApprove &&
+                        selectedTagihan.status !== 'Lunas' &&
+                        selectedTagihan.status !== 'Draft'
+                      "
+                      outline
+                      rounded
+                      size="sm"
+                      color="indigo-10"
+                      icon="add"
+                      label="Update Pembayaran"
+                      @click="openPaymentDialog"
+                    />
+                  </div>
                 </div>
                 <div class="row justify-between items-center q-mb-sm">
                   <div class="text-grey-7 font-bold">Telah Dibayar</div>
                   <div class="text-weight-bold text-subtitle1 text-primary">
-                    Rp {{ (selectedTagihan.total_dibayar || 0).toLocaleString('id-ID') }}
+                    Rp {{ selectedTagihan.total_dibayar.toLocaleString('id-ID') }}
                   </div>
                 </div>
                 <div class="row justify-between items-center">
                   <div class="text-grey-7 font-bold">Sisa Tagihan</div>
                   <div
                     class="text-weight-bold text-subtitle1"
-                    :class="
-                      (selectedTagihan.grand_total || 0) - (selectedTagihan.total_dibayar || 0) > 0
-                        ? 'text-negative'
-                        : 'text-positive'
-                    "
+                    :class="selectedTagihan.sisa_tagihan > 0 ? 'text-negative' : 'text-positive'"
                   >
-                    Rp
-                    {{
-                      (
-                        (selectedTagihan.grand_total || 0) - (selectedTagihan.total_dibayar || 0)
-                      ).toLocaleString('id-ID')
-                    }}
+                    Rp {{ selectedTagihan.sisa_tagihan.toLocaleString('id-ID') }}
                   </div>
                 </div>
               </q-card-section>
@@ -1746,7 +1769,7 @@ const formDefault = {
   spk_nomor: '',
   ppn_persen: 0,
   pph_persen: 0,
-  status: 'Menunggu Pembayaran',
+  status: 'Draft',
   lampiran: [],
 }
 const form = ref({ ...formDefault })
@@ -1802,7 +1825,33 @@ const fetchData = async () => {
 
   unsubTagihan = onSnapshot(collection(db, 'finance_tagihan'), (snap) => {
     rows.value = snap.docs
-      .map((d) => ({ id: d.id, ...d.data() }))
+      .map((d) => {
+        const data = d.data()
+        const grandTotal = Number(data.grand_total) || 0
+        const totalDibayar = Number(data.total_dibayar) || 0
+        const sisaTagihan = grandTotal - totalDibayar
+
+        // Pastikan status sesuai dengan sisa tagihan
+        let status = data.status || 'Draft'
+        if (sisaTagihan <= 0) {
+          status = 'Lunas'
+        } else if (totalDibayar > 0) {
+          status = 'Dibayar Sebagian'
+        } else if (status === 'Draft') {
+          status = 'Draft'
+        } else {
+          status = 'Menunggu Pembayaran'
+        }
+
+        return {
+          id: d.id,
+          ...data,
+          grand_total: grandTotal,
+          total_dibayar: totalDibayar,
+          sisa_tagihan: sisaTagihan,
+          status: status,
+        }
+      })
       .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
     loading.value = false
   })
@@ -1815,11 +1864,9 @@ const filteredRows = computed(() => {
   let result = rows.value
 
   if (statusFilter.value === 'OUTSTANDING') {
-    result = result.filter(
-      (r) => r.status === 'Menunggu Pembayaran' || r.status === 'Dibayar Sebagian',
-    )
+    result = result.filter((r) => r.sisa_tagihan > 0)
   } else if (statusFilter.value === 'LUNAS') {
-    result = result.filter((r) => r.status === 'Lunas')
+    result = result.filter((r) => r.sisa_tagihan <= 0)
   }
 
   if (searchQuery.value) {
@@ -1855,9 +1902,7 @@ const totalFilteredNominal = computed(() =>
 )
 
 const totalFilteredOutstanding = computed(() =>
-  filteredRows.value
-    .filter((r) => r.status !== 'Lunas' && r.status !== 'Draft')
-    .reduce((sum, r) => sum + ((Number(r.grand_total) || 0) - (Number(r.total_dibayar) || 0)), 0),
+  filteredRows.value.filter((r) => r.sisa_tagihan > 0).reduce((sum, r) => sum + r.sisa_tagihan, 0),
 )
 
 const resetFilters = () => {
@@ -1883,17 +1928,20 @@ const filterVendorDropdown = (val, update) => {
   })
 }
 
+// eslint-disable-next-line no-unused-vars
 const countByStatus = (status) => filteredRows.value.filter((r) => r.status === status).length
+
+const countOutstanding = () => filteredRows.value.filter((r) => r.sisa_tagihan > 0).length
 
 const countOverdue = () => {
   const today = new Date().toISOString().substr(0, 10)
-  return filteredRows.value.filter((r) => r.jatuh_tempo < today && r.status !== 'Lunas').length
+  return filteredRows.value.filter((r) => r.jatuh_tempo < today && r.sisa_tagihan > 0).length
 }
 
 const totalOutstandingValuation = computed(() => totalFilteredOutstanding.value)
 
-const isOverdue = (dateStr, status) => {
-  if (status === 'Lunas') return false
+const isOverdue = (dateStr, row) => {
+  if (row.sisa_tagihan <= 0) return false
   const today = new Date().toISOString().substr(0, 10)
   return dateStr < today
 }
@@ -2140,8 +2188,9 @@ const simpanTagihan = async () => {
       pph_persen: form.value.pph_persen,
       pph_nominal: calculatedPph.value,
       grand_total: calculatedGrandTotal.value,
+      total_dibayar: isEditMode.value ? Number(form.value.total_dibayar) || 0 : 0,
       keterangan: form.value.keterangan,
-      status: 'Menunggu Pembayaran',
+      status: isEditMode.value ? form.value.status : 'Draft',
       lampiran: form.value.lampiran,
       updatedAt: serverTimestamp(),
     }
@@ -2181,6 +2230,26 @@ const confirmHapus = (row) => {
     await deleteDoc(doc(db, 'finance_tagihan', row.id))
     $q.notify({ type: 'positive', position: 'top', message: 'Tagihan terhapus' })
   })
+}
+
+const ajukanTagihan = async () => {
+  if (!canEdit.value)
+    return $q.notify({
+      type: 'negative',
+      position: 'top',
+      message: 'Anda tidak memiliki izin untuk mengajukan tagihan.',
+    })
+  try {
+    await updateDoc(doc(db, 'finance_tagihan', selectedTagihan.value.id), {
+      status: 'Menunggu Pembayaran',
+      updatedAt: serverTimestamp(),
+    })
+    selectedTagihan.value.status = 'Menunggu Pembayaran'
+    $q.notify({ type: 'positive', position: 'top', message: 'Tagihan berhasil diajukan!' })
+  } catch (err) {
+    console.error(err)
+    $q.notify({ type: 'negative', position: 'top', message: 'Gagal mengajukan tagihan.' })
+  }
 }
 
 // ============================================================================

@@ -879,6 +879,7 @@ import {
   where,
   doc,
   updateDoc,
+  getDoc,
   serverTimestamp,
 } from 'firebase/firestore'
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
@@ -1048,10 +1049,30 @@ const processRealisasi = async () => {
     await updateDoc(doc(db, 'finance_pengajuan_pembayaran', selectedData.value.id), updateData)
 
     if (selectedData.value.tagihan_id) {
-      await updateDoc(doc(db, 'finance_tagihan', selectedData.value.tagihan_id), {
-        status: 'Lunas',
-        total_dibayar: realisasiForm.value.nominal,
-      })
+      // Dapatkan data tagihan terlebih dahulu untuk total_dibayar saat ini
+      const tagihanDoc = doc(db, 'finance_tagihan', selectedData.value.tagihan_id)
+      const tagihanSnapshot = await getDoc(tagihanDoc)
+      if (tagihanSnapshot.exists()) {
+        const tagihanData = tagihanSnapshot.data()
+        const currentTotalDibayar = Number(tagihanData.total_dibayar || 0)
+        const grandTotal = Number(tagihanData.grand_total || 0)
+        const newTotalDibayar = currentTotalDibayar + realisasiForm.value.nominal
+
+        let newStatus = 'Lunas'
+        if (newTotalDibayar >= grandTotal) {
+          newStatus = 'Lunas'
+        } else if (newTotalDibayar > 0) {
+          newStatus = 'Dibayar Sebagian'
+        } else {
+          newStatus = 'Menunggu Pembayaran'
+        }
+
+        await updateDoc(tagihanDoc, {
+          status: newStatus,
+          total_dibayar: newTotalDibayar,
+          updatedAt: serverTimestamp(),
+        })
+      }
     }
 
     if (selectedData.value) {

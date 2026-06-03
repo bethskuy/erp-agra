@@ -1389,17 +1389,16 @@ const fetchData = async () => {
     },
   )
 
-  const qTagihan = query(
-    collection(db, 'finance_tagihan'),
-    where('status', 'in', ['Menunggu Pembayaran', 'Dibayar Sebagian']),
-  )
+  const qTagihan = query(collection(db, 'finance_tagihan'))
   unsubTagihan = onSnapshot(qTagihan, (snap) => {
-    optTagihan.value = snap.docs.map((d) => {
-      const t = d.data()
-      const grand = Number(t.grand_total) || 0
-      const dibayar = Number(t.total_dibayar) || 0
-      return { id: d.id, ...t, sisa_tagihan: grand - dibayar }
-    })
+    optTagihan.value = snap.docs
+      .map((d) => {
+        const t = d.data()
+        const grand = Number(t.grand_total) || 0
+        const dibayar = Number(t.total_dibayar) || 0
+        return { id: d.id, ...t, sisa_tagihan: grand - dibayar }
+      })
+      .filter((t) => t.sisa_tagihan > 0) // Hanya tagihan yang masih punya sisa hutang
     optTagihanFiltered.value = [...optTagihan.value]
   })
 }
