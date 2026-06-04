@@ -148,6 +148,78 @@
       </div>
     </div>
 
+    <q-card flat bordered class="table-card bg-white q-mb-lg">
+      <q-card-section class="card-header">
+        <div>
+          <div class="text-overline text-green-10 text-weight-black">Barang Reject / Rework</div>
+          <div class="text-caption text-grey-7">Queue produk yang perlu diproses ulang dari QC Produksi.</div>
+        </div>
+        <q-badge color="negative" class="notification-badge">
+          {{ activeReworkRows.length }} Barang reject perlu rework
+        </q-badge>
+      </q-card-section>
+      <q-separator />
+
+      <q-table
+        :rows="activeReworkRows"
+        :columns="reworkColumns"
+        row-key="id"
+        flat
+        binary-state-sort
+        :loading="loadingRework"
+        :pagination="{ rowsPerPage: 5 }"
+        class="monitoring-table"
+      >
+        <template #header="props">
+          <q-tr :props="props" class="bg-green-10 text-white">
+            <q-th
+              v-for="col in props.cols"
+              :key="col.name"
+              :props="props"
+              class="text-weight-bold uppercase table-head"
+            >
+              {{ col.label }}
+            </q-th>
+          </q-tr>
+        </template>
+
+        <template #body="props">
+          <q-tr :props="props" class="monitoring-row">
+            <q-td key="no_spk" :props="props" class="text-weight-bold text-green-10">
+              {{ props.row.no_spk || props.row.nomor_spk || '-' }}
+            </q-td>
+            <q-td key="produk" :props="props">{{ props.row.produk || props.row.nama_produk || '-' }}</q-td>
+            <q-td key="qty_reject" :props="props" class="text-right">
+              <q-badge color="negative" class="q-px-sm q-py-xs">
+                {{ formatNumber(props.row.qty_reject) }}
+              </q-badge>
+            </q-td>
+            <q-td key="qty_rework" :props="props" class="text-right">
+              <q-badge color="purple-7" class="q-px-sm q-py-xs">
+                {{ formatNumber(props.row.qty_rework) }}
+              </q-badge>
+            </q-td>
+            <q-td key="departemen_asal" :props="props">{{ props.row.departemen_asal || '-' }}</q-td>
+            <q-td key="status_rework" :props="props">
+              <q-badge :color="reworkStatusColor(props.row.status_rework)" class="q-px-sm q-py-xs">
+                {{ reworkStatusLabel(props.row.status_rework) }}
+              </q-badge>
+            </q-td>
+            <q-td key="aksi" :props="props" class="text-center">
+              <q-badge color="blue-grey-6" class="q-px-sm q-py-xs">Departemen</q-badge>
+            </q-td>
+          </q-tr>
+        </template>
+
+        <template #no-data>
+          <div class="full-width row flex-center text-grey-7 q-pa-xl">
+            <q-icon name="restart_alt" size="28px" class="q-mr-sm" />
+            Belum ada barang reject atau rework.
+          </div>
+        </template>
+      </q-table>
+    </q-card>
+
     <q-card flat bordered class="table-card bg-white">
       <q-table
         :rows="filteredRows"
@@ -279,18 +351,22 @@ const SPK_SUBCOLLECTION = 'spk'
 const PLANNING_COLLECTION = 'planning_produksi_manufaktur'
 const PRODUKSI_COLLECTION = 'manufactur_departemen_produksi'
 const QC_COLLECTION = 'qc_produksi_manufaktur'
+const REWORK_QUEUE_COLLECTION = 'produksi_rework_queue'
 
 const rows = ref([])
 const spkRows = ref([])
 const planningRows = ref([])
 const productionRows = ref([])
+const reworkRows = ref([])
 const loading = ref(true)
+const loadingRework = ref(true)
 const search = ref('')
 const statusFilter = ref('all')
 const finishingId = ref(null)
 let unsubscribeSpk = null
 let unsubscribePlanning = null
 let unsubscribeProduction = null
+let unsubscribeRework = null
 
 const statusOptions = [
   'Menunggu Produksi',
@@ -335,6 +411,16 @@ const columns = [
     sortable: true,
   },
   { name: 'progress', align: 'left', label: 'Progress', field: 'progress', sortable: true },
+  { name: 'aksi', align: 'center', label: 'Aksi' },
+]
+
+const reworkColumns = [
+  { name: 'no_spk', align: 'left', label: 'SPK', field: 'no_spk', sortable: true },
+  { name: 'produk', align: 'left', label: 'Produk', field: 'produk', sortable: true },
+  { name: 'qty_reject', align: 'right', label: 'Qty Reject', field: 'qty_reject', sortable: true },
+  { name: 'qty_rework', align: 'right', label: 'Qty Rework', field: 'qty_rework', sortable: true },
+  { name: 'departemen_asal', align: 'left', label: 'Departemen Asal', field: 'departemen_asal', sortable: true },
+  { name: 'status_rework', align: 'left', label: 'Status Rework', field: 'status_rework', sortable: true },
   { name: 'aksi', align: 'center', label: 'Aksi' },
 ]
 
@@ -418,6 +504,12 @@ const expandRowItems = (row) => {
 }
 
 const monitoringRows = computed(() => rows.value.flatMap(expandRowItems).map(normalizeRow))
+
+const activeReworkRows = computed(() =>
+  reworkRows.value.filter((row) =>
+    ['menunggu_rework', 'rework', 'diproses_ulang', 'pending_qc_ulang'].includes(normalizeStatus(row.status_rework)),
+  ),
+)
 
 const filteredRows = computed(() => {
   const keyword = search.value.trim().toLowerCase()
@@ -528,6 +620,9 @@ const normalizeStatus = (status) => {
   if (['qc approved', 'qc_approved', 'approved'].includes(normalized)) return 'qc_approved'
   if (['qc reject', 'qc_reject', 'qc_rejected', 'reject'].includes(normalized)) return 'qc_reject'
   if (['qc rework', 'qc_rework', 'rework'].includes(normalized)) return 'rework'
+  if (['menunggu rework', 'menunggu_rework'].includes(normalized)) return 'menunggu_rework'
+  if (['diproses', 'diproses ulang', 'diproses_ulang', 'proses ulang'].includes(normalized)) return 'diproses_ulang'
+  if (['pending qc ulang', 'pending_qc_ulang'].includes(normalized)) return 'pending_qc_ulang'
   if (['finished', 'selesai'].includes(normalized)) return 'selesai'
   if (['on production', 'proses'].includes(normalized)) return 'on production'
   if (['menunggu produksi', 'belum mulai'].includes(normalized)) return 'menunggu produksi'
@@ -574,6 +669,23 @@ const statusIcon = (status) => {
   if (normalized === 'qc_reject') return 'cancel'
   if (normalized === 'rework') return 'restart_alt'
   return 'radio_button_unchecked'
+}
+
+const reworkStatusLabel = (status) => {
+  const normalized = normalizeStatus(status)
+  if (normalized === 'diproses_ulang') return 'Diproses Ulang'
+  if (normalized === 'pending_qc_ulang') return 'Pending QC Ulang'
+  if (normalized === 'rework' || normalized === 'menunggu_rework') return 'Menunggu Rework'
+  if (normalized === 'selesai') return 'Selesai'
+  return status || 'Menunggu Rework'
+}
+
+const reworkStatusColor = (status) => {
+  const normalized = normalizeStatus(status)
+  if (normalized === 'diproses_ulang') return 'purple-7'
+  if (normalized === 'pending_qc_ulang') return 'orange-9'
+  if (normalized === 'selesai') return 'positive'
+  return 'negative'
 }
 
 const progressColor = (value) => {
@@ -705,6 +817,20 @@ const listenProductionHistory = (callback, errorCallback) =>
     errorCallback,
   )
 
+const listenReworkQueue = (callback, errorCallback) =>
+  onSnapshot(
+    query(collection(db, REWORK_QUEUE_COLLECTION), orderBy('tanggal_reject', 'desc')),
+    (snapshot) => {
+      callback(
+        snapshot.docs.map((reworkDoc) => ({
+          id: reworkDoc.id,
+          ...reworkDoc.data(),
+        })),
+      )
+    },
+    errorCallback,
+  )
+
 const syncRows = () => {
   rows.value = [...productionRows.value, ...spkRows.value, ...planningRows.value]
 }
@@ -749,12 +875,25 @@ onMounted(() => {
       $q.notify({ type: 'negative', message: 'Gagal memuat histori produksi realtime.' })
     },
   )
+
+  unsubscribeRework = listenReworkQueue(
+    (nextRows) => {
+      reworkRows.value = nextRows
+      loadingRework.value = false
+    },
+    (error) => {
+      console.error(error)
+      loadingRework.value = false
+      $q.notify({ type: 'negative', message: 'Gagal memuat queue reject/rework.' })
+    },
+  )
 })
 
 onUnmounted(() => {
   if (unsubscribeSpk) unsubscribeSpk()
   if (unsubscribePlanning) unsubscribePlanning()
   if (unsubscribeProduction) unsubscribeProduction()
+  if (unsubscribeRework) unsubscribeRework()
 })
 </script>
 
@@ -800,6 +939,13 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   padding: 14px 18px;
+}
+
+.notification-badge {
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+  padding: 6px 12px;
 }
 
 .department-grid {

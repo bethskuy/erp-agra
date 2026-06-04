@@ -27,15 +27,27 @@
       </div>
 
       <div class="col-12 col-md-auto q-mt-md q-mt-md-none">
-        <q-chip
-          square
-          color="green-1"
-          text-color="green-10"
-          icon="corporate_fare"
-          class="text-weight-bold"
-        >
-          {{ departemenKode || 'MANUFACTURING' }}
-        </q-chip>
+        <div class="row q-gutter-sm items-center">
+          <q-chip
+            v-if="unreadQcRejectNotifications.length"
+            square
+            color="negative"
+            text-color="white"
+            icon="notifications_active"
+            class="text-weight-bold"
+          >
+            {{ unreadQcRejectNotifications.length }} Barang Reject QC
+          </q-chip>
+          <q-chip
+            square
+            color="green-1"
+            text-color="green-10"
+            icon="corporate_fare"
+            class="text-weight-bold"
+          >
+            {{ departemenKode || 'MANUFACTURING' }}
+          </q-chip>
+        </div>
       </div>
     </div>
 
@@ -113,6 +125,13 @@
                   <q-badge color="primary">{{ planningBaruCount }}</q-badge>
                 </q-item-section>
               </q-item>
+              <q-item clickable v-close-popup @click="departmentViewTab = 'reject-qc'">
+                <q-item-section avatar><q-icon name="report_problem" color="negative" /></q-item-section>
+                <q-item-section>Barang Reject QC</q-item-section>
+                <q-item-section side>
+                  <q-badge color="negative">{{ activeRejectQcRows.length }}</q-badge>
+                </q-item-section>
+              </q-item>
             </q-list>
           </q-btn-dropdown>
         </div>
@@ -127,6 +146,11 @@
           >
             <q-tab name="spk" icon="assignment" label="SPK Masuk" />
             <q-tab name="planning" icon="event_note" label="Planning Produksi" />
+            <q-tab name="reject-qc" icon="report_problem" label="Barang Reject QC">
+              <q-badge v-if="activeRejectQcRows.length" color="negative" floating>
+                {{ activeRejectQcRows.length }}
+              </q-badge>
+            </q-tab>
           </q-tabs>
         </div>
       </q-card-section>
@@ -327,6 +351,88 @@
             <div class="full-width row flex-center text-grey-7 q-pa-lg">
               <q-icon name="event_note" size="24px" class="q-mr-sm" />
               Belum ada planning produksi untuk departemen ini.
+            </div>
+          </template>
+        </q-table>
+      </q-card>
+    </div>
+
+    <div v-show="departmentViewTab === 'reject-qc'" class="q-mb-lg">
+      <q-card flat bordered class="spk-section-card bg-white">
+        <q-card-section class="row items-center">
+          <q-icon name="report_problem" color="negative" size="sm" class="q-mr-sm" />
+          <div>
+            <div class="text-subtitle1 text-weight-bolder text-green-10">Barang Reject QC</div>
+            <div class="text-caption text-grey-7">Barang reject/rework dari QC Produksi untuk diproses ulang departemen.</div>
+          </div>
+          <q-space />
+          <q-badge color="negative" class="text-weight-bold">{{ activeRejectQcRows.length }}</q-badge>
+        </q-card-section>
+        <q-separator />
+        <q-table
+          :rows="activeRejectQcRows"
+          :columns="rejectQcColumns"
+          row-key="id"
+          flat
+          :loading="rejectQcLoading"
+          :pagination="{ rowsPerPage: 8 }"
+        >
+          <template #body="props">
+            <q-tr :props="props">
+              <q-td key="no_spk" :props="props" class="text-weight-bolder text-green-10">
+                {{ props.row.no_spk || props.row.nomor_spk || '-' }}
+              </q-td>
+              <q-td key="nama_produk" :props="props">
+                <div class="text-weight-bold">{{ props.row.nama_produk || props.row.produk || '-' }}</div>
+                <div class="text-caption text-grey-6">{{ props.row.kode_produk || '-' }}</div>
+              </q-td>
+              <q-td key="qty_reject" :props="props" class="text-right">
+                <q-badge color="negative" class="q-px-sm q-py-xs">{{ formatNumber(props.row.qty_reject) }}</q-badge>
+              </q-td>
+              <q-td key="qty_rework" :props="props" class="text-right">
+                <q-badge color="purple-7" class="q-px-sm q-py-xs">{{ formatNumber(props.row.qty_rework) }}</q-badge>
+              </q-td>
+              <q-td key="alasan_reject" :props="props">
+                <div class="reject-note">{{ props.row.alasan_reject || props.row.catatan_qc || '-' }}</div>
+              </q-td>
+              <q-td key="tanggal_qc" :props="props">{{ formatDate(props.row.tanggal_qc || props.row.tanggal_reject) }}</q-td>
+              <q-td key="status_rework" :props="props">
+                <q-badge :color="rejectStatusColor(props.row.status_rework)" class="text-weight-bold">
+                  {{ rejectStatusLabel(props.row.status_rework) }}
+                </q-badge>
+              </q-td>
+              <q-td key="aksi" :props="props" class="text-center">
+                <div class="row justify-center q-gutter-xs no-wrap">
+                  <q-btn
+                    v-if="canProcessRejectQc(props.row)"
+                    dense
+                    unelevated
+                    color="purple-7"
+                    icon="restart_alt"
+                    label="Proses Rework"
+                    no-caps
+                    :loading="processingRejectQcId === props.row.id"
+                    @click="processRejectQc(props.row)"
+                  />
+                  <q-btn
+                    v-if="canSendRejectQc(props.row)"
+                    dense
+                    unelevated
+                    color="green-10"
+                    icon="fact_check"
+                    label="Kirim Ulang ke QC"
+                    no-caps
+                    :loading="processingRejectQcId === props.row.id"
+                    @click="sendRejectQcAgain(props.row)"
+                  />
+                </div>
+              </q-td>
+            </q-tr>
+          </template>
+          <template #no-data>
+            <div class="full-width row flex-center text-grey-7 q-pa-lg">
+              <q-icon name="report_problem" size="24px" class="q-mr-sm" />
+              Belum ada barang reject QC aktif.
             </div>
           </template>
         </q-table>
@@ -1151,10 +1257,13 @@ const spkRows = ref([])
 const knownSpkIds = ref(new Set())
 const planningRows = ref([])
 const knownPlanningIds = ref(new Set())
+const notificationRows = ref([])
+const rejectQcRows = ref([])
 const departmentViewTab = ref('spk')
 const loading = ref(true)
 const spkLoading = ref(true)
 const planningLoading = ref(true)
+const rejectQcLoading = ref(true)
 const search = ref('')
 const departemen = ref(null)
 const produksiDialog = ref(false)
@@ -1162,6 +1271,7 @@ const permintaanDialog = ref(false)
 const suratPreviewDialog = ref(false)
 const savingProduksi = ref(false)
 const savingPermintaan = ref(false)
+const processingRejectQcId = ref(null)
 const produksiFormRef = ref(null)
 const permintaanFormRef = ref(null)
 const satuanRawOptions = ref([])
@@ -1195,6 +1305,8 @@ let unsubscribeProdukOptions = null
 let unsubscribeBarangOptions = null
 let unsubscribeKategoriBarangOptions = null
 let unsubscribePermintaanRows = null
+let unsubscribeDepartmentNotifications = null
+let unsubscribeRejectQcRows = null
 
 const statusProduksiOptions = ['Proses', 'Finished', 'Tertunda', 'Batal']
 
@@ -1211,11 +1323,24 @@ const RUNNING_NUMBER_COLLECTION = 'manufactur_running_number'
 const MANUFACTURING_DEPARTEMEN_COLLECTION = 'manufacturing_departemen'
 const SPK_SUBCOLLECTION = 'spk'
 const PLANNING_COLLECTION = 'planning_produksi_manufaktur'
+const DEPARTEMENT_NOTIFICATION_COLLECTION = 'manufactur_departemen_notifications'
+const REWORK_QUEUE_COLLECTION = 'produksi_rework_queue'
+const QC_COLLECTION = 'qc_produksi_manufaktur'
 
 const produksiCollection = collection(db, PRODUKSI_COLLECTION)
 const permintaanBarangCollection = collection(db, PERMINTAAN_BARANG_COLLECTION)
 const getSpkCollection = (departemenIdValue) =>
   collection(db, MANUFACTURING_DEPARTEMEN_COLLECTION, departemenIdValue, SPK_SUBCOLLECTION)
+
+const unreadQcRejectNotifications = computed(() =>
+  notificationRows.value.filter((item) => item.type === 'qc_reject' && item.is_read !== true),
+)
+
+const normalizeRejectStatus = (status) => String(status || '').trim().toLowerCase()
+
+const activeRejectQcRows = computed(() =>
+  rejectQcRows.value.filter((row) => !['selesai'].includes(normalizeRejectStatus(row.status_rework))),
+)
 
 const mapOption = (itemDoc, labelKeys = ['nama']) => {
   const data = itemDoc.data()
@@ -1257,6 +1382,7 @@ const productionRowMatchesDepartment = (row, departemenIdValue, departemenNameVa
     row.departemen_nama,
     row.nama_departemen,
     row.current_departemen_nama,
+    row.departemen_asal,
     row.departemen?.nama_departemen,
     row.departemen?.nama,
     row.departemen?.label,
@@ -1398,6 +1524,47 @@ const listenManufacturingDepartemenPlanning = (departemenIdValue, callback, erro
     },
     errorCallback,
   )
+
+const listenDepartmentNotifications = (departemenIdValue, callback, errorCallback) => {
+  if (!departemenIdValue) {
+    callback([])
+    return () => {}
+  }
+
+  return onSnapshot(
+    query(collection(db, DEPARTEMENT_NOTIFICATION_COLLECTION), where('departemen_id', '==', departemenIdValue)),
+    (snapshot) => {
+      callback(snapshot.docs.map((notificationDoc) => ({ id: notificationDoc.id, ...notificationDoc.data() })))
+    },
+    errorCallback,
+  )
+}
+
+const listenRejectQcRows = (departemenIdValue, callback, errorCallback) => {
+  if (!departemenIdValue) {
+    callback([])
+    return () => {}
+  }
+
+  return onSnapshot(
+    query(collection(db, REWORK_QUEUE_COLLECTION), orderBy('tanggal_reject', 'desc')),
+    (snapshot) => {
+      callback(
+        snapshot.docs
+          .map((reworkDoc) => ({ id: reworkDoc.id, ...reworkDoc.data() }))
+          .filter((row) =>
+            productionRowMatchesDepartment(
+              row,
+              departemenIdValue,
+              departemenTitle.value,
+              departemenKode.value,
+            ),
+          ),
+      )
+    },
+    errorCallback,
+  )
+}
 
 const listenManufacturingSatuanOptions = (callback, errorCallback) =>
   listenCollectionOptions(MASTER_SATUAN_COLLECTION, 'nama', callback, errorCallback, ['nama'])
@@ -1642,6 +1809,17 @@ const planningColumns = [
   { name: 'deadline', label: 'Deadline', field: 'deadline', align: 'left', sortable: true },
   { name: 'prioritas', label: 'Prioritas', field: 'prioritas', align: 'center', sortable: true },
   { name: 'status_planning', label: 'Status Planning', field: 'status_planning', align: 'center', sortable: true },
+  { name: 'aksi', label: 'Aksi', field: 'aksi', align: 'center' },
+]
+
+const rejectQcColumns = [
+  { name: 'no_spk', label: 'No SPK', field: 'no_spk', align: 'left', sortable: true },
+  { name: 'nama_produk', label: 'Produk', field: 'nama_produk', align: 'left', sortable: true },
+  { name: 'qty_reject', label: 'Qty Reject', field: 'qty_reject', align: 'right', sortable: true },
+  { name: 'qty_rework', label: 'Qty Rework', field: 'qty_rework', align: 'right', sortable: true },
+  { name: 'alasan_reject', label: 'Alasan Reject', field: 'alasan_reject', align: 'left', sortable: true },
+  { name: 'tanggal_qc', label: 'Tanggal QC', field: 'tanggal_qc', align: 'left', sortable: true },
+  { name: 'status_rework', label: 'Status Rework', field: 'status_rework', align: 'left', sortable: true },
   { name: 'aksi', label: 'Aksi', field: 'aksi', align: 'center' },
 ]
 
@@ -1925,6 +2103,112 @@ const filteredPermintaanRows = computed(() =>
 
 const notify = (type, message) => {
   $q.notify({ type, message, position: 'top-right', timeout: 2200 })
+}
+
+const rejectStatusLabel = (status) => {
+  const normalized = normalizeRejectStatus(status)
+  if (normalized === 'menunggu_rework') return 'Menunggu Rework'
+  if (normalized === 'diproses_ulang') return 'Diproses Ulang'
+  if (normalized === 'pending_qc_ulang') return 'Pending QC Ulang'
+  if (normalized === 'selesai') return 'Selesai'
+  return status || 'Menunggu Rework'
+}
+
+const rejectStatusColor = (status) => {
+  const normalized = normalizeRejectStatus(status)
+  if (normalized === 'menunggu_rework') return 'negative'
+  if (normalized === 'diproses_ulang') return 'purple-7'
+  if (normalized === 'pending_qc_ulang') return 'orange-9'
+  if (normalized === 'selesai') return 'positive'
+  return 'blue-grey-6'
+}
+
+const canProcessRejectQc = (row) => normalizeRejectStatus(row.status_rework) === 'menunggu_rework'
+const canSendRejectQc = (row) => normalizeRejectStatus(row.status_rework) === 'diproses_ulang'
+
+const updateRejectMonitoringProduction = async (row, payload) => {
+  if (!row.production_source_id) return
+  const productionRef = doc(db, PRODUKSI_COLLECTION, row.production_source_id)
+  const productionSnap = await getDoc(productionRef)
+  if (!productionSnap.exists()) return
+  await updateDoc(productionRef, {
+    ...payload,
+    updated_at: serverTimestamp(),
+  })
+}
+
+const processRejectQc = async (row) => {
+  if (!row?.id) return
+  processingRejectQcId.value = row.id
+  try {
+    await updateDoc(doc(db, REWORK_QUEUE_COLLECTION, row.id), {
+      status_rework: 'diproses_ulang',
+      processed_at: serverTimestamp(),
+      updated_at: serverTimestamp(),
+    })
+    await updateRejectMonitoringProduction(row, {
+      status_produksi: 'rework',
+      status: 'rework',
+      status_rework: 'diproses_ulang',
+    })
+    notify('positive', 'Barang reject QC mulai diproses rework.')
+  } catch (error) {
+    console.error('[Departemen Reject QC] Gagal proses rework', { row, error })
+    notify('negative', 'Gagal memproses rework.')
+  } finally {
+    processingRejectQcId.value = null
+  }
+}
+
+const buildQcUlangPayload = (row) => ({
+  rework_queue_id: row.id,
+  production_source_id: row.production_source_id || '',
+  source_type: 'rework',
+  no_spk: row.no_spk || row.nomor_spk || '',
+  nomor_spk: row.nomor_spk || row.no_spk || '',
+  nama_produk: row.nama_produk || row.produk || '',
+  produk: row.produk || row.nama_produk || '',
+  kode_produk: row.kode_produk || '',
+  produk_id: row.produk_id || '',
+  departemen_asal: row.departemen_asal || departemenTitle.value,
+  departemen_id: row.departemen_id || departemenId.value || '',
+  qty_produksi: Number(row.qty_rework || row.qty_reject || 0),
+  qty_passed: 0,
+  qty_rework: 0,
+  qty_reject: 0,
+  satuan: row.satuan || 'Unit',
+  catatan_rework: row.alasan_reject || row.catatan_qc || '',
+  status_qc: 'pending_qc',
+  status_rework: 'pending_qc_ulang',
+  created_at: serverTimestamp(),
+  updated_at: serverTimestamp(),
+})
+
+const sendRejectQcAgain = async (row) => {
+  if (!row?.id) return
+  processingRejectQcId.value = row.id
+  try {
+    const qcRef = await addDoc(collection(db, QC_COLLECTION), buildQcUlangPayload(row))
+    await updateDoc(doc(db, REWORK_QUEUE_COLLECTION, row.id), {
+      status_rework: 'pending_qc_ulang',
+      qc_ulang_id: qcRef.id,
+      sent_to_qc_at: serverTimestamp(),
+      updated_at: serverTimestamp(),
+    })
+    await updateRejectMonitoringProduction(row, {
+      status_produksi: 'pending_qc',
+      status: 'pending_qc',
+      status_qc: 'pending_qc',
+      status_rework: 'pending_qc_ulang',
+      qc_ulang_id: qcRef.id,
+    })
+    notify('positive', 'Barang rework dikirim ulang ke QC Produksi.')
+  } catch (error) {
+    console.error('[Departemen Reject QC] Gagal kirim ulang ke QC', { row, error })
+    notify('negative', 'Gagal mengirim ulang ke QC.')
+  } finally {
+    processingRejectQcId.value = null
+  }
 }
 
 const formatDate = (value) => {
@@ -3122,6 +3406,30 @@ onMounted(async () => {
       notify('negative', 'Gagal memuat permintaan barang realtime.')
     },
   )
+
+  unsubscribeDepartmentNotifications = listenDepartmentNotifications(
+    departemenId.value,
+    (nextRows) => {
+      notificationRows.value = nextRows
+    },
+    (error) => {
+      console.error(error)
+      notify('negative', 'Gagal memuat notifikasi departemen.')
+    },
+  )
+
+  unsubscribeRejectQcRows = listenRejectQcRows(
+    departemenId.value,
+    (nextRows) => {
+      rejectQcRows.value = nextRows
+      rejectQcLoading.value = false
+    },
+    (error) => {
+      console.error(error)
+      rejectQcLoading.value = false
+      notify('negative', 'Gagal memuat barang reject QC.')
+    },
+  )
 })
 
 onUnmounted(() => {
@@ -3135,6 +3443,8 @@ onUnmounted(() => {
   if (unsubscribeBarangOptions) unsubscribeBarangOptions()
   if (unsubscribeKategoriBarangOptions) unsubscribeKategoriBarangOptions()
   if (unsubscribePermintaanRows) unsubscribePermintaanRows()
+  if (unsubscribeDepartmentNotifications) unsubscribeDepartmentNotifications()
+  if (unsubscribeRejectQcRows) unsubscribeRejectQcRows()
 })
 </script>
 
@@ -3408,6 +3718,13 @@ onUnmounted(() => {
 
 .surat-preview :deep(.surat-note p) {
   margin: 0;
+}
+
+.reject-note {
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .surat-preview :deep(.surat-signatures) {

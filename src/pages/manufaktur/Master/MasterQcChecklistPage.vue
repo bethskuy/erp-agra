@@ -63,22 +63,77 @@
                   <q-input v-model="form.toleransi" outlined label="Toleransi" />
                 </div>
                 <div class="col-12 col-md-6 col-xl-4">
-                  <q-input v-model="form.satuan" outlined label="Satuan" />
+                  <q-select
+                    v-model="form.satuan_id"
+                    :options="filteredSatuanOptions"
+                    outlined
+                    dense
+                    emit-value
+                    map-options
+                    use-input
+                    input-debounce="0"
+                    option-label="label"
+                    option-value="value"
+                    label="Satuan"
+                    :loading="loadingSatuan"
+                    :rules="[required]"
+                    @filter="filterSatuanOptions"
+                  />
                 </div>
                 <div class="col-12 col-md-6 col-xl-4">
-                  <q-input
-                    v-model="form.departemen_terkait"
+                  <q-select
+                    v-model="form.departemen_id"
+                    :options="filteredDepartemenOptions"
                     outlined
+                    dense
+                    emit-value
+                    map-options
+                    use-input
+                    input-debounce="0"
+                    option-label="label"
+                    option-value="value"
                     label="Departemen Terkait"
-                    hint="Contoh: Welding, Painting, Fabrikasi"
+                    :loading="loadingDepartemen"
+                    :rules="[required]"
+                    @filter="filterDepartemenOptions"
+                  />
+                </div>
+                <div class="col-12 col-md-6 col-xl-4">
+                  <q-select
+                    v-model="form.kategori_id"
+                    :options="filteredKategoriOptions"
+                    outlined
+                    dense
+                    emit-value
+                    map-options
+                    use-input
+                    input-debounce="0"
+                    option-label="label"
+                    option-value="value"
+                    label="Kategori Produk"
+                    :loading="loadingKategori"
+                    :rules="[required]"
+                    @filter="filterKategoriOptions"
+                  />
+                </div>
+                <div class="col-12 col-md-6 col-xl-4">
+                  <q-select
+                    v-model="form.tipe_pemeriksaan"
+                    :options="tipePemeriksaanOptions"
+                    outlined
+                    dense
+                    label="Tipe Pemeriksaan"
+                    :rules="[required]"
                   />
                 </div>
                 <div class="col-12 col-md-6 col-xl-4">
                   <q-input
-                    v-model="form.kategori_produk"
+                    v-model.number="form.urutan_checklist"
                     outlined
-                    label="Kategori Produk"
-                    hint="Contoh: metal, finishing, struktur"
+                    dense
+                    type="number"
+                    min="1"
+                    label="Urutan Checklist"
                   />
                 </div>
                 <div class="col-12 col-md-6 col-xl-4">
@@ -88,6 +143,14 @@
                     outlined
                     label="Status"
                     :rules="[required]"
+                  />
+                </div>
+                <div class="col-12 col-md-6 col-xl-4">
+                  <q-toggle
+                    v-model="form.wajib_foto_reject"
+                    color="green-10"
+                    label="Wajib foto reject"
+                    class="q-mt-sm"
                   />
                 </div>
               </div>
@@ -212,6 +275,22 @@
           </q-td>
         </template>
 
+        <template #body-cell-satuan_id="props">
+          <q-td :props="props">{{ optionLabelById(satuanOptions, props.row.satuan_id, props.row.satuan) }}</q-td>
+        </template>
+
+        <template #body-cell-departemen_id="props">
+          <q-td :props="props">
+            {{ optionLabelById(departemenOptions, props.row.departemen_id, props.row.departemen_terkait) }}
+          </q-td>
+        </template>
+
+        <template #body-cell-kategori_id="props">
+          <q-td :props="props">
+            {{ optionLabelById(kategoriOptions, props.row.kategori_id, props.row.kategori_produk) }}
+          </q-td>
+        </template>
+
         <template #body-cell-aksi="props">
           <q-td :props="props" @click.stop>
             <q-btn flat round dense color="green-10" icon="edit" @click="openFormPage(props.row)">
@@ -242,31 +321,50 @@ import { addDoc, collection, deleteDoc, doc, onSnapshot, orderBy, query, serverT
 import { db } from 'src/boot/firebase'
 
 const COLLECTION_NAME = 'master_qc_checklist'
+const SATUAN_COLLECTION = 'manufactur_master_satuan'
+const DEPARTEMEN_COLLECTION = 'manufactur_master_departemen'
+const KATEGORI_COLLECTION = 'manufactur_master_kategori_barang'
 const WORKSPACE_BODY_CLASS = 'manufacturing-master-form-workspace'
 
 const $q = useQuasar()
 const rows = ref([])
 const loading = ref(true)
 const saving = ref(false)
+const loadingSatuan = ref(true)
+const loadingDepartemen = ref(true)
+const loadingKategori = ref(true)
 const search = ref('')
 const statusFilter = ref('Semua')
 const formPageOpen = ref(false)
 const selectedId = ref(null)
+const satuanOptions = ref([])
+const departemenOptions = ref([])
+const kategoriOptions = ref([])
+const filteredSatuanOptions = ref([])
+const filteredDepartemenOptions = ref([])
+const filteredKategoriOptions = ref([])
 let unsubscribeRows = null
+let unsubscribeSatuan = null
+let unsubscribeDepartemen = null
+let unsubscribeKategori = null
 
 const emptyForm = () => ({
   kode_qc: '',
   nama_pengecekan: '',
   parameter: '',
   toleransi: '',
-  satuan: '',
-  departemen_terkait: '',
-  kategori_produk: '',
+  satuan_id: '',
+  departemen_id: '',
+  kategori_id: '',
+  tipe_pemeriksaan: 'Visual',
+  wajib_foto_reject: false,
+  urutan_checklist: null,
   status: 'Aktif',
 })
 
 const form = ref(emptyForm())
 const statusOptions = ['Aktif', 'Nonaktif']
+const tipePemeriksaanOptions = ['Visual', 'Dimensi', 'Fungsi', 'Safety', 'Finishing']
 const statusFilterOptions = [
   { label: 'Semua Status', value: 'Semua' },
   { label: 'Aktif', value: 'Aktif' },
@@ -277,9 +375,11 @@ const columns = [
   { name: 'nama_pengecekan', label: 'Pengecekan', field: 'nama_pengecekan', align: 'left', sortable: true },
   { name: 'parameter', label: 'Parameter', field: 'parameter', align: 'left', sortable: true },
   { name: 'toleransi', label: 'Toleransi', field: 'toleransi', align: 'left', sortable: true },
-  { name: 'satuan', label: 'Satuan', field: 'satuan', align: 'left', sortable: true },
-  { name: 'departemen_terkait', label: 'Departemen', field: 'departemen_terkait', align: 'left', sortable: true },
-  { name: 'kategori_produk', label: 'Kategori Produk', field: 'kategori_produk', align: 'left', sortable: true },
+  { name: 'satuan_id', label: 'Satuan', field: 'satuan_id', align: 'left', sortable: true },
+  { name: 'departemen_id', label: 'Departemen', field: 'departemen_id', align: 'left', sortable: true },
+  { name: 'kategori_id', label: 'Kategori Produk', field: 'kategori_id', align: 'left', sortable: true },
+  { name: 'tipe_pemeriksaan', label: 'Tipe', field: 'tipe_pemeriksaan', align: 'left', sortable: true },
+  { name: 'urutan_checklist', label: 'Urutan', field: 'urutan_checklist', align: 'right', sortable: true },
   { name: 'status', label: 'Status', field: 'status', align: 'left', sortable: true },
   { name: 'aksi', label: 'Aksi', field: 'aksi', align: 'center' },
 ]
@@ -304,9 +404,10 @@ const filteredRows = computed(() => {
         row.nama_pengecekan,
         row.parameter,
         row.toleransi,
-        row.satuan,
-        row.departemen_terkait,
-        row.kategori_produk,
+        optionLabelById(satuanOptions.value, row.satuan_id, row.satuan),
+        optionLabelById(departemenOptions.value, row.departemen_id, row.departemen_terkait),
+        optionLabelById(kategoriOptions.value, row.kategori_id, row.kategori_produk),
+        row.tipe_pemeriksaan,
       ]
       .join(' ')
       .toLowerCase()
@@ -322,7 +423,18 @@ const notify = (type, message) => {
 
 const openFormPage = (row = null) => {
   selectedId.value = row?.id || null
-  form.value = row ? { ...emptyForm(), ...row } : emptyForm()
+  form.value = row
+    ? {
+        ...emptyForm(),
+        ...row,
+        satuan_id: row.satuan_id || findOptionValueByLabel(satuanOptions.value, row.satuan),
+        departemen_id: row.departemen_id || findOptionValueByLabel(departemenOptions.value, row.departemen_terkait),
+        kategori_id: row.kategori_id || findOptionValueByLabel(kategoriOptions.value, row.kategori_produk),
+        wajib_foto_reject: !!row.wajib_foto_reject,
+        urutan_checklist: row.urutan_checklist ?? null,
+        tipe_pemeriksaan: row.tipe_pemeriksaan || 'Visual',
+      }
+    : emptyForm()
   formPageOpen.value = true
 }
 
@@ -337,11 +449,98 @@ const payloadFromForm = () => ({
   nama_pengecekan: form.value.nama_pengecekan,
   parameter: form.value.parameter,
   toleransi: form.value.toleransi,
-  satuan: form.value.satuan,
-  departemen_terkait: form.value.departemen_terkait,
-  kategori_produk: form.value.kategori_produk,
+  satuan_id: form.value.satuan_id,
+  departemen_id: form.value.departemen_id,
+  kategori_id: form.value.kategori_id,
+  tipe_pemeriksaan: form.value.tipe_pemeriksaan,
+  wajib_foto_reject: !!form.value.wajib_foto_reject,
+  urutan_checklist: Number(form.value.urutan_checklist || 0),
   status: form.value.status,
 })
+
+const optionLabelById = (options, value, fallback = '-') =>
+  options.find((option) => option.value === value)?.label || fallback || '-'
+
+const findOptionValueByLabel = (options, label) => {
+  const normalized = String(label || '').trim().toLowerCase()
+  if (!normalized) return ''
+  return options.find((option) => option.label.toLowerCase() === normalized)?.value || ''
+}
+
+const filterOptionList = (allOptions, updateTarget) => (inputValue, update) => {
+  update(() => {
+    const needle = String(inputValue || '').trim().toLowerCase()
+    updateTarget.value = !needle
+      ? allOptions.value
+      : allOptions.value.filter((option) => option.label.toLowerCase().includes(needle))
+  })
+}
+
+const filterSatuanOptions = filterOptionList(satuanOptions, filteredSatuanOptions)
+const filterDepartemenOptions = filterOptionList(departemenOptions, filteredDepartemenOptions)
+const filterKategoriOptions = filterOptionList(kategoriOptions, filteredKategoriOptions)
+
+const mapSatuanOption = (id, data) => ({
+  label: data.nama || data.kode || id,
+  value: id,
+})
+
+const mapDepartemenOption = (id, data) => ({
+  label: data.nama_departemen || data.nama || id,
+  value: id,
+})
+
+const mapKategoriOption = (id, data) => ({
+  label: data.nama || data.nama_kategori || id,
+  value: id,
+})
+
+const listenDropdownOptions = () => {
+  unsubscribeSatuan = onSnapshot(
+    query(collection(db, SATUAN_COLLECTION), orderBy('nama', 'asc')),
+    (snapshot) => {
+      satuanOptions.value = snapshot.docs.map((item) => mapSatuanOption(item.id, item.data()))
+      filteredSatuanOptions.value = satuanOptions.value
+      loadingSatuan.value = false
+    },
+    (error) => {
+      console.error(error)
+      loadingSatuan.value = false
+      notify('negative', 'Gagal memuat satuan.')
+    },
+  )
+
+  unsubscribeDepartemen = onSnapshot(
+    query(collection(db, DEPARTEMEN_COLLECTION), orderBy('nama_departemen', 'asc')),
+    (snapshot) => {
+      departemenOptions.value = snapshot.docs
+        .map((item) => ({ id: item.id, ...item.data() }))
+        .filter((item) => item.status !== 'Nonaktif')
+        .map((item) => mapDepartemenOption(item.id, item))
+      filteredDepartemenOptions.value = departemenOptions.value
+      loadingDepartemen.value = false
+    },
+    (error) => {
+      console.error(error)
+      loadingDepartemen.value = false
+      notify('negative', 'Gagal memuat departemen.')
+    },
+  )
+
+  unsubscribeKategori = onSnapshot(
+    query(collection(db, KATEGORI_COLLECTION), orderBy('nama', 'asc')),
+    (snapshot) => {
+      kategoriOptions.value = snapshot.docs.map((item) => mapKategoriOption(item.id, item.data()))
+      filteredKategoriOptions.value = kategoriOptions.value
+      loadingKategori.value = false
+    },
+    (error) => {
+      console.error(error)
+      loadingKategori.value = false
+      notify('negative', 'Gagal memuat kategori produk.')
+    },
+  )
+}
 
 const saveRow = async () => {
   saving.value = true
@@ -390,6 +589,7 @@ const confirmDelete = (row) => {
 
 onMounted(() => {
   loading.value = true
+  listenDropdownOptions()
   unsubscribeRows = onSnapshot(
     query(collection(db, COLLECTION_NAME), orderBy('created_at', 'desc')),
     (snapshot) => {
@@ -407,6 +607,9 @@ onMounted(() => {
 onUnmounted(() => {
   document.body.classList.remove(WORKSPACE_BODY_CLASS)
   if (unsubscribeRows) unsubscribeRows()
+  if (unsubscribeSatuan) unsubscribeSatuan()
+  if (unsubscribeDepartemen) unsubscribeDepartemen()
+  if (unsubscribeKategori) unsubscribeKategori()
 })
 </script>
 

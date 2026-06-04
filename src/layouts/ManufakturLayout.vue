@@ -370,6 +370,11 @@
               <q-icon name="corporate_fare" />
             </q-item-section>
             <q-item-section class="menu-text">Departemen</q-item-section>
+            <q-item-section side v-if="activeQcRejectCount > 0">
+              <q-badge color="negative" rounded class="text-weight-bold">
+                Barang Reject QC {{ activeQcRejectCount }}
+              </q-badge>
+            </q-item-section>
           </q-item>
 
           <q-expansion-item
@@ -804,9 +809,11 @@ const bgRiveCanvas = ref(null)
 const leftDrawerOpen = ref(false)
 const pendingCount = ref(0)
 const newPurchaseRequestCount = ref(0)
+const activeQcRejectCount = ref(0)
 const userData = ref(null)
 let unsub = null
 let unsubPurchaseRequest = null
+let unsubQcReject = null
 let unsubUser = null
 let bgRive = null
 let bgRivePlaybackTarget = null
@@ -920,6 +927,14 @@ onMounted(() => {
     newPurchaseRequestCount.value = snap.size
   })
 
+  const qQcReject = query(
+    collection(db, 'produksi_rework_queue'),
+    where('status_rework', 'in', ['menunggu_rework', 'diproses_ulang', 'pending_qc_ulang']),
+  )
+  unsubQcReject = onSnapshot(qQcReject, (snap) => {
+    activeQcRejectCount.value = snap.size
+  })
+
   const userEmail = authStore.user?.email
   if (userEmail) {
     const qUser = query(collection(db, 'karyawan'), where('email', '==', userEmail))
@@ -933,6 +948,7 @@ onUnmounted(() => {
   destroyBackgroundRive()
   if (unsub) unsub()
   if (unsubPurchaseRequest) unsubPurchaseRequest()
+  if (unsubQcReject) unsubQcReject()
   if (unsubUser) unsubUser()
 })
 </script>
