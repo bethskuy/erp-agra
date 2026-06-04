@@ -809,7 +809,9 @@
                 </div>
                 <div class="col text-left">
                   <div class="final-pt-name uppercase">{{ selectedData.nama_pt }}</div>
-                  <div class="final-pt-tagline italic text-grey-8">{{ selectedData.tagline_pt }}</div>
+                  <div class="final-pt-tagline italic text-grey-8">
+                    {{ selectedData.tagline_pt }}
+                  </div>
                 </div>
               </div>
               <div class="final-divider"></div>
@@ -1627,6 +1629,12 @@ const exportToPDF = async () => {
   const original = {
     headerDisplay: headerEl?.style?.display || '',
   }
+  let headerParent = null
+  let headerNextSibling = null
+  if (headerEl) {
+    headerParent = headerEl.parentNode
+    headerNextSibling = headerEl.nextSibling
+  }
 
   try {
     body.classList.add('is-exporting')
@@ -1634,11 +1642,11 @@ const exportToPDF = async () => {
     await waitForNextFrame()
 
     // Margin base (mm)
-    const marginLeft = 10
-    const marginRight = 10
-    const marginBottom = 12
-    const headerYmm = 6
-    let marginTop = 12
+    const marginLeft = 15
+    const marginRight = 15
+    const marginBottom = 15
+    const headerYmm = 15
+    let marginTop = 15
 
     let headerImgData = null
     let headerHeightMm = 0
@@ -1651,8 +1659,10 @@ const exportToPDF = async () => {
       })
       headerImgData = headerCanvas.toDataURL('image/png')
 
-      // Sembunyikan header di konten export agar tidak double
-      headerEl.style.display = 'none'
+      // Hapus sementara header dari DOM agar tidak menyisakan ruang kosong di halaman 1
+      if (headerParent) {
+        headerParent.removeChild(headerEl)
+      }
 
       // Hitung tinggi header dalam mm untuk menyisihkan margin atas di tiap halaman
       const img = new Image()
@@ -1665,7 +1675,7 @@ const exportToPDF = async () => {
       const a4WidthMm = 210
       const headerWidthMm = a4WidthMm - marginLeft - marginRight
       headerHeightMm = (img.height / img.width) * headerWidthMm
-      marginTop = headerYmm + headerHeightMm + 4
+      marginTop = headerYmm + headerHeightMm + 2
 
       await nextTick()
       await waitForNextFrame()
@@ -1713,7 +1723,14 @@ const exportToPDF = async () => {
     console.error(e)
     $q.notify({ type: 'negative', message: 'Gagal export PDF: ' + (e?.message || e) })
   } finally {
-    if (headerEl) headerEl.style.display = original.headerDisplay
+    if (headerEl && headerParent) {
+      if (headerNextSibling) {
+        headerParent.insertBefore(headerEl, headerNextSibling)
+      } else {
+        headerParent.appendChild(headerEl)
+      }
+      headerEl.style.display = original.headerDisplay
+    }
     body.classList.remove('is-exporting')
     $q.loading.hide()
   }
@@ -1892,6 +1909,93 @@ const uploadKopPermanen = async (file) => {
     transform: translateY(-120vh) rotate(360deg);
     opacity: 0;
   }
+}
+
+/* =======================================================================
+   MODE KHUSUS SAAT EXPORT PDF GLOBAL STYLES
+   ======================================================================= */
+body.is-exporting .letter-paper {
+  display: block !important;
+  width: 180mm !important;
+  min-height: auto !important;
+  padding: 0mm !important;
+  overflow: visible !important;
+  box-shadow: none !important;
+  font-size: 11px !important;
+  line-height: 1.3 !important;
+}
+body.is-exporting .letter-paper .quotation-header {
+  height: 80px !important;
+  min-height: 80px !important;
+  max-height: 80px !important;
+  overflow: hidden !important;
+}
+body.is-exporting .letter-paper .final-kop-img {
+  height: 60px !important;
+}
+body.is-exporting .letter-paper .final-pt-name {
+  font-size: 21px !important;
+}
+body.is-exporting .letter-paper .quotation-title-pro {
+  font-size: 22px !important;
+}
+body.is-exporting .letter-paper .final-divider {
+  margin-top: 8px !important;
+}
+body.is-exporting .letter-paper .final-pro-table th {
+  padding: 4px !important;
+  font-size: 9px !important;
+}
+body.is-exporting .letter-paper .final-pro-table td {
+  padding: 4px !important;
+  font-size: 10.5px !important;
+}
+body.is-exporting .letter-paper .bg-indigo-left,
+body.is-exporting .letter-paper .bg-indigo-right {
+  padding: 8px 12px !important;
+  font-size: 12px !important;
+}
+body.is-exporting .letter-paper .terms-header {
+  padding: 4px 8px !important;
+  font-size: 9.5px !important;
+}
+body.is-exporting .letter-paper .terms-content-box {
+  padding: 6px 10px !important;
+  font-size: 10px !important;
+}
+body.is-exporting .letter-paper .final-sign-space {
+  height: 60px !important;
+  margin-bottom: 2px !important;
+}
+
+/* Tighten spacing utility Quasar hanya saat export */
+body.is-exporting .letter-paper .q-mt-lg {
+  margin-top: 6px !important;
+}
+body.is-exporting .letter-paper .q-mt-xl {
+  margin-top: 8px !important;
+}
+body.is-exporting .letter-paper .q-mt-md {
+  margin-top: 4px !important;
+}
+body.is-exporting .letter-paper .q-mb-md {
+  margin-bottom: 4px !important;
+}
+body.is-exporting .letter-paper .terms-container {
+  margin-top: 6px !important;
+}
+body.is-exporting .letter-paper .text-closing-final {
+  margin-top: 16px !important;
+}
+body.is-exporting .letter-paper .signature-container {
+  margin-top: 30px !important;
+}
+body.is-exporting .letter-paper .signature-container .q-mt-md {
+  margin-top: 0px !important;
+}
+body.is-exporting .letter-paper .row.justify-between {
+  margin-top: 4px !important;
+  margin-bottom: 4px !important;
 }
 </style>
 
@@ -2235,48 +2339,7 @@ const uploadKopPermanen = async (file) => {
   page-break-inside: avoid;
 }
 
-/* Mode khusus saat export PDF: lebih padat, aman overflow */
-:global(body.is-exporting) .letter-paper {
-  width: 210mm;
-  min-height: auto;
-  padding: 12mm;
-  overflow: visible;
-  box-shadow: none;
-}
-:global(body.is-exporting) .letter-paper .final-kop-img {
-  height: 62px;
-}
-:global(body.is-exporting) .letter-paper .final-pt-name {
-  font-size: 22px;
-}
-:global(body.is-exporting) .letter-paper .quotation-title-pro {
-  font-size: 24px;
-}
-:global(body.is-exporting) .letter-paper .final-divider {
-  margin-top: 10px;
-}
-:global(body.is-exporting) .letter-paper .final-pro-table th {
-  padding: 7px 6px;
-  font-size: 9.5px;
-}
-:global(body.is-exporting) .letter-paper .final-pro-table td {
-  padding: 6px;
-  font-size: 11px;
-}
-:global(body.is-exporting) .letter-paper .final-sign-space {
-  height: 110px;
-}
-
-/* Tighten spacing utility Quasar hanya saat export */
-:global(body.is-exporting) .letter-paper :deep(.q-mt-lg) {
-  margin-top: 10px !important;
-}
-:global(body.is-exporting) .letter-paper :deep(.q-mt-xl) {
-  margin-top: 14px !important;
-}
-:global(body.is-exporting) .letter-paper :deep(.q-mb-md) {
-  margin-bottom: 10px !important;
-}
+/* Mode khusus saat export PDF diatur secara global di blok <style> di atas */
 .final-sign-space {
   position: relative;
   height: 120px;

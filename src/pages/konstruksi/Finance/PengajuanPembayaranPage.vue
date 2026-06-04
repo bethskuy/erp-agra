@@ -1552,6 +1552,9 @@ const searchQuery = ref('')
 const statusFilter = ref('ALL')
 const isEditMode = ref(false)
 const selectedData = ref(null)
+const originalTagihanId = ref(null)
+const originalTagihanInvoice = ref(null)
+const originalTagihanKode = ref(null)
 
 const allSpk = ref([])
 const allProyek = ref([])
@@ -1567,6 +1570,7 @@ const formDefault = {
   tagihan_obj: null,
   tagihan_id: null,
   tagihan_nomor_invoice: '',
+  tagihan_kode: '',
   vendor_nama: '',
   rek_bank: '',
   rek_nomor: '',
@@ -1862,6 +1866,7 @@ const onTagihanSelect = (val) => {
   if (val) {
     form.value.tagihan_id = val.id
     form.value.tagihan_nomor_invoice = val.nomor_invoice
+    form.value.tagihan_kode = val.kode_tagihan || ''
     form.value.vendor_nama = val.supplier_nama || ''
     form.value.nominal = val.sisa_tagihan || 0
     form.value.keterangan = `Pembayaran untuk Tagihan Supplier: ${val.nomor_invoice}. Sisa hutang: Rp ${val.sisa_tagihan.toLocaleString('id-ID')}`
@@ -1934,6 +1939,9 @@ const openEditDialog = (row) => {
     return
   }
   isEditMode.value = true
+  originalTagihanId.value = row.tagihan_id || null
+  originalTagihanInvoice.value = row.tagihan_nomor_invoice || null
+  originalTagihanKode.value = row.tagihan_kode || null
   form.value = { ...JSON.parse(JSON.stringify(row)) }
   if (row.tipe_pengajuan === 'Tagihan Supplier' && row.tagihan_id) {
     form.value.tagihan_obj = optTagihan.value.find((t) => t.id === row.tagihan_id) || {
@@ -1998,6 +2006,58 @@ const processHybridUpload = async (file, pathName) => {
     const sRef = storageRef(storage, `finance/pengajuan/${Date.now()}_${pathName}`)
     const snap = await uploadBytes(sRef, file)
     return await getDownloadURL(snap.ref)
+  }
+}
+
+const updateTagihanStatus = async (tagihanId, nomorInvoice, kodeTagihan, status) => {
+  let updated = false
+  if (tagihanId) {
+    try {
+      await updateDoc(doc(db, 'finance_tagihan', tagihanId), {
+        status: status,
+        updatedAt: serverTimestamp(),
+      })
+      updated = true
+    } catch (e) {
+      console.error(`Failed to update tagihan by ID ${tagihanId}:`, e)
+    }
+  }
+
+  const identifiers = [nomorInvoice, kodeTagihan, tagihanId].filter(Boolean)
+  if (!updated && identifiers.length > 0) {
+    for (const ident of identifiers) {
+      try {
+        const q = query(collection(db, 'finance_tagihan'), where('nomor_invoice', '==', ident))
+        const snap = await getDocs(q)
+        for (const d of snap.docs) {
+          await updateDoc(doc(db, 'finance_tagihan', d.id), {
+            status: status,
+            updatedAt: serverTimestamp(),
+          })
+          updated = true
+        }
+      } catch (e) {
+        console.error(`Failed matching nomor_invoice:`, e)
+      }
+    }
+
+    if (!updated) {
+      for (const ident of identifiers) {
+        try {
+          const q = query(collection(db, 'finance_tagihan'), where('kode_tagihan', '==', ident))
+          const snap = await getDocs(q)
+          for (const d of snap.docs) {
+            await updateDoc(doc(db, 'finance_tagihan', d.id), {
+              status: status,
+              updatedAt: serverTimestamp(),
+            })
+            updated = true
+          }
+        } catch (e) {
+          console.error(`Failed matching kode_tagihan:`, e)
+        }
+      }
+    }
   }
 }
 
@@ -2067,6 +2127,7 @@ const simpanPengajuan = async () => {
       tipe_pengajuan: form.value.tipe_pengajuan,
       tagihan_id: form.value.tagihan_id || null,
       tagihan_nomor_invoice: form.value.tagihan_nomor_invoice || '',
+      tagihan_kode: form.value.tagihan_kode || '',
       proyek_id: form.value.proyek_id || null,
       proyek_nama: form.value.proyek_nama || '',
       selected_spk: form.value.selected_spk || [],
@@ -2092,12 +2153,29 @@ const simpanPengajuan = async () => {
       payload.status = 'Pending'
       payload.approver_read = false
       await updateDoc(doc(db, 'finance_pengajuan_pembayaran', form.value.id), payload)
+
+      if (
+        form.value.tagihan_id !== originalTagihanId.value ||
+        form.value.tagihan_nomor_invoice !== originalTagihanInvoice.value ||
+        form.value.tagihan_kode !== originalTagihanKode.value
+      ) {
+        if (originalTagihanId.value || originalTagihanInvoice.value || originalTagihanKode.value) {
+          await updateTagihanStatus(originalTagihanId.value, originalTagihanInvoice.value, originalTagihanKode.value, 'Draft')
+        }
+        if (form.value.tagihan_id || form.value.tagihan_nomor_invoice || form.value.tagihan_kode) {
+          await updateTagihanStatus(form.value.tagihan_id, form.value.tagihan_nomor_invoice, form.value.tagihan_kode, 'Sedang Diajukan')
+        }
+      }
     } else {
       payload.createdAt = serverTimestamp()
       payload.pembuat_id = authStore.user?.uid || ''
       payload.pembuat_email = authStore.user?.email || ''
       payload.pembuat_nama = authStore.user?.nama || 'User'
       await addDoc(collection(db, 'finance_pengajuan_pembayaran'), payload)
+
+      if (form.value.tagihan_id || form.value.tagihan_nomor_invoice || form.value.tagihan_kode) {
+        await updateTagihanStatus(form.value.tagihan_id, form.value.tagihan_nomor_invoice, form.value.tagihan_kode, 'Sedang Diajukan')
+      }
     }
 
     $q.notify({
@@ -2142,6 +2220,9 @@ const confirmHapus = (row) => {
     cancel: true,
     ok: { color: 'negative', label: 'Hapus', unelevated: true },
   }).onOk(async () => {
+    if (row.tagihan_id || row.tagihan_nomor_invoice || row.tagihan_kode) {
+      await updateTagihanStatus(row.tagihan_id, row.tagihan_nomor_invoice, row.tagihan_kode, 'Draft')
+    }
     await deleteDoc(doc(db, 'finance_pengajuan_pembayaran', row.id))
     $q.notify({
       type: 'positive',

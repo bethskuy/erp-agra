@@ -1934,6 +1934,46 @@ const columns = [
 // ============================================================================
 // FETCH DATA
 // ============================================================================
+const syncExistingTagihanStatus = async () => {
+  try {
+    const pengajuanSnap = await getDocs(collection(db, 'finance_pengajuan_pembayaran'))
+    const activePengajuans = pengajuanSnap.docs
+      .map((d) => ({ id: d.id, ...d.data() }))
+      .filter((p) => ['Pending', 'Approved'].includes(p.status))
+
+    const tagihanSnap = await getDocs(collection(db, 'finance_tagihan'))
+    const tagihans = tagihanSnap.docs.map((d) => ({ id: d.id, ...d.data() }))
+
+    for (const tagihan of tagihans) {
+      const tagihanIdentifiers = [tagihan.id, tagihan.kode_tagihan, tagihan.nomor_invoice].filter(Boolean)
+      const hasActivePengajuan = activePengajuans.some((p) => {
+        const pengajuanRefs = [p.tagihan_id, p.tagihan_nomor_invoice, p.tagihan_kode].filter(Boolean)
+        return pengajuanRefs.some((ref) => tagihanIdentifiers.includes(ref))
+      })
+
+      if (hasActivePengajuan) {
+        if (tagihan.status !== 'Sedang Diajukan') {
+          console.log(`Syncing tagihan ${tagihan.nomor_invoice} to 'Sedang Diajukan'`)
+          await updateDoc(doc(db, 'finance_tagihan', tagihan.id), {
+            status: 'Sedang Diajukan',
+            updatedAt: serverTimestamp(),
+          })
+        }
+      } else {
+        if (tagihan.status === 'Sedang Diajukan') {
+          console.log(`Syncing tagihan ${tagihan.nomor_invoice} back to 'Draft'`)
+          await updateDoc(doc(db, 'finance_tagihan', tagihan.id), {
+            status: 'Draft',
+            updatedAt: serverTimestamp(),
+          })
+        }
+      }
+    }
+  } catch (e) {
+    console.error('Error syncing existing tagihan status:', e)
+  }
+}
+
 const generateKodeTagihan = () => {
   const count = rows.value.length + 1
   const padded = count.toString().padStart(3, '0')
@@ -1979,6 +2019,8 @@ const fetchData = async () => {
           status = 'Dibayar Sebagian'
         } else if (status === 'Draft') {
           status = 'Draft'
+        } else if (status === 'Sedang Diajukan') {
+          status = 'Sedang Diajukan'
         } else {
           status = 'Menunggu Pembayaran'
         }
@@ -2579,6 +2621,8 @@ const getStatusColor = (status) => {
   switch (status) {
     case 'Draft':
       return { bg: 'grey-3', text: 'grey-8' }
+    case 'Sedang Diajukan':
+      return { bg: 'amber-2', text: 'amber-9' }
     case 'Menunggu Pembayaran':
       return { bg: 'orange-2', text: 'orange-9' }
     case 'Dibayar Sebagian':
@@ -2668,6 +2712,7 @@ const openLink = (url) => {
 onMounted(() => {
   loadUserPermission()
   fetchData()
+  syncExistingTagihanStatus()
 })
 
 onUnmounted(() => {

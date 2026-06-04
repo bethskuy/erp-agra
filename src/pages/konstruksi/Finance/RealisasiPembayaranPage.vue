@@ -996,6 +996,7 @@ import {
   updateDoc,
   getDoc,
   serverTimestamp,
+  getDocs,
 } from 'firebase/firestore'
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { useQuasar } from 'quasar'
@@ -1227,31 +1228,74 @@ const processRealisasi = async () => {
 
     await updateDoc(doc(db, 'finance_pengajuan_pembayaran', selectedData.value.id), updateData)
 
+    let tagihanDocRef = null
+    let tagihanData = null
+
     if (selectedData.value.tagihan_id) {
-      // Dapatkan data tagihan terlebih dahulu untuk total_dibayar saat ini
-      const tagihanDoc = doc(db, 'finance_tagihan', selectedData.value.tagihan_id)
-      const tagihanSnapshot = await getDoc(tagihanDoc)
-      if (tagihanSnapshot.exists()) {
-        const tagihanData = tagihanSnapshot.data()
-        const currentTotalDibayar = Number(tagihanData.total_dibayar || 0)
-        const grandTotal = Number(tagihanData.grand_total || 0)
-        const newTotalDibayar = currentTotalDibayar + realisasiForm.value.nominal
-
-        let newStatus = 'Lunas'
-        if (newTotalDibayar >= grandTotal) {
-          newStatus = 'Lunas'
-        } else if (newTotalDibayar > 0) {
-          newStatus = 'Dibayar Sebagian'
-        } else {
-          newStatus = 'Menunggu Pembayaran'
+      try {
+        const docRef = doc(db, 'finance_tagihan', selectedData.value.tagihan_id)
+        const snap = await getDoc(docRef)
+        if (snap.exists()) {
+          tagihanDocRef = docRef
+          tagihanData = snap.data()
         }
-
-        await updateDoc(tagihanDoc, {
-          status: newStatus,
-          total_dibayar: newTotalDibayar,
-          updatedAt: serverTimestamp(),
-        })
+      } catch (e) {
+        console.error('Error fetching tagihan by ID:', e)
       }
+    }
+
+    const idents = [selectedData.value.tagihan_nomor_invoice, selectedData.value.tagihan_kode, selectedData.value.tagihan_id].filter(Boolean)
+    if (!tagihanDocRef && idents.length > 0) {
+      for (const ident of idents) {
+        try {
+          const q = query(collection(db, 'finance_tagihan'), where('nomor_invoice', '==', ident))
+          const snap = await getDocs(q)
+          if (!snap.empty) {
+            tagihanDocRef = doc(db, 'finance_tagihan', snap.docs[0].id)
+            tagihanData = snap.docs[0].data()
+            break
+          }
+        } catch (e) {
+          console.error('Error finding tagihan by nomor_invoice:', e)
+        }
+      }
+
+      if (!tagihanDocRef) {
+        for (const ident of idents) {
+          try {
+            const q = query(collection(db, 'finance_tagihan'), where('kode_tagihan', '==', ident))
+            const snap = await getDocs(q)
+            if (!snap.empty) {
+              tagihanDocRef = doc(db, 'finance_tagihan', snap.docs[0].id)
+              tagihanData = snap.docs[0].data()
+              break
+            }
+          } catch (e) {
+            console.error('Error finding tagihan by kode_tagihan:', e)
+          }
+        }
+      }
+    }
+
+    if (tagihanDocRef && tagihanData) {
+      const currentTotalDibayar = Number(tagihanData.total_dibayar || 0)
+      const grandTotal = Number(tagihanData.grand_total || 0)
+      const newTotalDibayar = currentTotalDibayar + realisasiForm.value.nominal
+
+      let newStatus = 'Lunas'
+      if (newTotalDibayar >= grandTotal) {
+        newStatus = 'Lunas'
+      } else if (newTotalDibayar > 0) {
+        newStatus = 'Dibayar Sebagian'
+      } else {
+        newStatus = 'Menunggu Pembayaran'
+      }
+
+      await updateDoc(tagihanDocRef, {
+        status: newStatus,
+        total_dibayar: newTotalDibayar,
+        updatedAt: serverTimestamp(),
+      })
     }
 
     if (selectedData.value) {
