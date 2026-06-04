@@ -323,6 +323,19 @@
                     <q-tooltip>Edit / Revisi Nominal</q-tooltip>
                   </q-btn>
 
+                  <!-- TOMBOL HAPUS -->
+                  <q-btn
+                    flat
+                    round
+                    color="negative"
+                    icon="delete_outline"
+                    size="sm"
+                    @click="confirmHapus(props.row)"
+                    class="shadow-1"
+                  >
+                    <q-tooltip>Hapus Pengajuan</q-tooltip>
+                  </q-btn>
+
                   <template v-if="props.row.status === 'Pending'">
                     <q-btn
                       unelevated
@@ -912,6 +925,9 @@ import {
   updateDoc,
   getDoc,
   serverTimestamp,
+  where,
+  getDocs,
+  deleteDoc,
 } from 'firebase/firestore'
 import { useQuasar } from 'quasar'
 import { useAuthStore } from 'src/stores/auth'
@@ -1194,6 +1210,63 @@ const triggerReject = (row) => {
         rejectedAt: serverTimestamp(),
         rejectedBy: authStore.user?.nama || 'Admin',
       })
+      let updatedTagihan = false
+      if (row.tagihan_id) {
+        try {
+          await updateDoc(doc(db, 'finance_tagihan', row.tagihan_id), {
+            status: 'Draft',
+            updatedAt: serverTimestamp(),
+          })
+          updatedTagihan = true
+        } catch (e) {
+          console.error('Failed to reset tagihan status on reject by ID:', e)
+        }
+      }
+
+      const identifiers = [row.tagihan_nomor_invoice, row.tagihan_kode, row.tagihan_id].filter(
+        Boolean,
+      )
+      if (!updatedTagihan && identifiers.length > 0) {
+        for (const ident of identifiers) {
+          try {
+            const qTag = query(
+              collection(db, 'finance_tagihan'),
+              where('nomor_invoice', '==', ident),
+            )
+            const snapTag = await getDocs(qTag)
+            for (const docRef of snapTag.docs) {
+              await updateDoc(doc(db, 'finance_tagihan', docRef.id), {
+                status: 'Draft',
+                updatedAt: serverTimestamp(),
+              })
+              updatedTagihan = true
+            }
+          } catch (e) {
+            console.error('Failed to reset tagihan status on reject by nomor_invoice:', e)
+          }
+        }
+
+        if (!updatedTagihan) {
+          for (const ident of identifiers) {
+            try {
+              const qTag = query(
+                collection(db, 'finance_tagihan'),
+                where('kode_tagihan', '==', ident),
+              )
+              const snapTag = await getDocs(qTag)
+              for (const docRef of snapTag.docs) {
+                await updateDoc(doc(db, 'finance_tagihan', docRef.id), {
+                  status: 'Draft',
+                  updatedAt: serverTimestamp(),
+                })
+                updatedTagihan = true
+              }
+            } catch (e) {
+              console.error('Failed to reset tagihan status on reject by kode_tagihan:', e)
+            }
+          }
+        }
+      }
       if (selectedData.value && selectedData.value.id === row.id) {
         selectedData.value.status = 'Rejected'
         selectedData.value.alasan_reject = reason
@@ -1282,6 +1355,96 @@ const triggerEdit = (row) => {
         message: 'Gagal menyimpan revisi nominal.',
         icon: 'error',
         position: 'top-right',
+        timeout: 3000,
+      })
+    } finally {
+      isProcessing.value = false
+    }
+  })
+}
+
+const confirmHapus = (row) => {
+  $q.dialog({
+    title: 'Hapus Pengajuan',
+    message: `Hapus request ${row.no_request} secara permanen?`,
+    cancel: true,
+    ok: { color: 'negative', label: 'Hapus', unelevated: true },
+  }).onOk(async () => {
+    isProcessing.value = true
+    try {
+      // Revert tagihan status if the request was linked to a tagihan
+      const tagihanId = row.tagihan_id || null
+      const nomorInvoice = row.tagihan_nomor_invoice || null
+      const kodeTagihan = row.tagihan_kode || null
+
+      let updatedTagihan = false
+      if (tagihanId) {
+        try {
+          await updateDoc(doc(db, 'finance_tagihan', tagihanId), {
+            status: 'Draft',
+            updatedAt: serverTimestamp(),
+          })
+          updatedTagihan = true
+        } catch (e) {
+          console.error('Failed to reset tagihan on delete by ID:', e)
+        }
+      }
+
+      const identifiers = [nomorInvoice, kodeTagihan, tagihanId].filter(Boolean)
+      if (!updatedTagihan && identifiers.length > 0) {
+        for (const ident of identifiers) {
+          try {
+            const qTag = query(
+              collection(db, 'finance_tagihan'),
+              where('nomor_invoice', '==', ident),
+            )
+            const snapTag = await getDocs(qTag)
+            for (const docRef of snapTag.docs) {
+              await updateDoc(doc(db, 'finance_tagihan', docRef.id), {
+                status: 'Draft',
+                updatedAt: serverTimestamp(),
+              })
+              updatedTagihan = true
+            }
+          } catch (e) {
+            console.error('Failed to reset tagihan on delete by nomor_invoice:', e)
+          }
+        }
+
+        if (!updatedTagihan) {
+          for (const ident of identifiers) {
+            try {
+              const qTag = query(
+                collection(db, 'finance_tagihan'),
+                where('kode_tagihan', '==', ident),
+              )
+              const snapTag = await getDocs(qTag)
+              for (const docRef of snapTag.docs) {
+                await updateDoc(doc(db, 'finance_tagihan', docRef.id), {
+                  status: 'Draft',
+                  updatedAt: serverTimestamp(),
+                })
+                updatedTagihan = true
+              }
+            } catch (e) {
+              console.error('Failed to reset tagihan on delete by kode_tagihan:', e)
+            }
+          }
+        }
+      }
+
+      await deleteDoc(doc(db, 'finance_pengajuan_pembayaran', row.id))
+
+      $q.notify({
+        type: 'positive',
+        message: 'Data berhasil dihapus.',
+        timeout: 2500,
+      })
+    } catch (error) {
+      console.error(error)
+      $q.notify({
+        type: 'negative',
+        message: 'Gagal menghapus pengajuan.',
         timeout: 3000,
       })
     } finally {
