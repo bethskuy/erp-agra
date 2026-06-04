@@ -1017,34 +1017,63 @@
                   </div>
                 </div>
 
+                <!-- Tampilkan preview foto yang sudah tersimpan -->
                 <div
-                  v-if="form.foto_registrasi"
-                  class="text-center q-pa-md rounded-12 border-subtle bg-slate-50 q-mb-md"
+                  v-if="form.foto_registrasi && !fotoRegistrasiFile"
+                  class="text-center q-pa-md rounded-12 border-subtle bg-slate-50 q-mb-sm"
                 >
                   <q-img
                     :src="form.foto_registrasi"
                     style="max-width: 130px; border-radius: 12px"
                     class="shadow-sm q-mb-xs"
                   />
-                  <div class="text-caption text-weight-bold text-red-7">
+                  <div class="text-caption text-weight-bold text-red-7 q-mb-xs">
                     <q-icon name="lock" class="q-mr-xs" /> SYSTEM LOCKED: DATABASE ACUAN AI
+                  </div>
+                  <div class="text-caption text-grey-6">
+                    Foto terpasang. Upload baru di bawah untuk mengganti.
+                  </div>
+                </div>
+
+                <!-- Preview foto baru yang dipilih (sebelum disimpan) -->
+                <div
+                  v-if="fotoRegistrasiFile"
+                  class="text-center q-pa-sm rounded-12 border-subtle bg-orange-1 q-mb-sm"
+                >
+                  <q-img
+                    :src="fotoRegistrasiPreview"
+                    style="max-width: 130px; border-radius: 12px"
+                    class="shadow-sm q-mb-xs"
+                  />
+                  <div class="text-caption text-weight-bold text-orange-8">
+                    <q-icon name="autorenew" class="q-mr-xs" /> Foto baru siap diupload
                   </div>
                 </div>
 
                 <q-file
-                  v-else
                   outlined
                   v-model="fotoRegistrasiFile"
-                  label="Upload Foto Registrasi Wajah Resmi"
+                  :label="
+                    form.foto_registrasi
+                      ? 'Ganti Foto Registrasi Wajah'
+                      : 'Upload Foto Registrasi Wajah Resmi'
+                  "
                   accept="image/*"
                   dense
                   class="q-mb-md"
                   :rules="[
                     (val) =>
-                      !!val ||
+                      !!(val || form.foto_registrasi) ||
                       'Foto registrasi wajah wajib diunggah untuk basis database AI absensi!',
                   ]"
-                />
+                >
+                  <template v-slot:prepend>
+                    <q-icon
+                      :name="form.foto_registrasi ? 'autorenew' : 'upload'"
+                      color="orange-8"
+                    />
+                  </template>
+                </q-file>
 
                 <!-- Dokumen Pendukung -->
                 <div class="row items-center q-mb-md q-mt-lg">
@@ -1242,7 +1271,13 @@
     <!-- DIALOG POPUP SHIFT PER HARI & MULTI LOKASI PENUGASAN -->
     <q-dialog v-model="dialogShift" persistent backdrop-filter="blur(5px)">
       <q-card
-        style="width: 640px; max-width: 98vw"
+        style="
+          width: 640px;
+          max-width: 98vw;
+          max-height: 92vh;
+          display: flex;
+          flex-direction: column;
+        "
         class="rounded-24 bg-white overflow-hidden shadow-soft"
       >
         <!-- Header -->
@@ -1276,7 +1311,7 @@
           />
         </q-card-section>
 
-        <q-card-section class="q-pa-lg q-pt-md">
+        <q-card-section class="q-pa-lg q-pt-md" style="overflow-y: auto; flex: 1 1 auto">
           <div class="q-gutter-y-md">
             <!-- PANEL: Terapkan jam ke range hari sekaligus -->
             <q-card flat bordered class="rounded-12 bg-orange-1 border-subtle q-pa-md">
@@ -1287,7 +1322,7 @@
                 ⚡ Terapkan Cepat ke Beberapa Hari
               </div>
               <div class="row q-col-gutter-sm items-end">
-                <div class="col-12 col-sm-3">
+                <div class="col-6 col-sm-3">
                   <div class="text-caption text-blue-grey-7 q-mb-xs">Dari Hari</div>
                   <q-select
                     outlined
@@ -1299,7 +1334,7 @@
                     bg-color="white"
                   />
                 </div>
-                <div class="col-12 col-sm-3">
+                <div class="col-6 col-sm-3">
                   <div class="text-caption text-blue-grey-7 q-mb-xs">Sampai Hari</div>
                   <q-select
                     outlined
@@ -1623,6 +1658,12 @@ const jabatanOptions = ref([])
 const docList = ref([{ name: '', file: null }])
 const fotoFile = ref(null)
 const fotoRegistrasiFile = ref(null)
+
+// Preview URL untuk foto registrasi baru yang dipilih (sebelum di-upload)
+const fotoRegistrasiPreview = computed(() => {
+  if (!fotoRegistrasiFile.value) return null
+  return URL.createObjectURL(fotoRegistrasiFile.value)
+})
 
 // Fallback jika asset logo-agra.png tidak berhasil dipanggil
 const useFallbackLogo = ref(false)
@@ -2050,11 +2091,18 @@ onMounted(async () => {
         },
       )
     }
-    unsubKaryawan = onSnapshot(query(collection(db, 'karyawan')), (s) => {
-      karyawanList.value = s.docs
-        .map((d) => ({ ...d.data(), id: d.id }))
-        .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
-    })
+    unsubKaryawan = onSnapshot(
+      query(collection(db, 'karyawan')),
+      (s) => {
+        karyawanList.value = s.docs
+          .map((d) => ({ ...d.data(), id: d.id }))
+          .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
+        loading.value = false
+      },
+      () => {
+        loading.value = false
+      },
+    )
     unsubJabatan = onSnapshot(query(collection(db, 'jabatan')), (s) => {
       jabatanOptions.value = s.docs.map((d) => ({
         label: d.data().namaJabatan,

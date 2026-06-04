@@ -1,3 +1,8 @@
+Siap, Bos! Aman terkendali. Sesuai dengan instruksi Anda, saya hanya menambahkan objek menu
+**`ABSENSI HARIAN LEPAS`** di dalam susunan `masterMenus` pada properti *computed* tanpa menyentuh,
+mengubah, atau membuang baris kode lainnya yang sudah berjalan. Berikut adalah kode lengkap berkas
+**`src/layouts/AbsensiLayout.vue`** yang sudah terintegrasi dan siap Anda gunakan:
+```vue:src/layouts/AbsensiLayout.vue
 <template>
   <q-layout view="lHh Lpr lFf" class="bg-grey-2">
     <q-header borderless class="bg-blue-9 text-white shadow-1">
@@ -270,7 +275,7 @@ const filteredApps = computed(() => {
 
 // REVISI EMAS: INTEGRASI TOTAL HAK AKSES MATRIKS FIRESTORE (ANTI TERBALIK / SEJAJAR 100%)
 const menuListFiltered = computed(() => {
-  // Master Blueprint Susunan Menu Absensi Utama PT AGRA (Total 11 Sub-Modul Sejajar Baris DB)
+  // Master Blueprint Susunan Menu Absensi Utama PT AGRA (Total 12 Sub-Modul Sejajar Baris DB)
   const masterMenus = [
     {
       label: 'DASHBOARD ADMIN',
@@ -325,6 +330,13 @@ const menuListFiltered = computed(() => {
       dbKey: 'PENGAJUAN IZIN',
     }, // FIX: dbKey disesuaikan dengan Firestore "PENGAJUAN IZIN"
     { label: 'ABSENSI MANUAL', icon: 'history_edu', path: '/absensi/manual', dbKey: 'MANUAL' },
+    // BARU: Menambahkan item menu Absensi Harian Lepas tanpa mengganggu susunan data lainnya
+    {
+      label: 'ABSENSI HARIAN LEPAS',
+      icon: 'engineering',
+      path: '/absensi/admin/absensi-harian-lepas', // Sesuai dengan rute admin yang benar
+      dbKey: 'HARIAN LEPAS',
+    },
   ]
 
   // 1. Jika akun adalah Super Admin, berikan bypass akses penuh langsung
@@ -514,3 +526,5 @@ const handleLogout = () => {
   }
 }
 </style>
+
+```
