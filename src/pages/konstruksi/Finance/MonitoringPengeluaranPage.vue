@@ -16,6 +16,16 @@
         </div>
       </div>
       <div class="col-12 col-md-auto q-mt-md q-mt-md-none row items-center q-gutter-md justify-end">
+        <q-btn
+          unelevated
+          color="teal-10"
+          text-color="white"
+          icon="add_circle"
+          label="Pengeluaran Manual"
+          class="rounded-12 text-weight-bold shadow-2 btn-pengeluaran-manual"
+          @click="openAddManualDialog"
+        />
+
         <q-btn-dropdown
           unelevated
           color="white"
@@ -808,6 +818,239 @@
       </q-card>
     </q-dialog>
 
+    <!-- DIALOG INPUT PENGELUARAN MANUAL -->
+    <q-dialog v-model="showAddDialog" persistent backdrop-filter="blur(8px)">
+      <q-card style="width: 700px; max-width: 90vw;" class="rounded-20 font-pro">
+        <q-card-section class="bg-teal-10 text-white q-py-md">
+          <div class="row items-center justify-between">
+            <div class="text-h6 text-weight-bold">Input Pengeluaran Manual</div>
+            <q-btn flat round dense icon="close" v-close-popup />
+          </div>
+        </q-card-section>
+
+        <q-card-section class="q-pa-lg scroll" style="max-height: 70vh">
+          <div class="q-gutter-y-md">
+            <!-- 1. DETAIL PENERIMA -->
+            <div class="text-subtitle2 text-teal-10 text-weight-bold uppercase tracking-wider">
+              1. Detail Penerima & Pembayaran
+            </div>
+            
+            <div>
+              <div class="text-caption text-grey-8 font-bold q-mb-xs">Nama Penerima / Vendor *</div>
+              <q-input
+                outlined
+                dense
+                v-model="form.vendor_nama"
+                placeholder="Contoh: Toko Bangunan Jaya"
+                class="text-weight-bold uppercase"
+              />
+            </div>
+
+            <div class="row q-col-gutter-md">
+              <div class="col-12 col-md-4">
+                <div class="text-caption text-grey-8 font-bold q-mb-xs">Bank / Cash *</div>
+                <q-input
+                  outlined
+                  dense
+                  v-model="form.rek_bank"
+                  placeholder="BCA / Mandiri / Tunai"
+                  class="uppercase text-weight-bold"
+                />
+              </div>
+              <div class="col-12 col-md-8">
+                <div class="text-caption text-grey-8 font-bold q-mb-xs">Nomor Rekening (Gunakan '-' jika tunai) *</div>
+                <q-input
+                  outlined
+                  dense
+                  v-model="form.rek_nomor"
+                  placeholder="12345678 atau -"
+                  class="text-weight-bold text-primary"
+                />
+              </div>
+              <div class="col-12">
+                <div class="text-caption text-grey-8 font-bold q-mb-xs">Atas Nama Rekening</div>
+                <q-input
+                  outlined
+                  dense
+                  v-model="form.rek_nama"
+                  placeholder="Sesuai rekening atau nama penerima"
+                  class="uppercase"
+                />
+              </div>
+            </div>
+
+            <q-separator class="q-my-md" />
+
+            <!-- 2. NOMINAL & URAIAN -->
+            <div class="text-subtitle2 text-teal-10 text-weight-bold uppercase tracking-wider">
+              2. Jumlah & Keperluan
+            </div>
+
+            <div class="row q-col-gutter-md">
+              <div class="col-12 col-md-6">
+                <div class="text-caption text-grey-8 font-bold q-mb-xs">Nominal Pengeluaran (Rp) *</div>
+                <q-input
+                  outlined
+                  dense
+                  type="number"
+                  v-model.number="form.nominal"
+                  class="text-weight-bold text-teal-10"
+                  prefix="Rp"
+                />
+              </div>
+              <div class="col-12 col-md-6">
+                <div class="text-caption text-grey-8 font-bold q-mb-xs">Tanggal Pembayaran *</div>
+                <q-input
+                  outlined
+                  dense
+                  type="date"
+                  v-model="form.tanggal_pembayaran"
+                />
+              </div>
+            </div>
+
+            <div>
+              <div class="text-caption text-grey-8 font-bold q-mb-xs">Uraian / Keterangan Keperluan *</div>
+              <q-input
+                outlined
+                dense
+                type="textarea"
+                rows="3"
+                v-model="form.keterangan"
+                placeholder="Deskripsikan secara lengkap pengeluaran kas ini..."
+              />
+            </div>
+
+            <q-separator class="q-my-md" />
+
+            <!-- 3. ALOKASI PROYEK & SPK/BOQ -->
+            <div class="text-subtitle2 text-teal-10 text-weight-bold uppercase tracking-wider">
+              3. Alokasi Proyek & Pekerjaan (Opsional)
+            </div>
+
+            <div>
+              <div class="text-caption text-grey-8 font-bold q-mb-xs">Alokasi Proyek</div>
+              <q-select
+                outlined
+                dense
+                v-model="form.proyek_id"
+                :options="allProyek"
+                option-label="nama"
+                option-value="id"
+                emit-value
+                map-options
+                placeholder="Pilih Proyek jika untuk proyek tertentu..."
+                clearable
+                @update:model-value="onProyekSelect"
+              />
+            </div>
+
+            <div v-if="form.proyek_id">
+              <div class="text-caption text-grey-8 font-bold q-mb-xs">Pilih SPK (Bisa Lebih dari 1)</div>
+              <q-select
+                outlined
+                dense
+                multiple
+                v-model="form.selected_spk"
+                :options="currentSpkOptions"
+                option-label="nomor_spk"
+                option-value="id"
+                emit-value
+                map-options
+                placeholder="Pilih SPK..."
+                clearable
+                use-chips
+              >
+                <template v-slot:option="scope">
+                  <q-item v-bind="scope.itemProps">
+                    <q-item-section>
+                      <q-item-label class="text-weight-bold">
+                        {{ scope.opt.nomor_spk || scope.opt.nama_kontrak || `SPK: ${scope.opt.id}` }}
+                      </q-item-label>
+                      <q-item-label caption>{{ scope.opt.nama_kontrak || scope.opt.id }}</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                </template>
+              </q-select>
+            </div>
+
+            <div v-if="form.proyek_id && form.selected_spk && form.selected_spk.length > 0">
+              <div class="text-caption text-grey-8 font-bold q-mb-sm">Detail Kategori & Item BOQ per SPK</div>
+              <div class="q-gutter-y-md">
+                <div
+                  v-for="(spkId, idx) in form.selected_spk"
+                  :key="idx"
+                  class="bg-grey-1 q-pa-md rounded-12"
+                >
+                  <div class="text-weight-bold text-teal-10 q-mb-sm">
+                    {{ getSpkById(spkId)?.nomor_spk || 'SPK' }} - {{ getSpkById(spkId)?.nama_kontrak || '' }}
+                  </div>
+                  <template v-if="form.spk_boq_selection[spkId]">
+                    <div class="text-caption text-grey-8 font-bold q-mb-xs">Pilih Kategori BOQ</div>
+                    <q-select
+                      outlined
+                      dense
+                      multiple
+                      emit-value
+                      map-options
+                      v-model="form.spk_boq_selection[spkId].selected_groups"
+                      :options="getSpkBoqGroups(spkId)"
+                      option-label="title"
+                      option-value="title"
+                      placeholder="Pilih Kategori..."
+                      clearable
+                      use-chips
+                    />
+                    
+                    <div v-if="form.spk_boq_selection[spkId].selected_groups.length" class="q-mt-md">
+                      <div class="text-caption text-grey-8 font-bold q-mb-xs">Pilih Item BOQ</div>
+                      <div class="q-gutter-y-sm">
+                        <div
+                          v-for="(groupTitle, gIdx) in form.spk_boq_selection[spkId].selected_groups"
+                          :key="gIdx"
+                          class="bg-white q-pa-sm rounded-8"
+                        >
+                          <div class="text-weight-bold text-caption q-mb-xs">{{ groupTitle }}</div>
+                          <q-select
+                            outlined
+                            dense
+                            multiple
+                            emit-value
+                            map-options
+                            v-model="form.spk_boq_selection[spkId].selected_items_by_group[groupTitle]"
+                            :options="getSpkBoqGroupItems(spkId, groupTitle)"
+                            option-label="deskripsi"
+                            option-value="deskripsi"
+                            placeholder="Pilih Item..."
+                            clearable
+                            use-chips
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </div>
+          </div>
+        </q-card-section>
+
+        <q-separator />
+
+        <q-card-actions align="right" class="q-pa-md bg-grey-1">
+          <q-btn flat label="Batal" color="grey-7" v-close-popup class="rounded-12 text-weight-bold" />
+          <q-btn
+            unelevated
+            label="Simpan Pengeluaran"
+            color="teal-10"
+            :loading="submitting"
+            @click="simpanManualExpense"
+            class="rounded-12 text-weight-bold q-px-lg"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
     <!-- HIDDEN AREA PDF EXPORT TABLE -->
     <div style="position: absolute; top: -9999px; left: -9999px; width: 297mm; z-index: -1">
       <div id="table-pdf-export" class="landscape-paper">
@@ -942,13 +1185,234 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { db } from 'src/boot/firebase'
-import { collection, onSnapshot, query, orderBy, where, getDoc, doc } from 'firebase/firestore'
+import {
+  collection,
+  onSnapshot,
+  query,
+  orderBy,
+  where,
+  getDoc,
+  doc,
+  addDoc,
+  getDocs,
+  serverTimestamp,
+} from 'firebase/firestore'
 import { useQuasar } from 'quasar'
+import { useAuthStore } from 'src/stores/auth'
 import html2pdf from 'html2pdf.js'
 
 const $q = useQuasar()
+const authStore = useAuthStore()
+
+// State for manual expense dialog
+const showAddDialog = ref(false)
+const submitting = ref(false)
+
+const allProyek = ref([])
+const allSpk = ref([])
+let unsubSpk = null
+
+const formDefault = {
+  vendor_nama: '',
+  rek_bank: '',
+  rek_nomor: '',
+  rek_nama: '',
+  nominal: 0,
+  tanggal_pembayaran: new Date().toISOString().substring(0, 10),
+  keterangan: '',
+  proyek_id: null,
+  proyek_nama: '',
+  selected_spk: [],
+  spk_boq_selection: {},
+}
+const form = ref({ ...formDefault })
+
+const getSpkById = (id) => {
+  const targetId = typeof id === 'object' && id !== null ? id.id : id
+  return allSpk.value.find((s) => s.id === targetId)
+}
+
+const currentSpkOptions = computed(() => {
+  if (!form.value.proyek_id) return []
+
+  const targetProjId =
+    typeof form.value.proyek_id === 'object' && form.value.proyek_id !== null
+      ? form.value.proyek_id.id
+      : form.value.proyek_id
+
+  return allSpk.value.filter((s) => {
+    const spkProjId = s.projectId || s.proyek_id || s.proyek || s.proyekId
+    const spkProjIdString =
+      typeof spkProjId === 'object' && spkProjId !== null ? spkProjId.id : spkProjId
+    return spkProjIdString === targetProjId
+  })
+})
+
+const getSpkBoqGroups = (spkId) => {
+  const spk = getSpkById(spkId)
+  if (!spk || !spk.groups) return []
+  return spk.groups
+}
+
+const getSpkBoqGroupItems = (spkId, groupTitle) => {
+  const spk = getSpkById(spkId)
+  if (!spk || !spk.groups) return []
+  const group = spk.groups.find((g) => g.title === groupTitle)
+  return group?.items?.filter((i) => !i.is_header) || []
+}
+
+const onProyekSelect = (proyekId) => {
+  form.value.selected_spk = []
+  form.value.spk_boq_selection = {}
+
+  if (proyekId) {
+    const matchedProyek = allProyek.value.find((p) => p.id === proyekId)
+    form.value.proyek_nama = matchedProyek ? matchedProyek.nama : ''
+  } else {
+    form.value.proyek_nama = ''
+  }
+}
+
+watch(
+  () => form.value.selected_spk,
+  (newVal) => {
+    if (!form.value.spk_boq_selection) {
+      form.value.spk_boq_selection = {}
+    }
+    if (newVal && Array.isArray(newVal)) {
+      newVal.forEach((spkId) => {
+        const idString = typeof spkId === 'object' && spkId !== null ? spkId.id : spkId
+        if (!form.value.spk_boq_selection[idString]) {
+          form.value.spk_boq_selection[idString] = {
+            selected_groups: [],
+            selected_items_by_group: {},
+          }
+        }
+      })
+    }
+  },
+  { immediate: true, deep: true },
+)
+
+watch(
+  () => form.value.spk_boq_selection,
+  (newVal) => {
+    if (!newVal) return
+    Object.keys(newVal).forEach((spkId) => {
+      const spkSelection = newVal[spkId]
+      if (spkSelection && spkSelection.selected_groups) {
+        if (!spkSelection.selected_items_by_group) {
+          spkSelection.selected_items_by_group = {}
+        }
+        spkSelection.selected_groups.forEach((groupTitle) => {
+          if (!spkSelection.selected_items_by_group[groupTitle]) {
+            spkSelection.selected_items_by_group[groupTitle] = []
+          }
+        })
+      }
+    })
+  },
+  { deep: true },
+)
+
+const openAddManualDialog = () => {
+  form.value = JSON.parse(JSON.stringify(formDefault))
+  form.value.tanggal_pembayaran = new Date().toISOString().substring(0, 10)
+  showAddDialog.value = true
+}
+
+const generateNoRequestManual = () => {
+  const count = expenses.value.length + 1
+  const padded = count.toString().padStart(3, '0')
+  const year = new Date().getFullYear()
+  const month = ('0' + (new Date().getMonth() + 1)).slice(-2)
+  return `REQ-MAN/${year}${month}/${padded}`
+}
+
+const simpanManualExpense = async () => {
+  if (
+    !form.value.vendor_nama ||
+    !form.value.rek_bank ||
+    !form.value.nominal ||
+    !form.value.tanggal_pembayaran ||
+    !form.value.keterangan
+  ) {
+    $q.notify({
+      type: 'warning',
+      position: 'top',
+      icon: 'edit_note',
+      message: 'Data belum lengkap!',
+      caption: 'Harap lengkapi Nama Penerima, Bank/Cash, Nominal, Tanggal, dan Keterangan.',
+      timeout: 3500,
+    })
+    return
+  }
+
+  submitting.value = true
+  $q.loading.show({ message: 'Menyimpan pengeluaran manual...' })
+
+  try {
+    const noRequest = generateNoRequestManual()
+    const payload = {
+      no_request: noRequest,
+      tipe_pengajuan: 'Manual',
+      tagihan_id: null,
+      tagihan_nomor_invoice: '',
+      proyek_id: form.value.proyek_id || null,
+      proyek_nama: form.value.proyek_nama || '',
+      selected_spk: form.value.selected_spk || [],
+      spk_boq_selection: form.value.spk_boq_selection || {},
+      vendor_nama: form.value.vendor_nama,
+      rek_bank: form.value.rek_bank,
+      rek_nomor: form.value.rek_nomor || '-',
+      rek_nama: form.value.rek_nama || '-',
+      nominal: form.value.nominal,
+      nominal_eksekusi: form.value.nominal,
+      tanggal_pengajuan: form.value.tanggal_pembayaran,
+      tanggal_dibutuhkan: form.value.tanggal_pembayaran,
+      keterangan: form.value.keterangan,
+      lampiran: [],
+      status: 'Cair',
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      approvedAt: serverTimestamp(),
+      realizedAt: serverTimestamp(),
+      approver_read: true,
+      creator_read: true,
+      realizer_read: true,
+      realized_approved_read: true,
+      approvedBy: authStore.user?.nama || 'System',
+      pembuat_id: authStore.user?.uid || '',
+      pembuat_email: authStore.user?.email || '',
+      pembuat_nama: authStore.user?.nama || 'User',
+    }
+
+    await addDoc(collection(db, 'finance_pengajuan_pembayaran'), payload)
+
+    $q.notify({
+      type: 'positive',
+      position: 'top',
+      icon: 'check_circle',
+      message: 'Pengeluaran manual berhasil disimpan!',
+      timeout: 3500,
+    })
+    showAddDialog.value = false
+  } catch (error) {
+    console.error('Error simpanManualExpense:', error)
+    $q.notify({
+      type: 'negative',
+      position: 'top',
+      icon: 'error',
+      message: 'Gagal menyimpan pengeluaran manual.',
+      timeout: 4000,
+    })
+  } finally {
+    submitting.value = false
+    $q.loading.hide()
+  }
+}
 
 const expenses = ref([])
 const loading = ref(true)
@@ -1021,6 +1485,18 @@ const fetchData = async () => {
   } catch (e) {
     console.warn('Config perusahaan tidak ditemukan:', e)
   }
+
+  try {
+    const snapProj = await getDocs(collection(db, 'proyek'))
+    allProyek.value = snapProj.docs.map((d) => ({ id: d.id, nama: d.data().nama, ...d.data() }))
+  } catch (error) {
+    console.error('Error fetching proyek:', error)
+  }
+
+  if (unsubSpk) unsubSpk()
+  unsubSpk = onSnapshot(collection(db, 'spk_customer'), (snap) => {
+    allSpk.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+  })
 
   const qPengajuan = query(
     collection(db, 'finance_pengajuan_pembayaran'),
@@ -1378,11 +1854,19 @@ onMounted(() => {
 })
 onUnmounted(() => {
   if (unsubExpenses) unsubExpenses()
+  if (unsubSpk) unsubSpk()
 })
 </script>
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
+
+@media (max-width: 599px) {
+  .btn-pengeluaran-manual {
+    width: 100% !important;
+    display: block;
+  }
+}
 
 .font-pro {
   font-family: 'Plus Jakarta Sans', sans-serif;

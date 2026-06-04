@@ -536,6 +536,166 @@
                       />
                     </div>
                   </div>
+
+                  <!-- PROYEK, SPK & BOQ INTERACTIVE SELECTORS (Identical to TagihanSupplierPage) -->
+                  <div class="q-gutter-y-md q-mt-sm">
+                    <div>
+                      <div class="label-req q-mb-xs text-teal-10">Referensi Proyek</div>
+                      <q-select
+                        outlined
+                        dense
+                        v-model="form.proyek_id"
+                        :options="allProyek"
+                        option-label="nama"
+                        option-value="id"
+                        emit-value
+                        map-options
+                        placeholder="Pilih Proyek..."
+                        bg-color="white"
+                        color="teal-10"
+                        clearable
+                        @update:model-value="onProyekSelect"
+                      >
+                        <template v-slot:selected-item="scope">
+                          <q-item-section>
+                            <q-item-label>{{ scope.opt.nama }}</q-item-label>
+                          </q-item-section>
+                        </template>
+                        <template v-slot:option="scope">
+                          <q-item v-bind="scope.itemProps">
+                            <q-item-section>
+                              <q-item-label>{{ scope.opt.nama }}</q-item-label>
+                            </q-item-section>
+                          </q-item>
+                        </template>
+                      </q-select>
+                    </div>
+
+                    <div v-if="form.proyek_id">
+                      <div class="label-req q-mb-xs text-teal-10">
+                        Pilih SPK (Bisa Lebih dari 1)
+                      </div>
+                      <q-select
+                        outlined
+                        dense
+                        multiple
+                        v-model="form.selected_spk"
+                        :options="currentSpkOptions"
+                        option-label="nomor_spk"
+                        option-value="id"
+                        emit-value
+                        map-options
+                        placeholder="Pilih SPK..."
+                        bg-color="white"
+                        color="teal-10"
+                        clearable
+                        use-chips
+                      >
+                        <template v-slot:option="scope">
+                          <q-item v-bind="scope.itemProps">
+                            <q-item-section>
+                              <q-item-label class="text-weight-bold">
+                                {{
+                                  scope.opt.nomor_spk ||
+                                  scope.opt.nama_kontrak ||
+                                  `SPK: ${scope.opt.id}`
+                                }}
+                              </q-item-label>
+                              <q-item-label caption>{{
+                                scope.opt.nama_kontrak || scope.opt.id
+                              }}</q-item-label>
+                            </q-item-section>
+                          </q-item>
+                        </template>
+                        <template v-slot:selected-item="scope">
+                          <q-item-section>
+                            <q-item-label>{{
+                              scope.opt.nomor_spk ||
+                              scope.opt.nama_kontrak ||
+                              `SPK: ${scope.opt.id}`
+                            }}</q-item-label>
+                          </q-item-section>
+                        </template>
+                      </q-select>
+                    </div>
+
+                    <div
+                      v-if="form.selected_spk && form.selected_spk.length && form.spk_boq_selection"
+                    >
+                      <div class="label-req q-mb-xs text-teal-10">Pilih Detail BOQ per SPK</div>
+                      <div class="q-gutter-y-md">
+                        <div
+                          v-for="(spkId, idx) in form.selected_spk"
+                          :key="idx"
+                          class="bg-grey-1 q-pa-md rounded-12"
+                        >
+                          <div class="text-weight-bold text-teal-10 q-mb-sm">
+                            {{ getSpkById(spkId)?.nomor_spk || 'SPK' }} -
+                            {{ getSpkById(spkId)?.nama_kontrak || '' }}
+                          </div>
+                          <template v-if="form.spk_boq_selection[spkId]">
+                            <div class="label-req q-mb-xs">Pilih Kategori BOQ</div>
+                            <q-select
+                              outlined
+                              dense
+                              multiple
+                              emit-value
+                              map-options
+                              v-model="form.spk_boq_selection[spkId].selected_groups"
+                              :options="getSpkBoqGroups(spkId)"
+                              option-label="title"
+                              option-value="title"
+                              placeholder="Pilih Kategori..."
+                              bg-color="white"
+                              color="teal-10"
+                              clearable
+                              use-chips
+                              use-input
+                            />
+                            <div
+                              v-if="form.spk_boq_selection[spkId].selected_groups.length"
+                              class="q-mt-md"
+                            >
+                              <div class="label-req q-mb-xs">Pilih Item BOQ</div>
+                              <div class="q-gutter-y-sm">
+                                <div
+                                  v-for="(groupTitle, gIdx) in form.spk_boq_selection[spkId]
+                                    .selected_groups"
+                                  :key="gIdx"
+                                  class="bg-white q-pa-sm rounded-8"
+                                >
+                                  <div class="text-weight-bold text-caption q-mb-xs">
+                                    {{ groupTitle }}
+                                  </div>
+                                  <q-select
+                                    outlined
+                                    dense
+                                    multiple
+                                    emit-value
+                                    map-options
+                                    v-model="
+                                      form.spk_boq_selection[spkId].selected_items_by_group[
+                                        groupTitle
+                                      ]
+                                    "
+                                    :options="getSpkBoqGroupItems(spkId, groupTitle)"
+                                    option-label="deskripsi"
+                                    option-value="deskripsi"
+                                    placeholder="Pilih Item..."
+                                    bg-color="white"
+                                    color="teal-10"
+                                    clearable
+                                    use-chips
+                                    use-input
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </template>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </q-card-section>
               </q-card>
 
@@ -928,6 +1088,110 @@
                 </div>
               </div>
 
+              <!-- SPK & BOQ DETAILS (READ ONLY) -->
+              <div
+                class="row q-mt-md"
+                v-if="
+                  selectedData.proyek_nama ||
+                  (selectedData.selected_spk && selectedData.selected_spk.length > 0)
+                "
+              >
+                <div class="col-12">
+                  <div
+                    class="text-weight-bold text-teal-10 q-mb-sm uppercase tracking-widest font-11 border-bottom-subtle q-pb-xs"
+                  >
+                    RINCIAN ALOKASI PROYEK & PEKERJAAN (BOQ)
+                  </div>
+                  <div class="bg-grey-1 q-pa-md rounded-12">
+                    <div
+                      class="row items-center justify-between q-mb-sm q-pb-sm"
+                      style="border-bottom: 1px dashed rgba(0, 0, 0, 0.1)"
+                    >
+                      <span class="text-weight-bold text-grey-7 text-caption">Nama Proyek:</span>
+                      <span class="text-weight-black text-indigo-10 uppercase text-subtitle2">{{
+                        selectedData.proyek_nama || 'NON-PROYEK'
+                      }}</span>
+                    </div>
+
+                    <!-- SPK list -->
+                    <div
+                      v-if="selectedData.selected_spk && selectedData.selected_spk.length > 0"
+                      class="q-gutter-y-sm q-mt-xs"
+                    >
+                      <div
+                        v-for="(spkId, idx) in selectedData.selected_spk"
+                        :key="idx"
+                        class="bg-white q-pa-md rounded-8 border-subtle"
+                      >
+                        <div
+                          class="text-weight-bold text-teal-10 font-12 q-mb-sm flex items-center"
+                        >
+                          <q-icon name="assignment" class="q-mr-xs" size="16px" />
+                          {{ getSpkById(spkId)?.nomor_spk || 'SPK' }} -
+                          {{ getSpkById(spkId)?.nama_kontrak || '' }}
+                        </div>
+
+                        <div
+                          v-if="
+                            selectedData.spk_boq_selection && selectedData.spk_boq_selection[spkId]
+                          "
+                        >
+                          <div
+                            v-if="
+                              selectedData.spk_boq_selection[spkId].selected_groups &&
+                              selectedData.spk_boq_selection[spkId].selected_groups.length
+                            "
+                            class="q-gutter-y-sm"
+                          >
+                            <div
+                              v-for="(groupTitle, gIdx) in selectedData.spk_boq_selection[spkId]
+                                .selected_groups"
+                              :key="gIdx"
+                              class="q-pl-md border-left-teal"
+                            >
+                              <div
+                                class="text-weight-bold text-caption text-indigo-8 q-mb-xs font-11"
+                              >
+                                Kategori: {{ groupTitle }}
+                              </div>
+                              <div
+                                v-if="
+                                  selectedData.spk_boq_selection[spkId].selected_items_by_group &&
+                                  selectedData.spk_boq_selection[spkId].selected_items_by_group[
+                                    groupTitle
+                                  ] &&
+                                  selectedData.spk_boq_selection[spkId].selected_items_by_group[
+                                    groupTitle
+                                  ].length
+                                "
+                              >
+                                <ul
+                                  style="
+                                    margin: 0;
+                                    padding-left: 20px;
+                                    font-size: 11px;
+                                    color: #444;
+                                    list-style-type: disc;
+                                  "
+                                >
+                                  <li
+                                    v-for="(item, iIdx) in selectedData.spk_boq_selection[spkId]
+                                      .selected_items_by_group[groupTitle]"
+                                    :key="iIdx"
+                                  >
+                                    {{ item }}
+                                  </li>
+                                </ul>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <!-- Keterangan -->
               <div class="row q-mt-sm">
                 <div class="col-12">
@@ -1155,6 +1419,17 @@
                 <div style="font-size: 9px; color: #666; margin-top: 2px">
                   {{ row.rek_bank }} - {{ row.rek_nomor }}
                 </div>
+                <div
+                  style="
+                    font-size: 9px;
+                    color: #004d40;
+                    margin-top: 4px;
+                    font-weight: bold;
+                    line-height: 1.2;
+                  "
+                >
+                  {{ formatSpkBoqText(row) }}
+                </div>
               </td>
               <td style="text-align: right; font-weight: bold">
                 {{ (row.nominal || 0).toLocaleString('id-ID') }}
@@ -1194,7 +1469,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { db, storage } from 'src/boot/firebase'
 import {
   collection,
@@ -1203,10 +1478,10 @@ import {
   updateDoc,
   deleteDoc,
   doc,
+  getDoc,
   serverTimestamp,
   query,
   where,
-  // eslint-disable-next-line no-unused-vars
   getDocs,
 } from 'firebase/firestore'
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
@@ -1278,6 +1553,10 @@ const statusFilter = ref('ALL')
 const isEditMode = ref(false)
 const selectedData = ref(null)
 
+const allSpk = ref([])
+const allProyek = ref([])
+const allSupplier = ref([])
+let unsubAllSpk = null
 let unsubData = null
 let unsubTagihan = null
 
@@ -1358,6 +1637,130 @@ const columns = [
   { name: 'aksi', align: 'center', label: 'AKSI', field: 'id' },
 ]
 
+const getSpkById = (id) => {
+  const targetId = typeof id === 'object' && id !== null ? id.id : id
+  return allSpk.value.find((s) => s.id === targetId)
+}
+
+const formatSpkBoqText = (row) => {
+  if (!row) return '-'
+  const parts = []
+  if (row.proyek_nama) {
+    parts.push(`Proyek: ${row.proyek_nama}`)
+  }
+  if (row.selected_spk && row.selected_spk.length > 0) {
+    row.selected_spk.forEach((spkId) => {
+      const spk = getSpkById(spkId)
+      const spkLabel = spk ? spk.nomor_spk || spk.nama_kontrak || spkId : spkId
+      let spkPart = `SPK: ${spkLabel}`
+
+      const selection = row.spk_boq_selection?.[spkId]
+      if (selection && selection.selected_groups && selection.selected_groups.length > 0) {
+        const boqParts = []
+        selection.selected_groups.forEach((groupTitle) => {
+          const items = selection.selected_items_by_group?.[groupTitle]
+          if (items && items.length > 0) {
+            const itemTexts = items.map((itemObj) => {
+              return typeof itemObj === 'object' && itemObj !== null
+                ? itemObj.deskripsi || itemObj
+                : itemObj
+            })
+            boqParts.push(`${groupTitle} (${itemTexts.join(', ')})`)
+          } else {
+            boqParts.push(groupTitle)
+          }
+        })
+        spkPart += ` [BOQ: ${boqParts.join('; ')}]`
+      }
+      parts.push(spkPart)
+    })
+  }
+  return parts.length > 0 ? parts.join(' | ') : '-'
+}
+
+const currentSpkOptions = computed(() => {
+  if (!form.value.proyek_id) return []
+
+  const targetProjId =
+    typeof form.value.proyek_id === 'object' && form.value.proyek_id !== null
+      ? form.value.proyek_id.id
+      : form.value.proyek_id
+
+  return allSpk.value.filter((s) => {
+    const spkProjId = s.projectId || s.proyek_id || s.proyek || s.proyekId
+    const spkProjIdString =
+      typeof spkProjId === 'object' && spkProjId !== null ? spkProjId.id : spkProjId
+    return spkProjIdString === targetProjId
+  })
+})
+
+const getSpkBoqGroups = (spkId) => {
+  const spk = getSpkById(spkId)
+  if (!spk || !spk.groups) return []
+  return spk.groups
+}
+
+const getSpkBoqGroupItems = (spkId, groupTitle) => {
+  const spk = getSpkById(spkId)
+  if (!spk || !spk.groups) return []
+  const group = spk.groups.find((g) => g.title === groupTitle)
+  return group?.items?.filter((i) => !i.is_header) || []
+}
+
+const onProyekSelect = (proyekId) => {
+  form.value.selected_spk = []
+  form.value.spk_boq_selection = {}
+
+  if (proyekId) {
+    const matchedProyek = allProyek.value.find((p) => p.id === proyekId)
+    form.value.proyek_nama = matchedProyek ? matchedProyek.nama : ''
+  } else {
+    form.value.proyek_nama = ''
+  }
+}
+
+watch(
+  () => form.value.selected_spk,
+  (newVal) => {
+    if (!form.value.spk_boq_selection) {
+      form.value.spk_boq_selection = {}
+    }
+    if (newVal && Array.isArray(newVal)) {
+      newVal.forEach((spkId) => {
+        const idString = typeof spkId === 'object' && spkId !== null ? spkId.id : spkId
+        if (!form.value.spk_boq_selection[idString]) {
+          form.value.spk_boq_selection[idString] = {
+            selected_groups: [],
+            selected_items_by_group: {},
+          }
+        }
+      })
+    }
+  },
+  { immediate: true, deep: true },
+)
+
+watch(
+  () => form.value.spk_boq_selection,
+  (newVal) => {
+    if (!newVal) return
+    Object.keys(newVal).forEach((spkId) => {
+      const spkSelection = newVal[spkId]
+      if (spkSelection && spkSelection.selected_groups) {
+        if (!spkSelection.selected_items_by_group) {
+          spkSelection.selected_items_by_group = {}
+        }
+        spkSelection.selected_groups.forEach((groupTitle) => {
+          if (!spkSelection.selected_items_by_group[groupTitle]) {
+            spkSelection.selected_items_by_group[groupTitle] = []
+          }
+        })
+      }
+    })
+  },
+  { deep: true },
+)
+
 const generateNoRequest = () => {
   const count = rows.value.length + 1
   const padded = count.toString().padStart(3, '0')
@@ -1369,6 +1772,20 @@ const generateNoRequest = () => {
 const fetchData = async () => {
   loading.value = true
   const user = authStore.user
+
+  try {
+    const snapProj = await getDocs(collection(db, 'proyek'))
+    allProyek.value = snapProj.docs.map((d) => ({ id: d.id, nama: d.data().nama, ...d.data() }))
+  } catch (error) {
+    console.error('Error fetching proyek:', error)
+  }
+
+  try {
+    const snapSupp = await getDocs(collection(db, 'suppliers'))
+    allSupplier.value = snapSupp.docs.map((d) => ({ id: d.id, ...d.data() }))
+  } catch (error) {
+    console.error('Error fetching suppliers:', error)
+  }
 
   const qPengajuan = query(
     collection(db, 'finance_pengajuan_pembayaran'),
@@ -1388,6 +1805,11 @@ const fetchData = async () => {
       loading.value = false
     },
   )
+
+  if (unsubAllSpk) unsubAllSpk()
+  unsubAllSpk = onSnapshot(collection(db, 'spk_customer'), (snap) => {
+    allSpk.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+  })
 
   const qTagihan = query(collection(db, 'finance_tagihan'))
   unsubTagihan = onSnapshot(qTagihan, (snap) => {
@@ -1443,6 +1865,26 @@ const onTagihanSelect = (val) => {
     form.value.vendor_nama = val.supplier_nama || ''
     form.value.nominal = val.sisa_tagihan || 0
     form.value.keterangan = `Pembayaran untuk Tagihan Supplier: ${val.nomor_invoice}. Sisa hutang: Rp ${val.sisa_tagihan.toLocaleString('id-ID')}`
+
+    // Auto-fill bank info from supplier master if available
+    const matchedSupp = allSupplier.value.find(
+      (s) => s.id === val.supplier_id || s.nama === val.supplier_nama,
+    )
+    if (matchedSupp) {
+      form.value.rek_bank = matchedSupp.rek_bank || ''
+      form.value.rek_nomor = matchedSupp.rek_nomor || ''
+      form.value.rek_nama = matchedSupp.rek_nama || ''
+    } else {
+      form.value.rek_bank = val.rek_bank || ''
+      form.value.rek_nomor = val.rek_nomor || ''
+      form.value.rek_nama = val.rek_nama || ''
+    }
+
+    // Auto-fill project and SPK/BOQ details
+    form.value.proyek_id = val.proyek_id || null
+    form.value.proyek_nama = val.proyek_nama || ''
+    form.value.selected_spk = val.selected_spk || []
+    form.value.spk_boq_selection = val.spk_boq_selection || {}
   } else {
     onTipeChange('Manual')
   }
@@ -1505,6 +1947,22 @@ const openDetail = async (row) => {
   selectedData.value = row
   viewMode.value = 'detail'
   window.scrollTo(0, 0)
+
+  // Fallback: If project details are missing but it's a Tagihan Supplier request, fetch them from the tagihan doc!
+  if ((!row.proyek_nama || !row.selected_spk || row.selected_spk.length === 0) && row.tagihan_id) {
+    try {
+      const tagihanSnap = await getDoc(doc(db, 'finance_tagihan', row.tagihan_id))
+      if (tagihanSnap.exists()) {
+        const tData = tagihanSnap.data()
+        selectedData.value.proyek_id = tData.proyek_id || null
+        selectedData.value.proyek_nama = tData.proyek_nama || ''
+        selectedData.value.selected_spk = tData.selected_spk || []
+        selectedData.value.spk_boq_selection = tData.spk_boq_selection || {}
+      }
+    } catch (e) {
+      console.error('Gagal mengambil detail proyek dari tagihan fallback:', e)
+    }
+  }
 
   if (
     (row.status === 'Cair' || row.status === 'Approved' || row.status === 'Rejected') &&
@@ -1609,6 +2067,10 @@ const simpanPengajuan = async () => {
       tipe_pengajuan: form.value.tipe_pengajuan,
       tagihan_id: form.value.tagihan_id || null,
       tagihan_nomor_invoice: form.value.tagihan_nomor_invoice || '',
+      proyek_id: form.value.proyek_id || null,
+      proyek_nama: form.value.proyek_nama || '',
+      selected_spk: form.value.selected_spk || [],
+      spk_boq_selection: form.value.spk_boq_selection || {},
       vendor_nama: form.value.vendor_nama,
       rek_bank: form.value.rek_bank,
       rek_nomor: form.value.rek_nomor,
@@ -1823,6 +2285,7 @@ const exportTableExcel = () => {
     tableHtml += `<th style="${thStyle}">No</th>`
     tableHtml += `<th style="${thStyle}">No Request</th>`
     tableHtml += `<th style="${thStyle}">Ref Tagihan</th>`
+    tableHtml += `<th style="${thStyle}">Alokasi Proyek & BOQ</th>`
     tableHtml += `<th style="${thStyle}">Vendor / Penerima</th>`
     tableHtml += `<th style="${thStyle}">Bank</th>`
     tableHtml += `<th style="${thStyle}">No Rekening</th>`
@@ -1843,6 +2306,7 @@ const exportTableExcel = () => {
           <td style="${tdCenterStyle}">${index + 1}</td>
           <td style="${tdStyle}">${r.no_request || '-'}</td>
           <td style="${tdStyle}">${r.tagihan_kode || r.tagihan_nomor_invoice || '-'}</td>
+          <td style="${tdStyle}">${formatSpkBoqText(r)}</td>
           <td style="${tdStyle}">${r.vendor_nama || '-'}</td>
           <td style="${tdCenterStyle}">${r.rek_bank || '-'}</td>
           <td style="${tdStyle} mso-number-format:'\\@';">${r.rek_nomor || '-'}</td>
@@ -1948,6 +2412,7 @@ const exportDetailExcel = () => {
     addRow('NO REQUEST', r.no_request)
     addRow('TIPE PENGAJUAN', r.tipe_pengajuan)
     addRow('REF TAGIHAN / INVOICE', r.tagihan_kode || r.tagihan_nomor_invoice)
+    addRow('ALOKASI PROYEK & BOQ', formatSpkBoqText(r))
     addRow('VENDOR / PENERIMA', r.vendor_nama)
     addRow('BANK', r.rek_bank)
     tableHtml += `<tr><th style="${thStyle}">NO REKENING</th><td style="${tdStyle} mso-number-format:'\\@';">${r.rek_nomor || '-'}</td></tr>`
@@ -2020,6 +2485,7 @@ onUnmounted(() => {
   if (unsubData) unsubData()
   if (unsubTagihan) unsubTagihan()
   if (unsubUser) unsubUser()
+  if (unsubAllSpk) unsubAllSpk()
 })
 </script>
 

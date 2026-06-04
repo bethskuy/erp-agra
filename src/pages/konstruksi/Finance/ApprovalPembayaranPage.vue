@@ -387,39 +387,6 @@
           </div>
         </div>
         <div class="row items-center q-gutter-md">
-          <q-btn-dropdown
-            unelevated
-            color="white"
-            text-color="teal-10"
-            icon="ios_share"
-            label="Export Dokumen"
-            class="rounded-12 text-weight-bold shadow-2"
-          >
-            <q-list class="bg-white rounded-borders q-py-sm" style="min-width: 200px">
-              <q-item clickable v-close-popup @click="exportDetailPDF" class="hover-teal-btn">
-                <q-item-section avatar
-                  ><q-avatar color="red-1" text-color="red-10" icon="picture_as_pdf" size="sm"
-                /></q-item-section>
-                <q-item-section
-                  ><q-item-label class="text-weight-bold"
-                    >Download PDF</q-item-label
-                  ></q-item-section
-                >
-              </q-item>
-              <q-separator class="q-my-sm" />
-              <q-item clickable v-close-popup @click="exportDetailExcel" class="hover-teal-btn">
-                <q-item-section avatar
-                  ><q-avatar color="green-1" text-color="green-10" icon="table_view" size="sm"
-                /></q-item-section>
-                <q-item-section
-                  ><q-item-label class="text-weight-bold"
-                    >Export Excel</q-item-label
-                  ></q-item-section
-                >
-              </q-item>
-            </q-list>
-          </q-btn-dropdown>
-
           <template v-if="selectedData.status === 'Pending'">
             <q-btn
               unelevated
@@ -568,6 +535,110 @@
                       <td class="uppercase">{{ selectedData.rek_nama }}</td>
                     </tr>
                   </table>
+                </div>
+              </div>
+
+              <!-- SPK & BOQ DETAILS (READ ONLY) -->
+              <div
+                class="row q-mt-lg"
+                v-if="
+                  selectedData.proyek_nama ||
+                  (selectedData.selected_spk && selectedData.selected_spk.length > 0)
+                "
+              >
+                <div class="col-12">
+                  <div
+                    class="text-weight-bold text-teal-10 q-mb-md uppercase tracking-widest font-11 border-bottom-subtle q-pb-sm"
+                  >
+                    RINCIAN ALOKASI PROYEK & PEKERJAAN (BOQ)
+                  </div>
+                  <div class="bg-grey-1 q-pa-lg rounded-12">
+                    <div
+                      class="row items-center justify-between q-mb-sm q-pb-sm"
+                      style="border-bottom: 1px dashed rgba(0, 0, 0, 0.1)"
+                    >
+                      <span class="text-weight-bold text-grey-7 text-caption">Nama Proyek:</span>
+                      <span class="text-weight-black text-indigo-10 uppercase text-subtitle2">{{
+                        selectedData.proyek_nama || 'NON-PROYEK'
+                      }}</span>
+                    </div>
+
+                    <!-- SPK list -->
+                    <div
+                      v-if="selectedData.selected_spk && selectedData.selected_spk.length > 0"
+                      class="q-gutter-y-sm q-mt-xs"
+                    >
+                      <div
+                        v-for="(spkId, idx) in selectedData.selected_spk"
+                        :key="idx"
+                        class="bg-white q-pa-md rounded-8 border-subtle"
+                      >
+                        <div
+                          class="text-weight-bold text-teal-10 font-12 q-mb-sm flex items-center"
+                        >
+                          <q-icon name="assignment" class="q-mr-xs" size="16px" />
+                          {{ getSpkById(spkId)?.nomor_spk || 'SPK' }} -
+                          {{ getSpkById(spkId)?.nama_kontrak || '' }}
+                        </div>
+
+                        <div
+                          v-if="
+                            selectedData.spk_boq_selection && selectedData.spk_boq_selection[spkId]
+                          "
+                        >
+                          <div
+                            v-if="
+                              selectedData.spk_boq_selection[spkId].selected_groups &&
+                              selectedData.spk_boq_selection[spkId].selected_groups.length
+                            "
+                            class="q-gutter-y-sm"
+                          >
+                            <div
+                              v-for="(groupTitle, gIdx) in selectedData.spk_boq_selection[spkId]
+                                .selected_groups"
+                              :key="gIdx"
+                              class="q-pl-md border-left-teal"
+                            >
+                              <div
+                                class="text-weight-bold text-caption text-indigo-8 q-mb-xs font-11"
+                              >
+                                Kategori: {{ groupTitle }}
+                              </div>
+                              <div
+                                v-if="
+                                  selectedData.spk_boq_selection[spkId].selected_items_by_group &&
+                                  selectedData.spk_boq_selection[spkId].selected_items_by_group[
+                                    groupTitle
+                                  ] &&
+                                  selectedData.spk_boq_selection[spkId].selected_items_by_group[
+                                    groupTitle
+                                  ].length
+                                "
+                              >
+                                <ul
+                                  style="
+                                    margin: 0;
+                                    padding-left: 20px;
+                                    font-size: 11px;
+                                    color: #444;
+                                    list-style-type: disc;
+                                  "
+                                >
+                                  <li
+                                    v-for="(item, iIdx) in selectedData.spk_boq_selection[spkId]
+                                      .selected_items_by_group[groupTitle]"
+                                    :key="iIdx"
+                                  >
+                                    {{ item }}
+                                  </li>
+                                </ul>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -780,6 +851,17 @@
                 <div style="font-size: 9px; color: #666; margin-top: 2px">
                   {{ row.rek_bank }} - {{ row.rek_nomor }}
                 </div>
+                <div
+                  style="
+                    font-size: 9px;
+                    color: #004d40;
+                    margin-top: 4px;
+                    font-weight: bold;
+                    line-height: 1.2;
+                  "
+                >
+                  {{ formatSpkBoqText(row) }}
+                </div>
               </td>
               <td style="text-align: right; font-weight: bold">
                 {{ (row.nominal || 0).toLocaleString('id-ID') }}
@@ -828,6 +910,7 @@ import {
   orderBy,
   doc,
   updateDoc,
+  getDoc,
   serverTimestamp,
 } from 'firebase/firestore'
 import { useQuasar } from 'quasar'
@@ -846,6 +929,8 @@ const statusFilter = ref('Semua Status')
 const selectedData = ref(null)
 
 let unsubData = null
+let unsubAllSpk = null
+const allSpk = ref([])
 
 // ─── Floating Construction Icons ───────────────────────────────────────────
 const CONSTRUCTION_ICONS = [
@@ -916,6 +1001,47 @@ const onPageClick = (e) => {
 }
 
 // ─── Columns ───────────────────────────────────────────────────────────────
+const getSpkById = (id) => {
+  const targetId = typeof id === 'object' && id !== null ? id.id : id
+  return allSpk.value.find((s) => s.id === targetId)
+}
+
+const formatSpkBoqText = (row) => {
+  if (!row) return '-'
+  const parts = []
+  if (row.proyek_nama) {
+    parts.push(`Proyek: ${row.proyek_nama}`)
+  }
+  if (row.selected_spk && row.selected_spk.length > 0) {
+    row.selected_spk.forEach((spkId) => {
+      const spk = getSpkById(spkId)
+      const spkLabel = spk ? spk.nomor_spk || spk.nama_kontrak || spkId : spkId
+      let spkPart = `SPK: ${spkLabel}`
+
+      const selection = row.spk_boq_selection?.[spkId]
+      if (selection && selection.selected_groups && selection.selected_groups.length > 0) {
+        const boqParts = []
+        selection.selected_groups.forEach((groupTitle) => {
+          const items = selection.selected_items_by_group?.[groupTitle]
+          if (items && items.length > 0) {
+            const itemTexts = items.map((itemObj) => {
+              return typeof itemObj === 'object' && itemObj !== null
+                ? itemObj.deskripsi || itemObj
+                : itemObj
+            })
+            boqParts.push(`${groupTitle} (${itemTexts.join(', ')})`)
+          } else {
+            boqParts.push(groupTitle)
+          }
+        })
+        spkPart += ` [BOQ: ${boqParts.join('; ')}]`
+      }
+      parts.push(spkPart)
+    })
+  }
+  return parts.length > 0 ? parts.join(' | ') : '-'
+}
+
 const columns = [
   { name: 'request', align: 'left', label: 'NO. REQUEST', field: 'no_request', sortable: true },
   {
@@ -949,6 +1075,11 @@ const fetchData = () => {
       loading.value = false
     },
   )
+
+  if (unsubAllSpk) unsubAllSpk()
+  unsubAllSpk = onSnapshot(collection(db, 'spk_customer'), (snap) => {
+    allSpk.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+  })
 }
 
 // ─── KPI ───────────────────────────────────────────────────────────────────
@@ -973,10 +1104,26 @@ const filteredRows = computed(() => {
 })
 
 // ─── Interaction ───────────────────────────────────────────────────────────
-const openDetail = (row) => {
+const openDetail = async (row) => {
   selectedData.value = row
   viewMode.value = 'detail'
   window.scrollTo(0, 0)
+
+  // Fallback: If project details are missing but it's a Tagihan Supplier request, fetch them from the tagihan doc!
+  if ((!row.proyek_nama || !row.selected_spk || row.selected_spk.length === 0) && row.tagihan_id) {
+    try {
+      const tagihanSnap = await getDoc(doc(db, 'finance_tagihan', row.tagihan_id))
+      if (tagihanSnap.exists()) {
+        const tData = tagihanSnap.data()
+        selectedData.value.proyek_id = tData.proyek_id || null
+        selectedData.value.proyek_nama = tData.proyek_nama || ''
+        selectedData.value.selected_spk = tData.selected_spk || []
+        selectedData.value.spk_boq_selection = tData.spk_boq_selection || {}
+      }
+    } catch (e) {
+      console.error('Gagal mengambil detail proyek dari tagihan fallback:', e)
+    }
+  }
 }
 
 // ─── APPROVE ──────────────────────────────────────────────────────────────
@@ -1224,9 +1371,9 @@ const exportTablePDF = () => {
 
 const exportTableExcel = () => {
   try {
-    let csv = `NO REQUEST,REF TAGIHAN,VENDOR/PENERIMA,BANK,NO REKENING,PEMOHON,TGL PENGAJUAN,TARGET CAIR,NOMINAL,STATUS,CATATAN/ALASAN\n`
+    let csv = `NO REQUEST,REF TAGIHAN,VENDOR/PENERIMA,BANK,NO REKENING,ALOKASI PROYEK & BOQ,PEMOHON,TGL PENGAJUAN,TARGET CAIR,NOMINAL,STATUS,CATATAN/ALASAN\n`
     filteredRows.value.forEach((r) => {
-      csv += `"${r.no_request}","${r.tagihan_kode || r.tagihan_nomor_invoice || '-'}","${r.vendor_nama}","${r.rek_bank}","${r.rek_nomor}","${r.pembuat_nama}","${formatDateIndo(r.tanggal_pengajuan)}","${formatDateIndo(r.tanggal_dibutuhkan)}","${r.nominal}","${r.status}","${(r.catatan_approval || r.alasan_reject || '').replace(/"/g, '""').replace(/\n/g, ' ')}"\n`
+      csv += `"${r.no_request}","${r.tagihan_kode || r.tagihan_nomor_invoice || '-'}","${r.vendor_nama}","${r.rek_bank}","${r.rek_nomor}","${formatSpkBoqText(r).replace(/"/g, '""')}","${r.pembuat_nama}","${formatDateIndo(r.tanggal_pengajuan)}","${formatDateIndo(r.tanggal_dibutuhkan)}","${r.nominal}","${r.status}","${(r.catatan_approval || r.alasan_reject || '').replace(/"/g, '""').replace(/\n/g, ' ')}"\n`
     })
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
@@ -1247,6 +1394,7 @@ const exportTableExcel = () => {
   }
 }
 
+// eslint-disable-next-line no-unused-vars
 const exportDetailPDF = () => {
   const e = document.getElementById('pengajuan-detail-pdf')
   if (!e) return
@@ -1265,11 +1413,12 @@ const exportDetailPDF = () => {
     .then(() => $q.loading.hide())
 }
 
+// eslint-disable-next-line no-unused-vars
 const exportDetailExcel = () => {
   try {
-    let csv = `NO REQUEST,TIPE PENGAJUAN,REF TAGIHAN,VENDOR/PENERIMA,BANK,NO REKENING,ATAS NAMA,TGL PENGAJUAN,TARGET CAIR,TGL REALISASI,NOMINAL,STATUS,KETERANGAN,CATATAN APPROVAL\n`
+    let csv = `NO REQUEST,TIPE PENGAJUAN,REF TAGIHAN,VENDOR/PENERIMA,BANK,NO REKENING,ATAS NAMA,ALOKASI PROYEK & BOQ,TGL PENGAJUAN,TARGET CAIR,TGL REALISASI,NOMINAL,STATUS,KETERANGAN,CATATAN APPROVAL\n`
     const r = selectedData.value
-    csv += `"${r.no_request}","${r.tipe_pengajuan}","${r.tagihan_kode || r.tagihan_nomor_invoice || '-'}","${r.vendor_nama}","${r.rek_bank}","${r.rek_nomor}","${r.rek_nama}","${formatDateIndo(r.tanggal_pengajuan)}","${formatDateIndo(r.tanggal_dibutuhkan)}","${formatDateIndo(r.realizedAt?.seconds ? new Date(r.realizedAt.toDate()) : null)}","${r.nominal}","${r.status}","${(r.keterangan || '').replace(/"/g, '""').replace(/\n/g, ' ')}","${(r.catatan_approval || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`
+    csv += `"${r.no_request}","${r.tipe_pengajuan}","${r.tagihan_kode || r.tagihan_nomor_invoice || '-'}","${r.vendor_nama}","${r.rek_bank}","${r.rek_nomor}","${r.rek_nama}","${formatSpkBoqText(r).replace(/"/g, '""')}","${formatDateIndo(r.tanggal_pengajuan)}","${formatDateIndo(r.tanggal_dibutuhkan)}","${formatDateIndo(r.realizedAt?.seconds ? new Date(r.realizedAt.toDate()) : null)}","${r.nominal}","${r.status}","${(r.keterangan || '').replace(/"/g, '""').replace(/\n/g, ' ')}","${(r.catatan_approval || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
@@ -1295,6 +1444,7 @@ onMounted(() => {
 })
 onUnmounted(() => {
   if (unsubData) unsubData()
+  if (unsubAllSpk) unsubAllSpk()
 })
 </script>
 
@@ -1324,6 +1474,9 @@ onUnmounted(() => {
 }
 .border-blue-thin {
   border: 1px solid rgba(25, 118, 210, 0.18);
+}
+.border-left-teal {
+  border-left: 3px solid #00796b;
 }
 
 /* PAGE BACKGROUND */

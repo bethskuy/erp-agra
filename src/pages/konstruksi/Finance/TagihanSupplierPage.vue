@@ -1,39 +1,9 @@
 <template>
-  <q-page class="bg-grey-2 q-pa-md q-pa-lg-lg font-pro page-wrapper" @click.self="handlePageClick">
-    <!-- FLOATING CONSTRUCTION ICONS CONTAINER -->
-    <div class="floating-icons-container" aria-hidden="true">
-      <span
-        v-for="icon in floatingIcons"
-        :key="icon.id"
-        class="floating-icon"
-        :style="icon.style"
-        v-html="icon.svg"
-      ></span>
-    </div>
-
-    <!-- CLICK EFFECT CONSTRUCTIONS ICONS -->
-    <div class="click-icons-container" aria-hidden="true">
-      <span
-        v-for="ci in clickIcons"
-        :key="ci.id"
-        class="click-icon"
-        :style="{
-          left: ci.x + 'px',
-          top: ci.y + 'px',
-          '--tx': ci.tx + 'px',
-          '--ty': ci.ty + 'px',
-          width: ci.size + 'px',
-          height: ci.size + 'px',
-        }"
-        v-html="ci.svg"
-      ></span>
-    </div>
-
+  <q-page class="bg-grey-2 q-pa-md q-pa-lg-lg font-pro">
     <div v-if="viewMode === 'list'" class="animate-fade content-relative">
       <div class="row items-center justify-between q-mb-xl no-print">
         <div class="col-12 col-md-6">
           <div class="row items-center no-wrap">
-            <!-- TOMBOL KEMBALI DIHAPUS PADA LIST UTAMA -->
             <div>
               <div class="text-h4 text-weight-bolder text-teal-10 leading-tight">
                 Tagihan Supplier & Labour
@@ -326,7 +296,7 @@
       <q-card
         flat
         bordered
-        class="rounded-20 shadow-sm overflow-hidden bg-white no-print border-teal-thin animate-fade"
+        class="rounded-20 shadow-sm overflow-hidden bg-white no-print content-relative border-teal-thin animate-fade"
       >
         <q-table
           :rows="filteredRows"
@@ -559,17 +529,6 @@
             </div>
           </div>
         </div>
-        <div class="row items-center q-gutter-md">
-          <q-btn
-            unelevated
-            color="white"
-            text-color="teal-10"
-            icon="picture_as_pdf"
-            label="CETAK PDF"
-            class="rounded-12 text-weight-bold shadow-2"
-            @click="exportToPDF"
-          />
-        </div>
       </div>
 
       <!-- KERTAS INVOICE (TIDAK DIUBAH WARNANYA AGAR SESUAI UNTUK CETAK DOKUMEN) -->
@@ -660,6 +619,82 @@
               </q-card-section>
             </q-card>
 
+            <!-- CARD: SPK & BOQ DETAILS -->
+            <q-card
+              v-if="selectedTagihan.selected_spk && selectedTagihan.selected_spk.length > 0"
+              flat
+              bordered
+              class="rounded-20 shadow-sm q-mb-lg bg-white border-indigo-thin"
+            >
+              <q-card-section class="bg-indigo-50 text-indigo-10 q-py-sm border-bottom-subtle">
+                <div class="text-weight-bold uppercase tracking-widest font-11 flex items-center">
+                  <q-icon name="description" size="sm" class="q-mr-sm" /> DETAIL SPK & BOQ
+                </div>
+              </q-card-section>
+              <q-card-section class="q-pa-lg">
+                <div class="q-gutter-y-md">
+                  <div
+                    v-for="(spkId, idx) in selectedTagihan.selected_spk"
+                    :key="idx"
+                    class="bg-grey-1 q-pa-md rounded-12"
+                  >
+                    <div class="text-weight-bold text-indigo-10 q-mb-sm">
+                      {{ getSpkById(spkId)?.nomor_spk || 'SPK' }} -
+                      {{ getSpkById(spkId)?.nama_kontrak || '' }}
+                    </div>
+                    <div
+                      v-if="
+                        selectedTagihan.spk_boq_selection &&
+                        selectedTagihan.spk_boq_selection[spkId]
+                      "
+                    >
+                      <div
+                        v-if="
+                          selectedTagihan.spk_boq_selection[spkId].selected_groups &&
+                          selectedTagihan.spk_boq_selection[spkId].selected_groups.length
+                        "
+                        class="q-gutter-y-sm"
+                      >
+                        <div
+                          v-for="(groupTitle, gIdx) in selectedTagihan.spk_boq_selection[spkId]
+                            .selected_groups"
+                          :key="gIdx"
+                          class="bg-white q-pa-sm rounded-8"
+                        >
+                          <div class="text-weight-bold text-caption text-indigo-8 q-mb-xs">
+                            {{ groupTitle }}
+                          </div>
+                          <div
+                            v-if="
+                              selectedTagihan.spk_boq_selection[spkId].selected_items_by_group &&
+                              selectedTagihan.spk_boq_selection[spkId].selected_items_by_group[
+                                groupTitle
+                              ] &&
+                              selectedTagihan.spk_boq_selection[spkId].selected_items_by_group[
+                                groupTitle
+                              ].length
+                            "
+                          >
+                            <q-list dense>
+                              <q-item
+                                v-for="(item, iIdx) in selectedTagihan.spk_boq_selection[spkId]
+                                  .selected_items_by_group[groupTitle]"
+                                :key="iIdx"
+                              >
+                                <q-item-section>
+                                  <q-item-label>{{ item }}</q-item-label>
+                                </q-item-section>
+                              </q-item>
+                            </q-list>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+
             <!-- CARD: TIMELINE -->
             <q-card flat bordered class="rounded-20 shadow-sm q-mb-lg bg-white border-indigo-thin">
               <q-card-section class="bg-indigo-50 text-indigo-10 q-py-sm border-bottom-subtle">
@@ -736,6 +771,9 @@
                     @click="openLink(doc.url || doc.base64)"
                   >
                     <q-item-section avatar>
+                      <q-icon name="open_in_new" color="grey-6" />
+                    </q-item-section>
+                    <q-item-section avatar>
                       <q-avatar color="indigo-1" text-color="indigo-10" icon="description" />
                     </q-item-section>
                     <q-item-section>
@@ -744,9 +782,6 @@
                       }}</q-item-label>
                       <q-item-label caption>Klik untuk melihat berkas lampiran</q-item-label>
                     </q-item-section>
-                    <q-item-section side
-                      ><q-icon name="open_in_new" color="grey-6"
-                    /></q-item-section>
                   </q-item>
                 </q-list>
               </q-card-section>
@@ -811,7 +846,7 @@
                     STATUS PEMBAYARAN
                   </div>
                   <div class="row q-gutter-sm">
-                    <!-- Tombol Ajukan Tagihan: hanya jika status Draft dan canEdit -->
+                    <!-- Tombol Ajukan Tagihan -->
                     <q-btn
                       v-if="canEdit && selectedTagihan.status === 'Draft'"
                       unelevated
@@ -822,7 +857,7 @@
                       label="Ajukan Tagihan"
                       @click="ajukanTagihan"
                     />
-                    <!-- Tombol Update Pembayaran: hanya jika canApprove dan status bukan Lunas dan bukan Draft -->
+                    <!-- Tombol Update Pembayaran -->
                     <q-btn
                       v-if="
                         canApprove &&
@@ -1051,29 +1086,163 @@
                     />
                   </div>
                   <div class="row q-col-gutter-md">
-                    <div class="col-12 col-md-6">
+                    <div class="col-12 col-md-12">
                       <div class="label-req q-mb-xs">Referensi Proyek</div>
-                      <q-input
+                      <!--
+                        ✅ MENYEMATKAN emit-value & map-options AGAR PROYEK ID
+                        DITRANSMISIKAN SEBAGAI STRING, BUKAN SEBAGAI OBJEK
+                      -->
+                      <q-select
                         outlined
                         dense
-                        v-model="form.proyek_nama"
-                        readonly
+                        v-model="form.proyek_id"
+                        :options="allProyek"
+                        option-label="nama"
+                        option-value="id"
+                        emit-value
+                        map-options
+                        placeholder="Pilih Proyek..."
+                        bg-color="white"
                         color="teal-10"
-                        bg-color="grey-2"
-                        placeholder="Otomatis dari PO..."
-                      />
+                        clearable
+                        @update:model-value="onProyekSelect"
+                      >
+                        <template v-slot:selected-item="scope">
+                          <q-item-section>
+                            <q-item-label>{{ scope.opt.nama }}</q-item-label>
+                          </q-item-section>
+                        </template>
+                        <template v-slot:option="scope">
+                          <q-item v-bind="scope.itemProps">
+                            <q-item-section>
+                              <q-item-label>{{ scope.opt.nama }}</q-item-label>
+                            </q-item-section>
+                          </q-item>
+                        </template>
+                      </q-select>
                     </div>
-                    <div class="col-12 col-md-6">
-                      <div class="label-req q-mb-xs">Nomor SPK</div>
-                      <q-input
-                        outlined
-                        dense
-                        v-model="form.spk_nomor"
-                        readonly
-                        color="teal-10"
-                        bg-color="grey-2"
-                        placeholder="Otomatis dari PO..."
-                      />
+                  </div>
+                  <div v-if="form.proyek_id">
+                    <div class="label-req q-mb-xs">Pilih SPK (Bisa Lebih dari 1)</div>
+                    <!--
+                      ✅ MENYEMATKAN emit-value & map-options AGAR SPK ID
+                      DITRANSMISIKAN SEBAGAI STRING DALAM ARRAY form.selected_spk
+                    -->
+                    <q-select
+                      outlined
+                      dense
+                      multiple
+                      v-model="form.selected_spk"
+                      :options="currentSpkOptions"
+                      option-label="nomor_spk"
+                      option-value="id"
+                      emit-value
+                      map-options
+                      placeholder="Pilih SPK..."
+                      bg-color="white"
+                      color="teal-10"
+                      clearable
+                      use-chips
+                    >
+                      <template v-slot:option="scope">
+                        <q-item v-bind="scope.itemProps">
+                          <q-item-section>
+                            <q-item-label class="text-weight-bold">
+                              {{
+                                scope.opt.nomor_spk ||
+                                scope.opt.nama_kontrak ||
+                                `SPK: ${scope.opt.id}`
+                              }}
+                            </q-item-label>
+                            <q-item-label caption>{{
+                              scope.opt.nama_kontrak || scope.opt.id
+                            }}</q-item-label>
+                          </q-item-section>
+                        </q-item>
+                      </template>
+                      <template v-slot:selected-item="scope">
+                        <q-item-section>
+                          <q-item-label>{{
+                            scope.opt.nomor_spk || scope.opt.nama_kontrak || `SPK: ${scope.opt.id}`
+                          }}</q-item-label>
+                        </q-item-section>
+                      </template>
+                    </q-select>
+                  </div>
+                  <div
+                    v-if="form.selected_spk && form.selected_spk.length && form.spk_boq_selection"
+                  >
+                    <div class="label-req q-mb-xs">Pilih Detail BOQ per SPK</div>
+                    <div class="q-gutter-y-md">
+                      <div
+                        v-for="(spkId, idx) in form.selected_spk"
+                        :key="idx"
+                        class="bg-grey-1 q-pa-md rounded-12"
+                      >
+                        <div class="text-weight-bold text-teal-10 q-mb-sm">
+                          {{ getSpkById(spkId)?.nomor_spk || 'SPK' }} -
+                          {{ getSpkById(spkId)?.nama_kontrak || '' }}
+                        </div>
+                        <template v-if="form.spk_boq_selection[spkId]">
+                          <div class="label-req q-mb-xs">Pilih Kategori BOQ</div>
+                          <q-select
+                            outlined
+                            dense
+                            multiple
+                            emit-value
+                            map-options
+                            v-model="form.spk_boq_selection[spkId].selected_groups"
+                            :options="getSpkBoqGroups(spkId)"
+                            option-label="title"
+                            option-value="title"
+                            placeholder="Pilih Kategori..."
+                            bg-color="white"
+                            color="teal-10"
+                            clearable
+                            use-chips
+                            use-input
+                          />
+                          <div
+                            v-if="form.spk_boq_selection[spkId].selected_groups.length"
+                            class="q-mt-md"
+                          >
+                            <div class="label-req q-mb-xs">Pilih Item BOQ</div>
+                            <div class="q-gutter-y-sm">
+                              <div
+                                v-for="(groupTitle, gIdx) in form.spk_boq_selection[spkId]
+                                  .selected_groups"
+                                :key="gIdx"
+                                class="bg-white q-pa-sm rounded-8"
+                              >
+                                <div class="text-weight-bold text-caption q-mb-xs">
+                                  {{ groupTitle }}
+                                </div>
+                                <q-select
+                                  outlined
+                                  dense
+                                  multiple
+                                  emit-value
+                                  map-options
+                                  v-model="
+                                    form.spk_boq_selection[spkId].selected_items_by_group[
+                                      groupTitle
+                                    ]
+                                  "
+                                  :options="getSpkBoqGroupItems(spkId, groupTitle)"
+                                  option-label="deskripsi"
+                                  option-value="deskripsi"
+                                  placeholder="Pilih Item..."
+                                  bg-color="white"
+                                  color="teal-10"
+                                  clearable
+                                  use-chips
+                                  use-input
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </template>
+                      </div>
                     </div>
                   </div>
                 </q-card-section>
@@ -1417,7 +1586,7 @@
       </q-card>
     </q-dialog>
 
-    <!-- Hidden PDF Export Table (KEEP ORIGINAL INDIGO STYLE FOR PRINT) -->
+    <!-- Hidden PDF Export Table -->
     <div style="position: absolute; top: -9999px; left: -9999px; width: 1122px; z-index: -1">
       <div id="table-pdf-export" class="bg-white q-pa-lg">
         <div class="row items-center q-mb-lg border-bottom-subtle q-pb-md">
@@ -1441,12 +1610,13 @@
           <thead>
             <tr>
               <th width="5%">NO</th>
-              <th width="15%">KODE & INVOICE</th>
-              <th width="20%">VENDOR</th>
-              <th width="20%">PROYEK & PO</th>
-              <th width="15%">TIMELINE</th>
-              <th width="15%" class="text-right">GRAND TOTAL</th>
-              <th width="10%">STATUS</th>
+              <th width="12%">KODE & INVOICE</th>
+              <th width="15%">VENDOR</th>
+              <th width="15%">PROYEK & PO</th>
+              <th width="25%">DETAIL BOQ & SPK</th>
+              <th width="12%">TIMELINE</th>
+              <th width="11%" class="text-right">GRAND TOTAL</th>
+              <th width="5%">STATUS</th>
             </tr>
           </thead>
           <tbody>
@@ -1462,6 +1632,44 @@
                 <div class="text-caption text-grey-7">PO: {{ row.po_nomor || '-' }}</div>
               </td>
               <td>
+                <div v-if="row.selected_spk && row.selected_spk.length > 0">
+                  <div v-for="(spkId, sIdx) in row.selected_spk" :key="sIdx" class="q-mb-sm">
+                    <div class="text-weight-bold font-10 text-primary">
+                      SPK: {{ getSpkById(spkId)?.nomor_spk || spkId }}
+                    </div>
+                    <div v-if="row.spk_boq_selection && row.spk_boq_selection[spkId]">
+                      <div
+                        v-for="(groupTitle, gIdx) in row.spk_boq_selection[spkId].selected_groups"
+                        :key="gIdx"
+                        class="q-pl-sm q-mt-xs"
+                      >
+                        <div class="text-weight-medium font-9 text-grey-9">
+                          Kategori: {{ groupTitle }}
+                        </div>
+                        <ul
+                          style="
+                            margin: 0;
+                            padding-left: 15px;
+                            font-size: 9px;
+                            color: #555;
+                            list-style-type: disc;
+                          "
+                        >
+                          <li
+                            v-for="(item, iIdx) in row.spk_boq_selection[spkId]
+                              .selected_items_by_group[groupTitle]"
+                            :key="iIdx"
+                          >
+                            {{ item }}
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div v-else class="text-grey-6 italic font-9">-</div>
+              </td>
+              <td>
                 <div class="font-10">Inv: {{ formatDateIndo(row.tanggal_invoice) }}</div>
                 <div class="font-10 text-negative">JT: {{ formatDateIndo(row.jatuh_tempo) }}</div>
               </td>
@@ -1475,12 +1683,12 @@
               </td>
             </tr>
             <tr v-if="filteredRows.length === 0">
-              <td colspan="7" class="text-center q-pa-xl text-grey-6 italic">
+              <td colspan="8" class="text-center q-pa-xl text-grey-6 italic">
                 Tidak ada data tagihan.
               </td>
             </tr>
             <tr v-if="filteredRows.length > 0" style="background-color: #e8eaf6">
-              <td colspan="5" class="text-right">
+              <td colspan="6" class="text-right">
                 <div class="text-weight-bold uppercase" style="color: #1a237e">
                   Total Nilai Tagihan
                 </div>
@@ -1506,7 +1714,6 @@
 </template>
 
 <script setup>
-// eslint-disable-next-line no-unused-vars
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { db, storage } from 'src/boot/firebase'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
@@ -1642,81 +1849,6 @@ const loadUserPermission = () => {
 }
 
 // ============================================================================
-// HIGH-FIDELITY SVG VECTOR ICONS (CONSTRUCTION THEMED - TEAL & ORANGE)
-// ============================================================================
-const getConstructionSvg = (index) => {
-  const svgs = [
-    `<svg viewBox="0 0 100 100" style="width: 100%; height: 100%;"><path d="M25,45 C25,25 75,25 75,45 Z" fill="#009688" /><rect x="18" y="42" width="64" height="6" rx="3" fill="#f59e0b" /><path d="M47,20 L53,20 L53,32 L47,32 Z" fill="#f59e0b" /><circle cx="50" cy="58" r="15" fill="#e0f2f1" /><circle cx="76" cy="65" r="9" fill="none" stroke="#ff781e" stroke-width="2.5" stroke-dasharray="3,1.5" /><path d="M28,82 C28,70 72,70 72,82 L72,92 L28,92 Z" fill="#00796b" /></svg>`,
-    `<svg viewBox="0 0 100 100" style="width: 100%; height: 100%;"><circle cx="50" cy="15" r="7" fill="#ff781e" /><line x1="50" y1="15" x2="32" y2="86" stroke="#ff781e" stroke-width="5.5" stroke-linecap="round" /><line x1="50" y1="15" x2="68" y2="86" stroke="#ff781e" stroke-width="5.5" stroke-linecap="round" /><line x1="38" y1="52" x2="62" y2="52" stroke="#009688" stroke-width="4.5" stroke-linecap="round" /></svg>`,
-    `<svg viewBox="0 0 100 100" style="width: 100%; height: 100%;"><rect x="25" y="12" width="50" height="78" rx="6" fill="#0d9488" /><rect x="34" y="22" width="11" height="11" rx="2" fill="#e0f2f1" /><rect x="55" y="22" width="11" height="11" rx="2" fill="#e0f2f1" /><rect x="34" y="42" width="11" height="11" rx="2" fill="#e0f2f1" /><rect x="55" y="42" width="11" height="11" rx="2" fill="#e0f2f1" /><rect x="34" y="62" width="11" height="11" rx="2" fill="#e0f2f1" /><rect x="55" y="62" width="11" height="11" rx="2" fill="#e0f2f1" /></svg>`,
-    `<svg viewBox="0 0 100 100" style="width: 100%; height: 100%;"><rect x="18" y="74" width="54" height="13" rx="4" fill="#ff781e" /><circle cx="26" cy="80.5" r="5.5" fill="#1e293b" /><circle cx="45" cy="80.5" r="5.5" fill="#1e293b" /><circle cx="64" cy="80.5" r="5.5" fill="#1e293b" /><path d="M23,48 L46,48 L54,74 L23,74 Z" fill="#009688" /><line x1="46" y1="56" x2="78" y2="26" stroke="#ff781e" stroke-width="6" stroke-linecap="round" /><line x1="78" y1="26" x2="88" y2="52" stroke="#ff781e" stroke-width="4.5" stroke-linecap="round" /><path d="M82,48 L92,48 L87,62 L77,58 Z" fill="#00796b" /></svg>`,
-    `<svg viewBox="0 0 100 100" style="width: 100%; height: 100%;"><g transform="rotate(45, 50, 50)"><rect x="44" y="12" width="12" height="76" rx="4" fill="#009688" /><circle cx="50" cy="15" r="13" fill="#009688" /><polygon points="50,15 41,4 59,4 50,15" fill="#e0f2f1" /><circle cx="50" cy="85" r="9" fill="#00796b" /></g><g transform="rotate(-45, 50, 50)"><rect x="45" y="18" width="10" height="68" rx="2.5" fill="#ff781e" /><rect x="28" y="10" width="44" height="16" rx="3.5" fill="#78350f" /><path d="M66,13 C73,13 77,23 77,23 L66,23 Z" fill="#78350f" /></g></svg>`,
-  ]
-  return svgs[index % svgs.length]
-}
-
-// Floating Icons States
-const floatingIcons = ref([])
-let iconIdCounter = 0
-
-function spawnFloatingIcon() {
-  const id = iconIdCounter++
-  const left = Math.random() * 95 + '%'
-  const duration = (5 + Math.random() * 6).toFixed(2) + 's'
-  const delay = (Math.random() * 3).toFixed(2) + 's'
-  const size = (24 + Math.random() * 22).toFixed(0)
-  const svgContent = getConstructionSvg(id)
-
-  floatingIcons.value.push({
-    id,
-    svg: svgContent,
-    style: {
-      left,
-      width: size + 'px',
-      height: size + 'px',
-      animationDuration: duration,
-      animationDelay: delay,
-    },
-  })
-  setTimeout(
-    () => {
-      floatingIcons.value = floatingIcons.value.filter((i) => i.id !== id)
-    },
-    (parseFloat(duration) + parseFloat(delay) + 0.5) * 1000,
-  )
-}
-
-let floatingIconInterval = null
-
-// Click Icons States
-const clickIcons = ref([])
-
-function handlePageClick(e) {
-  const count = 4 + Math.floor(Math.random() * 4)
-  for (let i = 0; i < count; i++) {
-    const id = iconIdCounter++
-    const offsetX = (Math.random() - 0.5) * 100
-    const offsetY = -(60 + Math.random() * 80)
-    const size = 26 + Math.floor(Math.random() * 18)
-    const svgContent = getConstructionSvg(id)
-
-    const icon = {
-      id,
-      svg: svgContent,
-      x: e.clientX - size / 2,
-      y: e.clientY - size / 2,
-      tx: offsetX,
-      ty: offsetY,
-      size,
-    }
-    clickIcons.value.push(icon)
-    setTimeout(() => {
-      clickIcons.value = clickIcons.value.filter((i) => i.id !== id)
-    }, 1000)
-  }
-}
-
-// ============================================================================
 // STATE
 // ============================================================================
 const viewMode = ref('list')
@@ -1744,12 +1876,14 @@ const paymentForm = ref({
 const optSupplier = ref([])
 const allSupplier = ref([])
 const allProyek = ref([])
+const allSpk = ref([])
 const optProyek = ref([])
 const optProyekFilter = ref([])
 const optVendorFilter = ref([])
 const optPO = ref([])
 
 let unsubTagihan = null
+let unsubAllSpk = null
 
 const formDefault = {
   id: null,
@@ -1766,7 +1900,8 @@ const formDefault = {
   keterangan: '',
   proyek_id: null,
   proyek_nama: '',
-  spk_nomor: '',
+  selected_spk: [],
+  spk_boq_selection: {},
   ppn_persen: 0,
   pph_persen: 0,
   status: 'Draft',
@@ -1816,9 +1951,15 @@ const fetchData = async () => {
   optVendorFilter.value = [...allSupplier.value]
 
   const snapProj = await getDocs(collection(db, 'proyek'))
-  allProyek.value = snapProj.docs.map((d) => ({ id: d.id, nama: d.data().nama }))
+  allProyek.value = snapProj.docs.map((d) => ({ id: d.id, nama: d.data().nama, ...d.data() }))
   optProyek.value = [...allProyek.value]
   optProyekFilter.value = [...allProyek.value]
+
+  // Listen to SPK updates
+  if (unsubAllSpk) unsubAllSpk()
+  unsubAllSpk = onSnapshot(collection(db, 'spk_customer'), (snap) => {
+    allSpk.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+  })
 
   const snapPo = await getDocs(collection(db, 'purchase_order'))
   optPO.value = snapPo.docs.map((d) => ({ id: d.id, ...d.data() }))
@@ -1831,7 +1972,6 @@ const fetchData = async () => {
         const totalDibayar = Number(data.total_dibayar) || 0
         const sisaTagihan = grandTotal - totalDibayar
 
-        // Pastikan status sesuai dengan sisa tagihan
         let status = data.status || 'Draft'
         if (sisaTagihan <= 0) {
           status = 'Lunas'
@@ -1905,6 +2045,24 @@ const totalFilteredOutstanding = computed(() =>
   filteredRows.value.filter((r) => r.sisa_tagihan > 0).reduce((sum, r) => sum + r.sisa_tagihan, 0),
 )
 
+// ✅ SPK Options: Dibangun secara kokoh dan toleran terhadap format ID string maupun objek
+const currentSpkOptions = computed(() => {
+  if (!form.value.proyek_id) return []
+
+  // Mengekstrak ID Proyek murni (mengatasi Quasar object binding vs string ID)
+  const targetProjId =
+    typeof form.value.proyek_id === 'object' && form.value.proyek_id !== null
+      ? form.value.proyek_id.id
+      : form.value.proyek_id
+
+  return allSpk.value.filter((s) => {
+    const spkProjId = s.projectId || s.proyek_id || s.proyek || s.proyekId
+    const spkProjIdString =
+      typeof spkProjId === 'object' && spkProjId !== null ? spkProjId.id : spkProjId
+    return spkProjIdString === targetProjId
+  })
+})
+
 const resetFilters = () => {
   searchQuery.value = ''
   statusFilter.value = 'ALL'
@@ -1928,9 +2086,6 @@ const filterVendorDropdown = (val, update) => {
   })
 }
 
-// eslint-disable-next-line no-unused-vars
-const countByStatus = (status) => filteredRows.value.filter((r) => r.status === status).length
-
 const countOutstanding = () => filteredRows.value.filter((r) => r.sisa_tagihan > 0).length
 
 const countOverdue = () => {
@@ -1945,6 +2100,60 @@ const isOverdue = (dateStr, row) => {
   const today = new Date().toISOString().substr(0, 10)
   return dateStr < today
 }
+
+// ============================================================================
+// WATCHERS UNTUK REAKTIVITAS SPK & BOQ
+// ============================================================================
+watch(
+  () => form.value.selected_spk,
+  (newVal) => {
+    if (!form.value.spk_boq_selection) {
+      form.value.spk_boq_selection = {}
+    }
+    if (newVal && Array.isArray(newVal)) {
+      newVal.forEach((spkId) => {
+        const idString = typeof spkId === 'object' && spkId !== null ? spkId.id : spkId
+        if (!form.value.spk_boq_selection[idString]) {
+          form.value.spk_boq_selection[idString] = {
+            selected_groups: [],
+            selected_items_by_group: {},
+          }
+        }
+      })
+
+      // Sinkronisasi otomatis input nomor SPK jika tidak memakai PO
+      if (!form.value.po_ref) {
+        const spkNames = newVal.map((spkId) => {
+          const spkObj = getSpkById(spkId)
+          return spkObj ? spkObj.nomor_spk || spkObj.nama_kontrak || spkId : spkId
+        })
+        form.value.spk_nomor = spkNames.join(', ')
+      }
+    }
+  },
+  { immediate: true, deep: true },
+)
+
+watch(
+  () => form.value.spk_boq_selection,
+  (newVal) => {
+    if (!newVal) return
+    Object.keys(newVal).forEach((spkId) => {
+      const spkSelection = newVal[spkId]
+      if (spkSelection && spkSelection.selected_groups) {
+        if (!spkSelection.selected_items_by_group) {
+          spkSelection.selected_items_by_group = {}
+        }
+        spkSelection.selected_groups.forEach((groupTitle) => {
+          if (!spkSelection.selected_items_by_group[groupTitle]) {
+            spkSelection.selected_items_by_group[groupTitle] = []
+          }
+        })
+      }
+    })
+  },
+  { deep: true },
+)
 
 // ============================================================================
 // DIALOG & FORM LOGIC
@@ -1985,6 +2194,8 @@ const openEditDialog = (row) => {
     spk_nomor: row.spk_nomor || '',
     po_ref: row.po_nomor ? { nomor: row.po_nomor } : null,
     nominal_po: row.nominal_po || 0,
+    selected_spk: row.selected_spk || [],
+    spk_boq_selection: row.spk_boq_selection || {},
   }
   if (!form.value.kode_tagihan) form.value.kode_tagihan = generateKodeTagihan()
   if (!form.value.nominal_invoice) form.value.nominal_invoice = form.value.nilai_dpp || 0
@@ -1992,7 +2203,7 @@ const openEditDialog = (row) => {
 }
 
 // ============================================================================
-// EXPORT (KEEPING ORIGINAL THEME FOR HTML/PDF/EXCEL PRINT EXPORTS)
+// EXPORTING AND PRINTING (RETAIN ORIGINAL THEME)
 // ============================================================================
 const exportTablePDF = () => {
   const element = document.getElementById('table-pdf-export')
@@ -2015,9 +2226,12 @@ const exportTableExcel = () => {
   try {
     const thStyle =
       'background-color: #1a237e; color: #ffffff; font-weight: bold; border: 1px solid #dddddd; padding: 10px; text-align: center; text-transform: uppercase;'
-    const tdStyle = 'border: 1px solid #dddddd; padding: 8px; vertical-align: top;'
-    const tdNumStyle = tdStyle + ' text-align: right;'
-    const tdCenterStyle = tdStyle + ' text-align: center;'
+    const tdStyle =
+      'border: 1px solid #dddddd; padding: 8px; vertical-align: top; white-space: pre-wrap;'
+    const tdNumStyle =
+      'border: 1px solid #dddddd; padding: 8px; vertical-align: top; text-align: right;'
+    const tdCenterStyle =
+      'border: 1px solid #dddddd; padding: 8px; vertical-align: top; text-align: center;'
 
     let tableHtml =
       '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">'
@@ -2030,15 +2244,16 @@ const exportTableExcel = () => {
       '</p><br>'
     tableHtml +=
       '<table style="border-collapse: collapse; width: 100%; font-family: sans-serif;"><thead><tr>'
-    tableHtml += `<th style="${thStyle}">No</th><th style="${thStyle}">Kode Tagihan</th><th style="${thStyle}">No Invoice</th><th style="${thStyle}">Vendor / Supplier</th><th style="${thStyle}">Proyek</th><th style="${thStyle}">Referensi PO</th><th style="${thStyle}">Tgl Invoice</th><th style="${thStyle}">Jatuh Tempo</th><th style="${thStyle}">Grand Total (Rp)</th><th style="${thStyle}">Status</th>`
+    tableHtml += `<th style="${thStyle}">No</th><th style="${thStyle}">Kode Tagihan</th><th style="${thStyle}">No Invoice</th><th style="${thStyle}">Vendor / Supplier</th><th style="${thStyle}">Proyek</th><th style="${thStyle}">Referensi PO</th><th style="${thStyle}">Detail BOQ & SPK</th><th style="${thStyle}">Tgl Invoice</th><th style="${thStyle}">Jatuh Tempo</th><th style="${thStyle}">Grand Total (Rp)</th><th style="${thStyle}">Status</th>`
     tableHtml += '</tr></thead><tbody>'
 
     filteredRows.value.forEach((r, index) => {
-      tableHtml += `<tr><td style="${tdCenterStyle}">${index + 1}</td><td style="${tdStyle}">${r.kode_tagihan || '-'}</td><td style="${tdStyle}">${r.nomor_invoice || '-'}</td><td style="${tdStyle}">${r.supplier_nama || '-'}</td><td style="${tdStyle}">${r.proyek_nama || '-'}</td><td style="${tdStyle}">${r.po_nomor || '-'}</td><td style="${tdCenterStyle}">${formatDateIndo(r.tanggal_invoice)}</td><td style="${tdCenterStyle}">${formatDateIndo(r.jatuh_tempo)}</td><td style="${tdNumStyle}">${r.grand_total || 0}</td><td style="${tdCenterStyle}">${r.status || '-'}</td></tr>`
+      const boqDetailsText = formatSpkBoqText(r)
+      tableHtml += `<tr><td style="${tdCenterStyle}">${index + 1}</td><td style="${tdStyle}">${r.kode_tagihan || '-'}</td><td style="${tdStyle}">${r.nomor_invoice || '-'}</td><td style="${tdStyle}">${r.supplier_nama || '-'}</td><td style="${tdStyle}">${r.proyek_nama || '-'}</td><td style="${tdStyle}">${r.po_nomor || '-'}</td><td style="${tdStyle}">${boqDetailsText}</td><td style="${tdCenterStyle}">${formatDateIndo(r.tanggal_invoice)}</td><td style="${tdCenterStyle}">${formatDateIndo(r.jatuh_tempo)}</td><td style="${tdNumStyle}">${r.grand_total || 0}</td><td style="${tdCenterStyle}">${r.status || '-'}</td></tr>`
     })
 
-    tableHtml += `<tr style="background-color: #f5f5f5;"><td colspan="8" style="${tdStyle} text-align: right; font-weight: bold;">TOTAL NILAI TAGIHAN (SESUAI FILTER)</td><td style="${tdNumStyle} font-weight: bold;">${totalFilteredNominal.value}</td><td style="${tdStyle}"></td></tr>`
-    tableHtml += `<tr style="background-color: #ffebee;"><td colspan="8" style="${tdStyle} text-align: right; font-weight: bold; color: #c62828;">TOTAL SISA HUTANG (SESUAI FILTER)</td><td style="${tdNumStyle} font-weight: bold; color: #c62828;">${totalFilteredOutstanding.value}</td><td style="${tdStyle}"></td></tr>`
+    tableHtml += `<tr style="background-color: #f5f5f5;"><td colspan="9" style="${tdStyle} text-align: right; font-weight: bold;">TOTAL NILAI TAGIHAN (SESUAI FILTER)</td><td style="${tdNumStyle} font-weight: bold;">${totalFilteredNominal.value}</td><td style="${tdStyle}"></td></tr>`
+    tableHtml += `<tr style="background-color: #ffebee;"><td colspan="9" style="${tdStyle} text-align: right; font-weight: bold; color: #c62828;">TOTAL SISA HUTANG (SESUAI FILTER)</td><td style="${tdNumStyle} font-weight: bold; color: #c62828;">${totalFilteredOutstanding.value}</td><td style="${tdStyle}"></td></tr>`
     tableHtml += '</tbody></table></body></html>'
 
     const blob = new Blob([tableHtml], { type: 'application/vnd.ms-excel' })
@@ -2128,7 +2343,6 @@ const processHybridUpload = async (file, pathName) => {
 }
 
 const simpanTagihan = async () => {
-  // Guard permission
   if (!isEditMode.value && !canCreate.value)
     return $q.notify({
       type: 'negative',
@@ -2192,6 +2406,8 @@ const simpanTagihan = async () => {
       keterangan: form.value.keterangan,
       status: isEditMode.value ? form.value.status : 'Draft',
       lampiran: form.value.lampiran,
+      selected_spk: form.value.selected_spk || [],
+      spk_boq_selection: form.value.spk_boq_selection || {},
       updatedAt: serverTimestamp(),
     }
 
@@ -2374,11 +2590,71 @@ const getStatusColor = (status) => {
   }
 }
 
+const getSpkById = (id) => {
+  const targetId = typeof id === 'object' && id !== null ? id.id : id
+  return allSpk.value.find((s) => s.id === targetId)
+}
+
+const formatSpkBoqText = (row) => {
+  if (!row.selected_spk || !row.selected_spk.length) return '-'
+
+  const parts = []
+  row.selected_spk.forEach((spkId) => {
+    const spkObj = getSpkById(spkId)
+    const spkNo = spkObj ? spkObj.nomor_spk || spkObj.nama_kontrak || spkId : spkId
+    let spkText = `SPK: ${spkNo}`
+
+    const selection = row.spk_boq_selection?.[spkId]
+    if (selection && selection.selected_groups && selection.selected_groups.length) {
+      const groupParts = []
+      selection.selected_groups.forEach((groupTitle) => {
+        const items = selection.selected_items_by_group?.[groupTitle] || []
+        if (items.length) {
+          groupParts.push(`  Kategori: ${groupTitle}\n    - ${items.join('\n    - ')}`)
+        } else {
+          groupParts.push(`  Kategori: ${groupTitle}`)
+        }
+      })
+      spkText += `\n` + groupParts.join('\n')
+    }
+    parts.push(spkText)
+  })
+
+  return parts.join('\n\n')
+}
+
+const getSpkBoqGroups = (spkId) => {
+  const spk = getSpkById(spkId)
+  if (!spk || !spk.groups) return []
+  return spk.groups
+}
+
+const getSpkBoqGroupItems = (spkId, groupTitle) => {
+  const spk = getSpkById(spkId)
+  if (!spk || !spk.groups) return []
+  const group = spk.groups.find((g) => g.title === groupTitle)
+  return group?.items?.filter((i) => !i.is_header) || []
+}
+
+const onProyekSelect = (proyekId) => {
+  // Reset array SPK terpilih dan struktur filter ketika proyek berubah
+  form.value.selected_spk = []
+  form.value.spk_boq_selection = {}
+
+  if (proyekId) {
+    const matchedProyek = allProyek.value.find((p) => p.id === proyekId)
+    form.value.proyek_nama = matchedProyek ? matchedProyek.nama : ''
+  } else {
+    form.value.proyek_nama = ''
+  }
+}
+
+// eslint-disable-next-line no-unused-vars
 const exportToPDF = () => {
   $q.notify({
     type: 'info',
     position: 'top',
-    message: 'Gunakan fitur cetak browser (Ctrl+P) untuk menyimpan tampilan rincian ini.',
+    message: 'Gunakan fitur cetak browser (Ctrl+P) untuk menyimpan rincian ini.',
   })
   window.print()
 }
@@ -2387,16 +2663,16 @@ const openLink = (url) => {
   if (url) window.open(url, '_blank')
 }
 
+// Koleksi data SPK internal
+
 onMounted(() => {
   loadUserPermission()
   fetchData()
-  floatingIconInterval = setInterval(spawnFloatingIcon, 1500)
-  spawnFloatingIcon()
 })
 
 onUnmounted(() => {
   if (unsubTagihan) unsubTagihan()
-  if (floatingIconInterval) clearInterval(floatingIconInterval)
+  if (unsubAllSpk) unsubAllSpk()
 })
 </script>
 
@@ -2413,7 +2689,7 @@ onUnmounted(() => {
   border-radius: 12px;
 }
 .shadow-premium {
-  box-shadow: 0 10px 30px rgba(0, 150, 136, 0.15); /* Teal accent shadow */
+  box-shadow: 0 10px 30px rgba(0, 150, 136, 0.15);
 }
 .border-subtle {
   border: 1px solid rgba(0, 0, 0, 0.05);
@@ -2431,9 +2707,6 @@ onUnmounted(() => {
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-/* =============================================
-   TEAL BUTTONS & CUSTOM STYLING
-   ============================================= */
 .btn-teal-main {
   background: linear-gradient(135deg, #009688 0%, #00acc1 100%) !important;
   color: #fff !important;
@@ -2472,9 +2745,6 @@ onUnmounted(() => {
   background: linear-gradient(90deg, #009688 0%, #00acc1 100%) !important;
 }
 
-/* =============================================
-   WARNA-WARNI GRADIEN KPI (IDENTIK GAMBAR KEDUA)
-   ============================================= */
 .card-teal-gradient {
   background: linear-gradient(135deg, #0d9488 0%, #08665c 100%) !important;
   box-shadow: 0 8px 24px rgba(13, 148, 136, 0.35) !important;
@@ -2496,9 +2766,6 @@ onUnmounted(() => {
   box-shadow: 0 8px 24px rgba(185, 28, 28, 0.35) !important;
 }
 
-/* =============================================
-   TEAL SECTION HEADER
-   ============================================= */
 .bg-teal-section {
   background-color: #f2faf9 !important;
 }
@@ -2579,102 +2846,169 @@ onUnmounted(() => {
   border-color: #009688 !important;
 }
 
-/* =======================================================================
-   INTERACTIVE FLOATING & CLICK HIGH-FIDELITY VECTOR ICONS
-   ======================================================================= */
-.page-wrapper {
-  position: relative;
-  overflow: hidden;
-}
-
-.floating-icons-container {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 0;
-  overflow: hidden;
-}
-
-.floating-icon {
-  position: absolute;
-  bottom: -60px;
-  opacity: 0;
-  animation: floatUpAnimation linear forwards;
-  will-change: transform, opacity;
-  user-select: none;
-}
-
-@keyframes floatUpAnimation {
-  0% {
-    transform: translateY(0) rotate(-15deg) scale(0.65);
-    opacity: 0;
-  }
-  15% {
-    opacity: 0.7;
-  }
-  70% {
-    opacity: 0.45;
-  }
-  90% {
-    opacity: 0.15;
-  }
-  100% {
-    transform: translateY(-112vh) rotate(20deg) scale(1.15);
-    opacity: 0;
-  }
-}
-
-.click-icons-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 9999;
-  overflow: visible;
-}
-
-.click-icon {
-  position: fixed;
-  opacity: 1;
-  animation: clickIconAnimation 0.9s ease-out forwards;
-  will-change: transform, opacity;
-  user-select: none;
-}
-
-@keyframes clickIconAnimation {
-  0% {
-    transform: translate(0, 0) scale(1.1);
-    opacity: 1;
-  }
-  45% {
-    transform: translate(var(--tx), var(--ty)) scale(1.35);
-    opacity: 0.85;
-  }
-  100% {
-    transform: translate(var(--tx), calc(var(--ty) - 35px)) scale(0.35);
-    opacity: 0;
-  }
-}
-
 .content-relative {
   position: relative;
   z-index: 1;
 }
 
 /* =======================================================================
-   PDF EXPORT STYLES (ORIGINAL INDIGO THEME FOR PRINT, UNCHANGED)
+   PDF EXPORT STYLES (ORIGINAL INDIGO THEME)
    ======================================================================= */
 @media print {
-  body {
-    background: white !important;
+  @page {
+    size: A4 portrait;
+    margin: 15mm;
   }
-  .no-print {
+
+  body,
+  html {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-family: 'Plus Jakarta Sans', Arial, sans-serif !important;
+  }
+
+  /* Sembunyikan elemen Quasar & UI non-print */
+  .q-header,
+  .q-footer,
+  .q-drawer,
+  .q-drawer-container,
+  .no-print,
+  .layout-bg,
+  .layout-glow,
+  .layout-grid,
+  .q-notifications,
+  button,
+  .q-btn {
     display: none !important;
+    height: 0 !important;
+    width: 0 !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+  }
+
+  /* Override Layout Quasar agar mengalir alami saat cetak */
+  .q-layout,
+  .q-page-container,
+  .q-page,
+  .app-layout {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    min-height: auto !important;
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    display: block !important;
+    position: relative !important;
+  }
+
+  /* Optimasi print target */
+  #invoice-pdf-target {
+    width: 100% !important;
+    max-width: 210mm !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    display: block !important;
+  }
+
+  /* Optimasi card & hilangkan shadow */
+  #invoice-pdf-target .q-card {
+    box-shadow: none !important;
+    border: 1px solid #e0e0e0 !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    margin-bottom: 20px !important;
+    page-break-inside: avoid !important;
+    border-radius: 12px !important;
+  }
+
+  /* Paksa background color muncul di print */
+  #invoice-pdf-target .bg-indigo-50 {
+    background-color: #f0f3ff !important;
+    color: #1a237e !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  #invoice-pdf-target .bg-indigo-10 {
+    background-color: #1a237e !important;
+    color: #ffffff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  #invoice-pdf-target .bg-blue-grey-10 {
+    background-color: #263238 !important;
+    color: #ffffff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  #invoice-pdf-target .bg-grey-1 {
+    background-color: #f8f9fa !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  #invoice-pdf-target .bg-white {
+    background-color: #ffffff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Chip Status */
+  #invoice-pdf-target .q-chip {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    border: 1px solid currentColor !important;
+  }
+
+  /* Force Grid Row & Columns agar layout 2 kolom rapi di A4 portrait */
+  #invoice-pdf-target .row {
+    display: flex !important;
+    flex-flow: row wrap !important;
+    margin-right: -10px !important;
+    margin-left: -10px !important;
+  }
+
+  #invoice-pdf-target .col-12 {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+    padding: 0 10px !important;
+  }
+
+  #invoice-pdf-target .col-md-7 {
+    flex: 0 0 58.33333% !important;
+    max-width: 58.33333% !important;
+    padding: 0 10px !important;
+  }
+
+  #invoice-pdf-target .col-md-5 {
+    flex: 0 0 41.66667% !important;
+    max-width: 41.66667% !important;
+    padding: 0 10px !important;
+  }
+
+  #invoice-pdf-target .col-sm-6 {
+    flex: 0 0 50% !important;
+    max-width: 50% !important;
+    padding: 0 10px !important;
+  }
+
+  #invoice-pdf-target .col-sm-4 {
+    flex: 0 0 33.33333% !important;
+    max-width: 33.33333% !important;
+    padding: 0 10px !important;
+  }
+
+  #invoice-pdf-target .q-separator {
+    background-color: #e0e0e0 !important;
+    height: 1px !important;
+    margin: 15px 0 !important;
   }
 }
 
