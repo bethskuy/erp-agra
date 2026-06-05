@@ -1,38 +1,7 @@
 <template>
-  <q-page class="bg-page q-pa-md q-pa-md-lg font-pro relative-position" @click="spawnIcon($event)">
-    <!-- EFEK ANIMASI KLIK (SPAWN ICONS) -->
-    <div class="click-spawn-container">
-      <transition-group name="spawn">
-        <div
-          v-for="icon in spawnedIcons"
-          :key="icon.id"
-          class="spawned-icon"
-          :style="{
-            left: icon.x + 'px',
-            top: icon.y + 'px',
-            '--rand-rotate': icon.rotate + 'deg',
-            '--rand-color': icon.color,
-            fontSize: icon.size + 'px',
-          }"
-        >
-          <q-icon :name="icon.name" />
-        </div>
-      </transition-group>
-    </div>
-
-    <!-- EFEK LATAR BELAKANG ANIMASI MENGAMBANG (Warna-Warni Tosca, Kebureman Tipis & Elegan Sesuai Contoh) -->
-    <div class="bg-animation-container">
-      <q-icon name="engineering" class="floating-icon i-1" />
-      <q-icon name="construction" class="floating-icon i-2" />
-      <q-icon name="architecture" class="floating-icon i-3" />
-      <q-icon name="location_city" class="floating-icon i-4" />
-      <q-icon name="handyman" class="floating-icon i-5" />
-      <q-icon name="apartment" class="floating-icon i-6" />
-      <q-icon name="engineering" class="floating-icon i-7" />
-      <q-icon name="hardware" class="floating-icon i-8" />
-    </div>
-
-    <!-- HEADER SECTION -->
+  <q-page class="bg-page q-pa-md font-pro relative-position">
+    <div class="page-content-wrapper animate-fade">
+      <!-- HEADER SECTION -->
     <div class="row items-center justify-between q-mb-xl animate-fade no-print content-relative">
       <div class="col-12 col-md-8">
         <div class="text-h4 text-weight-bolder text-brand-primary leading-tight">
@@ -46,21 +15,6 @@
           real-time.
         </div>
       </div>
-      <div class="col-12 col-md-auto q-mt-md q-mt-md-none">
-        <!-- Tombol Tambah: Ditambahkan loading state jika data user belum siap -->
-        <q-btn
-          v-if="canAction('buat')"
-          unelevated
-          color="brand-primary"
-          icon="add_circle_outline"
-          label="Tambah Kategori"
-          rounded
-          no-caps
-          class="q-px-lg q-py-sm shadow-premium btn-hover btn-tambah-responsive text-white text-weight-bold"
-          @click="openAddDialog"
-          :loading="userDataLoading"
-        />
-      </div>
     </div>
 
     <!-- SEARCH & SUMMARY CARD -->
@@ -70,7 +24,7 @@
       class="q-mb-lg shadow-1 rounded-20 bg-white no-print content-relative border-subtle"
     >
       <q-card-section class="q-py-md">
-        <div class="row items-center q-col-gutter-md">
+        <div class="row items-center justify-between q-col-gutter-md">
           <div class="col-12 col-md-5">
             <q-input
               v-model="filter"
@@ -89,10 +43,25 @@
               </template>
             </q-input>
           </div>
-          <q-space />
-          <div class="col-12 col-md-auto text-caption text-grey-6">
-            Total Grup:
-            <span class="text-weight-bold text-brand-primary">{{ rows.length }} Kategori</span>
+          <div class="col-12 col-md-auto row items-center justify-end q-col-gutter-md q-mt-sm q-mt-md-none">
+            <div class="col-12 col-md-auto text-caption text-grey-6 text-weight-medium text-center text-md-right">
+              Total Grup:
+              <span class="text-weight-bold text-brand-primary">{{ rows.length }} Kategori</span>
+            </div>
+            
+            <div class="col-12 col-sm-auto" v-if="canAction('buat')">
+              <q-btn
+                color="brand-primary"
+                icon="add_circle"
+                label="Tambah Kategori"
+                unelevated
+                rounded
+                no-caps
+                class="shadow-premium btn-hover text-weight-bold q-py-sm q-px-md full-width"
+                @click="openAddDialog"
+                :loading="userDataLoading"
+              />
+            </div>
           </div>
         </div>
       </q-card-section>
@@ -197,17 +166,6 @@
     <!-- VIEW 2: DETAIL KATEGORI -->
     <q-dialog v-model="showDetail" maximized transition-show="fade" transition-hide="fade">
       <q-card class="bg-grey-2 column no-wrap relative-position">
-        <!-- Background Animation di dalam Detail Dialog -->
-        <div class="bg-animation-container">
-          <q-icon name="engineering" class="floating-icon i-1" />
-          <q-icon name="construction" class="floating-icon i-2" />
-          <q-icon name="architecture" class="floating-icon i-3" />
-          <q-icon name="location_city" class="floating-icon i-4" />
-          <q-icon name="handyman" class="floating-icon i-5" />
-          <q-icon name="apartment" class="floating-icon i-6" />
-          <q-icon name="engineering" class="floating-icon i-7" />
-          <q-icon name="hardware" class="floating-icon i-8" />
-        </div>
 
         <q-toolbar class="bg-brand-primary text-white q-py-md shadow-2 shrink content-relative">
           <q-btn flat round dense icon="arrow_back" v-close-popup />
@@ -292,17 +250,6 @@
       backdrop-filter="blur(4px)"
     >
       <q-card class="bg-grey-2 column no-wrap relative-position">
-        <!-- Background Animation di dalam Form Dialog -->
-        <div class="bg-animation-container">
-          <q-icon name="engineering" class="floating-icon i-1" />
-          <q-icon name="construction" class="floating-icon i-2" />
-          <q-icon name="architecture" class="floating-icon i-3" />
-          <q-icon name="location_city" class="floating-icon i-4" />
-          <q-icon name="handyman" class="floating-icon i-5" />
-          <q-icon name="apartment" class="floating-icon i-6" />
-          <q-icon name="engineering" class="floating-icon i-7" />
-          <q-icon name="hardware" class="floating-icon i-8" />
-        </div>
 
         <q-toolbar class="bg-white text-brand-primary q-py-md shadow-2 shrink content-relative">
           <q-btn flat round dense icon="close" v-close-popup color="grey-7" />
@@ -367,6 +314,7 @@
     </q-dialog>
 
     <div class="q-py-xl no-print"></div>
+    </div>
   </q-page>
 </template>
 
@@ -407,61 +355,7 @@ const rows = ref([])
 let unsubscribeUser = null
 let unsubscribeKategori = null
 
-// ==========================================
-// ANIMASI KLIK & MENGAMBANG
-// ==========================================
-const spawnedIcons = ref([])
-let spawnIdCounter = 0
-const clickIcons = [
-  'construction',
-  'engineering',
-  'handyman',
-  'architecture',
-  'foundation',
-  'precision_manufacturing',
-  'carpenter',
-  'plumbing',
-  'electrical_services',
-  'hardware',
-]
 
-const spawnIcon = (e) => {
-  const target = e.target
-  if (
-    target.closest('button') ||
-    target.closest('.q-btn') ||
-    target.closest('input') ||
-    target.closest('.q-field') ||
-    target.closest('.q-dialog') ||
-    target.closest('.q-table') ||
-    target.closest('.q-card')
-  ) {
-    return
-  }
-
-  const iconName = clickIcons[Math.floor(Math.random() * clickIcons.length)]
-  const colors = ['#36ada3', '#2a8b83', '#56c2b9', '#f29c1f', '#e67e22', '#e74c3c']
-  const randColor = colors[Math.floor(Math.random() * colors.length)]
-  const randRotate = Math.floor(Math.random() * 90) - 45
-  const randSize = Math.floor(Math.random() * 25) + 35
-
-  const newIcon = {
-    id: spawnIdCounter++,
-    x: e.clientX,
-    y: e.clientY,
-    name: iconName,
-    color: randColor,
-    rotate: randRotate,
-    size: randSize,
-  }
-
-  spawnedIcons.value.push(newIcon)
-
-  setTimeout(() => {
-    spawnedIcons.value = spawnedIcons.value.filter((i) => i.id !== newIcon.id)
-  }, 1400)
-}
-// ==========================================
 
 const columns = [
   { name: 'nama', align: 'left', label: 'IDENTITAS KATEGORI', field: 'nama', sortable: true },
@@ -748,140 +642,7 @@ const hapusKategori = (data) => {
   z-index: 1;
 }
 
-/* ===== ANIMASI BACKGROUND (FLOATING TEAL DENGAN BLUR HALUS) ===== */
-.bg-animation-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  pointer-events: none;
-  z-index: 0;
-}
 
-.floating-icon {
-  position: absolute;
-  bottom: -150px;
-  animation: floatUp linear infinite;
-  opacity: 0.15;
-  filter: blur(1.5px); /* Kebureman tipis dan lembut sesuai contoh */
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
-}
 
-/* Posisi dan durasi masing-masing ikon mengambang */
-.i-1 {
-  left: 10%;
-  font-size: 100px;
-  animation-duration: 25s;
-  animation-delay: 0s;
-  color: #36ada3;
-}
-.i-2 {
-  left: 30%;
-  font-size: 70px;
-  animation-duration: 35s;
-  animation-delay: 5s;
-  color: #f29c1f;
-}
-.i-3 {
-  left: 60%;
-  font-size: 120px;
-  animation-duration: 40s;
-  animation-delay: 12s;
-  color: #e74c3c;
-}
-.i-4 {
-  left: 80%;
-  font-size: 85px;
-  animation-duration: 30s;
-  animation-delay: 2s;
-  color: #56c2b9;
-}
-.i-5 {
-  left: 15%;
-  font-size: 90px;
-  animation-duration: 28s;
-  animation-delay: 15s;
-  color: #e67e22;
-}
-.i-6 {
-  left: 45%;
-  font-size: 110px;
-  animation-duration: 45s;
-  animation-delay: 8s;
-  color: #2a8b83;
-}
-.i-7 {
-  left: 75%;
-  font-size: 60px;
-  animation-duration: 22s;
-  animation-delay: 20s;
-  color: #f29c1f;
-}
-.i-8 {
-  left: 25%;
-  font-size: 95px;
-  animation-duration: 32s;
-  animation-delay: 25s;
-  color: #e74c3c;
-}
 
-@keyframes floatUp {
-  0% {
-    transform: translateY(0) rotate(0deg);
-    opacity: 0;
-  }
-  10% {
-    opacity: 0.15;
-  }
-  90% {
-    opacity: 0.15;
-  }
-  100% {
-    transform: translateY(-120vh) rotate(360deg);
-    opacity: 0;
-  }
-}
-
-/* ===== CLICK SPAWN ICONS (MEMANCAR REAKTIF) ===== */
-.click-spawn-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  pointer-events: none;
-  z-index: 9999;
-  overflow: hidden;
-}
-
-.spawned-icon {
-  position: absolute;
-  color: var(--rand-color);
-  transform-origin: center;
-  pointer-events: none;
-  animation: spawnBurst 1.4s ease-out forwards;
-}
-
-@keyframes spawnBurst {
-  0% {
-    transform: translate(-50%, -50%) scale(0) rotate(0deg);
-    opacity: 1;
-  }
-  40% {
-    transform: translate(-50%, -100%) scale(1.2) rotate(var(--rand-rotate));
-    opacity: 0.9;
-  }
-  100% {
-    transform: translate(-50%, -180%) scale(0.5) rotate(calc(var(--rand-rotate) * 1.5));
-    opacity: 0;
-  }
-}
-
-.spawn-enter-active,
-.spawn-leave-active {
-  transition: all 1.4s ease;
-}
 </style>

@@ -2021,6 +2021,8 @@ const fetchData = async () => {
           status = 'Draft'
         } else if (status === 'Sedang Diajukan') {
           status = 'Sedang Diajukan'
+        } else if (status === 'Ditolak') {
+          status = 'Ditolak'
         } else {
           status = 'Menunggu Pembayaran'
         }
@@ -2200,11 +2202,18 @@ watch(
 // ============================================================================
 // DIALOG & FORM LOGIC
 // ============================================================================
-const openDetail = (row) => {
+const openDetail = async (row) => {
   if (!canView.value) return
   selectedTagihan.value = row
   viewMode.value = 'detail'
   window.scrollTo(0, 0)
+  if (row.status === 'Ditolak' && row.creator_read === false) {
+    try {
+      await updateDoc(doc(db, 'finance_tagihan', row.id), { creator_read: true })
+    } catch (e) {
+      console.error(e)
+    }
+  }
 }
 
 const openAddDialog = () => {
@@ -2220,7 +2229,7 @@ const openAddDialog = () => {
   viewMode.value = 'form'
 }
 
-const openEditDialog = (row) => {
+const openEditDialog = async (row) => {
   if (!canEdit.value)
     return $q.notify({
       type: 'negative',
@@ -2242,6 +2251,14 @@ const openEditDialog = (row) => {
   if (!form.value.kode_tagihan) form.value.kode_tagihan = generateKodeTagihan()
   if (!form.value.nominal_invoice) form.value.nominal_invoice = form.value.nilai_dpp || 0
   viewMode.value = 'form'
+
+  if (row.status === 'Ditolak' && row.creator_read === false) {
+    try {
+      await updateDoc(doc(db, 'finance_tagihan', row.id), { creator_read: true })
+    } catch (e) {
+      console.error(e)
+    }
+  }
 }
 
 // ============================================================================
@@ -2621,6 +2638,8 @@ const getStatusColor = (status) => {
   switch (status) {
     case 'Draft':
       return { bg: 'grey-3', text: 'grey-8' }
+    case 'Ditolak':
+      return { bg: 'red-2', text: 'red-9' }
     case 'Sedang Diajukan':
       return { bg: 'amber-2', text: 'amber-9' }
     case 'Menunggu Pembayaran':

@@ -317,6 +317,26 @@
               </q-item>
 
               <q-item
+                v-if="rejectedPaymentRequestCount > 0"
+                clickable
+                v-ripple
+                to="/konstruksi/finance/pembayaran"
+                class="notif-item"
+              >
+                <q-item-section avatar
+                  ><q-avatar color="red-1" text-color="negative" icon="cancel" size="md"
+                /></q-item-section>
+                <q-item-section>
+                  <q-item-label class="text-weight-bold text-negative"
+                    >Pembayaran Ditolak</q-item-label
+                  >
+                  <q-item-label caption
+                    >{{ rejectedPaymentRequestCount }} pengajuan dana Anda ditolak.</q-item-label
+                  >
+                </q-item-section>
+              </q-item>
+
+              <q-item
                 v-if="approvedPaymentRealizationCount > 0"
                 clickable
                 v-ripple
@@ -1042,6 +1062,17 @@
                     ><q-icon name="list_alt" size="20px" class="icon-sub"
                   /></q-item-section>
                   <q-item-section class="menu-text">Tagihan Supplier</q-item-section>
+                  <q-item-section side v-if="rejectedTagihanSupplierCount > 0">
+                    <q-badge
+                      color="negative"
+                      rounded
+                      class="q-px-sm font-bold shadow-1 animate-bounce"
+                      title="Tagihan Ditolak"
+                      ><q-icon name="cancel" size="10px" class="q-mr-xs" />{{
+                        rejectedTagihanSupplierCount
+                      }}</q-badge
+                    >
+                  </q-item-section>
                 </q-item>
                 <q-item
                   v-if="checkPermission('finance/pembayaran')"
@@ -1319,8 +1350,10 @@ const rejectedInvoiceCount = ref(0)
 const overdueInvoiceCount = ref(0)
 const pendingPaymentApprovalCount = ref(0)
 const approvedPaymentRequestCount = ref(0)
+const rejectedPaymentRequestCount = ref(0)
 const approvedPaymentRealizationCount = ref(0)
 const realizedPaymentApprovalCount = ref(0)
+const rejectedTagihanSupplierCount = ref(0)
 
 const userData = ref(null)
 const apps = ref([])
@@ -1335,6 +1368,7 @@ let unsubPermintaanAll = null
 let unsubInvoiceAll = null
 let unsubMonitoringTagihan = null
 let unsubPembayaranRequests = null
+let unsubTagihanSupplier = null
 
 // ============================================================================
 // ✅ FIX UTAMA: isSuperAdmin — computed 3 lapis, TIDAK bergantung hanya pada
@@ -1380,8 +1414,10 @@ const totalNotifCount = computed(
     overdueInvoiceCount.value +
     pendingPaymentApprovalCount.value +
     approvedPaymentRequestCount.value +
+    rejectedPaymentRequestCount.value +
     approvedPaymentRealizationCount.value +
-    realizedPaymentApprovalCount.value,
+    realizedPaymentApprovalCount.value +
+    rejectedTagihanSupplierCount.value,
 )
 
 const thumbStyle = {
@@ -1602,6 +1638,7 @@ onMounted(() => {
   unsubPembayaranRequests = onSnapshot(collection(db, 'finance_pengajuan_pembayaran'), (snap) => {
     let pendingApprove = 0,
       approvedReq = 0,
+      rejectedReq = 0,
       approvedRealize = 0,
       realizedApprove = 0
     const isAdmin = isSuperAdmin.value || authStore.user?.role === 'Admin'
@@ -1626,11 +1663,33 @@ onMounted(() => {
       ) {
         realizedApprove++
       }
+      if (data.status === 'Rejected') {
+        const isMyRequest =
+          data.creator_id === userUid ||
+          data.pemohon_id === userUid ||
+          data.pemohon?.id === userUid ||
+          data.pemohon?.email === userEmail ||
+          isAdmin
+        if (isMyRequest && data.creator_read !== true) rejectedReq++
+      }
     })
     pendingPaymentApprovalCount.value = pendingApprove
     approvedPaymentRequestCount.value = approvedReq
+    rejectedPaymentRequestCount.value = rejectedReq
     approvedPaymentRealizationCount.value = approvedRealize
     realizedPaymentApprovalCount.value = realizedApprove
+  })
+
+  // Tagihan Supplier
+  unsubTagihanSupplier = onSnapshot(collection(db, 'finance_tagihan'), (snap) => {
+    let rejectedTagihanCount = 0
+    snap.docs.forEach((d) => {
+      const data = d.data()
+      if (data.status === 'Ditolak' && data.creator_read === false) {
+        rejectedTagihanCount++
+      }
+    })
+    rejectedTagihanSupplierCount.value = rejectedTagihanCount
   })
 })
 
@@ -1644,6 +1703,7 @@ onUnmounted(() => {
   if (unsubInvoiceAll) unsubInvoiceAll()
   if (unsubMonitoringTagihan) unsubMonitoringTagihan()
   if (unsubPembayaranRequests) unsubPembayaranRequests()
+  if (unsubTagihanSupplier) unsubTagihanSupplier()
 })
 </script>
 

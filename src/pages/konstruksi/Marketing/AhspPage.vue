@@ -1,42 +1,6 @@
 <template>
-  <q-page class="bg-grey-2 q-pa-md q-pa-lg-lg font-pro relative-position" @click="handlePageClick">
-    <!-- FLOATING BACKGROUND ICONS -->
-    <div class="floating-background no-print">
-      <q-icon
-        v-for="icon in floatingIcons"
-        :key="icon.id"
-        :name="icon.name"
-        class="floating-icon"
-        :style="{
-          color: icon.color,
-          fontSize: icon.size,
-          left: icon.left,
-          '--drift': icon.drift,
-          '--rotation': icon.rotation,
-          animationDuration: icon.duration,
-          animationDelay: icon.delay,
-        }"
-      />
-    </div>
-
-    <!-- CLICK SPARKLES / CONSTRUCTION ICONS -->
-    <div class="click-spawns-container no-print">
-      <q-icon
-        v-for="spawn in clickSpawns"
-        :key="spawn.id"
-        :name="spawn.name"
-        class="click-spawn-icon"
-        :style="{
-          color: spawn.color,
-          fontSize: spawn.size,
-          left: spawn.left,
-          top: spawn.top,
-          '--tx': spawn.tx,
-          '--ty': spawn.ty,
-          '--rot': spawn.rot,
-        }"
-      />
-    </div>
+  <q-page class="bg-page q-pa-md font-pro relative-position">
+    <div class="page-content-wrapper animate-fade">
 
     <!-- =====================================================================================
          SCREEN 1: LOCK SCREEN JIKA TIDAK MEMILIKI AKSES LIHAT
@@ -73,49 +37,25 @@
          ===================================================================================== -->
     <template v-else>
       <!-- HEADER SECTION -->
-      <div class="row items-center justify-between q-mb-xl animate-fade no-print">
-        <div class="col-12 col-md-7">
-          <div class="row items-center no-wrap">
-            <div>
-              <div class="text-h4 text-weight-bolder leading-tight text-theme-primary">
-                Analisa Harga Satuan (AHSP)
-                <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs">
-                  Manajemen Uraian & Detail Pekerjaan
-                </span>
-              </div>
-              <div class="text-subtitle1 text-grey-7 q-mt-sm">
-                Kelola standarisasi harga, koefisien material, dan tenaga kerja secara terpusat.
-              </div>
-            </div>
+      <div class="row items-center justify-between q-mb-md no-print content-relative">
+        <div class="col-12 q-mb-md q-mb-md-none">
+          <div class="text-h4 text-weight-bolder leading-tight text-theme-primary">
+            Analisa Harga Satuan (AHSP)
+            <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs">
+              Manajemen Uraian & Detail Pekerjaan
+            </span>
           </div>
-        </div>
-
-        <!-- BUTTONS -->
-        <div class="col-12 col-md-5 q-mt-md q-mt-md-none text-right">
-          <div class="row q-col-gutter-sm justify-end items-center">
-            <!-- Buat Uraian Pekerjaan Button (Membentang di HP, Normal di Laptop) -->
-            <div class="col-12 col-sm-auto">
-              <q-btn
-                v-if="canAction('buat')"
-                icon="add_circle"
-                label="Buat Uraian Pekerjaan"
-                unelevated
-                rounded
-                no-caps
-                class="q-px-lg q-py-sm shadow-premium btn-hover text-weight-bold bg-theme-primary text-white"
-                :class="{ 'full-width': $q.screen.lt.sm }"
-                @click="openMasterDialog(null)"
-              />
-            </div>
+          <div class="text-subtitle1 text-grey-7 q-mt-sm">
+            Kelola standarisasi harga, koefisien material, dan tenaga kerja secara terpusat.
           </div>
         </div>
       </div>
 
       <!-- SEARCH & SUMMARY CARD -->
-      <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print">
+      <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print content-relative">
         <q-card-section class="q-py-md">
-          <div class="row items-center q-col-gutter-md">
-            <div class="col-12 col-md-5">
+          <div class="row items-center justify-between q-col-gutter-md">
+            <div class="col-12 col-md-4">
               <q-input
                 v-model="filter"
                 outlined
@@ -133,10 +73,25 @@
                 </template>
               </q-input>
             </div>
-            <q-space />
-            <div class="col-12 col-md-auto text-caption text-grey-6">
-              Total Uraian:
-              <span class="text-weight-bold text-theme-primary">{{ rows.length }} Record</span>
+
+            <div class="col-12 col-md-auto row items-center justify-end q-col-gutter-md q-mt-sm q-mt-md-none">
+              <div class="col-12 col-md-auto text-caption text-grey-6 text-weight-medium text-center text-md-right">
+                Total Uraian:
+                <span class="text-weight-bold text-theme-primary">{{ rows.length }} Record</span>
+              </div>
+
+              <!-- Buat Uraian Pekerjaan Button -->
+              <div class="col-12 col-sm-auto" v-if="canAction('buat')">
+                <q-btn
+                  icon="add_circle"
+                  label="Buat Uraian Pekerjaan"
+                  unelevated
+                  rounded
+                  no-caps
+                  class="q-px-lg q-py-sm shadow-premium btn-hover text-weight-bold bg-theme-primary text-white full-width"
+                  @click="openMasterDialog(null)"
+                />
+              </div>
             </div>
           </div>
         </q-card-section>
@@ -1121,6 +1076,7 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+    </div>
   </q-page>
 </template>
 
@@ -1175,118 +1131,7 @@ const detailList = ref([])
 const previewItem = ref(null)
 const overheadPercent = ref(15)
 
-// Floating Background & Click Spawn Icon System
-const floatingIcons = ref([])
-const clickSpawns = ref([])
 
-const iconTemplates = [
-  'engineering',
-  'construction',
-  'handyman',
-  'architecture',
-  'home_repair_service',
-  'plumbing',
-  'format_paint',
-  'hardware',
-  'build',
-  'foundation',
-  'roller_shades',
-  'square_foot',
-  'layers',
-  'miscellaneous_services',
-  'precision_manufacturing',
-]
-
-const iconColors = [
-  '#e53935',
-  '#d81b60',
-  '#8e24aa',
-  '#5e35b1',
-  '#3949ab',
-  '#1e88e5',
-  '#039be5',
-  '#00acc1',
-  '#00897b',
-  '#43a047',
-  '#7cb342',
-  '#ffb300',
-  '#fb8c00',
-  '#f4511e',
-]
-
-let floatInterval = null
-
-const spawnFloatingIcon = () => {
-  if (floatingIcons.value.length > 25) {
-    floatingIcons.value.shift()
-  }
-  const randomIcon = iconTemplates[Math.floor(Math.random() * iconTemplates.length)]
-  const randomColor = iconColors[Math.floor(Math.random() * iconColors.length)]
-  const size = Math.floor(Math.random() * 22) + 18
-  const left = Math.random() * 95
-  const duration = Math.random() * 8 + 7
-  const delay = Math.random() * 2
-  const drift = Math.random() * 120 - 60 + 'px'
-  const rotation = Math.random() * 360 - 180 + 'deg'
-
-  floatingIcons.value.push({
-    id: Date.now() + Math.random(),
-    name: randomIcon,
-    color: randomColor,
-    size: size + 'px',
-    left: left + 'vw',
-    duration: duration + 's',
-    delay: delay + 's',
-    drift: drift,
-    rotation: rotation,
-  })
-}
-
-const handlePageClick = (e) => {
-  const interactiveTags = ['BUTTON', 'INPUT', 'A', 'I', 'TD', 'TH', 'TEXTAREA', 'SELECT', 'SPAN']
-  if (
-    interactiveTags.includes(e.target.tagName) ||
-    e.target.closest('.q-btn') ||
-    e.target.closest('.q-field') ||
-    e.target.closest('.q-dialog') ||
-    e.target.closest('.q-table') ||
-    e.target.closest('.q-menu')
-  ) {
-    return
-  }
-
-  const x = e.clientX
-  const y = e.clientY
-
-  for (let i = 0; i < 7; i++) {
-    const angle = (i * (360 / 7) + Math.random() * 20) * (Math.PI / 180)
-    const distance = Math.random() * 80 + 40
-    const tx = Math.cos(angle) * distance + 'px'
-    const ty = Math.sin(angle) * distance - 110 + 'px'
-    const rot = Math.random() * 240 - 120 + 'deg'
-    const size = Math.floor(Math.random() * 16) + 18 + 'px'
-    const randomIcon = iconTemplates[Math.floor(Math.random() * iconTemplates.length)]
-    const randomColor = iconColors[Math.floor(Math.random() * iconColors.length)]
-
-    clickSpawns.value.push({
-      id: Date.now() + Math.random(),
-      name: randomIcon,
-      color: randomColor,
-      size: size,
-      left: x + 'px',
-      top: y + 'px',
-      tx: tx,
-      ty: ty,
-      rot: rot,
-    })
-  }
-
-  setTimeout(() => {
-    if (clickSpawns.value.length > 50) {
-      clickSpawns.value.splice(0, 14)
-    }
-  }, 1600)
-}
 
 // SUCCESS TOAST NOTIFICATION
 const showSuccessToast = (message, title = 'Sinkronisasi Berhasil!') => {
@@ -1400,13 +1245,7 @@ onMounted(async () => {
   await fetchData()
 
   // Apply teal theme on mount
-  applyDynamicTheme('#00695c')
-
-  // Spawning initial particles floating elements
-  for (let i = 0; i < 8; i++) {
-    spawnFloatingIcon()
-  }
-  floatInterval = setInterval(spawnFloatingIcon, 1800)
+  applyDynamicTheme('#36ada3')
 
   // Real-time access privileges track
   const userEmail = authStore.user?.email
@@ -1423,7 +1262,6 @@ onMounted(async () => {
 onUnmounted(() => {
   if (unsubscribeData) unsubscribeData()
   if (unsubUser) unsubUser()
-  if (floatInterval) clearInterval(floatInterval)
 })
 
 // Function to apply dynamic theme
@@ -2428,68 +2266,7 @@ const executeHapus = async () => {
   }
 }
 
-/* =======================================================================
-   FLOATING CONSTRUCTION BACKGROUND ICONS SYSTEM
-   ======================================================================= */
-.floating-background {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  pointer-events: none;
-  z-index: 0;
-  overflow: hidden;
-}
-.floating-icon {
-  position: absolute;
-  pointer-events: none;
-  opacity: 0.15;
-  animation: floatUp 10s linear infinite;
-}
-@keyframes floatUp {
-  0% {
-    transform: translateY(105vh) translateX(0) rotate(0deg);
-    opacity: 0;
-  }
-  15% {
-    opacity: 0.15;
-  }
-  85% {
-    opacity: 0.15;
-  }
-  100% {
-    transform: translateY(-15vh) translateX(var(--drift)) rotate(var(--rotation));
-    opacity: 0;
-  }
-}
 
-/* CLICK PARTICLE SPAWNS SYSTEM */
-.click-spawns-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  pointer-events: none;
-  z-index: 99999;
-}
-.click-spawn-icon {
-  position: fixed;
-  pointer-events: none;
-  z-index: 99999;
-  animation: burstOut 1.5s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
-}
-@keyframes burstOut {
-  0% {
-    transform: translate(-50%, -50%) scale(0.4);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(var(--tx), var(--ty)) rotate(var(--rot)) scale(1.3);
-    opacity: 0;
-  }
-}
 
 @media print {
   @page {

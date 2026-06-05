@@ -1,99 +1,70 @@
 <template>
-  <q-page class="bg-page q-pa-md q-pa-md-lg font-pro relative-position" @click="spawnIcon($event)">
-    <!-- EFEK ANIMASI KLIK (SPAWN ICONS) -->
-    <div class="click-spawn-container">
-      <transition-group name="spawn">
-        <div
-          v-for="icon in spawnedIcons"
-          :key="icon.id"
-          class="spawned-icon"
-          :style="{
-            left: icon.x + 'px',
-            top: icon.y + 'px',
-            '--rand-rotate': icon.rotate + 'deg',
-            '--rand-color': icon.color,
-            fontSize: icon.size + 'px',
-          }"
-        >
-          <q-icon :name="icon.name" />
-        </div>
-      </transition-group>
-    </div>
+  <q-page class="bg-page q-pa-md font-pro relative-position">
+    <div class="page-content-wrapper animate-fade">
 
-    <!-- EFEK LATAR BELAKANG ANIMASI MENGAMBANG (Warna-Warni, Kebureman Tipis & Elegan Sesuai Contoh) -->
-    <div class="bg-animation-container">
-      <q-icon name="engineering" class="floating-icon i-1" />
-      <q-icon name="construction" class="floating-icon i-2" />
-      <q-icon name="architecture" class="floating-icon i-3" />
-      <q-icon name="location_city" class="floating-icon i-4" />
-      <q-icon name="handyman" class="floating-icon i-5" />
-      <q-icon name="apartment" class="floating-icon i-6" />
-      <q-icon name="engineering" class="floating-icon i-7" />
-      <q-icon name="hardware" class="floating-icon i-8" />
-    </div>
-
-    <!-- HEADER SECTION -->
-    <div class="row items-center justify-between q-mb-xl no-print content-relative">
-      <div class="col-12 col-sm-8">
-        <div class="text-h4 text-weight-bolder text-brand-primary leading-tight">
-          Master Barang & Material
-          <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
-            >Inventaris & Logistik Proyek</span
-          >
-        </div>
-        <div class="text-subtitle1 text-grey-7 q-mt-sm">
-          Kelola katalog material dengan visualisasi produk dan perbandingan harga vendor secara
-          terpadu.
-        </div>
-      </div>
-      <div class="col-12 col-sm-auto q-mt-md q-mt-sm-none flex">
-        <!-- Tambah class 'btn-tambah-responsive' untuk full-width di HP -->
-        <q-btn
-          v-if="canAction('buat')"
-          color="brand-primary"
-          icon="add_box"
-          label="Tambah Barang Baru"
-          unelevated
-          rounded
-          no-caps
-          class="q-px-lg q-py-sm shadow-premium btn-hover btn-tambah-responsive"
-          @click="openAddDialog"
-        />
-      </div>
-    </div>
-
-    <!-- SEARCH & SUMMARY CARD -->
-    <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print content-relative">
-      <q-card-section class="q-py-md">
-        <div class="row items-center q-col-gutter-md">
-          <div class="col-12 col-md-5">
-            <q-input
-              v-model="filter"
-              outlined
-              dense
-              rounded
-              placeholder="Cari Nama Barang, Kode, atau Merk..."
-              bg-color="white"
-              class="search-input"
-            >
-              <template v-slot:prepend>
-                <q-icon name="search" color="brand-primary" />
-              </template>
-              <template v-slot:append v-if="filter">
-                <q-icon name="close" @click="filter = ''" class="cursor-pointer" />
-              </template>
-            </q-input>
-          </div>
-          <q-space />
-          <div class="col-12 col-md-auto text-caption text-grey-6">
-            Total Katalog:
-            <span class="text-weight-bold text-brand-primary"
-              >{{ rows.length }} Item Terdaftar</span
+      <!-- HEADER SECTION -->
+      <div class="row items-center justify-between q-mb-md no-print content-relative">
+        <div class="col-12 q-mb-md q-mb-md-none">
+          <div class="text-h4 text-weight-bolder text-brand-primary leading-tight">
+            Master Barang & Material
+            <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
+              >Inventaris & Logistik Proyek</span
             >
           </div>
+          <div class="text-subtitle1 text-grey-7 q-mt-sm">
+            Kelola katalog material dengan visualisasi produk dan perbandingan harga vendor secara
+            terpadu.
+          </div>
         </div>
-      </q-card-section>
-    </q-card>
+      </div>
+
+      <!-- SEARCH & SUMMARY CARD -->
+      <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print content-relative">
+        <q-card-section class="q-py-md">
+          <div class="row items-center justify-between q-col-gutter-md">
+            <div class="col-12 col-md-4">
+              <q-input
+                v-model="filter"
+                outlined
+                dense
+                rounded
+                placeholder="Cari Nama Barang, Kode, atau Merk..."
+                bg-color="white"
+                class="search-input"
+              >
+                <template v-slot:prepend>
+                  <q-icon name="search" color="brand-primary" />
+                </template>
+                <template v-slot:append v-if="filter">
+                  <q-icon name="close" @click="filter = ''" class="cursor-pointer" />
+                </template>
+              </q-input>
+            </div>
+            
+            <div class="col-12 col-md-auto row items-center justify-end q-col-gutter-md q-mt-sm q-mt-md-none">
+              <div class="col-12 col-md-auto text-caption text-grey-6 text-weight-medium text-center text-md-right">
+                Total Katalog:
+                <span class="text-weight-bold text-brand-primary"
+                  >{{ rows.length }} Item Terdaftar</span
+                >
+              </div>
+
+              <div class="col-12 col-sm-auto flex" v-if="canAction('buat')">
+                <q-btn
+                  color="brand-primary"
+                  icon="add_box"
+                  label="Tambah Barang Baru"
+                  unelevated
+                  rounded
+                  no-caps
+                  class="full-width q-px-lg q-py-sm shadow-premium btn-hover text-weight-bold"
+                  @click="openAddDialog"
+                />
+              </div>
+            </div>
+          </div>
+        </q-card-section>
+      </q-card>
 
     <!-- TABLE SECTION -->
     <q-card
@@ -210,6 +181,7 @@
         </template>
       </q-table>
     </q-card>
+    </div>
 
     <!-- ============================================== -->
     <!-- VIEW: DETAIL BARANG ( DIALOG ORIGINAL )        -->
@@ -224,17 +196,7 @@
         class="bg-grey-2 column no-wrap print-fixed-card relative-position"
         v-if="selectedItem"
       >
-        <!-- Background Animation di dalam Detail Dialog -->
-        <div class="bg-animation-container">
-          <q-icon name="engineering" class="floating-icon i-1" />
-          <q-icon name="construction" class="floating-icon i-2" />
-          <q-icon name="architecture" class="floating-icon i-3" />
-          <q-icon name="location_city" class="floating-icon i-4" />
-          <q-icon name="handyman" class="floating-icon i-5" />
-          <q-icon name="apartment" class="floating-icon i-6" />
-          <q-icon name="engineering" class="floating-icon i-7" />
-          <q-icon name="hardware" class="floating-icon i-8" />
-        </div>
+
 
         <q-toolbar
           class="bg-brand-primary text-white q-py-md shadow-2 shrink no-print content-relative"
@@ -425,17 +387,7 @@
       backdrop-filter="blur(4px)"
     >
       <q-card class="bg-grey-2 column no-wrap relative-position">
-        <!-- Background Animation di dalam Form Dialog -->
-        <div class="bg-animation-container">
-          <q-icon name="engineering" class="floating-icon i-1" />
-          <q-icon name="construction" class="floating-icon i-2" />
-          <q-icon name="architecture" class="floating-icon i-3" />
-          <q-icon name="location_city" class="floating-icon i-4" />
-          <q-icon name="handyman" class="floating-icon i-5" />
-          <q-icon name="apartment" class="floating-icon i-6" />
-          <q-icon name="engineering" class="floating-icon i-7" />
-          <q-icon name="hardware" class="floating-icon i-8" />
-        </div>
+
 
         <q-toolbar class="bg-white text-brand-primary q-py-md shadow-2 shrink content-relative">
           <q-btn flat round dense icon="close" v-close-popup color="grey-7" />
@@ -755,64 +707,7 @@ const itemPhotoFile = ref(null)
 let unsubscribeUser = null
 let unsubscribeBarang = null
 
-// ==========================================
-// ANIMASI KLIK & MENGAMBANG
-// ==========================================
-const spawnedIcons = ref([])
-let spawnIdCounter = 0
-const clickIcons = [
-  'construction',
-  'engineering',
-  'handyman',
-  'architecture',
-  'foundation',
-  'precision_manufacturing',
-  'carpenter',
-  'plumbing',
-  'electrical_services',
-  'hardware',
-]
 
-const spawnIcon = (e) => {
-  // Cegah animasi muncul bila yang diklik adalah komponen interaktif
-  const target = e.target
-  if (
-    target.closest('button') ||
-    target.closest('.q-btn') ||
-    target.closest('input') ||
-    target.closest('.q-field') ||
-    target.closest('.q-dialog') ||
-    target.closest('.q-table') ||
-    target.closest('.q-card')
-  ) {
-    return
-  }
-
-  const iconName = clickIcons[Math.floor(Math.random() * clickIcons.length)]
-  const colors = ['#36ada3', '#2a8b83', '#56c2b9', '#f29c1f', '#e67e22', '#e74c3c']
-  const randColor = colors[Math.floor(Math.random() * colors.length)]
-  const randRotate = Math.floor(Math.random() * 90) - 45
-
-  // Mengubah ukuran ikon spawn untuk di kurangi lagi (35px - 60px)
-  const randSize = Math.floor(Math.random() * 25) + 35
-
-  const newIcon = {
-    id: spawnIdCounter++,
-    x: e.clientX,
-    y: e.clientY,
-    name: iconName,
-    color: randColor,
-    rotate: randRotate,
-    size: randSize,
-  }
-
-  spawnedIcons.value.push(newIcon)
-
-  setTimeout(() => {
-    spawnedIcons.value = spawnedIcons.value.filter((i) => i.id !== newIcon.id)
-  }, 1400)
-}
-// ==========================================
 
 const formDefault = {
   kode: '',
@@ -1168,150 +1063,7 @@ const hapusBarang = (data) => {
   color: #36ada3 !important;
 }
 
-/* Tombol Responsive Untuk Layar HP (Mobile) */
-@media (max-width: 599px) {
-  .btn-tambah-responsive {
-    width: 100%;
-  }
-}
 
-/* ===== ANIMASI BACKGROUND (FLOATING DARI BAWAH KE ATAS) ===== */
-.bg-animation-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.floating-icon {
-  position: absolute;
-  bottom: -150px; /* Memulai posisi dari bawah layar */
-  animation: floatUp linear infinite;
-  opacity: 0.15; /* Sesuai contoh visual image_e62dcf.png */
-  filter: blur(1.5px); /* Kebureman dikurangi dari 4px menjadi 1.5px (Tipis, tajam tapi lembut) */
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
-}
-
-/* Memberikan Warna-Warni pada masing-masing Ikon Melayang */
-.i-1 {
-  left: 10%;
-  font-size: 100px;
-  animation-duration: 25s;
-  animation-delay: 0s;
-  color: #36ada3;
-} /* Teal */
-.i-2 {
-  left: 30%;
-  font-size: 70px;
-  animation-duration: 35s;
-  animation-delay: 5s;
-  color: #f29c1f;
-} /* Yellow-Orange */
-.i-3 {
-  left: 60%;
-  font-size: 120px;
-  animation-duration: 40s;
-  animation-delay: 12s;
-  color: #e74c3c;
-} /* Red */
-.i-4 {
-  left: 80%;
-  font-size: 85px;
-  animation-duration: 30s;
-  animation-delay: 2s;
-  color: #56c2b9;
-} /* Light Teal */
-.i-5 {
-  left: 15%;
-  font-size: 90px;
-  animation-duration: 28s;
-  animation-delay: 15s;
-  color: #e67e22;
-} /* Orange */
-.i-6 {
-  left: 45%;
-  font-size: 110px;
-  animation-duration: 45s;
-  animation-delay: 8s;
-  color: #2a8b83;
-} /* Dark Teal */
-.i-7 {
-  left: 75%;
-  font-size: 60px;
-  animation-duration: 22s;
-  animation-delay: 20s;
-  color: #f29c1f;
-} /* Yellow-Orange */
-.i-8 {
-  left: 25%;
-  font-size: 95px;
-  animation-duration: 32s;
-  animation-delay: 25s;
-  color: #e74c3c;
-} /* Red */
-
-/* Mengatur Animasi Bawah Ke Atas (Bottom to Top) */
-@keyframes floatUp {
-  0% {
-    transform: translateY(0) rotate(0deg);
-    opacity: 0;
-  }
-  10% {
-    opacity: 0.15; /* Sesuai dengan setelan opacity di floating-icon */
-  }
-  90% {
-    opacity: 0.15;
-  }
-  100% {
-    transform: translateY(-120vh) rotate(360deg);
-    opacity: 0;
-  }
-}
-
-/* ===== CLICK SPAWN ICONS ===== */
-.click-spawn-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  pointer-events: none;
-  z-index: 9999;
-  overflow: hidden;
-}
-
-.spawned-icon {
-  position: absolute;
-  color: var(--rand-color);
-  transform-origin: center;
-  pointer-events: none;
-  animation: spawnBurst 1.4s ease-out forwards;
-}
-
-@keyframes spawnBurst {
-  0% {
-    transform: translate(-50%, -50%) scale(0) rotate(0deg);
-    opacity: 1;
-  }
-  40% {
-    transform: translate(-50%, -100%) scale(1.2) rotate(var(--rand-rotate));
-    opacity: 0.9;
-  }
-  100% {
-    transform: translate(-50%, -180%) scale(0.5) rotate(calc(var(--rand-rotate) * 1.5));
-    opacity: 0;
-  }
-}
-
-.spawn-enter-active,
-.spawn-leave-active {
-  transition: all 1.4s ease;
-}
 
 /* ===== EXISTING UTILITIES ===== */
 .barang-table :deep(thead tr th) {

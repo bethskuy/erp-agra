@@ -1,36 +1,6 @@
 <template>
-  <q-page class="bg-page q-pa-md q-pa-lg-lg font-pro relative-position" @click="spawnIcon($event)">
-    <!-- CLICK SPAWN ICONS -->
-    <div class="click-spawn-container">
-      <transition-group name="spawn">
-        <div
-          v-for="icon in spawnedIcons"
-          :key="icon.id"
-          class="spawned-icon"
-          :style="{
-            left: icon.x + 'px',
-            top: icon.y + 'px',
-            '--rand-rotate': icon.rotate + 'deg',
-            '--rand-color': icon.color,
-            fontSize: icon.size + 'px',
-          }"
-        >
-          <q-icon :name="icon.name" />
-        </div>
-      </transition-group>
-    </div>
-
-    <!-- FLOATING BG ICONS -->
-    <div class="bg-animation-container">
-      <q-icon name="engineering" class="floating-icon i-1" />
-      <q-icon name="construction" class="floating-icon i-2" />
-      <q-icon name="architecture" class="floating-icon i-3" />
-      <q-icon name="location_city" class="floating-icon i-4" />
-      <q-icon name="handyman" class="floating-icon i-5" />
-      <q-icon name="apartment" class="floating-icon i-6" />
-      <q-icon name="engineering" class="floating-icon i-7" />
-      <q-icon name="hardware" class="floating-icon i-8" />
-    </div>
+  <q-page class="bg-page q-pa-md font-pro relative-position">
+    <div class="page-content-wrapper animate-fade">
 
     <!-- LOCK SCREEN -->
     <template v-if="!canAction('lihat')">
@@ -1452,11 +1422,13 @@
                         </q-btn>
                       </div>
                     </q-card-section>
-                    <q-card-section>
-                      <svg
-                        :viewBox="`0 0 ${chartW} ${chartH}`"
-                        style="width: 100%; overflow: visible"
-                      >
+                    <q-card-section class="q-pt-none" @click.self="closePointInfo">
+                      <div class="full-width" style="overflow-x: auto">
+                        <svg
+                          :viewBox="`0 0 ${chartW} ${chartH}`"
+                          style="min-width: 600px; width: 100%; max-height: 350px; overflow: visible"
+                          @click="closePointInfo"
+                        >
                         <!-- Grid Y -->
                         <template v-for="i in 11" :key="'gy' + i">
                           <line
@@ -1532,53 +1504,44 @@
                           stroke-linejoin="round"
                         />
 
-                        <!-- Dots Rencana untuk Hover Info -->
+                        <!-- Dots Rencana untuk Click Info -->
                         <template v-for="(pt, pi) in plannedPoints" :key="'pdot' + pi">
                           <circle
                             :cx="pt[0]"
                             :cy="pt[1]"
-                            r="4"
+                            r="6"
                             fill="#36ada3"
                             stroke="#102a43"
                             stroke-width="1.5"
                             class="cursor-pointer transition-all hover-dot"
-                          >
-                            <q-tooltip
-                              class="bg-teal-9 text-white font-pro text-caption shadow-4"
-                              :offset="[0, 10]"
-                            >
-                              <b>Rencana:</b>
-                              {{ pt[2] }}%
-                              <br />
-                              <b>Tgl:</b>
-                              {{ pt[3] }}
-                            </q-tooltip>
-                          </circle>
+                            @click="togglePointInfo(pt, 'Rencana')"
+                          />
                         </template>
 
-                        <!-- Dots Aktual untuk Hover Info -->
+                        <!-- Dots Aktual untuk Click Info -->
                         <template v-for="(pt, pi) in actualChartPoints" :key="'dot' + pi">
                           <circle
                             :cx="pt[0]"
                             :cy="pt[1]"
-                            r="4"
+                            r="6"
                             fill="#f29c1f"
                             stroke="#102a43"
                             stroke-width="1.5"
                             class="cursor-pointer transition-all hover-dot"
-                          >
-                            <q-tooltip
-                              class="bg-orange-9 text-white font-pro text-caption shadow-4"
-                              :offset="[0, 10]"
-                            >
-                              <b>Aktual:</b>
-                              {{ pt[2] }}%
-                              <br />
-                              <b>Tgl:</b>
-                              {{ pt[3] }}
-                            </q-tooltip>
-                          </circle>
+                            @click="togglePointInfo(pt, 'Aktual')"
+                          />
                         </template>
+                        
+                        <!-- Floating Popup -->
+                        <foreignObject v-if="selectedPointInfo" :x="selectedPointInfo.x - 70" :y="selectedPointInfo.y - 80" width="140" height="75" style="pointer-events: none;">
+                          <div class="bg-blue-grey-9 text-white font-pro shadow-4 rounded-12 q-pa-sm text-center" :style="'border: 2px solid ' + (selectedPointInfo.type === 'Rencana' ? '#36ada3' : '#f29c1f')">
+                            <div class="text-caption text-weight-bolder leading-none q-mb-xs" :style="{color: selectedPointInfo.type === 'Rencana' ? '#36ada3' : '#f29c1f'}">
+                              {{ selectedPointInfo.type === 'Rencana' ? 'TARGET RENCANA' : 'PROGRES AKTUAL' }}
+                            </div>
+                            <div class="text-subtitle1 text-weight-black leading-none">{{ selectedPointInfo.pct }}%</div>
+                            <div class="text-caption text-grey-4 q-mt-xs" style="font-size: 10px; line-height: 1;">{{ selectedPointInfo.date }}</div>
+                          </div>
+                        </foreignObject>
 
                         <!-- TODAY marker -->
                         <template v-if="todayPlannedPoint">
@@ -1611,6 +1574,7 @@
                           TODAY
                         </text>
                       </svg>
+                      </div>
                     </q-card-section>
                   </q-card>
                 </div>
@@ -1751,11 +1715,47 @@
           >
           <q-btn flat round dense icon="close" v-close-popup />
         </q-toolbar>
-        <q-card-section class="col flex flex-center q-pa-xl">
+
+        <!-- KPI CARDS IN FULLSCREEN -->
+        <q-card-section class="q-px-xl q-pt-xl q-pb-none">
+          <div class="row q-col-gutter-md">
+            <div class="col-6 col-md-3">
+              <q-card flat class="rounded-12 bg-blue-grey-9 text-white q-pa-md text-center shadow-1">
+                <div class="text-overline opacity-75">RENCANA S/D HARI INI</div>
+                <div class="text-h5 text-weight-black q-mt-xs">{{ plannedForToday.toFixed(2) }}%</div>
+                <div class="text-caption opacity-70">{{ todayStr }}</div>
+              </q-card>
+            </div>
+            <div class="col-6 col-md-3">
+              <q-card flat class="rounded-12 bg-positive text-white q-pa-md text-center shadow-1">
+                <div class="text-overline opacity-75">PROGRES AKTUAL</div>
+                <div class="text-h5 text-weight-black q-mt-xs">{{ actualCumulative.toFixed(2) }}%</div>
+                <div class="text-caption opacity-70">Kumulatif dari input</div>
+              </q-card>
+            </div>
+            <div class="col-6 col-md-3">
+              <q-card flat :class="deviasi >= 0 ? 'bg-blue-8' : 'bg-negative'" class="rounded-12 text-white q-pa-md text-center shadow-1">
+                <div class="text-overline opacity-75">DEVIASI</div>
+                <div class="text-h5 text-weight-black q-mt-xs">{{ deviasi >= 0 ? '+' : '' }}{{ deviasi.toFixed(2) }}%</div>
+                <div class="text-caption opacity-70">{{ deviasi >= 0 ? 'On Track' : 'Behind Schedule' }}</div>
+              </q-card>
+            </div>
+            <div class="col-6 col-md-3">
+              <q-card flat class="rounded-12 bg-orange-9 text-white q-pa-md text-center shadow-1">
+                <div class="text-overline opacity-75">TOTAL HARI RENCANA</div>
+                <div class="text-h5 text-weight-black q-mt-xs">{{ dailyPlan.length }}</div>
+                <div class="text-caption opacity-70">Dari perencanaan</div>
+              </q-card>
+            </div>
+          </div>
+        </q-card-section>
+
+        <q-card-section class="col flex flex-center q-pa-xl" @click.self="closePointInfo">
           <div class="full-width" style="max-width: 1200px">
             <svg
               :viewBox="`0 0 ${chartW} ${chartH}`"
               style="width: 100%; max-height: 80vh; overflow: visible"
+              @click="closePointInfo"
             >
               <!-- Grid Y -->
               <template v-for="i in 11" :key="'gy_full' + i">
@@ -1833,53 +1833,44 @@
                 stroke-linejoin="round"
               />
 
-              <!-- Dots Rencana untuk Hover Info -->
+              <!-- Dots Rencana untuk Click Info -->
               <template v-for="(pt, pi) in plannedPoints" :key="'pdot_full' + pi">
                 <circle
                   :cx="pt[0]"
                   :cy="pt[1]"
-                  r="5"
+                  r="7"
                   fill="#36ada3"
                   stroke="#102a43"
                   stroke-width="2"
                   class="cursor-pointer transition-all hover-dot"
-                >
-                  <q-tooltip
-                    class="bg-teal-9 text-white font-pro text-caption shadow-4"
-                    :offset="[0, 10]"
-                  >
-                    <b>Rencana:</b>
-                    {{ pt[2] }}%
-                    <br />
-                    <b>Tgl:</b>
-                    {{ pt[3] }}
-                  </q-tooltip>
-                </circle>
+                  @click.stop="togglePointInfo(pt, 'Rencana')"
+                />
               </template>
 
-              <!-- Dots Aktual untuk Hover Info -->
+              <!-- Dots Aktual untuk Click Info -->
               <template v-for="(pt, pi) in actualChartPoints" :key="'dot_full' + pi">
                 <circle
                   :cx="pt[0]"
                   :cy="pt[1]"
-                  r="5"
+                  r="7"
                   fill="#f29c1f"
                   stroke="#102a43"
                   stroke-width="2"
                   class="cursor-pointer transition-all hover-dot"
-                >
-                  <q-tooltip
-                    class="bg-orange-9 text-white font-pro text-caption shadow-4"
-                    :offset="[0, 10]"
-                  >
-                    <b>Aktual:</b>
-                    {{ pt[2] }}%
-                    <br />
-                    <b>Tgl:</b>
-                    {{ pt[3] }}
-                  </q-tooltip>
-                </circle>
+                  @click.stop="togglePointInfo(pt, 'Aktual')"
+                />
               </template>
+              
+              <!-- Floating Popup -->
+              <foreignObject v-if="selectedPointInfo" :x="selectedPointInfo.x - 70" :y="selectedPointInfo.y - 80" width="140" height="75" style="pointer-events: none;">
+                <div class="bg-blue-grey-9 text-white font-pro shadow-4 rounded-12 q-pa-sm text-center" :style="'border: 2px solid ' + (selectedPointInfo.type === 'Rencana' ? '#36ada3' : '#f29c1f')">
+                  <div class="text-caption text-weight-bolder leading-none q-mb-xs" :style="{color: selectedPointInfo.type === 'Rencana' ? '#36ada3' : '#f29c1f'}">
+                    {{ selectedPointInfo.type === 'Rencana' ? 'TARGET RENCANA' : 'PROGRES AKTUAL' }}
+                  </div>
+                  <div class="text-subtitle1 text-weight-black leading-none">{{ selectedPointInfo.pct }}%</div>
+                  <div class="text-caption text-grey-4 q-mt-xs" style="font-size: 10px; line-height: 1;">{{ selectedPointInfo.date }}</div>
+                </div>
+              </foreignObject>
 
               <!-- TODAY marker -->
               <template v-if="todayPlannedPoint">
@@ -1919,6 +1910,7 @@
     </q-dialog>
 
     <div class="q-py-xl"></div>
+    </div>
   </q-page>
 </template>
 
@@ -1968,52 +1960,6 @@ let unsubAllSpk = null
 let unsubUser = null
 
 const todayStr = new Date().toISOString().slice(0, 10)
-
-// ============================================================
-// SPAWN ANIMATION
-// ============================================================
-const spawnedIcons = ref([])
-let spawnIdCounter = 0
-const clickIconsList = [
-  'construction',
-  'engineering',
-  'handyman',
-  'architecture',
-  'foundation',
-  'precision_manufacturing',
-  'carpenter',
-  'plumbing',
-  'electrical_services',
-  'hardware',
-]
-const spawnIcon = (e) => {
-  const target = e.target
-  if (
-    target.closest('button') ||
-    target.closest('.q-btn') ||
-    target.closest('input') ||
-    target.closest('.q-field') ||
-    target.closest('.q-dialog') ||
-    target.closest('.q-table') ||
-    target.closest('.q-card')
-  )
-    return
-  const iconName = clickIconsList[Math.floor(Math.random() * clickIconsList.length)]
-  const colors = ['#36ada3', '#2a8b83', '#56c2b9', '#f29c1f', '#e67e22', '#e74c3c']
-  const newIcon = {
-    id: spawnIdCounter++,
-    x: e.clientX,
-    y: e.clientY,
-    name: iconName,
-    color: colors[Math.floor(Math.random() * colors.length)],
-    rotate: Math.floor(Math.random() * 90) - 45,
-    size: Math.floor(Math.random() * 25) + 35,
-  }
-  spawnedIcons.value.push(newIcon)
-  setTimeout(() => {
-    spawnedIcons.value = spawnedIcons.value.filter((i) => i.id !== newIcon.id)
-  }, 1400)
-}
 
 // ============================================================
 // PERMISSION
@@ -2525,6 +2471,34 @@ const todayPlannedPoint = computed(() => {
 })
 
 // ============================================================
+// Point Click Info State
+// ============================================================
+const selectedPointInfo = ref(null)
+
+const togglePointInfo = (pt, type) => {
+  if (
+    selectedPointInfo.value &&
+    selectedPointInfo.value.x === pt[0] &&
+    selectedPointInfo.value.y === pt[1] &&
+    selectedPointInfo.value.type === type
+  ) {
+    selectedPointInfo.value = null
+  } else {
+    selectedPointInfo.value = {
+      x: pt[0],
+      y: pt[1],
+      pct: pt[2],
+      date: pt[3],
+      type,
+    }
+  }
+}
+
+const closePointInfo = () => {
+  selectedPointInfo.value = null
+}
+
+// ============================================================
 // PIE CHART
 // ============================================================
 const pieColors = [
@@ -2853,131 +2827,7 @@ onUnmounted(() => {
   z-index: 2;
 }
 
-.bg-animation-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  pointer-events: none;
-  z-index: 0;
-}
-.floating-icon {
-  position: absolute;
-  bottom: -150px;
-  animation: floatUp linear infinite;
-  opacity: 0.1;
-  filter: blur(1.5px);
-}
-.i-1 {
-  left: 10%;
-  font-size: 100px;
-  animation-duration: 25s;
-  animation-delay: 0s;
-  color: #36ada3;
-}
-.i-2 {
-  left: 30%;
-  font-size: 70px;
-  animation-duration: 35s;
-  animation-delay: 5s;
-  color: #f29c1f;
-}
-.i-3 {
-  left: 60%;
-  font-size: 120px;
-  animation-duration: 40s;
-  animation-delay: 12s;
-  color: #e74c3c;
-}
-.i-4 {
-  left: 80%;
-  font-size: 85px;
-  animation-duration: 30s;
-  animation-delay: 2s;
-  color: #56c2b9;
-}
-.i-5 {
-  left: 15%;
-  font-size: 90px;
-  animation-duration: 28s;
-  animation-delay: 15s;
-  color: #e67e22;
-}
-.i-6 {
-  left: 45%;
-  font-size: 110px;
-  animation-duration: 45s;
-  animation-delay: 8s;
-  color: #2a8b83;
-}
-.i-7 {
-  left: 75%;
-  font-size: 60px;
-  animation-duration: 22s;
-  animation-delay: 20s;
-  color: #f29c1f;
-}
-.i-8 {
-  left: 25%;
-  font-size: 95px;
-  animation-duration: 32s;
-  animation-delay: 25s;
-  color: #e74c3c;
-}
-@keyframes floatUp {
-  0% {
-    transform: translateY(0) rotate(0deg);
-    opacity: 0;
-  }
-  10% {
-    opacity: 0.1;
-  }
-  90% {
-    opacity: 0.1;
-  }
-  100% {
-    transform: translateY(-120vh) rotate(360deg);
-    opacity: 0;
-  }
-}
 
-.click-spawn-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  pointer-events: none;
-  z-index: 9999;
-  overflow: hidden;
-}
-.spawned-icon {
-  position: absolute;
-  color: var(--rand-color);
-  transform-origin: center;
-  pointer-events: none;
-  animation: spawnBurst 1.4s ease-out forwards;
-}
-@keyframes spawnBurst {
-  0% {
-    transform: translate(-50%, -50%) scale(0) rotate(0deg);
-    opacity: 1;
-  }
-  40% {
-    transform: translate(-50%, -100%) scale(1.2) rotate(var(--rand-rotate));
-    opacity: 0.9;
-  }
-  100% {
-    transform: translate(-50%, -180%) scale(0.5) rotate(calc(var(--rand-rotate) * 1.5));
-    opacity: 0;
-  }
-}
-.spawn-enter-active,
-.spawn-leave-active {
-  transition: all 1.4s ease;
-}
 .content-relative {
   position: relative;
   z-index: 1;

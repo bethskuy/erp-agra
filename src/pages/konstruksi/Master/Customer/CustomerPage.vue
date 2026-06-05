@@ -1,46 +1,13 @@
 <template>
-  <q-page class="bg-page q-pa-md q-pa-md-lg font-pro relative-position" @click="spawnIcon($event)">
-    <!-- CLICK SPAWN ICONS CONTAINER -->
-    <div class="click-spawn-container">
-      <transition-group name="spawn">
-        <div
-          v-for="icon in spawnedIcons"
-          :key="icon.id"
-          class="spawned-icon"
-          :style="{
-            left: icon.x + 'px',
-            top: icon.y + 'px',
-            '--rand-rotate': icon.rotate + 'deg',
-            '--rand-color': icon.color,
-            fontSize: icon.size + 'px',
-          }"
-        >
-          <q-icon :name="icon.name" />
-        </div>
-      </transition-group>
-    </div>
-
-    <!-- BACKGROUND ANIMATION (ICONS) - DIPINDAH KESINI AGAR MUNCUL DI SEMUA VIEW -->
-    <div class="bg-animation-container">
-      <q-icon name="engineering" class="floating-icon i-1" />
-      <q-icon name="construction" class="floating-icon i-2" />
-      <q-icon name="architecture" class="floating-icon i-3" />
-      <q-icon name="location_city" class="floating-icon i-4" />
-      <q-icon name="handyman" class="floating-icon i-5" />
-      <q-icon name="apartment" class="floating-icon i-6" />
-      <q-icon name="engineering" class="floating-icon i-7" />
-      <q-icon name="carpenter" class="floating-icon i-8" />
-      <q-icon name="domain" class="floating-icon i-9" />
-      <q-icon name="foundation" class="floating-icon i-10" />
-    </div>
+  <q-page class="bg-page q-pa-md font-pro relative-position">
 
     <!-- =====================================================================================
          VIEW 1: DAFTAR CUSTOMER
          ===================================================================================== -->
-    <div v-if="viewMode === 'list'" class="animate-fade">
+    <div v-if="viewMode === 'list'" class="animate-fade page-content-wrapper">
       <!-- HEADER SECTION -->
-      <div class="row items-center justify-between q-mb-xl content-relative">
-        <div class="col-12 col-md-7 q-mb-md q-mb-md-none">
+      <div class="row items-center justify-between q-mb-md content-relative">
+        <div class="col-12 q-mb-md q-mb-md-none">
           <div class="text-h4 text-weight-bolder text-brand-primary leading-tight">
             Database Customer
             <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
@@ -49,56 +16,6 @@
           </div>
           <div class="text-subtitle1 text-grey-7 q-mt-sm">
             Manajemen informasi klien terpusat dengan sistem dokumen hybrid.
-          </div>
-        </div>
-
-        <!-- RESPONSIVE BUTTONS AREA -->
-        <div class="col-12 col-md-5">
-          <div class="row q-col-gutter-sm justify-end items-center">
-            <div class="col-12 col-sm-auto">
-              <!-- EXPORT DROPDOWN LIST -->
-              <q-btn-dropdown
-                unelevated
-                color="white"
-                text-color="brand-primary"
-                icon="ios_share"
-                label="Export Data"
-                class="full-width rounded-12 text-weight-bold shadow-2"
-              >
-                <q-list class="bg-white rounded-borders q-py-sm" style="min-width: 200px">
-                  <q-item clickable v-close-popup @click="exportTablePDF" class="hover-blue-btn">
-                    <q-item-section avatar>
-                      <q-avatar color="red-1" text-color="red-10" icon="picture_as_pdf" size="sm" />
-                    </q-item-section>
-                    <q-item-section>
-                      <q-item-label class="text-weight-bold">Download PDF</q-item-label>
-                    </q-item-section>
-                  </q-item>
-                  <q-separator class="q-my-sm" />
-                  <q-item clickable v-close-popup @click="exportTableExcel" class="hover-blue-btn">
-                    <q-item-section avatar>
-                      <q-avatar color="green-1" text-color="green-10" icon="table_view" size="sm" />
-                    </q-item-section>
-                    <q-item-section>
-                      <q-item-label class="text-weight-bold">Export Excel</q-item-label>
-                    </q-item-section>
-                  </q-item>
-                </q-list>
-              </q-btn-dropdown>
-            </div>
-
-            <div class="col-12 col-sm-auto" v-if="canAction('buat')">
-              <q-btn
-                color="brand-primary"
-                icon="person_add"
-                label="Registrasi Customer"
-                unelevated
-                rounded
-                no-caps
-                class="full-width shadow-premium btn-hover text-weight-bold q-py-sm q-px-md"
-                @click="openAddDialog"
-              />
-            </div>
           </div>
         </div>
       </div>
@@ -110,8 +27,8 @@
         class="q-mb-lg shadow-1 rounded-20 bg-white border-subtle content-relative"
       >
         <q-card-section class="q-py-md">
-          <div class="row items-center q-col-gutter-md">
-            <div class="col-12 col-md-5">
+          <div class="row items-center justify-between q-col-gutter-md">
+            <div class="col-12 col-md-4">
               <q-input
                 v-model="filter"
                 outlined
@@ -129,12 +46,60 @@
                 </template>
               </q-input>
             </div>
-            <q-space />
-            <div
-              class="col-12 col-md-auto text-caption text-grey-6 text-weight-medium text-right sm-text-left"
-            >
-              Total Customer:
-              <span class="text-weight-bold text-brand-primary">{{ rows.length }} Entitas</span>
+
+            <div class="col-12 col-md-auto row items-center justify-end q-col-gutter-md q-mt-sm q-mt-md-none">
+              <div
+                class="col-12 col-md-auto text-caption text-grey-6 text-weight-medium text-center text-md-right"
+              >
+                Total Customer:
+                <span class="text-weight-bold text-brand-primary">{{ rows.length }} Entitas</span>
+              </div>
+
+              <!-- EXPORT DROPDOWN LIST -->
+              <div class="col-12 col-sm-auto">
+                <q-btn-dropdown
+                  unelevated
+                  color="white"
+                  text-color="brand-primary"
+                  icon="ios_share"
+                  label="Export Data"
+                  class="rounded-12 text-weight-bold shadow-2 full-width"
+                >
+                  <q-list class="bg-white rounded-borders q-py-sm" style="min-width: 200px">
+                    <q-item clickable v-close-popup @click="exportTablePDF" class="hover-blue-btn">
+                      <q-item-section avatar>
+                        <q-avatar color="red-1" text-color="red-10" icon="picture_as_pdf" size="sm" />
+                      </q-item-section>
+                      <q-item-section>
+                        <q-item-label class="text-weight-bold">Download PDF</q-item-label>
+                      </q-item-section>
+                    </q-item>
+                    <q-separator class="q-my-sm" />
+                    <q-item clickable v-close-popup @click="exportTableExcel" class="hover-blue-btn">
+                      <q-item-section avatar>
+                        <q-avatar color="green-1" text-color="green-10" icon="table_view" size="sm" />
+                      </q-item-section>
+                      <q-item-section>
+                        <q-item-label class="text-weight-bold">Export Excel</q-item-label>
+                      </q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-btn-dropdown>
+              </div>
+
+              <!-- REGISTRASI CUSTOMER -->
+              <div class="col-12 col-sm-auto" v-if="canAction('buat')">
+                <q-btn
+                  color="brand-primary"
+                  icon="person_add"
+                  label="Registrasi Customer"
+                  unelevated
+                  rounded
+                  no-caps
+                  class="shadow-premium btn-hover text-weight-bold q-py-sm q-px-md full-width"
+                  @click="openAddDialog"
+                />
+              </div>
             </div>
           </div>
         </q-card-section>
@@ -257,7 +222,7 @@
     <!-- =====================================================================================
          VIEW 2: FORM REGISTRASI / EDIT (VIEW SWITCHER)
          ==================================================================================== -->
-    <div v-else-if="viewMode === 'form'" class="animate-fade content-relative">
+    <div v-else-if="viewMode === 'form'" class="animate-fade page-content-wrapper">
       <div class="row items-center justify-between q-mb-xl">
         <div class="col-12 col-md-8 q-mb-md q-mb-md-none">
           <div class="row items-center no-wrap">
@@ -523,7 +488,7 @@
     <!-- =====================================================================================
          VIEW 3: DETAIL PROFIL (VIEW SWITCHER)
          ===================================================================================== -->
-    <div v-else-if="viewMode === 'detail' && currentCustomer" class="animate-fade content-relative">
+    <div v-else-if="viewMode === 'detail' && currentCustomer" class="animate-fade page-content-wrapper">
       <div class="row items-center justify-between q-mb-xl">
         <div class="col-12 col-md-8 q-mb-md q-mb-md-none">
           <div class="row items-center no-wrap">
@@ -852,59 +817,6 @@ const isEditMode = ref(false)
 const filter = ref('')
 const viewMode = ref('list') // Switcher mode: 'list', 'form', 'detail'
 
-// === CLICK SPAWN ICONS ===
-const constructionIcons = [
-  'engineering',
-  'construction',
-  'architecture',
-  'handyman',
-  'carpenter',
-  'foundation',
-  'domain',
-  'apartment',
-  'location_city',
-  'build',
-  'hardware',
-  'home_repair_service',
-  'plumbing',
-  'bolt',
-  'roofing',
-  'fence',
-]
-const spawnColors = ['#36ADA3', '#AD3640', '#2a9089', '#c94f58', '#1e7a74', '#e07a82']
-const spawnedIcons = ref([])
-let spawnIdCounter = 0
-
-const spawnIcon = (event) => {
-  // Jangan spawn kalau klik di atas tombol / input / card interaktif
-  // eslint-disable-next-line no-unused-vars
-  const tag = event.target.tagName.toLowerCase()
-  const isInteractive = event.target.closest(
-    'button, a, input, select, textarea, .q-btn, .q-table, .q-card, .q-input, .q-select',
-  )
-  if (isInteractive) return
-
-  const page = event.currentTarget.getBoundingClientRect()
-  const x = event.clientX - page.left
-  const y = event.clientY - page.top
-
-  const icon = {
-    id: ++spawnIdCounter,
-    name: constructionIcons[Math.floor(Math.random() * constructionIcons.length)],
-    x: x - 20,
-    y: y - 20,
-    rotate: Math.floor(Math.random() * 360),
-    color: spawnColors[Math.floor(Math.random() * spawnColors.length)],
-    size: 28 + Math.floor(Math.random() * 28),
-  }
-
-  spawnedIcons.value.push(icon)
-
-  // Auto-remove after animation
-  setTimeout(() => {
-    spawnedIcons.value = spawnedIcons.value.filter((i) => i.id !== icon.id)
-  }, 1400)
-}
 const currentCustomer = ref(null)
 const userData = ref(null)
 
@@ -1271,7 +1183,7 @@ onUnmounted(() => {
   background-color: #ad3640 !important;
 }
 .text-brand-primary {
-  color: #1e6e69 !important;
+  color: #36ada3 !important;
 }
 .text-brand-teal {
   color: #36ada3 !important;
@@ -1572,49 +1484,4 @@ onUnmounted(() => {
   background: #36ada3 !important;
 }
 
-/* ===== CLICK SPAWN ICONS ===== */
-.click-spawn-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 10;
-  overflow: hidden;
-}
-
-.spawned-icon {
-  position: absolute;
-  color: var(--rand-color);
-  transform-origin: center;
-  pointer-events: none;
-  animation: spawnBurst 1.4s ease-out forwards;
-}
-
-@keyframes spawnBurst {
-  0% {
-    transform: translate(-50%, -50%) scale(0) rotate(0deg);
-    opacity: 1;
-  }
-  30% {
-    transform: translate(-50%, -50%) scale(1.4) rotate(calc(var(--rand-rotate) * 0.5));
-    opacity: 1;
-  }
-  60% {
-    transform: translate(-50%, calc(-50% - 40px)) scale(1.1) rotate(var(--rand-rotate));
-    opacity: 0.85;
-  }
-  100% {
-    transform: translate(-50%, calc(-50% - 80px)) scale(0.6) rotate(calc(var(--rand-rotate) * 1.5));
-    opacity: 0;
-  }
-}
-
-.spawn-enter-active {
-  animation: spawnBurst 1.4s ease-out forwards;
-}
-.spawn-leave-active {
-  display: none;
-}
 </style>

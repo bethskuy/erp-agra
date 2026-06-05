@@ -1,40 +1,9 @@
 <template>
-  <q-page class="bg-page q-pa-md q-pa-md-lg font-pro relative-position" @click="spawnIcon($event)">
-    <!-- EFEK ANIMASI KLIK (SPAWN ICONS) -->
-    <div class="click-spawn-container">
-      <transition-group name="spawn">
-        <div
-          v-for="icon in spawnedIcons"
-          :key="icon.id"
-          class="spawned-icon"
-          :style="{
-            left: icon.x + 'px',
-            top: icon.y + 'px',
-            '--rand-rotate': icon.rotate + 'deg',
-            '--rand-color': icon.color,
-            fontSize: icon.size + 'px',
-          }"
-        >
-          <q-icon :name="icon.name" />
-        </div>
-      </transition-group>
-    </div>
-
-    <!-- EFEK LATAR BELAKANG ANIMASI MENGAMBANG -->
-    <div class="bg-animation-container">
-      <q-icon name="engineering" class="floating-icon i-1" />
-      <q-icon name="construction" class="floating-icon i-2" />
-      <q-icon name="architecture" class="floating-icon i-3" />
-      <q-icon name="location_city" class="floating-icon i-4" />
-      <q-icon name="handyman" class="floating-icon i-5" />
-      <q-icon name="apartment" class="floating-icon i-6" />
-      <q-icon name="engineering" class="floating-icon i-7" />
-      <q-icon name="hardware" class="floating-icon i-8" />
-    </div>
-
+  <q-page class="bg-page q-pa-md font-pro relative-position">
+    <div class="page-content-wrapper animate-fade">
     <!-- HEADER SECTION -->
-    <div class="row items-center justify-between q-mb-xl animate-fade no-print content-relative">
-      <div class="col-12 col-md-8">
+    <div class="row items-center justify-between q-mb-md no-print content-relative">
+      <div class="col-12 col-md-8 q-mb-md q-mb-md-none">
         <div class="text-h4 text-weight-bolder text-brand-primary leading-tight">
           Approval Penawaran
           <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
@@ -45,7 +14,7 @@
           Tinjau rincian biaya dan berikan otorisasi digital untuk penawaran harga klien.
         </div>
       </div>
-      <div class="col-12 col-md-auto q-mt-md q-mt-md-none text-right">
+      <div class="col-12 col-md-auto text-left text-md-right">
         <div class="text-caption text-grey-6 q-mb-xs">Menunggu Persetujuan</div>
         <q-badge color="orange-9" class="q-px-md q-py-xs text-weight-bold shadow-1">
           {{ rows.filter((r) => r.status === 'Pending').length }} Dokumen
@@ -60,8 +29,8 @@
       class="q-mb-lg shadow-1 rounded-20 bg-white no-print content-relative border-subtle"
     >
       <q-card-section class="q-py-md">
-        <div class="row items-center q-col-gutter-md">
-          <div class="col-12 col-md-5">
+        <div class="row items-center justify-between q-col-gutter-md">
+          <div class="col-12 col-md-4">
             <q-input
               v-model="filter"
               outlined
@@ -79,8 +48,9 @@
               </template>
             </q-input>
           </div>
-          <q-space />
-          <q-btn flat round icon="refresh" color="brand-primary" @click="fetchApprovalData" />
+          <div class="col-12 col-md-auto row items-center justify-end">
+            <q-btn flat round icon="refresh" color="brand-primary" @click="fetchApprovalData" />
+          </div>
         </div>
       </q-card-section>
     </q-card>
@@ -181,14 +151,6 @@
     <!-- PREVIEW & APPROVAL DIALOG -->
     <q-dialog v-model="showPreview" maximized transition-show="fade" transition-hide="fade">
       <q-card class="column no-wrap bg-grey-4 relative-position">
-        <!-- Background Animation di dalam Preview Dialog -->
-        <div class="bg-animation-container">
-          <q-icon name="engineering" class="floating-icon i-1" />
-          <q-icon name="construction" class="floating-icon i-2" />
-          <q-icon name="architecture" class="floating-icon i-3" />
-          <q-icon name="location_city" class="floating-icon i-4" />
-        </div>
-
         <!-- TOOLBAR: RESPONSIVE DESIGN -->
         <q-toolbar
           class="bg-white text-brand-primary q-py-sm no-print shadow-2 shrink content-relative"
@@ -244,7 +206,7 @@
 
         <!-- CONTAINER SURAT (WARNA TULISAN INDIGO TIDAK DIGANGGU GUGAT SESUAI REQUEST) -->
         <q-card-section
-          class="col scroll q-pa-none q-pa-md-md flex flex-center preview-container content-relative"
+          class="col scroll q-pa-md preview-container content-relative bg-grey-3"
         >
           <div id="quotation-print" class="letter-paper shadow-24" v-if="selectedData">
             <div id="quotation-header" class="quotation-header">
@@ -427,7 +389,8 @@
       </q-card>
     </q-dialog>
 
-    <div class="q-py-xl no-print"></div>
+    <div class="q-py-xl"></div>
+    </div>
   </q-page>
 </template>
 
@@ -462,58 +425,6 @@ const userData = ref(null)
 let unsubUser = null
 let unsubApproval = null
 
-// ANIMASI KLIK & MENGAMBANG
-const spawnedIcons = ref([])
-let spawnIdCounter = 0
-const clickIcons = [
-  'construction',
-  'engineering',
-  'handyman',
-  'architecture',
-  'foundation',
-  'precision_manufacturing',
-  'carpenter',
-  'plumbing',
-  'electrical_services',
-  'hardware',
-]
-
-const spawnIcon = (e) => {
-  const target = e.target
-  if (
-    target.closest('button') ||
-    target.closest('.q-btn') ||
-    target.closest('input') ||
-    target.closest('.q-field') ||
-    target.closest('.q-dialog') ||
-    target.closest('.q-table') ||
-    target.closest('.q-card')
-  ) {
-    return
-  }
-
-  const iconName = clickIcons[Math.floor(Math.random() * clickIcons.length)]
-  const colors = ['#36ada3', '#2a8b83', '#56c2b9', '#f29c1f', '#e67e22', '#e74c3c']
-  const randColor = colors[Math.floor(Math.random() * colors.length)]
-  const randRotate = Math.floor(Math.random() * 90) - 45
-  const randSize = Math.floor(Math.random() * 25) + 35
-
-  const newIcon = {
-    id: spawnIdCounter++,
-    x: e.clientX,
-    y: e.clientY,
-    name: iconName,
-    color: randColor,
-    rotate: randRotate,
-    size: randSize,
-  }
-
-  spawnedIcons.value.push(newIcon)
-
-  setTimeout(() => {
-    spawnedIcons.value = spawnedIcons.value.filter((i) => i.id !== newIcon.id)
-  }, 1400)
-}
 
 const columns = [
   { name: 'nomor', align: 'left', label: 'REFERENCE NO', field: 'nomor', sortable: true },
@@ -828,101 +739,6 @@ onUnmounted(() => {
 /* =======================================================================
    ANIMASI BACKGROUND GLOBAL STYLES
    ======================================================================= */
-.bg-animation-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.floating-icon {
-  position: absolute;
-  bottom: -150px;
-  animation: floatUp linear infinite;
-  opacity: 0.15;
-  filter: blur(1.5px);
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
-}
-
-.i-1 {
-  left: 10%;
-  font-size: 100px;
-  animation-duration: 25s;
-  animation-delay: 0s;
-  color: #36ada3;
-}
-.i-2 {
-  left: 30%;
-  font-size: 70px;
-  animation-duration: 35s;
-  animation-delay: 5s;
-  color: #f29c1f;
-}
-.i-3 {
-  left: 60%;
-  font-size: 120px;
-  animation-duration: 40s;
-  animation-delay: 12s;
-  color: #e74c3c;
-}
-.i-4 {
-  left: 80%;
-  font-size: 85px;
-  animation-duration: 30s;
-  animation-delay: 2s;
-  color: #56c2b9;
-}
-.i-5 {
-  left: 15%;
-  font-size: 90px;
-  animation-duration: 28s;
-  animation-delay: 15s;
-  color: #e67e22;
-}
-.i-6 {
-  left: 45%;
-  font-size: 110px;
-  animation-duration: 45s;
-  animation-delay: 8s;
-  color: #2a8b83;
-}
-.i-7 {
-  left: 75%;
-  font-size: 60px;
-  animation-duration: 22s;
-  animation-delay: 20s;
-  color: #f29c1f;
-}
-.i-8 {
-  left: 25%;
-  font-size: 95px;
-  animation-duration: 32s;
-  animation-delay: 25s;
-  color: #e74c3c;
-}
-
-@keyframes floatUp {
-  0% {
-    transform: translateY(0) rotate(0deg);
-    opacity: 0;
-  }
-  10% {
-    opacity: 0.15;
-  }
-  90% {
-    opacity: 0.15;
-  }
-  100% {
-    transform: translateY(-120vh) rotate(360deg);
-    opacity: 0;
-  }
-}
-
 /* =======================================================================
    MODE KHUSUS SAAT EXPORT PDF GLOBAL STYLES
    ======================================================================= */
@@ -1127,15 +943,22 @@ body.is-exporting .letter-paper .row.justify-between {
 }
 
 /* Scaling surat untuk mobile agar pas di layar */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .preview-container {
     padding: 10px !important;
-    align-items: flex-start !important;
+    overflow-x: auto !important;
   }
   .letter-paper {
-    transform: scale(0.42);
+    width: 210mm !important;
+    max-width: 210mm !important;
+    margin: 0 auto !important;
+    /* Gunakan zoom agar layout sesungguhnya ikut mengecil tanpa terpotong (Chrome/Safari) */
+    zoom: calc((100vw - 20px) / 794);
+    /* Fallback untuk browser yang belum support zoom sempurna */
+    -moz-transform: scale(calc((100vw - 20px) / 794));
+    -moz-transform-origin: top center;
+    transform: scale(calc((100vw - 20px) / 794));
     transform-origin: top center;
-    margin-bottom: -150mm;
   }
 }
 

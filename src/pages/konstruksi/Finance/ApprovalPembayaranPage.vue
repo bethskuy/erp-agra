@@ -1214,7 +1214,8 @@ const triggerReject = (row) => {
       if (row.tagihan_id) {
         try {
           await updateDoc(doc(db, 'finance_tagihan', row.tagihan_id), {
-            status: 'Draft',
+            status: 'Ditolak',
+            creator_read: false,
             updatedAt: serverTimestamp(),
           })
           updatedTagihan = true
@@ -1236,7 +1237,8 @@ const triggerReject = (row) => {
             const snapTag = await getDocs(qTag)
             for (const docRef of snapTag.docs) {
               await updateDoc(doc(db, 'finance_tagihan', docRef.id), {
-                status: 'Draft',
+                status: 'Ditolak',
+                creator_read: false,
                 updatedAt: serverTimestamp(),
               })
               updatedTagihan = true
@@ -1256,7 +1258,8 @@ const triggerReject = (row) => {
               const snapTag = await getDocs(qTag)
               for (const docRef of snapTag.docs) {
                 await updateDoc(doc(db, 'finance_tagihan', docRef.id), {
-                  status: 'Draft',
+                  status: 'Ditolak',
+                  creator_read: false,
                   updatedAt: serverTimestamp(),
                 })
                 updatedTagihan = true

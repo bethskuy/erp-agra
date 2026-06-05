@@ -1,104 +1,68 @@
 <template>
-  <q-page class="bg-page q-pa-md q-pa-md-lg font-pro relative-position" @click="spawnIcon($event)">
-    <!-- CLICK SPAWN ICONS CONTAINER -->
-    <div class="click-spawn-container">
-      <transition-group name="spawn">
-        <div
-          v-for="icon in spawnedIcons"
-          :key="icon.id"
-          class="spawned-icon"
-          :style="{
-            left: icon.x + 'px',
-            top: icon.y + 'px',
-            '--rand-rotate': icon.rotate + 'deg',
-            '--rand-color': icon.color,
-            fontSize: icon.size + 'px',
-          }"
-        >
-          <q-icon :name="icon.name" />
-        </div>
-      </transition-group>
-    </div>
-
-    <!-- BACKGROUND ANIMATION (ICONS) -->
-    <div class="bg-animation-container">
-      <q-icon name="engineering" class="floating-icon i-1" />
-      <q-icon name="construction" class="floating-icon i-2" />
-      <q-icon name="architecture" class="floating-icon i-3" />
-      <q-icon name="location_city" class="floating-icon i-4" />
-      <q-icon name="handyman" class="floating-icon i-5" />
-      <q-icon name="apartment" class="floating-icon i-6" />
-      <q-icon name="engineering" class="floating-icon i-7" />
-      <q-icon name="carpenter" class="floating-icon i-8" />
-      <q-icon name="domain" class="floating-icon i-9" />
-      <q-icon name="foundation" class="floating-icon i-10" />
-    </div>
-
+  <q-page class="bg-page q-pa-md font-pro relative-position">
     <!-- VIEW 1: DAFTAR SUPPLIER -->
     <template v-if="!showDetail">
-      <!-- HEADER SECTION -->
-      <div class="row items-center justify-between q-mb-xl animate-fade content-relative">
-        <div class="col-12 col-md-8 q-mb-md q-mb-md-none">
-          <div class="text-h4 text-weight-bolder text-brand-primary leading-tight">
-            Database Supplier
-            <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
-              >Vendor & Rantai Pasok</span
-            >
-          </div>
-          <div class="text-subtitle1 text-grey-7 q-mt-sm">
-            Kelola data mitra penyedia material dan jasa PT AGRA secara terintegrasi dan real-time.
-          </div>
-        </div>
-
-        <!-- RESPONSIVE BUTTONS AREA -->
-        <div class="col-12 col-md-4">
-          <div class="row justify-end">
-            <div class="col-12 col-sm-auto" v-if="canAction('buat')">
-              <q-btn
-                color="brand-primary"
-                icon="add_business"
-                label="Registrasi Supplier"
-                unelevated
-                rounded
-                no-caps
-                class="full-width q-px-lg q-py-sm shadow-premium btn-hover text-weight-bold"
-                @click="openAddDialog"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- SEARCH & STATS CARD -->
-      <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white content-relative">
-        <q-card-section class="q-py-md">
-          <div class="row items-center q-col-gutter-md">
-            <div class="col-12 col-md-5">
-              <q-input
-                v-model="filter"
-                outlined
-                dense
-                rounded
-                placeholder="Cari Nama Supplier atau PIC..."
-                bg-color="white"
-                class="search-input"
+      <div class="page-content-wrapper animate-fade">
+        <!-- HEADER SECTION -->
+        <div class="row items-center justify-between q-mb-md content-relative">
+          <div class="col-12 q-mb-md q-mb-md-none">
+            <div class="text-h4 text-weight-bolder text-brand-primary leading-tight">
+              Database Supplier
+              <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
+                >Vendor & Rantai Pasok</span
               >
-                <template v-slot:prepend>
-                  <q-icon name="search" color="brand-primary" />
-                </template>
-                <template v-slot:append v-if="filter">
-                  <q-icon name="close" @click="filter = ''" class="cursor-pointer" />
-                </template>
-              </q-input>
             </div>
-            <q-space />
-            <div class="col-12 col-md-auto text-caption text-grey-6 sm-text-left text-right">
-              Total Vendor:
-              <span class="text-weight-bold text-brand-primary">{{ rows.length }} Perusahaan</span>
+            <div class="text-subtitle1 text-grey-7 q-mt-sm">
+              Kelola data mitra penyedia material dan jasa PT AGRA secara terintegrasi dan real-time.
             </div>
           </div>
-        </q-card-section>
-      </q-card>
+        </div>
+
+        <!-- SEARCH & STATS CARD -->
+        <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white content-relative">
+          <q-card-section class="q-py-md">
+            <div class="row items-center justify-between q-col-gutter-md">
+              <div class="col-12 col-md-4">
+                <q-input
+                  v-model="filter"
+                  outlined
+                  dense
+                  rounded
+                  placeholder="Cari Nama Supplier atau PIC..."
+                  bg-color="white"
+                  class="search-input"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="search" color="brand-primary" />
+                  </template>
+                  <template v-slot:append v-if="filter">
+                    <q-icon name="close" @click="filter = ''" class="cursor-pointer" />
+                  </template>
+                </q-input>
+              </div>
+
+              <div class="col-12 col-md-auto row items-center justify-end q-col-gutter-md q-mt-sm q-mt-md-none">
+                <div class="col-12 col-md-auto text-caption text-grey-6 text-weight-medium text-center text-md-right">
+                  Total Vendor:
+                  <span class="text-weight-bold text-brand-primary">{{ rows.length }} Perusahaan</span>
+                </div>
+
+                <div class="col-12 col-sm-auto" v-if="canAction('buat')">
+                  <q-btn
+                    color="brand-primary"
+                    icon="add_business"
+                    label="Registrasi Supplier"
+                    unelevated
+                    rounded
+                    no-caps
+                    class="full-width q-px-lg q-py-sm shadow-premium btn-hover text-weight-bold"
+                    @click="openAddDialog"
+                  />
+                </div>
+              </div>
+            </div>
+          </q-card-section>
+        </q-card>
 
       <!-- TABLE SECTION -->
       <q-card flat bordered class="rounded-20 shadow-sm overflow-hidden bg-white content-relative">
@@ -205,6 +169,7 @@
           </template>
         </q-table>
       </q-card>
+      </div>
     </template>
 
     <!-- VIEW 2: DETAIL PROFIL LENGKAP -->
@@ -657,51 +622,6 @@ const isEditMode = ref(false)
 const filter = ref('')
 const currentSupplier = ref(null)
 
-// === CLICK SPAWN ICONS ===
-const constructionIcons = [
-  'engineering',
-  'construction',
-  'architecture',
-  'handyman',
-  'carpenter',
-  'foundation',
-  'domain',
-  'apartment',
-  'location_city',
-  'build',
-  'hardware',
-  'home_repair_service',
-  'plumbing',
-  'bolt',
-  'roofing',
-  'fence',
-]
-const spawnColors = ['#36ada3', '#2a8b83', '#56c2b9', '#f29c1f', '#e67e22', '#e74c3c', '#ad3640']
-const spawnedIcons = ref([])
-let spawnIdCounter = 0
-
-const spawnIcon = (event) => {
-  const isInteractive = event.target.closest(
-    'button, a, input, select, textarea, .q-btn, .q-table, .q-card, .q-input, .q-select, .q-dialog',
-  )
-  if (isInteractive) return
-  const page = event.currentTarget.getBoundingClientRect()
-  const x = event.clientX - page.left
-  const y = event.clientY - page.top
-  const icon = {
-    id: ++spawnIdCounter,
-    name: constructionIcons[Math.floor(Math.random() * constructionIcons.length)],
-    x: x - 20,
-    y: y - 20,
-    rotate: Math.floor(Math.random() * 360),
-    color: spawnColors[Math.floor(Math.random() * spawnColors.length)],
-    size: 28 + Math.floor(Math.random() * 28),
-  }
-  spawnedIcons.value.push(icon)
-  setTimeout(() => {
-    spawnedIcons.value = spawnedIcons.value.filter((i) => i.id !== icon.id)
-  }, 1400)
-}
 const userData = ref(null)
 
 let unsubUser = null
@@ -914,7 +834,7 @@ onUnmounted(() => {
   background-color: #f0fafa !important;
 }
 .text-brand-primary {
-  color: #1e6e69 !important;
+  color: #36ada3 !important;
 }
 .text-brand-dark {
   color: #1e4a47 !important;
@@ -1160,45 +1080,13 @@ onUnmounted(() => {
   }
 }
 
-/* ===== CLICK SPAWN ICONS ===== */
-.click-spawn-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 10;
-  overflow: hidden;
+/* Page content wrapper */
+.page-content-wrapper {
+  padding: 0 16px;
 }
-.spawned-icon {
-  position: absolute;
-  color: var(--rand-color);
-  pointer-events: none;
-  animation: spawnBurst 1.4s ease-out forwards;
-}
-@keyframes spawnBurst {
-  0% {
-    transform: translate(-50%, -50%) scale(0) rotate(0deg);
-    opacity: 1;
+@media (min-width: 768px) {
+  .page-content-wrapper {
+    padding: 0 24px;
   }
-  30% {
-    transform: translate(-50%, -50%) scale(1.4) rotate(calc(var(--rand-rotate) * 0.5));
-    opacity: 1;
-  }
-  60% {
-    transform: translate(-50%, calc(-50% - 40px)) scale(1.1) rotate(var(--rand-rotate));
-    opacity: 0.85;
-  }
-  100% {
-    transform: translate(-50%, calc(-50% - 80px)) scale(0.6) rotate(calc(var(--rand-rotate) * 1.5));
-    opacity: 0;
-  }
-}
-.spawn-enter-active {
-  animation: spawnBurst 1.4s ease-out forwards;
-}
-.spawn-leave-active {
-  display: none;
 }
 </style>
