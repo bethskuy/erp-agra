@@ -274,18 +274,21 @@ onMounted(() => {
   const unsubKaryawan = onSnapshot(
     qKaryawan,
     (snap) => {
-      stats.value[0].value = snap.size.toString()
-
       const allData = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
 
-      // Urutkan berdasarkan tglMasuk terbaru
-      recentUsers.value = [...allData]
+      // REVISI EMAS: Filter hanya karyawan yang memiliki data nama valid (menghindari sisa data sampah/kosong di Firestore)
+      const activeKaryawan = allData.filter((u) => u.nama && u.nama.trim() !== '')
+
+      stats.value[0].value = activeKaryawan.length.toString()
+
+      // Urutkan berdasarkan tglMasuk terbaru dari data karyawan yang valid
+      recentUsers.value = [...activeKaryawan]
         .sort((a, b) => (b.tglMasuk || '').localeCompare(a.tglMasuk || ''))
         .slice(0, 5)
 
-      // Hitung karyawan yang baru masuk bulan ini
+      // Hitung karyawan yang baru masuk bulan ini dari data yang valid
       const currentMonth = new Date().toISOString().slice(0, 7)
-      const newThisMonth = allData.filter(
+      const newThisMonth = activeKaryawan.filter(
         (u) => u.tglMasuk && u.tglMasuk.startsWith(currentMonth),
       ).length
       stats.value[3].value = newThisMonth.toString()

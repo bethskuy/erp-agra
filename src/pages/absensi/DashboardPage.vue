@@ -562,7 +562,7 @@
                 </div>
 
                 <div
-                  class="col-12 col-md-5 bg-grey-1 flex column justify-between camera-control-panel"
+                  class="col-12 col-md-5 bg-grey-1 flex column justify-start camera-control-panel"
                 >
                   <div
                     class="bg-white q-pa-sm q-pa-md-md rounded-12 border-grey shadow-sm info-summary-card"
@@ -622,7 +622,7 @@
                     </div>
                   </div>
 
-                  <div class="q-mt-sm action-button-container">
+                  <div class="action-button-container">
                     <div v-if="!capturedImage">
                       <q-btn
                         unelevated
@@ -2188,7 +2188,7 @@ onUnmounted(() => {
     display: flex !important;
     flex-direction: column !important;
     flex-wrap: nowrap !important;
-    justify-content: space-between !important;
+    justify-content: flex-start !important; /* REVISI: Susun dari atas ke bawah, bukan space-between */
     background-color: #f8fafc !important;
     overflow-y: auto; /* Mencegah crash jika screen super cebol */
   }
@@ -2203,7 +2203,7 @@ onUnmounted(() => {
   }
 
   .action-button-container {
-    margin-top: auto !important; /* REVISI: Paksa tombol nempel di atas margin aman navigasi HP */
+    margin-top: 10px !important; /* REVISI: Tombol langsung di bawah info card, bukan nempel di bawah layar */
     padding-bottom: 4px !important;
     flex-shrink: 0;
   }

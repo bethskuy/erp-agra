@@ -571,6 +571,29 @@ const generateMatrixFromRoutes = () => {
       })
     }
 
+    // ✅ Tambahkan menu absensi-harian-lepas ke modul absensi secara eksplisit
+    // karena route ini mungkin belum terdaftar atau punya path khusus
+    if (modulId === 'absensi') {
+      const sudahAda = menus.some(
+        (m) =>
+          m.id.includes('absensi_harian_lepas') ||
+          m.id.includes('harian-lepas') ||
+          m.label.toLowerCase().includes('harian lepas'),
+      )
+      if (!sudahAda) {
+        menus.push({
+          id: '_absensi_harian_lepas',
+          label: 'ABSENSI HARIAN-LEPAS',
+          level: 2,
+          lihat: false,
+          buat: false,
+          ubah: false,
+          hapus: false,
+          approve: false,
+        })
+      }
+    }
+
     return { id: modulId, label: label, isActive: false, menus: menus }
   })
 }
