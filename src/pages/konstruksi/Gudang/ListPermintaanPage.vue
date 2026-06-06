@@ -1,230 +1,231 @@
 <template>
-  <q-page class="bg-grey-2 q-pa-md q-pa-md-lg font-pro">
-    <!-- HEADER SECTION (NO-PRINT) -->
-    <div class="row items-center justify-between q-mb-xl animate-fade no-print">
-      <div class="col-12 col-md-8">
-        <div class="row items-center no-wrap">
-          <q-btn
-            flat
-            round
-            color="indigo-10"
-            icon="arrow_back"
-            @click="$router.back()"
-            class="q-mr-md bg-white shadow-1"
-          />
-          <div>
-            <div class="text-h4 text-weight-bolder text-indigo-10 leading-tight">
-              Daftar Permintaan
-              <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
-                >Antrean Request & Otorisasi Material</span
-              >
-            </div>
-            <div class="text-subtitle1 text-grey-7 q-mt-sm">
-              Pantau dan proses seluruh permintaan mutasi stok secara real-time.
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- SUMMARY CARDS (NO-PRINT) -->
-    <div class="row q-col-gutter-lg q-mb-lg animate-fade-up no-print">
-      <div class="col-12 col-sm-6 col-md-3" v-for="stat in summaryStats" :key="stat.label">
-        <q-card flat class="rounded-20 border-subtle bg-white transition-all hover-shadow">
-          <q-card-section class="row items-center no-wrap q-pa-md">
-            <div class="col">
-              <div class="text-overline text-grey-6 leading-none">{{ stat.label }}</div>
-              <div class="text-h4 text-weight-bolder q-mt-xs" :class="'text-' + stat.color">
-                {{ stat.value }}
-              </div>
-            </div>
-            <div
-              :class="'bg-' + stat.color + '-1 q-pa-md rounded-borders'"
-              style="min-width: 56px; text-align: center"
-            >
-              <q-icon :name="stat.icon" :color="stat.color" size="28px" />
-            </div>
-          </q-card-section>
-        </q-card>
-      </div>
-    </div>
-
-    <!-- SEARCH & FILTER (NO-PRINT) -->
-    <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print">
-      <q-card-section class="q-py-md">
-        <div class="row items-center q-col-gutter-md">
-          <div class="col-12 col-md-5">
-            <q-input
-              v-model="filter"
-              outlined
-              dense
-              rounded
-              placeholder="Cari data permintaan..."
-              bg-color="white"
-              class="search-input"
-            >
-              <template v-slot:prepend><q-icon name="search" color="primary" /></template>
-            </q-input>
-          </div>
-          <q-space />
-          <div class="col-12 col-md-auto row items-center q-gutter-md">
-            <q-select
-              v-model="statusFilter"
-              :options="['Semua Status', 'Pending', 'Approved', 'Rejected', 'Completed']"
-              outlined
-              dense
-              rounded
-              bg-color="white"
-              style="min-width: 160px"
-              label="Filter Status"
+  <q-page class="bg-page q-pa-md font-pro relative-position">
+    <div class="animate-fade page-content-wrapper">
+      <!-- HEADER SECTION (NO-PRINT) -->
+      <div class="row items-center justify-between q-mb-md content-relative no-print">
+        <div class="col-12 q-mb-md q-mb-md-none">
+          <div class="row items-center no-wrap">
+            <q-btn
+              flat
+              round
+              color="brand-primary"
+              icon="arrow_back"
+              @click="$router.back()"
+              class="q-mr-md bg-white shadow-1"
             />
-
-            <!-- EXPORT DROPDOWN BUTTON -->
-            <q-btn-dropdown
-              unelevated
-              rounded
-              color="indigo-10"
-              icon="file_download"
-              label="Export Laporan"
-              class="shadow-1 font-bold q-px-md"
-            >
-              <q-list style="min-width: 180px">
-                <q-item clickable v-ripple @click="exportListToPDF" class="q-py-md">
-                  <q-item-section avatar>
-                    <q-avatar color="red-1" text-color="red-9" icon="picture_as_pdf" size="sm" />
-                  </q-item-section>
-                  <q-item-section class="text-weight-bold text-red-9">Export PDF</q-item-section>
-                </q-item>
-                <q-separator />
-                <q-item clickable v-ripple @click="exportListToExcel" class="q-py-md">
-                  <q-item-section avatar>
-                    <q-avatar color="green-1" text-color="green-9" icon="table_view" size="sm" />
-                  </q-item-section>
-                  <q-item-section class="text-weight-bold text-green-9"
-                    >Export Excel</q-item-section
-                  >
-                </q-item>
-              </q-list>
-            </q-btn-dropdown>
+            <div>
+              <div class="text-h4 text-weight-bolder text-brand-primary leading-tight">
+                Daftar Permintaan
+                <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
+                  >Antrean Request & Otorisasi Material</span
+                >
+              </div>
+              <div class="text-subtitle1 text-grey-7 q-mt-sm">
+                Pantau dan proses seluruh permintaan mutasi stok secara real-time.
+              </div>
+            </div>
           </div>
         </div>
-      </q-card-section>
-    </q-card>
+      </div>
 
-    <!-- REQUEST TABLE (NO-PRINT) -->
-    <q-card flat bordered class="rounded-20 shadow-sm overflow-hidden bg-white no-print">
-      <q-table
-        :rows="filteredRows"
-        :columns="columns"
-        row-key="id"
-        flat
-        :loading="loading"
-        :filter="filter"
-        binary-state-sort
-        class="permintaan-table"
-        :pagination="{ rowsPerPage: 10 }"
-      >
-        <template v-slot:header="props">
-          <q-tr :props="props" class="bg-indigo-10 text-white">
-            <q-th
-              v-for="col in props.cols"
-              :key="col.name"
+      <!-- SUMMARY CARDS (NO-PRINT) -->
+      <div class="row q-col-gutter-lg q-mb-lg animate-fade-up no-print">
+        <div class="col-12 col-sm-6 col-md-3" v-for="stat in summaryStats" :key="stat.label">
+          <q-card flat :class="stat.cardClass" class="rounded-20 transition-all hover-shadow">
+            <q-card-section class="row items-center justify-between no-wrap q-pa-md">
+              <div class="col">
+                <div class="text-overline leading-none text-weight-bold" :class="stat.labelColorClass">{{ stat.label }}</div>
+                <div class="text-h4 text-weight-bolder q-mt-xs" :class="stat.textColorClass">
+                  {{ stat.value }}
+                </div>
+              </div>
+              <div
+                class="bg-white q-pa-md rounded-borders shadow-sm flex flex-center"
+                style="min-width: 50px; height: 50px; border-radius: 12px;"
+              >
+                <q-icon :name="stat.icon" :class="stat.iconColorClass" size="28px" />
+              </div>
+            </q-card-section>
+          </q-card>
+        </div>
+      </div>
+
+      <!-- SEARCH & FILTER (NO-PRINT) -->
+      <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print">
+        <q-card-section class="q-py-md">
+          <div class="row items-center q-col-gutter-md">
+            <div class="col-12 col-md-5">
+              <q-input
+                v-model="filter"
+                outlined
+                dense
+                rounded
+                placeholder="Cari data permintaan..."
+                bg-color="white"
+                class="search-input"
+              >
+                <template v-slot:prepend><q-icon name="search" color="brand-primary" /></template>
+              </q-input>
+            </div>
+            <q-space />
+            <div class="col-12 col-md-auto row items-center q-gutter-md">
+              <q-select
+                v-model="statusFilter"
+                :options="['Semua Status', 'Pending', 'Approved', 'Rejected', 'Completed']"
+                outlined
+                dense
+                rounded
+                bg-color="white"
+                style="min-width: 160px"
+                label="Filter Status"
+                behavior="menu"
+              />
+
+              <!-- EXPORT DROPDOWN BUTTON -->
+              <q-btn-dropdown
+                unelevated
+                rounded
+                color="brand-primary"
+                icon="file_download"
+                label="Export Laporan"
+                class="shadow-premium btn-hover font-bold q-px-md"
+              >
+                <q-list style="min-width: 180px" class="bg-white rounded-borders q-py-sm">
+                  <q-item clickable v-ripple @click="exportListToPDF" class="hover-blue-btn">
+                    <q-item-section avatar>
+                      <q-avatar color="red-1" text-color="brand-danger" icon="picture_as_pdf" size="sm" />
+                    </q-item-section>
+                    <q-item-section class="text-weight-bold text-brand-danger">Export PDF</q-item-section>
+                  </q-item>
+                  <q-separator class="q-my-sm" />
+                  <q-item clickable v-ripple @click="exportListToExcel" class="hover-blue-btn">
+                    <q-item-section avatar>
+                      <q-avatar color="green-1" text-color="green-9" icon="table_view" size="sm" />
+                    </q-item-section>
+                    <q-item-section class="text-weight-bold text-green-9">Export Excel</q-item-section>
+                  </q-item>
+                </q-list>
+              </q-btn-dropdown>
+            </div>
+          </div>
+        </q-card-section>
+      </q-card>
+
+      <!-- REQUEST TABLE (NO-PRINT) -->
+      <q-card flat bordered class="rounded-20 shadow-sm overflow-hidden bg-white no-print">
+        <q-table
+          :rows="filteredRows"
+          :columns="columns"
+          row-key="id"
+          flat
+          :loading="loading"
+          :filter="filter"
+          binary-state-sort
+          class="permintaan-table"
+          :pagination="{ rowsPerPage: 10 }"
+        >
+          <template v-slot:header="props">
+            <q-tr :props="props" class="bg-brand-primary text-white">
+              <q-th
+                v-for="col in props.cols"
+                :key="col.name"
+                :props="props"
+                class="text-weight-bold uppercase font-11 tracking-widest"
+                >{{ col.label }}</q-th
+              >
+            </q-tr>
+          </template>
+          <template v-slot:body="props">
+            <q-tr
               :props="props"
-              class="text-weight-bold uppercase font-11"
-              >{{ col.label }}</q-th
+              class="hover-bg transition-all cursor-pointer"
+              @click="viewDetail(props.row)"
             >
-          </q-tr>
-        </template>
-        <template v-slot:body="props">
-          <q-tr
-            :props="props"
-            class="hover-bg transition-all cursor-pointer"
-            @click="viewDetail(props.row)"
-          >
-            <q-td key="nomor" class="text-weight-bolder text-indigo-10">
-              <div class="row items-center q-gutter-xs">
-                <span>{{ props.row.nomor || 'REQ-' + props.row.id?.slice(0, 5) }}</span>
+              <q-td key="nomor" class="text-weight-bolder text-brand-primary">
+                <div class="row items-center q-gutter-xs">
+                  <span>{{ props.row.nomor || 'REQ-' + props.row.id?.slice(0, 5) }}</span>
+                  <q-badge
+                    v-if="
+                      props.row.status === 'Approved' &&
+                      props.row.requester_read === false &&
+                      props.row.ke_gudang?.id === $route.query.warehouseId
+                    "
+                    color="positive"
+                    class="animate-bounce-subtle"
+                    >NEW</q-badge
+                  >
+                </div>
+              </q-td>
+              <q-td key="tipe">
                 <q-badge
-                  v-if="
-                    props.row.status === 'Approved' &&
-                    props.row.requester_read === false &&
-                    props.row.ke_gudang?.id === $route.query.warehouseId
-                  "
-                  color="positive"
-                  class="animate-bounce-subtle"
-                  >NEW</q-badge
+                  :color="props.row.tipe === 'ANTAR_GUDANG' ? 'orange-2' : 'blue-2'"
+                  :text-color="props.row.tipe === 'ANTAR_GUDANG' ? 'orange-10' : 'blue-10'"
+                  class="text-weight-bold"
                 >
-              </div>
-            </q-td>
-            <q-td key="tipe">
-              <q-badge
-                :color="props.row.tipe === 'ANTAR_GUDANG' ? 'orange-2' : 'blue-2'"
-                :text-color="props.row.tipe === 'ANTAR_GUDANG' ? 'orange-10' : 'blue-10'"
-                class="text-weight-bold"
-              >
-                {{ props.row.tipe === 'ANTAR_GUDANG' ? 'MUTASI' : 'PURCHASE' }}
-              </q-badge>
-            </q-td>
-            <q-td key="pemohon">
-              <div class="text-weight-bold text-blue-grey-9 uppercase font-12">
-                {{ props.row.pemohon?.nama || 'Staff' }}
-              </div>
-              <div class="text-caption text-grey-6 italic">
-                {{ formatDate(props.row.timestamp) }}
-              </div>
-            </q-td>
-            <td class="text-left">
-              <div class="text-weight-medium">
-                {{ props.row.items?.[0]?.nama_barang || 'Multiple items' }}
-                <q-badge
-                  v-if="props.row.items?.length > 1"
-                  color="grey-3"
-                  text-color="grey-8"
-                  class="q-ml-xs"
-                  >+{{ props.row.items.length - 1 }}</q-badge
+                  {{ props.row.tipe === 'ANTAR_GUDANG' ? 'MUTASI' : 'PURCHASE' }}
+                </q-badge>
+              </q-td>
+              <q-td key="pemohon">
+                <div class="text-weight-bold text-blue-grey-9 uppercase font-12">
+                  {{ props.row.pemohon?.nama || 'Staff' }}
+                </div>
+                <div class="text-caption text-grey-6 italic">
+                  {{ formatDate(props.row.timestamp) }}
+                </div>
+              </q-td>
+              <td class="text-left">
+                <div class="text-weight-medium">
+                  {{ props.row.items?.[0]?.nama_barang || 'Multiple items' }}
+                  <q-badge
+                    v-if="props.row.items?.length > 1"
+                    color="grey-3"
+                    text-color="grey-8"
+                    class="q-ml-xs"
+                    >+{{ props.row.items.length - 1 }}</q-badge
+                  >
+                </div>
+              </td>
+              <q-td key="gudang_asal">
+                <div class="row items-center no-wrap">
+                  <q-icon name="warehouse" color="grey-5" class="q-mr-xs" size="xs" />
+                  <span class="text-weight-bold">{{ props.row.dari_gudang?.nama || '-' }}</span>
+                </div>
+              </q-td>
+              <q-td key="status" class="text-center">
+                <q-chip
+                  :color="getStatusColor(props.row.status)"
+                  text-color="white"
+                  size="sm"
+                  class="text-weight-bold uppercase"
+                  >{{ props.row.status || 'Pending' }}</q-chip
                 >
-              </div>
-            </td>
-            <q-td key="gudang_asal">
-              <div class="row items-center no-wrap">
-                <q-icon name="warehouse" color="grey-5" class="q-mr-xs" size="xs" />
-                <span class="text-weight-bold">{{ props.row.dari_gudang?.nama || '-' }}</span>
-              </div>
-            </q-td>
-            <q-td key="status" class="text-center">
-              <q-chip
-                :color="getStatusColor(props.row.status)"
-                text-color="white"
-                size="sm"
-                class="text-weight-bold uppercase"
-                >{{ props.row.status || 'Pending' }}</q-chip
-              >
-            </q-td>
-            <q-td key="aksi" class="text-center" @click.stop>
-              <div class="row justify-center q-gutter-sm">
-                <q-btn
-                  flat
-                  round
-                  color="indigo-10"
-                  icon="visibility"
-                  size="sm"
-                  @click="viewDetail(props.row)"
-                />
-                <q-btn
-                  v-if="props.row.status === 'Pending'"
-                  flat
-                  round
-                  color="negative"
-                  icon="delete_outline"
-                  size="sm"
-                  @click="deleteRequest(props.row)"
-                />
-              </div>
-            </q-td>
-          </q-tr>
-        </template>
-      </q-table>
-    </q-card>
+              </q-td>
+              <q-td key="aksi" class="text-center" @click.stop>
+                <div class="row justify-center q-gutter-sm">
+                  <q-btn
+                    flat
+                    round
+                    color="brand-primary"
+                    icon="visibility"
+                    size="sm"
+                    @click="viewDetail(props.row)"
+                  />
+                  <q-btn
+                    v-if="props.row.status === 'Pending'"
+                    flat
+                    round
+                    color="brand-danger"
+                    icon="delete_outline"
+                    size="sm"
+                    @click="deleteRequest(props.row)"
+                  />
+                </div>
+              </q-td>
+            </q-tr>
+          </template>
+        </q-table>
+      </q-card>
+    </div>
 
     <!-- DETAIL DIALOG -->
     <q-dialog
@@ -236,7 +237,7 @@
     >
       <q-card class="column no-wrap overflow-hidden bg-grey-2" v-if="selectedRequest">
         <!-- HEADER (FIXED - NO-PRINT) -->
-        <q-toolbar class="bg-indigo-10 text-white q-py-md shadow-4 shrink no-print">
+        <q-toolbar class="bg-brand-primary text-white q-py-md shadow-4 shrink no-print">
           <q-icon name="assignment" size="sm" class="q-mr-sm" />
           <q-toolbar-title class="text-weight-bold uppercase letter-spacing-1"
             >Lembar Otorisasi & Editor Dokumen</q-toolbar-title
@@ -246,7 +247,7 @@
             v-if="selectedRequest.status === 'Approved' && selectedRequest.tipe === 'ANTAR_GUDANG'"
             unelevated
             color="white"
-            text-color="indigo-10"
+            text-color="brand-primary"
             icon="picture_as_pdf"
             label="EXPORT TO PDF"
             class="q-mr-md text-weight-black rounded-20 shadow-2 animate-bounce-subtle"
@@ -290,13 +291,13 @@
               <div class="row justify-end q-mb-lg">
                 <div class="col-auto text-right">
                   <div
-                    class="text-h4 text-weight-black text-indigo-10 uppercase tracking-widest leading-none"
+                    class="text-h4 text-weight-black text-brand-primary uppercase tracking-widest leading-none"
                   >
                     SURAT JALAN
                   </div>
                   <div class="text-subtitle1 text-weight-bold q-mt-xs">
                     No. Surat Jalan :
-                    <span class="text-primary font-mono">{{ editFields.nomor_sj }}</span>
+                    <span class="text-brand-primary font-mono">{{ editFields.nomor_sj }}</span>
                   </div>
                 </div>
               </div>
@@ -305,7 +306,7 @@
               <div class="row q-col-gutter-xl q-mb-lg text-left" style="font-size: 13.5px">
                 <div class="col-6">
                   <div class="text-weight-black uppercase q-mb-xs text-grey-8">Kepada Yth :</div>
-                  <div class="text-h6 text-weight-black text-indigo-10 q-mb-xs uppercase">
+                  <div class="text-h6 text-weight-black text-brand-primary q-mb-xs uppercase">
                     {{ selectedRequest.ke_gudang?.nama }}
                   </div>
                   <div class="row no-wrap q-mt-xs">
@@ -399,7 +400,7 @@
                 <div class="col-3">
                   <div class="text-weight-black q-mb-xl">Petugas Gudang</div>
                   <div style="height: 60px"></div>
-                  <div class="text-weight-black underline text-indigo-10 uppercase">
+                  <div class="text-weight-black underline text-brand-primary uppercase">
                     {{ selectedRequest.processedBy || 'Petugas' }}
                   </div>
                   <div class="text-caption text-bold text-grey-8 uppercase">
@@ -454,15 +455,15 @@
               <q-card
                 flat
                 bordered
-                class="rounded-20 q-mb-xl bg-white shadow-premium border-indigo-thin overflow-hidden"
+                class="rounded-20 q-mb-xl bg-white shadow-premium border-brand-light-thin overflow-hidden"
               >
-                <q-card-section class="bg-indigo-1 q-pa-md row items-center">
-                  <q-icon name="tune" color="indigo-10" size="sm" class="q-mr-sm" />
-                  <div class="text-weight-bold text-indigo-10 uppercase letter-spacing-1">
+                <q-card-section class="bg-brand-light q-pa-md row items-center">
+                  <q-icon name="tune" color="brand-primary" size="sm" class="q-mr-sm" />
+                  <div class="text-weight-bold text-brand-primary uppercase letter-spacing-1">
                     Konfigurasi Ekspor Surat Jalan (PDF Editor)
                   </div>
                   <q-space />
-                  <q-badge color="indigo-10" class="q-px-md q-py-xs">READY TO EXPORT</q-badge>
+                  <q-badge color="brand-primary" class="q-px-md q-py-xs">READY TO EXPORT</q-badge>
                 </q-card-section>
 
                 <q-card-section class="q-pa-xl">
@@ -485,7 +486,7 @@
                           :disable="selectedRequest.status !== 'Pending'"
                         >
                           <template v-slot:prepend
-                            ><q-icon name="cloud_upload" color="primary"
+                            ><q-icon name="cloud_upload" color="brand-primary"
                           /></template>
                         </q-file>
                       </div>
@@ -512,7 +513,7 @@
                         v-model="editFields.nomor_sj"
                         label="No. Surat Jalan (Override)"
                         stack-label
-                        bg-color="blue-grey-1"
+                        bg-color="white"
                         :readonly="selectedRequest.status !== 'Pending'"
                       />
                     </div>
@@ -561,12 +562,12 @@
                 <div class="col-12 col-md-5 text-center">
                   <q-avatar
                     size="80px"
-                    color="orange-1"
-                    text-color="orange-10"
+                    color="brand-light"
+                    text-color="brand-primary"
                     icon="warehouse"
-                    class="shadow-2"
+                    class="shadow-2 text-weight-bold"
                   />
-                  <div class="text-h6 q-mt-sm text-weight-bold text-orange-10">
+                  <div class="text-h6 q-mt-sm text-weight-bold text-brand-primary">
                     {{ selectedRequest.dari_gudang?.nama }}
                   </div>
                   <div class="text-overline text-grey-7 text-weight-bold uppercase q-mt-xs">
@@ -574,10 +575,10 @@
                   </div>
                 </div>
                 <div class="col-12 col-md-2 column items-center q-py-md">
-                  <q-icon name="double_arrow" size="lg" color="indigo-10" />
+                  <q-icon name="double_arrow" size="lg" color="brand-primary" />
                   <q-badge
-                    color="grey-3"
-                    text-color="indigo-10"
+                    color="brand-light"
+                    text-color="brand-primary"
                     class="q-mt-sm text-weight-bold q-px-md"
                     >{{ selectedRequest.items?.length || 0 }} Items</q-badge
                   >
@@ -585,12 +586,12 @@
                 <div class="col-12 col-md-5 text-center">
                   <q-avatar
                     size="80px"
-                    color="green-1"
-                    text-color="green-10"
+                    color="brand-light"
+                    text-color="brand-primary"
                     icon="domain_verification"
-                    class="shadow-2"
+                    class="shadow-2 text-weight-bold"
                   />
-                  <div class="text-h6 q-mt-sm text-weight-bold text-green-10">
+                  <div class="text-h6 q-mt-sm text-weight-bold text-brand-primary">
                     {{ selectedRequest.ke_gudang?.nama }}
                   </div>
                   <div class="text-overline text-grey-7 text-weight-bold uppercase q-mt-xs">
@@ -601,10 +602,14 @@
 
               <!-- EDIT KETERANGAN & JUMLAH (QTY) ITEM -->
               <div
-                class="text-h6 text-weight-bold text-blue-grey-10 q-mb-md uppercase flex items-center text-left"
+                class="row items-center justify-start q-mb-md q-col-gutter-xs text-left"
               >
-                <q-icon name="edit_note" class="q-mr-sm" color="indigo-10" size="md" /> Sesuaikan
-                Qty & Keterangan Pengiriman
+                <div class="col-auto">
+                  <q-icon name="edit_note" color="brand-primary" size="md" />
+                </div>
+                <div class="col text-h6 text-weight-bold text-blue-grey-10 uppercase">
+                  Sesuaikan Qty & Keterangan Pengiriman
+                </div>
               </div>
               <q-markup-table
                 flat
@@ -612,8 +617,8 @@
                 separator="horizontal"
                 class="rounded-20 q-mb-xl border-subtle bg-white shadow-sm overflow-hidden"
               >
-                <thead class="bg-indigo-1">
-                  <tr class="text-weight-bold text-white">
+                <thead class="bg-brand-light">
+                  <tr class="text-weight-bold text-brand-primary">
                     <th class="text-left q-pa-md" width="100">KODE</th>
                     <th class="text-left q-pa-md">DESKRIPSI MATERIAL</th>
                     <th class="text-center" width="120">QTY DIKIRIM</th>
@@ -625,8 +630,8 @@
                   <tr v-for="(item, i) in selectedRequest.items" :key="i">
                     <td class="text-left q-pa-md">
                       <q-badge
-                        color="grey-3"
-                        text-color="blue-grey-9"
+                        color="brand-light"
+                        text-color="brand-primary"
                         class="font-mono text-weight-bold shadow-sm q-px-sm q-py-xs"
                       >
                         {{ getKodeBarang(item.id_barang) }}
@@ -645,11 +650,11 @@
                         dense
                         outlined
                         bg-color="white"
-                        input-class="text-center text-weight-black text-indigo-10 text-h6"
+                        input-class="text-center text-weight-black text-brand-primary text-h6"
                         :rules="[(val) => val > 0 || 'Min 1']"
                         hide-bottom-space
                       />
-                      <div v-else class="text-h6 text-weight-black text-indigo-10">
+                      <div v-else class="text-h6 text-weight-black text-brand-primary">
                         {{ item.qty }}
                       </div>
                     </td>
@@ -684,8 +689,8 @@
             <div v-if="canApproveThisRequest" class="row full-width q-col-gutter-lg justify-center">
               <div class="col-12 col-md-4">
                 <q-btn
-                  color="positive"
-                  class="full-width text-weight-black rounded-20 q-py-lg shadow-8 btn-hover"
+                  color="brand-primary"
+                  class="full-width text-weight-black rounded-20 q-py-lg shadow-premium btn-hover"
                   icon="verified"
                   label="SETUJUI & MUTASI STOK"
                   unelevated
@@ -695,7 +700,7 @@
               <div class="col-12 col-md-4">
                 <q-btn
                   outline
-                  color="negative"
+                  color="brand-danger"
                   class="full-width text-weight-bold rounded-20 q-py-lg bg-white"
                   icon="block"
                   label="TOLAK PERMINTAAN"
@@ -757,7 +762,7 @@
         <div
           class="report-header"
           style="
-            background: linear-gradient(90deg, #1a237e 0%, #3949ab 100%);
+            background: linear-gradient(90deg, #36ada3 0%, #1e6e69 100%);
             padding: 18px;
             border-radius: 12px;
             color: white;
@@ -832,17 +837,17 @@
             border-collapse: collapse;
             font-size: 11px;
             margin-top: 15px;
-            border: 1px solid #1a237e;
+            border: 1px solid #36ada3;
           "
         >
           <thead>
             <tr>
               <th
                 style="
-                  background-color: #1a237e;
+                  background-color: #36ada3;
                   color: white;
                   padding: 12px 6px;
-                  border: 1px solid #1a237e;
+                  border: 1px solid #36ada3;
                   text-align: center;
                   width: 40px;
                   font-weight: 900;
@@ -852,10 +857,10 @@
               </th>
               <th
                 style="
-                  background-color: #1a237e;
+                  background-color: #36ada3;
                   color: white;
                   padding: 12px 6px;
-                  border: 1px solid #1a237e;
+                  border: 1px solid #36ada3;
                   text-align: center;
                   width: 110px;
                   font-weight: 900;
@@ -865,10 +870,10 @@
               </th>
               <th
                 style="
-                  background-color: #1a237e;
+                  background-color: #36ada3;
                   color: white;
                   padding: 12px 6px;
-                  border: 1px solid #1a237e;
+                  border: 1px solid #36ada3;
                   text-align: left;
                   font-weight: 900;
                 "
@@ -877,10 +882,10 @@
               </th>
               <th
                 style="
-                  background-color: #1a237e;
+                  background-color: #36ada3;
                   color: white;
                   padding: 12px 6px;
-                  border: 1px solid #1a237e;
+                  border: 1px solid #36ada3;
                   text-align: left;
                   font-weight: 900;
                 "
@@ -889,10 +894,10 @@
               </th>
               <th
                 style="
-                  background-color: #1a237e;
+                  background-color: #36ada3;
                   color: white;
                   padding: 12px 6px;
-                  border: 1px solid #1a237e;
+                  border: 1px solid #36ada3;
                   text-align: left;
                   font-weight: 900;
                 "
@@ -901,10 +906,10 @@
               </th>
               <th
                 style="
-                  background-color: #1a237e;
+                  background-color: #36ada3;
                   color: white;
                   padding: 12px 6px;
-                  border: 1px solid #1a237e;
+                  border: 1px solid #36ada3;
                   text-align: center;
                   width: 90px;
                   font-weight: 900;
@@ -940,7 +945,7 @@
                   padding: 10px 6px;
                   border: 1px solid #e0e0e0;
                   font-weight: 900;
-                  color: #1a237e;
+                  color: #36ada3;
                   text-align: center;
                 "
               >
@@ -1264,8 +1269,8 @@ const exportListToExcel = () => {
     <style>
       .table-bordered { border-collapse: collapse; width: 100%; font-family: sans-serif; font-size: 12px; }
       .table-bordered th, .table-bordered td { border: 1px solid #dddddd; padding: 8px; }
-      .header-row th { background-color: #1a237e; color: #ffffff; font-weight: bold; text-align: center; }
-      .title { font-size: 18px; font-weight: bold; color: #1a237e; font-family: sans-serif; }
+      .header-row th { background-color: #36ada3; color: #ffffff; font-weight: bold; text-align: center; }
+      .title { font-size: 18px; font-weight: bold; color: #36ada3; font-family: sans-serif; }
       .subtitle { font-size: 12px; color: #333333; font-family: sans-serif; }
       .status-approved { color: #2e7d32; font-weight: bold; }
       .status-pending { color: #e65100; font-weight: bold; }
@@ -1298,7 +1303,7 @@ const exportListToExcel = () => {
     html += `
       <tr>
         <td align="center">${idx + 1}</td>
-        <td style="font-weight: bold; color: #1a237e;">${row.nomor || 'REQ-' + row.id?.slice(0, 5)}</td>
+        <td style="font-weight: bold; color: #36ada3;">${row.nomor || 'REQ-' + row.id?.slice(0, 5)}</td>
         <td style="font-weight: bold;">${row.tipe === 'ANTAR_GUDANG' ? 'MUTASI STOK' : 'PURCHASE REQUEST'}</td>
         <td>${row.pemohon?.nama || 'Staff'}</td>
         <td align="center">${formatDate(row.timestamp)}</td>
@@ -1408,9 +1413,8 @@ const processApproval = async (status) => {
               throw new Error(`Stok ${item.nama_barang} tidak ditemukan di gudang sumber!`)
             const sourceDoc = sourceSnap.docs[0]
             if (sourceDoc.data().jumlah < qty)
-              throw new Error(
-                `Stok ${item.nama_barang} kurang dari yang disetujui! (Diminta: ${qty}, Sisa: ${sourceDoc.data().jumlah})`,
-              )
+              throw new Error
+                `Stok ${item.nama_barang} kurang dari yang disetujui! (Diminta: ${qty}, Sisa: ${sourceDoc.data().jumlah})`
 
             const destRefQuery = query(
               collection(db, 'stok_barang'),
@@ -1492,7 +1496,7 @@ const processApproval = async (status) => {
 
 const deleteRequest = (row) => {
   $q.dialog({
-    title: 'Hapus Draft?',
+    title: 'Hapus Draf?',
     message: 'Hapus permanen permintaan nomor ' + row.nomor + '?',
     cancel: true,
     ok: { color: 'negative', label: 'Hapus' },
@@ -1528,24 +1532,41 @@ const baseList = computed(() => {
 const summaryStats = computed(() => {
   const r = baseList.value
   return [
-    { label: 'Total Request', value: r.length, icon: 'list_alt', color: 'indigo' },
+    {
+      label: 'Total Request',
+      value: r.length,
+      icon: 'list_alt',
+      cardClass: 'bg-card-blue shadow-premium border-none text-white',
+      textColorClass: 'text-white',
+      labelColorClass: 'text-blue-1',
+      iconColorClass: 'text-brand-primary',
+    },
     {
       label: 'Pending',
       value: r.filter((x) => x.status === 'Pending').length,
       icon: 'pending',
-      color: 'orange-9',
+      cardClass: 'bg-card-orange shadow-premium border-none text-white',
+      textColorClass: 'text-white',
+      labelColorClass: 'text-orange-1',
+      iconColorClass: 'text-orange-9',
     },
     {
       label: 'Approved',
       value: r.filter((x) => x.status === 'Approved' || x.status === 'Completed').length,
       icon: 'check_circle',
-      color: 'positive',
+      cardClass: 'bg-card-green shadow-premium border-none text-white',
+      textColorClass: 'text-white',
+      labelColorClass: 'text-green-1',
+      iconColorClass: 'text-success',
     },
     {
       label: 'Rejected',
       value: r.filter((x) => x.status === 'Rejected').length,
       icon: 'cancel',
-      color: 'negative',
+      cardClass: 'bg-card-red shadow-premium border-none text-white',
+      textColorClass: 'text-white',
+      labelColorClass: 'text-red-1',
+      iconColorClass: 'text-brand-danger',
     },
   ]
 })
@@ -1572,7 +1593,7 @@ onUnmounted(() => {
 <style scoped>
 .font-pro {
   font-family:
-    'Inter',
+    'Plus Jakarta Sans',
     -apple-system,
     sans-serif;
 }
@@ -1584,13 +1605,13 @@ onUnmounted(() => {
   border-radius: 20px;
 }
 .shadow-premium {
-  box-shadow: 0 10px 40px rgba(25, 118, 210, 0.15);
+  box-shadow: 0 10px 30px rgba(54, 173, 163, 0.2);
 }
 .border-subtle {
   border: 1px solid rgba(0, 0, 0, 0.05);
 }
-.border-indigo-thin {
-  border: 1px solid rgba(26, 35, 126, 0.1);
+.border-brand-light-thin {
+  border: 1px solid rgba(54, 173, 163, 0.1);
 }
 .border-black-solid {
   border: 1.5px solid #000;
@@ -1608,13 +1629,13 @@ onUnmounted(() => {
   letter-spacing: 0.5px;
 }
 .hover-bg:hover {
-  background-color: rgba(25, 118, 210, 0.03) !important;
+  background-color: rgba(54, 173, 163, 0.06) !important;
 }
 .transition-all {
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 .btn-hover:hover {
-  transform: translateY(-4px);
+  transform: translateY(-2px);
   filter: brightness(1.1);
   transition: 0.3s;
 }
@@ -1634,7 +1655,7 @@ onUnmounted(() => {
 
 /* REPORT PDF EXPORT STYLES (HIDDEN) */
 .report-paper {
-  font-family: 'Inter', Helvetica, Arial, sans-serif;
+  font-family: 'Plus Jakarta Sans', Helvetica, Arial, sans-serif;
   color: #333;
   padding: 10px;
   background: white;
@@ -1643,11 +1664,11 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   margin-bottom: 20px;
-  border-bottom: 3px solid #1a237e;
+  border-bottom: 3px solid #36ada3;
   padding-bottom: 15px;
 }
 .report-icon {
-  background-color: #1a237e;
+  background-color: #36ada3;
   border-radius: 8px;
   width: 50px;
   height: 50px;
@@ -1675,7 +1696,7 @@ onUnmounted(() => {
   font-size: 11px;
 }
 .report-table th {
-  background-color: #1a237e;
+  background-color: #36ada3;
   color: white;
   padding: 12px;
   border: 1px solid #e0e0e0;
@@ -1716,7 +1737,7 @@ onUnmounted(() => {
 .text-pt-pro {
   font-size: 26px;
   font-weight: 900;
-  color: #1a237e !important;
+  color: #36ada3 !important;
   letter-spacing: -1px;
 }
 .text-pt-tagline {
@@ -1795,4 +1816,184 @@ onUnmounted(() => {
   border: 2px dashed #ff9800;
   border-radius: 12px;
 }
+
+.hover-blue-btn:hover {
+  background-color: #e0f5f4 !important;
+  color: #1e6e69 !important;
+}
+
+/* ===== QUASAR COMPONENT DEEP OVERRIDES ===== */
+/* Primary buttons and elements */
+:deep(.bg-brand-primary) {
+  background: #36ada3 !important;
+  color: white !important;
+}
+:deep(.q-btn.bg-brand-primary) {
+  background: #36ada3 !important;
+  color: white !important;
+}
+:deep(.q-btn-dropdown.bg-brand-primary) {
+  background: #36ada3 !important;
+  color: white !important;
+}
+:deep(.q-avatar[color='brand-primary']) {
+  background-color: #36ada3 !important;
+  color: white !important;
+}
+:deep(.q-avatar[color='brand-light']) {
+  background-color: #e0f5f4 !important;
+  color: #1e6e69 !important;
+}
+:deep(.q-btn[color='brand-danger']) {
+  color: #ad3640 !important;
+}
+:deep(.q-btn--flat[color='brand-danger']) {
+  color: #ad3640 !important;
+}
+:deep(.q-btn--flat[color='brand-primary']) {
+  color: #36ada3 !important;
+}
+:deep(.q-icon[color='brand-primary']),
+:deep(.q-field__prepend .q-icon) {
+  color: #36ada3 !important;
+}
+:deep(.q-expansion-item .q-item__section--avatar .q-icon) {
+  color: #36ada3 !important;
+}
+:deep(.q-field--focused .q-field__control) {
+  border-color: #36ada3 !important;
+}
+:deep(.q-field--focused .q-field__label) {
+  color: #36ada3 !important;
+}
+
+.text-brand-primary {
+  color: #36ada3 !important;
+}
+.text-brand-teal {
+  color: #1e6e69 !important;
+}
+.text-brand-danger {
+  color: #ad3640 !important;
+}
+.bg-brand-light {
+  background-color: #e0f5f4 !important;
+}
+.bg-brand-danger-light {
+  background-color: #fce8e6 !important;
+}
+.text-warning {
+  color: #e65100 !important;
+}
+.bg-warning-light {
+  background-color: #fff3e0 !important;
+}
+.bg-success-light {
+  background-color: #e8f5e9 !important;
+}
+.text-success {
+  color: #2e7d32 !important;
+}
+.border-brand-light-thin {
+  border: 1px solid rgba(54, 173, 163, 0.15) !important;
+}
+.border-warning-thin {
+  border: 1px solid rgba(230, 81, 0, 0.15) !important;
+}
+.border-success-thin {
+  border: 1px solid rgba(46, 125, 50, 0.15) !important;
+}
+.border-danger-thin {
+  border: 1px solid rgba(173, 54, 64, 0.15) !important;
+}
+
+.bg-card-blue {
+  background: linear-gradient(135deg, #0b6eb8 0%, #027be3 100%) !important;
+}
+.bg-card-orange {
+  background: linear-gradient(135deg, #f57c00 0%, #ff9800 100%) !important;
+}
+.bg-card-green {
+  background: linear-gradient(135deg, #0b8a4f 0%, #0f9d58 100%) !important;
+}
+.bg-card-red {
+  background: linear-gradient(135deg, #ad2218 0%, #d93025 100%) !important;
+}
+.text-blue-1 {
+  color: #e3f2fd !important;
+  opacity: 0.9;
+}
+.text-orange-1 {
+  color: #fff3e0 !important;
+  opacity: 0.9;
+}
+.text-green-1 {
+  color: #e8f5e9 !important;
+  opacity: 0.9;
+}
+.text-red-1 {
+  color: #ffebee !important;
+  opacity: 0.9;
+}
+
+/* Card premium hover effects */
+.hover-shadow {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.hover-shadow:hover {
+  transform: translateY(-6px) scale(1.02);
+}
+
+.bg-card-blue:hover {
+  box-shadow: 0 15px 30px rgba(11, 110, 184, 0.45) !important;
+}
+
+.bg-card-orange:hover {
+  box-shadow: 0 15px 30px rgba(245, 124, 0, 0.45) !important;
+}
+
+.bg-card-green:hover {
+  box-shadow: 0 15px 30px rgba(11, 138, 79, 0.45) !important;
+}
+
+.bg-card-red:hover {
+  box-shadow: 0 15px 30px rgba(173, 34, 24, 0.45) !important;
+}
+
+/* Diagonal glassmorphic shine animation */
+.hover-shadow::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 150%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-25deg);
+  transition: 0.75s ease;
+  pointer-events: none;
+}
+
+.hover-shadow:hover::after {
+  left: 125%;
+}
+
+/* Micro-interaction for the inner white icon container */
+.hover-shadow .shadow-sm {
+  transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+.hover-shadow:hover .shadow-sm {
+  transform: scale(1.12) rotate(6deg);
+}
 </style>
+

@@ -27,3 +27,43 @@ body {
     padding: 0 24px;
   }
 }
+
+/* ===== BRAND COLOR PALETTE ===== */
+:root {
+  --brand-primary: #36ada3;
+  --brand-primary-dark: #1e6e69;
+  --brand-primary-light: #e0f5f4;
+  --brand-primary-mid: #b2e5e2;
+  --brand-danger: #ad3640;
+  --brand-danger-dark: #7a2028;
+  --brand-danger-light: #f7e0e1;
+  --page-bg: #f0fafa;
+}
+
+.bg-brand-primary {
+  background-color: #36ada3 !important;
+}
+.bg-brand-light {
+  background-color: #e0f5f4 !important;
+}
+.bg-brand-danger {
+  background-color: #ad3640 !important;
+}
+.text-brand-primary {
+  color: #36ada3 !important;
+}
+.text-brand-teal {
+  color: #36ada3 !important;
+}
+.text-brand-danger {
+  color: #ad3640 !important;
+}
+.bg-page {
+  background-color: #f0fafa !important;
+}
+
+/* ── Custom Brand Gradients ── */
+.card-brand-gradient {
+  background: linear-gradient(135deg, #36ada3 0%, #1e6e69 100%) !important;
+  box-shadow: 0 8px 24px rgba(54, 173, 163, 0.35) !important;
+}

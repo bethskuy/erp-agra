@@ -1,247 +1,180 @@
 <template>
-  <q-page class="bg-grey-2 q-pa-md q-pa-lg-lg font-pro page-wrapper" @click.self="handlePageClick">
-    <!-- FLOATING CONSTRUCTION ANIMATION CONTAINER -->
-    <div class="floating-hearts-container" aria-hidden="true">
-      <span v-for="h in floatingHearts" :key="h.id" class="floating-heart" :style="h.style">{{
-        h.icon
-      }}</span>
-    </div>
-
-    <!-- CLICK CONSTRUCTION EFFECT -->
-    <div class="click-hearts-container" aria-hidden="true">
-      <span
-        v-for="ch in clickHearts"
-        :key="ch.id"
-        class="click-heart"
-        :style="{
-          left: ch.x + 'px',
-          top: ch.y + 'px',
-          '--tx': ch.tx + 'px',
-          '--ty': ch.ty + 'px',
-          fontSize: ch.size + 'px',
-        }"
-        >{{ ch.icon }}</span
-      >
-    </div>
+  <q-page class="bg-page q-pa-md font-pro relative-position">
+    <div class="page-content-wrapper">
 
     <!-- =====================================================================================
          SCREEN 1: LOCK SCREEN JIKA TIDAK MEMILIKI AKSES LIHAT
          ===================================================================================== -->
 
-    <template v-if="!canAction('lihat')">
-      <div
-        class="row flex-center q-pa-xl text-center font-pro animate-fade"
-        style="min-height: 70vh"
-      >
+      <template v-if="!canAction('lihat')">
         <div
-          class="col-12 col-sm-8 col-md-6 bg-white q-pa-xl rounded-20 shadow-premium border-teal-thin"
+          class="row flex-center q-pa-xl text-center font-pro animate-fade"
+          style="min-height: 70vh"
         >
-          <q-avatar size="100px" color="teal-1" text-color="teal-10" icon="lock" class="q-mb-md" />
-          <div class="text-h5 text-weight-bold text-blue-grey-10 q-mb-xs">Akses Terbatas</div>
-          <div class="text-body2 text-grey-7 q-mb-lg leading-relaxed">
-            Maaf, Anda tidak memiliki izin untuk melihat modul Invoice Customer. Silakan hubungi
-            Administrator atau Super Admin untuk konfigurasi hak akses Anda.
+          <div
+            class="col-12 col-sm-8 col-md-6 bg-white q-pa-xl rounded-20 shadow-premium border-subtle"
+          >
+            <q-avatar size="100px" color="brand-light" text-color="brand-primary" icon="lock" class="q-mb-md" />
+            <div class="text-h5 text-weight-bold text-blue-grey-10 q-mb-xs">Akses Terbatas</div>
+            <div class="text-body2 text-grey-7 q-mb-lg leading-relaxed">
+              Maaf, Anda tidak memiliki izin untuk melihat modul Invoice Customer. Silakan hubungi
+              Administrator atau Super Admin untuk konfigurasi hak akses Anda.
+            </div>
+            <q-btn
+              label="Kembali ke Beranda"
+              color="brand-primary"
+              icon="arrow_back"
+              rounded
+              unelevated
+              no-caps
+              @click="$router.push('/')"
+              class="shadow-premium btn-hover text-weight-bold"
+            />
           </div>
-          <q-btn
-            label="Kembali ke Beranda"
-            color="teal-accent"
-            icon="arrow_back"
-            rounded
-            unelevated
-            no-caps
-            @click="$router.push('/')"
-            class="btn-teal-main"
-          />
         </div>
-      </div>
-    </template>
+      </template>
 
     <!-- =====================================================================================
          SCREEN 2: KONTEN UTAMA JIKA AKSES OK
          ===================================================================================== -->
 
     <template v-else>
-      <!-- HEADER SECTION -->
-      <div class="row items-center justify-between q-mb-xl animate-fade no-print">
-        <div class="col-12 col-md-8">
-          <div class="row items-center no-wrap">
-            <div>
-              <div class="text-h4 text-weight-bolder text-blue-grey-10 leading-tight">
-                Invoice Customer
-                <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
-                  >Account Receivable (Piutang Usaha)</span
-                >
-              </div>
-              <div class="text-subtitle1 text-grey-7 q-mt-sm">
-                Buat dan kelola tagihan (Invoice) kepada Klien berdasarkan termin proyek atau Surat
-                Perintah Kerja (SPK).
+        <!-- HEADER SECTION -->
+        <div class="row items-center justify-between q-mb-lg animate-fade no-print">
+          <div class="col-12">
+            <div class="row items-center no-wrap">
+              <div>
+                <div class="text-h4 text-weight-bolder text-brand-primary leading-tight">
+                  Invoice Customer
+                  <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
+                    >Account Receivable (Piutang Usaha)</span
+                  >
+                </div>
+                <div class="text-subtitle1 text-grey-7 q-mt-sm">
+                  Buat dan kelola tagihan (Invoice) kepada Klien berdasarkan termin proyek atau Surat
+                  Perintah Kerja (SPK).
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="col-12 col-md-auto q-mt-md q-mt-md-none btn-new-invoice-wrapper">
-          <q-btn-dropdown
-            icon="add_circle"
-            label="Buat Invoice Baru"
-            unelevated
-            rounded
-            no-caps
-            class="q-px-md q-py-sm btn-teal-main text-weight-bold btn-new-invoice"
-          >
-            <q-list class="bg-white rounded-borders">
-              <q-item
-                clickable
-                v-close-popup
-                @click="handleCreate('manual')"
-                class="hover-teal-btn"
-              >
-                <q-item-section avatar>
-                  <q-avatar color="teal-1" text-color="teal-10" icon="edit_document" size="sm" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label class="text-weight-bold">Buat Invoice Manual</q-item-label>
-                  <q-item-label caption>Input deskripsi tagihan manual</q-item-label>
-                </q-item-section>
-              </q-item>
+        <!-- SUMMARY CARDS / KPI FINANCE -->
+        <div class="row q-col-gutter-lg q-mb-lg animate-fade-up no-print">
+          <!-- Total Invoice — Brand Teal -->
+          <div class="col-12 col-sm-6 col-md-3">
+            <q-card flat class="list-card rounded-20 card-brand-gradient text-white transition-all hover-shadow">
+              <q-card-section class="row items-center no-wrap q-pa-md">
+                <div class="col">
+                  <div
+                    class="text-caption text-weight-bold tracking-widest uppercase font-10 q-mb-xs"
+                    style="color: rgba(255, 255, 255, 0.85)"
+                  >
+                    TOTAL INVOICE
+                  </div>
+                  <div class="text-h5 text-weight-black">{{ rows.length }}</div>
+                </div>
+                <div class="col-auto">
+                  <q-avatar
+                    size="48px"
+                    color="white"
+                    text-color="brand-primary"
+                    icon="receipt_long"
+                    class="shadow-2 rounded-12"
+                  />
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
 
-              <q-separator />
+          <!-- Outstanding — Orange -->
+          <div class="col-12 col-sm-6 col-md-3">
+            <q-card flat class="list-card rounded-20 card-orange-gradient text-white transition-all hover-shadow">
+              <q-card-section class="row items-center no-wrap q-pa-md">
+                <div class="col">
+                  <div
+                    class="text-caption text-weight-bold tracking-widest uppercase font-10 q-mb-xs"
+                    style="color: rgba(255, 255, 255, 0.85)"
+                  >
+                    MENUNGGU REVIEW
+                  </div>
+                  <div class="text-h5 text-weight-black">
+                    {{ countByStatus('Terkirim') }}
+                  </div>
+                </div>
+                <div class="col-auto">
+                  <q-avatar
+                    size="48px"
+                    color="white"
+                    text-color="orange-9"
+                    icon="pending_actions"
+                    class="shadow-2 rounded-12"
+                  />
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
 
-              <q-item
-                clickable
-                v-close-popup
-                @click="handleCreate('kontrak')"
-                class="hover-teal-btn"
-              >
-                <q-item-section avatar>
-                  <q-avatar color="green-1" text-color="green-10" icon="assignment" size="sm" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label class="text-weight-bold">Buat Invoice Kontrak</q-item-label>
-                  <q-item-label caption>Tarik data dari SPK (BOQ)</q-item-label>
-                </q-item-section>
-              </q-item>
-            </q-list>
-          </q-btn-dropdown>
+          <!-- Lunas — Green -->
+          <div class="col-12 col-sm-6 col-md-3">
+            <q-card flat class="list-card rounded-20 card-green-gradient text-white transition-all hover-shadow">
+              <q-card-section class="row items-center no-wrap q-pa-md">
+                <div class="col">
+                  <div
+                    class="text-caption text-weight-bold tracking-widest uppercase font-10 q-mb-xs"
+                    style="color: rgba(255, 255, 255, 0.85)"
+                  >
+                    INVOICE DISETUJUI
+                  </div>
+                  <div class="text-h5 text-weight-black">
+                    {{ countByStatus('Lunas') }}
+                  </div>
+                </div>
+                <div class="col-auto">
+                  <q-avatar
+                    size="48px"
+                    color="white"
+                    text-color="positive"
+                    icon="task_alt"
+                    class="shadow-2 rounded-12"
+                  />
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+
+          <!-- Total Piutang — Red -->
+          <div class="col-12 col-sm-6 col-md-3">
+            <q-card flat class="list-card rounded-20 card-red-gradient text-white transition-all hover-shadow">
+              <q-card-section class="row items-center no-wrap q-pa-md">
+                <div class="col">
+                  <div
+                    class="text-caption text-weight-bold tracking-widest uppercase font-10 q-mb-xs"
+                    style="color: rgba(255, 255, 255, 0.85)"
+                  >
+                    INVOICE DITOLAK
+                  </div>
+                  <div class="text-h6 text-weight-black">{{ countByApprovalStatus('Rejected') }}</div>
+                </div>
+                <div class="col-auto">
+                  <q-avatar
+                    size="48px"
+                    color="white"
+                    text-color="negative"
+                    icon="cancel"
+                    class="shadow-2 rounded-12"
+                  />
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
         </div>
-      </div>
-
-      <!-- SUMMARY CARDS / KPI FINANCE -->
-      <div class="row q-col-gutter-lg q-mb-lg animate-fade-up no-print">
-        <!-- Total Invoice — Teal/Hijau -->
-        <div class="col-12 col-sm-6 col-md-3">
-          <q-card flat class="list-card rounded-20 card-teal-gradient text-white">
-            <q-card-section class="row items-center no-wrap q-pa-md">
-              <div class="col">
-                <div
-                  class="text-caption text-weight-bold tracking-widest uppercase font-10 q-mb-xs"
-                  style="color: rgba(255, 255, 255, 0.75)"
-                >
-                  TOTAL INVOICE
-                </div>
-                <div class="text-h5 text-weight-black">{{ rows.length }}</div>
-              </div>
-              <div class="col-auto">
-                <q-avatar
-                  size="48px"
-                  color="white"
-                  text-color="teal-9"
-                  icon="receipt_long"
-                  class="shadow-2 rounded-12"
-                />
-              </div>
-            </q-card-section>
-          </q-card>
-        </div>
-
-        <!-- Outstanding — Orange -->
-        <div class="col-12 col-sm-6 col-md-3">
-          <q-card flat class="list-card rounded-20 card-orange-gradient text-white">
-            <q-card-section class="row items-center no-wrap q-pa-md">
-              <div class="col">
-                <div
-                  class="text-caption text-weight-bold tracking-widest uppercase font-10 q-mb-xs"
-                  style="color: rgba(255, 255, 255, 0.75)"
-                >
-                  MENUNGGU REVIEW
-                </div>
-                <div class="text-h5 text-weight-black">
-                  {{ countByStatus('Terkirim') }}
-                </div>
-              </div>
-              <div class="col-auto">
-                <q-avatar
-                  size="48px"
-                  color="white"
-                  text-color="orange-9"
-                  icon="pending_actions"
-                  class="shadow-2 rounded-12"
-                />
-              </div>
-            </q-card-section>
-          </q-card>
-        </div>
-
-        <!-- Lunas — Teal Darker -->
-        <div class="col-12 col-sm-6 col-md-3">
-          <q-card flat class="list-card rounded-20 card-teal-dark-gradient text-white">
-            <q-card-section class="row items-center no-wrap q-pa-md">
-              <div class="col">
-                <div
-                  class="text-caption text-weight-bold tracking-widest uppercase font-10 q-mb-xs"
-                  style="color: rgba(255, 255, 255, 0.75)"
-                >
-                  INVOICE DISETUJUI
-                </div>
-                <div class="text-h5 text-weight-black">
-                  {{ countByStatus('Lunas') }}
-                </div>
-              </div>
-              <div class="col-auto">
-                <q-avatar
-                  size="48px"
-                  color="white"
-                  text-color="teal-10"
-                  icon="task_alt"
-                  class="shadow-2 rounded-12"
-                />
-              </div>
-            </q-card-section>
-          </q-card>
-        </div>
-
-        <!-- Total Piutang — Red -->
-        <div class="col-12 col-sm-6 col-md-3">
-          <q-card flat class="list-card rounded-20 card-red-gradient text-white">
-            <q-card-section class="row items-center no-wrap q-pa-md">
-              <div class="col">
-                <div
-                  class="text-caption text-weight-bold tracking-widest uppercase font-10 q-mb-xs"
-                  style="color: rgba(255, 255, 255, 0.75)"
-                >
-                  INVOICE DITOLAK
-                </div>
-                <div class="text-h6 text-weight-black">{{ countByApprovalStatus('Rejected') }}</div>
-              </div>
-              <div class="col-auto">
-                <q-avatar
-                  size="48px"
-                  color="white"
-                  text-color="red-9"
-                  icon="cancel"
-                  class="shadow-2 rounded-12"
-                />
-              </div>
-            </q-card-section>
-          </q-card>
-        </div>
-      </div>
 
       <!-- SEARCH & FILTER AREA -->
-      <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print">
+      <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print border-subtle">
         <q-card-section class="q-py-md">
-          <div class="row items-center q-col-gutter-md">
-            <div class="col-12 col-md-5">
+          <div class="row items-center justify-between q-col-gutter-md">
+            <div class="col-12 col-sm-5">
               <q-input
                 v-model="searchQuery"
                 outlined
@@ -250,29 +183,86 @@
                 placeholder="Cari No. Invoice atau Klien..."
                 bg-color="white"
                 class="search-input"
-                color="teal-9"
+                color="brand-primary"
               >
-                <template v-slot:prepend><q-icon name="search" color="teal-9" /></template>
+                <template v-slot:prepend><q-icon name="search" color="brand-primary" /></template>
                 <template v-slot:append v-if="searchQuery">
                   <q-icon name="close" @click="searchQuery = ''" class="cursor-pointer" />
                 </template>
               </q-input>
             </div>
-            <q-space />
-            <!-- BUTTON EXPORT TO EXCEL (TEMA INDIGO MODERN) -->
-            <q-btn
-              unelevated
-              rounded
-              no-caps
-              color="indigo-9"
-              icon="grid_on"
-              label="Export to Excel"
-              class="q-px-md q-py-xs btn-indigo-excel text-weight-bold"
-              @click="exportToExcel"
-            >
-              <q-tooltip>Download Rekap Excel (Tema Blue Indigo)</q-tooltip>
-            </q-btn>
-            <q-btn flat round icon="refresh" color="teal-9" @click="fetchData" />
+            <div class="col-12 col-sm-auto flex items-center justify-center justify-sm-end q-gutter-x-md q-mt-sm q-mt-sm-none invoice-actions-container">
+              <div class="text-caption text-grey-6 text-weight-medium total-invoice-text">
+                Total Invoice:
+                <span class="text-weight-bold text-brand-primary">{{ (filteredRows || []).length }} Dokumen</span>
+              </div>
+              
+              <!-- DROPDOWN BUAT INVOICE BARU (TEMA BRAND TEAL) -->
+              <q-btn-dropdown
+                icon="add_circle"
+                label="Buat Invoice Baru"
+                unelevated
+                rounded
+                no-caps
+                class="bg-brand-primary text-white text-weight-bold btn-hover shadow-premium btn-action-invoice"
+                color="brand-primary"
+              >
+                <q-list class="bg-white rounded-borders">
+                  <q-item
+                    clickable
+                    v-close-popup
+                    @click="handleCreate('manual')"
+                    class="hover-blue-btn"
+                  >
+                    <q-item-section avatar>
+                      <q-avatar color="brand-light" text-color="brand-primary" icon="edit_document" size="sm" />
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label class="text-weight-bold">Buat Invoice Manual</q-item-label>
+                      <q-item-label caption>Input deskripsi tagihan manual</q-item-label>
+                    </q-item-section>
+                  </q-item>
+
+                  <q-separator />
+
+                  <q-item
+                    clickable
+                    v-close-popup
+                    @click="handleCreate('kontrak')"
+                    class="hover-blue-btn"
+                  >
+                    <q-item-section avatar>
+                      <q-avatar color="brand-light" text-color="brand-primary" icon="assignment" size="sm" />
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label class="text-weight-bold">Buat Invoice Kontrak</q-item-label>
+                      <q-item-label caption>Tarik data dari SPK (BOQ)</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                </q-list>
+              </q-btn-dropdown>
+
+              <!-- SUB-CONTAINER FOR EXPORT & REFRESH -->
+              <div class="flex items-center no-wrap q-gutter-x-sm export-refresh-wrapper">
+                <!-- BUTTON EXPORT TO EXCEL (TEMA INDIGO MODERN) -->
+                <q-btn
+                  unelevated
+                  rounded
+                  no-caps
+                  color="indigo-9"
+                  icon="grid_on"
+                  label="Export to Excel"
+                  class="q-px-md q-py-xs btn-indigo-excel text-weight-bold btn-action-export"
+                  @click="exportToExcel"
+                >
+                  <q-tooltip>Download Rekap Excel (Tema Blue Indigo)</q-tooltip>
+                </q-btn>
+                
+                <q-btn flat round icon="refresh" color="brand-primary" @click="fetchData">
+                  <q-tooltip>Refresh Data</q-tooltip>
+                </q-btn>
+              </div>
+            </div>
           </div>
         </q-card-section>
       </q-card>
@@ -281,7 +271,7 @@
       <q-card
         flat
         bordered
-        class="rounded-20 shadow-sm overflow-hidden bg-white no-print border-teal-thin animate-fade-up"
+        class="rounded-20 shadow-sm overflow-hidden bg-white no-print border-subtle animate-fade-up"
       >
         <q-table
           :rows="filteredRows"
@@ -294,7 +284,7 @@
           :pagination="{ rowsPerPage: 10 }"
         >
           <template v-slot:header="props">
-            <q-tr :props="props" class="table-header-teal text-white">
+            <q-tr :props="props" class="bg-brand-primary text-white">
               <q-th
                 v-for="col in props.cols"
                 :key="col.name"
@@ -316,14 +306,14 @@
                 <div class="row items-center no-wrap">
                   <q-avatar
                     size="36px"
-                    color="teal-1"
-                    text-color="teal-9"
+                    color="brand-light"
+                    text-color="brand-primary"
                     icon="receipt_long"
                     class="q-mr-md shadow-sm rounded-12"
                   />
                   <div>
                     <div
-                      class="text-weight-bold text-blue-grey-10 text-subtitle2 leading-none q-mb-xs flex items-center"
+                      class="text-weight-bold text-brand-primary text-subtitle2 leading-none q-mb-xs flex items-center"
                     >
                       <span>{{ props.row.nomor_invoice }}</span>
                       <q-badge
@@ -368,7 +358,7 @@
               </q-td>
 
               <q-td key="nominal" class="text-right">
-                <div class="text-weight-bolder text-teal-main text-subtitle2">
+                <div class="text-weight-bolder text-brand-primary text-subtitle2">
                   Rp {{ (props.row.grand_total || 0).toLocaleString('id-ID') }}
                 </div>
               </q-td>
@@ -389,11 +379,11 @@
                   <q-btn
                     flat
                     round
-                    color="teal-9"
+                    color="brand-primary"
                     icon="visibility"
                     size="sm"
                     @click="openPreviewDialog(props.row)"
-                    class="hover-teal-btn"
+                    class="hover-blue-btn"
                   >
                     <q-tooltip>Lihat Invoice</q-tooltip>
                   </q-btn>
@@ -426,7 +416,7 @@
 
           <template v-slot:no-data>
             <div class="full-width row flex-center q-pa-xl text-grey-5">
-              <q-icon name="request_quote" size="64px" class="q-mb-md" color="teal-3" />
+              <q-icon name="request_quote" size="64px" class="q-mb-md" color="brand-primary" />
               <div class="text-h6 full-width text-center">Data invoice klien belum tersedia.</div>
             </div>
           </template>
@@ -445,7 +435,7 @@
       transition-show="slide-up"
       transition-hide="slide-down"
     >
-      <q-card class="bg-grey-2 column no-wrap">
+      <q-card class="bg-page column no-wrap">
         <q-toolbar class="bg-white text-blue-grey-10 q-py-md shadow-2 shrink">
           <q-btn flat round dense icon="close" v-close-popup color="grey-7" />
           <q-toolbar-title class="text-weight-bold text-center uppercase tracking-widest font-11">
@@ -461,7 +451,7 @@
             unelevated
             label="SIMPAN INVOICE"
             rounded
-            class="q-px-xl text-weight-bold shadow-3 btn-teal-main"
+            class="q-px-xl text-weight-bold shadow-premium bg-brand-primary text-white btn-hover"
             @click="simpanInvoice"
             :loading="submitting"
           />
@@ -473,16 +463,16 @@
               <div class="row q-col-gutter-lg">
                 <!-- KOLOM KIRI -->
                 <div class="col-12 col-md-5">
-                  <q-card flat bordered class="rounded-20 q-mb-lg bg-white shadow-1">
+                  <q-card flat bordered class="rounded-20 q-mb-lg bg-white shadow-1 border-subtle">
                     <q-card-section
-                      class="bg-teal-section q-py-sm text-weight-bold flex items-center border-bottom"
+                      class="bg-brand-light q-py-sm text-weight-bold flex items-center border-bottom-subtle"
                     >
-                      <q-icon name="person_pin" class="q-mr-xs" size="sm" color="teal-9" />
-                      <span class="text-teal-9">1. KEPADA YTH (KLIEN / CUSTOMER)</span>
+                      <q-icon name="person_pin" class="q-mr-xs" size="sm" color="brand-primary" />
+                      <span class="text-brand-primary">1. KEPADA YTH (KLIEN / CUSTOMER)</span>
                     </q-card-section>
                     <q-card-section class="q-pa-lg q-gutter-y-md">
                       <div>
-                        <div class="label-req q-mb-xs text-teal-9">TARIK DATA MASTER KLIEN</div>
+                        <div class="label-req q-mb-xs text-brand-primary">TARIK DATA MASTER KLIEN</div>
                         <q-select
                           outlined
                           dense
@@ -490,12 +480,13 @@
                           :options="optCustomer"
                           option-label="nama"
                           :placeholder="form.customer_ref ? '' : 'Pilih Klien...'"
-                          bg-color="blue-50"
+                          bg-color="brand-light"
                           clearable
                           use-input
+                          behavior="menu"
                           @filter="filterCustomer"
                           @update:model-value="onCustomerSelect"
-                          color="teal-9"
+                          color="brand-primary"
                         >
                           <template v-slot:no-option>
                             <q-item
@@ -514,7 +505,7 @@
                           v-model="form.customer_nama"
                           bg-color="white"
                           class="text-weight-bold uppercase"
-                          color="teal-9"
+                          color="brand-primary"
                         />
                       </div>
                       <div>
@@ -526,18 +517,18 @@
                           rows="2"
                           v-model="form.customer_alamat"
                           bg-color="white"
-                          color="teal-9"
+                          color="brand-primary"
                         />
                       </div>
                     </q-card-section>
                   </q-card>
 
-                  <q-card flat bordered class="rounded-20 bg-white shadow-1">
+                  <q-card flat bordered class="rounded-20 bg-white shadow-1 border-subtle">
                     <q-card-section
-                      class="bg-teal-section q-py-sm text-weight-bold flex items-center border-bottom"
+                      class="bg-brand-light q-py-sm text-weight-bold flex items-center border-bottom-subtle"
                     >
-                      <q-icon name="assignment" class="q-mr-xs" size="sm" color="teal-9" />
-                      <span class="text-teal-9">2. REFERENSI DOKUMEN & PROYEK</span>
+                      <q-icon name="assignment" class="q-mr-xs" size="sm" color="brand-primary" />
+                      <span class="text-brand-primary">2. REFERENSI DOKUMEN & PROYEK</span>
                     </q-card-section>
                     <q-card-section class="q-pa-lg q-gutter-y-md">
                       <div class="row q-col-gutter-md">
@@ -548,8 +539,8 @@
                             dense
                             v-model="form.nomor_invoice"
                             bg-color="grey-2"
-                            class="text-weight-bold text-teal-9"
-                            color="teal-9"
+                            class="text-weight-bold text-brand-primary"
+                            color="brand-primary"
                           />
                         </div>
                         <div class="col-6">
@@ -560,7 +551,7 @@
                             type="date"
                             v-model="form.tanggal"
                             bg-color="white"
-                            color="teal-9"
+                            color="brand-primary"
                           />
                         </div>
                         <div class="col-6">
@@ -571,14 +562,14 @@
                             type="date"
                             v-model="form.jatuh_tempo"
                             bg-color="white"
-                            color="teal-9"
+                            color="brand-primary"
                           />
                         </div>
                       </div>
                       <div>
                         <div
                           class="label-req q-mb-xs"
-                          :class="invoiceType === 'kontrak' ? 'text-green-9' : 'text-teal-9'"
+                          :class="invoiceType === 'kontrak' ? 'text-green-9' : 'text-brand-primary'"
                         >
                           KAITKAN KE PROYEK
                           {{ invoiceType === 'kontrak' ? '(WAJIB UNTUK TARIK BOQ)' : '(OPSIONAL)' }}
@@ -590,12 +581,13 @@
                           :options="optProyek"
                           option-label="nama"
                           :placeholder="form.proyek_ref ? '' : 'Pilih Proyek...'"
-                          bg-color="blue-50"
+                          bg-color="brand-light"
                           clearable
                           use-input
+                          behavior="menu"
                           @filter="filterProyek"
                           @update:model-value="onProyekSelect"
-                          color="teal-9"
+                          color="brand-primary"
                         >
                           <template v-slot:no-option>
                             <q-item
@@ -615,7 +607,7 @@
                           readonly
                           bg-color="grey-2"
                           class="text-weight-bold uppercase"
-                          color="teal-9"
+                          color="brand-primary"
                         />
                       </div>
                       <div>
@@ -626,7 +618,7 @@
                           v-model="form.spk_nomor"
                           bg-color="white"
                           placeholder="No. SPK / PO Klien"
-                          color="teal-9"
+                          color="brand-primary"
                         />
                       </div>
                     </q-card-section>
@@ -638,10 +630,10 @@
                   <q-card
                     flat
                     bordered
-                    class="rounded-20 bg-white shadow-1 overflow-hidden q-mb-lg border-teal-thin"
+                    class="rounded-20 bg-white shadow-1 overflow-hidden q-mb-lg border-subtle"
                   >
                     <q-card-section class="q-pa-none">
-                      <q-toolbar class="toolbar-teal-gradient text-white q-py-sm">
+                      <q-toolbar class="bg-brand-primary text-white q-py-sm">
                         <q-icon name="list_alt" class="q-mr-md" />
                         <div class="text-weight-bold uppercase font-11 tracking-widest">
                           3. DESKRIPSI TAGIHAN (TERMIN)
@@ -703,7 +695,7 @@
                                 dense
                                 type="number"
                                 v-model.number="item.nominal"
-                                input-class="text-right text-weight-bold text-teal-9"
+                                input-class="text-right text-weight-bold text-brand-primary"
                               />
                             </td>
                             <td class="text-center" style="vertical-align: top; padding-top: 15px">
@@ -736,7 +728,7 @@
                             <td colspan="2" class="text-right text-weight-bold text-blue-grey-9">
                               SUB TOTAL (DPP)
                             </td>
-                            <td class="text-right text-weight-bold text-teal-9 text-subtitle2">
+                            <td class="text-right text-weight-bold text-brand-primary text-subtitle2">
                               Rp {{ calculatedDPP.toLocaleString('id-ID') }}
                             </td>
                             <td></td>
@@ -753,7 +745,7 @@
                                   style="width: 70px"
                                   bg-color="white"
                                   suffix="%"
-                                  color="teal-9"
+                                  color="brand-primary"
                                 />
                               </div>
                             </td>
@@ -774,7 +766,7 @@
                                   style="width: 70px"
                                   bg-color="white"
                                   suffix="%"
-                                  color="teal-9"
+                                  color="brand-primary"
                                 />
                               </div>
                             </td>
@@ -783,7 +775,7 @@
                             </td>
                             <td></td>
                           </tr>
-                          <tr class="toolbar-teal-gradient text-white">
+                          <tr class="bg-brand-primary text-white">
                             <td
                               colspan="2"
                               class="text-right text-weight-black uppercase tracking-widest text-subtitle2"
@@ -800,12 +792,12 @@
                     </q-card-section>
                   </q-card>
 
-                  <q-card flat bordered class="rounded-20 bg-white shadow-1">
+                  <q-card flat bordered class="rounded-20 bg-white shadow-1 border-subtle">
                     <q-card-section
-                      class="bg-teal-section q-py-sm text-weight-bold flex items-center border-bottom"
+                      class="bg-brand-light q-py-sm text-weight-bold flex items-center border-bottom-subtle"
                     >
-                      <q-icon name="account_balance" class="q-mr-xs" size="sm" color="teal-9" />
-                      <span class="text-teal-9">4. INSTRUKSI PEMBAYARAN</span>
+                      <q-icon name="account_balance" class="q-mr-xs" size="sm" color="brand-primary" />
+                      <span class="text-brand-primary">4. INSTRUKSI PEMBAYARAN</span>
                     </q-card-section>
                     <q-card-section class="q-pa-lg">
                       <div class="row q-col-gutter-md q-mb-md">
@@ -818,7 +810,7 @@
                             placeholder="Nama Bank"
                             bg-color="white"
                             class="q-mb-sm text-weight-bold"
-                            color="teal-9"
+                            color="brand-primary"
                           />
                           <q-input
                             outlined
@@ -826,8 +818,8 @@
                             v-model="form.rek_nomor"
                             placeholder="No Rekening"
                             bg-color="white"
-                            class="text-weight-bold q-mb-sm text-teal-9"
-                            color="teal-9"
+                            class="text-weight-bold q-mb-sm text-brand-primary"
+                            color="brand-primary"
                           />
                           <q-input
                             outlined
@@ -836,7 +828,7 @@
                             placeholder="Atas Nama"
                             bg-color="white"
                             class="uppercase text-weight-medium"
-                            color="teal-9"
+                            color="brand-primary"
                           />
                         </div>
                         <div class="col-12 col-md-6">
@@ -849,14 +841,14 @@
                             v-model="form.keterangan"
                             bg-color="white"
                             placeholder="Misal: Pembayaran harap ditransfer secara full amount."
-                            color="teal-9"
+                            color="brand-primary"
                           />
                         </div>
                       </div>
 
                       <!-- TANDA TANGAN -->
                       <q-separator class="q-my-md" />
-                      <div class="label-req q-mb-sm text-teal-9">5. PENANDATANGAN DOKUMEN</div>
+                      <div class="label-req q-mb-sm text-brand-primary">5. PENANDATANGAN DOKUMEN</div>
                       <div class="row q-col-gutter-md">
                         <div class="col-12 col-md-6">
                           <div class="label-req q-mb-xs">Nama Penandatangan *</div>
@@ -867,10 +859,10 @@
                             placeholder="Contoh: Deni Purwanti"
                             bg-color="white"
                             class="text-weight-bold"
-                            color="teal-9"
+                            color="brand-primary"
                           >
                             <template v-slot:prepend>
-                              <q-icon name="person" color="teal-9" />
+                              <q-icon name="person" color="brand-primary" />
                             </template>
                           </q-input>
                         </div>
@@ -883,10 +875,10 @@
                             placeholder="Contoh: Direktur Utama"
                             bg-color="white"
                             class="text-weight-medium"
-                            color="teal-9"
+                            color="brand-primary"
                           >
                             <template v-slot:prepend>
-                              <q-icon name="badge" color="teal-9" />
+                              <q-icon name="badge" color="brand-primary" />
                             </template>
                           </q-input>
                         </div>
@@ -1261,6 +1253,7 @@
         </q-card-section>
       </q-card>
     </q-dialog>
+    </div>
   </q-page>
 </template>
 
@@ -1317,69 +1310,6 @@ const userData = ref(null)
 let unsubInvoice = null
 let unsubUser = null
 
-// ============================================================================
-// FLOATING CONSTRUCTION ANIMATION
-// ============================================================================
-const constructionIcons = ['🏗️', '🪛', '🔧', '⚙️', '🪚', '🔩', '🪜', '🏚️', '🧱', '⛏️', '🦺', '🪝']
-
-const floatingHearts = ref([])
-let heartIdCounter = 0
-
-function spawnFloatingHeart() {
-  const id = heartIdCounter++
-  const left = Math.random() * 95 + '%'
-  const duration = (4 + Math.random() * 5).toFixed(2) + 's'
-  const delay = (Math.random() * 3).toFixed(2) + 's'
-  const size = (10 + Math.random() * 14).toFixed(0) + 'px'
-  const icon = constructionIcons[Math.floor(Math.random() * constructionIcons.length)]
-  floatingHearts.value.push({
-    id,
-    icon,
-    style: {
-      left,
-      fontSize: size,
-      animationDuration: duration,
-      animationDelay: delay,
-    },
-  })
-  setTimeout(
-    () => {
-      floatingHearts.value = floatingHearts.value.filter((h) => h.id !== id)
-    },
-    (parseFloat(duration) + parseFloat(delay) + 0.5) * 1000,
-  )
-}
-
-let floatingHeartInterval = null
-
-// ============================================================================
-// CLICK CONSTRUCTION EFFECT
-// ============================================================================
-const clickHearts = ref([])
-
-function handlePageClick(e) {
-  const count = 4 + Math.floor(Math.random() * 4)
-  for (let i = 0; i < count; i++) {
-    const id = heartIdCounter++
-    const offsetX = (Math.random() - 0.5) * 60
-    const offsetY = -(40 + Math.random() * 60)
-    const size = 12 + Math.floor(Math.random() * 10)
-    const icon = constructionIcons[Math.floor(Math.random() * constructionIcons.length)]
-    const heart = {
-      id,
-      icon,
-      x: e.clientX - 8,
-      y: e.clientY - 8,
-      tx: offsetX,
-      ty: offsetY,
-      size,
-    }
-    clickHearts.value.push(heart)
-    setTimeout(() => {
-      clickHearts.value = clickHearts.value.filter((h) => h.id !== id)
-    }, 900)
-  }
-}
 
 // ============================================================================
 // NOTIFY HELPER
@@ -2315,25 +2245,23 @@ watch(
 
 onMounted(() => {
   fetchData()
-  floatingHeartInterval = setInterval(spawnFloatingHeart, 1200)
-  spawnFloatingHeart()
 })
 
 onUnmounted(() => {
   if (unsubInvoice) unsubInvoice()
   if (unsubUser) unsubUser()
-  if (floatingHeartInterval) clearInterval(floatingHeartInterval)
 })
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
-
 /* =============================================
    BASE & TYPOGRAPHY
    ============================================= */
 .font-pro {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family:
+    'Inter',
+    -apple-system,
+    sans-serif;
 }
 .text-weight-900 {
   font-weight: 900;
@@ -2349,35 +2277,35 @@ onUnmounted(() => {
    TEAL THEME VARIABLES & UTILITIES
    ============================================= */
 :root {
-  --teal-main: #009688;
-  --teal-light: #e0f2f1;
+  --teal-main: #36ada3;
+  --teal-light: #e0f5f4;
   --teal-soft: #b2dfdb;
-  --teal-glow: rgba(0, 150, 136, 0.18);
+  --teal-glow: rgba(54, 173, 163, 0.18);
 }
 
 .text-teal-main {
-  color: #009688 !important;
+  color: #36ada3 !important;
 }
 .text-teal-9 {
-  color: #00695c !important;
+  color: #1e6e69 !important;
 }
 .border-teal-thin {
-  border: 1px solid rgba(0, 150, 136, 0.18) !important;
+  border: 1px solid rgba(54, 173, 163, 0.18) !important;
 }
 
 /* =============================================
    TEAL BUTTON — MAIN CTA
    ============================================= */
 .btn-teal-main {
-  background: linear-gradient(135deg, #009688 0%, #26a69a 100%) !important;
+  background: linear-gradient(135deg, #36ada3 0%, #1e6e69 100%) !important;
   color: #fff !important;
-  box-shadow: 0 6px 20px rgba(0, 150, 136, 0.3) !important;
+  box-shadow: 0 6px 20px rgba(54, 173, 163, 0.3) !important;
   transition:
     box-shadow 0.25s ease,
     transform 0.2s ease !important;
 }
 .btn-teal-main:hover {
-  box-shadow: 0 10px 28px rgba(0, 150, 136, 0.42) !important;
+  box-shadow: 0 10px 28px rgba(54, 173, 163, 0.42) !important;
   transform: translateY(-1px) !important;
 }
 
@@ -2395,15 +2323,30 @@ onUnmounted(() => {
   transform: translateY(-1px) !important;
 }
 
-/* Full-width on mobile */
-@media (max-width: 767px) {
-  .btn-new-invoice-wrapper {
-    width: 100%;
+/* Responsive adjustments for buttons in filter card on mobile */
+@media (max-width: 599px) {
+  .invoice-actions-container {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100% !important;
   }
-  .btn-new-invoice {
+  .total-invoice-text {
+    text-align: center !important;
+    margin-bottom: 8px !important;
+  }
+  .btn-action-invoice {
     width: 100% !important;
     justify-content: center !important;
-    border-radius: 14px !important;
+    margin-bottom: 8px !important;
+    border-radius: 30px !important;
+  }
+  .export-refresh-wrapper {
+    width: 100% !important;
+    justify-content: space-between !important;
+  }
+  .btn-action-export {
+    flex-grow: 1 !important;
+    border-radius: 30px !important;
   }
 }
 
@@ -2411,38 +2354,42 @@ onUnmounted(() => {
    KPI CARD GRADIENTS
    ============================================= */
 
-/* Card 1: Teal/Hijau — Total Invoice */
-.card-teal-gradient {
-  background: linear-gradient(135deg, #26a69a 0%, #009688 60%, #00796b 100%) !important;
+/* Card 1: Brand Teal — Total Invoice */
+.card-brand-gradient {
+  background: linear-gradient(135deg, #36ada3 0%, #1e6e69 100%) !important;
+  box-shadow: 0 8px 24px rgba(54, 173, 163, 0.35) !important;
 }
 
 /* Card 2: Orange — Menunggu Review */
 .card-orange-gradient {
-  background: linear-gradient(135deg, #ffa726 0%, #fb8c00 60%, #e65100 100%) !important;
+  background: linear-gradient(135deg, #f59e0b 0%, #ff781e 100%) !important;
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.35) !important;
 }
 
-/* Card 3: Teal Darker — Invoice Disetujui */
-.card-teal-dark-gradient {
-  background: linear-gradient(135deg, #00897b 0%, #00695c 60%, #004d40 100%) !important;
+/* Card 3: Green — Invoice Disetujui */
+.card-green-gradient {
+  background: linear-gradient(135deg, #10b981 0%, #047857 100%) !important;
+  box-shadow: 0 8px 24px rgba(4, 120, 87, 0.35) !important;
 }
 
 /* Card 4: Red — Invoice Ditolak */
 .card-red-gradient {
-  background: linear-gradient(135deg, #ef5350 0%, #e53935 60%, #b71c1c 100%) !important;
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%) !important;
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.35) !important;
 }
 
 /* =============================================
    TEAL SECTION HEADER
    ============================================= */
 .bg-teal-section {
-  background-color: #e0f2f1 !important;
+  background-color: #e0f5f4 !important;
 }
 
 /* =============================================
    TABLE HEADER TEAL
    ============================================= */
 .table-header-teal {
-  background: linear-gradient(90deg, #009688 0%, #26a69a 100%) !important;
+  background: linear-gradient(90deg, #36ada3 0%, #1e6e69 100%) !important;
 }
 .finance-table :deep(thead tr th) {
   position: sticky;
@@ -2457,14 +2404,14 @@ onUnmounted(() => {
    TOOLBAR TEAL GRADIENT (dialog)
    ============================================= */
 .toolbar-teal-gradient {
-  background: linear-gradient(90deg, #009688 0%, #26a69a 100%) !important;
+  background: linear-gradient(90deg, #36ada3 0%, #1e6e69 100%) !important;
 }
 
 /* =============================================
    CARDS & SHADOWS
    ============================================= */
 .shadow-premium {
-  box-shadow: 0 10px 30px rgba(0, 150, 136, 0.15);
+  box-shadow: 0 10px 30px rgba(54, 173, 163, 0.15);
 }
 .border-bottom {
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
@@ -2484,7 +2431,7 @@ onUnmounted(() => {
    TABLE ROWS
    ============================================= */
 .hover-bg:hover {
-  background-color: rgba(0, 150, 136, 0.03) !important;
+  background-color: rgba(54, 173, 163, 0.03) !important;
 }
 .hover-row:hover {
   background-color: #f0faf9 !important;
@@ -2500,15 +2447,15 @@ onUnmounted(() => {
   transition: 0.3s;
 }
 .hover-teal-btn:hover {
-  background-color: #e0f2f1 !important;
-  color: #009688 !important;
+  background-color: #e0f5f4 !important;
+  color: #1e6e69 !important;
 }
 .hover-blue-btn {
   transition: 0.3s;
 }
 .hover-blue-btn:hover {
-  background-color: #e8eaf6 !important;
-  color: #1a237e !important;
+  background-color: #e0f5f4 !important;
+  color: #1e6e69 !important;
 }
 .hover-red-btn {
   transition: 0.3s;
@@ -2526,7 +2473,7 @@ onUnmounted(() => {
 }
 .search-input :deep(.q-field__control:hover),
 .search-input :deep(.q-field__control.q-field--focused .q-field__control-container) {
-  border-color: #009688 !important;
+  border-color: #36ada3 !important;
 }
 
 /* =============================================
@@ -2561,103 +2508,18 @@ onUnmounted(() => {
 }
 
 /* =============================================
-   FLOATING HEARTS
-   ============================================= */
-.page-wrapper {
-  position: relative;
-  overflow: hidden;
-}
-
-.floating-hearts-container {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 0;
-  overflow: hidden;
-}
-
-.floating-heart {
-  position: absolute;
-  bottom: -30px;
-  opacity: 0;
-  animation: floatUp linear forwards;
-  will-change: transform, opacity;
-  user-select: none;
-}
-
-@keyframes floatUp {
-  0% {
-    transform: translateY(0) rotate(-10deg) scale(0.7);
-    opacity: 0;
-  }
-  10% {
-    opacity: 0.55;
-  }
-  60% {
-    opacity: 0.35;
-  }
-  90% {
-    opacity: 0.1;
-  }
-  100% {
-    transform: translateY(-110vh) rotate(15deg) scale(1.1);
-    opacity: 0;
-  }
-}
-
-/* =============================================
-   CLICK HEARTS
-   ============================================= */
-.click-hearts-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 9999;
-  overflow: visible;
-}
-
-.click-heart {
-  position: fixed;
-  opacity: 1;
-  animation: clickHeartAnim 0.85s ease-out forwards;
-  will-change: transform, opacity;
-  user-select: none;
-}
-
-@keyframes clickHeartAnim {
-  0% {
-    transform: translate(0, 0) scale(1);
-    opacity: 1;
-  }
-  40% {
-    transform: translate(var(--tx), var(--ty)) scale(1.3);
-    opacity: 0.85;
-  }
-  100% {
-    transform: translate(var(--tx), calc(var(--ty) - 30px)) scale(0.5);
-    opacity: 0;
-  }
-}
-
-/* =============================================
    BEAUTIFUL NOTIFICATIONS
    ============================================= */
 :deep(.notify-modern) {
   border-radius: 16px !important;
   box-shadow:
     0 8px 30px rgba(0, 0, 0, 0.12),
-    0 2px 8px rgba(0, 150, 136, 0.08) !important;
-  font-family: 'Plus Jakarta Sans', sans-serif !important;
+    0 2px 8px rgba(54, 173, 163, 0.08) !important;
+  font-family: 'Inter', -apple-system, sans-serif !important;
   font-size: 14px !important;
   padding: 12px 18px !important;
   min-width: 280px !important;
-  border-left: 4px solid #009688 !important;
+  border-left: 4px solid #36ada3 !important;
 }
 
 :deep(.q-notification__message) {

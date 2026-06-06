@@ -1,182 +1,153 @@
 <template>
-  <q-page
-    class="bg-blue-grey-1 q-pa-md q-pa-lg-lg font-pro page-wrapper"
-    @click.self="handlePageClick"
-  >
-    <!-- FLOATING CONSTRUCTION ICONS CONTAINER -->
-    <div class="floating-icons-container" aria-hidden="true">
-      <span
-        v-for="icon in floatingIcons"
-        :key="icon.id"
-        class="floating-icon"
-        :style="icon.style"
-        v-html="icon.svg"
-      ></span>
-    </div>
-
-    <!-- CLICK EFFECT CONSTRUCTIONS ICONS -->
-    <div class="click-icons-container" aria-hidden="true">
-      <span
-        v-for="ci in clickIcons"
-        :key="ci.id"
-        class="click-icon"
-        :style="{
-          left: ci.x + 'px',
-          top: ci.y + 'px',
-          '--tx': ci.tx + 'px',
-          '--ty': ci.ty + 'px',
-          width: ci.size + 'px',
-          height: ci.size + 'px',
-        }"
-        v-html="ci.svg"
-      ></span>
-    </div>
-
-    <!-- ══════════════════════════════════════════════
-         HEADER (TOMBOL KEMBALI HILANG & MENUNGGU DIHAPUS)
-         ══════════════════════════════════════════════ -->
-    <div class="row items-center justify-between q-mb-lg animate-fade no-print content-relative">
-      <div class="col-12">
-        <div class="text-h4 text-weight-bolder text-teal-10 leading-tight">
-          Approval Purchase Order
-          <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs">
-            Otorisasi & Kendali Dokumen PO
-          </span>
-        </div>
-        <div class="text-subtitle1 text-grey-7 q-mt-sm">
-          Tinjau, setujui, atau tolak Purchase Order yang telah diajukan oleh tim pengadaan.
+  <q-page class="bg-page q-pa-md font-pro relative-position">
+    <div class="page-content-wrapper">
+      <!-- ══════════════════════════════════════════════
+           HEADER
+           ══════════════════════════════════════════════ -->
+      <div class="row items-center justify-between q-mb-xl animate-fade no-print">
+        <div class="col-12">
+          <div class="text-h4 text-weight-bolder text-brand-primary leading-tight">
+            Approval Purchase Order
+            <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs">
+              Otorisasi & Kendali Dokumen PO
+            </span>
+          </div>
+          <div class="text-subtitle1 text-grey-7 q-mt-sm">
+            Tinjau, setujui, atau tolak Purchase Order yang telah diajukan oleh tim pengadaan.
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- ══════════════════════════════════════════════
-         STATS CARDS (FULL GRADIENT WARNA-WARNI INDAH)
-         ══════════════════════════════════════════════ -->
-    <div class="row q-col-gutter-md q-mb-lg animate-fade no-print content-relative">
-      <!-- Total PO -->
-      <div class="col-6 col-md-3">
-        <q-card
-          flat
-          class="list-card rounded-16 card-teal-gradient text-white transition-all hover-shadow"
-        >
-          <q-card-section class="q-pa-md">
-            <div class="row items-center no-wrap">
-              <q-avatar
-                color="white"
-                text-color="teal-10"
-                icon="description"
-                size="44px"
-                class="q-mr-md shadow-sm"
-              />
-              <div>
-                <div class="text-h5 text-weight-black text-white">
-                  {{ rows.length }}
+      <!-- ══════════════════════════════════════════════
+           STATS CARDS
+           ══════════════════════════════════════════════ -->
+      <div class="q-mb-xl no-print">
+        <div class="row q-col-gutter-lg animate-fade">
+          <!-- Total PO -->
+          <div class="col-6 col-md-3">
+            <q-card
+              flat
+              class="list-card rounded-16 card-brand-gradient text-white transition-all hover-shadow"
+            >
+              <q-card-section class="q-pa-lg">
+                <div class="row items-center no-wrap">
+                  <q-avatar
+                    color="white"
+                    text-color="brand-primary"
+                    icon="description"
+                    size="44px"
+                    class="q-mr-md shadow-sm"
+                  />
+                  <div>
+                    <div class="text-h5 text-weight-black text-white">
+                      {{ rows.length }}
+                    </div>
+                    <div
+                      class="text-caption text-weight-bold uppercase tracking-widest"
+                      style="color: rgba(255, 255, 255, 0.85)"
+                    >
+                      TOTAL PO
+                    </div>
+                  </div>
                 </div>
-                <div
-                  class="text-caption text-weight-bold uppercase tracking-widest"
-                  style="color: rgba(255, 255, 255, 0.85)"
-                >
-                  TOTAL PO
-                </div>
-              </div>
-            </div>
-          </q-card-section>
-        </q-card>
-      </div>
+              </q-card-section>
+            </q-card>
+          </div>
 
-      <!-- Menunggu -->
-      <div class="col-6 col-md-3">
-        <q-card
-          flat
-          class="list-card rounded-16 card-orange-gradient text-white transition-all hover-shadow"
-        >
-          <q-card-section class="q-pa-md">
-            <div class="row items-center no-wrap">
-              <q-avatar
-                color="white"
-                text-color="orange-9"
-                icon="hourglass_empty"
-                size="44px"
-                class="q-mr-md shadow-sm"
-              />
-              <div>
-                <div class="text-h5 text-weight-black text-white">
-                  {{ pendingCount }}
+          <!-- Menunggu -->
+          <div class="col-6 col-md-3">
+            <q-card
+              flat
+              class="list-card rounded-16 card-orange-gradient text-white transition-all hover-shadow"
+            >
+              <q-card-section class="q-pa-lg">
+                <div class="row items-center no-wrap">
+                  <q-avatar
+                    color="white"
+                    text-color="orange-9"
+                    icon="hourglass_empty"
+                    size="44px"
+                    class="q-mr-md shadow-sm"
+                  />
+                  <div>
+                    <div class="text-h5 text-weight-black text-white">
+                      {{ pendingCount }}
+                    </div>
+                    <div
+                      class="text-caption text-weight-bold uppercase tracking-widest"
+                      style="color: rgba(255, 255, 255, 0.85)"
+                    >
+                      MENUNGGU
+                    </div>
+                  </div>
                 </div>
-                <div
-                  class="text-caption text-weight-bold uppercase tracking-widest"
-                  style="color: rgba(255, 255, 255, 0.85)"
-                >
-                  MENUNGGU
-                </div>
-              </div>
-            </div>
-          </q-card-section>
-        </q-card>
-      </div>
+              </q-card-section>
+            </q-card>
+          </div>
 
-      <!-- Disetujui -->
-      <div class="col-6 col-md-3">
-        <q-card
-          flat
-          class="list-card rounded-16 card-green-gradient text-white transition-all hover-shadow"
-        >
-          <q-card-section class="q-pa-md">
-            <div class="row items-center no-wrap">
-              <q-avatar
-                color="white"
-                text-color="positive"
-                icon="check_circle"
-                size="44px"
-                class="q-mr-md shadow-sm"
-              />
-              <div>
-                <div class="text-h5 text-weight-black text-white">
-                  {{ rows.filter((r) => r.status === 'Approved').length }}
+          <!-- Disetujui -->
+          <div class="col-6 col-md-3">
+            <q-card
+              flat
+              class="list-card rounded-16 card-green-gradient text-white transition-all hover-shadow"
+            >
+              <q-card-section class="q-pa-lg">
+                <div class="row items-center no-wrap">
+                  <q-avatar
+                    color="white"
+                    text-color="positive"
+                    icon="check_circle"
+                    size="44px"
+                    class="q-mr-md shadow-sm"
+                  />
+                  <div>
+                    <div class="text-h5 text-weight-black text-white">
+                      {{ rows.filter((r) => r.status === 'Approved').length }}
+                    </div>
+                    <div
+                      class="text-caption text-weight-bold uppercase tracking-widest"
+                      style="color: rgba(255, 255, 255, 0.85)"
+                    >
+                      DISETUJUI
+                    </div>
+                  </div>
                 </div>
-                <div
-                  class="text-caption text-weight-bold uppercase tracking-widest"
-                  style="color: rgba(255, 255, 255, 0.85)"
-                >
-                  DISETUJUI
-                </div>
-              </div>
-            </div>
-          </q-card-section>
-        </q-card>
-      </div>
+              </q-card-section>
+            </q-card>
+          </div>
 
-      <!-- Ditolak -->
-      <div class="col-6 col-md-3">
-        <q-card
-          flat
-          class="list-card rounded-16 card-red-gradient text-white transition-all hover-shadow"
-        >
-          <q-card-section class="q-pa-md">
-            <div class="row items-center no-wrap">
-              <q-avatar
-                color="white"
-                text-color="negative"
-                icon="cancel"
-                size="44px"
-                class="q-mr-md shadow-sm"
-              />
-              <div>
-                <div class="text-h5 text-weight-black text-white">
-                  {{ rows.filter((r) => r.status === 'Rejected').length }}
+          <!-- Ditolak -->
+          <div class="col-6 col-md-3">
+            <q-card
+              flat
+              class="list-card rounded-16 card-red-gradient text-white transition-all hover-shadow"
+            >
+              <q-card-section class="q-pa-lg">
+                <div class="row items-center no-wrap">
+                  <q-avatar
+                    color="white"
+                    text-color="negative"
+                    icon="cancel"
+                    size="44px"
+                    class="q-mr-md shadow-sm"
+                  />
+                  <div>
+                    <div class="text-h5 text-weight-black text-white">
+                      {{ rows.filter((r) => r.status === 'Rejected').length }}
+                    </div>
+                    <div
+                      class="text-caption text-weight-bold uppercase tracking-widest"
+                      style="color: rgba(255, 255, 255, 0.85)"
+                    >
+                      DITOLAK
+                    </div>
+                  </div>
                 </div>
-                <div
-                  class="text-caption text-weight-bold uppercase tracking-widest"
-                  style="color: rgba(255, 255, 255, 0.85)"
-                >
-                  DITOLAK
-                </div>
-              </div>
-            </div>
-          </q-card-section>
-        </q-card>
+              </q-card-section>
+            </q-card>
+          </div>
+        </div>
       </div>
-    </div>
 
     <!-- ══════════════════════════════════════════════
          FILTER & SEARCH BAR
@@ -184,10 +155,10 @@
     <q-card
       flat
       bordered
-      class="q-mb-lg shadow-1 rounded-20 bg-white no-print border-teal-thin content-relative"
+      class="q-mb-xl shadow-1 rounded-20 bg-white no-print border-subtle"
     >
       <q-card-section class="q-py-md">
-        <div class="row items-center q-col-gutter-md">
+        <div class="row items-center justify-between q-col-gutter-md">
           <div class="col-12 col-md-5">
             <q-input
               v-model="filter"
@@ -196,10 +167,11 @@
               rounded
               placeholder="Cari No. PO, Supplier, atau Proyek..."
               bg-color="white"
-              color="teal-10"
+              class="search-input"
+              color="brand-primary"
             >
               <template v-slot:prepend>
-                <q-icon name="search" color="teal-10" />
+                <q-icon name="search" color="brand-primary" />
               </template>
               <template v-slot:append v-if="filter">
                 <q-icon name="close" class="cursor-pointer" @click="filter = ''" />
@@ -207,16 +179,16 @@
             </q-input>
           </div>
 
-          <div class="col-12 col-md-auto">
+          <div class="col-12 col-md-auto flex items-center justify-center justify-md-end q-gutter-md">
             <q-btn-toggle
               v-model="filterStatus"
               unelevated
               rounded
               no-caps
-              toggle-color="teal-10"
+              toggle-color="brand-primary"
               color="white"
               text-color="grey-7"
-              class="shadow-1 border-teal-thin"
+              class="shadow-1 border-subtle"
               :options="[
                 { label: 'Semua', value: 'all' },
                 { label: 'Menunggu', value: 'Submitted' },
@@ -224,11 +196,7 @@
                 { label: 'Ditolak', value: 'Rejected' },
               ]"
             />
-          </div>
-
-          <q-space />
-          <div class="col-auto">
-            <q-btn flat round icon="refresh" color="teal-10" @click="fetchData">
+            <q-btn flat round icon="refresh" color="brand-primary" @click="fetchData">
               <q-tooltip>Refresh Data</q-tooltip>
             </q-btn>
           </div>
@@ -242,7 +210,7 @@
     <q-card
       flat
       bordered
-      class="rounded-20 shadow-sm overflow-hidden bg-white border-teal-thin no-print content-relative"
+      class="rounded-20 shadow-sm overflow-hidden bg-white border-subtle no-print"
     >
       <q-table
         :rows="filteredRows"
@@ -252,17 +220,17 @@
         :loading="loading"
         :filter="filter"
         binary-state-sort
-        class="approval-po-table"
+        class="approval-table"
         :pagination="{ rowsPerPage: 10 }"
       >
         <!-- Header -->
         <template v-slot:header="props">
-          <q-tr :props="props" class="table-header-teal text-white">
+          <q-tr :props="props" class="bg-brand-primary text-white">
             <q-th
               v-for="col in props.cols"
               :key="col.name"
               :props="props"
-              class="text-weight-bold uppercase font-10"
+              class="text-weight-bold uppercase font-11 tracking-widest"
             >
               {{ col.label }}
             </q-th>
@@ -277,7 +245,7 @@
             @click="openPreview(props.row)"
           >
             <!-- No PO -->
-            <q-td key="nomor" class="text-weight-bolder text-teal-10">
+            <q-td key="nomor" class="text-weight-bolder text-brand-primary">
               {{ props.row.nomor }}
               <div class="text-caption text-grey-5">
                 {{ formatDateIndo(props.row.submitted_at || props.row.createdAt) }}
@@ -299,8 +267,8 @@
               <div class="row items-center no-wrap">
                 <q-avatar
                   size="28px"
-                  color="teal-1"
-                  text-color="teal-10"
+                  color="brand-light"
+                  text-color="brand-primary"
                   icon="person"
                   class="q-mr-sm"
                 />
@@ -332,8 +300,8 @@
               </q-chip>
               <div
                 v-if="props.row.status === 'Rejected' && props.row.alasan_reject"
-                class="text-negative text-caption q-mt-xs"
-                style="font-size: 10px; max-width: 160px"
+                 class="text-negative text-caption q-mt-xs"
+                 style="font-size: 10px; max-width: 160px"
               >
                 {{ props.row.alasan_reject }}
               </div>
@@ -341,16 +309,16 @@
 
             <!-- Aksi -->
             <q-td key="aksi" class="text-center" @click.stop>
-              <div class="row justify-center items-center q-gutter-xs no-wrap">
+              <div class="row justify-center items-center q-gutter-sm no-wrap">
                 <!-- Lihat Detail -->
                 <q-btn
                   flat
                   round
-                  color="teal-10"
+                  color="brand-primary"
                   icon="visibility"
                   size="sm"
                   @click="openPreview(props.row)"
-                  class="hover-teal-btn"
+                  class="hover-blue-btn"
                 >
                   <q-tooltip>Lihat Detail PO</q-tooltip>
                 </q-btn>
@@ -362,7 +330,7 @@
                   rounded
                   color="positive"
                   icon="check_circle"
-                  label="Approve"
+                  :label="$q.screen.lt.sm ? '' : 'Approve'"
                   size="sm"
                   no-caps
                   class="q-px-sm text-weight-bold"
@@ -378,7 +346,7 @@
                   rounded
                   color="negative"
                   icon="cancel"
-                  label="Tolak"
+                  :label="$q.screen.lt.sm ? '' : 'Tolak'"
                   size="sm"
                   no-caps
                   class="q-px-sm text-weight-bold"
@@ -395,8 +363,8 @@
         <template v-slot:no-data>
           <div class="full-width row flex-center q-pa-xl text-grey-5">
             <div class="text-center">
-              <q-icon name="inbox" size="64px" class="q-mb-md opacity-50" color="teal-3" />
-              <div class="text-h6 text-weight-bold text-teal-10">Tidak Ada Data PO</div>
+              <q-icon name="inbox" size="64px" class="q-mb-md opacity-50" color="brand-primary" />
+              <div class="text-h6 text-weight-bold text-brand-primary">Tidak Ada Data PO</div>
               <div class="text-subtitle2 q-mt-xs text-grey-6">
                 {{
                   filterStatus !== 'all'
@@ -410,20 +378,21 @@
 
         <!-- Loading -->
         <template v-slot:loading>
-          <q-inner-loading showing color="teal-10" />
+          <q-inner-loading showing color="brand-primary" />
         </template>
       </q-table>
     </q-card>
+  </div>
 
-    <!-- ══════════════════════════════════════════════
+  <!-- ══════════════════════════════════════════════
          DIALOG: PREVIEW DETAIL PO + APPROVAL ACTION (CETAK DIHAPUS, STATUS NAVBAR DIHAPUS)
          ══════════════════════════════════════════════ -->
     <q-dialog v-model="showPreview" maximized transition-show="fade" transition-hide="fade">
       <q-card class="column no-wrap bg-grey-4 font-pro">
         <!-- Toolbar Preview (Tombol Cetak dan Status Badge Dihapus) -->
-        <q-toolbar class="bg-white text-teal-10 q-py-sm no-print shadow-2 shrink">
-          <q-btn flat round dense icon="arrow_back" v-close-popup color="grey-7" />
-          <q-toolbar-title class="text-weight-bold uppercase tracking-widest font-11">
+        <q-toolbar class="bg-white text-indigo-10 q-py-sm no-print shadow-2 shrink" style="position: sticky; top: 0; z-index: 10; width: 100%;">
+          <q-btn flat round dense icon="arrow_back" v-close-popup color="indigo-10" />
+          <q-toolbar-title class="text-weight-bold uppercase tracking-widest font-11 ellipsis">
             DETAIL PURCHASE ORDER
           </q-toolbar-title>
           <q-space />
@@ -435,8 +404,9 @@
               rounded
               color="positive"
               icon="check_circle"
-              label="APPROVE"
-              class="text-weight-bold q-px-lg q-mr-sm shadow-3"
+              :label="$q.screen.lt.sm ? 'Approve' : 'APPROVE'"
+              :dense="$q.screen.lt.sm"
+              class="text-weight-bold q-px-md q-px-sm-lg q-mr-xs q-mr-sm-sm shadow-3"
               @click="handleApproval(selectedPo, 'Approved')"
             />
             <q-btn
@@ -444,8 +414,9 @@
               rounded
               color="negative"
               icon="cancel"
-              label="TOLAK"
-              class="text-weight-bold q-px-lg q-mr-md"
+              :label="$q.screen.lt.sm ? 'Tolak' : 'TOLAK'"
+              :dense="$q.screen.lt.sm"
+              class="text-weight-bold q-px-md q-px-sm-lg q-mr-xs q-mr-sm-md"
               @click="promptReject(selectedPo)"
             />
           </template>
@@ -453,184 +424,111 @@
           <q-btn
             color="red-9"
             icon="picture_as_pdf"
-            label="PDF"
+            :label="$q.screen.lt.sm ? '' : 'PDF'"
+            :dense="$q.screen.lt.sm"
             @click="exportToPDF"
             unelevated
             rounded
-            class="q-px-lg text-weight-bold"
+            class="q-px-md q-px-sm-lg text-weight-bold"
           />
         </q-toolbar>
 
         <!-- Preview Content -->
         <q-card-section class="col scroll q-pa-md q-pa-md-xl flex flex-center preview-container">
-          <div id="po-approval-print-area" class="po-print-container shadow-24" v-if="selectedPo">
-            <!-- KOP SURAT (DIPERTAHANKAN WARNA ASLI DOKUMEN PERUSAHAAN) -->
-            <div class="row no-wrap items-center q-mb-sm">
-              <div class="col-auto q-mr-md">
-                <img :src="selectedPo.logoUrl || 'icons/logo-agra.png'" class="po-logo" />
+          <div id="po-approval-print-area" class="letter-paper shadow-24" v-if="selectedPo">
+            <div class="row no-wrap items-center">
+              <div class="col-auto q-mr-md" v-if="selectedPo.logoUrl || 'icons/logo-agra.png'">
+                <img :src="selectedPo.logoUrl || 'icons/logo-agra.png'" class="final-kop-img" />
               </div>
-              <div class="col text-left q-pl-md">
-                <div class="po-company-name">
+              <div class="col text-left">
+                <div class="final-pt-name uppercase">
                   {{ selectedPo.nama_pt || 'PT AGRA ABHINAYA PERKASA' }}
                 </div>
-                <div class="po-company-slogan">
+                <div class="final-pt-tagline italic text-grey-8">
                   {{ selectedPo.slogan_pt || 'General Construction and General Supply' }}
                 </div>
               </div>
             </div>
 
-            <div class="po-divider"></div>
+            <div class="final-divider"></div>
 
-            <!-- JUDUL & NOMOR (BADGE STATUS "MENUNGGU" DIHAPUS) -->
-            <div class="text-right q-mb-md">
-              <div class="po-title">PURCHASE ORDER</div>
-              <div class="po-no">
-                No. PO :
-                <span class="text-indigo-10 font-mono font-bold">{{ selectedPo.nomor }}</span>
-              </div>
-            </div>
-
-            <!-- META INFO KIRI & KANAN (PERBAIKAN JARAK KANAN RAPAT) -->
-            <div class="row justify-between q-col-gutter-md q-mb-md po-meta">
-              <div class="col-7 text-left">
-                <div class="po-meta-label">KEPADA YTH :</div>
-                <div class="text-indigo-10 text-h6 text-weight-bolder q-mb-xs uppercase">
-                  {{ selectedPo.kepada_yth }}
-                </div>
-                <div class="row no-wrap q-mt-xs">
-                  <div class="col-auto q-mr-sm font-bold text-grey-8">Address :</div>
-                  <div class="col text-blue-grey-10 text-weight-medium">
-                    {{ selectedPo.alamat_supplier || '-' }}
-                  </div>
-                </div>
-                <div class="row no-wrap q-mt-sm">
-                  <div class="col-auto q-mr-sm font-bold text-grey-8">
-                    Attn &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:
-                  </div>
-                  <div class="col text-blue-grey-10 text-weight-bold">
-                    {{ selectedPo.attn_supplier || '-' }}
-                  </div>
-                </div>
-              </div>
-
-              <!-- META KANAN (Diperdekat jaraknya dengan auto sizing) -->
-              <div class="col-5">
-                <table
-                  class="meta-info-table-right"
-                  style="
-                    margin-left: auto;
-                    border-collapse: collapse;
-                    font-size: 11.5px;
-                    color: #111;
-                  "
-                >
+            <div class="row q-mt-md q-mb-lg text-left text-body2 items-start">
+              <div class="col-7">
+                <table class="meta-info-table">
                   <tr>
-                    <td
-                      class="text-bold text-left text-grey-7"
-                      style="padding: 2px 8px 2px 0; white-space: nowrap"
-                    >
-                      Tanggal
-                    </td>
-                    <td style="text-align: center; padding: 2px 4px">:</td>
-                    <td
-                      class="text-left text-weight-bold text-black"
-                      style="padding: 2px 0 2px 4px"
-                    >
-                      {{ formatDateIndo(selectedPo.tanggal) }}
-                    </td>
-                  </tr>
-                  <tr v-if="selectedPo.proyek_nama">
-                    <td
-                      class="text-bold text-left text-grey-7"
-                      style="padding: 2px 8px 2px 0; white-space: nowrap"
-                    >
-                      Proyek
-                    </td>
-                    <td style="text-align: center; padding: 2px 4px">:</td>
-                    <td
-                      class="text-left text-weight-bold uppercase text-black"
-                      style="padding: 2px 0 2px 4px"
-                    >
-                      {{ selectedPo.proyek_nama }}
-                    </td>
-                  </tr>
-                  <tr v-if="selectedPo.no_spk">
-                    <td
-                      class="text-bold text-left text-grey-7"
-                      style="padding: 2px 8px 2px 0; white-space: nowrap"
-                    >
-                      No. SPK
-                    </td>
-                    <td style="text-align: center; padding: 2px 4px">:</td>
-                    <td class="text-left font-bold text-black" style="padding: 2px 0 2px 4px">
-                      {{ selectedPo.no_spk }}
+                    <td class="text-bold label-meta">Kepada Yth</td>
+                    <td class="meta-separator">:</td>
+                    <td class="text-weight-bold text-indigo-10 uppercase">
+                      {{ selectedPo.kepada_yth }}
                     </td>
                   </tr>
                   <tr>
-                    <td
-                      class="text-bold text-left text-grey-7"
-                      style="padding: 2px 8px 2px 0; white-space: nowrap"
-                    >
-                      Pengaju
-                    </td>
-                    <td style="text-align: center; padding: 2px 4px">:</td>
-                    <td
-                      class="text-left text-weight-bold text-indigo-10"
-                      style="padding: 2px 0 2px 4px"
-                    >
-                      {{ selectedPo.submitted_by || selectedPo.prepared_by || '-' }}
+                    <td class="text-bold label-meta">Address</td>
+                    <td class="meta-separator">:</td>
+                    <td class="text-weight-medium">
+                      {{ selectedPo.alamat_supplier || '-' }}
                     </td>
                   </tr>
-                  <tr v-if="selectedPo.approved_at">
-                    <td
-                      class="text-bold text-left text-grey-7"
-                      style="padding: 2px 8px 2px 0; white-space: nowrap"
-                    >
-                      Tgl Disetujui
-                    </td>
-                    <td style="text-align: center; padding: 2px 4px">:</td>
-                    <td class="text-left text-positive font-bold" style="padding: 2px 0 2px 4px">
-                      {{ formatDateIndo(selectedPo.approved_at) }}
+                  <tr>
+                    <td class="text-bold label-meta">Attn</td>
+                    <td class="meta-separator">:</td>
+                    <td class="text-weight-bold">
+                      {{ selectedPo.attn_supplier || '-' }}
                     </td>
                   </tr>
                 </table>
               </div>
+              <div class="col-5 flex justify-end text-right">
+                <div style="width: fit-content; text-align: right;">
+                  <div class="quotation-title-pro uppercase font-13 text-indigo-10 q-mb-sm">PURCHASE ORDER</div>
+                  <table class="meta-info-table text-left" style="width: auto; margin-left: auto;">
+                    <tr>
+                      <td class="text-bold" style="padding-right: 8px; font-size: 12px; color: #1a237e;">No. PO</td>
+                      <td style="padding-right: 8px; font-size: 12px; color: #1a237e;">:</td>
+                      <td class="text-weight-bolder text-indigo-10 font-mono" style="font-size: 12px;">{{ selectedPo.nomor }}</td>
+                    </tr>
+                    <tr>
+                      <td class="text-bold" style="padding-right: 8px;">Tanggal</td>
+                      <td style="padding-right: 8px;">:</td>
+                      <td class="text-weight-bold">{{ formatDateIndo(selectedPo.tanggal) }}</td>
+                    </tr>
+                    <tr v-if="selectedPo.no_spk">
+                      <td class="text-bold" style="padding-right: 8px;">No. SPK</td>
+                      <td style="padding-right: 8px;">:</td>
+                      <td class="text-weight-bold">{{ selectedPo.no_spk }}</td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
             </div>
 
-            <!-- TABEL ITEMS -->
-            <table class="po-table">
+            <table class="final-pro-table full-width">
               <thead>
                 <tr>
                   <th width="5%">NO</th>
-                  <th class="text-left" width="42%">ITEM DESCRIPTION</th>
+                  <th class="text-left" width="45%">ITEM DESCRIPTION</th>
                   <th width="10%">QTY</th>
                   <th width="10%">SATUAN</th>
-                  <th class="text-right" width="16%">UNIT PRICE (Rp)</th>
-                  <th class="text-right" width="17%">AMOUNT (Rp)</th>
+                  <th class="text-right" width="15%">UNIT PRICE</th>
+                  <th class="text-right" width="15%">AMOUNT</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="(item, i) in selectedPo.items" :key="i">
-                  <td class="text-center text-weight-bold">{{ i + 1 }}</td>
+                  <td class="text-center font-bold text-grey-8">{{ i + 1 }}</td>
                   <td class="text-left text-weight-bold uppercase">
                     {{ item.nama_barang }}
-                    <div v-if="item.desc" class="text-caption text-grey-6 font-normal lowercase">
+                    <div v-if="item.desc" class="text-caption text-weight-regular text-grey-6 italic lowercase">
                       {{ item.desc }}
                     </div>
                   </td>
-                  <td class="text-center text-weight-bold">{{ item.qty }}</td>
-                  <td class="text-center uppercase">{{ item.satuan }}</td>
+                  <td class="text-center font-bold">{{ item.qty }}</td>
+                  <td class="text-center uppercase text-weight-bold">{{ item.satuan }}</td>
                   <td class="text-right">
-                    {{
-                      (item.harga_satuan || 0).toLocaleString('id-ID', { minimumFractionDigits: 2 })
-                    }}
+                    Rp {{ (item.harga_satuan || 0).toLocaleString() }}
                   </td>
-                  <td class="text-right text-weight-bold">
-                    {{
-                      ((item.qty || 0) * (item.harga_satuan || 0)).toLocaleString('id-ID', {
-                        minimumFractionDigits: 2,
-                      })
-                    }}
+                  <td class="text-right text-weight-bolder text-indigo-10">
+                    Rp {{ ((item.qty || 0) * (item.harga_satuan || 0)).toLocaleString() }}
                   </td>
                 </tr>
                 <tr v-if="!selectedPo.items || selectedPo.items.length === 0">
@@ -639,137 +537,112 @@
               </tbody>
               <tfoot>
                 <tr class="row-calculation">
-                  <td colspan="5" class="text-right font-bold">Subtotal</td>
-                  <td class="text-right font-bold">
-                    {{
-                      selectedPo.total_amount?.toLocaleString('id-ID', { minimumFractionDigits: 2 })
-                    }}
+                  <td colspan="5" class="text-right text-bold uppercase">Subtotal Amount</td>
+                  <td class="text-right text-bold text-indigo-10">
+                    IDR {{ (selectedPo.total_amount || 0).toLocaleString() }}
                   </td>
                 </tr>
                 <tr class="row-calculation" v-if="selectedPo.mobdemob">
-                  <td colspan="5" class="text-right font-bold">Mobdemob / Lainnya</td>
-                  <td class="text-right font-bold">
-                    {{ selectedPo.mobdemob?.toLocaleString('id-ID', { minimumFractionDigits: 2 }) }}
+                  <td colspan="5" class="text-right text-bold uppercase">Mobdemob / Lainnya</td>
+                  <td class="text-right text-bold text-indigo-10">
+                    IDR {{ (selectedPo.mobdemob || 0).toLocaleString() }}
                   </td>
                 </tr>
-                <tr class="po-grand-total">
+                <tr class="row-grand-total">
                   <td
                     colspan="5"
-                    class="text-right text-weight-bold text-h6 uppercase tracking-widest"
-                    style="font-size: 14px"
+                    class="text-right text-weight-bolder uppercase tracking-widest"
+                    style="font-size: 13px"
                   >
-                    Grand Total
+                    GRAND TOTAL AMOUNT
                   </td>
-                  <td class="text-right text-white text-bold text-subtitle1">
-                    {{
-                      selectedPo.grand_total?.toLocaleString('id-ID', { minimumFractionDigits: 2 })
-                    }}
+                  <td class="text-right text-white text-weight-bolder" style="font-size: 13px">
+                    IDR {{ (selectedPo.grand_total || 0).toLocaleString() }}
                   </td>
                 </tr>
               </tfoot>
             </table>
 
-            <!-- SYARAT & KETENTUAN -->
-            <div class="po-terms-box q-mt-lg" v-if="selectedPo.syarat_kondisi">
-              <div class="po-terms-title">Syarat Dan Kondisi</div>
-              <div
-                class="po-terms-content leading-relaxed"
-                v-html="selectedPo.syarat_kondisi"
-              ></div>
+            <div class="terms-container text-left q-mt-md" v-if="selectedPo.syarat_kondisi">
+              <div class="terms-header uppercase">Syarat & Kondisi</div>
+              <div class="terms-content-box leading-relaxed" v-html="selectedPo.syarat_kondisi"></div>
             </div>
 
-            <div class="po-terms-box q-mt-sm" v-if="selectedPo.sistem_pembayaran">
-              <div class="po-terms-title">Sistem Pembayaran</div>
-              <div
-                class="po-terms-content leading-relaxed"
-                v-html="selectedPo.sistem_pembayaran"
-              ></div>
+            <div class="terms-container text-left q-mt-sm" v-if="selectedPo.sistem_pembayaran">
+              <div class="terms-header uppercase">Sistem Pembayaran</div>
+              <div class="terms-content-box leading-relaxed" v-html="selectedPo.sistem_pembayaran"></div>
             </div>
 
-            <div class="q-mt-md text-left text-body2 italic text-grey-8" v-if="selectedPo.closing">
+            <div class="text-closing-final q-mt-md q-mb-md text-left" v-if="selectedPo.closing">
               {{ selectedPo.closing }}
             </div>
 
             <!-- ALASAN REJECT -->
             <div
               v-if="selectedPo.status === 'Rejected' && selectedPo.alasan_reject"
-              class="reject-reason-box q-mt-lg"
+              class="terms-container text-left q-mt-md"
+              style="border-color: #b71c1c !important;"
             >
-              <div class="reject-reason-title">
-                <q-icon name="cancel" class="q-mr-xs" /> ALASAN PENOLAKAN
+              <div class="terms-header uppercase" style="background: #b71c1c !important;">Alasan Penolakan</div>
+              <div class="terms-content-box leading-relaxed text-red-9" style="color: #b71c1c !important; font-weight: bold;">
+                {{ selectedPo.alasan_reject }}
               </div>
-              <div class="reject-reason-content">{{ selectedPo.alasan_reject }}</div>
             </div>
 
-            <!-- TANDA TANGAN (TERPISAH INDAH TIDAK MENYATU LAGI) -->
-            <div
-              class="row justify-between text-center q-mt-xl po-signature"
-              style="font-size: 13px"
-            >
-              <div class="col-4 q-px-md">
-                <div class="font-bold q-mb-xl">Prepared By</div>
-                <div style="height: 55px"></div>
-                <div
-                  style="
-                    max-width: 180px;
-                    margin: 0 auto;
-                    border-top: 2px solid #1a237e;
-                    padding-top: 5px;
-                  "
-                  class="font-bold uppercase text-indigo-10"
-                >
-                  {{ selectedPo.prepared_by || '..............................' }}
-                </div>
-                <div class="text-caption text-grey-6 q-mt-xs">Pengaju</div>
-              </div>
-              <div class="col-4 q-px-md">
-                <div class="font-bold q-mb-xl">Checked By</div>
-                <div style="height: 55px"></div>
-                <div
-                  style="
-                    max-width: 180px;
-                    margin: 0 auto;
-                    border-top: 2px solid #1a237e;
-                    padding-top: 5px;
-                  "
-                  class="font-bold uppercase text-indigo-10"
-                >
-                  {{
-                    selectedPo.checked_by ||
-                    selectedPo.requested_by ||
-                    '..............................'
-                  }}
-                </div>
-                <div class="text-caption text-grey-6 q-mt-xs">Pemeriksa</div>
-              </div>
-              <div class="col-4 q-px-md">
-                <div class="font-bold q-mb-xl">Approved By</div>
-                <div style="height: 55px" class="flex flex-center">
-                  <div
-                    v-if="selectedPo.status === 'Approved' && selectedPo.approved_by_nama"
-                    class="text-positive text-weight-bold"
-                    style="font-size: 11px"
-                  >
-                    ✓ {{ selectedPo.approved_by_nama }}
+            <div class="signature-container text-left q-mt-lg">
+              <div class="row justify-between text-center po-signature">
+                <div class="col-4">
+                  <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">Prepared By,</div>
+                  <div class="final-sign-space flex flex-center" style="height: 90px;">
+                    <img v-if="selectedPo.stempel_url" :src="selectedPo.stempel_url" class="img-stempel" />
+                    <img v-if="selectedPo.signatureUrl" :src="selectedPo.signatureUrl" class="img-signature-clean" />
+                  </div>
+                  <div class="signer-name-wrapper">
+                    <div class="text-signer-final text-weight-black uppercase text-indigo-10">
+                      {{ selectedPo.prepared_by || '..............................' }}
+                    </div>
+                  </div>
+                  <div class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs">
+                    Purchasing Staff
                   </div>
                 </div>
-                <div
-                  style="
-                    max-width: 180px;
-                    margin: 0 auto;
-                    border-top: 2px solid #1a237e;
-                    padding-top: 5px;
-                  "
-                  class="font-bold uppercase text-indigo-10"
-                  :class="selectedPo.status === 'Approved' ? 'text-positive border-pos' : ''"
-                >
-                  {{
-                    selectedPo.approved_by ||
-                    selectedPo.approved_supplier ||
-                    '..............................'
-                  }}
+                
+                <div class="col-4">
+                  <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">Checked By,</div>
+                  <div class="final-sign-space flex flex-center" style="height: 90px;">
+                    <!-- Spacer for signature -->
+                  </div>
+                  <div class="signer-name-wrapper">
+                    <div class="text-signer-final text-weight-black uppercase text-indigo-10">
+                      {{ selectedPo.checked_by || selectedPo.requested_by || '..............................' }}
+                    </div>
+                  </div>
+                  <div class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs">
+                    Project Manager
+                  </div>
                 </div>
-                <div class="text-caption text-grey-6 q-mt-xs">Penyetuju</div>
+
+                <div class="col-4">
+                  <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">Approved By,</div>
+                  <div class="final-sign-space flex flex-center" style="height: 90px;">
+                    <!-- Spacer for signature or checkmark -->
+                    <div
+                      v-if="selectedPo.status === 'Approved' && selectedPo.approved_by_nama"
+                      class="text-positive text-weight-bold"
+                      style="font-size: 11px"
+                    >
+                      ✓ {{ selectedPo.approved_by_nama }}
+                    </div>
+                  </div>
+                  <div class="signer-name-wrapper">
+                    <div class="text-signer-final text-weight-black uppercase text-indigo-10">
+                      {{ selectedPo.approved_by || selectedPo.approved_supplier || '..............................' }}
+                    </div>
+                  </div>
+                  <div class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs">
+                    Direktur
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -809,79 +682,6 @@ const userData = ref(null)
 
 let unsubRows = null
 let unsubUser = null
-
-// High-fidelity SVG Vector definitions (Teal & Orange colored templates)
-const getConstructionSvg = (index) => {
-  const svgs = [
-    `<svg viewBox="0 0 100 100" style="width: 100%; height: 100%;"><path d="M25,45 C25,25 75,25 75,45 Z" fill="#009688" /><rect x="18" y="42" width="64" height="6" rx="3" fill="#f59e0b" /><path d="M47,20 L53,20 L53,32 L47,32 Z" fill="#f59e0b" /><circle cx="50" cy="58" r="15" fill="#e0f2f1" /><circle cx="76" cy="65" r="9" fill="none" stroke="#ff781e" stroke-width="2.5" stroke-dasharray="3,1.5" /><path d="M28,82 C28,70 72,70 72,82 L72,92 L28,92 Z" fill="#00796b" /></svg>`,
-    `<svg viewBox="0 0 100 100" style="width: 100%; height: 100%;"><circle cx="50" cy="15" r="7" fill="#ff781e" /><line x1="50" y1="15" x2="32" y2="86" stroke="#ff781e" stroke-width="5.5" stroke-linecap="round" /><line x1="50" y1="15" x2="68" y2="86" stroke="#ff781e" stroke-width="5.5" stroke-linecap="round" /><line x1="38" y1="52" x2="62" y2="52" stroke="#009688" stroke-width="4.5" stroke-linecap="round" /></svg>`,
-    `<svg viewBox="0 0 100 100" style="width: 100%; height: 100%;"><rect x="25" y="12" width="50" height="78" rx="6" fill="#0d9488" /><rect x="34" y="22" width="11" height="11" rx="2" fill="#e0f2f1" /><rect x="55" y="22" width="11" height="11" rx="2" fill="#e0f2f1" /><rect x="34" y="42" width="11" height="11" rx="2" fill="#e0f2f1" /><rect x="55" y="42" width="11" height="11" rx="2" fill="#e0f2f1" /><rect x="34" y="62" width="11" height="11" rx="2" fill="#e0f2f1" /><rect x="55" y="62" width="11" height="11" rx="2" fill="#e0f2f1" /></svg>`,
-    `<svg viewBox="0 0 100 100" style="width: 100%; height: 100%;"><rect x="18" y="74" width="54" height="13" rx="4" fill="#ff781e" /><circle cx="26" cy="80.5" r="5.5" fill="#1e293b" /><circle cx="45" cy="80.5" r="5.5" fill="#1e293b" /><circle cx="64" cy="80.5" r="5.5" fill="#1e293b" /><path d="M23,48 L46,48 L54,74 L23,74 Z" fill="#009688" /><line x1="46" y1="56" x2="78" y2="26" stroke="#ff781e" stroke-width="6" stroke-linecap="round" /><line x1="78" y1="26" x2="88" y2="52" stroke="#ff781e" stroke-width="4.5" stroke-linecap="round" /><path d="M82,48 L92,48 L87,62 L77,58 Z" fill="#00796b" /></svg>`,
-    `<svg viewBox="0 0 100 100" style="width: 100%; height: 100%;"><g transform="rotate(45, 50, 50)"><rect x="44" y="12" width="12" height="76" rx="4" fill="#009688" /><circle cx="50" cy="15" r="13" fill="#009688" /><polygon points="50,15 41,4 59,4 50,15" fill="#e0f2f1" /><circle cx="50" cy="85" r="9" fill="#00796b" /></g><g transform="rotate(-45, 50, 50)"><rect x="45" y="18" width="10" height="68" rx="2.5" fill="#ff781e" /><rect x="28" y="10" width="44" height="16" rx="3.5" fill="#78350f" /><path d="M66,13 C73,13 77,23 77,23 L66,23 Z" fill="#78350f" /></g></svg>`,
-  ]
-  return svgs[index % svgs.length]
-}
-
-// Floating Icons States
-const floatingIcons = ref([])
-let iconIdCounter = 0
-
-function spawnFloatingIcon() {
-  const id = iconIdCounter++
-  const left = Math.random() * 95 + '%'
-  const duration = (5 + Math.random() * 6).toFixed(2) + 's'
-  const delay = (Math.random() * 3).toFixed(2) + 's'
-  const size = (24 + Math.random() * 22).toFixed(0)
-  const svgContent = getConstructionSvg(id)
-
-  floatingIcons.value.push({
-    id,
-    svg: svgContent,
-    style: {
-      left,
-      width: size + 'px',
-      height: size + 'px',
-      animationDuration: duration,
-      animationDelay: delay,
-    },
-  })
-  setTimeout(
-    () => {
-      floatingIcons.value = floatingIcons.value.filter((i) => i.id !== id)
-    },
-    (parseFloat(duration) + parseFloat(delay) + 0.5) * 1000,
-  )
-}
-
-let floatingIconInterval = null
-
-// Click Icons States
-const clickIcons = ref([])
-
-function handlePageClick(e) {
-  const count = 4 + Math.floor(Math.random() * 4)
-  for (let i = 0; i < count; i++) {
-    const id = iconIdCounter++
-    const offsetX = (Math.random() - 0.5) * 100
-    const offsetY = -(60 + Math.random() * 80)
-    const size = 26 + Math.floor(Math.random() * 18)
-    const svgContent = getConstructionSvg(id)
-
-    const icon = {
-      id,
-      svg: svgContent,
-      x: e.clientX - size / 2,
-      y: e.clientY - size / 2,
-      tx: offsetX,
-      ty: offsetY,
-      size,
-    }
-    clickIcons.value.push(icon)
-    setTimeout(() => {
-      clickIcons.value = clickIcons.value.filter((i) => i.id !== id)
-    }, 1000)
-  }
-}
 
 // ── Columns ───────────────────────────────────────────────────────────────
 const columns = [
@@ -928,7 +728,7 @@ const stats = computed(() => [
     label: 'Total PO',
     value: rows.value.length,
     icon: 'description',
-    gradientClass: 'card-teal-gradient',
+    gradientClass: 'card-brand-gradient',
   },
   {
     label: 'Menunggu',
@@ -959,8 +759,8 @@ const getStatusColor = (s) =>
       : s === 'Submitted'
         ? 'orange-9'
         : s === 'Ordered'
-          ? 'teal-10'
-          : 'blue-grey-5'
+          ? 'brand-primary'
+          : 'blue-grey-6'
 
 const getStatusIcon = (s) =>
   s === 'Approved'
@@ -1104,22 +904,94 @@ const printPage = () => window.print()
 const exportToPDF = () => {
   if (!selectedPo.value) return
   $q.loading.show({ message: 'Membuat PDF...' })
-  const element = document.getElementById('po-approval-print-area')
-  const opt = {
-    margin: 0,
-    filename: `PO_${(selectedPo.value.nomor || 'PO').replace(/\//g, '-')}.pdf`,
-    image: { type: 'jpeg', quality: 1 },
-    html2canvas: { scale: 3, useCORS: true, letterRendering: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-  }
-  html2pdf()
-    .set(opt)
-    .from(element)
-    .save()
-    .then(() => {
+  setTimeout(() => {
+    const e = document.getElementById('po-approval-print-area')
+    if (!e) {
       $q.loading.hide()
-      $q.notify({ type: 'positive', message: 'PDF berhasil diunduh!', position: 'top' })
-    })
+      return
+    }
+
+    const hadShadow = e.classList.contains('shadow-24')
+    if (hadShadow) e.classList.remove('shadow-24')
+
+    const originalStyle = e.getAttribute('style') || ''
+    e.style.minHeight = 'auto'
+    e.style.boxShadow = 'none'
+
+    const currentHeight = e.scrollHeight
+    const currentWidth = e.scrollWidth
+    const targetHeight = (currentWidth * 1.414) - 20 // A4 Aspect Ratio with safe margin to prevent blank page overflow
+
+    if (currentHeight > targetHeight) {
+      const scaleFactor = targetHeight / currentHeight
+      e.style.transform = `scale(${scaleFactor})`
+      e.style.transformOrigin = 'top center'
+      e.style.width = `${currentWidth}px`
+      e.style.height = `${currentHeight}px`
+
+      const wrapper = document.createElement('div')
+      wrapper.style.width = `${currentWidth}px`
+      wrapper.style.height = `${targetHeight}px`
+      wrapper.style.overflow = 'hidden'
+      wrapper.style.position = 'relative'
+
+      e.parentNode.insertBefore(wrapper, e)
+      wrapper.appendChild(e)
+
+      const opt = {
+        margin: 0,
+        filename: `PO_${(selectedPo.value.nomor || 'PO').replace(/\//g, '-')}.pdf`,
+        image: { type: 'jpeg', quality: 1 },
+        html2canvas: { scale: 3, useCORS: true, letterRendering: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: 'avoid-all' }
+      }
+
+      html2pdf()
+        .set(opt)
+        .from(wrapper)
+        .save()
+        .then(() => {
+          wrapper.parentNode.insertBefore(e, wrapper)
+          wrapper.parentNode.removeChild(wrapper)
+          e.setAttribute('style', originalStyle)
+          if (hadShadow) e.classList.add('shadow-24')
+          $q.loading.hide()
+          $q.notify({ type: 'positive', message: 'PDF berhasil diunduh!', position: 'top' })
+        })
+        .catch(() => {
+          wrapper.parentNode.insertBefore(e, wrapper)
+          wrapper.parentNode.removeChild(wrapper)
+          e.setAttribute('style', originalStyle)
+          if (hadShadow) e.classList.add('shadow-24')
+          $q.loading.hide()
+        })
+    } else {
+      const opt = {
+        margin: 0,
+        filename: `PO_${(selectedPo.value.nomor || 'PO').replace(/\//g, '-')}.pdf`,
+        image: { type: 'jpeg', quality: 1 },
+        html2canvas: { scale: 3, useCORS: true, letterRendering: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: 'avoid-all' }
+      }
+      html2pdf()
+        .set(opt)
+        .from(e)
+        .save()
+        .then(() => {
+          e.setAttribute('style', originalStyle)
+          if (hadShadow) e.classList.add('shadow-24')
+          $q.loading.hide()
+          $q.notify({ type: 'positive', message: 'PDF berhasil diunduh!', position: 'top' })
+        })
+        .catch(() => {
+          e.setAttribute('style', originalStyle)
+          if (hadShadow) e.classList.add('shadow-24')
+          $q.loading.hide()
+        })
+    }
+  }, 400)
 }
 
 // ── Lifecycle ─────────────────────────────────────────────────────────────
@@ -1132,15 +1004,11 @@ onMounted(() => {
       if (!s.empty) userData.value = s.docs[0].data()
     })
   }
-  // Start floating icons
-  floatingIconInterval = setInterval(spawnFloatingIcon, 1500)
-  spawnFloatingIcon()
 })
 
 onUnmounted(() => {
   if (unsubRows) unsubRows()
   if (unsubUser) unsubUser()
-  if (floatingIconInterval) clearInterval(floatingIconInterval)
 })
 </script>
 
@@ -1149,7 +1017,7 @@ onUnmounted(() => {
 
 .font-pro {
   font-family:
-    'Plus Jakarta Sans',
+    'Inter',
     -apple-system,
     sans-serif;
 }
@@ -1184,37 +1052,62 @@ onUnmounted(() => {
   opacity: 0.5;
 }
 .shadow-premium {
-  box-shadow: 0 4px 15px rgba(0, 150, 136, 0.2);
+  box-shadow: 0 10px 30px rgba(54, 173, 163, 0.2) !important;
 }
 
-/* ── Teal tokens ── */
-.text-teal-10 {
-  color: #009688 !important;
+/* ===== BRAND COLOR PALETTE ===== */
+
+.bg-brand-primary {
+  background-color: #36ada3 !important;
 }
-.bg-teal-10 {
-  background-color: #009688 !important;
+.bg-brand-light {
+  background-color: #e0f5f4 !important;
 }
-.bg-teal-1 {
-  background-color: #e0f2f1 !important;
+.bg-brand-danger {
+  background-color: #ad3640 !important;
 }
-.border-teal-thin {
-  border: 1px solid rgba(0, 150, 136, 0.18) !important;
+.text-brand-primary {
+  color: #36ada3 !important;
 }
-.table-header-teal {
-  background: linear-gradient(90deg, #00796b 0%, #009688 100%) !important;
+.text-brand-teal {
+  color: #36ada3 !important;
 }
-.hover-teal-btn {
+.text-brand-danger {
+  color: #ad3640 !important;
+}
+.bg-page {
+  background-color: #f0fafa !important;
+}
+
+.border-subtle {
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+.border-bottom-subtle {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+.page-content-wrapper {
+  padding: 0 16px;
+}
+@media (min-width: 768px) {
+  .page-content-wrapper {
+    padding: 0 24px;
+  }
+}
+
+.hover-blue-btn:hover {
+  background-color: #e0f5f4 !important;
+  color: #1e6e69 !important;
+}
+.btn-hover:hover {
+  filter: brightness(1.1);
+  transform: scale(1.02);
   transition: 0.3s;
 }
-.hover-teal-btn:hover {
-  background-color: #e0f2f1 !important;
-  color: #009688 !important;
-}
 
-/* ── Stat cards (image_40d807.png Style) ── */
-.card-teal-gradient {
-  background: linear-gradient(135deg, #0d9488 0%, #08665c 100%) !important;
-  box-shadow: 0 8px 24px rgba(13, 148, 136, 0.35) !important;
+/* ── Stat cards ── */
+.card-brand-gradient {
+  background: linear-gradient(135deg, #36ada3 0%, #1e6e69 100%) !important;
+  box-shadow: 0 8px 24px rgba(54, 173, 163, 0.35) !important;
 }
 .card-blue-gradient {
   background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
@@ -1243,21 +1136,21 @@ onUnmounted(() => {
 }
 
 /* ── Table ── */
-.approval-po-table :deep(thead tr th) {
+.approval-table :deep(thead tr th) {
   position: sticky;
   top: 0;
   z-index: 1;
   font-weight: 800;
   font-size: 11px;
   letter-spacing: 0.5px;
-  padding: 14px 16px;
+  padding: 16px;
 }
-.approval-po-table :deep(tbody tr td) {
+.approval-table :deep(tbody tr td) {
   padding: 12px 16px;
 }
 
 .hover-bg:hover {
-  background-color: rgba(0, 150, 136, 0.04) !important;
+  background-color: rgba(54, 173, 163, 0.06) !important;
 }
 .transition-all {
   transition: all 0.25s ease;
@@ -1279,304 +1172,219 @@ onUnmounted(() => {
 }
 
 /* ════════════════════════════════════════════════
-   PO PRINT CONTAINER
-════════════════════════════════════════════════ */
-.po-print-container {
+   PO PREVIEW STYLES (MATCHING PESANANPEMBELIANPAGE.VUE)
+ ════════════════════════════════════════════════ */
+.letter-paper {
   background: white;
   width: 210mm;
-  min-height: 297mm;
-  padding: 10mm 20mm 15mm; /* Dikoreksi margin top agar rada keatasan */
+  min-width: 210mm;
+  flex-shrink: 0;
+  min-height: 296mm;
+  padding: 15mm 20mm;
   margin: 0 auto;
-  color: #000;
-  font-family: Arial, Helvetica, sans-serif;
-  line-height: 1.45;
+  color: #1a1a1a;
+  line-height: 1.5;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
-
-.po-logo {
-  height: 60px;
+.preview-container {
+  width: 100%;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+  display: flex !important;
+  justify-content: flex-start !important;
+}
+.final-kop-img {
+  height: 75px;
+  width: auto;
   object-fit: contain;
 }
-
-.po-company-name {
+.final-pt-name {
+  font-size: 24px;
+  font-weight: 900;
+  color: #1a237e;
+  letter-spacing: -1px;
+  line-height: 1;
+}
+.final-pt-tagline {
+  font-size: 10px;
+  color: #555;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-top: 2px;
+}
+.final-divider {
+  height: 4px;
+  background: #1a237e;
+  margin-top: 15px;
+  border-bottom: 1px solid #1a237e;
+}
+.quotation-title-pro {
   font-size: 20px;
   font-weight: 900;
   color: #1a237e;
-  margin-bottom: 2px;
-}
-.po-company-slogan {
-  font-size: 11px;
-  font-weight: 700;
-  color: #555;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.po-divider {
-  height: 3px;
-  background: #1a237e;
-  margin: 10px 0 10px; /* Dikoreksi margin agar rada keatasan */
-}
-
-.po-title {
-  font-size: 18px;
-  font-weight: 900;
-  color: #1a237e;
-  letter-spacing: 1.5px;
-  margin-bottom: 4px;
-}
-.po-no {
-  font-size: 12px;
-  font-weight: 800;
-  color: #000;
-}
-
-/* Status badge di cetak */
-.status-badge-print {
+  letter-spacing: 2px;
+  border-bottom: 2px solid #f0f0f0;
   display: inline-block;
-  font-size: 10px;
-  font-weight: 800;
-  padding: 3px 12px;
-  border-radius: 20px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  padding-bottom: 2px;
 }
-.status-submitted {
-  background: #ff6f00;
-  color: #fff;
-}
-.status-approved {
-  background: #1b5e20;
-  color: #fff;
-}
-.status-rejected {
-  background: #b71c1c;
-  color: #fff;
-}
-.status-ordered {
-  background: #006064;
-  color: #fff;
-}
-.status-draft {
-  background: #546e7a;
-  color: #fff;
-}
-
-.po-meta {
-  font-size: 12.5px; /* Sedikit diperbesar agar nyaman dibaca */
-  color: #111;
-  margin-top: -10px; /* Margin ditarik keatas agar seksi seimbang */
-}
-.po-meta-label {
-  color: #555;
-  font-size: 10.5px;
-  margin-bottom: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: bold;
-}
-
-/* ── PO Table ── */
-.po-table {
+.meta-info-table {
   border-collapse: collapse;
   width: 100%;
-  margin-top: 16px;
-  margin-bottom: 20px;
-  border: 1px solid #ccc;
 }
-.po-table th {
+.meta-info-table td {
+  padding: 3px 0;
+  font-size: 12px;
+  vertical-align: top;
+}
+.label-meta {
+  width: 125px;
+  color: #555;
+}
+.meta-separator {
+  width: 15px;
+  text-align: center;
+}
+
+.final-pro-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-top: 10px;
+  border: 1px solid #1a237e;
+}
+.final-pro-table th {
   background: #1a237e !important;
   color: white !important;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
-  padding: 9px 8px;
-  border: 1px solid #ccc;
+  padding: 10px 8px;
+  border: 1px solid #1a237e;
   text-transform: uppercase;
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
 }
-.po-table td {
-  font-size: 11.5px;
-  padding: 7px 8px;
-  border: 1px solid #ddd;
-  color: #111;
-}
-.po-table tfoot td {
+.final-pro-table td {
   padding: 8px;
+  font-size: 11px;
   border: 1px solid #ccc;
+  color: #000 !important;
 }
-
 .row-calculation {
-  background: #f5f5f5 !important;
+  background: #f9fafb !important;
 }
 .row-calculation td {
-  padding: 8px 12px;
-  font-size: 12px;
+  padding: 8px 12px !important;
+  border: 1px solid #ccc !important;
+  font-size: 11px;
 }
-
-.po-grand-total td {
+.row-grand-total {
   background: #1a237e !important;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.row-grand-total td {
+  padding: 12px !important;
   color: white !important;
-  font-weight: 900;
-  font-size: 14px;
   border: 1px solid #1a237e !important;
-  -webkit-print-color-adjust: exact;
-  print-color-adjust: exact;
-}
-
-/* ── Terms box ── */
-.po-terms-box {
-  border: 1.5px solid #1a237e;
-  border-radius: 4px;
-  overflow: hidden;
-  page-break-inside: avoid;
-  margin-bottom: 8px;
-}
-.po-terms-title {
   background: #1a237e !important;
-  color: white !important;
-  font-size: 10px;
-  font-weight: 800;
-  padding: 6px 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
 }
-.po-terms-content {
-  padding: 8px 10px;
-  font-size: 11px;
-  color: #000;
-}
-.po-terms-content p,
-.po-terms-content ol,
-.po-terms-content ul {
-  margin: 0 0 4px;
-  padding-left: 16px;
-}
 
-/* ── Reject box ── */
-.reject-reason-box {
-  border: 1.5px solid #b71c1c;
+.terms-container {
+  border: 1.5px solid #1a237e !important;
+  margin-top: 20px;
   border-radius: 4px;
   overflow: hidden;
   page-break-inside: avoid;
 }
-.reject-reason-title {
-  background: #b71c1c !important;
+.terms-header {
+  background: #1a237e !important;
+  padding: 8px 12px;
+  font-weight: 900;
   color: white !important;
-  font-size: 10px;
-  font-weight: 800;
-  padding: 6px 10px;
-  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 1px;
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
+  text-transform: uppercase;
 }
-.reject-reason-content {
-  padding: 8px 10px;
-  font-size: 11px;
-  color: #b71c1c;
-  font-weight: 600;
-}
-
-/* ── Signature (TERPISAH INDAH TIDAK MENYATU LAGI) ── */
-.po-signature {
-  page-break-inside: avoid;
-}
-.sig-line {
-  border-top: 2px solid #1a237e;
-  padding-top: 5px;
-  display: block; /* Menggunakan block agar terpusat rapi di grid */
-  max-width: 180px;
-  margin: 0 auto;
+.terms-content-box {
+  padding: 10px 12px;
   font-size: 12px;
+  color: #000 !important;
+}
+.terms-content-box p {
+  margin: 0 0 5px 0;
+  font-size: inherit !important;
+  color: inherit !important;
+}
+.terms-content-box ol,
+.terms-content-box ul {
+  margin: 0;
+  padding-left: 20px;
+}
+.text-closing-final {
+  font-size: 12px;
+  color: #333;
 }
 
-/* =======================================================================
-   INTERACTIVE FLOATING & CLICK HIGH-FIDELITY VECTOR ICONS
-   ======================================================================= */
-.page-wrapper {
+.signature-container {
+  margin-top: 30px;
+  padding-top: 20px;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+.final-sign-space {
   position: relative;
-  overflow: hidden;
+  height: 120px;
+  width: 250px;
+  margin: 0 auto 10px;
 }
-
-.floating-icons-container {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 0;
-  overflow: hidden;
-}
-
-.floating-icon {
+.img-stempel {
   position: absolute;
-  bottom: -60px;
-  opacity: 0;
-  animation: floatUpAnimation linear forwards;
-  will-change: transform, opacity;
-  user-select: none;
+  width: 110px;
+  height: auto;
+  left: 20px;
+  bottom: 15px;
+  z-index: 2;
+  opacity: 0.95;
 }
-
-@keyframes floatUpAnimation {
-  0% {
-    transform: translateY(0) rotate(-15deg) scale(0.65);
-    opacity: 0;
-  }
-  15% {
-    opacity: 0.7;
-  }
-  70% {
-    opacity: 0.45;
-  }
-  90% {
-    opacity: 0.15;
-  }
-  100% {
-    transform: translateY(-112vh) rotate(20deg) scale(1.15);
-    opacity: 0;
-  }
-}
-
-.click-icons-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 9999;
-  overflow: visible;
-}
-
-.click-icon {
-  position: fixed;
-  opacity: 1;
-  animation: clickIconAnimation 0.9s ease-out forwards;
-  will-change: transform, opacity;
-  user-select: none;
-}
-
-@keyframes clickIconAnimation {
-  0% {
-    transform: translate(0, 0) scale(1.1);
-    opacity: 1;
-  }
-  45% {
-    transform: translate(var(--tx), var(--ty)) scale(1.35);
-    opacity: 0.85;
-  }
-  100% {
-    transform: translate(var(--tx), calc(var(--ty) - 35px)) scale(0.35);
-    opacity: 0;
-  }
-}
-
-.content-relative {
-  position: relative;
+.img-signature-clean {
+  position: absolute;
+  max-height: 100px;
+  max-width: 180px;
+  right: 10px;
+  bottom: 5px;
   z-index: 1;
+  mix-blend-mode: multiply;
+  filter: contrast(1.1) brightness(0.95);
+}
+.signer-name-wrapper {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 40px;
+  border-bottom: 2.5px solid #1a237e;
+  width: 200px;
+  margin: 0 auto;
+  padding-bottom: 4px;
+}
+.text-signer-final {
+  font-size: 13px;
+  font-weight: 900;
+  color: #1a237e;
+  line-height: 1.25;
+  text-align: center;
+  width: 100%;
+}
+.text-role-final {
+  font-size: 10.5px;
+  margin-top: 6px;
+  font-weight: 700;
+  color: #444;
 }
 
 /* ── Print Media ── */
@@ -1591,22 +1399,29 @@ onUnmounted(() => {
   .no-print {
     display: none !important;
   }
-  .po-print-container {
+  .letter-paper {
     box-shadow: none !important;
     margin: 0 !important;
     width: 210mm !important;
   }
-  .po-table th,
-  .po-grand-total td,
-  .po-terms-title,
-  .reject-reason-title {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-  .row-calculation {
-    background: #f5f5f5 !important;
+  .final-pro-table th,
+  .row-grand-total,
+  .terms-header {
+    background-color: #1a237e !important;
+    color: white !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+  }
+  .row-calculation {
+    background-color: #f9fafb !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  tr,
+  .terms-container,
+  .signature-container {
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
 }
 </style>

@@ -1,191 +1,194 @@
 <template>
-  <q-page class="bg-grey-2 q-pa-md q-pa-md-lg font-pro">
-    <!-- HEADER SECTION -->
-    <div class="row items-center q-mb-xl animate-fade">
-      <q-btn
-        flat
-        round
-        color="indigo-10"
-        icon="arrow_back"
-        @click="$router.back()"
-        class="q-mr-md bg-white shadow-1"
-      />
-      <div>
-        <div class="text-h4 text-weight-bolder text-indigo-10 leading-tight">
-          Permintaan Antar Gudang
-          <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
-            >Internal Stock Transfer Request</span
-          >
-        </div>
-        <div class="text-subtitle1 text-grey-7 q-mt-sm">
-          Ajukan mutasi material dari gudang pendukung ke lokasi gudang Anda.
-        </div>
-      </div>
-    </div>
-
-    <div class="row q-col-gutter-lg justify-center">
-      <!-- FORM KIRI: IDENTITAS & RUTE -->
-      <div class="col-12 col-md-5">
-        <q-card flat bordered class="rounded-20 q-pa-lg bg-white shadow-1">
-          <div class="text-subtitle1 text-indigo-10 text-weight-bolder q-mb-lg flex items-center">
-            <q-icon name="swap_horiz" class="q-mr-sm" /> KONFIGURASI RUTE MUTASI
-          </div>
-
-          <div class="q-gutter-y-md">
-            <!-- Gudang Sumber (Pilih Gudang yang akan dikurangi stoknya) -->
-            <q-select
-              outlined
-              v-model="targetWarehouse"
-              :options="warehouseOptions"
-              option-label="nama"
-              label="Pilih Gudang Sumber (Pemberi Stok) *"
-              stack-label
-              :rules="[(val) => !!val || 'Pilih gudang sumber barang']"
+  <q-page class="bg-page q-pa-md font-pro relative-position">
+    <div class="animate-fade page-content-wrapper">
+      <!-- HEADER SECTION -->
+      <div class="row items-center no-wrap q-mb-xl animate-fade">
+        <q-btn
+          flat
+          round
+          color="brand-primary"
+          icon="arrow_back"
+          @click="$router.back()"
+          class="q-mr-md bg-white shadow-1 transition-all btn-hover"
+        />
+        <div>
+          <div class="text-h4 text-weight-bolder text-brand-primary leading-tight">
+            Permintaan Antar Gudang
+            <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
+              >Internal Stock Transfer Request</span
             >
-              <template v-slot:prepend><q-icon name="warehouse" color="orange-9" /></template>
-              <template v-slot:hint>Gudang yang stoknya akan dipotong saat disetujui.</template>
-            </q-select>
-
-            <div class="row justify-center q-my-sm">
-              <q-icon name="south" color="primary" size="md" class="animate-bounce" />
-            </div>
-
-            <!-- Gudang Pemohon (Locked: Gudang Aktif/Tujuan Akhir) -->
-            <q-input
-              filled
-              v-model="originWarehouseName"
-              label="Gudang Penerima (Tujuan Akhir)"
-              readonly
-              bg-color="indigo-1"
-              class="text-weight-bold"
-              stack-label
-            >
-              <template v-slot:prepend><q-icon name="input" color="indigo-10" /></template>
-              <template v-slot:hint>Stok akan bertambah di gudang ini.</template>
-            </q-input>
-
-            <q-separator class="q-my-md" />
-
-            <q-input
-              outlined
-              v-model="form.nomor"
-              label="Nomor Dokumen Request"
-              readonly
-              stack-label
-              bg-color="grey-1"
-            />
-
-            <q-input
-              outlined
-              v-model="form.catatan"
-              type="textarea"
-              label="Justifikasi / Keperluan Permintaan"
-              placeholder="Contoh: Percepatan struktur lantai 2 atau stok kritis..."
-              rows="3"
-            />
           </div>
-        </q-card>
-
-        <!-- Preview Status -->
-        <div class="q-mt-lg q-pa-lg bg-blue-1 rounded-20 border-dashed-blue text-center">
-          <div class="text-overline text-primary uppercase tracking-widest">Status Dokumen</div>
-          <div class="text-h5 text-weight-bolder text-indigo-10 uppercase">Waiting Approval</div>
-          <div class="text-caption text-grey-7">
-            Data akan diverifikasi oleh Manajer Logistik sebelum stok berpindah.
+          <div class="text-subtitle1 text-grey-7 q-mt-sm">
+            Ajukan mutasi material dari gudang pendukung ke lokasi gudang Anda.
           </div>
         </div>
       </div>
 
-      <!-- FORM KANAN: DAFTAR BARANG -->
-      <div class="col-12 col-md-7">
-        <q-card flat bordered class="rounded-20 bg-white shadow-1 overflow-hidden">
-          <q-toolbar class="bg-indigo-10 text-white q-py-sm">
-            <q-icon name="list" class="q-mr-sm" />
-            <q-toolbar-title class="text-weight-bold text-subtitle1"
-              >DAFTAR MATERIAL YANG DIMINTA</q-toolbar-title
-            >
-            <q-btn flat round dense icon="add_circle" @click="addItemRow">
-              <q-tooltip>Tambah Baris</q-tooltip>
-            </q-btn>
-          </q-toolbar>
-
-          <q-card-section class="q-pa-none">
-            <q-markup-table flat separator="horizontal" class="permintaan-table">
-              <thead>
-                <tr class="bg-grey-1 text-indigo-10">
-                  <th width="50">NO</th>
-                  <th class="text-left">NAMA BARANG / MATERIAL</th>
-                  <th width="100">QTY</th>
-                  <th width="100">UNIT</th>
-                  <th width="50"></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(item, index) in form.items" :key="index">
-                  <td class="text-center text-grey-6">{{ index + 1 }}</td>
-                  <td>
-                    <!-- FIX: Menggunakan Placeholder Dinamis agar hilang ketika barang sudah terpilih -->
-                    <q-select
-                      dense
-                      borderless
-                      v-model="item.barang"
-                      :options="masterBarang"
-                      option-label="nama"
-                      :placeholder="item.barang ? '' : 'Pilih material...'"
-                      use-input
-                      @filter="filterMasterBarang"
-                      @update:model-value="(val) => onBarangSelect(val, index)"
-                    />
-                  </td>
-                  <td>
-                    <q-input
-                      dense
-                      borderless
-                      v-model.number="item.qty"
-                      type="number"
-                      input-class="text-center text-weight-bold"
-                    />
-                  </td>
-                  <td class="text-center">
-                    <q-badge outline color="grey-7" class="uppercase text-weight-bold">
-                      {{ item.satuan || '-' }}
-                    </q-badge>
-                  </td>
-                  <td class="text-center">
-                    <q-btn
-                      flat
-                      round
-                      color="negative"
-                      icon="remove_circle_outline"
-                      size="sm"
-                      @click="removeItemRow(index)"
-                      :disable="form.items.length === 1"
-                    />
-                  </td>
-                </tr>
-              </tbody>
-            </q-markup-table>
-
-            <div v-if="form.items.length === 0" class="q-pa-xl text-center text-grey-5">
-              Klik ikon plus di pojok kanan atas untuk menambah item.
+      <div class="row q-col-gutter-lg justify-center">
+        <!-- FORM KIRI: IDENTITAS & RUTE -->
+        <div class="col-12 col-md-5">
+          <q-card flat bordered class="rounded-20 q-pa-lg bg-white shadow-premium">
+            <div class="text-subtitle1 text-brand-primary text-weight-bolder q-mb-lg flex items-center">
+              <q-icon name="swap_horiz" class="q-mr-sm" size="sm" /> KONFIGURASI RUTE MUTASI
             </div>
 
-            <q-card-actions align="right" class="q-pa-lg bg-grey-1 border-top">
-              <q-btn
-                unelevated
-                color="indigo-10"
-                label="KIRIM PERMINTAAN MUTASI"
-                icon="send"
-                class="q-px-xl text-weight-bold rounded-20 shadow-4"
-                :loading="submitting"
-                @click="submitRequest"
+            <div class="q-gutter-y-md">
+              <!-- Gudang Sumber (Pilih Gudang yang akan dikurangi stoknya) -->
+              <q-select
+                outlined
+                v-model="targetWarehouse"
+                :options="warehouseOptions"
+                option-label="nama"
+                label="Pilih Gudang Sumber (Pemberi Stok) *"
+                stack-label
+                :rules="[(val) => !!val || 'Pilih gudang sumber barang']"
+                behavior="menu"
+              >
+                <template v-slot:prepend><q-icon name="warehouse" color="brand-primary" /></template>
+                <template v-slot:hint>Gudang yang stoknya akan dipotong saat disetujui.</template>
+              </q-select>
+
+              <div class="row justify-center q-my-sm">
+                <q-icon name="south" color="brand-primary" size="md" class="animate-bounce" />
+              </div>
+
+              <!-- Gudang Pemohon (Locked: Gudang Aktif/Tujuan Akhir) -->
+              <q-input
+                outlined
+                v-model="originWarehouseName"
+                label="Gudang Penerima (Tujuan Akhir)"
+                readonly
+                bg-color="brand-light"
+                class="text-weight-bold"
+                stack-label
+              >
+                <template v-slot:prepend><q-icon name="input" color="brand-primary" /></template>
+                <template v-slot:hint>Stok akan bertambah di gudang ini.</template>
+              </q-input>
+
+              <q-separator class="q-my-md" />
+
+              <q-input
+                outlined
+                v-model="form.nomor"
+                label="Nomor Dokumen Request"
+                readonly
+                stack-label
+                bg-color="grey-1"
               />
-            </q-card-actions>
-          </q-card-section>
-        </q-card>
+
+              <q-input
+                outlined
+                v-model="form.catatan"
+                type="textarea"
+                label="Justifikasi / Keperluan Permintaan"
+                placeholder="Contoh: Percepatan struktur lantai 2 atau stok kritis..."
+                rows="3"
+              />
+            </div>
+          </q-card>
+
+          <!-- Preview Status -->
+          <div class="q-mt-lg q-pa-lg bg-brand-light rounded-20 border-brand-light-thin text-center">
+            <div class="text-overline text-brand-teal uppercase tracking-widest text-weight-bold">Status Dokumen</div>
+            <div class="text-h5 text-weight-bolder text-brand-primary uppercase q-mt-xs">Waiting Approval</div>
+            <div class="text-caption text-grey-7 q-mt-xs">
+              Data akan diverifikasi oleh Manajer Logistik sebelum stok berpindah.
+            </div>
+          </div>
+        </div>
+
+        <!-- FORM KANAN: DAFTAR BARANG -->
+        <div class="col-12 col-md-7">
+          <q-card flat bordered class="rounded-20 bg-white shadow-premium overflow-hidden">
+            <q-toolbar class="bg-brand-primary text-white q-py-sm">
+              <q-icon name="list" class="q-mr-sm" />
+              <q-toolbar-title class="text-weight-bold text-subtitle1"
+                >DAFTAR MATERIAL YANG DIMINTA</q-toolbar-title
+              >
+              <q-btn flat round dense icon="add_circle" @click="addItemRow">
+                <q-tooltip>Tambah Baris</q-tooltip>
+              </q-btn>
+            </q-toolbar>
+
+            <q-card-section class="q-pa-none">
+              <q-markup-table flat separator="horizontal" class="permintaan-table">
+                <thead>
+                  <tr class="bg-brand-light text-brand-primary">
+                    <th width="50">NO</th>
+                    <th class="text-left">NAMA BARANG / MATERIAL</th>
+                    <th width="100">QTY</th>
+                    <th width="100">UNIT</th>
+                    <th width="50"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(item, index) in form.items" :key="index">
+                    <td class="text-center text-grey-6">{{ index + 1 }}</td>
+                    <td>
+                      <!-- FIX: Menggunakan Placeholder Dinamis agar hilang ketika barang sudah terpilih -->
+                      <q-select
+                        dense
+                        borderless
+                        v-model="item.barang"
+                        :options="masterBarang"
+                        option-label="nama"
+                        :placeholder="item.barang ? '' : 'Pilih material...'"
+                        use-input
+                        @filter="filterMasterBarang"
+                        @update:model-value="(val) => onBarangSelect(val, index)"
+                        behavior="menu"
+                      />
+                    </td>
+                    <td>
+                      <q-input
+                        dense
+                        borderless
+                        v-model.number="item.qty"
+                        type="number"
+                        input-class="text-center text-weight-bold text-brand-primary"
+                      />
+                    </td>
+                    <td class="text-center">
+                      <q-badge outline color="brand-primary" class="uppercase text-weight-bold">
+                        {{ item.satuan || '-' }}
+                      </q-badge>
+                    </td>
+                    <td class="text-center">
+                      <q-btn
+                        flat
+                        round
+                        color="brand-danger"
+                        icon="remove_circle_outline"
+                        size="sm"
+                        @click="removeItemRow(index)"
+                        :disable="form.items.length === 1"
+                      />
+                    </td>
+                  </tr>
+                </tbody>
+              </q-markup-table>
+
+              <div v-if="form.items.length === 0" class="q-pa-xl text-center text-grey-5">
+                Klik ikon plus di pojok kanan atas untuk menambah item.
+              </div>
+
+              <q-card-actions align="right" class="q-pa-lg bg-grey-1 border-top">
+                <q-btn
+                  unelevated
+                  color="brand-primary"
+                  label="KIRIM PERMINTAAN MUTASI"
+                  icon="send"
+                  class="q-px-xl text-weight-bold rounded-20 shadow-premium btn-hover"
+                  :loading="submitting"
+                  @click="submitRequest"
+                />
+              </q-card-actions>
+            </q-card-section>
+          </q-card>
+        </div>
       </div>
     </div>
-
     <div class="q-py-xl"></div>
   </q-page>
 </template>
@@ -374,7 +377,7 @@ onUnmounted(() => {
 <style scoped>
 .font-pro {
   font-family:
-    'Inter',
+    'Plus Jakarta Sans',
     -apple-system,
     sans-serif;
 }
@@ -382,13 +385,13 @@ onUnmounted(() => {
   border-radius: 20px;
 }
 .shadow-premium {
-  box-shadow: 0 10px 30px rgba(25, 118, 210, 0.15);
+  box-shadow: 0 10px 30px rgba(54, 173, 163, 0.15);
 }
-.border-dashed-blue {
-  border: 2px dashed #bbdefb;
+.border-brand-light-thin {
+  border: 1px solid rgba(54, 173, 163, 0.2);
 }
-.border-indigo-thin {
-  border: 1px solid rgba(26, 35, 126, 0.1);
+.border-subtle {
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 .border-top {
   border-top: 1px solid #eee;
@@ -404,10 +407,15 @@ onUnmounted(() => {
   letter-spacing: 0.5px;
 }
 .hover-bg:hover {
-  background-color: rgba(25, 118, 210, 0.03) !important;
+  background-color: rgba(54, 173, 163, 0.06) !important;
 }
 .transition-all {
   transition: all 0.3s ease;
+}
+.btn-hover:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+  transition: 0.3s;
 }
 
 .animate-fade {
@@ -442,5 +450,66 @@ onUnmounted(() => {
 }
 .no-padding {
   padding: 0 !important;
+}
+
+/* ===== QUASAR COMPONENT DEEP OVERRIDES ===== */
+/* Primary buttons and elements */
+:deep(.bg-brand-primary) {
+  background: #36ada3 !important;
+  color: white !important;
+}
+:deep(.q-btn.bg-brand-primary) {
+  background: #36ada3 !important;
+  color: white !important;
+}
+:deep(.q-btn-dropdown.bg-brand-primary) {
+  background: #36ada3 !important;
+  color: white !important;
+}
+:deep(.q-avatar[color='brand-primary']) {
+  background-color: #36ada3 !important;
+  color: white !important;
+}
+:deep(.q-avatar[color='brand-light']) {
+  background-color: #e0f5f4 !important;
+  color: #1e6e69 !important;
+}
+:deep(.q-btn[color='brand-danger']) {
+  color: #ad3640 !important;
+}
+:deep(.q-btn--flat[color='brand-danger']) {
+  color: #ad3640 !important;
+}
+:deep(.q-btn--flat[color='brand-primary']) {
+  color: #36ada3 !important;
+}
+:deep(.q-icon[color='brand-primary']),
+:deep(.q-field__prepend .q-icon) {
+  color: #36ada3 !important;
+}
+:deep(.q-expansion-item .q-item__section--avatar .q-icon) {
+  color: #36ada3 !important;
+}
+:deep(.q-field--focused .q-field__control) {
+  border-color: #36ada3 !important;
+}
+:deep(.q-field--focused .q-field__label) {
+  color: #36ada3 !important;
+}
+
+.text-brand-primary {
+  color: #36ada3 !important;
+}
+.text-brand-teal {
+  color: #1e6e69 !important;
+}
+.text-brand-danger {
+  color: #ad3640 !important;
+}
+.bg-brand-light {
+  background-color: #e0f5f4 !important;
+}
+.bg-brand-danger-light {
+  background-color: #fce8e6 !important;
 }
 </style>

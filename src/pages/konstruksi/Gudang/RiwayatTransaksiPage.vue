@@ -1,212 +1,215 @@
 <template>
-  <q-page class="bg-grey-2 q-pa-md q-pa-md-lg font-pro">
-    <!-- =====================================================================================
-         HEADER SECTION
-         ===================================================================================== -->
-    <div class="row items-center justify-between q-mb-xl animate-fade no-print">
-      <div class="col-12 col-md-8">
-        <div class="row items-center no-wrap">
-          <q-btn
-            flat
-            round
-            color="indigo-10"
-            icon="arrow_back"
-            @click="router.back()"
-            class="q-mr-md bg-white shadow-1 transition-all btn-hover"
-          />
-          <div>
-            <div
-              class="text-h4 text-weight-bolder text-indigo-10 leading-tight uppercase tracking-widest"
-            >
-              Riwayat Transaksi
-              <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs">
-                Log Mutasi Aset • Gudang:
-                {{ warehouseId === 'UTAMA' ? 'Pusat (Utama)' : warehouseName || 'Lokasi Proyek' }}
-              </span>
-            </div>
-            <div class="text-subtitle1 text-grey-7 q-mt-sm">
-              Menampilkan seluruh rekam jejak material khusus untuk lokasi gudang ini secara
-              real-time.
+  <q-page class="bg-page q-pa-md q-pa-md-lg font-pro">
+    <div class="page-content-wrapper">
+      <!-- =====================================================================================
+           HEADER SECTION
+           ===================================================================================== -->
+      <div class="row items-center justify-between q-mb-xl animate-fade no-print">
+        <div class="col-12 col-md-8">
+          <div class="row items-center no-wrap">
+            <q-btn
+              flat
+              round
+              color="brand-primary"
+              icon="arrow_back"
+              @click="router.back()"
+              class="q-mr-md bg-white shadow-1 transition-all btn-hover"
+            />
+            <div>
+              <div
+                class="text-h4 text-weight-bolder text-brand-primary leading-tight"
+              >
+                Riwayat Transaksi
+                <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs">
+                  Log Mutasi Aset • Gudang:
+                  {{ warehouseId === 'UTAMA' ? 'Pusat (Utama)' : warehouseName || 'Lokasi Proyek' }}
+                </span>
+              </div>
+              <div class="text-subtitle1 text-grey-7 q-mt-sm">
+                Menampilkan seluruh rekam jejak material khusus untuk lokasi gudang ini secara
+                real-time.
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- =====================================================================================
-         FILTER & SUMMARY CARD
-         ===================================================================================== -->
-    <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print border-subtle">
-      <q-card-section class="q-py-md">
-        <div class="row items-center q-col-gutter-md">
-          <!-- Search Bar -->
-          <div class="col-12 col-md-4">
-            <q-input
-              v-model="filter"
-              outlined
-              dense
-              rounded
-              placeholder="Cari Nama Barang, No. Ref, atau SPK..."
-              bg-color="white"
-              class="search-input shadow-inner-soft"
-            >
-              <template v-slot:prepend>
-                <q-icon name="search" color="primary" />
-              </template>
-            </q-input>
+      <!-- =====================================================================================
+           FILTER & SUMMARY CARD
+           ===================================================================================== -->
+      <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print border-subtle">
+        <q-card-section class="q-py-md">
+          <div class="row items-center justify-between q-col-gutter-y-md">
+            <!-- Search Bar -->
+            <div class="col-12 col-md-4 flex items-center">
+              <q-input
+                v-model="filter"
+                outlined
+                dense
+                rounded
+                placeholder="Cari Nama Barang, No. Ref, atau SPK..."
+                bg-color="white"
+                class="search-input full-width"
+              >
+                <template v-slot:prepend>
+                  <q-icon name="search" color="brand-primary" />
+                </template>
+                <template v-slot:append v-if="filter">
+                  <q-icon name="close" @click="filter = ''" class="cursor-pointer" />
+                </template>
+              </q-input>
+            </div>
+
+            <!-- Right Side Controls -->
+            <div class="col-12 col-md-8 flex items-center justify-center justify-md-end wrap" style="gap: 16px;">
+              <!-- Type Filter Toggle -->
+              <q-btn-toggle
+                v-model="typeFilter"
+                flat
+                rounded
+                toggle-color="primary"
+                color="grey-7"
+                class="bg-grey-1 full-width-mobile riwayat-transaksi-toggle"
+                :options="[
+                  { label: 'Semua', value: 'ALL' },
+                  { label: 'Masuk', value: 'MASUK' },
+                  { label: 'Keluar', value: 'KELUAR' },
+                  { label: 'Opname', value: 'OPNAME' },
+                ]"
+              />
+
+              <!-- Records stats -->
+              <div class="text-caption text-grey-6 text-weight-medium text-center">
+                Total Record:
+                <span class="text-weight-bold text-brand-primary">{{ filteredRows.length }} Log</span>
+              </div>
+
+              <!-- EXPORT DROPDOWN -->
+              <q-btn-dropdown
+                unelevated
+                color="white"
+                text-color="brand-primary"
+                icon="ios_share"
+                label="Export Laporan"
+                class="rounded-12 text-weight-bold shadow-2 full-width-mobile"
+              >
+                <q-list class="bg-white rounded-borders q-py-sm" style="min-width: 200px">
+                  <q-item clickable v-close-popup @click="exportHistoryToPDF" class="hover-blue-btn">
+                    <q-item-section avatar>
+                      <q-avatar color="red-1" text-color="red-10" icon="picture_as_pdf" size="sm" />
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label class="text-weight-bold">Download PDF</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                  <q-separator class="q-my-sm" />
+                  <q-item clickable v-close-popup @click="exportHistoryToExcel" class="hover-blue-btn">
+                    <q-item-section avatar>
+                      <q-avatar color="green-1" text-color="green-10" icon="table_view" size="sm" />
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label class="text-weight-bold">Export Excel</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                </q-list>
+              </q-btn-dropdown>
+            </div>
           </div>
+        </q-card-section>
+      </q-card>
 
-          <!-- Type Filter Toggle -->
-          <div class="col-12 col-md-auto">
-            <q-btn-toggle
-              v-model="typeFilter"
-              flat
-              rounded
-              toggle-color="indigo-10"
-              color="grey-7"
-              class="bg-grey-1"
-              :options="[
-                { label: 'Semua', value: 'ALL' },
-                { label: 'Masuk', value: 'MASUK' },
-                { label: 'Keluar', value: 'KELUAR' },
-                { label: 'Opname', value: 'OPNAME' },
-              ]"
-            />
-          </div>
-
-          <q-space />
-
-          <!-- EXPORT DROPDOWN & BADGE RECORD -->
-          <div class="col-12 col-md-auto row items-center justify-end q-gutter-sm">
-            <q-btn-dropdown
-              unelevated
-              rounded
-              color="indigo-10"
-              icon="file_download"
-              label="Export Laporan"
-              class="shadow-1 font-bold q-px-md btn-hover"
-            >
-              <q-list style="min-width: 180px">
-                <q-item clickable v-ripple @click="exportHistoryToPDF" class="q-py-md hover-bg">
-                  <q-item-section avatar>
-                    <q-avatar color="red-1" text-color="red-9" icon="picture_as_pdf" size="sm" />
-                  </q-item-section>
-                  <q-item-section class="text-weight-bold text-red-9">Export PDF</q-item-section>
-                </q-item>
-                <q-separator />
-                <q-item clickable v-ripple @click="exportHistoryToExcel" class="q-py-md hover-bg">
-                  <q-item-section avatar>
-                    <q-avatar color="green-1" text-color="green-9" icon="table_view" size="sm" />
-                  </q-item-section>
-                  <q-item-section class="text-weight-bold text-green-9"
-                    >Export Excel</q-item-section
-                  >
-                </q-item>
-              </q-list>
-            </q-btn-dropdown>
-
-            <q-badge
-              color="indigo-10"
-              class="q-px-md q-py-xs text-weight-bold shadow-2 animate-fade"
-            >
-              {{ filteredRows.length }} RECORD LOKASI INI
-            </q-badge>
-          </div>
-        </div>
-      </q-card-section>
-    </q-card>
-
-    <!-- =====================================================================================
-         MAIN TABLE SECTION (STRICT FILTER)
-         ===================================================================================== -->
-    <q-card
-      flat
-      bordered
-      class="rounded-20 shadow-premium overflow-hidden bg-white no-print border-indigo-thin"
-    >
-      <q-table
-        :rows="filteredRows"
-        :columns="columns"
-        row-key="id"
+      <!-- =====================================================================================
+           MAIN TABLE SECTION (STRICT FILTER)
+           ===================================================================================== -->
+      <q-card
         flat
-        :loading="loading"
-        :filter="filter"
-        binary-state-sort
-        class="history-table"
-        :pagination="{ rowsPerPage: 15 }"
+        bordered
+        class="rounded-20 shadow-premium overflow-hidden bg-white no-print border-subtle"
       >
-        <template v-slot:header="props">
-          <q-tr :props="props" class="bg-indigo-10 text-white">
-            <q-th
-              v-for="col in props.cols"
-              :key="col.name"
+        <q-table
+          :rows="filteredRows"
+          :columns="columns"
+          row-key="id"
+          flat
+          :loading="loading"
+          :filter="filter"
+          binary-state-sort
+          class="history-table"
+          :pagination="{ rowsPerPage: 15 }"
+        >
+          <template v-slot:header="props">
+            <q-tr :props="props" class="bg-brand-primary text-white">
+              <q-th
+                v-for="col in props.cols"
+                :key="col.name"
+                :props="props"
+                class="text-weight-bold uppercase font-11 tracking-widest"
+              >
+                {{ col.label }}
+              </q-th>
+            </q-tr>
+          </template>
+
+          <template v-slot:body="props">
+            <q-tr
               :props="props"
-              class="text-weight-bold uppercase font-11 tracking-widest"
+              class="hover-bg transition-all cursor-pointer"
+              @click="openDetail(props.row)"
             >
-              {{ col.label }}
-            </q-th>
-          </q-tr>
-        </template>
+              <q-td key="tipe" class="text-center">
+                <q-chip
+                  :color="getTipeColor(props.row.tipe)"
+                  text-color="white"
+                  size="sm"
+                  class="text-weight-bold uppercase shadow-sm"
+                  :icon="getTipeIcon(props.row.tipe)"
+                >
+                  {{ props.row.tipe }}
+                </q-chip>
+              </q-td>
 
-        <template v-slot:body="props">
-          <q-tr
-            :props="props"
-            class="hover-bg transition-all cursor-pointer"
-            @click="openDetail(props.row)"
-          >
-            <q-td key="tipe" class="text-center">
-              <q-chip
-                :color="getTipeColor(props.row.tipe)"
-                text-color="white"
-                size="sm"
-                class="text-weight-bold uppercase shadow-sm"
-                :icon="getTipeIcon(props.row.tipe)"
-              >
-                {{ props.row.tipe }}
-              </q-chip>
-            </q-td>
+              <q-td key="nama_barang">
+                <div
+                  class="text-weight-black text-blue-grey-10 text-subtitle2 uppercase leading-none"
+                >
+                  {{ props.row.nama_barang }}
+                </div>
+                <div class="text-caption text-grey-5 q-mt-xs font-mono uppercase">
+                  CODE: {{ props.row.kode_barang || 'MATERIAL' }}
+                </div>
+              </q-td>
 
-            <q-td key="nama_barang">
-              <div
-                class="text-weight-black text-blue-grey-10 text-subtitle2 uppercase leading-none"
-              >
-                {{ props.row.nama_barang }}
-              </div>
-              <div class="text-caption text-grey-5 q-mt-xs font-mono uppercase">
-                CODE: {{ props.row.kode_barang || 'MATERIAL' }}
-              </div>
-            </q-td>
+              <q-td key="jumlah" class="text-center">
+                <div class="text-weight-black text-h6" :class="getAmountColor(props.row.tipe)">
+                  {{ props.row.tipe === 'KELUAR' ? '-' : props.row.tipe === 'MASUK' ? '+' : ''
+                  }}{{ props.row.jumlah }}
+                </div>
+                <div class="text-caption text-grey-5 uppercase text-weight-bold">
+                  {{ props.row.satuan || 'UNIT' }}
+                </div>
+              </q-td>
 
-            <q-td key="jumlah" class="text-center">
-              <div class="text-weight-black text-h6" :class="getAmountColor(props.row.tipe)">
-                {{ props.row.tipe === 'KELUAR' ? '-' : props.row.tipe === 'MASUK' ? '+' : ''
-                }}{{ props.row.jumlah }}
-              </div>
-              <div class="text-caption text-grey-5 uppercase text-weight-bold">
-                {{ props.row.satuan || 'UNIT' }}
-              </div>
-            </q-td>
+              <q-td key="timestamp">
+                <div class="text-weight-medium text-blue-grey-9">
+                  {{ formatDate(props.row.timestamp) }}
+                </div>
+                <div class="text-caption text-grey-5 italic font-11">
+                  Pukul {{ formatTime(props.row.timestamp) }}
+                </div>
+              </q-td>
 
-            <q-td key="timestamp">
-              <div class="text-weight-medium text-blue-grey-9">
-                {{ formatDate(props.row.timestamp) }}
-              </div>
-              <div class="text-caption text-grey-5 italic font-11">
-                Pukul {{ formatTime(props.row.timestamp) }}
-              </div>
-            </q-td>
+              <q-td key="ref" class="text-brand-teal text-weight-bold">
+                {{ props.row.no_referensi || '-' }}
+              </q-td>
 
-            <q-td key="ref" class="text-indigo-9 text-weight-bold">
-              {{ props.row.no_referensi || '-' }}
-            </q-td>
-
-            <q-td key="no_spk" class="text-primary text-weight-bolder">
-              {{ props.row.no_spk || '-' }}
-            </q-td>
-          </q-tr>
-        </template>
-      </q-table>
-    </q-card>
+              <q-td key="no_spk" class="text-brand-primary text-weight-bolder">
+                {{ props.row.no_spk || '-' }}
+              </q-td>
+            </q-tr>
+          </template>
+        </q-table>
+      </q-card>
+    </div>
 
     <!-- =====================================================================================
          DETAIL DIALOG (DENGAN RE-PRINT IDENTIK)
@@ -218,8 +221,8 @@
       transition-hide="slide-down"
       backdrop-filter="blur(8px)"
     >
-      <q-card class="column no-wrap overflow-hidden bg-grey-2" v-if="selectedItem">
-        <q-toolbar class="bg-indigo-10 text-white q-py-md shadow-4 shrink no-print">
+      <q-card class="column no-wrap overflow-hidden bg-page" v-if="selectedItem">
+        <q-toolbar class="bg-brand-primary text-white q-py-md shadow-4 shrink no-print">
           <q-icon name="assignment" size="sm" class="q-mr-sm" />
           <q-toolbar-title class="text-weight-bold uppercase letter-spacing-1">
             Detail Transaksi & Arsip Digital
@@ -271,7 +274,7 @@
                   <div class="text-h4 text-weight-black text-blue-grey-10">
                     {{ formatDate(selectedItem.timestamp) }}
                   </div>
-                  <div class="text-subtitle1 text-primary text-weight-bold">
+                  <div class="text-subtitle1 text-brand-primary text-weight-bold">
                     Pukul {{ formatTime(selectedItem.timestamp) }} WIB
                   </div>
                 </div>
@@ -281,10 +284,10 @@
               <q-card
                 flat
                 bordered
-                class="rounded-20 bg-white shadow-premium border-indigo-thin overflow-hidden q-mb-xl"
+                class="rounded-20 bg-white shadow-premium border-subtle overflow-hidden q-mb-xl"
               >
                 <q-card-section
-                  class="bg-indigo-1 q-pa-md text-weight-black text-indigo-10 uppercase tracking-widest flex items-center"
+                  class="bg-brand-light q-pa-md text-weight-black text-brand-primary uppercase tracking-widest flex items-center"
                 >
                   <q-icon name="folder_shared" class="q-mr-sm" /> Rincian Administrasi
                 </q-card-section>
@@ -294,7 +297,7 @@
                       <div class="text-overline text-grey-5 font-bold leading-none q-mb-xs">
                         No. Surat Jalan / Ref
                       </div>
-                      <div class="text-h6 text-weight-black text-indigo-10">
+                      <div class="text-h6 text-weight-black text-brand-primary">
                         {{ selectedItem.no_referensi || '-' }}
                       </div>
                     </div>
@@ -302,7 +305,7 @@
                       <div class="text-overline text-grey-5 font-bold leading-none q-mb-xs">
                         No. SPK Terkait
                       </div>
-                      <div class="text-h6 text-weight-bold text-primary">
+                      <div class="text-h6 text-weight-bold text-brand-primary">
                         {{ selectedItem.no_spk || '-' }}
                       </div>
                     </div>
@@ -320,9 +323,9 @@
 
               <!-- TABLE ITEM -->
               <div
-                class="text-h6 text-weight-black text-indigo-10 uppercase q-mb-md flex items-center letter-spacing-1"
+                class="text-h6 text-weight-black text-brand-primary uppercase q-mb-md flex items-center letter-spacing-1"
               >
-                <q-icon name="list_alt" class="q-mr-sm" color="indigo-10" />
+                <q-icon name="list_alt" class="q-mr-sm" color="brand-primary" />
                 Rincian Material & Keterangan Item
               </div>
               <q-card
@@ -332,7 +335,7 @@
               >
                 <q-markup-table flat separator="cell" class="perfectionist-table">
                   <thead>
-                    <tr class="bg-blue-grey-10 text-white text-bold uppercase font-11">
+                    <tr class="bg-brand-primary text-white text-bold uppercase font-11">
                       <th width="60">NO</th>
                       <th class="text-left" width="180">KODE BARANG</th>
                       <th class="text-left">NAMA MATERIAL / ITEM</th>
@@ -359,7 +362,7 @@
                       <td class="text-center text-weight-bold uppercase text-caption">
                         {{ it.satuan || 'UNIT' }}
                       </td>
-                      <td class="italic text-weight-bolder text-primary bg-blue-grey-1">
+                      <td class="italic text-weight-bolder text-brand-primary bg-brand-light">
                         {{ it.keterangan || '-' }}
                       </td>
                     </tr>
@@ -371,7 +374,7 @@
               <div class="q-mb-xl">
                 <q-card flat bordered class="rounded-20 bg-white shadow-sm border-subtle">
                   <q-card-section
-                    class="bg-grey-1 q-pa-sm text-weight-bold text-blue-grey-8 uppercase text-caption q-px-md tracking-widest flex items-center"
+                    class="bg-brand-light q-pa-sm text-weight-bold text-brand-primary uppercase text-caption q-px-md tracking-widest flex items-center"
                   >
                     <q-icon name="comment" class="q-mr-xs" /> Catatan Umum / Instruksi Transaksi
                   </q-card-section>
@@ -389,7 +392,7 @@
               <!-- DOCUMENTATION GALLERY -->
               <div class="q-mb-xl" v-if="selectedItem.dokumentasi_urls?.length">
                 <div
-                  class="text-h6 text-indigo-10 text-weight-black uppercase q-mb-md flex items-center letter-spacing-1"
+                  class="text-h6 text-brand-primary text-weight-black uppercase q-mb-md flex items-center letter-spacing-1"
                 >
                   <q-icon name="camera_alt" class="q-mr-sm" size="md" /> Dokumentasi Lampiran
                   Digital
@@ -432,8 +435,8 @@
                         </div>
                         <q-btn
                           unelevated
-                          color="indigo-10"
-                          class="full-width q-mt-md rounded-borders text-weight-black shadow-2"
+                          color="brand-primary"
+                          class="full-width q-mt-md rounded-borders text-weight-black shadow-2 text-white"
                           icon="open_in_new"
                           label="LIHAT BERKAS"
                           @click="openLink(doc.url)"
@@ -904,7 +907,7 @@
           <div class="col-3">
             <div class="text-weight-black q-mb-xl">Petugas Gudang</div>
             <div style="height: 60px"></div>
-            <div class="text-weight-black underline text-indigo-10 uppercase">
+            <div class="text-weight-black underline text-brand-primary uppercase">
               Petugas Terotorisasi
             </div>
             <div class="text-caption text-bold text-grey-8 uppercase">
@@ -998,10 +1001,10 @@ const filteredRows = computed(() => {
   return data
 })
 
-const getTipeColor = (t) => (t === 'MASUK' ? 'positive' : t === 'KELUAR' ? 'orange-8' : 'indigo-8')
+const getTipeColor = (t) => (t === 'MASUK' ? 'positive' : t === 'KELUAR' ? 'orange-8' : 'brand-primary')
 const getTipeIcon = (t) => (t === 'MASUK' ? 'download' : t === 'KELUAR' ? 'upload' : 'analytics')
 const getAmountColor = (t) =>
-  t === 'MASUK' ? 'text-green-9' : t === 'KELUAR' ? 'text-orange-9' : 'text-indigo-9'
+  t === 'MASUK' ? 'text-green-9' : t === 'KELUAR' ? 'text-orange-9' : 'text-brand-teal'
 
 const formatDate = (ts) => {
   if (!ts) return '-'
@@ -1066,10 +1069,10 @@ const exportHistoryToExcel = () => {
     <head>
     <meta charset="utf-8" />
     <style>
-      .table-bordered { border-collapse: collapse; width: 100%; font-family: sans-serif; font-size: 13px; margin-top: 15px; border: 1px solid #1a237e; }
+      .table-bordered { border-collapse: collapse; width: 100%; font-family: sans-serif; font-size: 13px; margin-top: 15px; border: 1px solid #36ada3; }
       .table-bordered th, .table-bordered td { border: 1px solid #dddddd; padding: 12px; }
-      .header-row th { background-color: #1a237e; color: #ffffff; font-weight: bold; text-align: center; text-transform: uppercase; font-size: 12px; border: 1px solid #1a237e; }
-      .title { font-size: 22px; font-weight: bold; color: #1a237e; font-family: sans-serif; text-align: center; letter-spacing: 1px; }
+      .header-row th { background-color: #36ada3; color: #ffffff; font-weight: bold; text-align: center; text-transform: uppercase; font-size: 12px; border: 1px solid #36ada3; }
+      .title { font-size: 22px; font-weight: bold; color: #36ada3; font-family: sans-serif; text-align: center; letter-spacing: 1px; }
       .subtitle { font-size: 12px; color: #666666; font-family: sans-serif; text-align: center; margin-bottom: 25px; font-weight: bold; }
     </style>
     </head>
@@ -1094,7 +1097,7 @@ const exportHistoryToExcel = () => {
   filteredRows.value.forEach((row, idx) => {
     const bgRow = idx % 2 === 0 ? '#ffffff' : '#f8f9fa'
     const tipeColor =
-      row.tipe === 'MASUK' ? '#2e7d32' : row.tipe === 'KELUAR' ? '#e65100' : '#1a237e'
+      row.tipe === 'MASUK' ? '#2e7d32' : row.tipe === 'KELUAR' ? '#e65100' : '#36ada3'
     const prefix = row.tipe === 'MASUK' ? '+' : row.tipe === 'KELUAR' ? '-' : ''
 
     html += `
@@ -1106,8 +1109,8 @@ const exportHistoryToExcel = () => {
         <td align="center" style="font-weight: 900; color: ${tipeColor}; font-size: 15px;">${prefix}${row.jumlah}</td>
         <td align="center" style="text-transform: uppercase; font-weight: bold; color: #444;">${row.satuan || 'UNIT'}</td>
         <td align="center" style="font-weight: bold; color: #444;">${formatDate(row.timestamp)} ${formatTime(row.timestamp)}</td>
-        <td align="center" style="font-weight: bold; color: #1a237e;">${row.no_referensi || '-'}</td>
-        <td align="center" style="font-weight: bold; color: #1a237e;">${row.no_spk || '-'}</td>
+        <td align="center" style="font-weight: bold; color: #36ada3;">${row.no_referensi || '-'}</td>
+        <td align="center" style="font-weight: bold; color: #36ada3;">${row.no_spk || '-'}</td>
       </tr>
     `
   })
@@ -1251,14 +1254,26 @@ onMounted(() => {
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
+
 /* =====================================================================================
    CSS PERFECTIONIST STANDARDS
    ===================================================================================== */
-.font-pro {
-  font-family:
-    'Inter',
-    -apple-system,
-    sans-serif;
+.font-pro,
+.font-pro :deep(*:not(.q-icon):not(.material-icons)),
+.font-pro :deep(span:not(.q-icon):not(.material-icons)),
+.font-pro :deep(div:not(.q-icon):not(.material-icons)),
+.font-pro :deep(input),
+.font-pro :deep(button:not(.q-icon):not(.material-icons)),
+.font-pro :deep(table),
+.font-pro :deep(td:not(.q-icon):not(.material-icons)),
+.font-pro :deep(th:not(.q-icon):not(.material-icons)) {
+  font-family: 'Plus Jakarta Sans', -apple-system, sans-serif !important;
+}
+
+.font-pro :deep(.q-icon),
+.font-pro :deep(.material-icons) {
+  font-family: 'Material Icons' !important;
 }
 .rounded-20 {
   border-radius: 20px;
@@ -1267,10 +1282,7 @@ onMounted(() => {
   border-radius: 12px;
 }
 .shadow-premium {
-  box-shadow: 0 15px 45px rgba(26, 35, 126, 0.12);
-}
-.border-indigo-thin {
-  border: 1px solid rgba(26, 35, 126, 0.1);
+  box-shadow: 0 10px 30px rgba(54, 173, 163, 0.2);
 }
 .border-subtle {
   border: 1px solid rgba(0, 0, 0, 0.05);
@@ -1285,7 +1297,7 @@ onMounted(() => {
   letter-spacing: 0.5px;
 }
 .hover-bg:hover {
-  background-color: rgba(25, 118, 210, 0.03) !important;
+  background-color: rgba(54, 173, 163, 0.06) !important;
 }
 .transition-all {
   transition: all 0.3s ease;
@@ -1360,7 +1372,7 @@ onMounted(() => {
 .text-pt-pro {
   font-size: 26px;
   font-weight: 900;
-  color: #1a237e !important;
+  color: #36ada3 !important;
   letter-spacing: -1.5px;
 }
 .text-pt-tagline {
@@ -1418,7 +1430,7 @@ onMounted(() => {
 
 /* HIDDEN EXPORT PDF (LIST) DESIGN */
 .report-paper {
-  font-family: 'Inter', Helvetica, Arial, sans-serif;
+  font-family: 'Plus Jakarta Sans', Helvetica, Arial, sans-serif;
   color: #333;
   padding: 10px;
   background: white;
@@ -1436,5 +1448,133 @@ onMounted(() => {
 .pdf-row {
   page-break-inside: avoid !important;
   break-inside: avoid !important;
+}
+
+.page-content-wrapper {
+  padding: 0 16px;
+}
+@media (min-width: 768px) {
+  .page-content-wrapper {
+    padding: 0 24px;
+  }
+}
+
+/* ===== BRAND COLOR PALETTE ===== */
+:root {
+  --brand-primary: #36ada3;
+  --brand-primary-dark: #1e6e69;
+  --brand-primary-light: #e0f5f4;
+  --brand-primary-mid: #b2e5e2;
+  --brand-danger: #ad3640;
+  --brand-danger-dark: #7a2028;
+  --brand-danger-light: #f7e0e1;
+  --page-bg: #f0fafa;
+}
+
+.bg-brand-primary {
+  background-color: #36ada3 !important;
+}
+.bg-brand-light {
+  background-color: #e0f5f4 !important;
+}
+.bg-brand-danger {
+  background-color: #ad3640 !important;
+}
+.text-brand-primary {
+  color: #36ada3 !important;
+}
+.text-brand-teal {
+  color: #36ada3 !important;
+}
+.text-brand-danger {
+  color: #ad3640 !important;
+}
+.bg-page {
+  background-color: #f0fafa !important;
+}
+
+/* ===== QUASAR COMPONENT DEEP OVERRIDES ===== */
+:deep(.q-btn[color='brand-primary']) {
+  background: #36ada3 !important;
+  color: white !important;
+}
+:deep(.q-btn--unelevated.q-btn[color='brand-primary']) {
+  background: #36ada3 !important;
+}
+:deep(.q-avatar[color='brand-primary']) {
+  background-color: #36ada3 !important;
+  color: white !important;
+}
+:deep(.q-avatar[color='brand-light']) {
+  background-color: #e0f5f4 !important;
+  color: #1e6e69 !important;
+}
+:deep(.q-btn[color='brand-danger']) {
+  color: #ad3640 !important;
+}
+:deep(.q-btn--flat[color='brand-danger']) {
+  color: #ad3640 !important;
+}
+:deep(.q-btn--flat[color='brand-primary']) {
+  color: #36ada3 !important;
+}
+:deep(.q-icon[color='brand-primary']),
+:deep(.q-field__prepend .q-icon) {
+  color: #36ada3 !important;
+}
+:deep(.q-field--focused .q-field__control) {
+  border-color: #36ada3 !important;
+}
+:deep(.q-field--focused .q-field__label) {
+  color: #36ada3 !important;
+}
+
+/* RESPONSIVENESS: TOMBOL-TOMBOL MEMBENTANG PENUH DI HP */
+@media (max-width: 599px) {
+  .full-width-mobile {
+    width: 100% !important;
+    display: flex !important;
+  }
+  .full-width-mobile :deep(.q-btn) {
+    flex: 1 1 auto;
+  }
+  .q-btn.full-width {
+    width: 100% !important;
+  }
+}
+
+/* Custom effects for q-btn-toggle */
+:deep(.q-btn-toggle .q-btn) {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+:deep(.q-btn-toggle .q-btn:hover) {
+  background-color: rgba(54, 173, 163, 0.08) !important;
+}
+:deep(.q-btn-toggle .q-btn:active) {
+  transform: scale(0.95);
+}
+:deep(.q-btn-toggle .q-btn.text-primary) {
+  background-color: #219b8f !important; /* Solid teal persistently on the active button */
+  color: white !important; /* White text */
+  font-weight: 800 !important;
+  box-shadow: 0 4px 12px rgba(33, 155, 143, 0.3) !important;
+}
+:deep(.q-btn-toggle .q-btn.text-primary .q-btn__content),
+:deep(.q-btn-toggle .q-btn.text-primary .q-btn__content *) {
+  color: white !important;
+}
+</style>
+
+<style>
+/* Global override for Riwayat Transaksi Toggle to show solid teal persistently on active option */
+.riwayat-transaksi-toggle .q-btn.text-primary {
+  background-color: #219b8f !important; /* Solid teal */
+  color: white !important; /* White text */
+  font-weight: 800 !important;
+  box-shadow: 0 4px 12px rgba(33, 155, 143, 0.3) !important;
+}
+.riwayat-transaksi-toggle .q-btn.text-primary .q-btn__content,
+.riwayat-transaksi-toggle .q-btn.text-primary .q-btn__content * {
+  color: white !important;
 }
 </style>

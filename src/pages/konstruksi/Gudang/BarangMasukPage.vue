@@ -1,24 +1,25 @@
 <template>
-  <q-page class="bg-grey-2 q-pa-md q-pa-md-lg font-pro">
-    <!-- HEADER SECTION -->
-    <div class="row items-center q-mb-xl animate-fade">
+  <q-page class="bg-page q-pa-md q-pa-md-lg font-pro">
+    <div class="page-content-wrapper">
+      <!-- HEADER SECTION -->
+    <div class="row items-center no-wrap q-mb-xl animate-fade">
       <q-btn
         flat
         round
-        color="grey-7"
+        color="brand-primary"
         icon="arrow_back"
         @click="$router.back()"
-        class="q-mr-md bg-white shadow-1"
+        class="q-mr-md bg-white shadow-1 transition-all btn-hover"
       />
       <div>
-        <div class="text-h5 text-weight-bold text-indigo-10 text-uppercase letter-spacing-1">
+        <div class="text-h4 text-weight-bolder text-brand-primary leading-tight">
           Penerimaan Barang Masuk
+          <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs">
+            Gudang Penerima: {{ gudangName || 'Loading...' }}
+          </span>
         </div>
-        <div class="text-caption text-grey-7">
-          Logistik & Penerimaan Material - Gudang Penerima:
-          <q-badge color="indigo-10" text-color="white" class="q-px-sm text-weight-bold">
-            {{ gudangName || 'Loading...' }}
-          </q-badge>
+        <div class="text-subtitle1 text-grey-7 q-mt-sm">
+          Logistik & konfirmasi penerimaan material proyek secara real-time.
         </div>
       </div>
     </div>
@@ -27,14 +28,14 @@
       <div class="col-12 col-lg-10">
         <q-card flat bordered class="rounded-20 shadow-premium bg-white overflow-hidden">
           <!-- STEP 1: PILIH JENIS REFERENSI -->
-          <q-card-section class="bg-indigo-1 q-pa-lg border-bottom">
-            <div class="text-subtitle2 text-indigo-10 text-weight-bold uppercase q-mb-md">
+          <q-card-section class="bg-brand-light q-pa-lg border-bottom">
+            <div class="text-subtitle2 text-brand-primary text-weight-bolder uppercase q-mb-md">
               <q-icon name="assignment" class="q-mr-xs" /> 1. Tentukan Sumber Barang
             </div>
             <div class="row q-col-gutter-md">
               <div class="col-12 col-md-6">
                 <q-select
-                  filled
+                  outlined
                   v-model="receiveType"
                   :options="typeOptions"
                   label="Metode Penerimaan *"
@@ -42,13 +43,14 @@
                   map-options
                   @update:model-value="resetForm"
                   bg-color="white"
+                  behavior="menu"
                 >
-                  <template v-slot:prepend><q-icon name="merge_type" color="primary" /></template>
+                  <template v-slot:prepend><q-icon name="merge_type" color="brand-primary" /></template>
                 </q-select>
               </div>
               <div class="col-12 col-md-6" v-if="receiveType !== 'MANUAL'">
                 <q-select
-                  filled
+                  outlined
                   v-model="selectedRefDoc"
                   :options="referenceOptions"
                   :label="
@@ -60,9 +62,10 @@
                   @update:model-value="onReferenceDocChange"
                   :loading="loadingRef"
                   bg-color="white"
+                  behavior="menu"
                 >
                   <template v-slot:prepend
-                    ><q-icon name="find_in_page" color="orange-9"
+                    ><q-icon name="find_in_page" color="brand-primary"
                   /></template>
                   <template v-slot:no-option>
                     <q-item
@@ -93,7 +96,7 @@
                 <div class="col-12 col-md-6">
                   <div class="label-req q-mb-sm">Sumber Barang (Pemberi)</div>
                   <q-input
-                    filled
+                    outlined
                     :model-value="
                       receiveType === 'MUTASI'
                         ? selectedRefDoc.ke_gudang?.nama
@@ -112,26 +115,26 @@
               <!-- TABLE ITEM -->
               <div class="column" v-if="form.items.length > 0">
                 <div
-                  class="text-subtitle1 text-weight-bold text-blue-grey-10 q-mb-md uppercase flex items-center"
+                  class="text-subtitle1 text-weight-bold text-brand-primary q-mb-md uppercase flex items-center"
                 >
-                  <q-icon name="list" class="q-mr-sm" color="primary" /> Daftar Barang Yang Diterima
+                  <q-icon name="list" class="q-mr-sm" color="brand-primary" /> Daftar Barang Yang Diterima
                 </div>
 
                 <q-markup-table flat bordered class="rounded-borders border-subtle">
-                  <thead class="bg-blue-grey-1 text-blue-grey-10">
-                    <tr>
-                      <th width="50">NO</th>
-                      <th class="text-left">NAMA MATERIAL</th>
-                      <th width="150">JUMLAH TERIMA</th>
-                      <th width="100">SATUAN</th>
-                      <th width="150" class="no-print">STOK DI GUDANG INI</th>
+                  <thead class="bg-brand-primary text-white">
+                    <tr class="text-weight-bold uppercase font-11 tracking-widest text-white">
+                      <th width="50" class="text-weight-bold">NO</th>
+                      <th class="text-left text-weight-bold">NAMA MATERIAL</th>
+                      <th width="150" class="text-weight-bold">JUMLAH TERIMA</th>
+                      <th width="100" class="text-weight-bold">SATUAN</th>
+                      <th width="150" class="no-print text-weight-bold">STOK DI GUDANG INI</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr v-for="(item, index) in form.items" :key="index">
                       <td class="text-center">{{ index + 1 }}</td>
                       <td>
-                        <div class="text-weight-bold text-indigo-10 uppercase">
+                        <div class="text-weight-bold text-brand-primary uppercase">
                           {{ item.nama_barang }}
                         </div>
                         <div class="text-caption text-grey-6">ID: {{ item.id_barang }}</div>
@@ -151,9 +154,9 @@
                       </td>
                       <td class="text-center no-print">
                         <q-badge
-                          :color="item.stok_sekarang > 0 ? 'green-1' : 'grey-2'"
-                          :text-color="item.stok_sekarang > 0 ? 'green-10' : 'grey-7'"
-                          class="q-px-md"
+                          :color="item.stok_sekarang > 0 ? 'brand-light' : 'grey-2'"
+                          :text-color="item.stok_sekarang > 0 ? 'brand-primary' : 'grey-7'"
+                          class="q-px-md text-weight-bold"
                         >
                           {{ item.stok_sekarang || 0 }} {{ item.satuan }}
                         </q-badge>
@@ -175,7 +178,7 @@
 
               <!-- UPLOAD BUKTI DINAMIS -->
               <div class="column q-gutter-y-md">
-                <div class="row items-center justify-between">
+                <div class="row items-center justify-between q-col-gutter-y-sm q-mb-sm">
                   <div class="label-req">
                     Bukti Penerimaan (Foto/Dokumen Digital)
                     <span class="text-negative">* Wajib</span>
@@ -184,7 +187,7 @@
                     flat
                     rounded
                     dense
-                    color="primary"
+                    color="brand-primary"
                     icon="add_a_photo"
                     label="Tambah Lampiran"
                     no-caps
@@ -210,7 +213,7 @@
                           bg-color="white"
                         >
                           <template v-slot:prepend>
-                            <q-icon name="cloud_upload" color="indigo-10" />
+                            <q-icon name="cloud_upload" color="brand-primary" />
                           </template>
                         </q-file>
                       </q-card-section>
@@ -252,11 +255,10 @@
               <!-- SUBMIT -->
               <div class="row justify-end q-mt-xl">
                 <q-btn
-                  label="KONFIRMASI PENERIMAAN & UPDATE STOK"
+                  label="Konfirmasi Penerimaan"
                   type="submit"
-                  color="indigo-10"
-                  class="rounded-20 q-px-xl text-weight-black shadow-8 btn-hover"
-                  size="lg"
+                  color="brand-primary"
+                  class="rounded-20 q-px-lg text-weight-bold shadow-premium btn-hover"
                   unelevated
                   icon="check_circle"
                   :loading="submitting"
@@ -268,6 +270,7 @@
         </q-card>
       </div>
     </div>
+  </div>
 
     <div class="q-py-xl"></div>
   </q-page>
@@ -554,20 +557,71 @@ onMounted(() => {
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
+
+/* ===== BRAND COLOR PALETTE ===== */
+:root {
+  --brand-primary: #36ada3;
+  --brand-primary-dark: #1e6e69;
+  --brand-primary-light: #e0f5f4;
+  --brand-primary-mid: #b2e5e2;
+  --brand-danger: #ad3640;
+  --brand-danger-dark: #7a2028;
+  --brand-danger-light: #f7e0e1;
+  --page-bg: #f0fafa;
+}
+
+/* Quasar color overrides via CSS */
+.bg-brand-primary {
+  background-color: #36ada3 !important;
+}
+.bg-brand-light {
+  background-color: #e0f5f4 !important;
+}
+.bg-brand-danger {
+  background-color: #ad3640 !important;
+}
+.text-brand-primary {
+  color: #36ada3 !important;
+}
+.text-brand-teal {
+  color: #36ada3 !important;
+}
+.text-brand-danger {
+  color: #ad3640 !important;
+}
+.bg-page {
+  background-color: #f0fafa !important;
+}
+
 .font-pro {
-  font-family: 'Inter', sans-serif;
+  font-family:
+    'Plus Jakarta Sans',
+    -apple-system,
+    sans-serif;
 }
 .rounded-20 {
   border-radius: 20px;
 }
+.rounded-borders {
+  border-radius: 12px;
+}
+/* Roomier Table Padding Override */
+.material-table th,
+.material-table td {
+  padding: 16px 16px !important;
+}
 .shadow-premium {
-  box-shadow: 0 10px 30px rgba(25, 118, 210, 0.1);
+  box-shadow: 0 10px 30px rgba(54, 173, 163, 0.2);
 }
 .border-subtle {
   border: 1px solid rgba(0, 0, 0, 0.05);
 }
 .border-bottom {
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+.border-dashed {
+  border: 2px dashed #e0e0e0;
 }
 
 .label-req {
@@ -589,7 +643,69 @@ onMounted(() => {
   transform: scale(1.02);
   transition: 0.3s;
 }
+.transition-all {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
 .shrink {
   flex: 0 0 auto;
+}
+
+.animate-fade {
+  animation: fadeIn 0.8s ease-out;
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== QUASAR COMPONENT DEEP OVERRIDES ===== */
+:deep(.q-btn[color='brand-primary']) {
+  background: #36ada3 !important;
+  color: white !important;
+}
+:deep(.q-btn--unelevated.q-btn[color='brand-primary']) {
+  background: #36ada3 !important;
+}
+:deep(.q-avatar[color='brand-primary']) {
+  background-color: #36ada3 !important;
+  color: white !important;
+}
+:deep(.q-avatar[color='brand-light']) {
+  background-color: #e0f5f4 !important;
+  color: #1e6e69 !important;
+}
+:deep(.q-btn[color='brand-danger']) {
+  color: #ad3640 !important;
+}
+:deep(.q-btn--flat[color='brand-danger']) {
+  color: #ad3640 !important;
+}
+:deep(.q-btn--flat[color='brand-primary']) {
+  color: #36ada3 !important;
+}
+:deep(.q-icon[color='brand-primary']),
+:deep(.q-field__prepend .q-icon) {
+  color: #36ada3 !important;
+}
+:deep(.q-field--focused .q-field__control) {
+  border-color: #36ada3 !important;
+}
+:deep(.q-field--focused .q-field__label) {
+  color: #36ada3 !important;
+}
+
+.page-content-wrapper {
+  padding: 0 16px;
+}
+@media (min-width: 768px) {
+  .page-content-wrapper {
+    padding: 0 24px;
+  }
 }
 </style>
