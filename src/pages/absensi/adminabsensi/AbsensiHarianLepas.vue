@@ -134,12 +134,32 @@
                     <q-icon name="info" color="amber-8" class="q-mr-xs" /> Informasi Utama Proyek
                   </div>
                   <div class="row q-col-gutter-md">
+                    <!-- Dropdown Referensi Proyek Konstruksi -->
+                    <q-select
+                      v-model="selectedProjectRef"
+                      outlined
+                      dense
+                      emit-value
+                      map-options
+                      :options="proyekKonstruksiOptions"
+                      option-label="nama"
+                      option-value="id"
+                      label="Pilih Proyek Konstruksi (Integrasi)"
+                      class="col-12 rounded-input"
+                      clearable
+                      @update:model-value="onProjectRefChange"
+                    >
+                      <template v-slot:prepend>
+                        <q-icon name="architecture" color="amber-9" />
+                      </template>
+                    </q-select>
+
                     <q-input
                       v-model="projectSetup.nama"
                       outlined
                       dense
                       label="Nama Proyek"
-                      class="col-12 col-sm-6 rounded-input"
+                      class="col-12 col-sm-6 rounded-input q-mt-sm"
                       placeholder="Contoh: Gedung Kantor Pusat"
                     />
                     <q-input
@@ -147,7 +167,7 @@
                       outlined
                       dense
                       label="Nomor Kontrak / Kode Proyek"
-                      class="col-12 col-sm-6 rounded-input"
+                      class="col-12 col-sm-6 rounded-input q-mt-sm"
                       placeholder="Contoh: PKT/2026/001"
                     />
                     <q-input
@@ -894,7 +914,7 @@
                       <tr v-for="(rp, rpi) in rm.pekerja" :key="'rep-p-' + rp.id">
                         <td class="text-grey-5 font-mono text-weight-bold">{{ rpi + 1 }}</td>
                         <td class="text-weight-bold text-blue-grey-9 uppercase">{{ rp.nama }}</td>
-                        <td class="text-caption text-grey-6 font-medium">{{ rp.hadir }}</td>
+                        <td class="text-caption text-grey-6 font-medium uppercase">{{ rp.jabatan }}</td>
                         <td class="text-center font-mono font-bold text-teal-6">{{ rp.hadir }}</td>
                         <td class="text-center font-mono font-bold text-cyan-6">
                           {{ rp.setengah }}
@@ -971,11 +991,11 @@
 
 <script setup>
 /*eslint-disable*/
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch, onUnmounted } from 'vue'
 import { useQuasar, date } from 'quasar'
 import { useRouter } from 'vue-router'
 import { db, auth } from 'src/boot/firebase'
-import { collection, query, where, getDocs } from 'firebase/firestore'
+import { collection, query, where, getDocs, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp, orderBy } from 'firebase/firestore'
 import { onAuthStateChanged } from 'firebase/auth'
 
 const $q = useQuasar()
@@ -1092,7 +1112,7 @@ const loadDetailPermission = async (uid) => {
 
 // --- State Navigasi ---
 const activeTab = ref('setup')
-const selectedDate = ref(new Date().toISOString().split('T')[0])
+const selectedDate = ref(date.formatDate(new Date(), 'YYYY-MM-DD'))
 
 // --- Data Master LocalStorage Blueprint ---
 const projectSetup = ref({
@@ -1105,8 +1125,12 @@ const projectSetup = ref({
   jamKerja: 8,
   lembur: 25000,
   tglAbsen: '',
+  proyekId: '',
 })
 const mandors = ref([])
+const proyekKonstruksiOptions = ref([])
+const selectedProjectRef = ref('')
+let unsubProyekKonstruksi = null
 const attendanceData = ref({}) // Format: { 'YYYY-MM-DD': { mandorId: { pekerjaId: { status, lembur, ket } } } }
 
 // --- Dropdown Master Data Options ---
@@ -1147,8 +1171,8 @@ const pekerjaForms = ref({}) // Map buffer penampung per mandor id
 // --- Report/Rekap State ---
 const reportGenerated = ref(false)
 const rekapRange = ref({
-  dari: new Date().toISOString().split('T')[0],
-  sampai: new Date().toISOString().split('T')[0],
+  dari: date.formatDate(new Date(), 'YYYY-MM-DD'),
+  sampai: date.formatDate(new Date(), 'YYYY-MM-DD'),
   mandorId: '',
 })
 const reportData = ref([])
@@ -1166,38 +1190,140 @@ const rekapMandorOptions = computed(() => {
 // =====================================================================================
 // MANAJEMEN CORE DATA & SYNC LOKAL (SISTEM MEMORI MIKRO ENGINE)
 // =====================================================================================
+const loadAttendanceForDate = async (dateStr) => {
+  if (!dateStr) return
+  try {
+    const docSnap = await getDoc(doc(db, 'harian_lepas_absen', dateStr))
+    if (docSnap.exists()) {
+      attendanceData.value[dateStr] = docSnap.data().absen || {}
+    } else {
+      attendanceData.value[dateStr] = {}
+    }
+  } catch (e) {
+    console.error('Gagal memuat absensi tanggal:', dateStr, e)
+  }
+}
+
 const loadEngineMemory = () => {
+  // 1. Setup real-time listener for projectSetup
+  onSnapshot(doc(db, 'harian_lepas_setup', 'config'), async (snap) => {
+    if (snap.exists()) {
+      projectSetup.value = snap.data()
+      if (projectSetup.value.tglAbsen) {
+        selectedDate.value = projectSetup.value.tglAbsen
+      }
+      if (projectSetup.value.proyekId) {
+        selectedProjectRef.value = projectSetup.value.proyekId
+      } else {
+        selectedProjectRef.value = ''
+      }
+    } else {
+      // Migrate setup from LocalStorage if empty in cloud
+      try {
+        const memory = localStorage.getItem('agra_erp_harian_lepas_v1')
+        if (memory) {
+          const parsed = JSON.parse(memory)
+          if (parsed.projectSetup) {
+            projectSetup.value = parsed.projectSetup
+            await setDoc(doc(db, 'harian_lepas_setup', 'config'), projectSetup.value)
+          }
+        }
+      } catch (e) {
+        console.warn('Gagal migrasi setup proyek:', e)
+      }
+    }
+  })
+
+  // 2. Setup real-time listener for mandors
+  onSnapshot(collection(db, 'harian_lepas_mandor'), async (snap) => {
+    if (!snap.empty) {
+      mandors.value = snap.docs.map((docItem) => ({ id: docItem.id, ...docItem.data() }))
+      syncPekerjaFormsStructure()
+    } else {
+      // Migrate mandors from LocalStorage if empty in cloud
+      try {
+        const memory = localStorage.getItem('agra_erp_harian_lepas_v1')
+        if (memory) {
+          const parsed = JSON.parse(memory)
+          if (parsed.mandors && parsed.mandors.length > 0) {
+            for (const m of parsed.mandors) {
+              await setDoc(doc(db, 'harian_lepas_mandor', m.id), m)
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Gagal migrasi mandor:', e)
+      }
+    }
+  })
+
+  // 3. Migrate attendanceData from LocalStorage if Firestore collection is empty
   try {
     const memory = localStorage.getItem('agra_erp_harian_lepas_v1')
     if (memory) {
       const parsed = JSON.parse(memory)
-      if (parsed.projectSetup) projectSetup.value = parsed.projectSetup
-      if (parsed.mandors) mandors.value = parsed.mandors
-      if (parsed.attendanceData) attendanceData.value = parsed.attendanceData
+      if (parsed.attendanceData && Object.keys(parsed.attendanceData).length > 0) {
+        getDocs(collection(db, 'harian_lepas_absen')).then(async (snapAbsen) => {
+          if (snapAbsen.empty) {
+            for (const [tgl, val] of Object.entries(parsed.attendanceData)) {
+              await setDoc(doc(db, 'harian_lepas_absen', tgl), {
+                tanggal: tgl,
+                absen: val,
+                updated_at: serverTimestamp()
+              })
+            }
+            await loadAttendanceForDate(selectedDate.value)
+          }
+        })
+      }
     }
   } catch (e) {
-    console.error('Gagal memuat memori lokal harian lepas:', e)
+    console.warn('Gagal migrasi log absensi:', e)
   }
 
-  // Sinkronisasi sink struktur form dinamis
-  syncPekerjaFormsStructure()
-  if (projectSetup.value.tglAbsen) {
-    selectedDate.value = projectSetup.value.tglAbsen
-  }
+  loadAttendanceForDate(selectedDate.value)
 }
 
-const commitEngineMemory = () => {
+watch(selectedDate, async (newVal) => {
+  if (newVal) {
+    await loadAttendanceForDate(newVal)
+  }
+})
+
+// =====================================================================================
+// AUTO-SAVE ENGINE — Simpan otomatis saat meninggalkan Tab Absensi atau ganti tanggal
+// =====================================================================================
+
+/**
+ * Auto-save data absensi untuk tanggal aktif ke Firestore secara silent.
+ * Hanya menyimpan jika ada data yang sudah diinisialisasi di memori.
+ */
+const autoSaveAttendance = async () => {
+  const targetDate = selectedDate.value
+  const dayData = attendanceData.value[targetDate]
+  // Hanya simpan jika ada data dan ada minimal 1 mandor yang terisi
+  if (!dayData || Object.keys(dayData).length === 0) return
   try {
-    const payload = {
-      projectSetup: projectSetup.value,
-      mandors: mandors.value,
-      attendanceData: attendanceData.value,
-    }
-    localStorage.setItem('agra_erp_harian_lepas_v1', JSON.stringify(payload))
+    await setDoc(doc(db, 'harian_lepas_absen', targetDate), {
+      tanggal: targetDate,
+      absen: dayData,
+      updated_at: serverTimestamp(),
+    })
   } catch (e) {
-    console.error('Gagal menulis enkripsi memori lokal harian lepas:', e)
+    console.warn('[AutoSave] Gagal menyimpan absensi:', e)
   }
 }
+
+/**
+ * Watcher: Auto-save saat user berpindah dari Tab Absensi ke tab lain.
+ * Memastikan data yang sudah diisi di Tab 3 selalu tersimpan ke Firestore
+ * sebelum rekap di Tab 4 dijalankan.
+ */
+watch(activeTab, async (newTab, oldTab) => {
+  if (oldTab === 'absen') {
+    await autoSaveAttendance()
+  }
+})
 
 const syncPekerjaFormsStructure = () => {
   mandors.value.forEach((m) => {
@@ -1208,37 +1334,108 @@ const syncPekerjaFormsStructure = () => {
 }
 
 // =====================================================================================
+// INTEGRASI PROYEK KONSTRUKSI
+// =====================================================================================
+const fetchProyekKonstruksi = () => {
+  const q = query(collection(db, 'proyek'), orderBy('createdAt', 'desc'))
+  unsubProyekKonstruksi = onSnapshot(q, (snap) => {
+    proyekKonstruksiOptions.value = snap.docs.map((d) => ({
+      id: d.id,
+      nama: d.data().nama,
+      alamat: d.data().alamat || '',
+      konsumen: d.data().konsumen || '',
+    }))
+  }, (err) => {
+    console.error('Error listen proyek konstruksi:', err)
+  })
+}
+
+const onProjectRefChange = async (projId) => {
+  if (!projId) {
+    projectSetup.value.proyekId = ''
+    projectSetup.value.nama = ''
+    projectSetup.value.kode = ''
+    projectSetup.value.lokasi = ''
+    projectSetup.value.mandorUtama = ''
+    projectSetup.value.mulai = ''
+    projectSetup.value.selesai = ''
+    return
+  }
+  const proj = proyekKonstruksiOptions.value.find((p) => p.id === projId)
+  if (proj) {
+    projectSetup.value.nama = proj.nama
+    projectSetup.value.lokasi = proj.alamat || ''
+    projectSetup.value.mandorUtama = proj.konsumen || ''
+    projectSetup.value.proyekId = proj.id
+
+    // Auto-fill SPK details (Contract Code, Start Date, End Date) if available in Firestore
+    try {
+      const qSpk = query(collection(db, 'spk_customer'), where('projectId', '==', projId))
+      const snapSpk = await getDocs(qSpk)
+      if (!snapSpk.empty) {
+        const firstSpk = snapSpk.docs[0].data()
+        projectSetup.value.kode = firstSpk.nomor_spk || ''
+        projectSetup.value.mulai = firstSpk.tgl_mulai || ''
+        projectSetup.value.selesai = firstSpk.tgl_akhir || ''
+      } else {
+        projectSetup.value.kode = ''
+        projectSetup.value.mulai = ''
+        projectSetup.value.selesai = ''
+      }
+    } catch (e) {
+      console.warn('Gagal memuat SPK proyek:', e)
+    }
+  }
+}
+
+onUnmounted(() => {
+  if (unsubProyekKonstruksi) unsubProyekKonstruksi()
+})
+
+// =====================================================================================
 // LOGIKA AKSI TAB 1: SETUP
 // =====================================================================================
-const saveSetup = () => {
+const saveSetup = async () => {
   if (projectSetup.value.tglAbsen) {
     selectedDate.value = projectSetup.value.tglAbsen
   }
-  commitEngineMemory()
-  $q.notify({ type: 'positive', message: 'Setup konfigurasi proyek berhasil diperbarui!' })
+  $q.loading.show({ message: 'Menyimpan pengaturan proyek...' })
+  try {
+    await setDoc(doc(db, 'harian_lepas_setup', 'config'), projectSetup.value)
+    $q.notify({ type: 'positive', message: 'Setup konfigurasi proyek berhasil diperbarui!' })
+  } catch (e) {
+    $q.notify({ type: 'negative', message: 'Gagal menyimpan pengaturan: ' + e.message })
+  } finally {
+    $q.loading.hide()
+  }
 }
 
 // =====================================================================================
 // LOGIKA AKSI TAB 2: MANAJEMEN GRUP MANDOR & PEKERJA
 // =====================================================================================
-const addMandor = () => {
+const addMandor = async () => {
   if (!mandorForm.value.nama) {
     $q.notify({ type: 'warning', message: 'Nama mandor wajib diisi!' })
     return
   }
   const id = 'MND-' + Date.now()
-  mandors.value.push({
-    id,
-    nama: mandorForm.value.nama.trim().toUpperCase(),
-    bidang: mandorForm.value.bidang,
-    hp: mandorForm.value.hp.trim(),
-    pekerja: [],
-  })
+  $q.loading.show({ message: 'Menambahkan mandor...' })
+  try {
+    await setDoc(doc(db, 'harian_lepas_mandor', id), {
+      nama: mandorForm.value.nama.trim().toUpperCase(),
+      bidang: mandorForm.value.bidang,
+      hp: mandorForm.value.hp.trim(),
+      pekerja: [],
+      created_at: serverTimestamp()
+    })
 
-  mandorForm.value = { nama: '', bidang: 'Umum / Helper', hp: '' }
-  syncPekerjaFormsStructure()
-  commitEngineMemory()
-  $q.notify({ type: 'positive', message: 'Kelompok mandor baru sukses didaftarkan!' })
+    mandorForm.value = { nama: '', bidang: 'Umum / Helper', hp: '' }
+    $q.notify({ type: 'positive', message: 'Kelompok mandor baru sukses didaftarkan!' })
+  } catch (e) {
+    $q.notify({ type: 'negative', message: 'Gagal menambahkan mandor: ' + e.message })
+  } finally {
+    $q.loading.hide()
+  }
 }
 
 const deleteMandor = (id) => {
@@ -1248,14 +1445,20 @@ const deleteMandor = (id) => {
       'Tindakan ini akan menghapus mandor beserta seluruh data pekerja harian lepas di dalamnya. Lanjutkan?',
     cancel: true,
     persistent: true,
-  }).onOk(() => {
-    mandors.value = mandors.value.filter((m) => m.id !== id)
-    commitEngineMemory()
-    $q.notify({ type: 'info', message: 'Grup mandor berhasil dibersihkan permanen.' })
+  }).onOk(async () => {
+    $q.loading.show({ message: 'Menghapus mandor...' })
+    try {
+      await deleteDoc(doc(db, 'harian_lepas_mandor', id))
+      $q.notify({ type: 'info', message: 'Grup mandor berhasil dibersihkan permanen.' })
+    } catch (e) {
+      $q.notify({ type: 'negative', message: 'Gagal menghapus mandor: ' + e.message })
+    } finally {
+      $q.loading.hide()
+    }
   })
 }
 
-const addPekerja = (mandorId) => {
+const addPekerja = async (mandorId) => {
   const f = pekerjaForms.value[mandorId]
   if (!f || !f.nama) {
     $q.notify({ type: 'warning', message: 'Nama lengkap pekerja lepas wajib diisi!' })
@@ -1265,21 +1468,32 @@ const addPekerja = (mandorId) => {
   const m = mandors.value.find((m) => m.id === mandorId)
   if (!m) return
 
-  if (!m.pekerja) m.pekerja = []
-  m.pekerja.push({
-    id: 'PKR-' + Date.now() + Math.floor(Math.random() * 100),
-    nama: f.nama.trim().toUpperCase(),
-    jabatan: f.jabatan,
-    upahHari: parseInt(f.upahHari) || 0,
-    koef: parseFloat(f.koef) || 1.0,
-  })
+  const pekerjaBaru = [
+    ...(m.pekerja || []),
+    {
+      id: 'PKR-' + Date.now() + Math.floor(Math.random() * 100),
+      nama: f.nama.trim().toUpperCase(),
+      jabatan: f.jabatan,
+      upahHari: parseInt(f.upahHari) || 0,
+      koef: parseFloat(f.koef) || 1.0,
+    }
+  ]
 
-  f.nama = ''
-  commitEngineMemory()
-  $q.notify({
-    type: 'positive',
-    message: 'Pekerja harian lepas berhasil dimasukkan ke dalam grup!',
-  })
+  $q.loading.show({ message: 'Menambahkan pekerja...' })
+  try {
+    await updateDoc(doc(db, 'harian_lepas_mandor', mandorId), {
+      pekerja: pekerjaBaru
+    })
+    f.nama = ''
+    $q.notify({
+      type: 'positive',
+      message: 'Pekerja harian lepas berhasil dimasukkan ke dalam grup!',
+    })
+  } catch (e) {
+    $q.notify({ type: 'negative', message: 'Gagal menambahkan pekerja: ' + e.message })
+  } finally {
+    $q.loading.hide()
+  }
 }
 
 const deletePekerja = (mandorId, pekerjaId) => {
@@ -1290,17 +1504,28 @@ const deletePekerja = (mandorId, pekerjaId) => {
     title: 'Hapus Pekerja',
     message: 'Apakah Anda yakin ingin menghapus pekerja ini dari daftar penugasan kelompok?',
     cancel: true,
-  }).onOk(() => {
-    m.pekerja = m.pekerja.filter((p) => p.id !== pekerjaId)
-    commitEngineMemory()
-    $q.notify({ type: 'info', message: 'Pekerja berhasil dikeluarkan dari kelompok.' })
+  }).onOk(async () => {
+    const pekerjaBaru = m.pekerja.filter((p) => p.id !== pekerjaId)
+    $q.loading.show({ message: 'Menghapus pekerja...' })
+    try {
+      await updateDoc(doc(db, 'harian_lepas_mandor', mandorId), {
+        pekerja: pekerjaBaru
+      })
+      $q.notify({ type: 'info', message: 'Pekerja berhasil dikeluarkan dari kelompok.' })
+    } catch (e) {
+      $q.notify({ type: 'negative', message: 'Gagal mengeluarkan pekerja: ' + e.message })
+    } finally {
+      $q.loading.hide()
+    }
   })
 }
 
 // =====================================================================================
 // LOGIKA AKSI TAB 3: INPUT ABSENSI HARIAN REAKTIF MATRIKS
 // =====================================================================================
-const onDateChange = (val) => {
+const onDateChange = async (val) => {
+  // Auto-save tanggal saat ini sebelum pindah ke tanggal baru
+  await autoSaveAttendance()
   selectedDate.value = val
 }
 
@@ -1344,42 +1569,74 @@ const recalculateRowWage = (mandorId, pekerjaId) => {
   // Dipicu untuk memicu reaktivitas rendering Vue internal tracker
 }
 
-const saveAttendanceLog = () => {
-  commitEngineMemory()
-  $q.notify({
-    type: 'positive',
-    icon: 'cloud_done',
-    message: `Seluruh log absensi tanggal ${selectedDate.value} sukses disimpan!`,
-  })
-}
-
-const copyYesterdayAttendance = () => {
+const saveAttendanceLog = async () => {
   const targetDate = selectedDate.value
-  const d = new Date(targetDate + 'T00:00:00')
-  d.setDate(d.getDate() - 1)
-  const kemarinStr = d.toISOString().split('T')[0]
-
-  if (!attendanceData.value[kemarinStr]) {
-    $q.notify({
-      type: 'negative',
-      message: `Gagal menyalin: Data log hari kemarin (${kemarinStr}) tidak ditemukan!`,
-    })
+  if (!attendanceData.value[targetDate]) {
+    $q.notify({ type: 'warning', message: 'Tidak ada data absensi untuk disimpan!' })
     return
   }
 
-  attendanceData.value[targetDate] = JSON.parse(JSON.stringify(attendanceData.value[kemarinStr]))
-  commitEngineMemory()
-  $q.notify({
-    type: 'positive',
-    icon: 'file_copy',
-    message: `Berhasil menduplikasi skema log kehadiran dari tanggal ${kemarinStr}!`,
-  })
+  $q.loading.show({ message: 'Menyimpan log absensi ke cloud...' })
+  try {
+    await setDoc(doc(db, 'harian_lepas_absen', targetDate), {
+      tanggal: targetDate,
+      absen: attendanceData.value[targetDate],
+      updated_at: serverTimestamp(),
+    })
+    $q.notify({
+      type: 'positive',
+      icon: 'cloud_done',
+      message: `Seluruh log absensi tanggal ${targetDate} sukses disimpan!`,
+    })
+  } catch (e) {
+    $q.notify({ type: 'negative', message: 'Gagal menyimpan log absensi: ' + e.message })
+  } finally {
+    $q.loading.hide()
+  }
+}
+
+const copyYesterdayAttendance = async () => {
+  const targetDate = selectedDate.value
+  const d = new Date(targetDate)
+  d.setUTCDate(d.getUTCDate() - 1)
+  const kemarinStr = d.toISOString().split('T')[0]
+
+  $q.loading.show({ message: `Menyalin log dari ${kemarinStr}...` })
+  try {
+    const kemarinSnap = await getDoc(doc(db, 'harian_lepas_absen', kemarinStr))
+    if (!kemarinSnap.exists()) {
+      $q.notify({
+        type: 'negative',
+        message: `Gagal menyalin: Data log hari kemarin (${kemarinStr}) tidak ditemukan di cloud!`,
+      })
+      return
+    }
+
+    const dataKemarin = kemarinSnap.data().absen || {}
+    attendanceData.value[targetDate] = JSON.parse(JSON.stringify(dataKemarin))
+
+    await setDoc(doc(db, 'harian_lepas_absen', targetDate), {
+      tanggal: targetDate,
+      absen: attendanceData.value[targetDate],
+      updated_at: serverTimestamp()
+    })
+
+    $q.notify({
+      type: 'positive',
+      icon: 'file_copy',
+      message: `Berhasil menduplikasi skema log kehadiran dari tanggal ${kemarinStr}!`,
+    })
+  } catch (e) {
+    $q.notify({ type: 'negative', message: 'Gagal menyalin log: ' + e.message })
+  } finally {
+    $q.loading.hide()
+  }
 }
 
 // =====================================================================================
 // LOGIKA AKSI TAB 4: COMPILING & RENDER REKAPITULASI PAYROLL
 // =====================================================================================
-const generateReportData = () => {
+const generateReportData = async () => {
   const dari = rekapRange.value.dari
   const sampai = rekapRange.value.sampai
 
@@ -1388,116 +1645,162 @@ const generateReportData = () => {
     return
   }
 
-  // Generate array list tanggal range
-  const dateList = []
-  let cur = new Date(dari + 'T00:00:00')
-  const end = new Date(sampai + 'T00:00:00')
-  while (cur <= end) {
-    dateList.push(cur.toISOString().split('T')[0])
-    cur.setDate(cur.getDate() + 1)
-  }
+  $q.loading.show({ message: 'Mengunduh data rekap kehadiran dari cloud...' })
+  try {
+    // Simpan dulu jika user masih di Tab Absensi sebelum generate
+    if (activeTab.value === 'absen') {
+      await autoSaveAttendance()
+    }
 
-  // Filter Mandor
-  const filteredMandors = rekapRange.value.mandorId
-    ? mandors.value.filter((m) => m.id === rekapRange.value.mandorId)
-    : mandors.value
+    const q = query(
+      collection(db, 'harian_lepas_absen'),
+      where('tanggal', '>=', dari),
+      where('tanggal', '<=', sampai)
+    )
+    const snap = await getDocs(q)
 
-  let totalHadirCount = 0
-  let totalAlphaCount = 0
-  let totalUpahAll = 0
-  const computedReport = []
+    // Reset attendanceData untuk range yang diminta agar tidak ada data lama yang tercampur
+    const dateListTemp = []
+    let curTemp = new Date(dari)
+    const endTemp = new Date(sampai)
+    while (curTemp <= endTemp) {
+      const tglStr = curTemp.toISOString().split('T')[0]
+      dateListTemp.push(tglStr)
+      if (!attendanceData.value[tglStr]) attendanceData.value[tglStr] = {}
+      curTemp.setUTCDate(curTemp.getUTCDate() + 1)
+    }
 
-  filteredMandors.forEach((m) => {
-    if (!m.pekerja || m.pekerja.length === 0) return
-
-    const pekerjaSummaryRows = []
-    let subtotalMandorUpah = 0
-    let subHadir = 0,
-      subSetengah = 0,
-      subIzin = 0,
-      subSakit = 0,
-      subAlpha = 0,
-      subLibur = 0,
-      subLembur = 0
-
-    m.pekerja.forEach((p) => {
-      const pStats = {
-        hadir: 0,
-        setengah: 0,
-        izin: 0,
-        sakit: 0,
-        alpha: 0,
-        libur: 0,
-        lemburJam: 0,
-        upahTotal: 0,
+    // Isi attendanceData dari Firestore (override lokal untuk tanggal yang ada di DB)
+    let docsFound = 0
+    snap.forEach((docItem) => {
+      const data = docItem.data()
+      if (data.tanggal && data.absen) {
+        attendanceData.value[data.tanggal] = data.absen
+        docsFound++
       }
+    })
 
-      dateList.forEach((tgl) => {
-        const log = attendanceData.value[tgl]?.[m.id]?.[p.id]
-        if (!log) return
+    if (docsFound === 0) {
+      $q.notify({
+        type: 'warning',
+        icon: 'info',
+        message: 'Tidak ada data absensi yang tersimpan di cloud untuk rentang tanggal ini. Pastikan log absensi sudah disimpan di Tab Input Absensi.',
+        timeout: 5000,
+      })
+    }
 
-        pStats[log.status]++
-        pStats.lemburJam += parseFloat(log.lembur) || 0
-        const wage = calculateRowDailyWage(p, log)
-        pStats.upahTotal += wage
+    const dateList = []
+    let cur = new Date(dari)
+    const end = new Date(sampai)
+    while (cur <= end) {
+      dateList.push(cur.toISOString().split('T')[0])
+      cur.setUTCDate(cur.getUTCDate() + 1)
+    }
 
-        if (log.status === 'hadir' || log.status === 'setengah') {
-          totalHadirCount++
-          if (log.status === 'hadir') subHadir++
-          else subSetengah++
+    const filteredMandors = rekapRange.value.mandorId
+      ? mandors.value.filter((m) => m.id === rekapRange.value.mandorId)
+      : mandors.value
+
+    let totalHadirCount = 0
+    let totalAlphaCount = 0
+    let totalUpahAll = 0
+    const computedReport = []
+
+    filteredMandors.forEach((m) => {
+      if (!m.pekerja || m.pekerja.length === 0) return
+
+      const pekerjaSummaryRows = []
+      let subtotalMandorUpah = 0
+      let subHadir = 0,
+        subSetengah = 0,
+        subIzin = 0,
+        subSakit = 0,
+        subAlpha = 0,
+        subLibur = 0,
+        subLembur = 0
+
+      m.pekerja.forEach((p) => {
+        const pStats = {
+          hadir: 0,
+          setengah: 0,
+          izin: 0,
+          sakit: 0,
+          alpha: 0,
+          libur: 0,
+          lemburJam: 0,
+          upahTotal: 0,
         }
-        if (log.status === 'alpha') {
-          totalAlphaCount++
-          subAlpha++
-        }
-        if (log.status === 'izin') subIzin++
-        if (log.status === 'sakit') subSakit++
-        if (log.status === 'libur') subLibur++
+
+        dateList.forEach((tgl) => {
+          const log = attendanceData.value[tgl]?.[m.id]?.[p.id]
+          if (!log) return
+
+          pStats[log.status]++
+          pStats.lemburJam += parseFloat(log.lembur) || 0
+          const wage = calculateRowDailyWage(p, log)
+          pStats.upahTotal += wage
+
+          if (log.status === 'hadir' || log.status === 'setengah') {
+            totalHadirCount++
+            if (log.status === 'hadir') subHadir++
+            else subSetengah++
+          }
+          if (log.status === 'alpha') {
+            totalAlphaCount++
+            subAlpha++
+          }
+          if (log.status === 'izin') subIzin++
+          if (log.status === 'sakit') subSakit++
+          if (log.status === 'libur') subLibur++
+        })
+
+        subtotalMandorUpah += pStats.upahTotal
+        subLembur += pStats.lemburJam
+        totalUpahAll += pStats.upahTotal
+
+        pekerjaSummaryRows.push({
+          id: p.id,
+          nama: p.nama,
+          jabatan: p.jabatan || 'Tukang',
+          ...pStats,
+        })
       })
 
-      subtotalMandorUpah += pStats.upahTotal
-      subLembur += pStats.lemburJam
-      totalUpahAll += pStats.upahTotal
-
-      pekerjaSummaryRows.push({
-        id: p.id,
-        nama: p.nama,
-        jabatan: p.jabatan || 'Tukang',
-        ...pStats,
+      computedReport.push({
+        id: m.id,
+        nama: m.nama,
+        bidang: m.bidang || 'Umum / Helper',
+        pekerja: pekerjaSummaryRows,
+        subtotalUpah: subtotalMandorUpah,
+        totalHadir: subHadir,
+        totalSetengah: subSetengah,
+        totalIzin: subIzin,
+        totalSakit: subSakit,
+        totalAlpha: subAlpha,
+        totalLibur: subLibur,
+        totalLembur: subLembur,
       })
     })
 
-    computedReport.push({
-      id: m.id,
-      nama: m.nama,
-      bidang: m.bidang || 'Umum / Helper',
-      pekerja: pekerjaSummaryRows,
-      subtotalUpah: subtotalMandorUpah,
-      totalHadir: subHadir,
-      totalSetengah: subSetengah,
-      totalIzin: subIzin,
-      totalSakit: subSakit,
-      totalAlpha: subAlpha,
-      totalLibur: subLibur,
-      totalLembur: subLembur,
-    })
-  })
+    kpiSummary.value = {
+      totalPekerja: Object.keys(
+        filteredMandors.reduce((acc, m) => {
+          m.pekerja?.forEach((p) => (acc[p.id] = true))
+          return acc
+        }, {}),
+      ).length,
+      totalHadir: totalHadirCount,
+      totalAlpha: totalAlphaCount,
+      totalUpah: totalUpahAll,
+    }
 
-  // Push ke state rekap board
-  kpiSummary.value = {
-    totalPekerja: Object.keys(
-      filteredMandors.reduce((acc, m) => {
-        m.pekerja?.forEach((p) => (acc[p.id] = true))
-        return acc
-      }, {}),
-    ).length,
-    totalHadir: totalHadirCount,
-    totalAlpha: totalAlphaCount,
-    totalUpah: totalUpahAll,
+    reportData.value = computedReport
+    reportGenerated.value = true
+  } catch (e) {
+    $q.notify({ type: 'negative', message: 'Gagal menyusun rekap: ' + e.message })
+  } finally {
+    $q.loading.hide()
   }
-
-  reportData.value = computedReport
-  reportGenerated.value = true
 }
 
 // =====================================================================================
@@ -1579,6 +1882,7 @@ onMounted(() => {
 
     // Akses diberikan — muat data lokal
     loadEngineMemory()
+    fetchProyekKonstruksi()
   })
 })
 </script>
