@@ -770,7 +770,7 @@
         <!-- Kop Surat (Ditarik dari Master Perusahaan) -->
         <div class="row no-wrap items-center q-mb-md" v-if="selectedItem">
           <div class="col-auto">
-            <img src="icons/logo-agra.png" class="final-kop-img q-mr-md" />
+            <img src="/icons/logo-agra.png" class="final-kop-img q-mr-md" />
           </div>
           <div class="col text-left">
             <div class="text-pt-pro leading-none">
@@ -784,65 +784,62 @@
 
         <div class="pro-divider-thick q-mb-md"></div>
 
-        <!-- Judul & Nomor SJ -->
-        <div class="row justify-end q-mb-lg" v-if="selectedItem">
-          <div class="col-auto text-right">
-            <div
-              class="text-h3 text-weight-black text-indigo-10 uppercase tracking-widest leading-none"
-            >
-              SURAT JALAN
+        <!-- Metadata Tujuan & Reff (Side-by-Side dengan SURAT JALAN) -->
+        <div class="row q-col-gutter-lg q-mb-lg items-start text-left" v-if="selectedItem">
+          <!-- Sisi Kiri: Kepada Yth, Lokasi, Up -->
+          <div class="col-7">
+            <div class="row no-wrap items-start" style="font-size: 12px;">
+              <div class="text-weight-bold text-grey-7" style="width: 80px;">Kepada Yth</div>
+              <div class="q-mr-sm text-grey-7">:</div>
+              <div class="col text-weight-black text-indigo-10 uppercase font-bold font-pro" style="font-size: 13.5px; line-height: 1.2;">
+                {{ selectedItem.tujuan_nama || 'PIHAK PENERIMA' }}
+              </div>
             </div>
-            <div class="text-subtitle1 text-weight-bold q-mt-xs">
-              No. Surat Jalan :
-              <span class="text-primary font-mono">{{ selectedItem.no_referensi }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Meta Dokumen (SINKRON DENGAN DATA INPUT) -->
-        <div
-          class="row q-col-gutter-xl q-mb-lg text-left"
-          style="font-size: 13.5px"
-          v-if="selectedItem"
-        >
-          <div class="col-6">
-            <div class="text-weight-black uppercase q-mb-xs text-grey-7">KEPADA YTH :</div>
-            <div class="text-h6 text-weight-black text-indigo-10 q-mb-xs uppercase">
-              {{ selectedItem.tujuan_nama || 'PIHAK PENERIMA' }}
-            </div>
-            <div class="row no-wrap q-mt-xs">
-              <div class="col-auto q-mr-sm font-bold text-grey-8">Lokasi :</div>
+            <div class="row no-wrap items-start q-mt-sm" style="font-size: 12px;">
+              <div class="text-weight-bold text-grey-7" style="width: 80px;">Lokasi</div>
+              <div class="q-mr-sm text-grey-7">:</div>
               <div class="col underline-dotted text-blue-grey-10 text-weight-bold">
                 {{ selectedItem.tujuan_alamat || warehouseName || 'LOKASI PROYEK' }}
               </div>
             </div>
-            <div class="row no-wrap q-mt-sm">
-              <div class="col-auto q-mr-sm font-bold text-grey-8">Up :</div>
+            <div class="row no-wrap items-start q-mt-sm" style="font-size: 12px;">
+              <div class="text-weight-bold text-grey-7" style="width: 80px;">Up</div>
+              <div class="q-mr-sm text-grey-7">:</div>
               <div class="col underline-dotted text-blue-grey-10 text-weight-bold">
                 {{ selectedItem.penerima_up || '...........................................' }}
               </div>
             </div>
           </div>
-          <div class="col-6 text-right">
-            <div class="row justify-end q-mb-xs">
-              <div class="col-5 text-weight-black italic text-grey-6 text-left font-pro">
-                No Reff (SPK)
-              </div>
-              <div class="col-7 text-weight-bold text-left">
-                : {{ selectedItem.no_spk || 'INTERNAL_LOGISTICS' }}
-              </div>
+
+          <!-- Sisi Kanan: SURAT JALAN & Metadata Surat (No. SJ, No. Reff, Tanggal, Ekspedisi) -->
+          <div class="col-5 text-right font-pro">
+            <div class="text-weight-black text-indigo-10 uppercase tracking-widest leading-none" style="font-size: 18px; margin-top: 0px; margin-bottom: 8px; line-height: 1.2;">
+              SURAT JALAN
             </div>
-            <div class="row justify-end q-mb-xs">
-              <div class="col-5 text-weight-black italic text-grey-6 text-left font-pro">
-                Tanggal
+            
+            <div class="row justify-end">
+              <div style="width: 245px; text-align: left;">
+                <div class="row no-wrap items-center q-mb-xs" style="font-size: 12px; line-height: 1.2;">
+                  <div class="text-weight-bold text-indigo-10" style="width: 80px;">No. SJ</div>
+                  <div class="text-weight-bold text-indigo-10 q-mr-xs">:</div>
+                  <div class="col text-weight-bold text-indigo-10 font-mono">{{ selectedItem.no_referensi }}</div>
+                </div>
+                <div class="row no-wrap items-center q-mb-xs" style="font-size: 12px; line-height: 1.2;">
+                  <div class="text-weight-bold text-grey-7" style="width: 80px;">No Reff</div>
+                  <div class="text-weight-bold text-grey-7 q-mr-xs">:</div>
+                  <div class="col text-weight-bold text-grey-9 font-mono">{{ selectedItem.no_spk || 'INTERNAL_LOGISTICS' }}</div>
+                </div>
+                <div class="row no-wrap items-center q-mb-xs" style="font-size: 12px; line-height: 1.2;">
+                  <div class="text-weight-bold text-grey-7" style="width: 80px;">Tanggal</div>
+                  <div class="text-weight-bold text-grey-7 q-mr-xs">:</div>
+                  <div class="col text-weight-bold text-grey-9">{{ formatDate(selectedItem.timestamp) }}</div>
+                </div>
+                <div class="row no-wrap items-center q-mb-xs" style="font-size: 12px; line-height: 1.2;">
+                  <div class="text-weight-bold text-grey-7" style="width: 80px;">Ekspedisi</div>
+                  <div class="text-weight-bold text-grey-7 q-mr-xs">:</div>
+                  <div class="col text-weight-bold text-grey-9">Driver Internal</div>
+                </div>
               </div>
-              <div class="col-7 text-left">: {{ formatDate(selectedItem.timestamp) }}</div>
-            </div>
-            <div class="row justify-end q-mb-xs">
-              <div class="col-5 text-weight-black italic text-grey-6 text-left font-pro">
-                Ekspedisi
-              </div>
-              <div class="col-7 text-left">: Driver Internal</div>
             </div>
           </div>
         </div>
@@ -899,32 +896,33 @@
         </div>
 
         <!-- Signature Area (IDENTIK) -->
-        <div
-          class="row justify-between text-center q-mt-xl"
-          style="font-size: 14px"
-          v-if="selectedItem"
-        >
-          <div class="col-3">
-            <div class="text-weight-black q-mb-xl">Petugas Gudang</div>
-            <div style="height: 60px"></div>
-            <div class="text-weight-black underline text-brand-primary uppercase">
+        <!-- Footer Signature Grid -->
+        <div class="q-mt-xl text-center" style="font-size: 14px" v-if="selectedItem">
+          <!-- Baris 1: Jabatan / Peran -->
+          <div class="row justify-between text-weight-black">
+            <div class="col-3">Petugas Gudang</div>
+            <div class="col-3">Pihak Pengirim</div>
+            <div class="col-3">Pihak Penerima</div>
+          </div>
+          
+          <!-- Baris 2: Nama / Tanda Tangan (Disejajarkan pada baseline bawah agar rapi jika ada nama yang turun 2 baris) -->
+          <div class="row justify-between items-end" style="margin-top: 60px;">
+            <div class="col-3 text-weight-black underline text-indigo-10 uppercase" style="line-height: 1.2;">
               Petugas Terotorisasi
             </div>
-            <div class="text-caption text-bold text-grey-8 uppercase">
-              ( {{ warehouseName || selectedItem.id_gudang }} )
+            <div class="col-3 text-weight-black">
+              (..............................)
+            </div>
+            <div class="col-3 text-weight-black">
+              (..............................)
             </div>
           </div>
-          <div class="col-3">
-            <div class="text-weight-black q-mb-xl">Pihak Pengirim</div>
-            <div style="height: 60px"></div>
-            <div class="text-weight-black">(..............................)</div>
-            <div class="text-caption text-bold text-grey-8 uppercase">Driver / Kurir</div>
-          </div>
-          <div class="col-3">
-            <div class="text-weight-black q-mb-xl">Pihak Penerima</div>
-            <div style="height: 60px"></div>
-            <div class="text-weight-black">(..............................)</div>
-            <div class="text-caption text-bold text-grey-8 uppercase">Nama Jelas & Cap</div>
+          
+          <!-- Baris 3: Sub-Keterangan / Cap -->
+          <div class="row justify-between items-start q-mt-xs text-caption text-bold text-grey-8 uppercase">
+            <div class="col-3">( {{ warehouseName || selectedItem.id_gudang }} )</div>
+            <div class="col-3">Driver / Kurir</div>
+            <div class="col-3">Nama Jelas & Cap</div>
           </div>
         </div>
 

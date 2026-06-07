@@ -264,76 +264,77 @@
             <div id="sj-export-target" class="perfectionist-paper">
               <!-- Kop Surat Section -->
               <div class="row no-wrap items-center q-mb-md">
-                <div class="col-auto text-left">
-                  <div class="row no-wrap items-center">
-                    <img
-                      :src="editFields.logoUrl || 'icons/logo-agra.png'"
-                      style="height: 80px; width: auto; max-width: 280px; display: block"
-                      class="q-mr-md"
-                    />
-                    <div class="column justify-center">
-                      <div class="text-pt-pro leading-none">
-                        {{ editFields.nama_perusahaan || 'PT AGRA ABHINAYA PERKASA' }}
-                      </div>
-                      <div class="text-pt-tagline italic text-blue-grey-9">
-                        {{
-                          editFields.slogan_perusahaan || 'General Construction & General Supplier'
-                        }}
-                      </div>
-                    </div>
+                <div class="col-auto">
+                  <img :src="editFields.logoUrl || '/icons/logo-agra.png'" class="final-kop-img q-mr-md" />
+                </div>
+                <div class="col text-left">
+                  <div class="text-pt-pro leading-none">
+                    {{ editFields.nama_perusahaan || 'PT AGRA ABHINAYA PERKASA' }}
+                  </div>
+                  <div class="text-pt-tagline italic text-blue-grey-9 text-weight-bold uppercase">
+                    {{ editFields.slogan_perusahaan || 'General Construction & General Supplier' }}
                   </div>
                 </div>
               </div>
 
               <div class="pro-divider-thick q-mb-md"></div>
 
-              <!-- Judul & Nomor (DIBAWAH GARIS) -->
-              <div class="row justify-end q-mb-lg">
-                <div class="col-auto text-right">
-                  <div
-                    class="text-h4 text-weight-black text-brand-primary uppercase tracking-widest leading-none"
-                  >
-                    SURAT JALAN
+              <!-- Metadata Tujuan & Reff (Side-by-Side dengan SURAT JALAN) -->
+              <div class="row q-col-gutter-lg q-mb-lg items-start text-left">
+                <!-- Sisi Kiri: Kepada Yth, Lokasi, Up -->
+                <div class="col-7">
+                  <div class="row no-wrap items-start" style="font-size: 12px;">
+                    <div class="text-weight-bold text-grey-7" style="width: 80px;">Kepada Yth</div>
+                    <div class="q-mr-sm text-grey-7">:</div>
+                    <div class="col text-weight-black text-indigo-10 uppercase font-bold font-pro" style="font-size: 13.5px; line-height: 1.2;">
+                      {{ selectedRequest.ke_gudang?.nama }}
+                    </div>
                   </div>
-                  <div class="text-subtitle1 text-weight-bold q-mt-xs">
-                    No. Surat Jalan :
-                    <span class="text-brand-primary font-mono">{{ editFields.nomor_sj }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Metadata Tujuan & Reff -->
-              <div class="row q-col-gutter-xl q-mb-lg text-left" style="font-size: 13.5px">
-                <div class="col-6">
-                  <div class="text-weight-black uppercase q-mb-xs text-grey-8">Kepada Yth :</div>
-                  <div class="text-h6 text-weight-black text-brand-primary q-mb-xs uppercase">
-                    {{ selectedRequest.ke_gudang?.nama }}
-                  </div>
-                  <div class="row no-wrap q-mt-xs">
-                    <div class="col-auto q-mr-sm font-bold">Lokasi :</div>
+                  <div class="row no-wrap items-start q-mt-sm" style="font-size: 12px;">
+                    <div class="text-weight-bold text-grey-7" style="width: 80px;">Lokasi</div>
+                    <div class="q-mr-sm text-grey-7">:</div>
                     <div class="col underline-dotted text-blue-grey-10 text-weight-bold">
                       {{ editFields.lokasi || '...........................................' }}
                     </div>
                   </div>
-                  <div class="row no-wrap q-mt-sm">
-                    <div class="col-auto q-mr-sm font-bold">Up :</div>
+                  <div class="row no-wrap items-start q-mt-sm" style="font-size: 12px;">
+                    <div class="text-weight-bold text-grey-7" style="width: 80px;">Up</div>
+                    <div class="q-mr-sm text-grey-7">:</div>
                     <div class="col underline-dotted text-blue-grey-10 text-weight-bold">
                       {{ editFields.up || '...........................................' }}
                     </div>
                   </div>
                 </div>
-                <div class="col-6">
-                  <div class="row q-mb-xs">
-                    <div class="col-5 text-weight-black italic text-grey-7">No Reff</div>
-                    <div class="col-7 text-weight-bold">: {{ selectedRequest.nomor }}</div>
+
+                <!-- Sisi Kanan: SURAT JALAN & Metadata Surat (No. SJ, No. Reff, Tanggal, Ekspedisi) -->
+                <div class="col-5 text-right font-pro">
+                  <div class="text-weight-black text-indigo-10 uppercase tracking-widest leading-none" style="font-size: 18px; margin-top: 0px; margin-bottom: 8px; line-height: 1.2;">
+                    SURAT JALAN
                   </div>
-                  <div class="row q-mb-xs">
-                    <div class="col-5 text-weight-black italic text-grey-7">Tanggal Kirim</div>
-                    <div class="col-7">: {{ formatDate(selectedRequest.timestamp) }}</div>
-                  </div>
-                  <div class="row q-mb-xs">
-                    <div class="col-5 text-weight-black italic text-grey-7">Ekspedisi</div>
-                    <div class="col-7">: {{ editFields.ekspedisi }}</div>
+                  
+                  <div class="row justify-end">
+                    <div style="width: 245px; text-align: left;">
+                      <div class="row no-wrap items-center q-mb-xs" style="font-size: 12px; line-height: 1.2;">
+                        <div class="text-weight-bold text-indigo-10" style="width: 80px;">No. SJ</div>
+                        <div class="text-weight-bold text-indigo-10 q-mr-xs">:</div>
+                        <div class="col text-weight-bold text-indigo-10 font-mono">{{ editFields.nomor_sj }}</div>
+                      </div>
+                      <div class="row no-wrap items-center q-mb-xs" style="font-size: 12px; line-height: 1.2;">
+                        <div class="text-weight-bold text-grey-7" style="width: 80px;">No Reff</div>
+                        <div class="text-weight-bold text-grey-7 q-mr-xs">:</div>
+                        <div class="col text-weight-bold text-grey-9 font-mono">{{ selectedRequest.nomor }}</div>
+                      </div>
+                      <div class="row no-wrap items-center q-mb-xs" style="font-size: 12px; line-height: 1.2;">
+                        <div class="text-weight-bold text-grey-7" style="width: 80px;">Tanggal</div>
+                        <div class="text-weight-bold text-grey-7 q-mr-xs">:</div>
+                        <div class="col text-weight-bold text-grey-9">{{ formatDate(selectedRequest.timestamp) }}</div>
+                      </div>
+                      <div class="row no-wrap items-center q-mb-xs" style="font-size: 12px; line-height: 1.2;">
+                        <div class="text-weight-bold text-grey-7" style="width: 80px;">Ekspedisi</div>
+                        <div class="text-weight-bold text-grey-7 q-mr-xs">:</div>
+                        <div class="col text-weight-bold text-grey-9">{{ editFields.ekspedisi }}</div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -395,36 +396,36 @@
                 </div>
               </div>
 
-              <!-- Footer Signature -->
-              <div class="row justify-between text-center q-mt-xl" style="font-size: 14px">
-                <div class="col-3">
-                  <div class="text-weight-black q-mb-xl">Petugas Gudang</div>
-                  <div style="height: 60px"></div>
-                  <div class="text-weight-black underline text-brand-primary uppercase">
+              <!-- Footer Signature Grid -->
+              <div class="q-mt-xl text-center" style="font-size: 14px">
+                <!-- Baris 1: Jabatan / Peran -->
+                <div class="row justify-between text-weight-black">
+                  <div class="col-3">Petugas Gudang</div>
+                  <div class="col-3">Bagian Pengiriman</div>
+                  <div class="col-3">Pihak Penerima</div>
+                </div>
+                
+                <!-- Baris 2: Nama / Tanda Tangan (Disejajarkan pada baseline bawah agar rapi jika ada nama yang turun 2 baris) -->
+                <div class="row justify-between items-end" style="margin-top: 60px;">
+                  <div class="col-3 text-weight-black underline text-indigo-10 uppercase" style="line-height: 1.2;">
                     {{ selectedRequest.processedBy || 'Petugas' }}
                   </div>
-                  <div class="text-caption text-bold text-grey-8 uppercase">
-                    ( Gudang Pengirim )
+                  <div class="col-3 text-weight-black">
+                    (..............................)
+                  </div>
+                  <div class="col-3 text-weight-black">
+                    (..............................)
                   </div>
                 </div>
-                <div class="col-3">
-                  <div class="text-weight-black q-mb-xl">Bagian Pengiriman</div>
-                  <div style="height: 60px"></div>
-                  <div class="text-weight-black">(..............................)</div>
-                  <div class="text-caption text-bold text-grey-8">Nama Driver / Kurir</div>
-                </div>
-                <div class="col-3">
-                  <div class="text-weight-black q-mb-xl">Pihak Penerima</div>
-                  <div style="height: 60px"></div>
-                  <div class="text-weight-black">(..............................)</div>
-                  <div class="text-caption text-bold text-grey-8 uppercase">Nama Jelas & Cap</div>
+                
+                <!-- Baris 3: Sub-Keterangan / Cap -->
+                <div class="row justify-between items-start q-mt-xs text-caption text-bold text-grey-8 uppercase">
+                  <div class="col-3">( Gudang Pengirim )</div>
+                  <div class="col-3" style="text-transform: none;">Nama Driver / Kurir</div>
+                  <div class="col-3">Nama Jelas & Cap</div>
                 </div>
               </div>
 
-              <div class="q-mt-xl text-center text-grey-5 italic" style="font-size: 9px">
-                Generated by AGRA ERP Perfectionist Engine v4.0.6 •
-                {{ new Date().toLocaleString('id-ID') }}
-              </div>
             </div>
           </div>
 
@@ -475,20 +476,32 @@
                         >
                           Kop Surat / Logo PDF
                         </div>
-                        <q-file
-                          outlined
-                          dense
-                          v-model="customLogoFile"
-                          label="Pilih Logo Perusahaan..."
-                          accept="image/*"
-                          @update:model-value="handleLogoUpload"
-                          bg-color="grey-1"
-                          :disable="selectedRequest.status !== 'Pending'"
-                        >
-                          <template v-slot:prepend
-                            ><q-icon name="cloud_upload" color="brand-primary"
-                          /></template>
-                        </q-file>
+                        <div class="row no-wrap items-center q-col-gutter-sm">
+                          <div class="col-auto">
+                            <q-avatar rounded size="40px" class="bg-grey-2 border-brand-light-thin q-pa-xs">
+                              <img :src="editFields.logoUrl || '/icons/logo-agra.png'" style="object-fit: contain;" />
+                            </q-avatar>
+                          </div>
+                          <div class="col">
+                            <q-file
+                              outlined
+                              dense
+                              v-model="customLogoFile"
+                              label="Pilih Logo Perusahaan..."
+                              accept="image/*"
+                              @update:model-value="handleLogoUpload"
+                              bg-color="grey-1"
+                              :disable="selectedRequest.status !== 'Pending'"
+                            >
+                              <template v-slot:prepend>
+                                <q-icon name="cloud_upload" color="brand-primary" />
+                              </template>
+                              <template v-slot:append v-if="editFields.logoUrl">
+                                <q-icon name="cancel" @click.stop="clearCustomLogo" class="cursor-pointer" color="grey-6" />
+                              </template>
+                            </q-file>
+                          </div>
+                        </div>
                       </div>
 
                       <q-input
@@ -611,71 +624,74 @@
                   Sesuaikan Qty & Keterangan Pengiriman
                 </div>
               </div>
-              <q-markup-table
-                flat
-                bordered
-                separator="horizontal"
-                class="rounded-20 q-mb-xl border-subtle bg-white shadow-sm overflow-hidden"
-              >
-                <thead class="bg-brand-light">
-                  <tr class="text-weight-bold text-brand-primary">
-                    <th class="text-left q-pa-md" width="100">KODE</th>
-                    <th class="text-left q-pa-md">DESKRIPSI MATERIAL</th>
-                    <th class="text-center" width="120">QTY DIKIRIM</th>
-                    <th class="text-center" width="100">UNIT</th>
-                    <th class="text-left">KETERANGAN TAMBAHAN (EDITABLE)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(item, i) in selectedRequest.items" :key="i">
-                    <td class="text-left q-pa-md">
-                      <q-badge
-                        color="brand-light"
-                        text-color="brand-primary"
-                        class="font-mono text-weight-bold shadow-sm q-px-sm q-py-xs"
-                      >
-                        {{ getKodeBarang(item.id_barang) }}
-                      </q-badge>
-                    </td>
+              <div class="overflow-auto border-subtle rounded-20 shadow-sm q-mb-xl">
+                <q-markup-table
+                  flat
+                  bordered
+                  separator="horizontal"
+                  class="bg-white"
+                  style="min-width: 800px;"
+                >
+                  <thead class="bg-brand-light">
+                    <tr class="text-weight-bold text-brand-primary">
+                      <th class="text-left q-pa-md" width="100">KODE</th>
+                      <th class="text-left q-pa-md">DESKRIPSI MATERIAL</th>
+                      <th class="text-center" width="120">QTY DIKIRIM</th>
+                      <th class="text-center" width="100">UNIT</th>
+                      <th class="text-left">KETERANGAN TAMBAHAN (EDITABLE)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(item, i) in selectedRequest.items" :key="i">
+                      <td class="text-left q-pa-md">
+                        <q-badge
+                          color="brand-light"
+                          text-color="brand-primary"
+                          class="font-mono text-weight-bold shadow-sm q-px-sm q-py-xs"
+                        >
+                          {{ getKodeBarang(item.id_barang) }}
+                        </q-badge>
+                      </td>
 
-                    <td class="text-left q-pa-md font-bold text-blue-grey-10 uppercase">
-                      {{ item.nama_barang }}
-                    </td>
+                      <td class="text-left q-pa-md font-bold text-blue-grey-10 uppercase">
+                        {{ item.nama_barang }}
+                      </td>
 
-                    <td class="text-center" width="120">
-                      <q-input
-                        v-if="selectedRequest.status === 'Pending'"
-                        v-model.number="selectedRequest.items[i].qty"
-                        type="number"
-                        dense
-                        outlined
-                        bg-color="white"
-                        input-class="text-center text-weight-black text-brand-primary text-h6"
-                        :rules="[(val) => val > 0 || 'Min 1']"
-                        hide-bottom-space
-                      />
-                      <div v-else class="text-h6 text-weight-black text-brand-primary">
-                        {{ item.qty }}
-                      </div>
-                    </td>
+                      <td class="text-center" width="120">
+                        <q-input
+                          v-if="selectedRequest.status === 'Pending'"
+                          v-model.number="selectedRequest.items[i].qty"
+                          type="number"
+                          dense
+                          outlined
+                          bg-color="white"
+                          input-class="text-center text-weight-black text-brand-primary text-h6"
+                          :rules="[(val) => val > 0 || 'Min 1']"
+                          hide-bottom-space
+                        />
+                        <div v-else class="text-h6 text-weight-black text-brand-primary">
+                          {{ item.qty }}
+                        </div>
+                      </td>
 
-                    <td class="text-center uppercase text-caption text-weight-bold text-grey-7">
-                      {{ item.satuan }}
-                    </td>
-                    <td class="q-pa-none">
-                      <q-input
-                        v-model="editFields.itemRemarks[i]"
-                        borderless
-                        dense
-                        class="q-px-md full-width"
-                        placeholder="Ketik keterangan barang di sini..."
-                        bg-color="blue-grey-1"
-                        :readonly="selectedRequest.status !== 'Pending'"
-                      />
-                    </td>
-                  </tr>
-                </tbody>
-              </q-markup-table>
+                      <td class="text-center uppercase text-caption text-weight-bold text-grey-7">
+                        {{ item.satuan }}
+                      </td>
+                      <td class="q-pa-none">
+                        <q-input
+                          v-model="editFields.itemRemarks[i]"
+                          borderless
+                          dense
+                          class="q-px-md full-width"
+                          placeholder="Ketik keterangan barang di sini..."
+                          bg-color="blue-grey-1"
+                          :readonly="selectedRequest.status !== 'Pending'"
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
+                </q-markup-table>
+              </div>
 
               <div class="q-py-xl"></div>
             </div>
@@ -1223,6 +1239,12 @@ const handleLogoUpload = (file) => {
   })
 }
 
+const clearCustomLogo = () => {
+  customLogoFile.value = null
+  editFields.logoUrl = ''
+}
+
+
 // =============================================================================
 // FIX EXPORT TO PDF & EXCEL UNTUK LIST TABLE (SOP: PORTRAIT & ANTI-CUT)
 // =============================================================================
@@ -1737,7 +1759,7 @@ onUnmounted(() => {
 .text-pt-pro {
   font-size: 26px;
   font-weight: 900;
-  color: #36ada3 !important;
+  color: #1a237e !important;
   letter-spacing: -1px;
 }
 .text-pt-tagline {
@@ -1820,6 +1842,13 @@ onUnmounted(() => {
 .hover-blue-btn:hover {
   background-color: #e0f5f4 !important;
   color: #1e6e69 !important;
+}
+
+.overflow-auto {
+  overflow-x: auto !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  display: block;
 }
 
 /* ===== QUASAR COMPONENT DEEP OVERRIDES ===== */
@@ -1994,6 +2023,14 @@ onUnmounted(() => {
 
 .hover-shadow:hover .shadow-sm {
   transform: scale(1.12) rotate(6deg);
+}
+
+.final-kop-img {
+  height: 80px;
+  width: auto;
+  max-width: 280px;
+  display: block;
+  object-fit: contain;
 }
 </style>
 

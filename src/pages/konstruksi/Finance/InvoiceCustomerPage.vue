@@ -918,337 +918,362 @@
         </q-toolbar>
 
         <q-card-section class="col scroll q-pa-md q-pa-md-xl flex flex-center preview-container">
-          <!-- KERTAS PDF INVOICE — TIDAK DIUBAH -->
-          <div id="invoice-pdf-area" class="letter-paper shadow-24" v-if="selectedInv">
-            <!-- GARIS BIRU ATAS -->
-            <div
-              style="
-                height: 6px;
-                background-color: #2b579a;
-                width: 100%;
-                margin-bottom: 16px;
-                border-radius: 2px;
-              "
-            ></div>
-            <div class="row no-wrap items-center q-mb-md">
-              <img :src="config.kopUrl || 'icons/logo-agra.png'" class="final-kop-img q-mr-md" />
-              <div>
-                <div
-                  class="text-weight-bolder uppercase"
-                  style="color: #2b579a; font-size: 20px; letter-spacing: 0.5px"
-                >
-                  {{ config.nama_pt || 'PT. AGRA ABHINAYA PERKASA' }}
-                </div>
-                <div
-                  style="font-size: 9px; color: #555"
-                  class="q-mt-xs text-uppercase text-weight-bold"
-                >
-                  {{ config.slogan_pt || 'GENERAL CONSTRUCTION AND GENERAL SUPPLY' }}
-                </div>
-                <div style="font-size: 9px; color: #777" class="q-mt-xs">
-                  {{
-                    config.alamat_pt ||
-                    'Jl. Tegal Danas No. 9A, Sertajaya, Cikarang Timur, Kabupaten Bekasi, Jawa Barat 17530'
-                  }}
-                </div>
-              </div>
-            </div>
-            <div
-              style="height: 3px; background-color: #2b579a; width: 100%; margin-bottom: 25px"
-            ></div>
-            <div class="row q-col-gutter-lg q-mb-xl">
-              <div class="col-7">
-                <div
-                  class="text-grey-6 text-bold tracking-widest uppercase q-mb-sm"
-                  style="font-size: 10px"
-                >
-                  TAGIHAN KEPADA :
-                </div>
-                <div
-                  class="text-h6 text-weight-bold uppercase"
-                  style="color: #2b579a; letter-spacing: 0.5px"
-                >
-                  {{ selectedInv.customer_nama }}
-                </div>
-                <div class="text-grey-9 q-mb-lg" style="font-size: 12px; line-height: 1.4">
-                  {{ selectedInv.customer_alamat }}
-                </div>
-                <table class="text-grey-9 text-left" style="font-size: 11px; width: 100%">
-                  <tr>
-                    <td width="90" class="q-pb-xs">Proyek</td>
-                    <td width="15" class="text-center q-pb-xs">:</td>
-                    <td class="text-weight-bold uppercase q-pb-xs">
-                      {{ selectedInv.proyek_nama || '-' }}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="q-pb-xs">SPK / PO Ref</td>
-                    <td class="q-pb-xs">:</td>
-                    <td class="text-weight-bold uppercase q-pb-xs">
-                      {{ selectedInv.spk_nomor || '-' }}
-                    </td>
-                  </tr>
-                </table>
-              </div>
-              <div class="col-5 text-right flex column items-end">
-                <div
-                  class="text-weight-900 text-italic"
-                  style="color: #2b579a; font-size: 26px; letter-spacing: 2px; line-height: 1"
-                >
-                  INVOICE
-                </div>
-                <div class="text-weight-bold text-grey-9 q-mt-sm q-mb-lg" style="font-size: 14px">
-                  # {{ selectedInv.nomor_invoice }}
-                </div>
-                <table class="text-grey-9" style="font-size: 11px; margin-left: auto">
-                  <tr>
-                    <td width="80" class="text-left q-pb-xs">Tanggal</td>
-                    <td width="15" class="text-center q-pb-xs">:</td>
-                    <td class="text-weight-bold text-black text-left q-pb-xs">
-                      {{ formatDateIndo(selectedInv.tanggal) }}
-                    </td>
-                  </tr>
-                </table>
-              </div>
-            </div>
-            <table class="pdf-table full-width">
-              <thead>
-                <tr>
-                  <th width="40" class="text-center">NO</th>
-                  <th class="text-center">DESKRIPSI PEKERJAAN / TAGIHAN</th>
-                  <th width="160" class="text-center">JUMLAH (IDR)</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(item, i) in selectedInv.items" :key="i">
-                  <td
-                    class="text-center text-weight-bold border-bottom-none border-top-none"
-                    style="vertical-align: top; padding-top: 10px"
-                  >
-                    {{ i + 1 }}
-                  </td>
-                  <td
-                    class="q-px-md q-py-sm border-bottom-none border-top-none"
-                    style="vertical-align: top"
-                  >
-                    <div class="text-weight-bold">{{ item.judul || item.uraian }}</div>
-                    <div
-                      class="text-grey-8"
-                      style="font-size: 10px; margin-top: 4px"
-                      v-if="item.deskripsi"
-                    >
-                      {{ item.deskripsi }}
-                    </div>
-                  </td>
-                  <td
-                    class="text-right q-px-md border-bottom-none border-top-none"
-                    style="vertical-align: top; padding-top: 10px"
-                  >
-                    {{ (item.nominal || 0).toLocaleString('id-ID', { minimumFractionDigits: 0 }) }}
-                  </td>
-                </tr>
-                <tr>
-                  <td class="border-top-none border-bottom-none" style="height: 15px"></td>
-                  <td class="border-top-none border-bottom-none"></td>
-                  <td class="border-top-none border-bottom-none"></td>
-                </tr>
-                <tr class="row-calculation">
-                  <td
-                    class="border-none-right border-bottom-none"
-                    style="background: white !important"
-                  ></td>
-                  <td
-                    class="q-px-md q-py-sm text-right border-left-blue text-weight-bold"
-                    style="font-size: 10px"
-                  >
-                    Subtotal (DPP)
-                  </td>
-                  <td class="text-right q-px-md text-weight-bold">
-                    Rp
-                    {{
-                      (selectedInv.nilai_dpp || 0).toLocaleString('id-ID', {
-                        minimumFractionDigits: 0,
-                      })
-                    }}
-                  </td>
-                </tr>
-                <tr class="row-calculation" v-if="selectedInv.ppn_persen > 0">
-                  <td
-                    class="border-none-right border-bottom-none border-top-none"
-                    style="background: white !important"
-                  ></td>
-                  <td
-                    class="q-px-md q-py-sm text-right border-left-blue text-weight-bold"
-                    style="font-size: 10px"
-                  >
-                    PPN ({{ selectedInv.ppn_persen }}%)
-                  </td>
-                  <td class="text-right q-px-md text-weight-bold">
-                    Rp
-                    {{
-                      (selectedInv.ppn_nominal || 0).toLocaleString('id-ID', {
-                        minimumFractionDigits: 0,
-                      })
-                    }}
-                  </td>
-                </tr>
-                <tr class="row-calculation" v-if="selectedInv.pph_persen > 0">
-                  <td
-                    class="border-none-right border-bottom-none border-top-none"
-                    style="background: white !important"
-                  ></td>
-                  <td
-                    class="q-px-md q-py-sm text-right border-left-blue text-weight-bold text-negative"
-                    style="font-size: 10px"
-                  >
-                    Potongan PPh ({{ selectedInv.pph_persen }}%)
-                  </td>
-                  <td class="text-right q-px-md text-weight-bold text-negative">
-                    - Rp
-                    {{
-                      (selectedInv.pph_nominal || 0).toLocaleString('id-ID', {
-                        minimumFractionDigits: 0,
-                      })
-                    }}
-                  </td>
-                </tr>
-                <tr class="row-grand-total">
-                  <td
-                    colspan="2"
-                    class="text-center text-weight-bold uppercase tracking-widest text-subtitle2"
-                    style="font-size: 11px"
-                  >
-                    TOTAL TAGIHAN (GRAND TOTAL)
-                  </td>
-                  <td class="text-right text-weight-bold q-px-md" style="font-size: 13px">
-                    Rp
-                    {{
-                      (selectedInv.grand_total || 0).toLocaleString('id-ID', {
-                        minimumFractionDigits: 0,
-                      })
-                    }}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-            <div
-              class="bg-grey-2 q-pa-md rounded-borders text-blue-grey-9 q-mb-xl q-mt-md"
-              style="font-size: 11px; border: 1px solid #e0e0e0"
-            >
-              <div class="text-weight-bold q-mb-xs">Terbilang :</div>
-              <div># {{ terbilangRupiah(selectedInv.grand_total) }} Rupiah #</div>
-            </div>
-            <div class="row" style="margin-top: 24px">
-              <!-- KIRI: Pembuat Dokumen -->
-              <div style="width: 58%; padding-right: 20px; box-sizing: border-box">
-                <div
-                  style="
-                    color: #2b579a;
-                    font-size: 11px;
-                    font-weight: 800;
-                    letter-spacing: 0.8px;
-                    text-transform: uppercase;
-                    margin-bottom: 6px;
-                  "
-                >
-                  INSTRUKSI PEMBAYARAN
-                </div>
-                <div style="font-size: 10px; color: #777; margin-bottom: 8px">
-                  Mohon lakukan pembayaran penuh (full amount) ke rekening berikut:
-                </div>
-                <table class="bank-table-bordered text-weight-bold text-blue-grey-9">
-                  <tr>
-                    <td width="90" class="q-px-md bg-grey-2">Bank</td>
-                    <td class="text-uppercase" style="color: #2b579a">
-                      : {{ selectedInv.rek_bank }}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="q-px-md bg-grey-2">No. Rekening</td>
-                    <td class="text-primary">: {{ selectedInv.rek_nomor }}</td>
-                  </tr>
-                  <tr>
-                    <td class="q-px-md bg-grey-2">Atas Nama</td>
-                    <td class="text-uppercase text-grey-8">: {{ selectedInv.rek_nama }}</td>
-                  </tr>
-                </table>
-                <div
-                  style="font-size: 9.5px; color: #555; margin-top: 10px"
-                  v-if="selectedInv.keterangan"
-                >
-                  <span style="font-weight: 700">Catatan Tambahan:</span><br />{{
-                    selectedInv.keterangan
-                  }}
-                </div>
-              </div>
-
-              <!-- KANAN: Tanda Tangan -->
+          <!-- WRAPPER UNTUK PREVIEW LAYAR (DENGAN SHADOW) -->
+          <div class="invoice-preview-wrapper shadow-24 no-print" style="border-radius: 4px; overflow: hidden; margin: 0 auto; width: fit-content;">
+            <div id="invoice-pdf-area" class="letter-paper" v-if="selectedInv">
+              <!-- GARIS BIRU ATAS -->
               <div
                 style="
-                  width: 42%;
-                  box-sizing: border-box;
-                  display: flex;
-                  flex-direction: column;
-                  align-items: center;
-                  text-align: center;
+                  height: 6px;
+                  background-color: #2b579a;
+                  width: 100%;
+                  margin-bottom: 16px;
+                  border-radius: 2px;
                 "
-              >
-                <div
-                  style="
-                    color: #2b579a;
-                    font-size: 11px;
-                    font-weight: 800;
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
-                    margin-bottom: 48px;
-                  "
-                >
-                  {{ config.nama_pt || 'PT AGRA ABHINAYA PERKASA' }}
-                </div>
-
-                <div
-                  style="
-                    height: 52px;
-                    width: 100%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    margin-bottom: 6px;
-                  "
-                >
-                  <img
-                    v-if="selectedInv.signatureUrl"
-                    :src="selectedInv.signatureUrl"
-                    style="
-                      max-height: 52px;
-                      max-width: 180px;
-                      object-fit: contain;
-                      mix-blend-mode: multiply;
-                    "
-                  />
-                </div>
-
-                <div
-                  style="
-                    font-style: italic;
-                    font-weight: 700;
-                    font-size: 12px;
-                    color: #1a1a1a;
-                    border-bottom: 1.5px solid #1a1a1a;
-                    padding-bottom: 3px;
-                    min-width: 180px;
-                    margin-bottom: 5px;
-                  "
-                >
-                  {{ selectedInv.ttd_nama || 'Deni Purwanti' }}
-                </div>
-
-                <div style="font-size: 11px; color: #555; font-weight: 400">
-                  {{ selectedInv.ttd_jabatan || 'Direktur Utama' }}
+              ></div>
+              <div class="row no-wrap items-center q-mb-md">
+                <img :src="config.kopUrl || 'icons/logo-agra.png'" class="final-kop-img q-mr-md" style="height: 60px; max-width: 150px; object-fit: contain;" />
+                <div>
+                  <div
+                    class="text-weight-bolder uppercase"
+                    style="color: #2b579a; font-size: 18px; letter-spacing: 0.5px; line-height: 1.2;"
+                  >
+                    {{ config.nama_pt || 'PT. AGRA ABHINAYA PERKASA' }}
+                  </div>
+                  <div
+                    style="font-size: 9.5px; color: #555; letter-spacing: 0.5px;"
+                    class="q-mt-xs text-uppercase text-weight-bold"
+                  >
+                    {{ config.slogan_pt || 'GENERAL CONSTRUCTION AND GENERAL SUPPLY' }}
+                  </div>
+                  <div style="font-size: 10px; color: #666; line-height: 1.3;" class="q-mt-xs">
+                    {{
+                      config.alamat_pt ||
+                      'Jl. Tegal Danas No. 9A, Sertajaya, Cikarang Timur, Kabupaten Bekasi, Jawa Barat 17530'
+                    }}
+                  </div>
                 </div>
               </div>
+              <div
+                style="height: 3px; background-color: #2b579a; width: 100%; margin-bottom: 25px;"
+              ></div>
+
+              <!-- ROW 1: Kepada & Invoice Header -->
+              <div class="row q-col-gutter-lg q-mb-xs">
+                <!-- LEFT COLUMN -->
+                <div class="col-7 text-left">
+                  <div
+                    class="text-grey-6 text-bold tracking-widest uppercase q-mb-xs"
+                    style="font-size: 10px;"
+                  >
+                    TAGIHAN KEPADA :
+                  </div>
+                  <div
+                    class="text-weight-bold uppercase"
+                    style="color: #2b579a; font-size: 14px; letter-spacing: 0.5px; line-height: 1.2; margin-bottom: 2px;"
+                  >
+                    {{ selectedInv.customer_nama }}
+                  </div>
+                  <div class="text-grey-9" style="font-size: 11px; line-height: 1.4;">
+                    {{ selectedInv.customer_alamat }}
+                  </div>
+                </div>
+
+                <!-- RIGHT COLUMN -->
+                <div class="col-5 text-right font-pro">
+                  <div
+                    class="text-weight-900 text-italic"
+                    style="color: #2b579a; font-size: 26px; letter-spacing: 2px; line-height: 1;"
+                  >
+                    INVOICE
+                  </div>
+                  <div class="text-weight-bold text-grey-9 q-mt-xs" style="font-size: 12px;">
+                    # {{ selectedInv.nomor_invoice }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- ROW 2: Detail Proyek/SPK & Tanggal/Jatuh Tempo (Aligned Perfectly Side-by-Side) -->
+              <div class="row q-col-gutter-lg q-mb-md items-start">
+                <!-- LEFT COLUMN -->
+                <div class="col-7 text-left">
+                  <table class="text-grey-9 text-left" style="font-size: 11px; width: 100%; border-collapse: collapse; line-height: 1.3;">
+                    <tr>
+                      <td width="90" style="vertical-align: top; color: #666; padding: 2px 0 6px 0;">Proyek</td>
+                      <td width="15" class="text-center" style="vertical-align: top; color: #666; padding: 2px 0 6px 0;">:</td>
+                      <td class="text-weight-bold uppercase" style="color: #222; vertical-align: top; padding: 2px 0 6px 0;">
+                        {{ selectedInv.proyek_nama || '-' }}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="vertical-align: top; color: #666; padding: 2px 0 0 0;">SPK / PO Ref</td>
+                      <td class="text-center" style="vertical-align: top; color: #666; padding: 2px 0 0 0;">:</td>
+                      <td class="text-weight-bold uppercase" style="color: #222; vertical-align: top; padding: 2px 0 0 0;">
+                        {{ selectedInv.spk_nomor || '-' }}
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+
+                <!-- RIGHT COLUMN -->
+                <div class="col-5 text-right">
+                  <table class="text-grey-9" style="font-size: 11px; margin-left: auto; width: fit-content; border-collapse: collapse; line-height: 1.3;">
+                    <tr>
+                      <td width="78" class="text-right" style="vertical-align: top; color: #666; padding: 2px 0 6px 0;">Tanggal</td>
+                      <td width="12" class="text-center" style="vertical-align: top; color: #666; padding: 2px 0 6px 0;">:</td>
+                      <td class="text-weight-bold text-black text-left" style="vertical-align: top; padding: 2px 0 6px 0;">
+                        {{ formatDateIndo(selectedInv.tanggal) }}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="text-right" style="vertical-align: top; color: #666; padding: 2px 0 0 0;">Jatuh Tempo</td>
+                      <td class="text-center" style="vertical-align: top; color: #666; padding: 2px 0 0 0;">:</td>
+                      <td class="text-weight-bold text-red-9 text-left" style="vertical-align: top; padding: 2px 0 0 0;">
+                        {{ formatDateIndo(selectedInv.jatuh_tempo) }}
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+              </div>
+              <table class="pdf-table full-width">
+                <thead>
+                  <tr>
+                    <th width="40" class="text-center">NO</th>
+                    <th class="text-center">DESKRIPSI PEKERJAAN / TAGIHAN</th>
+                    <th width="160" class="text-center">JUMLAH (IDR)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(item, i) in selectedInv.items" :key="i">
+                    <td
+                      class="text-center text-weight-bold border-bottom-none border-top-none q-py-sm"
+                      style="vertical-align: top"
+                    >
+                      {{ i + 1 }}
+                    </td>
+                    <td
+                      class="q-px-md q-py-sm border-bottom-none border-top-none"
+                      style="vertical-align: top"
+                    >
+                      <div class="text-weight-bold">{{ item.judul || item.uraian }}</div>
+                      <div
+                        class="text-grey-8"
+                        style="font-size: 10px; margin-top: 4px"
+                        v-if="item.deskripsi"
+                      >
+                        {{ item.deskripsi }}
+                      </div>
+                    </td>
+                    <td
+                      class="text-right q-px-md q-py-sm border-bottom-none border-top-none"
+                      style="vertical-align: top"
+                    >
+                      {{ (item.nominal || 0).toLocaleString('id-ID', { minimumFractionDigits: 0 }) }}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="border-top-none border-bottom-none" style="height: 15px"></td>
+                    <td class="border-top-none border-bottom-none"></td>
+                    <td class="border-top-none border-bottom-none"></td>
+                  </tr>
+                  <tr class="row-calculation">
+                    <td
+                      class="border-none-right border-bottom-none"
+                      style="background: white !important;"
+                    ></td>
+                    <td
+                      class="q-px-md q-py-xs text-right border-left-blue text-weight-bold"
+                      style="font-size: 11px;"
+                    >
+                      Subtotal (DPP)
+                    </td>
+                    <td class="text-right q-px-md text-weight-bold" style="font-size: 11px;">
+                      Rp
+                      {{
+                        (selectedInv.nilai_dpp || 0).toLocaleString('id-ID', {
+                          minimumFractionDigits: 0,
+                        })
+                      }}
+                    </td>
+                  </tr>
+                  <tr class="row-calculation" v-if="selectedInv.ppn_persen > 0">
+                    <td
+                      class="border-none-right border-bottom-none border-top-none"
+                      style="background: white !important;"
+                    ></td>
+                    <td
+                      class="q-px-md q-py-xs text-right border-left-blue text-weight-bold"
+                      style="font-size: 11px;"
+                    >
+                      PPN ({{ selectedInv.ppn_persen }}%)
+                    </td>
+                    <td class="text-right q-px-md text-weight-bold" style="font-size: 11px;">
+                      Rp
+                      {{
+                        (selectedInv.ppn_nominal || 0).toLocaleString('id-ID', {
+                          minimumFractionDigits: 0,
+                        })
+                      }}
+                    </td>
+                  </tr>
+                  <tr class="row-calculation" v-if="selectedInv.pph_persen > 0">
+                    <td
+                      class="border-none-right border-bottom-none border-top-none"
+                      style="background: white !important;"
+                    ></td>
+                    <td
+                      class="q-px-md q-py-xs text-right border-left-blue text-weight-bold text-negative"
+                      style="font-size: 11px;"
+                    >
+                      Potongan PPh ({{ selectedInv.pph_persen }}%)
+                    </td>
+                    <td class="text-right q-px-md text-weight-bold text-negative" style="font-size: 11px;">
+                      - Rp
+                      {{
+                        (selectedInv.pph_nominal || 0).toLocaleString('id-ID', {
+                          minimumFractionDigits: 0,
+                        })
+                      }}
+                    </td>
+                  </tr>
+                  <tr class="row-grand-total" style="background-color: #2b579a !important; color: white !important;">
+                    <td
+                      colspan="2"
+                      class="text-center text-weight-bold uppercase tracking-widest"
+                      style="font-size: 11.5px; padding: 8px 12px; color: white !important; border: 1px solid #2b579a;"
+                    >
+                      TOTAL TAGIHAN (GRAND TOTAL)
+                    </td>
+                    <td class="text-right text-weight-black q-px-md" style="font-size: 14px; padding: 8px 12px; color: white !important; border: 1px solid #2b579a;">
+                      Rp
+                      {{
+                        (selectedInv.grand_total || 0).toLocaleString('id-ID', {
+                          minimumFractionDigits: 0,
+                        })
+                      }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <div
+                class="bg-grey-2 q-pa-md rounded-borders text-blue-grey-9 q-mb-lg q-mt-md"
+                style="font-size: 11px; border: 1px solid #e0e0e0; line-height: 1.4;"
+              >
+                <div class="text-weight-bold q-mb-xs">Terbilang :</div>
+                <div># {{ terbilangRupiah(selectedInv.grand_total) }} Rupiah #</div>
+              </div>
+              <div class="row" style="margin-top: 24px">
+                <!-- KIRI: Pembuat Dokumen -->
+                <div style="width: 58%; padding-right: 20px; box-sizing: border-box">
+                  <div
+                    style="
+                      color: #2b579a;
+                      font-size: 11px;
+                      font-weight: 800;
+                      letter-spacing: 0.8px;
+                      text-transform: uppercase;
+                      margin-bottom: 6px;
+                    "
+                  >
+                    INSTRUKSI PEMBAYARAN
+                  </div>
+                  <div style="font-size: 10px; color: #777; margin-bottom: 8px">
+                    Mohon lakukan pembayaran penuh (full amount) ke rekening berikut:
+                  </div>
+                  <table class="bank-table-bordered text-weight-bold text-blue-grey-9">
+                    <tr>
+                      <td width="90" class="q-px-md bg-grey-2">Bank</td>
+                      <td class="text-uppercase" style="color: #2b579a">
+                        : {{ selectedInv.rek_bank }}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="q-px-md bg-grey-2">No. Rekening</td>
+                      <td class="text-primary">: {{ selectedInv.rek_nomor }}</td>
+                    </tr>
+                    <tr>
+                      <td class="q-px-md bg-grey-2">Atas Nama</td>
+                      <td class="text-uppercase text-grey-8">: {{ selectedInv.rek_nama }}</td>
+                    </tr>
+                  </table>
+                  <div
+                    style="font-size: 9.5px; color: #555; margin-top: 10px"
+                    v-if="selectedInv.keterangan"
+                  >
+                    <span style="font-weight: 700">Catatan Tambahan:</span><br />{{
+                      selectedInv.keterangan
+                    }}
+                  </div>
+                </div>
+
+                <!-- KANAN: Tanda Tangan -->
+                <div
+                  style="
+                    width: 42%;
+                    box-sizing: border-box;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    text-align: center;
+                  "
+                >
+                  <div
+                    style="
+                      color: #2b579a;
+                      font-size: 11px;
+                      font-weight: 800;
+                      text-transform: uppercase;
+                      letter-spacing: 0.5px;
+                      margin-bottom: 48px;
+                    "
+                  >
+                    {{ config.nama_pt || 'PT AGRA ABHINAYA PERKASA' }}
+                  </div>
+
+                  <div
+                    style="
+                      height: 52px;
+                      width: 100%;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      margin-bottom: 6px;
+                    "
+                  >
+                    <img
+                      v-if="selectedInv.signatureUrl"
+                      :src="selectedInv.signatureUrl"
+                      style="
+                        max-height: 52px;
+                        max-width: 180px;
+                        object-fit: contain;
+                        mix-blend-mode: multiply;
+                      "
+                    />
+                  </div>
+
+                  <div
+                    style="
+                      font-style: italic;
+                      font-weight: 700;
+                      font-size: 12px;
+                      color: #1a1a1a;
+                      border-bottom: 1.5px solid #1a1a1a;
+                      padding-bottom: 3px;
+                      min-width: 180px;
+                      margin-bottom: 5px;
+                    "
+                  >
+                    {{ selectedInv.ttd_nama || 'Deni Purwanti' }}
+                  </div>
+
+                  <div style="font-size: 11px; color: #555; font-weight: 400">
+                    {{ selectedInv.ttd_jabatan || 'Direktur Utama' }}
+                  </div>
+                </div>
+              </div>
+              <div style="margin-top: 24px; border-bottom: 6px solid #2b579a"></div>
             </div>
-            <div style="margin-top: 40px; border-bottom: 6px solid #2b579a"></div>
           </div>
         </q-card-section>
       </q-card>
@@ -1937,9 +1962,16 @@ const exportToPDF = () => {
   const opt = {
     margin: 0,
     filename: `INVOICE_${selectedInv.value.nomor_invoice.replace(/\//g, '-')}.pdf`,
-    image: { type: 'jpeg', quality: 1 },
-    html2canvas: { scale: 3, useCORS: true, letterRendering: true },
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: {
+      scale: 2.5,
+      useCORS: true,
+      letterRendering: true,
+      scrollX: 0,
+      scrollY: 0,
+    },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['css', 'legacy'], avoid: ['tr', 'thead', 'tbody'] },
   }
   $q.loading.show({ message: 'Mengekspor Invoice PDF...' })
   html2pdf()
@@ -2567,18 +2599,35 @@ onUnmounted(() => {
 /* =============================================
    PDF PREVIEW STYLES (UNCHANGED)
    ============================================= */
+.preview-container {
+  overflow-x: auto !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: flex-start !important;
+}
+@media (max-width: 820px) {
+  .preview-container {
+    justify-content: flex-start !important;
+    padding: 8px !important;
+  }
+}
+.invoice-preview-wrapper {
+  flex-shrink: 0 !important;
+}
 .letter-paper {
   background: white;
   width: 210mm;
-  min-height: 296mm;
-  padding: 15mm 20mm;
+  min-width: 210mm;
+  flex-shrink: 0 !important;
+  min-height: 297mm;
+  padding: 15mm 15mm;
   margin: 0 auto;
   color: #1a1a1a;
   line-height: 1.5;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', Arial, Helvetica, sans-serif;
 }
 .final-kop-img {
   height: 60px;
@@ -2589,13 +2638,13 @@ onUnmounted(() => {
   width: 100%;
   border-collapse: collapse;
   margin-top: 10px;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', Arial, Helvetica, sans-serif;
 }
 .pdf-table th {
   background: #2b579a !important;
   color: white !important;
-  padding: 6px 8px;
-  font-size: 10px;
+  padding: 8px 8px;
+  font-size: 11px;
   font-weight: bold;
   border: 1px solid #2b579a;
   text-align: center;
@@ -2626,7 +2675,7 @@ onUnmounted(() => {
 .bank-table-bordered td {
   border: 1px solid #2b579a !important;
   padding: 6px 12px;
-  font-size: 10.5px;
+  font-size: 11px;
 }
 
 @media print {

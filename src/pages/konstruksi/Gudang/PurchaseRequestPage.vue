@@ -775,26 +775,18 @@
             <q-toolbar-title class="text-weight-bold ellipsis text-subtitle1">
               PREVIEW DOKUMEN RESMI PR
             </q-toolbar-title>
-            <q-btn-group unelevated rounded class="shadow-2">
-              <q-btn
-                color="white"
-                text-color="brand-primary"
-                icon="print"
-                :label="$q.screen.lt.sm ? '' : 'Cetak'"
-                @click="printPage"
-                class="q-px-md font-bold"
-              />
-              <q-btn
-                color="red-9"
-                icon="picture_as_pdf"
-                :label="$q.screen.lt.sm ? '' : 'Export'"
-                @click="exportToPDF"
-                class="font-bold"
-              />
-            </q-btn-group>
+            <q-btn
+              color="red-9"
+              unelevated
+              rounded
+              icon="picture_as_pdf"
+              :label="$q.screen.lt.sm ? '' : 'Export'"
+              @click="exportToPDF"
+              class="font-bold shadow-2 text-white"
+            />
           </q-toolbar>
 
-          <div class="q-pa-md q-pa-md-xl flex flex-center">
+          <div class="q-pa-md q-pa-md-xl flex flex-center preview-container">
           <div id="pr-print-area" class="letter-paper shadow-24" v-if="selectedData">
             <div class="row no-wrap items-center">
               <div v-if="selectedData.logoUrl" class="col-auto q-mr-md">
@@ -1541,8 +1533,6 @@ const getStatusColor = (s) =>
           ? 'orange-8'
           : 'blue-grey-6'
 
-const printPage = () => window.print()
-
 const exportToPDF = () => {
   $q.loading.show({ message: 'Generating PDF...' })
   
@@ -1826,6 +1816,8 @@ const columns = [
 .letter-paper {
   background: white;
   width: 210mm;
+  min-width: 210mm;
+  flex-shrink: 0;
   min-height: 296mm;
   padding: 15mm 20mm;
   margin: 0 auto;
@@ -1834,6 +1826,13 @@ const columns = [
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+}
+.preview-container {
+  width: 100%;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+  display: flex !important;
+  justify-content: flex-start !important;
 }
 .final-kop-img {
   height: 75px;
@@ -1970,8 +1969,9 @@ const columns = [
   position: absolute;
   width: 110px;
   height: auto;
-  left: 20px; /* Geser ke kiri */
+  left: 50%;
   bottom: 15px;
+  transform: translateX(-50%);
   z-index: 2;
   opacity: 0.95;
 }
@@ -1979,8 +1979,9 @@ const columns = [
   position: absolute;
   max-height: 100px;
   max-width: 180px;
-  right: 10px; /* Tanda tangan di kanan */
+  left: 50%;
   bottom: 5px;
+  transform: translateX(-50%);
   z-index: 1;
   mix-blend-mode: multiply;
   filter: contrast(1.1) brightness(0.95);

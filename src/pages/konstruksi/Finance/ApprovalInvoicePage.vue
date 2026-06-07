@@ -468,99 +468,123 @@
         </q-toolbar>
 
         <q-card-section class="col scroll q-pa-md q-pa-md-xl flex flex-center preview-container">
-          <!-- KERTAS PDF INVOICE — IDENTIK SINKRON 100% DENGAN INVOICECUSTOMERPAGE -->
-          <div id="invoice-pdf-area" class="letter-paper shadow-24" v-if="selectedInv">
-            <!-- GARIS BIRU ATAS -->
-            <div
-              style="
-                height: 6px;
-                background-color: #2b579a;
-                width: 100%;
-                margin-bottom: 16px;
-                border-radius: 2px;
-              "
-            ></div>
-            <div class="row no-wrap items-center q-mb-md">
-              <img :src="config.kopUrl || 'icons/logo-agra.png'" class="final-kop-img q-mr-md" />
-              <div>
-                <div
-                  class="text-weight-bolder uppercase"
-                  style="color: #2b579a; font-size: 20px; letter-spacing: 0.5px"
-                >
-                  {{ config.nama_pt || 'PT. AGRA ABHINAYA PERKASA' }}
-                </div>
-                <div
-                  style="font-size: 9px; color: #555"
-                  class="q-mt-xs text-uppercase text-weight-bold"
-                >
-                  {{ config.slogan_pt || 'GENERAL CONSTRUCTION AND GENERAL SUPPLY' }}
-                </div>
-                <div style="font-size: 9px; color: #777" class="q-mt-xs">
-                  {{
-                    config.alamat_pt ||
-                    'Jl. Tegal Danas No. 9A, Sertajaya, Cikarang Timur, Kabupaten Bekasi, Jawa Barat 17530'
-                  }}
+          <!-- WRAPPER UNTUK PREVIEW LAYAR (DENGAN SHADOW) -->
+          <div class="invoice-preview-wrapper shadow-24 no-print" style="border-radius: 4px; overflow: hidden; margin: 0 auto; width: fit-content;">
+            <div id="invoice-pdf-area" class="letter-paper" v-if="selectedInv">
+              <!-- GARIS BIRU ATAS -->
+              <div
+                style="
+                  height: 6px;
+                  background-color: #2b579a;
+                  width: 100%;
+                  margin-bottom: 16px;
+                  border-radius: 2px;
+                "
+              ></div>
+              <div class="row no-wrap items-center q-mb-md">
+                <img :src="config.kopUrl || 'icons/logo-agra.png'" class="final-kop-img q-mr-md" style="height: 60px; max-width: 150px; object-fit: contain;" />
+                <div>
+                  <div
+                    class="text-weight-bolder uppercase"
+                    style="color: #2b579a; font-size: 18px; letter-spacing: 0.5px; line-height: 1.2;"
+                  >
+                    {{ config.nama_pt || 'PT. AGRA ABHINAYA PERKASA' }}
+                  </div>
+                  <div
+                    style="font-size: 9.5px; color: #555; letter-spacing: 0.5px;"
+                    class="q-mt-xs text-uppercase text-weight-bold"
+                  >
+                    {{ config.slogan_pt || 'GENERAL CONSTRUCTION AND GENERAL SUPPLY' }}
+                  </div>
+                  <div style="font-size: 10px; color: #666; line-height: 1.3;" class="q-mt-xs">
+                    {{
+                      config.alamat_pt ||
+                      'Jl. Tegal Danas No. 9A, Sertajaya, Cikarang Timur, Kabupaten Bekasi, Jawa Barat 17530'
+                    }}
+                  </div>
                 </div>
               </div>
-            </div>
-            <div
-              style="height: 3px; background-color: #2b579a; width: 100%; margin-bottom: 25px"
-            ></div>
-            <div class="row q-col-gutter-lg q-mb-xl">
-              <div class="col-7">
-                <div
-                  class="text-grey-6 text-bold tracking-widest uppercase q-mb-sm"
-                  style="font-size: 10px"
-                >
-                  TAGIHAN KEPADA :
+              <div
+                style="height: 3px; background-color: #2b579a; width: 100%; margin-bottom: 25px;"
+              ></div>
+
+              <!-- ROW 1: Kepada & Invoice Header -->
+              <div class="row q-col-gutter-lg q-mb-xs">
+                <!-- LEFT COLUMN -->
+                <div class="col-7 text-left">
+                  <div
+                    class="text-grey-6 text-bold tracking-widest uppercase q-mb-xs"
+                    style="font-size: 10px;"
+                  >
+                    TAGIHAN KEPADA :
+                  </div>
+                  <div
+                    class="text-weight-bold uppercase"
+                    style="color: #2b579a; font-size: 14px; letter-spacing: 0.5px; line-height: 1.2; margin-bottom: 2px;"
+                  >
+                    {{ selectedInv.customer_nama }}
+                  </div>
+                  <div class="text-grey-9" style="font-size: 11px; line-height: 1.4;">
+                    {{ selectedInv.customer_alamat }}
+                  </div>
                 </div>
-                <div
-                  class="text-h6 text-weight-bold uppercase"
-                  style="color: #2b579a; letter-spacing: 0.5px"
-                >
-                  {{ selectedInv.customer_nama }}
+
+                <!-- RIGHT COLUMN -->
+                <div class="col-5 text-right font-pro">
+                  <div
+                    class="text-weight-900 text-italic"
+                    style="color: #2b579a; font-size: 26px; letter-spacing: 2px; line-height: 1;"
+                  >
+                    INVOICE
+                  </div>
+                  <div class="text-weight-bold text-grey-9 q-mt-xs" style="font-size: 12px;">
+                    # {{ selectedInv.nomor_invoice }}
+                  </div>
                 </div>
-                <div class="text-grey-9 q-mb-lg" style="font-size: 12px; line-height: 1.4">
-                  {{ selectedInv.customer_alamat }}
-                </div>
-                <table class="text-grey-9 text-left" style="font-size: 11px; width: 100%">
-                  <tr>
-                    <td width="90" class="q-pb-xs">Proyek</td>
-                    <td width="15" class="text-center q-pb-xs">:</td>
-                    <td class="text-weight-bold uppercase q-pb-xs">
-                      {{ selectedInv.proyek_nama || '-' }}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="q-pb-xs">SPK / PO Ref</td>
-                    <td class="q-pb-xs">:</td>
-                    <td class="text-weight-bold uppercase q-pb-xs">
-                      {{ selectedInv.spk_nomor || '-' }}
-                    </td>
-                  </tr>
-                </table>
               </div>
-              <div class="col-5 text-right flex column items-end">
-                <div
-                  class="text-weight-900 text-italic"
-                  style="color: #2b579a; font-size: 26px; letter-spacing: 2px; line-height: 1"
-                >
-                  INVOICE
+
+              <!-- ROW 2: Detail Proyek/SPK & Tanggal/Jatuh Tempo (Aligned Perfectly Side-by-Side) -->
+              <div class="row q-col-gutter-lg q-mb-md items-start">
+                <!-- LEFT COLUMN -->
+                <div class="col-7 text-left">
+                  <table class="text-grey-9 text-left" style="font-size: 11px; width: 100%; border-collapse: collapse; line-height: 1.3;">
+                    <tr>
+                      <td width="90" style="vertical-align: top; color: #666; padding: 2px 0 6px 0;">Proyek</td>
+                      <td width="15" class="text-center" style="vertical-align: top; color: #666; padding: 2px 0 6px 0;">:</td>
+                      <td class="text-weight-bold uppercase" style="color: #222; vertical-align: top; padding: 2px 0 6px 0;">
+                        {{ selectedInv.proyek_nama || '-' }}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="vertical-align: top; color: #666; padding: 2px 0 0 0;">SPK / PO Ref</td>
+                      <td class="text-center" style="vertical-align: top; color: #666; padding: 2px 0 0 0;">:</td>
+                      <td class="text-weight-bold uppercase" style="color: #222; vertical-align: top; padding: 2px 0 0 0;">
+                        {{ selectedInv.spk_nomor || '-' }}
+                      </td>
+                    </tr>
+                  </table>
                 </div>
-                <div class="text-weight-bold text-grey-9 q-mt-sm q-mb-lg" style="font-size: 14px">
-                  # {{ selectedInv.nomor_invoice }}
+
+                 <!-- RIGHT COLUMN -->
+                <div class="col-5 text-right">
+                  <table class="text-grey-9" style="font-size: 11px; margin-left: auto; width: fit-content; border-collapse: collapse; line-height: 1.3;">
+                    <tr>
+                      <td width="78" class="text-right" style="vertical-align: top; color: #666; padding: 2px 0 6px 0;">Tanggal</td>
+                      <td width="12" class="text-center" style="vertical-align: top; color: #666; padding: 2px 0 6px 0;">:</td>
+                      <td class="text-weight-bold text-black text-left" style="vertical-align: top; padding: 2px 0 6px 0;">
+                        {{ formatDateIndo(selectedInv.tanggal) }}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="text-right" style="vertical-align: top; color: #666; padding: 2px 0 0 0;">Jatuh Tempo</td>
+                      <td class="text-center" style="vertical-align: top; color: #666; padding: 2px 0 0 0;">:</td>
+                      <td class="text-weight-bold text-red-9 text-left" style="vertical-align: top; padding: 2px 0 0 0;">
+                        {{ formatDateIndo(selectedInv.jatuh_tempo) }}
+                      </td>
+                    </tr>
+                  </table>
                 </div>
-                <table class="text-grey-9" style="font-size: 11px; margin-left: auto">
-                  <tr>
-                    <td width="80" class="text-left q-pb-xs">Tanggal</td>
-                    <td width="15" class="text-center q-pb-xs">:</td>
-                    <td class="text-weight-bold text-black text-left q-pb-xs">
-                      {{ formatDateIndo(selectedInv.tanggal) }}
-                    </td>
-                  </tr>
-                </table>
               </div>
-            </div>
             <table class="pdf-table full-width">
               <thead>
                 <tr>
@@ -572,8 +596,8 @@
               <tbody>
                 <tr v-for="(item, i) in selectedInv.items" :key="i">
                   <td
-                    class="text-center text-weight-bold border-bottom-none border-top-none"
-                    style="vertical-align: top; padding-top: 10px"
+                    class="text-center text-weight-bold border-bottom-none border-top-none q-py-sm"
+                    style="vertical-align: top"
                   >
                     {{ i + 1 }}
                   </td>
@@ -591,8 +615,8 @@
                     </div>
                   </td>
                   <td
-                    class="text-right q-px-md border-bottom-none border-top-none"
-                    style="vertical-align: top; padding-top: 10px"
+                    class="text-right q-px-md q-py-sm border-bottom-none border-top-none"
+                    style="vertical-align: top"
                   >
                     {{ (item.nominal || 0).toLocaleString('id-ID', { minimumFractionDigits: 0 }) }}
                   </td>
@@ -602,18 +626,18 @@
                   <td class="border-top-none border-bottom-none"></td>
                   <td class="border-top-none border-bottom-none"></td>
                 </tr>
-                <tr class="row-calculation">
+                 <tr class="row-calculation">
                   <td
                     class="border-none-right border-bottom-none"
-                    style="background: white !important"
+                    style="background: white !important;"
                   ></td>
                   <td
-                    class="q-px-md q-py-sm text-right border-left-blue text-weight-bold"
-                    style="font-size: 10px"
+                    class="q-px-md q-py-xs text-right border-left-blue text-weight-bold"
+                    style="font-size: 11px;"
                   >
                     Subtotal (DPP)
                   </td>
-                  <td class="text-right q-px-md text-weight-bold">
+                  <td class="text-right q-px-md text-weight-bold" style="font-size: 11px;">
                     Rp
                     {{
                       (selectedInv.nilai_dpp || 0).toLocaleString('id-ID', {
@@ -625,15 +649,15 @@
                 <tr class="row-calculation" v-if="selectedInv.ppn_persen > 0">
                   <td
                     class="border-none-right border-bottom-none border-top-none"
-                    style="background: white !important"
+                    style="background: white !important;"
                   ></td>
                   <td
-                    class="q-px-md q-py-sm text-right border-left-blue text-weight-bold"
-                    style="font-size: 10px"
+                    class="q-px-md q-py-xs text-right border-left-blue text-weight-bold"
+                    style="font-size: 11px;"
                   >
                     PPN ({{ selectedInv.ppn_persen }}%)
                   </td>
-                  <td class="text-right q-px-md text-weight-bold">
+                  <td class="text-right q-px-md text-weight-bold" style="font-size: 11px;">
                     Rp
                     {{
                       (selectedInv.ppn_nominal || 0).toLocaleString('id-ID', {
@@ -645,15 +669,15 @@
                 <tr class="row-calculation" v-if="selectedInv.pph_persen > 0">
                   <td
                     class="border-none-right border-bottom-none border-top-none"
-                    style="background: white !important"
+                    style="background: white !important;"
                   ></td>
                   <td
-                    class="q-px-md q-py-sm text-right border-left-blue text-weight-bold text-negative"
-                    style="font-size: 10px"
+                    class="q-px-md q-py-xs text-right border-left-blue text-weight-bold text-negative"
+                    style="font-size: 11px;"
                   >
                     Potongan PPh ({{ selectedInv.pph_persen }}%)
                   </td>
-                  <td class="text-right q-px-md text-weight-bold text-negative">
+                  <td class="text-right q-px-md text-weight-bold text-negative" style="font-size: 11px;">
                     - Rp
                     {{
                       (selectedInv.pph_nominal || 0).toLocaleString('id-ID', {
@@ -662,15 +686,15 @@
                     }}
                   </td>
                 </tr>
-                <tr class="row-grand-total">
+                <tr class="row-grand-total" style="background-color: #2b579a !important; color: white !important;">
                   <td
                     colspan="2"
-                    class="text-center text-weight-bold uppercase tracking-widest text-subtitle2"
-                    style="font-size: 11px"
+                    class="text-center text-weight-bold uppercase tracking-widest"
+                    style="font-size: 11.5px; padding: 8px 12px; color: white !important; border: 1px solid #2b579a;"
                   >
                     TOTAL TAGIHAN (GRAND TOTAL)
                   </td>
-                  <td class="text-right text-weight-bold q-px-md" style="font-size: 13px">
+                  <td class="text-right text-weight-black q-px-md" style="font-size: 14px; padding: 8px 12px; color: white !important; border: 1px solid #2b579a;">
                     Rp
                     {{
                       (selectedInv.grand_total || 0).toLocaleString('id-ID', {
@@ -803,6 +827,7 @@
               </div>
             </div>
             <div style="margin-top: 40px; border-bottom: 6px solid #2b579a"></div>
+            </div>
           </div>
         </q-card-section>
       </q-card>
@@ -2361,9 +2386,26 @@ onUnmounted(() => {
 /* =======================================================================
    PDF PREVIEW STYLES (MATCHING 100% TO INVOICECUSTOMERPAGE)
    ======================================================================= */
+.preview-container {
+  overflow-x: auto !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: flex-start !important;
+}
+@media (max-width: 820px) {
+  .preview-container {
+    justify-content: flex-start !important;
+    padding: 8px !important;
+  }
+}
+.invoice-preview-wrapper {
+  flex-shrink: 0 !important;
+}
 .letter-paper {
   background: white !important;
   width: 210mm;
+  min-width: 210mm;
+  flex-shrink: 0 !important;
   min-height: 296mm;
   padding: 15mm 20mm;
   margin: 0 auto;
