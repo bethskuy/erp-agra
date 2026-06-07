@@ -1,12 +1,14 @@
 <template>
-  <q-page class="bg-slate-50 q-pa-md q-pa-lg-xl font-inter">
+  <q-page class="bg-page q-pa-md font-pro relative-position">
     <!-- ============================================================ -->
     <!-- LOADING STATE: Saat cek hak akses berlangsung                -->
     <!-- ============================================================ -->
     <div v-if="aksesLoading" class="flex flex-center" style="min-height: 60vh">
       <div class="text-center">
-        <q-spinner-orbit color="amber-9" size="60px" class="q-mb-md" />
-        <div class="text-subtitle1 text-blue-grey-7 text-weight-medium">Memeriksa hak akses...</div>
+        <q-spinner-orbit color="brand-primary" size="60px" class="q-mb-md" />
+        <div class="text-subtitle1 text-blue-grey-7 text-weight-medium">
+          Memeriksa hak akses sistem...
+        </div>
       </div>
     </div>
 
@@ -29,7 +31,7 @@
         </div>
         <q-btn
           unelevated
-          color="indigo-10"
+          color="brand-primary"
           icon="arrow_back"
           label="Kembali ke Dashboard"
           rounded
@@ -42,284 +44,457 @@
     <!-- KONTEN UTAMA: Hanya tampil jika aksesGranted === true        -->
     <!-- ============================================================ -->
     <template v-else>
-      <div class="premium-container mx-auto">
-        <!-- ========================================== -->
-        <!-- HEADER BANNER PREMIUM                      -->
-        <!-- ========================================== -->
-        <div class="row items-center justify-between q-mb-lg no-print animate-fade-in">
+      <!-- ======================================================================= -->
+      <!-- VIEW 1: DASHBOARD UTAMA DENGAN TAB KONSTRUKSI & MANUFAKTUR             -->
+      <!-- ======================================================================= -->
+      <div v-if="!selectedProjectId" class="premium-container mx-auto animate-fade-in">
+        <!-- HEADER DASHBOARD UTAMA -->
+        <div class="row items-center justify-between q-mb-lg">
           <div class="col-12 col-md-8">
-            <div class="row items-center q-mb-xs">
-              <div class="ios-icon-box small bg-amber-50 text-amber-9 q-mr-sm">
-                <q-icon name="engineering" size="22px" />
+            <div class="row items-center no-wrap q-mb-xs">
+              <div class="ios-icon-box bg-gradient-primary text-white q-mr-sm shadow-md flex-shrink-0">
+                <q-icon name="business" size="26px" />
               </div>
               <h4
-                class="text-h4 text-weight-black text-blue-grey-10 q-ma-none letter-spacing-tight"
+                class="text-h4 text-weight-black text-brand-primary q-ma-none letter-spacing-tight"
               >
-                {{ projectSetup.nama || 'Absensi Pekerja Harian' }}
+                Absensi Harian Lepas
               </h4>
             </div>
-            <div
-              class="text-subtitle1 text-blue-grey-6 q-mt-sm line-height-normal font-mono text-xs"
-            >
-              <q-icon name="tag" class="q-mr-xs" /> KODE:
-              {{ projectSetup.kode || 'BELUM DI-SETUP' }}
-              <span class="q-mx-sm">•</span>
-              <q-icon name="place" class="q-mr-xs" /> LOKASI:
-              {{ projectSetup.lokasi || 'BELUM DI-SETUP' }}
+            <div class="text-subtitle1 text-blue-grey-6 q-mt-xs">
+              Pilih tipe pekerjaan aktif di bawah ini untuk mengelola absensi harian kelompok mandor
+              proyek atau pekerja pabrik.
             </div>
-          </div>
-          <div class="col-12 col-md-auto q-mt-md q-md-mt-none row q-gutter-sm">
-            <q-badge
-              color="amber-2"
-              text-color="amber-10"
-              class="text-weight-bold q-px-md q-py-sm rounded-8 shadow-sm"
-            >
-              <q-icon name="event" class="q-mr-xs" /> {{ formatTanggalIndo(selectedDate) }}
-            </q-badge>
           </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- TABS NAVIGASI PREMIUM                      -->
-        <!-- ========================================== -->
+        <!-- SELEKTOR TAB UTAMA: KONSTRUKSI VS MANUFAKTUR -->
         <q-card flat class="bento-card bg-white q-mb-lg no-print shadow-soft overflow-hidden">
           <q-tabs
-            v-model="activeTab"
+            v-model="mainActiveTab"
             dense
-            class="text-grey-7 bg-slate-50"
-            active-color="amber-9"
-            indicator-color="amber-9"
+            no-caps
+            inline-label
+            class="text-grey-7 bg-brand-light"
+            active-color="brand-primary"
+            indicator-color="brand-primary"
             align="left"
             narrow-indicator
           >
             <q-tab
-              name="setup"
-              icon="settings"
-              label="Setup Proyek"
+              name="konstruksi"
+              icon="architecture"
+              label="Proyek Konstruksi"
               class="text-weight-bold q-py-md"
             />
             <q-tab
-              name="mandor"
-              icon="groups"
-              label="Mandor & Pekerja"
-              class="text-weight-bold q-py-md"
-            />
-            <q-tab
-              name="absen"
-              icon="assignment_turned_in"
-              label="Input Absensi"
-              class="text-weight-bold q-py-md"
-            />
-            <q-tab
-              name="rekap"
-              icon="analytics"
-              label="Rekap & Upah"
+              name="manufaktur"
+              icon="precision_manufacturing"
+              label="Pekerjaan Manufaktur"
               class="text-weight-bold q-py-md"
             />
           </q-tabs>
         </q-card>
 
-        <!-- ========================================== -->
-        <!-- TAB PANELS CONTENT                         -->
-        <!-- ========================================== -->
-        <q-tab-panels v-model="activeTab" animated keep-alive class="bg-transparent">
-          <!-- PANEL 1: SETUP PROYEK -->
-          <q-tab-panel name="setup" class="q-pa-none">
+        <!-- KONTEN TAB UTAMA -->
+        <q-tab-panels v-model="mainActiveTab" animated keep-alive class="bg-transparent">
+          <!-- TAB 1: PROYEK KONSTRUKSI -->
+          <q-tab-panel name="konstruksi" class="q-pa-none">
+            <!-- STATS CARDS GRID -->
+            <div class="row q-col-gutter-md q-mb-xl">
+              <div class="col-12 col-md-4">
+                <div
+                  class="kpi-box text-white q-pa-md rounded-24 row items-center no-wrap relative-position overflow-hidden cursor-pointer"
+                >
+                  <div class="decor-circle-1"></div>
+                  <div class="col z-content">
+                    <div class="text-overline text-brand-light font-bold uppercase tracking-wide">
+                      Total Proyek
+                    </div>
+                    <div class="text-h4 text-weight-black text-white font-mono q-mt-xs">
+                      {{ proyekKonstruksiList.length }}
+                    </div>
+                    <div class="text-caption text-slate-300 q-mt-xs">
+                      Proyek konstruksi terintegrasi
+                    </div>
+                  </div>
+                  <div class="bg-white text-brand-primary q-pa-md rounded-16 z-content">
+                    <q-icon name="apartment" size="28px" />
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <div
+                  class="kpi-box text-white q-pa-md rounded-24 row items-center no-wrap relative-position overflow-hidden cursor-pointer"
+                >
+                  <div class="decor-circle-1"></div>
+                  <div class="col z-content">
+                    <div class="text-overline text-brand-light font-bold uppercase tracking-wide">
+                      Status Kehadiran
+                    </div>
+                    <div class="text-h4 text-weight-black text-white font-mono q-mt-xs">AKTIF</div>
+                    <div class="text-caption text-slate-300 q-mt-xs">
+                      Sistem absensi harian siap pakai
+                    </div>
+                  </div>
+                  <div class="bg-white text-brand-primary q-pa-md rounded-16 z-content">
+                    <q-icon name="verified_user" size="28px" />
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <div
+                  class="kpi-box text-white q-pa-md rounded-24 row items-center no-wrap relative-position overflow-hidden cursor-pointer"
+                >
+                  <div class="decor-circle-1"></div>
+                  <div class="col z-content">
+                    <div class="text-overline text-brand-light font-bold uppercase tracking-wide">
+                      AGRA INTEGRATION
+                    </div>
+                    <div class="text-subtitle1 text-weight-bold q-mt-xs line-height-tight">
+                      Absensi &amp; Payroll Terpusat
+                    </div>
+                    <div class="text-caption text-slate-300 q-mt-xs">
+                      Sinkron dengan modul proyek utama
+                    </div>
+                  </div>
+                  <div class="bg-white text-brand-primary q-pa-md rounded-16 z-content">
+                    <q-icon name="sync" size="28px" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- SEARCH AREA -->
+            <q-card flat class="bento-card bg-white q-pa-md q-mb-lg shadow-soft">
+              <q-input
+                v-model="filterProyek"
+                outlined
+                dense
+                rounded
+                placeholder="Cari Proyek, Klien, atau Lokasi..."
+                bg-color="white"
+                class="search-input"
+              >
+                <template v-slot:prepend>
+                  <q-icon name="search" color="brand-primary" />
+                </template>
+                <template v-slot:append v-if="filterProyek">
+                  <q-icon name="close" @click="filterProyek = ''" class="cursor-pointer" />
+                </template>
+              </q-input>
+            </q-card>
+
+            <!-- GRID DAFTAR PROYEK CONSTRUCT -->
             <div class="row q-col-gutter-lg">
-              <div class="col-12 col-md-8">
-                <q-card flat class="bento-card bg-white q-pa-lg shadow-soft">
+              <div
+                v-for="(p, pi) in filteredProyekList"
+                :key="p.id"
+                class="col-12 col-md-6 col-lg-4"
+              >
+                <q-card
+                  flat
+                  class="bento-card bg-white shadow-soft hover-card-premium overflow-hidden relative-position full-height flex column justify-between"
+                >
+                  <!-- Left accent color bar -->
                   <div
-                    class="text-subtitle1 text-weight-bold text-blue-grey-9 q-mb-md flex items-center"
-                  >
-                    <q-icon name="info" color="amber-8" class="q-mr-xs" /> Informasi Utama Proyek
-                  </div>
-                  <div class="row q-col-gutter-md">
-                    <!-- Dropdown Referensi Proyek Konstruksi -->
-                    <q-select
-                      v-model="selectedProjectRef"
-                      outlined
-                      dense
-                      emit-value
-                      map-options
-                      :options="proyekKonstruksiOptions"
-                      option-label="nama"
-                      option-value="id"
-                      label="Pilih Proyek Konstruksi (Integrasi)"
-                      class="col-12 rounded-input"
-                      clearable
-                      @update:model-value="onProjectRefChange"
+                    class="absolute-left"
+                    :style="{ backgroundColor: getMandorColor(pi), width: '5px' }"
+                  ></div>
+
+                  <q-card-section class="q-pa-lg">
+                    <div class="row items-center justify-between q-mb-md">
+                      <q-badge
+                        color="brand-light"
+                        text-color="brand-primary"
+                        class="text-weight-bold q-px-sm q-py-xs rounded-6 font-pro text-11"
+                      >
+                        <q-icon name="tag" size="10px" class="q-mr-xs" /> PROYEK {{ pi + 1 }}
+                      </q-badge>
+                      <q-badge color="brand-light" text-color="brand-primary" class="text-weight-bold font-pro text-11">AKTIF</q-badge>
+                    </div>
+
+                    <div
+                      class="text-h6 text-weight-black text-blue-grey-10 uppercase line-height-tight q-mb-sm text-ellipsis-2"
                     >
-                      <template v-slot:prepend>
-                        <q-icon name="architecture" color="amber-9" />
-                      </template>
-                    </q-select>
+                      {{ p.nama }}
+                    </div>
 
-                    <q-input
-                      v-model="projectSetup.nama"
-                      outlined
-                      dense
-                      label="Nama Proyek"
-                      class="col-12 col-sm-6 rounded-input q-mt-sm"
-                      placeholder="Contoh: Gedung Kantor Pusat"
-                    />
-                    <q-input
-                      v-model="projectSetup.kode"
-                      outlined
-                      dense
-                      label="Nomor Kontrak / Kode Proyek"
-                      class="col-12 col-sm-6 rounded-input q-mt-sm"
-                      placeholder="Contoh: PKT/2026/001"
-                    />
-                    <q-input
-                      v-model="projectSetup.lokasi"
-                      outlined
-                      dense
-                      label="Lokasi Proyek"
-                      class="col-12 col-sm-6 rounded-input"
-                      placeholder="Kota / Alamat Proyek"
-                    />
-                    <q-input
-                      v-model="projectSetup.mandorUtama"
-                      outlined
-                      dense
-                      label="Mandor / Sub Kontraktor Utama"
-                      class="col-12 col-sm-6 rounded-input"
-                      placeholder="Nama mandor utama"
-                    />
-                    <q-input
-                      v-model="projectSetup.mulai"
-                      outlined
-                      dense
-                      type="date"
-                      stack-label
-                      label="Tanggal Mulai Proyek"
-                      class="col-12 col-sm-6 rounded-input"
-                    />
-                    <q-input
-                      v-model="projectSetup.selesai"
-                      outlined
-                      dense
-                      type="date"
-                      stack-label
-                      label="Tanggal Selesai Proyek"
-                      class="col-12 col-sm-6 rounded-input"
-                    />
-                  </div>
+                    <q-separator class="q-my-md opacity-50" />
 
-                  <q-separator class="q-my-lg" />
+                    <div class="q-gutter-y-xs text-caption text-blue-grey-6">
+                      <div class="row items-center no-wrap">
+                        <q-icon name="person" color="brand-primary" class="q-mr-xs" size="16px" />
+                        <span class="text-weight-bold text-blue-grey-8 uppercase q-mr-xs"
+                          >Klien:</span
+                        >
+                        <span class="ellipsis col">{{ p.konsumen || 'INTERNAL PROJECT' }}</span>
+                      </div>
+                      <div class="row items-start no-wrap q-mt-xs">
+                        <q-icon name="place" color="brand-primary" class="q-mr-xs q-mt-xs" size="16px" />
+                        <span class="text-weight-bold text-blue-grey-8 uppercase q-mr-xs"
+                          >Lokasi:</span
+                        >
+                        <span class="col leading-tight">{{
+                          p.alamat || 'Alamat Belum Diatur'
+                        }}</span>
+                      </div>
+                    </div>
+                  </q-card-section>
 
-                  <div
-                    class="text-subtitle1 text-weight-bold text-blue-grey-9 q-mb-md flex items-center"
-                  >
-                    <q-icon name="tune" color="amber-8" class="q-mr-xs" /> Pengaturan Absensi &
-                    Payroll
-                  </div>
-                  <div class="row q-col-gutter-md">
-                    <q-input
-                      v-model.number="projectSetup.jamKerja"
-                      outlined
-                      dense
-                      type="number"
-                      label="Jam Kerja Normal (jam/hari)"
-                      class="col-12 col-sm-4 rounded-input"
-                    />
-                    <q-input
-                      v-model.number="projectSetup.lembur"
-                      outlined
-                      dense
-                      type="number"
-                      prefix="Rp"
-                      label="Upah Lembur per Jam"
-                      class="col-12 col-sm-4 rounded-input"
-                    />
-                    <q-input
-                      v-model="projectSetup.tglAbsen"
-                      outlined
-                      dense
-                      type="date"
-                      stack-label
-                      label="Tanggal Absensi Aktif"
-                      class="col-12 col-sm-4 rounded-input"
-                    />
-                  </div>
-
-                  <div class="q-mt-lg">
+                  <q-card-actions class="q-px-lg q-pb-lg q-pt-none">
                     <q-btn
                       unelevated
-                      color="amber-9"
-                      icon="save"
-                      label="Simpan Pengaturan Proyek"
-                      class="rounded-12 text-weight-bold q-px-lg"
-                      @click="saveSetup"
-                      :disable="!bisa.ubah && !bisa.buat"
+                      label="KELOLA ABSENSI PEKERJA"
+                      color="brand-primary"
+                      icon-right="arrow_forward"
+                      class="full-width rounded-12 text-weight-black shadow-soft-primary q-py-sm"
+                      @click="selectProject(p)"
                     />
-                  </div>
+                  </q-card-actions>
                 </q-card>
               </div>
 
-              <div class="col-12 col-md-4">
-                <q-card flat class="bento-card bg-white q-pa-lg shadow-soft full-height">
-                  <div class="text-subtitle1 text-weight-bold text-blue-grey-9 q-mb-md">
-                    Legenda Kehadiran
-                  </div>
-                  <div class="row q-col-gutter-xs q-mb-md">
-                    <div class="col-6">
-                      <q-badge
-                        class="s-hadir full-width q-pa-sm rounded-6 text-weight-bold text-center flex justify-center"
-                        >✔ HADIR</q-badge
-                      >
-                    </div>
-                    <div class="col-6">
-                      <q-badge
-                        class="s-setengah full-width q-pa-sm rounded-6 text-weight-bold text-center flex justify-center"
-                        >½ SETENGAH HARI</q-badge
-                      >
-                    </div>
-                    <div class="col-6">
-                      <q-badge
-                        class="s-izin full-width q-pa-sm rounded-6 text-weight-bold text-center flex justify-center"
-                        >📋 IZIN</q-badge
-                      >
-                    </div>
-                    <div class="col-6">
-                      <q-badge
-                        class="s-sakit full-width q-pa-sm rounded-6 text-weight-bold text-center flex justify-center"
-                        >🤒 SAKIT</q-badge
-                      >
-                    </div>
-                    <div class="col-6">
-                      <q-badge
-                        class="s-alpha full-width q-pa-sm rounded-6 text-weight-bold text-center flex justify-center"
-                        >✕ ALPHA</q-badge
-                      >
-                    </div>
-                    <div class="col-6">
-                      <q-badge
-                        class="s-libur full-width q-pa-sm rounded-6 text-weight-bold text-center flex justify-center"
-                        >🏖 LIBUR</q-badge
-                      >
-                    </div>
-                  </div>
-                  <q-separator class="q-my-sm" />
-                  <div class="text-caption text-blue-grey-6 leading-relaxed">
-                    <span class="text-weight-bold text-blue-grey-8 d-block q-mb-xs"
-                      >⚙️ Rumus Hitung Upah Harian:</span
-                    >
-                    <div
-                      class="bg-slate-50 q-pa-sm rounded-8 font-mono text-11 q-mb-sm border border-subtle"
-                    >
-                      Upah = (Hadir × Upah Pokok × Koef) + (Setengah × Upah Pokok × Koef × 0.5) +
-                      (Jam Lembur × Rate Lembur)
-                    </div>
-                    * Setiap pekerja harian lepas dapat diberikan nilai koefisien keahlian khusus
-                    berbeda (Tukang = 1.00, Kepala Tukang = 1.25, Helper = 0.85).
-                  </div>
-                </q-card>
+              <div
+                v-if="filteredProyekList.length === 0"
+                class="col-12 text-center q-pa-xl bg-white rounded-24 border border-subtle"
+              >
+                <q-icon name="sentiment_dissatisfied" size="4em" color="grey-3" />
+                <div class="text-blue-grey-5 text-subtitle1 q-mt-md">
+                  Proyek tidak ditemukan. Pastikan data master proyek konstruksi terisi.
+                </div>
               </div>
             </div>
           </q-tab-panel>
 
-          <!-- PANEL 2: MANDOR & PEKERJA -->
+          <!-- TAB 2: PEKERJAAN MANUFAKTUR (DIRECT MANUAL INPUT MODEL) -->
+          <q-tab-panel name="manufaktur" class="q-pa-none">
+            <!-- INPUT PEKERJA MANUFAKTUR BARU -->
+            <q-card flat class="bento-card bg-white q-pa-lg shadow-soft q-mb-lg">
+              <div class="row items-center no-wrap q-mb-md">
+                <q-avatar
+                  color="brand-light"
+                  text-color="brand-primary"
+                  size="38px"
+                  icon="precision_manufacturing"
+                  class="q-mr-sm shadow-sm flex-shrink-0"
+                />
+                <div>
+                  <div class="text-subtitle1 text-weight-black text-blue-grey-10 leading-tight">
+                    Direct Input Log Harian Manufaktur
+                  </div>
+                  <div class="text-caption text-grey-6 text-wrap q-mt-xs">
+                    Pencatatan langsung log kehadiran &amp; jam upah buruh pabrik harian lepas.
+                  </div>
+                </div>
+              </div>
+
+              <q-separator class="q-mb-md" />
+
+              <div class="row q-col-gutter-md items-end">
+                <q-input
+                  v-model="manufakturForm.nama"
+                  outlined
+                  dense
+                  label="Nama Pekerja"
+                  class="col-12 col-sm-3 rounded-input"
+                  placeholder="Nama lengkap pekerja"
+                />
+                <q-select
+                  v-model="manufakturForm.stasiun"
+                  outlined
+                  dense
+                  :options="stasiunOptions"
+                  label="Stasiun Kerja"
+                  class="col-12 col-sm-3 rounded-input"
+                />
+                <q-input
+                  v-model.number="manufakturForm.upahJam"
+                  type="number"
+                  outlined
+                  dense
+                  prefix="Rp"
+                  label="Upah per Jam"
+                  class="col-12 col-sm-2 rounded-input"
+                />
+                <q-input
+                  v-model.number="manufakturForm.jamKerja"
+                  type="number"
+                  outlined
+                  dense
+                  label="Jam Kerja Aktif"
+                  class="col-12 col-sm-2 rounded-input"
+                />
+                <q-input
+                  v-model.number="manufakturForm.lembur"
+                  type="number"
+                  outlined
+                  dense
+                  label="Lembur (Jam)"
+                  class="col-12 col-sm-1 rounded-input"
+                />
+                <div class="col-12 col-sm-1">
+                  <q-btn
+                    unelevated
+                    color="brand-primary"
+                    icon="add"
+                    class="full-width rounded-12 q-py-sm text-weight-bold"
+                    @click="addManufakturPekerja"
+                  />
+                </div>
+              </div>
+            </q-card>
+
+            <!-- DAFTAR LOG HARIAN AKTIF -->
+            <q-card flat class="bento-card bg-white shadow-soft overflow-hidden">
+              <div class="q-pa-md bg-slate-50 text-center border-bottom">
+                <div class="text-subtitle2 text-weight-bold text-blue-grey-10 q-mb-xs">
+                  Rekap Input Berjalan (Hari Ini)
+                </div>
+                <div class="text-caption text-grey-6 text-weight-medium">
+                  Grand Total Upah Manufaktur:
+                </div>
+                <div class="text-subtitle1 text-weight-black text-brand-primary font-mono q-mt-xs">
+                  Rp {{ formatUang(totalUpahManufaktur) }}
+                </div>
+              </div>
+
+              <div class="q-pa-md">
+                <div
+                  v-if="manufakturPekerjaList.length === 0"
+                  class="text-center q-pa-xl text-grey-5"
+                >
+                  <q-icon name="playlist_remove" size="4em" />
+                  <div class="text-subtitle1 q-mt-sm">
+                    Belum ada input log pekerja manufaktur hari ini.
+                  </div>
+                </div>
+
+                <div v-else style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                  <table class="abs-tbl">
+                    <thead>
+                      <tr class="bg-slate-50">
+                        <th style="width: 40px" class="text-center">#</th>
+                        <th>NAMA PEKERJA</th>
+                        <th class="text-center">STASIUN KERJA</th>
+                        <th class="text-right">UPAH / JAM</th>
+                        <th class="text-center">JAM KERJA</th>
+                        <th class="text-center">LEMBUR</th>
+                        <th class="text-right">TOTAL ESTIMASI UPAH</th>
+                        <th style="width: 60px" class="text-center">AKSI</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(p, pi) in manufakturPekerjaList" :key="p.id">
+                        <td class="text-center text-grey-5 font-mono text-weight-bold">
+                          {{ pi + 1 }}
+                        </td>
+                        <td class="text-weight-bold text-blue-grey-9 uppercase">{{ p.nama }}</td>
+                        <td class="text-center">
+                          <q-badge
+                            color="brand-light"
+                            text-color="brand-primary"
+                            class="text-weight-bold q-px-sm q-py-xs rounded-6"
+                          >
+                            {{ p.stasiun }}
+                          </q-badge>
+                        </td>
+                        <td class="text-right font-mono">Rp {{ formatUang(p.upahJam) }}</td>
+                        <td class="text-center font-mono">{{ p.jamKerja }} Jam</td>
+                        <td class="text-center font-mono text-brand-primary font-bold">
+                          {{ p.lembur }} Jam
+                        </td>
+                        <td class="text-right text-weight-bold text-brand-primary font-mono">
+                          Rp {{ formatUang(p.totalUpah) }}
+                        </td>
+                        <td class="text-center">
+                          <q-btn
+                            flat
+                            dense
+                            round
+                            icon="close"
+                            color="red-4"
+                            size="sm"
+                            @click="deleteManufakturPekerja(p.id)"
+                          />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="row justify-end q-mt-lg">
+                  <q-btn
+                    unelevated
+                    color="brand-primary"
+                    icon="cloud_upload"
+                    label="KIRIM & SIMPAN LOG HARIAN"
+                    class="rounded-12 text-weight-black shadow-md q-px-xl q-py-sm"
+                  />
+                </div>
+              </div>
+            </q-card>
+          </q-tab-panel>
+        </q-tab-panels>
+      </div>
+
+      <!-- ======================================================================= -->
+      <!-- VIEW 2: FORM MANAGEMEN ABSENSI TERISOLASI PER PROYEK                    -->
+      <!-- ======================================================================= -->
+      <div v-else class="premium-container mx-auto">
+        <!-- BACK NAVIGATION BAR -->
+        <div class="row items-center justify-between detail-header-row no-print animate-fade-in">
+          <div class="col-12 col-md-8 detail-header-col">
+            <div class="row items-center no-wrap">
+              <q-btn
+                flat
+                round
+                color="brand-primary"
+                icon="arrow_back"
+                @click="deselectProject"
+                class="q-mr-md bg-white shadow-1"
+              />
+              <div>
+                <div class="row items-center no-wrap q-gutter-x-sm">
+                  <span class="text-h5 text-md-h4 text-weight-bolder text-brand-primary leading-tight uppercase font-pro">
+                    Kelola Pekerja &amp; Mandor
+                  </span>
+                </div>
+                <div class="text-body2 text-md-subtitle1 text-grey-7 q-mt-sm text-weight-medium">
+                  {{ selectedProjectData?.nama }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TABS NAVIGASI PREMIUM -->
+        <q-card flat class="bento-card bg-white q-mb-lg no-print shadow-soft overflow-hidden">
+          <q-tabs
+            v-model="activeTab"
+            dense
+            no-caps
+            inline-label
+            class="text-grey-7 bg-brand-light"
+            active-color="brand-primary"
+            indicator-color="brand-primary"
+            align="left"
+            narrow-indicator
+            outside-arrows
+            mobile-arrows
+          >
+            <q-tab
+              name="mandor"
+              icon="groups"
+              label="Mandor &amp; Pekerja"
+              class="text-weight-bold q-py-sm"
+            />
+          </q-tabs>
+        </q-card>
+
+        <!-- TAB PANELS CONTENT (TERISOLASI) -->
+        <q-tab-panels v-model="activeTab" animated keep-alive class="bg-transparent">
+          <!-- PANEL 2: MANDOR & PEKERJA (TERISOLASI) -->
           <q-tab-panel name="mandor" class="q-pa-none">
             <!-- Form Tambah Mandor -->
             <q-card flat class="bento-card bg-white q-pa-lg shadow-soft q-mb-lg no-print">
@@ -332,32 +507,59 @@
                   outlined
                   dense
                   label="Nama Mandor / PJ Sub"
-                  class="col-12 col-sm-4 rounded-input"
+                  class="col-12 col-sm-3 rounded-input"
                   placeholder="Contoh: Mandor Andi"
+                  hide-bottom-space
                 />
+                <q-select
+                  v-model="mandorForm.spk"
+                  outlined
+                  dense
+                  :options="spkOptions"
+                  option-value="id"
+                  option-label="nama_kontrak"
+                  label="SPK / Kontrak Pekerjaan"
+                  class="col-12 col-sm-3 rounded-input"
+                  emit-value
+                  map-options
+                  clearable
+                  hide-bottom-space
+                >
+                  <template v-slot:no-option>
+                    <q-item>
+                      <q-item-section class="text-grey text-caption">
+                        Belum ada SPK terdaftar di proyek ini
+                      </q-item-section>
+                    </q-item>
+                  </template>
+                </q-select>
                 <q-select
                   v-model="mandorForm.bidang"
                   outlined
                   dense
                   :options="bidangOptions"
                   label="Bidang / Sub Pekerjaan"
-                  class="col-12 col-sm-4 rounded-input"
+                  class="col-12 col-sm-3 rounded-input"
+                  hide-bottom-space
+                  :disable="!mandorForm.spk"
                 />
                 <q-input
                   v-model="mandorForm.hp"
                   outlined
                   dense
                   label="No. HP Mandor"
-                  class="col-12 col-sm-4 rounded-input"
+                  class="col-12 col-sm-3 rounded-input"
                   placeholder="Contoh: 0812-xxxx-xxxx"
+                  hide-bottom-space
                 />
                 <div class="col-12">
                   <q-btn
                     unelevated
-                    color="teal-6"
+                    color="brand-primary"
                     icon="person_add"
                     label="Tambah Kelompok Mandor"
-                    class="rounded-12 text-weight-bold"
+                    class="rounded-12 text-weight-bold shadow-premium"
+                    style="min-height: 40px;"
                     @click="addMandor"
                     :disable="!bisa.buat"
                   />
@@ -368,30 +570,27 @@
             <!-- List Blok Mandor & Pekerja Di Dalamnya -->
             <div
               v-if="mandors.length === 0"
-              class="text-center q-pa-xl bg-white rounded-24 border border-subtle"
+              class="text-center q-pa-xl bg-white rounded-24 border border-subtle animate-fade-in"
             >
               <q-icon name="group_off" size="4em" color="grey-4" />
               <div class="text-grey-6 text-subtitle1 q-mt-sm">
-                Belum ada kelompok mandor terdaftar. Silakan tambahkan di atas.
+                Belum ada kelompok mandor terdaftar di proyek ini. Silakan tambahkan di atas.
               </div>
             </div>
 
             <div
               v-for="(m, mi) in mandors"
               :key="m.id"
-              class="mandor-container bg-white q-mb-lg rounded-24 border border-subtle shadow-soft overflow-hidden"
+              class="mandor-container bg-white q-mb-lg rounded-24 border border-subtle shadow-soft overflow-hidden animate-fade-in"
             >
               <!-- Header Mandor Group -->
-              <div class="bg-slate-50 q-pa-md row items-center justify-between border-bottom">
-                <div class="row items-center">
+              <div class="bg-brand-light q-pa-md row items-center justify-between border-bottom mandor-header-row">
+                <div class="row items-center no-wrap">
                   <q-avatar
-                    :style="{
-                      backgroundColor: getMandorColor(mi) + '22',
-                      color: getMandorColor(mi),
-                    }"
                     size="40px"
-                    font-size="20px"
-                    class="q-mr-md text-weight-bold"
+                    color="brand-primary"
+                    text-color="white"
+                    class="q-mr-md text-weight-bold shadow-sm font-pro flex-shrink-0"
                   >
                     {{ mi + 1 }}
                   </q-avatar>
@@ -399,17 +598,21 @@
                     <div class="text-subtitle1 text-weight-bold text-blue-grey-10 uppercase">
                       {{ m.nama }}
                     </div>
-                    <div class="text-caption text-blue-grey-5 font-medium">
-                      BIDANG: {{ m.bidang || 'Umum' }} <span class="q-mx-xs">•</span> TELP:
-                      {{ m.hp || '-' }} <span class="q-mx-xs">•</span> TOTAL:
-                      {{ m.pekerja ? m.pekerja.length : 0 }} Pekerja
+                    <div class="text-caption text-grey-7 font-medium">
+                      BIDANG: <span class="text-weight-bold text-blue-grey-8">{{ (m.bidang || 'Umum').toUpperCase() }}</span>
+                      <span class="q-mx-xs">•</span> TELP: {{ m.hp || '-' }}
+                      <span class="q-mx-xs">•</span> TOTAL: {{ m.pekerja ? m.pekerja.length : 0 }} Pekerja
+                      <template v-if="m.spk_nama_kontrak">
+                        <span class="q-mx-xs">•</span>
+                        <span class="text-brand-primary text-weight-bold">{{ m.spk_nama_kontrak }}</span>
+                      </template>
                     </div>
                   </div>
                 </div>
                 <q-btn
                   flat
-                  dense
                   round
+                  dense
                   icon="delete"
                   color="red-5"
                   class="no-print"
@@ -418,11 +621,11 @@
                 />
               </div>
 
-              <!-- Body Mandor Group: Input Pekerja Baru & Tabel List Pekerja -->
+              <!-- Body Mandor Group -->
               <div class="q-pa-md">
                 <!-- Baris Form Pekerja -->
                 <div
-                  class="row q-col-gutter-sm items-end q-mb-md no-print bg-amber-50/40 q-pa-sm rounded-12 border border-dashed border-amber-200"
+                  class="row q-col-gutter-sm items-end q-mb-md no-print form-pekerja-box q-pa-sm rounded-12 border border-dashed"
                 >
                   <q-input
                     v-model="pekerjaForms[m.id].nama"
@@ -431,7 +634,7 @@
                     bg-color="white"
                     label="Nama Pekerja"
                     class="col-12 col-sm-3 rounded-input"
-                    placeholder="Nama lengkap pekerja harian"
+                    placeholder="Nama lengkap pekerja"
                   />
                   <q-select
                     v-model="pekerjaForms[m.id].jabatan"
@@ -440,7 +643,7 @@
                     bg-color="white"
                     :options="jabatanOptions"
                     label="Jabatan"
-                    class="col-12 col-sm-3 rounded-input"
+                    class="col-12 col-sm-2 rounded-input"
                   />
                   <q-input
                     v-model.number="pekerjaForms[m.id].upahHari"
@@ -462,13 +665,15 @@
                     label="Koefisien Multiplier"
                     class="col-12 col-sm-2 rounded-input"
                   />
-                  <div class="col-12 col-sm-1">
+                  <div class="col-12 col-sm-2">
                     <q-btn
                       unelevated
-                      color="teal-6"
+                      color="brand-primary"
                       icon="add"
-                      class="full-width rounded-12 q-py-sm"
+                      label="Tambah"
+                      class="w-full rounded-12 q-py-sm text-weight-bold"
                       @click="addPekerja(m.id)"
+                      :disable="!bisa.buat"
                     />
                   </div>
                 </div>
@@ -480,512 +685,135 @@
                 >
                   Belum ada pekerja di dalam kelompok mandor ini.
                 </div>
-                <div v-else class="overflow-x-auto">
-                  <table class="abs-tbl">
-                    <thead>
-                      <tr class="bg-slate-50">
-                        <th style="width: 40px" class="text-center">#</th>
-                        <th>NAMA PEKERJA</th>
-                        <th class="text-center">JABATAN</th>
-                        <th class="text-right">UPAH BASE / HARI</th>
-                        <th class="text-center">KOEF.</th>
-                        <th class="text-right">UPAH EFEKTIF / HARI</th>
-                        <th style="width: 60px" class="text-center no-print">AKSI</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="(p, pi) in m.pekerja" :key="p.id">
-                        <td class="text-center text-grey-5 text-weight-bold font-mono">
-                          {{ pi + 1 }}
-                        </td>
-                        <td class="text-weight-bold text-blue-grey-9 uppercase">{{ p.nama }}</td>
-                        <td class="text-center">
-                          <q-badge
-                            color="indigo-1"
-                            text-color="indigo-9"
-                            class="text-weight-bold q-px-sm q-py-xs rounded-6"
-                          >
-                            {{ p.jabatan || 'Tukang' }}
-                          </q-badge>
-                        </td>
-                        <td class="text-right font-mono font-medium">
-                          Rp {{ formatUang(p.upahHari) }}
-                        </td>
-                        <td class="text-center text-weight-bold text-amber-9 font-mono">
-                          {{ (p.koef || 1.0).toFixed(2) }}x
-                        </td>
-                        <td class="text-right text-weight-bold text-teal-7 font-mono">
-                          Rp {{ formatUang((p.upahHari || 0) * (p.koef || 1.0)) }}
-                        </td>
-                        <td class="text-center no-print">
-                          <q-btn
-                            flat
-                            dense
-                            round
-                            icon="close"
-                            color="red-4"
-                            size="sm"
-                            @click="deletePekerja(m.id, p.id)"
-                          />
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </q-tab-panel>
-
-          <!-- PANEL 3: INPUT ABSENSI HARIAN -->
-          <q-tab-panel name="absen" class="q-pa-none">
-            <!-- Control Header Absensi -->
-            <q-card flat class="bento-card bg-white q-pa-md q-mb-lg shadow-soft no-print">
-              <div class="row items-center justify-between q-col-gutter-md">
-                <div class="row items-center q-col-gutter-sm col-12 col-md-6">
-                  <q-input
-                    v-model="selectedDate"
-                    outlined
-                    dense
-                    type="date"
-                    stack-label
-                    label="Tanggal Absensi"
-                    @update:model-value="onDateChange"
-                    class="rounded-input bg-slate-50 text-weight-bold"
-                    style="width: 200px"
-                  />
-                  <q-input
-                    :model-value="getNamaHari(selectedDate)"
-                    readonly
-                    outlined
-                    dense
-                    label="Hari"
-                    class="rounded-input font-mono font-bold text-orange-9"
-                    style="width: 160px; background-color: #fffbeb"
-                  />
-                </div>
-                <div class="col-12 col-md-6 row justify-end q-gutter-sm">
-                  <q-btn
-                    outline
-                    color="indigo-7"
-                    icon="content_copy"
-                    label="Salin Hari Kemarin"
-                    class="rounded-12 text-weight-bold bg-white"
-                    @click="copyYesterdayAttendance"
-                    :disable="!bisa.ubah && !bisa.buat"
-                  />
-                  <q-btn
-                    unelevated
-                    color="amber-9"
-                    icon="save"
-                    label="Simpan Log Absensi"
-                    class="rounded-12 text-weight-bold shadow-soft"
-                    @click="saveAttendanceLog"
-                    :disable="!bisa.ubah && !bisa.buat"
-                  />
-                  <q-btn
-                    flat
-                    color="blue-grey-6"
-                    icon="print"
-                    class="bg-grey-2 rounded-12"
-                    @click="triggerPrint"
-                  />
-                </div>
-              </div>
-            </q-card>
-
-            <!-- Render Blocks Kelompok Absensi Per Mandor -->
-            <div
-              v-if="mandors.length === 0"
-              class="text-center q-pa-xl bg-white rounded-24 border border-subtle"
-            >
-              <div class="text-grey-6">
-                Belum ada grup pekerja harian terdaftar. Selesaikan konfigurasi di tab Mandor &
-                Pekerja.
-              </div>
-            </div>
-
-            <div
-              v-for="(m, mi) in mandors"
-              :key="'abs-' + m.id"
-              class="mandor-container bg-white q-mb-lg rounded-24 border border-subtle shadow-soft overflow-hidden"
-            >
-              <!-- Header Group Absen -->
-              <div class="bg-slate-50 q-pa-md row items-center justify-between border-bottom">
-                <div class="row items-center">
-                  <q-avatar
-                    :style="{
-                      backgroundColor: getMandorColor(mi) + '22',
-                      color: getMandorColor(mi),
-                    }"
-                    size="36px"
-                    font-size="18px"
-                    class="q-mr-md text-weight-bold"
-                  >
-                    <q-icon name="engineering" />
-                  </q-avatar>
-                  <div>
-                    <div class="text-subtitle2 text-weight-bold text-blue-grey-10 uppercase">
-                      {{ m.nama }}
-                    </div>
-                    <div class="text-caption text-blue-grey-5 font-mono">
-                      SUB: {{ m.bidang || 'Umum' }}
-                    </div>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <span class="text-caption text-grey-6">Akumulasi Upah Grup:</span>
-                  <div class="text-subtitle1 text-weight-black text-amber-9 font-mono">
-                    Rp {{ formatUang(calculateMandorDailyTotal(m.id)) }}
-                  </div>
-                </div>
-              </div>
-
-              <!-- Table Input Absensi -->
-              <div class="q-pa-md">
-                <div
-                  v-if="!m.pekerja || m.pekerja.length === 0"
-                  class="text-center text-grey-5 text-caption q-py-sm"
-                >
-                  Tidak ada pekerja dalam kelompok mandor ini.
-                </div>
-                <div v-else class="overflow-x-auto">
-                  <table class="abs-tbl">
-                    <thead>
-                      <tr class="bg-slate-50">
-                        <th style="width: 40px" class="text-center">#</th>
-                        <th style="min-width: 180px">NAMA PEKERJA</th>
-                        <th style="width: 150px" class="text-right">BASE RATE / HR</th>
-                        <th style="width: 180px" class="text-center">STATUS KEHADIRAN</th>
-                        <th style="width: 110px" class="text-center">JAM LEMBUR</th>
-                        <th style="width: 160px" class="text-right">UPAH HARI INI</th>
-                        <!-- REVISI EMAS: Pembetulan tag penutup yang salah ketik dari h3 ke th -->
-                        <th style="min-width: 180px">KETERANGAN / LOG</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="(p, pi) in m.pekerja" :key="'row-abs-' + p.id">
-                        <td class="text-center text-grey-5 font-mono">{{ pi + 1 }}</td>
-                        <td>
-                          <div class="text-weight-bold text-blue-grey-9 uppercase">
+                <div v-else>
+                  <!-- Card List for Mobile -->
+                  <div v-if="$q.screen.lt.md" class="q-gutter-y-sm">
+                    <div
+                      v-for="(p, pi) in m.pekerja"
+                      :key="p.id"
+                      class="worker-card bg-slate-50 q-pa-md rounded-16 border border-subtle relative-position"
+                    >
+                      <div class="row items-center justify-between q-mb-xs">
+                        <div class="row items-center">
+                          <div class="text-weight-bold text-blue-grey-5 font-mono q-mr-sm">
+                            #{{ pi + 1 }}
+                          </div>
+                          <div class="text-weight-bold text-blue-grey-10 text-subtitle2 uppercase">
                             {{ p.nama }}
                           </div>
-                          <div class="text-11 text-grey-5 font-mono">
-                            {{ p.jabatan || 'Tukang' }} • {{ (p.koef || 1.0).toFixed(2) }}x
-                          </div>
-                        </td>
-                        <td class="text-right font-mono text-grey-7 font-medium">
-                          Rp {{ formatUang(p.upahHari) }}
-                        </td>
-                        <td class="text-center">
-                          <select
-                            v-model="getAttendanceState(m.id, p.id).status"
-                            :class="[
-                              'status-sel text-weight-bold uppercase',
-                              getStatusClass(getAttendanceState(m.id, p.id).status),
-                            ]"
-                            @change="recalculateRowWage(m.id, p.id)"
+                        </div>
+                        <q-btn
+                          flat
+                          dense
+                          round
+                          icon="close"
+                          color="red-4"
+                          size="sm"
+                          class="no-print"
+                          @click="deletePekerja(m.id, p.id)"
+                          :disable="!bisa.hapus"
+                        />
+                      </div>
+                      <div class="row items-center q-gutter-x-sm q-mb-xs">
+                        <q-badge
+                          color="brand-light"
+                          text-color="brand-primary"
+                          class="text-weight-bold q-px-sm q-py-xs rounded-6 text-11"
+                        >
+                          {{ p.jabatan || 'Tukang' }}
+                        </q-badge>
+                        <q-badge
+                          color="brand-light"
+                          text-color="brand-primary"
+                          class="text-weight-bold q-px-sm q-py-xs rounded-6 text-11"
+                        >
+                          Koef: {{ (p.koef || 1.0).toFixed(2) }}x
+                        </q-badge>
+                      </div>
+                      <div
+                        class="row items-center justify-between text-caption q-mt-sm bg-white q-pa-sm rounded-8 border border-subtle"
+                      >
+                        <div>
+                          <span class="text-grey-6 text-10 block font-bold uppercase"
+                            >UPAH BASE</span
                           >
-                            <option value="hadir">✔ Hadir</option>
-                            <option value="setengah">½ Setengah Hari</option>
-                            <option value="izin">📋 Izin</option>
-                            <option value="sakit">🤒 Sakit</option>
-                            <option value="alpha">✕ Alpha</option>
-                            <option value="libur">🏖 Libur</option>
-                          </select>
-                        </td>
-                        <td class="text-center">
-                          <q-input
-                            v-model.number="getAttendanceState(m.id, p.id).lembur"
-                            type="number"
-                            step="0.5"
-                            min="0"
-                            max="12"
-                            dense
-                            outlined
-                            class="rounded-input text-center font-bold font-mono"
-                            style="width: 80px; margin: 0 auto"
-                            @update:model-value="recalculateRowWage(m.id, p.id)"
-                          />
-                        </td>
-                        <td
-                          class="text-right text-weight-black text-amber-9 font-mono text-subtitle2"
-                        >
-                          Rp
-                          {{ formatUang(calculateRowDailyWage(p, getAttendanceState(m.id, p.id))) }}
-                        </td>
-                        <td>
-                          <q-input
-                            v-model="getAttendanceState(m.id, p.id).ket"
-                            dense
-                            outlined
-                            placeholder="Keterangan..."
-                            class="rounded-input text-caption"
-                          />
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </q-tab-panel>
-
-          <!-- PANEL 4: REKAPITULASI & STATISTIK PAYROLL -->
-          <q-tab-panel name="rekap" class="q-pa-none">
-            <!-- Filter Jangkauan Rekap -->
-            <q-card flat class="bento-card bg-white q-pa-md q-mb-lg shadow-soft no-print">
-              <div class="row items-center q-col-gutter-md">
-                <q-input
-                  v-model="rekapRange.dari"
-                  type="date"
-                  outlined
-                  dense
-                  stack-label
-                  label="Dari Tanggal"
-                  class="col-12 col-sm-3 rounded-input"
-                />
-                <q-input
-                  v-model="rekapRange.sampai"
-                  type="date"
-                  outlined
-                  dense
-                  stack-label
-                  label="Sampai Tanggal"
-                  class="col-12 col-sm-3 rounded-input"
-                />
-                <q-select
-                  v-model="rekapRange.mandorId"
-                  outlined
-                  dense
-                  :options="rekapMandorOptions"
-                  emit-value
-                  map-options
-                  label="Filter Kelompok Mandor"
-                  class="col-12 col-sm-3 rounded-input"
-                />
-                <div class="col-12 col-sm-3 row q-gutter-sm no-wrap">
-                  <q-btn
-                    unelevated
-                    color="amber-9"
-                    icon="search"
-                    label="Tampilkan Rekap"
-                    class="col rounded-12 text-weight-bold shadow-soft"
-                    @click="generateReportData"
-                  />
-                  <q-btn
-                    flat
-                    color="blue-grey-6"
-                    icon="print"
-                    class="bg-grey-2 rounded-12"
-                    @click="triggerPrint"
-                  />
-                </div>
-              </div>
-            </q-card>
-
-            <!-- KPI Boards Summary -->
-            <div v-if="reportGenerated" class="row q-col-gutter-md q-mb-lg animate-fade-in">
-              <div class="col-12 col-sm-6 col-md-3">
-                <div class="kpi-box bg-white q-pa-md rounded-24 border border-subtle shadow-soft">
-                  <div
-                    class="text-overline text-grey-5 font-bold uppercase tracking-wide font-medium"
-                  >
-                    Total Pekerja
-                  </div>
-                  <div class="text-h4 text-weight-black text-blue-grey-10 font-mono q-mt-xs">
-                    {{ kpiSummary.totalPekerja }}
-                  </div>
-                  <div class="text-caption text-grey-5 q-mt-xs">Orang terdaftar aktif</div>
-                </div>
-              </div>
-              <div class="col-12 col-sm-6 col-md-3">
-                <div
-                  class="kpi-box bg-white q-pa-md rounded-24 border border-subtle shadow-soft border-l-4 border-l-teal"
-                >
-                  <div
-                    class="text-overline text-teal-8 font-bold uppercase tracking-wide font-medium"
-                  >
-                    Total Man-Days Hadir
-                  </div>
-                  <div class="text-h4 text-weight-black text-teal-7 font-mono q-mt-xs">
-                    {{ kpiSummary.totalHadir }}
-                  </div>
-                  <div class="text-caption text-grey-5 q-mt-xs">Hari-orang produktif</div>
-                </div>
-              </div>
-              <div class="col-12 col-sm-6 col-md-3">
-                <div
-                  class="kpi-box bg-white q-pa-md rounded-24 border border-subtle shadow-soft border-l-4 border-l-red"
-                >
-                  <div
-                    class="text-overline text-red-8 font-bold uppercase tracking-wide font-medium"
-                  >
-                    Mangkir (Alpha)
-                  </div>
-                  <div class="text-h4 text-weight-black text-red-6 font-mono q-mt-xs">
-                    {{ kpiSummary.totalAlpha }}
-                  </div>
-                  <div class="text-caption text-grey-5 q-mt-xs">Hari-orang absen tanpa info</div>
-                </div>
-              </div>
-              <div class="col-12 col-sm-6 col-md-3">
-                <div
-                  class="kpi-box bg-white q-pa-md rounded-24 border border-subtle shadow-soft border-l-4 border-l-amber"
-                >
-                  <div
-                    class="text-overline text-amber-9 font-bold uppercase tracking-wide font-medium"
-                  >
-                    Total Anggaran Payroll
-                  </div>
-                  <div class="text-h5 text-weight-black text-amber-8 font-mono q-mt-sm">
-                    Rp {{ formatUang(kpiSummary.totalUpah) }}
-                  </div>
-                  <div class="text-caption text-grey-5 q-mt-xs">Seluruh kelompok mandor</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Report Tables Breakdown Per Mandor -->
-            <div id="rekap-content-print">
-              <div
-                v-if="!reportGenerated"
-                class="text-center q-pa-xl bg-white rounded-24 border border-subtle text-grey-5"
-              >
-                Tentukan parameter rentang tanggal di atas, lalu klik <b>Tampilkan Rekap</b> untuk
-                mengompilasi lembar payroll.
-              </div>
-
-              <div
-                v-else-if="reportData.length === 0"
-                class="text-center q-pa-xl bg-white rounded-24 border border-subtle text-grey-5"
-              >
-                Tidak ada data log absensi yang ditemukan pada rentang tanggal tersebut.
-              </div>
-
-              <div
-                v-else
-                v-for="(rm, rmi) in reportData"
-                :key="'rep-m-' + rm.id"
-                class="card bg-white q-pa-lg shadow-soft border border-subtle rounded-24 q-mb-lg"
-              >
-                <div class="row items-center justify-between border-bottom q-pb-md q-mb-md">
-                  <div class="row items-center">
-                    <div
-                      class="indicator-bar q-mr-md"
-                      :style="{ backgroundColor: getMandorColor(rmi) }"
-                    ></div>
-                    <div>
-                      <div class="text-subtitle1 text-weight-black text-blue-grey-9 uppercase">
-                        {{ rm.nama }}
-                      </div>
-                      <div class="text-caption text-grey-5 font-medium">
-                        SUB-BIDANG: {{ rm.bidang }} • PERIODE:
-                        {{ rekapRange.dari.split('-').reverse().join('/') }} -
-                        {{ rekapRange.sampai.split('-').reverse().join('/') }}
+                          <div class="text-weight-medium font-mono text-blue-grey-8">
+                            Rp {{ formatUang(p.upahHari) }}
+                          </div>
+                        </div>
+                        <div class="text-right">
+                          <span class="text-grey-6 text-10 block font-bold uppercase"
+                            >UPAH EFEKTIF</span
+                          >
+                          <div class="text-weight-bold font-mono text-brand-primary">
+                            Rp {{ formatUang((p.upahHari || 0) * (p.koef || 1.0)) }}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <div class="text-right">
-                    <span class="text-caption text-grey-5">Subtotal Wages:</span>
-                    <div class="text-h6 text-weight-black text-amber-9 font-mono">
-                      Rp {{ formatUang(rm.subtotalUpah) }}
-                    </div>
-                  </div>
-                </div>
 
-                <div class="overflow-x-auto">
-                  <table class="rekap-tbl">
-                    <thead>
-                      <tr class="bg-slate-50">
-                        <th style="width: 40px">#</th>
-                        <th>NAMA PEKERJA HARI LEPAS</th>
-                        <th>JABATAN</th>
-                        <th class="text-center">HADIR</th>
-                        <th class="text-center">½ HARI</th>
-                        <th class="text-center">IZIN</th>
-                        <th class="text-center">SAKIT</th>
-                        <th class="text-center">ALPHA</th>
-                        <th class="text-center">LIBUR</th>
-                        <th class="text-center">LEMBUR (JAM)</th>
-                        <th class="text-right">TOTAL UPAH BERSIH</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="(rp, rpi) in rm.pekerja" :key="'rep-p-' + rp.id">
-                        <td class="text-grey-5 font-mono text-weight-bold">{{ rpi + 1 }}</td>
-                        <td class="text-weight-bold text-blue-grey-9 uppercase">{{ rp.nama }}</td>
-                        <td class="text-caption text-grey-6 font-medium uppercase">{{ rp.jabatan }}</td>
-                        <td class="text-center font-mono font-bold text-teal-6">{{ rp.hadir }}</td>
-                        <td class="text-center font-mono font-bold text-cyan-6">
-                          {{ rp.setengah }}
-                        </td>
-                        <td class="text-center font-mono text-grey-5">{{ rp.izin }}</td>
-                        <td class="text-center font-mono text-amber-8">{{ rp.sakit }}</td>
-                        <td class="text-center font-mono font-bold text-red-6">{{ rp.alpha }}</td>
-                        <td class="text-center font-mono text-purple-5">{{ rp.libur }}</td>
-                        <td class="text-center font-mono text-blue-grey-7 font-medium">
-                          {{ rp.lemburJam }}
-                        </td>
-                        <td class="text-right text-weight-black text-amber-9 font-mono">
-                          Rp {{ formatUang(rp.upahTotal) }}
-                        </td>
-                      </tr>
-                    </tbody>
-                    <tfoot>
-                      <tr class="rekap-foot">
-                        <td
-                          colspan="3"
-                          class="q-pa-md uppercase text-blue-grey-8 text-weight-black"
-                        >
-                          TOTAL GRUP GRUP {{ rm.nama.toUpperCase() }}
-                        </td>
-                        <td class="text-center font-mono">{{ rm.totalHadir }}</td>
-                        <td class="text-center font-mono">{{ rm.totalSetengah }}</td>
-                        <td class="text-center font-mono">{{ rm.totalIzin }}</td>
-                        <td class="text-center font-mono">{{ rm.totalSakit }}</td>
-                        <td class="text-center font-mono">{{ rm.totalAlpha }}</td>
-                        <td class="text-center font-mono">{{ rm.totalLibur }}</td>
-                        <td class="text-center font-mono">{{ rm.totalLembur }}</td>
-                        <td class="text-right font-mono text-amber-10 font-black">
-                          Rp {{ formatUang(rm.subtotalUpah) }}
-                        </td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
-              </div>
-
-              <!-- Grand Total Summary Banner Card -->
-              <div
-                v-if="reportGenerated && reportData.length > 0"
-                class="card bg-slate-900 text-white q-pa-xl rounded-24 shadow-xl border border-slate-800 relative-position overflow-hidden"
-              >
-                <div class="decor-circle-1 bg-amber-500 opacity-10"></div>
-                <div class="row items-center justify-between no-wrap-sm">
-                  <div>
-                    <div
-                      class="text-subtitle1 text-weight-black text-amber-50 tracking-wider uppercase"
-                    >
-                      GRAND TOTAL SELURUH REKAP PAYROLL
-                    </div>
-                    <div class="text-caption text-slate-400 font-medium q-mt-xs">
-                      Akumulasi biaya operasional harian lepas dari tanggal
-                      {{ rekapRange.dari.split('-').reverse().join('/') }} s/d
-                      {{ rekapRange.sampai.split('-').reverse().join('/') }}
-                    </div>
-                  </div>
-                  <div class="text-right q-mt-md q-mt-sm-none">
-                    <div class="text-h3 text-weight-black text-amber-4 font-mono font-black">
-                      Rp {{ formatUang(kpiSummary.totalUpah) }}
-                    </div>
+                  <!-- Table View for Desktop -->
+                  <div v-else style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                    <table class="abs-tbl">
+                      <thead>
+                        <tr class="bg-slate-50">
+                          <th style="width: 40px" class="text-center">#</th>
+                          <th>NAMA PEKERJA</th>
+                          <th class="text-center">JABATAN</th>
+                          <th class="text-right">UPAH BASE / HARI</th>
+                          <th class="text-center">KOEF.</th>
+                          <th class="text-right">UPAH EFEKTIF / HARI</th>
+                          <th style="width: 60px" class="text-center no-print">AKSI</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="(p, pi) in m.pekerja" :key="p.id">
+                          <td class="text-center text-grey-5 text-weight-bold font-mono">
+                            {{ pi + 1 }}
+                          </td>
+                          <td class="text-weight-bold text-blue-grey-9 uppercase">{{ p.nama }}</td>
+                          <td class="text-center">
+                            <q-badge
+                              color="brand-light"
+                              text-color="brand-primary"
+                              class="text-weight-bold q-px-sm q-py-xs rounded-6"
+                            >
+                              {{ p.jabatan || 'Tukang' }}
+                            </q-badge>
+                          </td>
+                          <td class="text-right font-mono font-medium">
+                            Rp {{ formatUang(p.upahHari) }}
+                          </td>
+                          <td class="text-center text-weight-bold text-amber-9 font-mono">
+                            {{ (p.koef || 1.0).toFixed(2) }}x
+                          </td>
+                          <td class="text-right text-weight-bold text-brand-primary font-mono">
+                            Rp {{ formatUang((p.upahHari || 0) * (p.koef || 1.0)) }}
+                          </td>
+                          <td class="text-center no-print">
+                            <q-btn
+                              flat
+                              dense
+                              round
+                              icon="close"
+                              color="red-4"
+                              size="sm"
+                              @click="deletePekerja(m.id, p.id)"
+                              :disable="!bisa.hapus"
+                            />
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </div>
             </div>
           </q-tab-panel>
         </q-tab-panels>
-      </div> </template
-    ><!-- end v-else aksesGranted -->
+      </div>
+    </template>
   </q-page>
 </template>
 
@@ -995,7 +823,20 @@ import { ref, onMounted, computed, watch, onUnmounted } from 'vue'
 import { useQuasar, date } from 'quasar'
 import { useRouter } from 'vue-router'
 import { db, auth } from 'src/boot/firebase'
-import { collection, query, where, getDocs, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot, serverTimestamp, orderBy } from 'firebase/firestore'
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  setDoc,
+  getDoc,
+  updateDoc,
+  deleteDoc,
+  onSnapshot,
+  serverTimestamp,
+  orderBy,
+} from 'firebase/firestore'
 import { onAuthStateChanged } from 'firebase/auth'
 
 const $q = useQuasar()
@@ -1004,19 +845,13 @@ const router = useRouter()
 // ============================================================================
 // PERMISSION GUARD — Integrasi Hak Akses (sama dengan halaman lain)
 // ============================================================================
-const aksesGranted = ref(false) // false = belum diverifikasi / ditolak
-const aksesLoading = ref(true) // tampilkan loading saat cek akses
+const aksesGranted = ref(false)
+const aksesLoading = ref(true)
 
-/**
- * Cek apakah user punya izin 'lihat' untuk menu absensi-harian-lepas
- * berdasarkan permissions_detail yang tersimpan di Firestore (koleksi 'karyawan').
- * Menu ID yang dicek: '_absensi_harian_lepas' (sesuai generateMatrixFromRoutes di AksesPage)
- */
 const checkAkses = async (uid) => {
   try {
     const q = query(collection(db, 'karyawan'), where('uid', '==', uid))
     const snap = await getDocs(q)
-
     if (snap.empty) {
       aksesGranted.value = false
       aksesLoading.value = false
@@ -1024,15 +859,12 @@ const checkAkses = async (uid) => {
     }
 
     const karyawan = snap.docs[0].data()
-
-    // ✅ Super Admin — langsung izinkan
     if (karyawan.is_super_admin === true) {
       aksesGranted.value = true
       aksesLoading.value = false
       return
     }
 
-    // ✅ Fallback role-based check
     const SUPER_ROLES = ['super admin', 'superadmin', 'direktur', 'owner']
     const jabatan = (karyawan.jabatan || '').toLowerCase().trim()
     const role = (karyawan.role || '').toLowerCase().trim()
@@ -1042,10 +874,8 @@ const checkAkses = async (uid) => {
       return
     }
 
-    // ✅ Cek permissions_detail: cari modul 'absensi' → menu '_absensi_harian_lepas'
     const permissions = karyawan.permissions_detail || []
     const modulAbsensi = permissions.find((m) => m.id === 'absensi')
-
     if (modulAbsensi && modulAbsensi.isActive) {
       const menuHarianLepas = modulAbsensi.menus?.find(
         (menu) => menu.id === '_absensi_harian_lepas',
@@ -1057,7 +887,6 @@ const checkAkses = async (uid) => {
       }
     }
 
-    // Tidak punya akses
     aksesGranted.value = false
     aksesLoading.value = false
   } catch (e) {
@@ -1067,10 +896,6 @@ const checkAkses = async (uid) => {
   }
 }
 
-/**
- * Computed: apakah user bisa melakukan aksi 'buat/ubah/hapus/approve'
- * pada halaman ini — digunakan untuk disable tombol aksi sensitif.
- */
 const bisa = ref({ lihat: false, buat: false, ubah: false, hapus: false, approve: false })
 
 const loadDetailPermission = async (uid) => {
@@ -1080,7 +905,6 @@ const loadDetailPermission = async (uid) => {
     if (snap.empty) return
 
     const karyawan = snap.docs[0].data()
-
     if (
       karyawan.is_super_admin === true ||
       ['super admin', 'superadmin', 'direktur', 'owner'].includes(
@@ -1110,11 +934,116 @@ const loadDetailPermission = async (uid) => {
   }
 }
 
+// ============================================================================
+// INTEGRASI PROYEK MASTER KONSTRUKSI (REAL-TIME LIST)
+// ============================================================================
+const selectedProjectId = ref('')
+const selectedProjectData = ref(null)
+const proyekKonstruksiList = ref([])
+const filterProyek = ref('')
+let unsubProyek = null
+
+const fetchProyekList = () => {
+  const q = query(collection(db, 'proyek'), orderBy('createdAt', 'desc'))
+  unsubProyek = onSnapshot(
+    q,
+    (snap) => {
+      proyekKonstruksiList.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+    },
+    (err) => {
+      console.error('Error penarikan master proyek:', err)
+    },
+  )
+}
+
+const filteredProyekList = computed(() => {
+  if (!filterProyek.value) return proyekKonstruksiList.value
+  const f = filterProyek.value.toLowerCase().trim()
+  return proyekKonstruksiList.value.filter(
+    (p) =>
+      (p.nama && p.nama.toLowerCase().includes(f)) ||
+      (p.konsumen && p.konsumen.toLowerCase().includes(f)) ||
+      (p.alamat && p.alamat.toLowerCase().includes(f)),
+  )
+})
+
+// Unsubscribe listeners saat berpindah proyek
+let unsubSetup = null
+let unsubMandors = null
+
+const selectProject = async (proyek) => {
+  $q.loading.show({ message: `Membuka Absensi Proyek ${proyek.nama}...` })
+
+  selectedProjectId.value = proyek.id
+  selectedProjectData.value = proyek
+  activeTab.value = 'mandor' // Langsung buka tab Mandor & Pekerja
+
+  // Bersihkan sisa listener proyek lain
+  if (unsubSetup) unsubSetup()
+  if (unsubMandors) unsubMandors()
+
+  // 1. Ambil & Listen Setup Proyek Terisolasi (jika belum ada, buat baru otomatis)
+  const setupRef = doc(db, 'harian_lepas_setup', proyek.id)
+  unsubSetup = onSnapshot(setupRef, async (snap) => {
+    if (snap.exists()) {
+      projectSetup.value = snap.data()
+      if (projectSetup.value.tglAbsen) {
+        selectedDate.value = projectSetup.value.tglAbsen
+      }
+    } else {
+      // Inisialisasi default dari properti proyek Konstruksi asli
+      const defaultSetup = {
+        nama: proyek.nama,
+        kode: proyek.id.substring(0, 8).toUpperCase(),
+        lokasi: proyek.alamat || '',
+        mandorUtama: proyek.konsumen || 'INTERNAL PROJECT',
+        mulai: date.formatDate(new Date(), 'YYYY-MM-DD'),
+        selesai: '',
+        jamKerja: 8,
+        lembur: 25000,
+        tglAbsen: date.formatDate(new Date(), 'YYYY-MM-DD'),
+        projectId: proyek.id,
+      }
+      await setDoc(setupRef, defaultSetup)
+      projectSetup.value = defaultSetup
+    }
+  })
+
+  // 2. Listen Mandor Terisolasi proyek terpilih
+  const qMandor = query(collection(db, 'harian_lepas_mandor'), where('projectId', '==', proyek.id))
+  unsubMandors = onSnapshot(qMandor, (snap) => {
+    mandors.value = snap.docs.map((docItem) => ({ id: docItem.id, ...docItem.data() }))
+    syncPekerjaFormsStructure()
+  })
+
+  // 3. Tarik data absensi harian harian yang valid
+  await loadAttendanceForDate(selectedDate.value)
+  // 4. Tarik daftar SPK proyek ini untuk dropdown (tampilkan nama_kontrak saja)
+  await fetchSpkOptions(proyek.id)
+  $q.loading.hide()
+}
+
+const deselectProject = async () => {
+  // Simpan otomatis saat menutup proyek penugasan
+  await autoSaveAttendance()
+
+  selectedProjectId.value = ''
+  selectedProjectData.value = null
+
+  if (unsubSetup) unsubSetup()
+  if (unsubMandors) unsubMandors()
+
+  mandors.value = []
+  attendanceData.value = {}
+  spkOptions.value = []
+}
+
 // --- State Navigasi ---
-const activeTab = ref('setup')
+const mainActiveTab = ref('konstruksi')
+const activeTab = ref('mandor')
 const selectedDate = ref(date.formatDate(new Date(), 'YYYY-MM-DD'))
 
-// --- Data Master LocalStorage Blueprint ---
+// --- Data Master Isolated Proyek ---
 const projectSetup = ref({
   nama: '',
   kode: '',
@@ -1125,16 +1054,56 @@ const projectSetup = ref({
   jamKerja: 8,
   lembur: 25000,
   tglAbsen: '',
-  proyekId: '',
+  projectId: '',
 })
 const mandors = ref([])
-const proyekKonstruksiOptions = ref([])
-const selectedProjectRef = ref('')
-let unsubProyekKonstruksi = null
 const attendanceData = ref({}) // Format: { 'YYYY-MM-DD': { mandorId: { pekerjaId: { status, lembur, ket } } } }
 
 // --- Dropdown Master Data Options ---
-const bidangOptions = [
+const spkOptions = ref([]) // SPK list untuk proyek aktif (hanya tampilkan nama_kontrak, bukan nomor_spk)
+
+const fetchSpkOptions = async (projectId) => {
+  spkOptions.value = []
+  if (!projectId) return
+  try {
+    const q = query(collection(db, 'spk_customer'), where('projectId', '==', projectId))
+    const snap = await getDocs(q)
+    spkOptions.value = snap.docs.map((d) => {
+      const data = d.data()
+      return {
+        id: d.id,
+        nama_kontrak: data.nama_kontrak || '(Tanpa Nama Kontrak)',
+        groups: data.groups || [],
+      }
+    })
+  } catch (e) {
+    console.error('Gagal memuat daftar SPK:', e)
+  }
+}
+const jabatanOptions = [
+  'Tukang',
+  'Kepala Tukang',
+  'Pekerja / Laden',
+  'Operator',
+  'Helper',
+  'Mandor Lapangan',
+]
+const MANDOR_COLORS = [
+  '#1565c0', // brand-primary
+  '#0d9488', // teal
+  '#3b82f6', // blue
+  '#8b5cf6', // purple
+  '#06b6d4', // cyan
+  '#4f46e5', // indigo
+  '#0284c7', // sky
+  '#ec4899', // pink
+]
+
+// --- Form Buffer Input State ---
+const mandorForm = ref({ nama: '', spk: null, bidang: '', hp: '' })
+const pekerjaForms = ref({})
+
+const defaultBidangOptions = [
   'Struktur & Beton',
   'Pasangan & Dinding',
   'Atap',
@@ -1145,28 +1114,132 @@ const bidangOptions = [
   'Umum / Helper',
   'Lainnya',
 ]
-const jabatanOptions = [
-  'Tukang',
-  'Kepala Tukang',
-  'Pekerja / Laden',
-  'Operator',
-  'Helper',
-  'Mandor Lapangan',
-]
-const MANDOR_COLORS = [
-  '#f59e0b',
-  '#10b981',
-  '#3b82f6',
-  '#ef4444',
-  '#8b5cf6',
-  '#06b6d4',
-  '#f97316',
-  '#ec4899',
-]
 
-// --- Form Buffer Input State ---
-const mandorForm = ref({ nama: '', bidang: 'Umum / Helper', hp: '' })
-const pekerjaForms = ref({}) // Map buffer penampung per mandor id
+const bidangOptions = computed(() => {
+  if (!mandorForm.value.spk) {
+    return []
+  }
+  const selectedSpk = spkOptions.value.find((s) => s.id === mandorForm.value.spk)
+  if (selectedSpk && selectedSpk.groups && selectedSpk.groups.length > 0) {
+    const list = []
+    const mainGroups = selectedSpk.groups.filter((g) =>
+      g.title && g.title.toLowerCase().includes('pekerjaan utama')
+    )
+    const targetGroups = mainGroups.length > 0 ? mainGroups : selectedSpk.groups
+
+    targetGroups.forEach((g) => {
+      if (g.items) {
+        g.items.forEach((item) => {
+          if (item.deskripsi && !item.is_header) {
+            list.push(item.deskripsi.trim())
+          }
+        })
+      }
+    })
+    if (list.length > 0) {
+      return list
+    }
+  }
+  return []
+})
+
+watch(() => mandorForm.value.spk, (newSpkId) => {
+  if (newSpkId) {
+    const selectedSpk = spkOptions.value.find((s) => s.id === newSpkId)
+    if (selectedSpk && selectedSpk.groups && selectedSpk.groups.length > 0) {
+      const list = []
+      const mainGroups = selectedSpk.groups.filter((g) =>
+        g.title && g.title.toLowerCase().includes('pekerjaan utama')
+      )
+      const targetGroups = mainGroups.length > 0 ? mainGroups : selectedSpk.groups
+
+      targetGroups.forEach((g) => {
+        if (g.items) {
+          g.items.forEach((item) => {
+            if (item.deskripsi && !item.is_header) {
+              list.push(item.deskripsi.trim())
+            }
+          })
+        }
+      })
+      if (list.length > 0) {
+        if (!list.includes(mandorForm.value.bidang)) {
+          mandorForm.value.bidang = list[0]
+        }
+        return
+      }
+    }
+  }
+  mandorForm.value.bidang = ''
+})
+
+// =====================================================================================
+// DATA & STATE KHUSUS MODUL HARIAN LEPAS MANUFAKTUR
+// =====================================================================================
+const stasiunOptions = [
+  'Assembly',
+  'Fabrication',
+  'Welding',
+  'Quality Control',
+  'Packing',
+  'Logistics',
+]
+const manufakturForm = ref({
+  nama: '',
+  stasiun: 'Assembly',
+  upahJam: 20000,
+  jamKerja: 8,
+  lembur: 0,
+})
+const manufakturPekerjaList = ref([
+  {
+    id: 'MFG-1',
+    nama: 'ACHMAD FAUZI',
+    stasiun: 'Assembly',
+    upahJam: 22000,
+    jamKerja: 8,
+    lembur: 2,
+    totalUpah: 220000,
+  },
+  {
+    id: 'MFG-2',
+    nama: 'SUTRISNO',
+    stasiun: 'Quality Control',
+    upahJam: 25000,
+    jamKerja: 8,
+    lembur: 0,
+    totalUpah: 200000,
+  },
+])
+
+const addManufakturPekerja = () => {
+  if (!manufakturForm.value.nama) {
+    $q.notify({ type: 'warning', message: 'Nama pekerja manufaktur wajib diisi!' })
+    return
+  }
+  const baseUpah = manufakturForm.value.upahJam * manufakturForm.value.jamKerja
+  const lemburUpah = manufakturForm.value.lembur * (manufakturForm.value.upahJam * 1.5)
+  manufakturPekerjaList.value.push({
+    id: 'MFG-' + Date.now(),
+    nama: manufakturForm.value.nama.toUpperCase(),
+    stasiun: manufakturForm.value.stasiun,
+    upahJam: manufakturForm.value.upahJam,
+    jamKerja: manufakturForm.value.jamKerja,
+    lembur: manufakturForm.value.lembur,
+    totalUpah: Math.round(baseUpah + lemburUpah),
+  })
+  manufakturForm.value.nama = ''
+  $q.notify({ type: 'positive', message: 'Pekerja manufaktur berhasil ditambahkan!' })
+}
+
+const deleteManufakturPekerja = (id) => {
+  manufakturPekerjaList.value = manufakturPekerjaList.value.filter((p) => p.id !== id)
+  $q.notify({ type: 'info', message: 'Pekerja berhasil dihapus dari antrean.' })
+}
+
+const totalUpahManufaktur = computed(() => {
+  return manufakturPekerjaList.value.reduce((sum, p) => sum + p.totalUpah, 0)
+})
 
 // --- Report/Rekap State ---
 const reportGenerated = ref(false)
@@ -1188,124 +1261,41 @@ const rekapMandorOptions = computed(() => {
 })
 
 // =====================================================================================
-// MANAJEMEN CORE DATA & SYNC LOKAL (SISTEM MEMORI MIKRO ENGINE)
+// MANAJEMEN CORE DATA & SYNC CLOUD TERISOLASI
 // =====================================================================================
 const loadAttendanceForDate = async (dateStr) => {
-  if (!dateStr) return
+  if (!dateStr || !selectedProjectId.value) return
+  const idAbsen = `${selectedProjectId.value}_${dateStr}`
   try {
-    const docSnap = await getDoc(doc(db, 'harian_lepas_absen', dateStr))
+    const docSnap = await getDoc(doc(db, 'harian_lepas_absen', idAbsen))
     if (docSnap.exists()) {
       attendanceData.value[dateStr] = docSnap.data().absen || {}
     } else {
       attendanceData.value[dateStr] = {}
     }
   } catch (e) {
-    console.error('Gagal memuat absensi tanggal:', dateStr, e)
+    console.error('Gagal memuat absensi:', e)
   }
-}
-
-const loadEngineMemory = () => {
-  // 1. Setup real-time listener for projectSetup
-  onSnapshot(doc(db, 'harian_lepas_setup', 'config'), async (snap) => {
-    if (snap.exists()) {
-      projectSetup.value = snap.data()
-      if (projectSetup.value.tglAbsen) {
-        selectedDate.value = projectSetup.value.tglAbsen
-      }
-      if (projectSetup.value.proyekId) {
-        selectedProjectRef.value = projectSetup.value.proyekId
-      } else {
-        selectedProjectRef.value = ''
-      }
-    } else {
-      // Migrate setup from LocalStorage if empty in cloud
-      try {
-        const memory = localStorage.getItem('agra_erp_harian_lepas_v1')
-        if (memory) {
-          const parsed = JSON.parse(memory)
-          if (parsed.projectSetup) {
-            projectSetup.value = parsed.projectSetup
-            await setDoc(doc(db, 'harian_lepas_setup', 'config'), projectSetup.value)
-          }
-        }
-      } catch (e) {
-        console.warn('Gagal migrasi setup proyek:', e)
-      }
-    }
-  })
-
-  // 2. Setup real-time listener for mandors
-  onSnapshot(collection(db, 'harian_lepas_mandor'), async (snap) => {
-    if (!snap.empty) {
-      mandors.value = snap.docs.map((docItem) => ({ id: docItem.id, ...docItem.data() }))
-      syncPekerjaFormsStructure()
-    } else {
-      // Migrate mandors from LocalStorage if empty in cloud
-      try {
-        const memory = localStorage.getItem('agra_erp_harian_lepas_v1')
-        if (memory) {
-          const parsed = JSON.parse(memory)
-          if (parsed.mandors && parsed.mandors.length > 0) {
-            for (const m of parsed.mandors) {
-              await setDoc(doc(db, 'harian_lepas_mandor', m.id), m)
-            }
-          }
-        }
-      } catch (e) {
-        console.warn('Gagal migrasi mandor:', e)
-      }
-    }
-  })
-
-  // 3. Migrate attendanceData from LocalStorage if Firestore collection is empty
-  try {
-    const memory = localStorage.getItem('agra_erp_harian_lepas_v1')
-    if (memory) {
-      const parsed = JSON.parse(memory)
-      if (parsed.attendanceData && Object.keys(parsed.attendanceData).length > 0) {
-        getDocs(collection(db, 'harian_lepas_absen')).then(async (snapAbsen) => {
-          if (snapAbsen.empty) {
-            for (const [tgl, val] of Object.entries(parsed.attendanceData)) {
-              await setDoc(doc(db, 'harian_lepas_absen', tgl), {
-                tanggal: tgl,
-                absen: val,
-                updated_at: serverTimestamp()
-              })
-            }
-            await loadAttendanceForDate(selectedDate.value)
-          }
-        })
-      }
-    }
-  } catch (e) {
-    console.warn('Gagal migrasi log absensi:', e)
-  }
-
-  loadAttendanceForDate(selectedDate.value)
 }
 
 watch(selectedDate, async (newVal) => {
-  if (newVal) {
+  if (newVal && selectedProjectId.value) {
     await loadAttendanceForDate(newVal)
   }
 })
 
-// =====================================================================================
-// AUTO-SAVE ENGINE — Simpan otomatis saat meninggalkan Tab Absensi atau ganti tanggal
-// =====================================================================================
-
-/**
- * Auto-save data absensi untuk tanggal aktif ke Firestore secara silent.
- * Hanya menyimpan jika ada data yang sudah diinisialisasi di memori.
- */
+// Auto-save data absensi saat berpindah tab atau tanggal aktif
 const autoSaveAttendance = async () => {
+  if (!selectedProjectId.value) return
   const targetDate = selectedDate.value
   const dayData = attendanceData.value[targetDate]
-  // Hanya simpan jika ada data dan ada minimal 1 mandor yang terisi
   if (!dayData || Object.keys(dayData).length === 0) return
+
+  const idAbsen = `${selectedProjectId.value}_${targetDate}`
   try {
-    await setDoc(doc(db, 'harian_lepas_absen', targetDate), {
+    await setDoc(doc(db, 'harian_lepas_absen', idAbsen), {
       tanggal: targetDate,
+      projectId: selectedProjectId.value,
       absen: dayData,
       updated_at: serverTimestamp(),
     })
@@ -1314,11 +1304,6 @@ const autoSaveAttendance = async () => {
   }
 }
 
-/**
- * Watcher: Auto-save saat user berpindah dari Tab Absensi ke tab lain.
- * Memastikan data yang sudah diisi di Tab 3 selalu tersimpan ke Firestore
- * sebelum rekap di Tab 4 dijalankan.
- */
 watch(activeTab, async (newTab, oldTab) => {
   if (oldTab === 'absen') {
     await autoSaveAttendance()
@@ -1334,74 +1319,16 @@ const syncPekerjaFormsStructure = () => {
 }
 
 // =====================================================================================
-// INTEGRASI PROYEK KONSTRUKSI
-// =====================================================================================
-const fetchProyekKonstruksi = () => {
-  const q = query(collection(db, 'proyek'), orderBy('createdAt', 'desc'))
-  unsubProyekKonstruksi = onSnapshot(q, (snap) => {
-    proyekKonstruksiOptions.value = snap.docs.map((d) => ({
-      id: d.id,
-      nama: d.data().nama,
-      alamat: d.data().alamat || '',
-      konsumen: d.data().konsumen || '',
-    }))
-  }, (err) => {
-    console.error('Error listen proyek konstruksi:', err)
-  })
-}
-
-const onProjectRefChange = async (projId) => {
-  if (!projId) {
-    projectSetup.value.proyekId = ''
-    projectSetup.value.nama = ''
-    projectSetup.value.kode = ''
-    projectSetup.value.lokasi = ''
-    projectSetup.value.mandorUtama = ''
-    projectSetup.value.mulai = ''
-    projectSetup.value.selesai = ''
-    return
-  }
-  const proj = proyekKonstruksiOptions.value.find((p) => p.id === projId)
-  if (proj) {
-    projectSetup.value.nama = proj.nama
-    projectSetup.value.lokasi = proj.alamat || ''
-    projectSetup.value.mandorUtama = proj.konsumen || ''
-    projectSetup.value.proyekId = proj.id
-
-    // Auto-fill SPK details (Contract Code, Start Date, End Date) if available in Firestore
-    try {
-      const qSpk = query(collection(db, 'spk_customer'), where('projectId', '==', projId))
-      const snapSpk = await getDocs(qSpk)
-      if (!snapSpk.empty) {
-        const firstSpk = snapSpk.docs[0].data()
-        projectSetup.value.kode = firstSpk.nomor_spk || ''
-        projectSetup.value.mulai = firstSpk.tgl_mulai || ''
-        projectSetup.value.selesai = firstSpk.tgl_akhir || ''
-      } else {
-        projectSetup.value.kode = ''
-        projectSetup.value.mulai = ''
-        projectSetup.value.selesai = ''
-      }
-    } catch (e) {
-      console.warn('Gagal memuat SPK proyek:', e)
-    }
-  }
-}
-
-onUnmounted(() => {
-  if (unsubProyekKonstruksi) unsubProyekKonstruksi()
-})
-
-// =====================================================================================
-// LOGIKA AKSI TAB 1: SETUP
+// LOGIKA AKSI TAB 1: SETUP (TERISOLASI)
 // =====================================================================================
 const saveSetup = async () => {
+  if (!selectedProjectId.value) return
   if (projectSetup.value.tglAbsen) {
     selectedDate.value = projectSetup.value.tglAbsen
   }
   $q.loading.show({ message: 'Menyimpan pengaturan proyek...' })
   try {
-    await setDoc(doc(db, 'harian_lepas_setup', 'config'), projectSetup.value)
+    await setDoc(doc(db, 'harian_lepas_setup', selectedProjectId.value), projectSetup.value)
     $q.notify({ type: 'positive', message: 'Setup konfigurasi proyek berhasil diperbarui!' })
   } catch (e) {
     $q.notify({ type: 'negative', message: 'Gagal menyimpan pengaturan: ' + e.message })
@@ -1411,13 +1338,20 @@ const saveSetup = async () => {
 }
 
 // =====================================================================================
-// LOGIKA AKSI TAB 2: MANAJEMEN GRUP MANDOR & PEKERJA
+// LOGIKA AKSI TAB 2: MANAJEMEN GRUP MANDOR & PEKERJA (TERISOLASI)
 // =====================================================================================
 const addMandor = async () => {
+  if (!selectedProjectId.value) return
   if (!mandorForm.value.nama) {
     $q.notify({ type: 'warning', message: 'Nama mandor wajib diisi!' })
     return
   }
+
+  // Cari detail SPK yang dipilih (hanya ambil nama_kontrak, TIDAK simpan nomor_spk)
+  const spkTerpilih = mandorForm.value.spk
+    ? spkOptions.value.find((s) => s.id === mandorForm.value.spk)
+    : null
+
   const id = 'MND-' + Date.now()
   $q.loading.show({ message: 'Menambahkan mandor...' })
   try {
@@ -1425,11 +1359,14 @@ const addMandor = async () => {
       nama: mandorForm.value.nama.trim().toUpperCase(),
       bidang: mandorForm.value.bidang,
       hp: mandorForm.value.hp.trim(),
+      spk_id: spkTerpilih?.id || '',
+      spk_nama_kontrak: spkTerpilih?.nama_kontrak || '', // Hanya simpan nama kontrak, bukan nomor SPK
       pekerja: [],
-      created_at: serverTimestamp()
+      projectId: selectedProjectId.value, // ISOLASI PENANDA PROYEK
+      created_at: serverTimestamp(),
     })
 
-    mandorForm.value = { nama: '', bidang: 'Umum / Helper', hp: '' }
+    mandorForm.value = { nama: '', spk: null, bidang: '', hp: '' }
     $q.notify({ type: 'positive', message: 'Kelompok mandor baru sukses didaftarkan!' })
   } catch (e) {
     $q.notify({ type: 'negative', message: 'Gagal menambahkan mandor: ' + e.message })
@@ -1476,14 +1413,12 @@ const addPekerja = async (mandorId) => {
       jabatan: f.jabatan,
       upahHari: parseInt(f.upahHari) || 0,
       koef: parseFloat(f.koef) || 1.0,
-    }
+    },
   ]
 
   $q.loading.show({ message: 'Menambahkan pekerja...' })
   try {
-    await updateDoc(doc(db, 'harian_lepas_mandor', mandorId), {
-      pekerja: pekerjaBaru
-    })
+    await updateDoc(doc(db, 'harian_lepas_mandor', mandorId), { pekerja: pekerjaBaru })
     f.nama = ''
     $q.notify({
       type: 'positive',
@@ -1508,9 +1443,7 @@ const deletePekerja = (mandorId, pekerjaId) => {
     const pekerjaBaru = m.pekerja.filter((p) => p.id !== pekerjaId)
     $q.loading.show({ message: 'Menghapus pekerja...' })
     try {
-      await updateDoc(doc(db, 'harian_lepas_mandor', mandorId), {
-        pekerja: pekerjaBaru
-      })
+      await updateDoc(doc(db, 'harian_lepas_mandor', mandorId), { pekerja: pekerjaBaru })
       $q.notify({ type: 'info', message: 'Pekerja berhasil dikeluarkan dari kelompok.' })
     } catch (e) {
       $q.notify({ type: 'negative', message: 'Gagal mengeluarkan pekerja: ' + e.message })
@@ -1521,10 +1454,9 @@ const deletePekerja = (mandorId, pekerjaId) => {
 }
 
 // =====================================================================================
-// LOGIKA AKSI TAB 3: INPUT ABSENSI HARIAN REAKTIF MATRIKS
+// LOGIKA AKSI TAB 3: INPUT ABSENSI HARIAN REAKTIF MATRIKS (TERISOLASI)
 // =====================================================================================
 const onDateChange = async (val) => {
-  // Auto-save tanggal saat ini sebelum pindah ke tanggal baru
   await autoSaveAttendance()
   selectedDate.value = val
 }
@@ -1565,21 +1497,22 @@ const calculateMandorDailyTotal = (mandorId) => {
   return total
 }
 
-const recalculateRowWage = (mandorId, pekerjaId) => {
-  // Dipicu untuk memicu reaktivitas rendering Vue internal tracker
-}
+const recalculateRowWage = (mandorId, pekerjaId) => {}
 
 const saveAttendanceLog = async () => {
+  if (!selectedProjectId.value) return
   const targetDate = selectedDate.value
   if (!attendanceData.value[targetDate]) {
     $q.notify({ type: 'warning', message: 'Tidak ada data absensi untuk disimpan!' })
     return
   }
 
+  const idAbsen = `${selectedProjectId.value}_${targetDate}`
   $q.loading.show({ message: 'Menyimpan log absensi ke cloud...' })
   try {
-    await setDoc(doc(db, 'harian_lepas_absen', targetDate), {
+    await setDoc(doc(db, 'harian_lepas_absen', idAbsen), {
       tanggal: targetDate,
+      projectId: selectedProjectId.value,
       absen: attendanceData.value[targetDate],
       updated_at: serverTimestamp(),
     })
@@ -1596,14 +1529,18 @@ const saveAttendanceLog = async () => {
 }
 
 const copyYesterdayAttendance = async () => {
+  if (!selectedProjectId.value) return
   const targetDate = selectedDate.value
   const d = new Date(targetDate)
   d.setUTCDate(d.getUTCDate() - 1)
   const kemarinStr = d.toISOString().split('T')[0]
 
+  const idAbsenKemarin = `${selectedProjectId.value}_${kemarinStr}`
+  const idAbsenHariIni = `${selectedProjectId.value}_${targetDate}`
+
   $q.loading.show({ message: `Menyalin log dari ${kemarinStr}...` })
   try {
-    const kemarinSnap = await getDoc(doc(db, 'harian_lepas_absen', kemarinStr))
+    const kemarinSnap = await getDoc(doc(db, 'harian_lepas_absen', idAbsenKemarin))
     if (!kemarinSnap.exists()) {
       $q.notify({
         type: 'negative',
@@ -1615,10 +1552,11 @@ const copyYesterdayAttendance = async () => {
     const dataKemarin = kemarinSnap.data().absen || {}
     attendanceData.value[targetDate] = JSON.parse(JSON.stringify(dataKemarin))
 
-    await setDoc(doc(db, 'harian_lepas_absen', targetDate), {
+    await setDoc(doc(db, 'harian_lepas_absen', idAbsenHariIni), {
       tanggal: targetDate,
+      projectId: selectedProjectId.value,
       absen: attendanceData.value[targetDate],
-      updated_at: serverTimestamp()
+      updated_at: serverTimestamp(),
     })
 
     $q.notify({
@@ -1634,9 +1572,10 @@ const copyYesterdayAttendance = async () => {
 }
 
 // =====================================================================================
-// LOGIKA AKSI TAB 4: COMPILING & RENDER REKAPITULASI PAYROLL
+// LOGIKA AKSI TAB 4: COMPILING & RENDER REKAPITULASI (TERISOLASI DI MEMORI JAVASCRIPT)
 // =====================================================================================
 const generateReportData = async () => {
+  if (!selectedProjectId.value) return
   const dari = rekapRange.value.dari
   const sampai = rekapRange.value.sampai
 
@@ -1647,34 +1586,36 @@ const generateReportData = async () => {
 
   $q.loading.show({ message: 'Mengunduh data rekap kehadiran dari cloud...' })
   try {
-    // Simpan dulu jika user masih di Tab Absensi sebelum generate
     if (activeTab.value === 'absen') {
       await autoSaveAttendance()
     }
 
+    // Sesuai Aturan Firestore Rule 2: Gunakan penarikan query sederhana berbasis projectId saja
     const q = query(
       collection(db, 'harian_lepas_absen'),
-      where('tanggal', '>=', dari),
-      where('tanggal', '<=', sampai)
+      where('projectId', '==', selectedProjectId.value),
     )
     const snap = await getDocs(q)
 
-    // Reset attendanceData untuk range yang diminta agar tidak ada data lama yang tercampur
-    const dateListTemp = []
+    // Siapkan list array tanggal range rekap
+    const dateList = []
     let curTemp = new Date(dari)
     const endTemp = new Date(sampai)
     while (curTemp <= endTemp) {
-      const tglStr = curTemp.toISOString().split('T')[0]
-      dateListTemp.push(tglStr)
-      if (!attendanceData.value[tglStr]) attendanceData.value[tglStr] = {}
+      dateList.push(curTemp.toISOString().split('T')[0])
       curTemp.setUTCDate(curTemp.getUTCDate() + 1)
     }
 
-    // Isi attendanceData dari Firestore (override lokal untuk tanggal yang ada di DB)
+    // Inisialisasi reset memori
+    dateList.forEach((tglStr) => {
+      if (!attendanceData.value[tglStr]) attendanceData.value[tglStr] = {}
+    })
+
+    // Filter secara instan tanggal range di memori JavaScript (Rule 2 Compliance)
     let docsFound = 0
     snap.forEach((docItem) => {
       const data = docItem.data()
-      if (data.tanggal && data.absen) {
+      if (data.tanggal && data.absen && data.tanggal >= dari && data.tanggal <= sampai) {
         attendanceData.value[data.tanggal] = data.absen
         docsFound++
       }
@@ -1684,17 +1625,9 @@ const generateReportData = async () => {
       $q.notify({
         type: 'warning',
         icon: 'info',
-        message: 'Tidak ada data absensi yang tersimpan di cloud untuk rentang tanggal ini. Pastikan log absensi sudah disimpan di Tab Input Absensi.',
-        timeout: 5000,
+        message: 'Tidak ditemukan log absensi di cloud pada periode ini.',
+        timeout: 4000,
       })
-    }
-
-    const dateList = []
-    let cur = new Date(dari)
-    const end = new Date(sampai)
-    while (cur <= end) {
-      dateList.push(cur.toISOString().split('T')[0])
-      cur.setUTCDate(cur.getUTCDate() + 1)
     }
 
     const filteredMandors = rekapRange.value.mandorId
@@ -1856,10 +1789,8 @@ const triggerPrint = () => {
 
 // --- Lifecycle Hook ---
 onMounted(() => {
-  // ✅ Cek autentikasi + hak akses sebelum load data
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
-      // Belum login — arahkan ke halaman login
       router.replace('/login')
       return
     }
@@ -1867,29 +1798,87 @@ onMounted(() => {
     await loadDetailPermission(user.uid)
 
     if (!aksesGranted.value) {
-      // Tidak punya hak akses — tampilkan notifikasi lalu redirect
       $q.notify({
         type: 'negative',
         icon: 'lock',
-        message: 'Anda tidak memiliki izin untuk mengakses halaman Absensi Harian Lepas.',
+        message: 'Izin ditolak. Dialihkan ke dashboard...',
         position: 'top',
         timeout: 3000,
       })
-      // Redirect ke halaman utama / dashboard setelah notif
       setTimeout(() => router.replace('/'), 1500)
       return
     }
 
-    // Akses diberikan — muat data lokal
-    loadEngineMemory()
-    fetchProyekKonstruksi()
+    // Jalankan feed daftar proyek master Konstruksi secara real-time
+    fetchProyekList()
   })
+})
+
+onUnmounted(() => {
+  if (unsubProyek) unsubProyek()
+  if (unsubSetup) unsubSetup()
+  if (unsubMandors) unsubMandors()
 })
 </script>
 
 <style scoped>
-.font-inter {
-  font-family: 'Inter', sans-serif;
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
+
+/* ===== BRAND COLOR PALETTE ===== */
+:root {
+  --brand-primary: #1565c0;
+  --brand-primary-dark: #0d47a1;
+  --brand-primary-light: #e3f2fd;
+  --brand-primary-mid: #90caf9;
+  --brand-danger: #ad3640;
+  --brand-danger-dark: #7a2028;
+  --brand-danger-light: #f7e0e1;
+  --page-bg: #f0fafa;
+}
+
+/* Quasar color overrides via CSS */
+.bg-brand-primary {
+  background-color: #1565c0 !important;
+}
+.bg-brand-light {
+  background-color: #e3f2fd !important;
+}
+.bg-brand-danger {
+  background-color: #ad3640 !important;
+}
+.text-brand-primary {
+  color: #1565c0 !important;
+}
+.text-brand-teal {
+  color: #1565c0 !important;
+}
+.text-brand-danger {
+  color: #ad3640 !important;
+}
+.bg-page {
+  background-color: #f0fafa !important;
+}
+.bg-page.q-page {
+  padding: 24px !important;
+}
+@media (max-width: 599px) {
+  .bg-page.q-page {
+    padding: 16px !important;
+  }
+}
+
+/* Override Quasar btn colors */
+.q-btn[color='brand-primary'],
+.bg-brand-primary.q-btn {
+  background-color: #1565c0 !important;
+  color: white !important;
+}
+
+.font-pro {
+  font-family:
+    'Plus Jakarta Sans',
+    -apple-system,
+    sans-serif;
 }
 .font-mono {
   font-family: 'JetBrains Mono', monospace;
@@ -1919,7 +1908,13 @@ onMounted(() => {
   box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.04) !important;
 }
 .shadow-soft-primary {
-  box-shadow: 0 8px 24px -8px rgba(245, 158, 11, 0.4) !important;
+  box-shadow: 0 8px 24px -8px rgba(21, 101, 192, 0.4) !important;
+}
+.shadow-premium {
+  box-shadow: 0 10px 30px rgba(21, 101, 192, 0.2);
+}
+.rounded-20 {
+  border-radius: 20px;
 }
 .rounded-16 {
   border-radius: 16px;
@@ -1933,6 +1928,12 @@ onMounted(() => {
 .rounded-6 {
   border-radius: 6px;
 }
+.border-subtle {
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+.border-bottom-subtle {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
 
 /* PREMIUM TABLE MATRIX STYLE */
 .abs-tbl-wrap {
@@ -1943,20 +1944,36 @@ table.abs-tbl {
   border-collapse: collapse;
 }
 table.abs-tbl th {
+  background-color: #1565c0 !important;
+  color: #ffffff !important;
   font-size: 11px;
-  color: #64748b;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.8px;
   padding: 14px 12px;
-  border-bottom: 2px solid #e2e8f0;
+  border: none;
+  border-bottom: 2px solid #0d47a1;
   text-align: left;
 }
 table.abs-tbl td {
-  padding: 12px;
-  border-bottom: 1px solid #f1f5f9;
+  padding: 14px 12px;
+  border: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   vertical-align: middle;
   color: #334155;
+  font-size: 13px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+table.abs-tbl tr {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+table.abs-tbl tr:hover {
+  background-color: rgba(21, 101, 192, 0.04);
+}
+
+.form-pekerja-box {
+  background-color: rgba(227, 242, 253, 0.2) !important;
+  border: 1px dashed rgba(21, 101, 192, 0.3) !important;
 }
 
 /* INTERACTIVE DROPDOWN STATUS BADGES */
@@ -1967,10 +1984,14 @@ table.abs-tbl td {
   font-size: 12px;
   cursor: pointer;
   border-radius: 30px !important;
-  padding: 6px 16px !important;
+  padding: 8px 32px 8px 16px !important;
   outline: none;
   transition: all 0.2s ease;
   width: 150px;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 14px;
 }
 .s-hadir {
   background-color: #f0fdf4 !important;
@@ -2037,11 +2058,24 @@ table.rekap-tbl td {
   border-radius: 4px;
 }
 .kpi-box {
-  background-color: white;
-  transition: transform 0.2s;
+  background: rgba(21, 101, 192, 0.85) !important;
+  backdrop-filter: blur(12px) saturate(190%);
+  -webkit-backdrop-filter: blur(12px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 8px 32px 0 rgba(21, 101, 192, 0.25) !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  height: 100%;
+  border-radius: 36px !important;
 }
 .kpi-box:hover {
-  transform: translateY(-2px);
+  transform: translateY(-4px);
+  background: rgba(21, 101, 192, 0.95) !important;
+  box-shadow: 0 12px 40px 0 rgba(21, 101, 192, 0.35) !important;
+}
+.kpi-box:active {
+  transform: translateY(2px) scale(0.98);
+  box-shadow: 0 4px 16px 0 rgba(21, 101, 192, 0.2) !important;
+  transition: all 0.1s ease;
 }
 
 /* APPLE-STYLE ICONS */
@@ -2078,7 +2112,7 @@ table.rekap-tbl td {
   position: absolute;
   width: 300px;
   height: 300px;
-  background: radial-gradient(circle, rgba(245, 158, 11, 0.08) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
   top: -150px;
   right: -50px;
   border-radius: 50%;
@@ -2096,6 +2130,87 @@ table.rekap-tbl td {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* PREMIUM HOVER CARD EFFECT */
+.hover-card-premium {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  border: 1px solid #f1f5f9;
+}
+.hover-card-premium:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 36px -8px rgba(21, 101, 192, 0.15) !important;
+  border-color: rgba(21, 101, 192, 0.3);
+}
+
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);
+}
+
+.search-input :deep(.q-field__control) {
+  border-radius: 30px;
+}
+
+/* ===== DEEP COMPONENT OVERRIDES ===== */
+:deep(.q-btn[color='brand-primary']) {
+  background: #1565c0 !important;
+  color: white !important;
+}
+:deep(.q-btn--unelevated.q-btn[color='brand-primary']) {
+  background: #1565c0 !important;
+}
+:deep(.q-avatar[color='brand-primary']) {
+  background-color: #1565c0 !important;
+  color: white !important;
+}
+:deep(.q-avatar[color='brand-light']) {
+  background-color: #e3f2fd !important;
+  color: #0d47a1 !important;
+}
+:deep(.q-btn[color='brand-danger']) {
+  color: #ad3640 !important;
+}
+:deep(.q-btn--unelevated.q-btn[color='brand-danger']) {
+  background: #ad3640 !important;
+  color: white !important;
+}
+:deep(.q-btn--flat[color='brand-danger']) {
+  color: #ad3640 !important;
+}
+:deep(.q-btn--flat[color='brand-primary']) {
+  color: #1565c0 !important;
+}
+:deep(.q-icon[color='brand-primary']),
+:deep(.q-field__prepend .q-icon) {
+  color: #1565c0 !important;
+}
+:deep(.q-field--focused .q-field__control) {
+  border-color: #1565c0 !important;
+}
+:deep(.q-field--focused .q-field__label) {
+  color: #1565c0 !important;
+}
+
+/* ===== RESPONSIVE SPACING & PADDING ===== */
+.detail-header-row {
+  margin-bottom: 16px;
+}
+.detail-header-col {
+  margin-bottom: 12px;
+}
+.mandor-header-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+@media (min-width: 600px) {
+  .detail-header-row {
+    margin-bottom: 40px;
+  }
+  .detail-header-col {
+    margin-bottom: 0;
   }
 }
 
@@ -2150,5 +2265,68 @@ table.rekap-tbl td {
   .tech-progress-track {
     display: none !important;
   }
+}
+
+.border-subtle {
+  border-color: #f1f5f9 !important;
+}
+
+.legend-badge {
+  font-size: 10px !important;
+}
+@media (min-width: 400px) {
+  .legend-badge {
+    font-size: 11px !important;
+  }
+}
+@media (min-width: 600px) {
+  .legend-badge {
+    font-size: 12px !important;
+  }
+}
+
+.kpi-val {
+  font-size: 1.25rem;
+  line-height: 1.5rem;
+}
+@media (min-width: 400px) {
+  .kpi-val {
+    font-size: 1.5rem;
+    line-height: 1.8rem;
+  }
+}
+@media (min-width: 600px) {
+  .kpi-val {
+    font-size: 1.95rem;
+    line-height: 2.2rem;
+  }
+}
+
+@media (max-width: 599px) {
+  .mobile-action-buttons {
+    display: flex !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+  .mobile-btn {
+    flex: 1 1 0% !important;
+    font-size: 11px !important;
+    padding: 8px 10px !important;
+    min-height: 40px;
+  }
+  .mobile-print-btn {
+    flex: 0 0 auto !important;
+    min-height: 40px;
+  }
+}
+
+.text-wrap {
+  white-space: normal !important;
+  word-break: break-word !important;
+}
+
+.premium-container {
+  max-width: 1200px;
+  width: 100%;
 }
 </style>

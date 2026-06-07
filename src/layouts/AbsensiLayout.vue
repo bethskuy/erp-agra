@@ -1,8 +1,3 @@
-Siap, Bos! Aman terkendali. Sesuai dengan instruksi Anda, saya hanya menambahkan objek menu
-**`ABSENSI HARIAN LEPAS`** di dalam susunan `masterMenus` pada properti *computed* tanpa menyentuh,
-mengubah, atau membuang baris kode lainnya yang sudah berjalan. Berikut adalah kode lengkap berkas
-**`src/layouts/AbsensiLayout.vue`** yang sudah terintegrasi dan siap Anda gunakan:
-```vue:src/layouts/AbsensiLayout.vue
 <template>
   <q-layout view="lHh Lpr lFf" class="bg-grey-2">
     <q-header borderless class="bg-blue-9 text-white shadow-1">
@@ -108,8 +103,68 @@ mengubah, atau membuang baris kode lainnya yang sudah berjalan. Berikut adalah k
           <q-list class="q-py-md">
             <div class="q-px-md q-pb-sm text-overline text-grey-6">MENU UTAMA</div>
 
-            <template v-for="menu in menuListFiltered" :key="menu.path">
+            <template v-for="menu in menuListFiltered" :key="menu.label">
+              <!-- Submenu Collapsible using q-expansion-item -->
+              <q-expansion-item
+                v-if="menu.children && menu.children.length > 0"
+                class="menu-expansion-item q-mb-xs text-weight-bold"
+                default-opened
+                hide-expand-icon
+              >
+                <template v-slot:header="{ expanded }">
+                  <q-item-section avatar>
+                    <q-icon :name="menu.icon" size="22px" />
+                  </q-item-section>
+                  <q-item-section>
+                    <div class="row items-center no-wrap">
+                      <span class="text-weight-bold text-blue-grey-8">{{ menu.label }}</span>
+                      <q-icon
+                        :name="expanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
+                        size="18px"
+                        class="q-ml-xs text-blue-grey-8"
+                      />
+                    </div>
+                  </q-item-section>
+                </template>
+
+                <q-list class="q-pl-md">
+                  <q-item
+                    v-for="sub in menu.children"
+                    :key="sub.path"
+                    clickable
+                    v-ripple
+                    :to="sub.path"
+                    class="menu-item q-mb-xs"
+                    active-class="menu-item-active"
+                  >
+                    <q-item-section avatar>
+                      <q-icon :name="sub.icon" size="20px" />
+                    </q-item-section>
+                    <q-item-section>
+                      <div class="row items-center no-wrap">
+                        <span class="text-weight-bold text-caption text-wrap">{{ sub.label }}</span>
+                        <q-badge
+                          v-if="sub.path === '/absensi/admin/persetujuan-harian-lepas' && pendingHarianLepasCount > 0"
+                          color="deep-orange-6"
+                          :label="pendingHarianLepasCount > 99 ? '99+' : String(pendingHarianLepasCount)"
+                          class="text-weight-bolder shadow-2 notif-badge-pulse flex flex-center q-ml-sm"
+                          style="
+                            font-size: 10px;
+                            min-width: 18px;
+                            height: 18px;
+                            border-radius: 50%;
+                            padding: 0;
+                          "
+                        />
+                      </div>
+                    </q-item-section>
+                  </q-item>
+                </q-list>
+              </q-expansion-item>
+
+              <!-- Standard flat menu item -->
               <q-item
+                v-else
                 clickable
                 v-ripple
                 :to="menu.path"
@@ -204,6 +259,9 @@ const userPermissions = ref([])
 // State Notifikasi Real-time
 const pendingList = ref([])
 let unsubscribePending = null
+
+const pendingHarianLepas = ref([])
+let unsubscribePendingHarianLepas = null
 
 const availableApps = [
   {
@@ -330,12 +388,28 @@ const menuListFiltered = computed(() => {
       dbKey: 'PENGAJUAN IZIN',
     }, // FIX: dbKey disesuaikan dengan Firestore "PENGAJUAN IZIN"
     { label: 'ABSENSI MANUAL', icon: 'history_edu', path: '/absensi/manual', dbKey: 'MANUAL' },
-    // BARU: Menambahkan item menu Absensi Harian Lepas tanpa mengganggu susunan data lainnya
+    // BARU: Menambahkan item menu Absensi Harian Lepas dengan struktur sub-menu
     {
       label: 'ABSENSI HARIAN LEPAS',
       icon: 'engineering',
-      path: '/absensi/admin/absensi-harian-lepas', // Sesuai dengan rute admin yang benar
       dbKey: 'HARIAN LEPAS',
+      children: [
+        {
+          label: 'Kelola Pekerja & Mandor',
+          icon: 'manage_accounts',
+          path: '/absensi/admin/absensi-harian-lepas',
+        },
+        {
+          label: 'Pengajuan Absensi',
+          icon: 'assignment_turned_in',
+          path: '/absensi/admin/pengajuan-absensi-harian-lepas',
+        },
+        {
+          label: 'Persetujuan Harian Lepas',
+          icon: 'verified_user',
+          path: '/absensi/admin/persetujuan-harian-lepas',
+        },
+      ],
     },
   ]
 
@@ -388,6 +462,22 @@ const loadPendingCount = () => {
     },
   )
 }
+
+const loadPendingHarianLepasCount = () => {
+  if (unsubscribePendingHarianLepas) unsubscribePendingHarianLepas()
+  const q = query(collection(db, 'harian_lepas_absen'), where('status', '==', 'diajukan'))
+  unsubscribePendingHarianLepas = onSnapshot(
+    q,
+    (snap) => {
+      pendingHarianLepas.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+    },
+    (err) => {
+      console.warn('Gagal load pending harian lepas count:', err.message)
+    }
+  )
+}
+
+const pendingHarianLepasCount = computed(() => pendingHarianLepas.value.length)
 
 // KALKULATOR BADGE SECARA REAKTIF & AMAN DI MEMORI
 const pendingCutiCount = computed(() => {
@@ -447,10 +537,12 @@ const syncData = () => {
 onMounted(() => {
   syncData()
   loadPendingCount()
+  loadPendingHarianLepasCount()
 })
 
 onUnmounted(() => {
   if (unsubscribePending) unsubscribePending()
+  if (unsubscribePendingHarianLepas) unsubscribePendingHarianLepas()
 })
 
 const handleLogout = () => {
@@ -460,6 +552,7 @@ const handleLogout = () => {
         localStorage.removeItem('user_data')
         localStorage.removeItem('auth')
         if (unsubscribePending) unsubscribePending()
+        if (unsubscribePendingHarianLepas) unsubscribePendingHarianLepas()
         await signOut(auth)
         router.push('/login')
       } catch (error) {
@@ -481,6 +574,30 @@ const handleLogout = () => {
   transition: all 0.3s;
   &:hover {
     background: rgba(0, 0, 0, 0.03);
+  }
+  :deep(.q-icon) {
+    text-transform: none !important;
+  }
+}
+.menu-expansion-item {
+  border-radius: 0 25px 25px 0;
+  margin-right: 8px;
+  color: #546e7a;
+  text-transform: uppercase;
+  font-size: 12.5px;
+  letter-spacing: 0.3px;
+  :deep(.q-item) {
+    border-radius: 0 25px 25px 0;
+    min-height: 48px;
+  }
+  :deep(.q-icon) {
+    text-transform: none !important;
+  }
+  :deep(.q-expansion-item__toggle-icon) {
+    text-transform: none !important;
+    color: #546e7a !important;
+    opacity: 1 !important;
+    display: inline-flex !important;
   }
 }
 .menu-item-active {
@@ -526,5 +643,3 @@ const handleLogout = () => {
   }
 }
 </style>
-
-```

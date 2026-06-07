@@ -8,8 +8,8 @@
         <!-- HEADER -->
         <div class="row items-center justify-between q-mb-xl">
           <div class="col-12 col-md-8">
-            <div class="row items-center q-mb-xs">
-              <div class="ios-icon-box small bg-orange-50 text-orange-6 q-mr-sm">
+            <div class="row items-center no-wrap q-mb-xs">
+              <div class="ios-icon-box small bg-orange-50 text-orange-6 q-mr-sm flex-shrink-0">
                 <q-icon name="rule_folder" size="20px" />
               </div>
               <h4
@@ -26,12 +26,12 @@
         </div>
 
         <!-- TABEL 1: MENUNGGU PERSETUJUAN (PENDING) -->
-        <div class="q-mb-md flex items-center">
-          <q-icon name="pending_actions" color="orange-6" size="sm" class="q-mr-sm" />
-          <span class="text-h6 text-weight-bold text-blue-grey-9 tracking-wide"
+        <div class="q-mb-md row items-center no-wrap">
+          <q-icon name="pending_actions" color="orange-6" size="sm" class="q-mr-sm flex-shrink-0" />
+          <span class="text-h6 text-weight-bold text-blue-grey-9 tracking-wide col"
             >Antrean Izin Menunggu Verifikasi</span
           >
-          <q-badge color="orange-6" class="q-ml-sm rounded-6 text-weight-bold shadow-1">{{
+          <q-badge color="orange-6" class="q-ml-sm rounded-6 text-weight-bold shadow-1 flex-shrink-0">{{
             pendingRows.length
           }}</q-badge>
         </div>
@@ -154,8 +154,8 @@
                       class="rounded-8 shadow-soft-positive transition-smooth hover-scale q-px-md q-py-xs"
                       @click="updateStatus(props.row.id, 'Approved')"
                     >
-                      <div class="column items-center">
-                        <q-icon name="check" size="24px" class="text-white text-weight-bolder" />
+                      <div class="row items-center no-wrap q-gutter-x-xs">
+                        <q-icon name="check" size="18px" class="text-white text-weight-bolder" />
                         <span class="text-white text-weight-bolder" style="font-size: 11px"
                           >SETUJUI</span
                         >
@@ -197,9 +197,9 @@
         </q-card>
 
         <!-- TABEL 2: RIWAYAT -->
-        <div class="q-mb-md q-mt-xl flex items-center">
-          <q-icon name="history" color="blue-grey-5" size="sm" class="q-mr-sm" />
-          <span class="text-h6 text-weight-bold text-blue-grey-8 tracking-wide"
+        <div class="q-mb-md q-mt-xl row items-center no-wrap">
+          <q-icon name="history" color="blue-grey-5" size="sm" class="q-mr-sm flex-shrink-0" />
+          <span class="text-h6 text-weight-bold text-blue-grey-8 tracking-wide col"
             >Riwayat Pengambilan Keputusan Izin</span
           >
         </div>

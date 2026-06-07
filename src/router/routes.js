@@ -201,6 +201,16 @@ const routes = [
         component: () => import('pages/absensi/adminabsensi/AbsensiHarianLepas.vue'),
       },
       {
+        path: 'admin/pengajuan-absensi-harian-lepas',
+        name: 'absensi-admin-pengajuan-harian-lepas',
+        component: () => import('pages/absensi/adminabsensi/PengajuanAbsensiHarianLepasPage.vue'),
+      },
+      {
+        path: 'admin/persetujuan-harian-lepas',
+        name: 'absensi-admin-persetujuan-harian-lepas',
+        component: () => import('pages/absensi/adminabsensi/PersetujuanHarianLepasPage.vue'),
+      },
+      {
         path: 'profil',
         name: 'absensi-profil',
         component: () => import('pages/absensi/ProfilPage.vue'),
