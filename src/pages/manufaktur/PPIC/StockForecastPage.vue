@@ -938,10 +938,16 @@ const buildMaterialRequirementPayload = (row, jumlahDiminta = getRequestQty(row)
   const namaMaterial = row.nama_material || row.nama_barang || row.material || '-'
   const kodeMaterial = row.kode_material || row.kode_barang || row.kode || '-'
   const nomorPo = getRequirementPoNumber(row)
+  const projectId = row.project_id || row.projectId || row.proyek_id || ''
+  const projectName = row.project_name || row.projectName || row.proyek_nama || ''
 
   return {
     nomor_po: nomorPo,
     nomor_wo: nomorPo,
+    project_id: projectId,
+    project_name: projectName,
+    proyek_id: projectId,
+    proyek_nama: projectName,
     produk: row.produk || row.nama_produk || '',
     material_id: row.material_id || row.id || '',
     kode_barang: kodeMaterial,
@@ -1023,6 +1029,8 @@ const buildPurchaseRequestDraftPayload = (row, materialRequirementId, jumlahDimi
   const qty = Number(jumlahDiminta || getRequestQty(row) || 0)
   const kodeMaterial = row.kode_material || row.kode_barang || row.kode || ''
   const namaMaterial = row.nama_material || row.nama_barang || row.material || ''
+  const projectId = row.project_id || row.projectId || row.proyek_id || ''
+  const projectName = row.project_name || row.projectName || row.proyek_nama || ''
 
   return {
     id: draftRef.id,
@@ -1034,8 +1042,10 @@ const buildPurchaseRequestDraftPayload = (row, materialRequirementId, jumlahDimi
       nomor_po: nomorPo,
       tipe: 'PURCHASE_REQUEST',
       pemohon: 'PPIC',
-      proyek_id: 'UTAMA',
-      proyek_nama: 'Gudang Utama Center',
+      project_id: projectId,
+      project_name: projectName,
+      proyek_id: projectId,
+      proyek_nama: projectName,
       id_gudang: 'UTAMA',
       gudang_tujuan: 'Gudang Utama',
       status: REVIEW_GUDANG_STATUS,
@@ -1059,6 +1069,10 @@ const buildPurchaseRequestDraftPayload = (row, materialRequirementId, jumlahDimi
           kode_material: kodeMaterial,
           nama_barang: namaMaterial,
           nama_material: namaMaterial,
+          project_id: projectId,
+          project_name: projectName,
+          proyek_id: projectId,
+          proyek_nama: projectName,
           qty,
           jumlah: qty,
           satuan: row.satuan || '',

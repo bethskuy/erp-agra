@@ -711,6 +711,8 @@ const buildPurchaseRequestDraft = (row) => {
   const prNumber = `DRAFT-PR/MFG/${Date.now().toString().slice(-6)}`
   const poCustomer = row.nomor_po || row.nomor_wo || row.po_customer || ''
   const customer = row.customer || row.nama_customer || row.customer_nama || row.produk || ''
+  const projectId = row.project_id || row.projectId || row.proyek_id || ''
+  const projectName = row.project_name || row.projectName || row.proyek_nama || ''
   const note =
     row.note ||
     row.catatan ||
@@ -749,6 +751,10 @@ const buildPurchaseRequestDraft = (row) => {
     supplier: row.supplier || row.supplier_nama || '',
     supplier_nama: row.supplier || row.supplier_nama || '',
     customer,
+    project_id: projectId,
+    project_name: projectName,
+    proyek_id: projectId,
+    proyek_nama: projectName,
     po_customer: poCustomer,
     nomor_po: poCustomer,
     note,
@@ -779,8 +785,10 @@ const buildPurchaseRequestDraft = (row) => {
     gudang_id: 'UTAMA',
     gudang_tujuan: 'Gudang Utama',
     gudang_nama: 'Gudang Utama Center',
-    proyek_id: 'UTAMA',
-    proyek_nama: 'Gudang Utama Center',
+    project_id: projectId,
+    project_name: projectName,
+    proyek_id: projectId,
+    proyek_nama: projectName,
     tipe: 'PURCHASE_REQUEST',
     status: DRAFT_PR_STATUS,
     status_workflow: WAITING_PR_REVIEW_STATUS,

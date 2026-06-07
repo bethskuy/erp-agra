@@ -1,0 +1,82 @@
+
+ App • ⚠️  ️️Setting port to closest one available: 9002
+
+[1m[30m[101m ERROR(ESLint) [49m[39m[22m 'auth' is defined but never used. (no-unused-vars)
+[1m[30m[106m FILE [49m[39m[22m C:\Users\doni perdana\erp-agra\src\pages\manufaktur\Produksi\PackingProduksiPage.vue:[33m734[39m:[33m10[39m
+
+  [0m [90m 732 |[39m [36mimport[39m [33mQRCode[39m [36mfrom[39m [32m'qrcode'[39m
+   [90m 733 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mXLSX[39m [36mfrom[39m [32m'xlsx'[39m
+  [31m[1m>[22m[39m[90m 734 |[39m [36mimport[39m { auth[33m,[39m db } [36mfrom[39m [32m'src/boot/firebase'[39m
+   [90m     |[39m          [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 735 |[39m
+   [90m 736 |[39m [36mconst[39m [33mCOLLECTION_NAME[39m [33m=[39m [32m'packing_queue'[39m
+   [90m 737 |[39m [36mconst[39m [33mQC_COLLECTION[39m [33m=[39m [32m'qc_produksi_manufaktur'[39m[0m
+
+[1m[30m[101m ERROR(ESLint) [49m[39m[22m 'generateTransferNo' is assigned a value but never used. (no-unused-vars)
+[1m[30m[106m FILE [49m[39m[22m C:\Users\doni perdana\erp-agra\src\pages\manufaktur\Produksi\PackingProduksiPage.vue:[33m1215[39m:[33m7[39m
+
+  [0m [90m 1213 |[39m [36mconst[39m todayCode [33m=[39m () [33m=>[39m [36mnew[39m [33mDate[39m()[33m.[39mtoISOString()[33m.[39mslice([35m0[39m[33m,[39m [35m10[39m)[33m.[39mreplace([35m/-/g[39m[33m,[39m [32m''[39m)
+   [90m 1214 |[39m
+  [31m[1m>[22m[39m[90m 1215 |[39m [36mconst[39m generateTransferNo [33m=[39m (packingId) [33m=>[39m [32m`FGT-${todayCode()}-${sanitizeCode(packingId)}`[39m
+   [90m      |[39m       [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 1216 |[39m
+   [90m 1217 |[39m [36mconst[39m generatePackingNo [33m=[39m (packingId) [33m=>[39m [32m`PKG-${todayCode()}-${sanitizeCode(packingId)}`[39m
+   [90m 1218 |[39m[0m
+
+[1m[30m[101m ERROR(ESLint) [49m[39m[22m 'generatePackingNo' is assigned a value but never used. (no-unused-vars)
+[1m[30m[106m FILE [49m[39m[22m C:\Users\doni perdana\erp-agra\src\pages\manufaktur\Produksi\PackingProduksiPage.vue:[33m1217[39m:[33m7[39m
+
+  [0m [90m 1215 |[39m [36mconst[39m generateTransferNo [33m=[39m (packingId) [33m=>[39m [32m`FGT-${todayCode()}-${sanitizeCode(packingId)}`[39m
+   [90m 1216 |[39m
+  [31m[1m>[22m[39m[90m 1217 |[39m [36mconst[39m generatePackingNo [33m=[39m (packingId) [33m=>[39m [32m`PKG-${todayCode()}-${sanitizeCode(packingId)}`[39m
+   [90m      |[39m       [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 1218 |[39m
+   [90m 1219 |[39m [36mconst[39m buildQrPayload [33m=[39m (box[33m,[39m row [33m=[39m [36mnull[39m) [33m=>[39m ({
+   [90m 1220 |[39m   transfer_id[33m:[39m row[33m?[39m[33m.[39mid [33m||[39m selectedRow[33m.[39mvalue[33m?[39m[33m.[39mid [33m||[39m [32m''[39m[33m,[39m[0m
+
+[31m[ESLint] Found 3 errors and 0 warning[39m
+[1m[30m[101m ERROR(ESLint) [49m[39m[22m 'READY_DELIVERY_COLLECTION' is assigned a value but never used. (no-unused-vars)
+[1m[30m[106m FILE [49m[39m[22m C:\Users\doni perdana\erp-agra\src\pages\manufaktur\Produksi\PackingProduksiPage.vue:[33m753[39m:[33m7[39m
+
+  [0m [90m 751 |[39m [36mconst[39m [33mCOLLECTION_NAME[39m [33m=[39m [32m'packing_queue'[39m
+   [90m 752 |[39m [36mconst[39m [33mQC_COLLECTION[39m [33m=[39m [32m'qc_produksi_manufaktur'[39m
+  [31m[1m>[22m[39m[90m 753 |[39m [36mconst[39m [33mREADY_DELIVERY_COLLECTION[39m [33m=[39m [32m'ready_delivery_manufaktur'[39m
+   [90m     |[39m       [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 754 |[39m [36mconst[39m [33mFG_TRANSFERS_COLLECTION[39m [33m=[39m [32m'fg_transfers'[39m
+   [90m 755 |[39m [36mconst[39m [33mFG_TRANSFER_BOXES_COLLECTION[39m [33m=[39m [32m'fg_transfer_boxes'[39m
+   [90m 756 |[39m [36mconst[39m [33mMASTER_MATERIAL_COLLECTION[39m [33m=[39m [32m'master_packing_material'[39m[0m
+
+[1m[30m[101m ERROR(ESLint) [49m[39m[22m 'FG_TRANSFERS_COLLECTION' is assigned a value but never used. (no-unused-vars)
+[1m[30m[106m FILE [49m[39m[22m C:\Users\doni perdana\erp-agra\src\pages\manufaktur\Produksi\PackingProduksiPage.vue:[33m754[39m:[33m7[39m
+
+  [0m [90m 752 |[39m [36mconst[39m [33mQC_COLLECTION[39m [33m=[39m [32m'qc_produksi_manufaktur'[39m
+   [90m 753 |[39m [36mconst[39m [33mREADY_DELIVERY_COLLECTION[39m [33m=[39m [32m'ready_delivery_manufaktur'[39m
+  [31m[1m>[22m[39m[90m 754 |[39m [36mconst[39m [33mFG_TRANSFERS_COLLECTION[39m [33m=[39m [32m'fg_transfers'[39m
+   [90m     |[39m       [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 755 |[39m [36mconst[39m [33mFG_TRANSFER_BOXES_COLLECTION[39m [33m=[39m [32m'fg_transfer_boxes'[39m
+   [90m 756 |[39m [36mconst[39m [33mMASTER_MATERIAL_COLLECTION[39m [33m=[39m [32m'master_packing_material'[39m
+   [90m 757 |[39m [36mconst[39m [33mDETAIL_BOX_COLLECTION[39m [33m=[39m [32m'packing_detail_box'[39m[0m
+
+[1m[30m[101m ERROR(ESLint) [49m[39m[22m 'FG_TRANSFER_BOXES_COLLECTION' is assigned a value but never used. (no-unused-vars)
+[1m[30m[106m FILE [49m[39m[22m C:\Users\doni perdana\erp-agra\src\pages\manufaktur\Produksi\PackingProduksiPage.vue:[33m755[39m:[33m7[39m
+
+  [0m [90m 753 |[39m [36mconst[39m [33mREADY_DELIVERY_COLLECTION[39m [33m=[39m [32m'ready_delivery_manufaktur'[39m
+   [90m 754 |[39m [36mconst[39m [33mFG_TRANSFERS_COLLECTION[39m [33m=[39m [32m'fg_transfers'[39m
+  [31m[1m>[22m[39m[90m 755 |[39m [36mconst[39m [33mFG_TRANSFER_BOXES_COLLECTION[39m [33m=[39m [32m'fg_transfer_boxes'[39m
+   [90m     |[39m       [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 756 |[39m [36mconst[39m [33mMASTER_MATERIAL_COLLECTION[39m [33m=[39m [32m'master_packing_material'[39m
+   [90m 757 |[39m [36mconst[39m [33mDETAIL_BOX_COLLECTION[39m [33m=[39m [32m'packing_detail_box'[39m
+   [90m 758 |[39m [36mconst[39m [33mMATERIAL_USAGE_COLLECTION[39m [33m=[39m [32m'packing_material_usage'[39m[0m
+
+[1m[30m[101m ERROR(ESLint) [49m[39m[22m 'generateTransferNo' is assigned a value but never used. (no-unused-vars)
+[1m[30m[106m FILE [49m[39m[22m C:\Users\doni perdana\erp-agra\src\pages\manufaktur\Produksi\PackingProduksiPage.vue:[33m1231[39m:[33m7[39m
+
+  [0m [90m 1229 |[39m [36mconst[39m todayCode [33m=[39m () [33m=>[39m [36mnew[39m [33mDate[39m()[33m.[39mtoISOString()[33m.[39mslice([35m0[39m[33m,[39m [35m10[39m)[33m.[39mreplace([35m/-/g[39m[33m,[39m [32m''[39m)
+   [90m 1230 |[39m
+  [31m[1m>[22m[39m[90m 1231 |[39m [36mconst[39m generateTransferNo [33m=[39m (packingId) [33m=>[39m [32m`FGT-${todayCode()}-${sanitizeCode(packingId)}`[39m
+   [90m      |[39m       [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+   [90m 1232 |[39m
+   [90m 1233 |[39m [36mconst[39m generatePackingNo [33m=[39m (packingId) [33m=>[39m [32m`PKG-${todayCode()}-${sanitizeCode(packingId)}`[39m
+   [90m 1234 |[39m[0m
+
+[31m[ESLint] Found 4 errors and 0 warning[39m

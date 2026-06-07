@@ -4,7 +4,7 @@
       <div class="col-12 col-md-8">
         <div class="text-h4 text-weight-bolder text-green-10">SPK Produksi</div>
         <div class="text-subtitle1 text-grey-7 q-mt-xs">
-          Perintah produksi dari PO Customer approved menuju departemen produksi.
+          Perintah produksi dari planning PPIC menuju departemen produksi.
         </div>
       </div>
       <div class="col-12 col-md-auto q-mt-md q-mt-md-none">
@@ -31,7 +31,7 @@
               dense
               rounded
               debounce="250"
-              placeholder="Cari nomor SPK, PO, customer, produk, departemen, atau status..."
+              placeholder="Cari nomor SPK, planning, project, produk, departemen, atau status..."
             >
               <template #prepend>
                 <q-icon name="search" color="green-10" />
@@ -83,7 +83,7 @@
           <q-tr :props="props">
             <q-td key="nomor_spk" :props="props" class="text-weight-bolder text-green-10">
               {{ props.row.nomor_spk }}
-              <div class="text-caption text-grey-6">PO: {{ props.row.nomor_po || '-' }}</div>
+              <div class="text-caption text-grey-6">Planning: {{ props.row.nomor_planning || props.row.nomor_po || '-' }}</div>
             </q-td>
             <q-td key="customer" :props="props">{{ props.row.customer_nama || '-' }}</q-td>
             <q-td key="produk" :props="props">
@@ -114,7 +114,7 @@
                 <div class="row items-start no-wrap q-mb-sm">
                   <div class="col">
                     <div class="text-weight-bolder text-green-10">{{ props.row.nomor_spk }}</div>
-                    <div class="text-caption text-grey-7">PO: {{ props.row.nomor_po || '-' }}</div>
+                    <div class="text-caption text-grey-7">Planning: {{ props.row.nomor_planning || props.row.nomor_po || '-' }}</div>
                   </div>
                   <q-chip dense square text-color="white" :color="statusColor(props.row.status)">
                     {{ props.row.status || '-' }}
@@ -160,7 +160,7 @@
         <q-card-section class="dialog-header row items-center shrink">
           <div>
             <div class="text-h6 text-weight-bold">Buat SPK Produksi</div>
-            <div class="text-caption">PO Approved -> PPIC buat SPK -> Departemen Produksi</div>
+            <div class="text-caption">Project -> Planning PPIC -> SPK -> Departemen Produksi</div>
           </div>
           <q-space />
           <q-btn flat round dense icon="close" @click="closeDialog" />
@@ -182,7 +182,7 @@
                   input-debounce="250"
                   option-label="label"
                   option-value="value"
-                  label="Nomor PO Approved"
+                  label="Nomor Planning"
                   :loading="loadingPo"
                   :rules="[required]"
                   @filter="filterApprovedPo"
@@ -261,7 +261,6 @@ import {
   orderBy,
   query,
   serverTimestamp,
-  where,
   writeBatch,
 } from 'firebase/firestore'
 import { db } from 'src/boot/firebase'
@@ -269,8 +268,7 @@ import { db } from 'src/boot/firebase'
 const $q = useQuasar()
 
 const MASTER_DEPARTEMEN_COLLECTION = 'manufactur_master_departemen'
-const PO_CUSTOMER_COLLECTION = 'manufacturing_po_customer'
-const APPROVAL_QUOTATION_COLLECTION = 'manufacturing_approval_quotation'
+const PLANNING_COLLECTION = 'planning_produksi_manufaktur'
 const MANUFACTURING_DEPARTEMEN_COLLECTION = 'manufacturing_departemen'
 const SPK_SUBCOLLECTION = 'spk'
 
@@ -360,35 +358,38 @@ const normalizeProductionItem = (item = {}, index = 0) => {
   }
 }
 
-const normalizeApprovedDocument = (sourceCollection, sourceLabel, sourceDoc) => {
-  const data = sourceDoc.data()
+const normalizePlanningDocument = (planningDoc) => {
+  const data = planningDoc.data()
   const items = getDocumentItems(data).map(normalizeProductionItem)
   const firstItem = items[0] || {}
   const nomor =
-    data.nomor_po ||
+    data.nomor_planning ||
+    data.no_planning ||
     data.nomor ||
-    data.noPO ||
-    data.no_po ||
-    data.no_penawaran ||
-    data.nomor_penawaran ||
-    sourceDoc.id
+    planningDoc.id
+  const projectId = data.project_id || data.projectId || data.proyek_id || ''
+  const projectName = data.project_name || data.projectName || data.proyek_nama || data.project || ''
 
   return {
     ...data,
-    id: sourceDoc.id,
-    value: `${sourceCollection}:${sourceDoc.id}`,
-    label: `${nomor} - ${sourceLabel}`,
+    id: planningDoc.id,
+    value: `${PLANNING_COLLECTION}:${planningDoc.id}`,
+    label: `${nomor} - ${projectName || data.nama_produk || data.item_produksi || 'Planning Produksi'}`,
     nomor,
     nomor_po: nomor,
-    source_collection: sourceCollection,
-    source_document_id: sourceDoc.id,
-    source_label: sourceLabel,
+    nomor_planning: nomor,
+    planning_id: planningDoc.id,
+    source_collection: PLANNING_COLLECTION,
+    source_document_id: planningDoc.id,
+    source_label: 'Planning Produksi',
+    project_id: projectId,
+    project_name: projectName,
     customerName:
       data.customerName ||
       data.customer_nama ||
       data.nama_customer ||
       data.kepada_yth ||
-      data.proyek_nama ||
+      projectName ||
       data.konsumen ||
       '',
     customer_id: data.customer_id || data.id_customer || data.customerId || null,
@@ -439,52 +440,20 @@ const getPayloadItems = (payload) => {
 }
 
 const listenApprovedPoOptions = (callback, errorCallback) => {
-  const snapshots = {
-    po: [],
-    quotation: [],
-  }
-
-  const emit = () => {
-    const merged = [...snapshots.po, ...snapshots.quotation]
-      .filter((item) => item.status === 'Approved')
-      .sort((a, b) => {
-        const left = a.approvedAt?.toMillis?.() || a.updatedAt?.toMillis?.() || a.createdAt?.toMillis?.() || 0
-        const right = b.approvedAt?.toMillis?.() || b.updatedAt?.toMillis?.() || b.createdAt?.toMillis?.() || 0
-        return right - left
-      })
-    callback(merged)
-  }
-
   const handleError = (error) => {
     if (errorCallback) errorCallback(error)
   }
 
-  const unsubscribePoCustomer = onSnapshot(
-    query(collection(db, PO_CUSTOMER_COLLECTION), where('status', '==', 'Approved')),
+  return onSnapshot(
+    query(collection(db, PLANNING_COLLECTION), orderBy('created_at', 'desc')),
     (snapshot) => {
-      snapshots.po = snapshot.docs.map((poDoc) =>
-        normalizeApprovedDocument(PO_CUSTOMER_COLLECTION, 'PO Customer', poDoc),
-      )
-      emit()
+      const options = snapshot.docs
+        .map(normalizePlanningDocument)
+        .filter((item) => !['Selesai', 'Batal'].includes(item.status_planning || item.status))
+      callback(options)
     },
     handleError,
   )
-
-  const unsubscribeApprovalQuotation = onSnapshot(
-    query(collection(db, APPROVAL_QUOTATION_COLLECTION), where('status', '==', 'Approved')),
-    (snapshot) => {
-      snapshots.quotation = snapshot.docs.map((quotationDoc) =>
-        normalizeApprovedDocument(APPROVAL_QUOTATION_COLLECTION, 'Quotation Approved', quotationDoc),
-      )
-      emit()
-    },
-    handleError,
-  )
-
-  return () => {
-    unsubscribePoCustomer()
-    unsubscribeApprovalQuotation()
-  }
 }
 
 const createSpkProduksi = async (payload) => {
@@ -554,7 +523,11 @@ const defaultForm = () => ({
   nomor_spk: generateSpkNumber(),
   po_obj: null,
   nomor_po: '',
+  nomor_planning: '',
   po_id: null,
+  planning_id: null,
+  project_id: '',
+  project_name: '',
   customer_id: null,
   customer_nama: '',
   produk_id: null,
@@ -646,7 +619,11 @@ const filterApprovedPo = (val, update) => {
 const handlePoSelected = (po) => {
   const firstItem = Array.isArray(po?.items) && po.items.length ? po.items[0] : {}
   form.value.nomor_po = po?.nomor || po?.label || ''
+  form.value.nomor_planning = po?.nomor_planning || po?.nomor || ''
   form.value.po_id = po?.source_document_id || po?.id || null
+  form.value.planning_id = po?.planning_id || po?.source_document_id || po?.id || null
+  form.value.project_id = po?.project_id || firstItem.project_id || ''
+  form.value.project_name = po?.project_name || firstItem.project_name || ''
   form.value.customer_id = po?.customer_id || null
   form.value.customer_nama =
     po?.customerName || po?.customer_nama || po?.nama_customer || po?.kepada_yth || ''
@@ -666,9 +643,15 @@ const buildPayload = () => {
   return {
     nomor_spk: form.value.nomor_spk,
     nomor_po: form.value.nomor_po,
+    nomor_planning: form.value.nomor_planning,
     po_id: form.value.po_id,
-    po_source_collection: form.value.po_obj?.source_collection || PO_CUSTOMER_COLLECTION,
+    planning_id: form.value.planning_id,
+    project_id: form.value.project_id,
+    project_name: form.value.project_name,
+    po_source_collection: form.value.po_obj?.source_collection || PLANNING_COLLECTION,
     po_source_document_id: form.value.po_obj?.source_document_id || form.value.po_id,
+    source_collection: form.value.po_obj?.source_collection || PLANNING_COLLECTION,
+    source_document_id: form.value.po_obj?.source_document_id || form.value.planning_id,
     customer_id: form.value.customer_id,
     customer_nama: form.value.customer_nama,
     items: Array.isArray(form.value.po_obj?.items) && form.value.po_obj.items.length
@@ -695,7 +678,7 @@ const buildPayload = () => {
     catatan_produksi: form.value.catatan_produksi,
     status: 'Menunggu Produksi',
     status_flow: statusOptions,
-    source: 'PO_CUSTOMER_APPROVED',
+    source: 'PPIC_PLANNING',
   }
 }
 
@@ -774,7 +757,7 @@ onMounted(() => {
     (error) => {
       console.error(error)
       loadingPo.value = false
-      $q.notify({ type: 'negative', message: 'Gagal memuat PO approved.' })
+      $q.notify({ type: 'negative', message: 'Gagal memuat planning produksi.' })
     },
   )
 

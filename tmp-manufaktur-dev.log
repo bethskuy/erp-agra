@@ -1,0 +1,28 @@
+
+> agra-erp@0.0.1 dev
+> quasar dev --host 127.0.0.1 --port 9000
+
+
+ .d88888b.
+d88P" "Y88b
+888     888
+888     888 888  888  8888b.  .d8888b   8888b.  888d888
+888     888 888  888     "88b 88K          "88b 888P"
+888 Y8b 888 888  888 .d888888 "Y8888b. .d888888 888
+Y88b.Y8b88P Y88b 888 888  888      X88 888  888 888
+ "Y888888"   "Y88888 "Y888888  88888P' "Y888888 888
+       Y8b
+
+ App • Using quasar.config.js in "esm" format
+ App •  TIP  • 🚀  You are using the --port parameter. It is recommended to use a different devServer port for each Quasar mode to avoid browser cache issues
+ App • Using .env files: .env, .env.local
+
+ » Reported at............ 7/6/2026 03.10.45
+ » App dir................ C:\Users\doni perdana\erp-agra
+ » App URL................ http://192.168.0.62:9001/
+                           http://localhost:9001/
+ » Dev mode............... spa
+ » Pkg quasar............. v2.19.3
+ » Pkg @quasar/app-vite... v2.6.0
+ » Browser target......... es2022|edge89|firefox89|chrome89|safari15
+

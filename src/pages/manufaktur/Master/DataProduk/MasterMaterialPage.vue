@@ -268,6 +268,57 @@
                 />
               </div>
               <div class="col-12">
+                <q-card flat bordered class="packing-standard-card">
+                  <q-card-section class="text-weight-bold text-green-10">
+                    Standard Packing Product
+                  </q-card-section>
+                  <q-separator />
+                  <q-card-section>
+                    <div class="row q-col-gutter-md">
+                      <div class="col-12 col-md-6">
+                        <q-select
+                          v-model="form.packing_standard.material_id"
+                          :options="packingMaterialOptions"
+                          outlined
+                          bg-color="white"
+                          emit-value
+                          map-options
+                          label="Material Kemasan Utama"
+                          clearable
+                          @update:model-value="syncPackingMaterial"
+                        />
+                      </div>
+                      <div class="col-12 col-md-6">
+                        <q-input
+                          v-model="form.packing_standard.material"
+                          outlined
+                          bg-color="grey-2"
+                          readonly
+                          label="Nama Material"
+                        />
+                      </div>
+                      <div class="col-12 col-md-4">
+                        <q-input
+                          v-model.number="form.packing_standard.qty_per_box"
+                          type="number"
+                          min="0"
+                          outlined
+                          bg-color="white"
+                          label="Qty per Box"
+                          :rules="[nonNegative]"
+                        />
+                      </div>
+                      <div class="col-12 col-md-4">
+                        <q-toggle v-model="form.packing_standard.bubble_wrap" color="green-10" label="Bubble Wrap" />
+                      </div>
+                      <div class="col-12 col-md-4">
+                        <q-toggle v-model="form.packing_standard.pallet_required" color="green-10" label="Pallet Required" />
+                      </div>
+                    </div>
+                  </q-card-section>
+                </q-card>
+              </div>
+              <div class="col-12">
                 <q-input
                   v-model="form.deskripsi"
                   type="textarea"
@@ -345,9 +396,11 @@ import { getDownloadURL, ref as storageRef, uploadBytes } from 'firebase/storage
 import { db, storage } from 'src/boot/firebase'
 
 const COLLECTION_NAME = 'manufactur_master_barang'
+const PACKING_MATERIAL_COLLECTION = 'master_packing_material'
 
 const $q = useQuasar()
 const rows = ref([])
+const packingMaterials = ref([])
 const loading = ref(true)
 const saving = ref(false)
 const search = ref('')
@@ -359,6 +412,7 @@ const fotoFile = ref(null)
 const imagePreview = ref('')
 let objectPreviewUrl = null
 let unsubscribeRows = null
+let unsubscribePackingMaterials = null
 
 const typeOptions = ['RAW_MATERIAL', 'SEMI_FINISHED', 'FINISHED_GOOD', 'CONSUMABLE']
 const statusOptions = ['Aktif', 'Nonaktif']
@@ -383,6 +437,13 @@ const emptyForm = () => ({
   deskripsi: '',
   status: 'Aktif',
   foto: '',
+  packing_standard: {
+    material_id: '',
+    material: '',
+    qty_per_box: 0,
+    bubble_wrap: false,
+    pallet_required: false,
+  },
 })
 
 const form = ref(emptyForm())
@@ -445,6 +506,15 @@ const dialogTitle = computed(() =>
 
 const formatNumber = (value) => Number(value || 0).toLocaleString('id-ID')
 
+const packingMaterialOptions = computed(() =>
+  packingMaterials.value
+    .filter((item) => item.aktif !== false)
+    .map((item) => ({
+      label: `${item.nama_material || '-'} - stok ${formatNumber(item.stok)} ${item.satuan || ''}`,
+      value: item.id,
+    })),
+)
+
 const normalizeRow = (id, data = {}) => ({
   id,
   ...data,
@@ -459,6 +529,13 @@ const normalizeRow = (id, data = {}) => ({
   deskripsi: data.deskripsi || data.description || '',
   foto: data.foto || data.foto_url || data.foto_base64 || '',
   status: data.status || data.status_aktif || 'Aktif',
+  packing_standard: {
+    material_id: data.packing_standard?.material_id || data.packing_standard?.materialId || '',
+    material: data.packing_standard?.material || data.packing_standard?.material_name || '',
+    qty_per_box: Number(data.packing_standard?.qty_per_box || 0),
+    bubble_wrap: !!data.packing_standard?.bubble_wrap,
+    pallet_required: !!data.packing_standard?.pallet_required,
+  },
 })
 
 const filteredRows = computed(() => {
@@ -508,7 +585,9 @@ const handleFotoChange = (file) => {
 const openDialog = (row = null) => {
   revokeObjectPreview()
   selectedId.value = row?.id || null
-  form.value = row ? { ...emptyForm(), ...row } : emptyForm()
+  form.value = row
+    ? { ...emptyForm(), ...row, packing_standard: { ...emptyForm().packing_standard, ...(row.packing_standard || {}) } }
+    : emptyForm()
   fotoFile.value = null
   imagePreview.value = form.value.foto || ''
   showDialog.value = true
@@ -533,6 +612,11 @@ const uploadFotoMaterial = async () => {
   return getDownloadURL(snapshot.ref)
 }
 
+const syncPackingMaterial = (materialId) => {
+  const material = packingMaterials.value.find((item) => item.id === materialId)
+  form.value.packing_standard.material = material?.nama_material || ''
+}
+
 const payloadFromForm = () => ({
   kode_material: form.value.kode_material,
   kode: form.value.kode_material,
@@ -549,6 +633,13 @@ const payloadFromForm = () => ({
   deskripsi: form.value.deskripsi || '',
   status: form.value.status,
   status_aktif: form.value.status,
+  packing_standard: {
+    material_id: form.value.packing_standard.material_id || '',
+    material: form.value.packing_standard.material || '',
+    qty_per_box: Number(form.value.packing_standard.qty_per_box || 0),
+    bubble_wrap: !!form.value.packing_standard.bubble_wrap,
+    pallet_required: !!form.value.packing_standard.pallet_required,
+  },
   foto: form.value.foto || '',
   foto_url: form.value.foto || '',
 })
@@ -617,11 +708,27 @@ onMounted(() => {
       notify('negative', 'Gagal memuat data material.')
     },
   )
+  unsubscribePackingMaterials = onSnapshot(
+    query(collection(db, PACKING_MATERIAL_COLLECTION), orderBy('nama_material', 'asc')),
+    (snapshot) => {
+      packingMaterials.value = snapshot.docs.map((item) => ({
+        id: item.id,
+        stok: 0,
+        aktif: true,
+        ...item.data(),
+      }))
+    },
+    (error) => {
+      console.error(error)
+      notify('negative', 'Gagal memuat master packing material.')
+    },
+  )
 })
 
 onUnmounted(() => {
   revokeObjectPreview()
   if (unsubscribeRows) unsubscribeRows()
+  if (unsubscribePackingMaterials) unsubscribePackingMaterials()
 })
 </script>
 
@@ -633,7 +740,8 @@ onUnmounted(() => {
 
 .page-header,
 .filter-card,
-.table-card {
+.table-card,
+.packing-standard-card {
   background: #ffffff;
   border: none;
   border-radius: 12px;

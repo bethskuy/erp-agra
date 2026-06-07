@@ -1,13 +1,8 @@
 <template>
   <q-layout
     view="lHh Lpr lFf"
-    class="app-layout app-layout--manufacture"
-    :data-rive-bg-src="backgroundRiveSrc"
+    class="app-layout app-layout--manufacture manufactur-shell min-h-screen overflow-x-hidden"
   >
-    <div class="layout-rive-bg" aria-hidden="true">
-      <canvas ref="bgRiveCanvas" class="layout-rive-canvas"></canvas>
-    </div>
-
     <q-header elevated class="app-header app-header--manufacture text-white">
       <q-toolbar class="q-py-sm app-toolbar">
         <q-btn flat dense round icon="menu" @click="toggleLeftDrawer" />
@@ -106,7 +101,13 @@
       </q-toolbar>
     </q-header>
 
-    <q-drawer v-model="leftDrawerOpen" show-if-above bordered :width="272" class="sidebar-drawer">
+    <q-drawer
+      v-model="leftDrawerOpen"
+      show-if-above
+      bordered
+      :width="272"
+      class="sidebar-drawer manufactur-sidebar text-emerald-50"
+    >
       <div class="sidebar-profile row items-center no-wrap border-bottom">
         <q-avatar size="40px" color="teal-10" text-color="white" class="text-weight-bold"
           >R</q-avatar
@@ -172,10 +173,40 @@
               /></q-item-section>
               <q-item-section class="submenu-text">Approval Penawaran</q-item-section>
               <q-item-section side v-if="pendingCount > 0">
-                <q-badge color="orange-9" rounded :label="pendingCount" class="animate-bounce" />
+                <q-badge color="orange-9" rounded :label="pendingCount" />
               </q-item-section>
             </q-item>
           </q-expansion-item>
+
+          <q-item-label header class="section-title">PEMBELIAN</q-item-label>
+
+          <q-item
+            v-if="checkPermission('ppic/pesanan-pembelian')"
+            clickable
+            v-ripple
+            to="/manufaktur/ppic/pesanan-pembelian"
+            active-class="active-menu"
+            class="menu-item nav-item"
+          >
+            <q-item-section avatar class="menu-icon">
+              <q-icon name="shopping_cart" />
+            </q-item-section>
+            <q-item-section class="menu-text">Pesanan Pembelian</q-item-section>
+          </q-item>
+
+          <q-item
+            v-if="checkPermission('ppic/approval-po-material')"
+            clickable
+            v-ripple
+            to="/manufaktur/ppic/approval-po-material"
+            active-class="active-menu"
+            class="menu-item nav-item"
+          >
+            <q-item-section avatar class="menu-icon">
+              <q-icon name="approval" />
+            </q-item-section>
+            <q-item-section class="menu-text">Approval PO Material</q-item-section>
+          </q-item>
 
           <q-item-label header class="section-title">MASTER DATA</q-item-label>
 
@@ -291,6 +322,34 @@
                   <q-item
                     clickable
                     v-ripple
+                    to="/manufaktur/master/master-packing-material"
+                    active-class="active-menu"
+                    class="submenu-item master-grandchild-item"
+                    dense
+                  >
+                    <q-item-section avatar class="submenu-icon">
+                      <q-icon name="inventory_2" size="xs" />
+                    </q-item-section>
+                    <q-item-section class="submenu-text">Packing Material</q-item-section>
+                  </q-item>
+
+                  <q-item
+                    clickable
+                    v-ripple
+                    to="/manufaktur/master/master-standard-packing-product"
+                    active-class="active-menu"
+                    class="submenu-item master-grandchild-item"
+                    dense
+                  >
+                    <q-item-section avatar class="submenu-icon">
+                      <q-icon name="rule" size="xs" />
+                    </q-item-section>
+                    <q-item-section class="submenu-text">Standard Packing Product</q-item-section>
+                  </q-item>
+
+                  <q-item
+                    clickable
+                    v-ripple
                     to="/manufaktur/master-produksi/tahapan-fabrikasi"
                     active-class="active-menu"
                     class="submenu-item master-grandchild-item"
@@ -358,44 +417,63 @@
           <q-separator class="sidebar-separator" />
           <q-item-label header class="section-title">OPERASIONAL</q-item-label>
 
-          <q-item
-            v-if="checkPermission('departemen')"
-            clickable
-            v-ripple
-            to="/manufaktur/departemen"
-            active-class="active-menu"
-            class="menu-item nav-item"
-          >
-            <q-item-section avatar class="menu-icon">
-              <q-icon name="corporate_fare" />
-            </q-item-section>
-            <q-item-section class="menu-text">Departemen</q-item-section>
-            <q-item-section side v-if="activeQcRejectCount > 0">
-              <q-badge color="negative" rounded class="text-weight-bold">
-                Barang Reject QC {{ activeQcRejectCount }}
-              </q-badge>
-            </q-item-section>
-          </q-item>
-
           <q-expansion-item
-            v-if="checkPermission('sales/po-customer')"
-            icon="shopping_cart"
-            label="Sales"
+            v-if="
+              hasSectionAccess([
+                'produksi/project/master',
+                'produksi/project/monitoring',
+                'produksi/project/kategori',
+              ])
+            "
+            icon="account_tree"
+            label="Project"
             header-class="nav-group"
             expand-icon-class="nav-expand-icon"
+            :default-opened="isRouteInSection(['/manufaktur/produksi/project'])"
           >
             <q-item
+              v-if="checkPermission('produksi/project/master')"
               clickable
               v-ripple
-              to="/manufaktur/sales/po-customer"
+              to="/manufaktur/produksi/project/master"
               active-class="active-menu"
               class="submenu-item"
               dense
             >
-              <q-item-section avatar class="submenu-icon"
-                ><q-icon name="receipt_long" size="xs"
-              /></q-item-section>
-              <q-item-section class="submenu-text">PO Customer</q-item-section>
+              <q-item-section avatar class="submenu-icon">
+                <q-icon name="folder_managed" size="xs" />
+              </q-item-section>
+              <q-item-section class="submenu-text">Master Project</q-item-section>
+            </q-item>
+
+            <q-item
+              v-if="checkPermission('produksi/project/monitoring')"
+              clickable
+              v-ripple
+              to="/manufaktur/produksi/project/monitoring"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon">
+                <q-icon name="monitoring" size="xs" />
+              </q-item-section>
+              <q-item-section class="submenu-text">Monitoring Project</q-item-section>
+            </q-item>
+
+            <q-item
+              v-if="checkPermission('produksi/project/kategori')"
+              clickable
+              v-ripple
+              to="/manufaktur/produksi/project/kategori"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon">
+                <q-icon name="category" size="xs" />
+              </q-item-section>
+              <q-item-section class="submenu-text">Kategori Project</q-item-section>
             </q-item>
           </q-expansion-item>
 
@@ -406,6 +484,7 @@
                 'ppic/work-order',
                 'ppic/material-requirement',
                 'ppic/stock-forecast',
+                'ppic/forecast-packing-material',
                 'ppic/proses-fabrikasi',
               ])
             "
@@ -454,7 +533,7 @@
               <q-item-section avatar class="submenu-icon"
                 ><q-icon name="inventory" size="xs"
               /></q-item-section>
-              <q-item-section class="submenu-text">Material Requirement</q-item-section>
+              <q-item-section class="submenu-text">Permintaan Material</q-item-section>
             </q-item>
             <q-item
               v-if="checkPermission('ppic/stock-forecast')"
@@ -471,6 +550,20 @@
               <q-item-section class="submenu-text">Stock Forecast</q-item-section>
             </q-item>
             <q-item
+              v-if="checkPermission('ppic/forecast-packing-material')"
+              clickable
+              v-ripple
+              to="/manufaktur/ppic/forecast-packing-material"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon"
+                ><q-icon name="inventory_2" size="xs"
+              /></q-item-section>
+              <q-item-section class="submenu-text">Forecast Packing Material</q-item-section>
+            </q-item>
+            <!-- <q-item
               v-if="checkPermission('ppic/proses-fabrikasi')"
               clickable
               v-ripple
@@ -483,22 +576,41 @@
                 ><q-icon name="precision_manufacturing" size="xs"
               /></q-item-section>
               <q-item-section class="submenu-text">Proses Fabrikasi</q-item-section>
-            </q-item>
+            </q-item> -->
           </q-expansion-item>
 
           <q-expansion-item
-            v-if="
-              hasSectionAccess([
-                'produksi/monitoring-produksi',
-                'produksi/qc-produksi',
-                'produksi/packing-produksi',
-              ])
-            "
+            v-if="hasSectionAccess(['departemen', 'produksi/monitoring-produksi'])"
             icon="precision_manufacturing"
             label="Produksi"
             header-class="nav-group"
             expand-icon-class="nav-expand-icon"
+            :default-opened="
+              isRouteInSection([
+                '/manufaktur/departemen',
+                '/manufaktur/produksi/monitoring-produksi',
+              ])
+            "
           >
+            <q-item
+              v-if="checkPermission('departemen')"
+              clickable
+              v-ripple
+              to="/manufaktur/departemen"
+              active-class="active-menu"
+              class="submenu-item"
+              dense
+            >
+              <q-item-section avatar class="submenu-icon">
+                <q-icon name="corporate_fare" size="xs" />
+              </q-item-section>
+              <q-item-section class="submenu-text">Departemen</q-item-section>
+              <q-item-section side v-if="activeQcRejectCount > 0">
+                <q-badge color="negative" rounded class="text-weight-bold">
+                  Barang Reject QC {{ activeQcRejectCount }}
+                </q-badge>
+              </q-item-section>
+            </q-item>
             <q-item
               v-if="checkPermission('produksi/monitoring-produksi')"
               clickable
@@ -508,11 +620,26 @@
               class="submenu-item"
               dense
             >
-              <q-item-section avatar class="submenu-icon"
-                ><q-icon name="monitoring" size="xs"
-              /></q-item-section>
+              <q-item-section avatar class="submenu-icon">
+                <q-icon name="book" size="xs" />
+              </q-item-section>
               <q-item-section class="submenu-text">Monitoring Produksi</q-item-section>
             </q-item>
+          </q-expansion-item>
+
+          <q-expansion-item
+            v-if="hasSectionAccess(['produksi/qc-produksi', 'produksi/packing-produksi'])"
+            icon="fact_check"
+            label="Quality Control"
+            header-class="nav-group"
+            expand-icon-class="nav-expand-icon"
+            :default-opened="
+              isRouteInSection([
+                '/manufaktur/produksi/qc-produksi',
+                '/manufaktur/produksi/packing-produksi',
+              ])
+            "
+          >
             <q-item
               v-if="checkPermission('produksi/qc-produksi')"
               clickable
@@ -543,18 +670,8 @@
             </q-item>
           </q-expansion-item>
 
-          <q-separator class="sidebar-separator" />
-          <q-item-label header class="section-title">LOGISTIK & FINANCE</q-item-label>
-
           <q-expansion-item
-            v-if="
-              hasSectionAccess([
-                'warehouse/incoming-material',
-                'warehouse/finished-goods',
-                'warehouse/bahan-mentah',
-                'warehouse/bahan-jadi',
-              ])
-            "
+            v-if="hasSectionAccess(['warehouse/incoming-material', 'warehouse/finished-goods'])"
             icon="warehouse"
             label="Warehouse"
             header-class="nav-group"
@@ -587,34 +704,6 @@
                 ><q-icon name="inventory" size="xs"
               /></q-item-section>
               <q-item-section class="submenu-text">Finished Goods</q-item-section>
-            </q-item>
-            <q-item
-              v-if="checkPermission('warehouse/bahan-mentah')"
-              clickable
-              v-ripple
-              to="/manufaktur/warehouse/bahan-mentah"
-              active-class="active-menu"
-              class="submenu-item"
-              dense
-            >
-              <q-item-section avatar class="submenu-icon"
-                ><q-icon name="category" size="xs"
-              /></q-item-section>
-              <q-item-section class="submenu-text">Bahan Mentah</q-item-section>
-            </q-item>
-            <q-item
-              v-if="checkPermission('warehouse/bahan-jadi')"
-              clickable
-              v-ripple
-              to="/manufaktur/warehouse/bahan-jadi"
-              active-class="active-menu"
-              class="submenu-item"
-              dense
-            >
-              <q-item-section avatar class="submenu-icon"
-                ><q-icon name="inventory_2" size="xs"
-              /></q-item-section>
-              <q-item-section class="submenu-text">Bahan Jadi</q-item-section>
             </q-item>
           </q-expansion-item>
 
@@ -791,21 +880,24 @@
     </q-drawer>
 
     <q-page-container class="app-page-container">
-      <router-view />
+      <router-view v-slot="{ Component, route: viewRoute }">
+        <transition name="manufactur-page" mode="out-in">
+          <component :is="Component" :key="viewRoute.fullPath" />
+        </transition>
+      </router-view>
     </q-page-container>
   </q-layout>
 </template>
 
 <script setup>
 import { onMounted, onUnmounted, ref } from 'vue'
-import { Rive, Layout, Fit, Alignment } from '@rive-app/canvas'
+import { useRoute } from 'vue-router'
 import { db } from 'src/boot/firebase'
 import { collection, query, where, onSnapshot } from 'firebase/firestore'
 import { useAuthStore } from 'src/stores/auth'
 
 const authStore = useAuthStore()
-const backgroundRiveSrc = '/animations/bg.riv'
-const bgRiveCanvas = ref(null)
+const route = useRoute()
 const leftDrawerOpen = ref(false)
 const pendingCount = ref(0)
 const newPurchaseRequestCount = ref(0)
@@ -815,8 +907,6 @@ let unsub = null
 let unsubPurchaseRequest = null
 let unsubQcReject = null
 let unsubUser = null
-let bgRive = null
-let bgRivePlaybackTarget = null
 
 const toggleLeftDrawer = () => {
   leftDrawerOpen.value = !leftDrawerOpen.value
@@ -832,87 +922,10 @@ const hasSectionAccess = (menuPaths) => {
   return menuPaths.some((path) => checkPermission(path))
 }
 
-const resizeBgRive = () => {
-  bgRive?.resizeDrawingSurfaceToCanvas()
-}
-
-const startBgRive = () => {
-  if (!bgRive) return
-
-  resizeBgRive()
-
-  const [firstAnimation] = bgRive.animationNames || []
-  const [firstStateMachine] = bgRive.stateMachineNames || []
-  const target = bgRivePlaybackTarget || firstStateMachine || firstAnimation
-
-  bgRive.play(undefined, true)
-
-  if (target) {
-    bgRive.play(target, true)
-  }
-  if (firstStateMachine && firstStateMachine !== target) {
-    bgRive.play(firstStateMachine, true)
-  }
-
-  bgRive.startRendering?.()
-}
-
-const createBackgroundRive = (playback = {}) => {
-  if (!bgRiveCanvas.value || bgRive) return
-
-  bgRive = new Rive({
-    src: '/animations/bg.riv',
-    canvas: bgRiveCanvas.value,
-    animations: playback.animation,
-    stateMachines: playback.stateMachine,
-    autoplay: true,
-    layout: new Layout({
-      fit: Fit.Cover,
-      alignment: Alignment.Center,
-    }),
-    onLoad: () => {
-      if (!bgRive) return
-      resizeBgRive()
-
-      const [firstAnimation] = bgRive.animationNames || []
-      const [firstStateMachine] = bgRive.stateMachineNames || []
-
-      console.log('[bg.riv]', {
-        activeArtboard: bgRive.activeArtboard,
-        animationNames: bgRive.animationNames,
-        stateMachineNames: bgRive.stateMachineNames,
-      })
-
-      if (!playback.animation && !playback.stateMachine && (firstAnimation || firstStateMachine)) {
-        const nextPlayback = firstStateMachine
-          ? { stateMachine: firstStateMachine }
-          : { animation: firstAnimation }
-
-        destroyBackgroundRive()
-        createBackgroundRive(nextPlayback)
-        return
-      }
-
-      const target =
-        playback.stateMachine || playback.animation || firstStateMachine || firstAnimation
-      bgRivePlaybackTarget = target || null
-      startBgRive()
-    },
-  })
-}
-
-const destroyBackgroundRive = () => {
-  window.removeEventListener('resize', resizeBgRive)
-  if (!bgRive) return
-  bgRive.cleanup()
-  bgRive = null
-  bgRivePlaybackTarget = null
-}
+const isRouteInSection = (paths) =>
+  paths.some((path) => route.path === path || route.path.startsWith(`${path}/`))
 
 onMounted(() => {
-  createBackgroundRive()
-  window.addEventListener('resize', resizeBgRive)
-
   const q = query(collection(db, 'penawaran_manufaktur'), where('status', '==', 'Pending'))
   unsub = onSnapshot(q, (snap) => {
     pendingCount.value = snap.size
@@ -945,7 +958,6 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  destroyBackgroundRive()
   if (unsub) unsub()
   if (unsubPurchaseRequest) unsubPurchaseRequest()
   if (unsubQcReject) unsubQcReject()
@@ -958,45 +970,42 @@ onUnmounted(() => {
   position: relative;
   min-height: 100vh;
   overflow-x: hidden;
-  background:
-    radial-gradient(circle at 12% 8%, rgba(16, 185, 129, 0.16), transparent 28%),
-    radial-gradient(circle at 86% 12%, rgba(34, 211, 238, 0.12), transparent 26%),
-    radial-gradient(circle at 50% 102%, rgba(6, 95, 70, 0.14), transparent 34%),
-    linear-gradient(135deg, #041f1d 0%, #062f2b 42%, #0f3d35 100%);
+  background: linear-gradient(135deg, #0b2e33 0%, #123c42 40%, #1a4f57 100%);
   max-width: 100vw;
 }
 .app-layout--manufacture {
   isolation: isolate;
 }
-.layout-rive-bg {
+.app-layout--manufacture::before,
+.app-layout--manufacture::after {
   position: fixed;
-  inset: 0;
   z-index: 0;
-  overflow: hidden;
+  width: 420px;
+  height: 420px;
+  border-radius: 999px;
   pointer-events: none;
+  content: '';
 }
-.layout-rive-canvas {
-  position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  display: block;
-  opacity: 0.16;
-  pointer-events: none;
+.app-layout--manufacture::before {
+  top: 86px;
+  right: 7vw;
+  background: radial-gradient(circle, rgba(34, 197, 94, 0.16), transparent 64%);
+  animation: manufactur-soft-float 18s ease-in-out infinite;
+}
+.app-layout--manufacture::after {
+  bottom: -120px;
+  left: 17vw;
+  background: radial-gradient(circle, rgba(45, 212, 191, 0.12), transparent 66%);
+  animation: manufactur-soft-float 22s ease-in-out infinite reverse;
 }
 .app-header {
   position: relative;
   z-index: 2;
-  backdrop-filter: blur(16px);
 }
 .app-header--manufacture {
-  background:
-    linear-gradient(135deg, rgba(4, 31, 28, 0.88), rgba(5, 74, 63, 0.84), rgba(8, 47, 73, 0.86)),
-    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.15), transparent 28%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 18px 42px rgba(3, 20, 28, 0.3);
-  background-size: 220% 220%;
-  animation: gradientMove 18s ease infinite;
+  background: #0f2d2f;
+  border-bottom: 1px solid #164247;
+  box-shadow: 0 10px 24px rgba(2, 12, 18, 0.22);
 }
 .app-toolbar {
   min-height: 66px;
@@ -1006,10 +1015,9 @@ onUnmounted(() => {
 }
 .app-header-actions {
   padding: 6px 10px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
+  border-radius: 14px;
+  background: #123c42;
+  border: 1px solid #1a4f57;
 }
 .header-icon-btn {
   transition:
@@ -1019,15 +1027,17 @@ onUnmounted(() => {
 }
 .header-icon-btn:hover {
   transform: translateY(-2px);
-  background: rgba(255, 255, 255, 0.12);
+  background: #164247;
   box-shadow: 0 12px 22px rgba(0, 0, 0, 0.12);
 }
+.header-icon-btn:active {
+  transform: translateY(0) scale(0.96);
+}
 .app-menu-panel {
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.16);
-  border-radius: 18px;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.18);
+  border-radius: 14px;
 }
 .app-page-container {
   position: relative;
@@ -1037,8 +1047,23 @@ onUnmounted(() => {
   max-width: 100%;
   overflow-x: hidden;
 }
+.manufactur-page-enter-active,
+.manufactur-page-leave-active {
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+.manufactur-page-enter-from {
+  opacity: 0;
+  transform: translate3d(0, 6px, 0);
+}
+.manufactur-page-leave-to {
+  opacity: 0;
+  transform: translate3d(0, -4px, 0);
+}
 .app-page-container :deep(.q-page) {
   background: transparent !important;
+  color: #0f172a;
   width: 100%;
   max-width: none !important;
 }
@@ -1072,6 +1097,10 @@ onUnmounted(() => {
   overflow-x: hidden !important;
   max-width: 100vw !important;
 }
+:global(body:has(.app-layout--manufacture) *) {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
 :global(body:has(.app-layout--manufacture) .q-dialog__inner--minimized > div) {
   max-width: min(96vw, 1120px) !important;
 }
@@ -1085,8 +1114,166 @@ onUnmounted(() => {
 :global(body:has(.app-layout--manufacture) .q-dialog__inner--minimized .q-card.detail-dialog) {
   width: min(94vw, 920px) !important;
 }
+.manufactur-shell {
+  color: #e5fff5;
+}
+.manufactur-sidebar {
+  color: #eafaf4;
+}
+:global(body:has(.app-layout--manufacture) .manufactur-card),
+:global(body:has(.app-layout--manufacture) .manufactur-filter),
+:global(body:has(.app-layout--manufacture) .manufactur-table),
+:global(body:has(.app-layout--manufacture) .manufactur-stat-card) {
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
+  transition:
+    transform 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+  will-change: transform;
+}
+:global(body:has(.app-layout--manufacture) .manufactur-card:hover),
+:global(body:has(.app-layout--manufacture) .manufactur-stat-card:hover),
+:global(body:has(.app-layout--manufacture) .q-page .q-card:hover) {
+  transform: translateY(-2px);
+  border-color: #86efac;
+  box-shadow:
+    0 14px 30px rgba(15, 23, 42, 0.16),
+    0 0 0 1px rgba(34, 197, 94, 0.1);
+}
+:global(body:has(.app-layout--manufacture) .manufactur-card) {
+  border-radius: 14px;
+}
+:global(body:has(.app-layout--manufacture) .manufactur-filter) {
+  border-radius: 14px;
+}
+:global(body:has(.app-layout--manufacture) .manufactur-table) {
+  overflow: hidden;
+  border-radius: 14px;
+}
+:global(body:has(.app-layout--manufacture) .manufactur-stat-card) {
+  border-radius: 14px;
+}
+:global(body:has(.app-layout--manufacture) .q-page .q-card) {
+  background: #ffffff !important;
+  border: 1px solid #d1d5db;
+  border-radius: 14px;
+  color: #0f172a;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+  transition:
+    transform 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+:global(body:has(.app-layout--manufacture) .q-page .q-card__section) {
+  color: #0f172a;
+}
+:global(body:has(.app-layout--manufacture) .q-page .q-table__container) {
+  overflow: hidden;
+  background: #ffffff !important;
+  border: 1px solid #d1d5db;
+  border-radius: 14px;
+  color: #0f172a;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+}
+:global(body:has(.app-layout--manufacture) .q-page .q-markup-table),
+:global(body:has(.app-layout--manufacture) .q-page .q-table__middle) {
+  background: #ffffff !important;
+  color: #0f172a;
+}
+:global(body:has(.app-layout--manufacture) .q-table__top),
+:global(body:has(.app-layout--manufacture) .q-table__bottom) {
+  background: #ffffff !important;
+  color: #0f172a;
+}
+:global(body:has(.app-layout--manufacture) .q-table thead tr),
+:global(body:has(.app-layout--manufacture) .q-table thead th) {
+  background: #14532d !important;
+  color: #ffffff !important;
+  font-weight: 700;
+}
+:global(body:has(.app-layout--manufacture) .q-table tbody tr) {
+  background: #ffffff;
+  transition: background-color 160ms ease;
+}
+:global(body:has(.app-layout--manufacture) .q-table tbody tr:hover) {
+  background: #f0fdf4;
+}
+:global(body:has(.app-layout--manufacture) .q-table tbody td) {
+  color: #111827 !important;
+}
+:global(body:has(.app-layout--manufacture) .q-field--outlined .q-field__control) {
+  background: #ffffff !important;
+}
+:global(body:has(.app-layout--manufacture) .q-field__label),
+:global(body:has(.app-layout--manufacture) .q-field__native),
+:global(body:has(.app-layout--manufacture) .q-field__input),
+:global(body:has(.app-layout--manufacture) .q-field__prefix),
+:global(body:has(.app-layout--manufacture) .q-field__suffix) {
+  color: #111827;
+}
+:global(body:has(.app-layout--manufacture) .q-dialog__backdrop) {
+  background: rgba(15, 23, 42, 0.5) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+:global(body:has(.app-layout--manufacture) .q-btn) {
+  transition:
+    transform 160ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease,
+    filter 180ms ease;
+}
+:global(body:has(.app-layout--manufacture) .q-btn:not(.q-btn--flat):not(.q-btn--outline)) {
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.14);
+}
+:global(body:has(.app-layout--manufacture) .q-btn:hover) {
+  transform: translateY(-1px);
+  filter: saturate(1.05);
+}
+:global(body:has(.app-layout--manufacture) .q-btn:active) {
+  transform: translateY(0) scale(0.98);
+}
+:global(body:has(.app-layout--manufacture) .q-table .q-btn:hover),
+:global(body:has(.app-layout--manufacture) .q-table .q-icon:hover) {
+  transform: scale(1.05);
+}
+:global(body:has(.app-layout--manufacture) .q-skeleton) {
+  position: relative;
+  overflow: hidden;
+}
+:global(body:has(.app-layout--manufacture) .q-skeleton::after) {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  transform: translateX(-100%);
+  animation: manufactur-shimmer 1.8s ease-in-out infinite;
+  content: '';
+}
+:global(body:has(.app-layout--manufacture) .q-table__bottom--nodata) {
+  min-height: 132px;
+  color: #475569;
+  font-weight: 600;
+}
+:global(body:has(.app-layout--manufacture) .q-table__bottom--nodata::before) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  margin-right: 10px;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #166534;
+  font-family: 'Material Icons';
+  font-size: 24px;
+  vertical-align: middle;
+  content: 'inventory_2';
+}
 .border-bottom {
-  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+  border-bottom: 1px solid #164247;
 }
 .sidebar-drawer {
   color: #eafaf4;
@@ -1095,25 +1282,23 @@ onUnmounted(() => {
     transform 0.24s ease;
 }
 .sidebar-drawer :deep(.q-drawer) {
-  color: #eafaf4;
-  background: #062f2b;
-  border-right: 1px solid rgba(167, 243, 208, 0.12);
-  box-shadow:
-    20px 0 42px rgba(2, 12, 18, 0.34),
-    inset -1px 0 0 rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  background: #0f2d2f;
+  border-right: 1px solid #164247;
+  box-shadow: 12px 0 28px rgba(2, 12, 18, 0.26);
   transition:
     width 0.24s ease,
     transform 0.24s ease;
 }
 .sidebar-drawer :deep(.q-drawer__content) {
-  color: #eafaf4;
-  background: #062f2b;
+  color: #ffffff;
+  background: #0f2d2f;
 }
 .sidebar-drawer :deep(.q-list) {
-  color: #eafaf4;
+  color: #ffffff;
 }
 .sidebar-drawer :deep(.q-item) {
-  color: #eafaf4;
+  color: #ffffff;
 }
 .sidebar-drawer :deep(.q-item__label) {
   color: inherit;
@@ -1125,7 +1310,7 @@ onUnmounted(() => {
   min-height: 72px;
   padding: 12px 16px;
   gap: 10px;
-  background: #07352f;
+  background: #0f2d2f;
 }
 .sidebar-profile__meta {
   min-width: 0;
@@ -1142,14 +1327,14 @@ onUnmounted(() => {
 }
 .sidebar-profile__role {
   margin-top: 3px;
-  color: rgba(167, 243, 208, 0.62);
+  color: #bbf7d0;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.8px;
   text-transform: uppercase;
 }
 .sidebar-scroll {
-  background: #062f2b;
+  background: #0f2d2f;
 }
 .menu-list {
   padding: 10px 10px 16px;
@@ -1166,14 +1351,14 @@ onUnmounted(() => {
 }
 .sidebar-separator {
   margin: 10px 8px 4px;
-  background: linear-gradient(90deg, transparent, rgba(167, 243, 208, 0.14), transparent);
+  background: #164247;
 }
 .menu-item {
   min-height: 38px;
   margin: 3px 2px;
   padding: 0 12px;
   border: 1px solid transparent;
-  border-radius: 14px;
+  border-radius: 12px;
   color: #eafaf4;
   font-size: 13px;
   font-weight: 650;
@@ -1189,12 +1374,10 @@ onUnmounted(() => {
 .submenu-item:hover,
 :deep(.submenu-group:hover),
 :deep(.nav-group:hover) {
-  background: #0b473f;
-  border-color: rgba(110, 231, 183, 0.28);
-  color: #f4fffb;
-  box-shadow:
-    0 12px 26px rgba(2, 12, 18, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  background: #164247;
+  border-color: #1a4f57;
+  color: #ffffff;
+  box-shadow: none;
 }
 .menu-item:hover,
 .submenu-item:hover,
@@ -1207,6 +1390,14 @@ onUnmounted(() => {
   min-width: 30px;
   padding-right: 8px;
   color: inherit;
+  align-items: center;
+  justify-content: center;
+}
+.menu-item:hover .menu-icon,
+.submenu-item:hover .submenu-icon,
+:deep(.submenu-group:hover .q-item__section--avatar),
+:deep(.nav-group:hover .q-item__section--avatar) {
+  transform: translateX(2px) scale(1.04);
 }
 .menu-icon :deep(.q-icon) {
   font-size: 19px;
@@ -1224,7 +1415,7 @@ onUnmounted(() => {
   padding: 0 11px;
   border: 1px solid transparent;
   border-radius: 12px;
-  color: #d6f3e9;
+  color: #ffffff;
   font-size: 12.5px;
   font-weight: 550;
   letter-spacing: 0;
@@ -1238,10 +1429,13 @@ onUnmounted(() => {
 .submenu-icon {
   min-width: 24px;
   padding-right: 7px;
-  color: #9bcfc1;
+  color: #bbf7d0;
+}
+.submenu-icon :deep(.q-icon) {
+  font-size: 16px;
 }
 .submenu-item:hover .submenu-icon {
-  color: #a7f3d0;
+  color: #ffffff;
 }
 :deep(.submenu-group) {
   min-height: 34px;
@@ -1249,7 +1443,7 @@ onUnmounted(() => {
   padding: 0 11px;
   border: 1px solid transparent;
   border-radius: 12px;
-  color: #d6f3e9;
+  color: #ffffff;
   font-size: 12.5px;
   font-weight: 650;
   letter-spacing: 0;
@@ -1263,7 +1457,7 @@ onUnmounted(() => {
 :deep(.submenu-group .q-item__section--avatar) {
   min-width: 24px;
   padding-right: 7px;
-  color: #9bcfc1;
+  color: #bbf7d0;
 }
 :deep(.submenu-group .q-item__label) {
   min-width: 0;
@@ -1273,12 +1467,12 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 :deep(.q-expansion-item--expanded > .submenu-group) {
-  color: #eafaf4;
-  background: #0a3c35;
-  border-color: rgba(110, 231, 183, 0.2);
+  color: #ffffff;
+  background: #164247;
+  border-color: #1a4f57;
 }
 :deep(.q-expansion-item--expanded > .submenu-group .q-item__section--avatar) {
-  color: #a7f3d0;
+  color: #ffffff;
 }
 .master-child-item {
   margin-left: 20px;
@@ -1295,7 +1489,7 @@ onUnmounted(() => {
   padding: 0 12px;
   border: 1px solid transparent;
   border-radius: 14px;
-  color: #eafaf4;
+  color: #ffffff;
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0;
@@ -1309,13 +1503,13 @@ onUnmounted(() => {
 :deep(.nav-group .q-item__section--avatar) {
   min-width: 30px;
   padding-right: 8px;
-  color: #b4e5d7;
+  color: #bbf7d0;
 }
 :deep(.nav-group .q-item__label) {
   line-height: 1.1;
 }
 :deep(.nav-expand-icon) {
-  color: #9bcfc1;
+  color: #bbf7d0;
   font-size: 18px;
 }
 :deep(.q-expansion-item__content) {
@@ -1325,25 +1519,22 @@ onUnmounted(() => {
     opacity 0.18s ease;
 }
 :deep(.q-expansion-item--expanded > .nav-group) {
-  color: #f4fffb;
-  background: #0a3c35;
-  border-color: rgba(110, 231, 183, 0.24);
-  box-shadow:
-    0 12px 26px rgba(2, 12, 18, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  background: #164247;
+  border-color: #1a4f57;
+  box-shadow: none;
 }
 :deep(.q-expansion-item--expanded > .nav-group .q-item__section--avatar) {
-  color: #a7f3d0;
+  color: #ffffff;
 }
 .active-menu {
   color: white !important;
-  background: #10b981 !important;
-  border-color: rgba(209, 250, 229, 0.44) !important;
-  border-radius: 14px !important;
+  background: #22c55e !important;
+  border-color: #22c55e !important;
+  border-radius: 12px !important;
   box-shadow:
-    0 0 0 1px rgba(167, 243, 208, 0.08),
-    0 16px 34px rgba(16, 185, 129, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.24);
+    0 8px 18px rgba(34, 197, 94, 0.22),
+    0 0 0 1px rgba(187, 247, 208, 0.32);
   font-weight: 750;
 }
 .active-menu .submenu-icon,
@@ -1355,44 +1546,41 @@ onUnmounted(() => {
   font-weight: 800;
   letter-spacing: 0.9px;
 }
-.animate-bounce {
-  animation: bounce 2.2s infinite;
-}
-@keyframes gradientMove {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-@keyframes bounce {
-  0%,
-  20%,
-  50%,
-  80%,
-  100% {
-    transform: translateY(0);
-  }
-  40% {
-    transform: translateY(-3px);
-  }
-  60% {
-    transform: translateY(-2px);
-  }
-}
-
 @media (max-width: 700px) {
   .app-header-actions {
     padding: 4px 6px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .app-header--manufacture {
-    animation: none;
+  .app-layout--manufacture::before,
+  .app-layout--manufacture::after,
+  :global(body:has(.app-layout--manufacture) .q-skeleton::after) {
+    animation: none !important;
+  }
+  .manufactur-page-enter-active,
+  .manufactur-page-leave-active,
+  :global(body:has(.app-layout--manufacture) *),
+  .menu-item,
+  .submenu-item,
+  :deep(.submenu-group),
+  :deep(.nav-group) {
+    transition: none !important;
+  }
+}
+@keyframes manufactur-soft-float {
+  0%,
+  100% {
+    opacity: 0.58;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    opacity: 0.78;
+    transform: translate3d(0, -12px, 0) scale(1.03);
+  }
+}
+@keyframes manufactur-shimmer {
+  100% {
+    transform: translateX(100%);
   }
 }
 </style>

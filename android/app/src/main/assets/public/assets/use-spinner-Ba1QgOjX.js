@@ -1,1 +1,0 @@
-import{c as e,x as t}from"./QIcon-B3TcYE98.js";var n={size:{type:[String,Number],default:`1em`},color:String};function r(n){return{cSize:t(()=>n.size in e?`${e[n.size]}px`:n.size),classes:t(()=>`q-spinner`+(n.color?` text-${n.color}`:``))}}export{n,r as t};

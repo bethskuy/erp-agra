@@ -5,7 +5,7 @@
         <div class="text-h4 text-weight-bolder text-green-10 leading-tight">
           Planning Produksi
             <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs">
-            Planning produksi dari approved quotation ke departemen manufacturing
+            Planning produksi dari project manufaktur ke departemen manufacturing
           </span>
         </div>
       </div>
@@ -47,7 +47,7 @@
               dense
               rounded
               debounce="250"
-              placeholder="Cari planning, approved quotation, customer, produk, atau departemen..."
+              placeholder="Cari planning, project, customer, produk, atau departemen..."
               bg-color="white"
             >
               <template #prepend>
@@ -249,9 +249,9 @@
                   dense
                   use-input
                   input-debounce="200"
-                  label="Nomor Approved"
+                  label="Project / Item Project"
                   :loading="loadingApproved"
-                  :rules="[(val) => !!val || 'Nomor approved wajib dipilih']"
+                  :rules="[(val) => !!val || 'Project wajib dipilih']"
                   @filter="filterApproved"
                   @update:model-value="handleApprovedSelected"
                 />
@@ -372,7 +372,7 @@
         <q-card-section v-if="selectedRow" class="q-pa-lg">
           <div class="row q-col-gutter-md">
             <div class="col-12 col-md-6">
-              <div class="detail-label">Nomor Approved</div>
+              <div class="detail-label">Project</div>
               <div class="detail-value">{{ selectedRow.nomor_approved || selectedRow.nomor_spk || '-' }}</div>
             </div>
             <div class="col-12 col-md-6">
@@ -434,13 +434,14 @@ import {
   query,
   serverTimestamp,
   updateDoc,
-  where,
 } from 'firebase/firestore'
 import { db } from 'src/boot/firebase'
 
 const $q = useQuasar()
 const PLANNING_COLLECTION = 'planning_produksi_manufaktur'
-const APPROVAL_QUOTATION_COLLECTION = 'manufacturing_approval_quotation'
+const PROJECT_COLLECTION = 'mf_projects'
+const PROJECT_ITEMS_COLLECTION = 'mf_project_items'
+const PROJECT_MONITORING_COLLECTION = 'mf_project_monitoring'
 const MASTER_PRODUK_COLLECTION = 'master_produk'
 const MASTER_DEPARTEMEN_COLLECTION = 'manufactur_master_departemen'
 
@@ -517,17 +518,51 @@ const listenMasterDepartemen = (callback, errorCallback) =>
   )
 
 const listenApprovedQuotations = (callback, errorCallback) =>
-  onSnapshot(
-    query(collection(db, APPROVAL_QUOTATION_COLLECTION), where('status', '==', 'Approved')),
-    (snapshot) =>
-      callback(
-        snapshot.docs.map((approvalDoc) => ({
-          id: approvalDoc.id,
-          ...approvalDoc.data(),
-        })),
-      ),
-    errorCallback,
-  )
+  {
+    const snapshots = {
+      projects: [],
+      items: [],
+      monitoring: [],
+    }
+
+    const emit = () => callback(buildProjectPlanningSources(snapshots))
+    const handleError = (error) => {
+      if (errorCallback) errorCallback(error)
+    }
+
+    const unsubscribeProjects = onSnapshot(collection(db, PROJECT_COLLECTION), (snapshot) => {
+      snapshots.projects = snapshot.docs.map((projectDoc) => ({
+        id: projectDoc.id,
+        ...projectDoc.data(),
+        __collection: PROJECT_COLLECTION,
+      }))
+      emit()
+    }, handleError)
+
+    const unsubscribeProjectItems = onSnapshot(collection(db, PROJECT_ITEMS_COLLECTION), (snapshot) => {
+      snapshots.items = snapshot.docs.map((itemDoc) => ({
+        id: itemDoc.id,
+        ...itemDoc.data(),
+        __collection: PROJECT_ITEMS_COLLECTION,
+      }))
+      emit()
+    }, handleError)
+
+    const unsubscribeMonitoring = onSnapshot(collection(db, PROJECT_MONITORING_COLLECTION), (snapshot) => {
+      snapshots.monitoring = snapshot.docs.map((monitoringDoc) => ({
+        id: monitoringDoc.id,
+        ...monitoringDoc.data(),
+        __collection: PROJECT_MONITORING_COLLECTION,
+      }))
+      emit()
+    }, handleError)
+
+    return () => {
+      unsubscribeProjects()
+      unsubscribeProjectItems()
+      unsubscribeMonitoring()
+    }
+  }
 
 const listenMasterProduk = (callback, errorCallback) =>
   onSnapshot(
@@ -568,6 +603,10 @@ const defaultForm = () => ({
   approved_id: '',
   nomor_approved: '',
   quotation_id: '',
+  project_id: '',
+  project_name: '',
+  project_item_id: '',
+  project_monitoring_id: '',
   spk_id: '',
   nomor_spk: '',
   no_so: '',
@@ -708,8 +747,35 @@ const normalizeText = (value) =>
     .trim()
     .toLowerCase()
 
+const getProjectRefId = (row = {}) => {
+  const value = row.project_id ?? row.projectId ?? row.proyek_id ?? row.proyekId ?? row.project
+  if (value && typeof value === 'object') {
+    return value.id || value.value || value.project_id || value.projectId || ''
+  }
+  return value || row.id || ''
+}
+
+const getProjectName = (row = {}, fallback = '') =>
+  row.project_name ||
+  row.projectName ||
+  row.proyek_nama ||
+  row.nama_project ||
+  row.nama_proyek ||
+  row.nama ||
+  row.name ||
+  row.nomor_project ||
+  fallback ||
+  ''
+
 const getApprovedNumber = (row) =>
-  row.nomor_approved || row.nomor || row.no_quotation || row.nomor_quotation || row.reference_no || row.id
+  row.nomor_approved ||
+  row.nomor_project ||
+  row.nomor_monitoring ||
+  row.nomor_spk ||
+  row.nomor ||
+  row.reference_no ||
+  row.project_name ||
+  row.id
 
 const getApprovedItems = (row) =>
   (Array.isArray(row.items) && row.items.length
@@ -746,8 +812,162 @@ const getApprovedItems = (row) =>
       subtotal: Number(item.subtotal ?? item.total ?? qty * harga),
       produk_id: item.produk_id || item.product_id || item.id_produk || null,
       kode_produk: item.kode_produk || item.kode_barang || '',
+      project_id: item.project_id || row.project_id || row.projectId || row.proyek_id || '',
+      project_name: item.project_name || row.project_name || row.projectName || row.proyek_nama || '',
+      project_item_id: item.project_item_id || item.item_id || item.id || '',
+      project_monitoring_id: item.project_monitoring_id || row.project_monitoring_id || '',
     }
   })
+
+const flattenMonitoringItems = (monitoring) => {
+  const groups = Array.isArray(monitoring.groups) ? monitoring.groups : []
+  const groupItems = groups.flatMap((group) =>
+    (Array.isArray(group.items) ? group.items : []).map((item) => ({
+      ...item,
+      group_id: group.id || group.group_id || group.name || '',
+      group_name: group.name || group.nama_group || group.label || '',
+    })),
+  )
+  if (groupItems.length) return groupItems
+  if (Array.isArray(monitoring.items) && monitoring.items.length) return monitoring.items
+  if (Array.isArray(monitoring.item_pekerjaan) && monitoring.item_pekerjaan.length) {
+    return monitoring.item_pekerjaan
+  }
+  return []
+}
+
+const normalizeProjectPlanningItem = (item, context, index = 0) => {
+  const qty = Number(
+    item.qty_target ??
+      item.target_qty ??
+      item.qty ??
+      item.volume ??
+      item.target ??
+      item.quantity ??
+      0,
+  )
+  const namaProduk =
+    item.nama_produk ||
+    item.nama_barang ||
+    item.nama_item ||
+    item.pekerjaan ||
+    item.deskripsi ||
+    item.name ||
+    `Item Project ${index + 1}`
+
+  return {
+    ...item,
+    item_id: item.item_id || item.id || `project-item-${index + 1}`,
+    project_item_id: item.project_item_id || item.id || item.item_id || '',
+    project_monitoring_id: context.project_monitoring_id || item.project_monitoring_id || '',
+    project_id: context.project_id,
+    project_name: context.project_name,
+    nama_produk: namaProduk,
+    deskripsi: item.deskripsi || namaProduk,
+    qty,
+    satuan: item.satuan || item.unit || context.satuan || 'Unit',
+    kode_produk: item.kode_produk || item.kode_barang || '',
+    produk_id: item.produk_id || item.product_id || item.id_produk || null,
+    target_qty: qty,
+    realisasi: Number(item.realisasi || item.actual_qty || item.qty_realisasi || 0),
+  }
+}
+
+const buildProjectPlanningSources = ({ projects, items, monitoring }) => {
+  const projectsById = new Map(projects.map((project) => [getProjectRefId(project), project]))
+  const rows = []
+
+  items.forEach((item, index) => {
+    const projectId = getProjectRefId(item)
+    const project = projectsById.get(projectId) || {}
+    const projectName = getProjectName(item, getProjectName(project, projectId))
+    rows.push({
+      ...item,
+      id: item.id,
+      status: 'Project Active',
+      project_id: projectId,
+      project_name: projectName,
+      project_item_id: item.id,
+      project_monitoring_id: item.project_monitoring_id || '',
+      source_collection: PROJECT_ITEMS_COLLECTION,
+      source_document_id: item.id,
+      nomor: item.nomor || project.nomor_project || project.nomor || projectId,
+      customer_nama: item.customer_nama || project.customer_nama || project.customer || '',
+      items: [normalizeProjectPlanningItem(item, { project_id: projectId, project_name: projectName }, index)],
+    })
+  })
+
+  monitoring.forEach((monitoringRow) => {
+    const projectId = getProjectRefId(monitoringRow)
+    const project = projectsById.get(projectId) || {}
+    const projectName = getProjectName(monitoringRow, getProjectName(project, projectId))
+    const monitoringItems = flattenMonitoringItems(monitoringRow)
+    const normalizedItems = monitoringItems.map((item, index) =>
+      normalizeProjectPlanningItem(
+        item,
+        {
+          project_id: projectId,
+          project_name: projectName,
+          project_monitoring_id: monitoringRow.id,
+          satuan: monitoringRow.satuan,
+        },
+        index,
+      ),
+    )
+
+    rows.push({
+      ...monitoringRow,
+      id: monitoringRow.id,
+      status: 'Project Active',
+      project_id: projectId,
+      project_name: projectName,
+      project_monitoring_id: monitoringRow.id,
+      source_collection: PROJECT_MONITORING_COLLECTION,
+      source_document_id: monitoringRow.id,
+      nomor:
+        monitoringRow.nomor_monitoring ||
+        monitoringRow.nomor_spk ||
+        monitoringRow.nomor ||
+        project.nomor_project ||
+        projectId,
+      customer_nama: monitoringRow.customer_nama || project.customer_nama || project.customer || '',
+      items: normalizedItems.length
+        ? normalizedItems
+        : [
+            normalizeProjectPlanningItem(
+              monitoringRow,
+              {
+                project_id: projectId,
+                project_name: projectName,
+                project_monitoring_id: monitoringRow.id,
+              },
+              0,
+            ),
+          ],
+    })
+  })
+
+  projects.forEach((project) => {
+    const projectId = getProjectRefId(project)
+    const alreadyHasSource = rows.some((row) => row.project_id === projectId)
+    if (alreadyHasSource) return
+    const projectName = getProjectName(project, projectId)
+    rows.push({
+      ...project,
+      id: project.id,
+      status: 'Project Active',
+      project_id: projectId,
+      project_name: projectName,
+      source_collection: PROJECT_COLLECTION,
+      source_document_id: project.id,
+      nomor: project.nomor_project || project.nomor || projectId,
+      customer_nama: project.customer_nama || project.customer || '',
+      items: [normalizeProjectPlanningItem(project, { project_id: projectId, project_name: projectName }, 0)],
+    })
+  })
+
+  return rows
+}
 
 const findMasterProduk = (item) => {
   const produkId = item.produk_id || item.product_id || item.id_produk
@@ -784,13 +1004,14 @@ const mapApprovedOption = (row) => {
 const refreshApprovedOptions = (needle = '') => {
   const searchText = normalizeText(needle)
   filteredApprovedOptions.value = approvedRows.value
-    .filter((row) => row.status === 'Approved')
     .filter((row) => {
       const items = getApprovedItems(row)
       return (
         !searchText ||
         [
           getApprovedNumber(row),
+          row.project_name,
+          row.project_id,
           row.nama_customer,
           row.customer_nama,
           row.customer?.nama,
@@ -870,12 +1091,16 @@ const handleApprovedSelected = (option) => {
   const approvedNumber = getApprovedNumber(approved)
 
   form.value.approved_id = approved.id
-  form.value.quotation_id = approved.quotation_id || approved.source_document_id || approved.id
+  form.value.quotation_id = ''
+  form.value.project_id = approved.project_id || getProjectRefId(approved)
+  form.value.project_name = approved.project_name || getProjectName(approved, form.value.project_id)
+  form.value.project_item_id = selectedItem.project_item_id || approved.project_item_id || selectedItem.item_id || ''
+  form.value.project_monitoring_id = approved.project_monitoring_id || selectedItem.project_monitoring_id || ''
   form.value.nomor_approved = approvedNumber
-  form.value.spk_id = approved.id
+  form.value.spk_id = approved.project_monitoring_id || approved.id
   form.value.nomor_spk = approvedNumber
-  form.value.no_so = approved.nomor_po || approved.nomor || ''
-  form.value.project = approved.nomor || approvedNumber
+  form.value.no_so = approved.nomor_project || approved.nomor || approvedNumber
+  form.value.project = form.value.project_name
   form.value.customer_id = approved.customer_id || approved.customer?.id || ''
   form.value.customer_nama =
     approved.customer_nama || approved.nama_customer || approved.customer?.nama || approved.customerName || ''
@@ -913,7 +1138,14 @@ const buildPayload = () => {
     no_planning: form.value.no_planning,
     nomor_planning: form.value.no_planning,
     approved_id: form.value.approved_id,
-    quotation_id: form.value.quotation_id,
+    quotation_id: '',
+    project_id: form.value.project_id,
+    project_name: form.value.project_name,
+    project_item_id: form.value.project_item_id,
+    project_monitoring_id: form.value.project_monitoring_id,
+    source: 'PROJECT_MANUFACTURING',
+    source_collection: form.value.approved_obj?.item?.source_collection || PROJECT_COLLECTION,
+    source_document_id: form.value.approved_obj?.item?.source_document_id || form.value.approved_id,
     nomor_approved: form.value.nomor_approved,
     nomor_spk: form.value.nomor_approved || form.value.nomor_spk,
     spk_id: form.value.spk_id,
@@ -960,6 +1192,8 @@ const buildPayloadForItem = (item, index, totalItems) => {
   return {
     ...buildPayload(),
     item_id: item.item_id,
+    project_item_id: item.project_item_id || form.value.project_item_id,
+    project_monitoring_id: item.project_monitoring_id || form.value.project_monitoring_id,
     item_index: index,
     items: getApprovedItems(form.value.approved_obj?.item || form.value.approved_obj || {}),
     no_planning:
@@ -1143,7 +1377,7 @@ const listenApprovedOptions = () => {
     (error) => {
       console.error(error)
       loadingApproved.value = false
-      $q.notify({ type: 'negative', message: 'Gagal memuat approved quotation manufacturing' })
+      $q.notify({ type: 'negative', message: 'Gagal memuat project manufacturing' })
     },
   )
 }
