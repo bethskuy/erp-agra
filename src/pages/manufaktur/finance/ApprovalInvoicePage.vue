@@ -552,7 +552,7 @@
                 </div>
                 <table class="text-grey-9" style="font-size: 11px; margin-left: auto">
                   <tr>
-                    <td width="80" class="text-left q-pb-xs">Tanggal</td>
+                    <td width="80" class="text-right q-pb-xs">Tanggal</td>
                     <td width="15" class="text-center q-pb-xs">:</td>
                     <td class="text-weight-bold text-black text-left q-pb-xs">
                       {{ formatDateIndo(selectedInv.tanggal) }}
@@ -572,8 +572,8 @@
               <tbody>
                 <tr v-for="(item, i) in selectedInv.items" :key="i">
                   <td
-                    class="text-center text-weight-bold border-bottom-none border-top-none"
-                    style="vertical-align: top; padding-top: 10px"
+                    class="text-center text-weight-bold border-bottom-none border-top-none q-py-sm"
+                    style="vertical-align: top"
                   >
                     {{ i + 1 }}
                   </td>
@@ -591,8 +591,8 @@
                     </div>
                   </td>
                   <td
-                    class="text-right q-px-md border-bottom-none border-top-none"
-                    style="vertical-align: top; padding-top: 10px"
+                    class="text-right q-px-md q-py-sm border-bottom-none border-top-none"
+                    style="vertical-align: top"
                   >
                     {{ (item.nominal || 0).toLocaleString('id-ID', { minimumFractionDigits: 0 }) }}
                   </td>
@@ -2365,9 +2365,26 @@ onUnmounted(() => {
 /* =======================================================================
    PDF PREVIEW STYLES (MATCHING 100% TO INVOICECUSTOMERPAGE)
    ======================================================================= */
+.preview-container {
+  overflow-x: auto !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: flex-start !important;
+}
+@media (max-width: 820px) {
+  .preview-container {
+    justify-content: flex-start !important;
+    padding: 8px !important;
+  }
+}
+.invoice-preview-wrapper {
+  flex-shrink: 0 !important;
+}
 .letter-paper {
   background: white !important;
   width: 210mm;
+  min-width: 210mm;
+  flex-shrink: 0 !important;
   min-height: 296mm;
   padding: 15mm 20mm;
   margin: 0 auto;

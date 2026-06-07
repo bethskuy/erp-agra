@@ -428,6 +428,13 @@ const normalizeRow = (row) => {
   const qtyPo = Number(row.qty_target ?? row.qty_po ?? row.total_po ?? 0)
   const qtyHasilJadi = Number(row.total_hasil_produksi || row.total_progress || row.qty_hasil_jadi || 0)
   const progress = Number(row.progress_percent ?? row.progress ?? (qtyPo ? Math.min(100, Math.round((qtyHasilJadi / qtyPo) * 100)) : 0))
+  const customerValue = typeof row.customer === 'object' ? row.customer?.nama : row.customer
+  const customerName =
+    customerValue ||
+    row.customer_nama ||
+    row.nama_customer ||
+    row.customerName ||
+    ''
 
   return {
     ...row,
@@ -442,7 +449,9 @@ const normalizeRow = (row) => {
       'Departemen Manufacturing',
     kode_departemen:
       row.tujuan_departemen?.kode_departemen || row.departemen_kode || row.departemen?.kode_departemen || '',
-    customer_nama: row.customer_nama || row.customer?.nama || row.customer || '',
+    customer: customerName,
+    customer_nama: customerName,
+    customer_id: row.customer_id || row.id_customer || row.customerId || null,
     nama_produk: row.nama_produk || row.item_produksi || row.produk?.nama_produk || '',
     kode_produk: row.kode_produk || row.produk?.kode_produk || '',
     no_spk: row.no_spk || row.nomor_spk || '',
@@ -620,6 +629,8 @@ const normalizeStatus = (status) => {
   if (['qc approved', 'qc_approved', 'approved'].includes(normalized)) return 'qc_approved'
   if (['qc reject', 'qc_reject', 'qc_rejected', 'reject'].includes(normalized)) return 'qc_reject'
   if (['qc rework', 'qc_rework', 'rework'].includes(normalized)) return 'rework'
+  if (['re-qc', 're_qc', 'qc ulang'].includes(normalized)) return 're_qc'
+  if (['qc selesai', 'qc_selesai'].includes(normalized)) return 'qc_selesai'
   if (['menunggu rework', 'menunggu_rework'].includes(normalized)) return 'menunggu_rework'
   if (['diproses', 'diproses ulang', 'diproses_ulang', 'proses ulang'].includes(normalized)) return 'diproses_ulang'
   if (['pending qc ulang', 'pending_qc_ulang'].includes(normalized)) return 'pending_qc_ulang'
@@ -697,7 +708,9 @@ const progressColor = (value) => {
 
 const canFinishProduction = (row) =>
   Number(row.qty_hasil_jadi || 0) > 0 &&
-  !['pending_qc', 'qc_approved', 'qc_reject', 'rework', 'qc process'].includes(normalizeStatus(row.status_produksi))
+  !['pending_qc', 'qc_approved', 'qc_reject', 'rework', 're_qc', 'qc_selesai', 'selesai', 'qc process'].includes(
+    normalizeStatus(row.status_produksi),
+  )
 
 const buildQcQueuePayload = (row) => ({
   id: row.id,
@@ -705,6 +718,23 @@ const buildQcQueuePayload = (row) => ({
   source_type: row.source_type || 'monitoring',
   no_spk: row.no_spk || row.nomor_spk || '',
   nomor_spk: row.nomor_spk || row.no_spk || '',
+  nomor_po: row.nomor_po || row.no_po || row.po_number || '',
+  po_id: row.po_id || row.po_customer_id || row.id_po_customer || null,
+  po_source_collection: row.po_source_collection || 'manufacturing_po_customer',
+  po_source_document_id: row.po_source_document_id || row.po_id || row.po_customer_id || row.id_po_customer || null,
+  customer:
+    (typeof row.customer === 'object' ? row.customer?.nama : row.customer) ||
+    row.customer_nama ||
+    row.nama_customer ||
+    row.customerName ||
+    '',
+  customer_nama:
+    (typeof row.customer === 'object' ? row.customer?.nama : row.customer) ||
+    row.customer_nama ||
+    row.nama_customer ||
+    row.customerName ||
+    '',
+  customer_id: row.customer_id || row.id_customer || row.customerId || null,
   nama_produk: row.nama_produk || '',
   kode_produk: row.kode_produk || '',
   produk_id: row.produk_id || row.id_produk || '',
@@ -712,7 +742,9 @@ const buildQcQueuePayload = (row) => ({
   departemen_id: row.departemen_id || row.departemen_path_id || row.tujuan_departemen?.id || '',
   departemen_terkait: row.departemen_terkait || row.nama_departemen || '',
   kategori_produk: row.kategori_produk || row.kategori || '',
-  qty_produksi: Number(row.qty_hasil_jadi || row.qty_produksi || 0),
+  qty_produksi_awal: Number(row.qty_hasil_jadi || row.qty_produksi_awal || row.qty_produksi || 0),
+  qty_pending_qc: Number(row.qty_hasil_jadi || row.qty_produksi_awal || row.qty_produksi || 0),
+  qty_produksi: Number(row.qty_hasil_jadi || row.qty_produksi_awal || row.qty_produksi || 0),
   satuan: row.satuan || 'Unit',
   operator: row.operator || row.operator_nama || row.created_by || row.createdBy || '',
   tanggal_finish: serverTimestamp(),
@@ -720,10 +752,10 @@ const buildQcQueuePayload = (row) => ({
   status_produksi: 'pending_qc',
   status: 'pending_qc',
   qty_passed: 0,
+  qty_approved: 0,
+  qty_approved_qc: 0,
   qty_rework: 0,
   qty_reject: 0,
-  customer_nama: row.customer_nama || '',
-  nomor_po: row.nomor_po || '',
   created_at: serverTimestamp(),
   updated_at: serverTimestamp(),
 })
@@ -734,11 +766,8 @@ const finishProduction = async (row) => {
     const duplicateSnap = await getDocs(
       query(collection(db, QC_COLLECTION), where('production_source_id', '==', row.id)),
     )
-    const hasOpenQueue = duplicateSnap.docs.some((qcDoc) =>
-      ['menunggu_qc', 'pending_qc', 'qc_process'].includes(normalizeStatus(qcDoc.data().status_qc)),
-    )
-    if (hasOpenQueue) {
-      $q.notify({ type: 'warning', message: 'Antrean QC untuk produksi ini sudah ada.' })
+    if (!duplicateSnap.empty) {
+      $q.notify({ type: 'warning', message: 'Antrean QC untuk produksi ini sudah ada atau sudah selesai.' })
       return
     }
 

@@ -112,62 +112,64 @@
             </q-toolbar>
 
             <q-card-section class="q-pa-none">
-              <q-markup-table flat separator="horizontal" class="permintaan-table">
-                <thead>
-                  <tr class="bg-brand-light text-brand-primary">
-                    <th width="50">NO</th>
-                    <th class="text-left">NAMA BARANG / MATERIAL</th>
-                    <th width="100">QTY</th>
-                    <th width="100">UNIT</th>
-                    <th width="50"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="(item, index) in form.items" :key="index">
-                    <td class="text-center text-grey-6">{{ index + 1 }}</td>
-                    <td>
-                      <!-- FIX: Menggunakan Placeholder Dinamis agar hilang ketika barang sudah terpilih -->
-                      <q-select
-                        dense
-                        borderless
-                        v-model="item.barang"
-                        :options="masterBarang"
-                        option-label="nama"
-                        :placeholder="item.barang ? '' : 'Pilih material...'"
-                        use-input
-                        @filter="filterMasterBarang"
-                        @update:model-value="(val) => onBarangSelect(val, index)"
-                        behavior="menu"
-                      />
-                    </td>
-                    <td>
-                      <q-input
-                        dense
-                        borderless
-                        v-model.number="item.qty"
-                        type="number"
-                        input-class="text-center text-weight-bold text-brand-primary"
-                      />
-                    </td>
-                    <td class="text-center">
-                      <q-badge outline color="brand-primary" class="uppercase text-weight-bold">
-                        {{ item.satuan || '-' }}
-                      </q-badge>
-                    </td>
-                    <td class="text-center">
-                      <q-btn
-                        flat
-                        round
-                        color="brand-danger"
-                        icon="remove_circle_outline"
-                        size="sm"
-                        @click="removeItemRow(index)"
-                        :disable="form.items.length === 1"
-                      />
-                    </td>
-                  </tr>
-                </tbody>
-              </q-markup-table>
+              <div class="overflow-auto">
+                <q-markup-table flat separator="horizontal" class="permintaan-table" style="min-width: 600px;">
+                  <thead>
+                    <tr class="bg-brand-light text-brand-primary">
+                      <th width="50">NO</th>
+                      <th class="text-left">NAMA BARANG / MATERIAL</th>
+                      <th width="100">QTY</th>
+                      <th width="100">UNIT</th>
+                      <th width="50"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(item, index) in form.items" :key="index">
+                      <td class="text-center text-grey-6">{{ index + 1 }}</td>
+                      <td>
+                        <!-- FIX: Menggunakan Placeholder Dinamis agar hilang ketika barang sudah terpilih -->
+                        <q-select
+                          dense
+                          borderless
+                          v-model="item.barang"
+                          :options="masterBarang"
+                          option-label="nama"
+                          :placeholder="item.barang ? '' : 'Pilih material...'"
+                          use-input
+                          @filter="filterMasterBarang"
+                          @update:model-value="(val) => onBarangSelect(val, index)"
+                          behavior="menu"
+                        />
+                      </td>
+                      <td>
+                        <q-input
+                          dense
+                          borderless
+                          v-model.number="item.qty"
+                          type="number"
+                          input-class="text-center text-weight-bold text-brand-primary"
+                        />
+                      </td>
+                      <td class="text-center">
+                        <q-badge outline color="brand-primary" class="uppercase text-weight-bold">
+                          {{ item.satuan || '-' }}
+                        </q-badge>
+                      </td>
+                      <td class="text-center">
+                        <q-btn
+                          flat
+                          round
+                          color="brand-danger"
+                          icon="remove_circle_outline"
+                          size="sm"
+                          @click="removeItemRow(index)"
+                          :disable="form.items.length === 1"
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
+                </q-markup-table>
+              </div>
 
               <div v-if="form.items.length === 0" class="q-pa-xl text-center text-grey-5">
                 Klik ikon plus di pojok kanan atas untuk menambah item.
@@ -395,6 +397,13 @@ onUnmounted(() => {
 }
 .border-top {
   border-top: 1px solid #eee;
+}
+
+.overflow-auto {
+  overflow-x: auto !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  display: block;
 }
 
 .permintaan-table :deep(thead tr th) {

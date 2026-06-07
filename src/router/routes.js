@@ -283,6 +283,16 @@ const routes = [
         component: () => import('pages/manufaktur/Master/DataSatuan/MasterSatuanPage.vue'),
       },
       {
+        path: 'master/master-packing-material',
+        name: 'manufaktur-master-packing-material',
+        component: () => import('pages/manufaktur/Master/MasterPackingMaterialPage.vue'),
+      },
+      {
+        path: 'master/master-standard-packing-product',
+        name: 'manufaktur-master-standard-packing-product',
+        component: () => import('pages/manufaktur/Master/MasterStandardPackingProductPage.vue'),
+      },
+      {
         path: 'master-material',
         alias: '/manufactur/master-material',
         name: 'manufaktur-master-material',
@@ -315,19 +325,7 @@ const routes = [
         component: () => import('pages/manufaktur/Penawaran/ApprovalQuotationPage.vue'),
       },
 
-      // --- SECTION 1: SALES ---
-      {
-        path: 'sales/po-customer',
-        name: 'manufaktur-po-customer',
-        component: () => import('pages/manufaktur/sales/POCustomerPage.vue'),
-      },
-
       // --- SECTION 2: PPIC ---
-      {
-        path: 'ppic/spk-fabrikasi',
-        name: 'manufaktur-ppic-spk-fabrikasi',
-        component: () => import('pages/manufaktur/PPIC/SPKProduksiPage.vue'),
-      },
       {
         path: 'ppic/work-order',
         name: 'manufaktur-ppic-work-order',
@@ -349,9 +347,25 @@ const routes = [
         component: () => import('pages/manufaktur/PPIC/MaterialRequirementPage.vue'),
       },
       {
+        path: 'ppic/pesanan-pembelian',
+        name: 'manufaktur-ppic-pesanan-pembelian',
+        component: () =>
+          import('pages/manufaktur/Pembelian/PesananPembelian/PesananPembelianPage.vue'),
+      },
+      {
+        path: 'ppic/approval-po-material',
+        name: 'manufaktur-ppic-approval-po-material',
+        component: () => import('pages/manufaktur/Pembelian/PesananPembelian/ApprovalPoPage.vue'),
+      },
+      {
         path: 'ppic/stock-forecast',
         name: 'manufaktur-ppic-stock-forecast',
         component: () => import('pages/manufaktur/PPIC/StockForecastPage.vue'),
+      },
+      {
+        path: 'ppic/forecast-packing-material',
+        name: 'manufaktur-ppic-forecast-packing-material',
+        component: () => import('pages/manufaktur/PPIC/PackingForecastPage.vue'),
       },
 
       // --- SECTION 3: PRODUKSI ---
@@ -369,6 +383,21 @@ const routes = [
         path: 'produksi/packing-produksi',
         name: 'manufaktur-packing-produksi',
         component: () => import('pages/manufaktur/Produksi/PackingProduksiPage.vue'),
+      },
+      {
+        path: 'produksi/project/master',
+        name: 'manufaktur-project-master',
+        component: () => import('pages/manufaktur/Project/MasterProjectPage.vue'),
+      },
+      {
+        path: 'produksi/project/monitoring',
+        name: 'manufaktur-project-monitoring',
+        component: () => import('pages/manufaktur/Project/MonitoringProjectPage.vue'),
+      },
+      {
+        path: 'produksi/project/kategori',
+        name: 'manufaktur-project-kategori',
+        component: () => import('pages/manufaktur/Project/KategoriProjectPage.vue'),
       },
       // --- SECTION 5: DELIVERY (SURAT JALAN) ---
       {
@@ -470,16 +499,6 @@ const routes = [
         path: 'warehouse/finished-goods',
         name: 'warehouse-finished-goods',
         component: () => import('pages/manufaktur/warehouse/FinishedGoodsPage.vue'),
-      },
-      {
-        path: 'warehouse/bahan-mentah',
-        name: 'warehouse-bahan-mentah',
-        component: () => import('pages/manufaktur/warehouse/BahanMentahPage.vue'),
-      },
-      {
-        path: 'warehouse/bahan-jadi',
-        name: 'warehouse-bahan-jadi',
-        component: () => import('pages/manufaktur/warehouse/BahanJadiPage.vue'),
       },
       {
         path: 'warehouse/incoming-material/table',

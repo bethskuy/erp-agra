@@ -957,15 +957,7 @@
               </div>
             </div>
             <div class="final-divider"></div>
-            <div class="row justify-end q-mt-md">
-              <div class="col-auto text-right">
-                <div class="quotation-title-pro uppercase">PURCHASE REQUEST</div>
-                <div class="quotation-no-pro text-indigo-10 text-bold font-mono">
-                  No. Pr : {{ selectedData.nomor }}
-                </div>
-              </div>
-            </div>
-            <div class="row q-mt-md q-mb-lg text-left text-body2">
+            <div class="row q-mt-md q-mb-lg text-left doc-meta items-start">
               <div class="col-7">
                 <table class="meta-info-table">
                   <tr>
@@ -991,12 +983,16 @@
                     <td class="text-bold label-meta">Requestor</td>
                     <td class="meta-separator">:</td>
                     <td class="text-weight-medium uppercase">
-                      {{ selectedData.requestor_nama || selectedData.pemohon?.nama || 'Admin' }}
+                      {{ selectedData.pemohon?.nama || selectedData.requestor_nama }}
                     </td>
                   </tr>
                 </table>
               </div>
               <div class="col-5 text-right">
+                <div class="quotation-title-pro uppercase">PURCHASE REQUEST</div>
+                <div class="quotation-no-pro text-indigo-10 text-bold font-mono q-mb-md">
+                  No. Pr : {{ selectedData.nomor }}
+                </div>
                 <div class="row no-wrap justify-end">
                   <div class="text-bold q-mr-md">Tanggal</div>
                   <div class="text-weight-bold">
@@ -1007,7 +1003,7 @@
               </div>
             </div>
             <div
-              class="text-body2 q-mb-sm text-left leading-relaxed"
+              class="doc-intro q-mb-sm text-left leading-relaxed"
               v-html="
                 selectedData.introduction ||
                 'Bersama surat ini kami mengajukan permintaan pengadaan material untuk kebutuhan proyek sebagai berikut:'
@@ -1068,19 +1064,24 @@
                 v-html="selectedData.terms || selectedData.syarat || '-'"
               ></div>
             </div>
-            <div class="signature-container text-left q-mt-lg">
-              <div
-                class="text-closing-final q-mb-md"
-                v-html="
-                  selectedData.closing || 'Demikian permintaan ini kami sampaikan, terima kasih.'
-                "
-              ></div>
-              <div class="row q-mt-lg justify-end">
+
+            <!-- CLOSING TEXT MOVED OUTSIDE -->
+            <div
+              class="text-closing-final q-mt-md q-mb-md text-left"
+              v-html="
+                selectedData.closing || 'Demikian permintaan ini kami sampaikan, terima kasih.'
+              "
+            ></div>
+
+            <div class="signature-container text-left">
+              <div class="row justify-end">
                 <div class="col-5 text-center">
                   <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">
                     Prepared By,
                   </div>
-                  <div class="final-sign-space flex flex-center" style="height: 90px;">
+
+                  <!-- FINAL SIGNATURE & STEMPEL OVERLAY -->
+                  <div class="final-sign-space flex flex-center">
                     <img
                       v-if="selectedData.stempel_url"
                       :src="selectedData.stempel_url"
@@ -1091,7 +1092,15 @@
                       :src="selectedData.signatureUrl"
                       class="img-signature-clean"
                     />
+                    <div
+                      v-if="!selectedData.signatureUrl && !selectedData.stempel_url"
+                      style="height: 100px"
+                      class="flex flex-center text-grey-4 italic w-full"
+                    >
+                      Belum ada pengesahan
+                    </div>
                   </div>
+
                   <div
                     class="text-signer-final text-weight-black underline uppercase text-indigo-10"
                   >
@@ -1967,95 +1976,39 @@ const openPreview = (row) => {
 const printPage = () => window.print()
 
 const exportToPDF = () => {
-  $q.loading.show({ message: 'Generating Professional PR PDF...' })
-  setTimeout(() => {
-    const e = document.getElementById('pr-print-area')
-    if (!e) {
+  $q.loading.show({ message: 'Generating PDF...' })
+  
+  const element = document.getElementById('pr-print-area')
+  if (!element || !selectedData.value?.nomor) {
+    $q.loading.hide()
+    return $q.notify({ type: 'negative', message: 'Dokumen belum siap untuk diekspor.' })
+  }
+
+  const opt = {
+    margin: 0,
+    filename: `PR_${selectedData.value.nomor.replace(/\//g, '-')}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { 
+      scale: 2, 
+      useCORS: true,
+      width: 794,
+      windowWidth: 794
+    },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  }
+
+  html2pdf()
+    .set(opt)
+    .from(element)
+    .save()
+    .then(() => {
       $q.loading.hide()
-      return
-    }
-
-    const hadShadow = e.classList.contains('shadow-24')
-    if (hadShadow) e.classList.remove('shadow-24')
-
-    const originalStyle = e.getAttribute('style') || ''
-    e.style.minHeight = 'auto'
-    e.style.boxShadow = 'none'
-
-    const currentHeight = e.scrollHeight
-    const currentWidth = e.scrollWidth
-    const targetHeight = (currentWidth * 1.414) - 20 // A4 Aspect Ratio with safe margin to prevent blank page overflow
-
-    if (currentHeight > targetHeight) {
-      const scaleFactor = targetHeight / currentHeight
-      e.style.transform = `scale(${scaleFactor})`
-      e.style.transformOrigin = 'top center'
-      e.style.width = `${currentWidth}px`
-      e.style.height = `${currentHeight}px`
-
-      const wrapper = document.createElement('div')
-      wrapper.style.width = `${currentWidth}px`
-      wrapper.style.height = `${targetHeight}px`
-      wrapper.style.overflow = 'hidden'
-      wrapper.style.position = 'relative'
-
-      e.parentNode.insertBefore(wrapper, e)
-      wrapper.appendChild(e)
-
-      const o = {
-        margin: 0,
-        filename: `PR_${selectedData.value.nomor.replace(/\//g, '-')}.pdf`,
-        image: { type: 'jpeg', quality: 1 },
-        html2canvas: { scale: 3, useCORS: true, letterRendering: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: 'avoid-all' }
-      }
-
-      html2pdf()
-        .set(o)
-        .from(wrapper)
-        .save()
-        .then(() => {
-          wrapper.parentNode.insertBefore(e, wrapper)
-          wrapper.parentNode.removeChild(wrapper)
-          e.setAttribute('style', originalStyle)
-          if (hadShadow) e.classList.add('shadow-24')
-          $q.loading.hide()
-          $q.notify({ type: 'positive', message: 'PDF Berhasil Terunduh!', position: 'top' })
-        })
-        .catch(() => {
-          wrapper.parentNode.insertBefore(e, wrapper)
-          wrapper.parentNode.removeChild(wrapper)
-          e.setAttribute('style', originalStyle)
-          if (hadShadow) e.classList.add('shadow-24')
-          $q.loading.hide()
-        })
-    } else {
-      const o = {
-        margin: 0,
-        filename: `PR_${selectedData.value.nomor.replace(/\//g, '-')}.pdf`,
-        image: { type: 'jpeg', quality: 1 },
-        html2canvas: { scale: 3, useCORS: true, letterRendering: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: 'avoid-all' }
-      }
-      html2pdf()
-        .set(o)
-        .from(e)
-        .save()
-        .then(() => {
-          e.setAttribute('style', originalStyle)
-          if (hadShadow) e.classList.add('shadow-24')
-          $q.loading.hide()
-          $q.notify({ type: 'positive', message: 'PDF Berhasil Terunduh!', position: 'top' })
-        })
-        .catch(() => {
-          e.setAttribute('style', originalStyle)
-          if (hadShadow) e.classList.add('shadow-24')
-          $q.loading.hide()
-        })
-    }
-  }, 400)
+      $q.notify({ type: 'positive', message: 'PDF Berhasil Terunduh!', position: 'top' })
+    })
+    .catch((err) => {
+      $q.loading.hide()
+      $q.notify({ type: 'negative', message: 'Gagal export PDF: ' + err.message })
+    })
 }
 
 // ── Lifecycle ─────────────────────────────────────────────────────────────
@@ -2304,37 +2257,55 @@ onUnmounted(() => {
   width: 15px;
   text-align: center;
 }
-
+.label-grey-pro {
+  color: #888;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+.client-name-pro {
+  font-size: 18px;
+  font-weight: 900;
+  color: #1a237e;
+  margin-bottom: 2px;
+}
+.text-date-pro {
+  font-size: 12px;
+  color: #444;
+  font-weight: 700;
+}
 .final-pro-table {
-  border-collapse: collapse;
   width: 100%;
+  border-collapse: collapse;
   margin-top: 10px;
-  border: 1px solid #1a237e;
+  border: 1.5px solid #1a237e;
 }
 .final-pro-table th {
   background: #1a237e !important;
   color: white !important;
-  font-size: 11px;
-  font-weight: 800;
   padding: 10px 8px;
+  font-size: 10px;
+  font-weight: 900;
+  text-align: center;
   border: 1px solid #1a237e;
   text-transform: uppercase;
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
 }
 .final-pro-table td {
-  padding: 8px;
-  font-size: 11px;
-  border: 1px solid #ccc;
-  color: #000 !important;
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  font-size: 12px;
+  color: #111;
 }
 .row-calculation {
   background: #f9fafb !important;
 }
 .row-calculation td {
-  padding: 8px 12px !important;
-  border: 1px solid #ccc !important;
-  font-size: 11px;
+  padding: 6px 12px !important;
+  border: 1px solid #ddd !important;
+  font-size: 10.5px;
 }
 .row-grand-total {
   background: #1a237e !important;
@@ -2342,36 +2313,34 @@ onUnmounted(() => {
   print-color-adjust: exact;
 }
 .row-grand-total td {
-  padding: 12px !important;
+  padding: 12px 12px !important;
   color: white !important;
   border: 1px solid #1a237e !important;
-  background: #1a237e !important;
+  background: #1a237e;
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
 }
-
 .terms-container {
-  border: 1.5px solid #1a237e !important;
+  border: 1.5px solid #1a237e;
   margin-top: 20px;
   border-radius: 4px;
   overflow: hidden;
-  page-break-inside: avoid;
 }
 .terms-header {
-  background: #1a237e !important;
-  padding: 8px 12px;
+  background: #1a237e;
+  padding: 6px 12px;
   font-weight: 900;
-  color: white !important;
-  font-size: 11px;
+  color: white;
+  font-size: 10.5px;
   letter-spacing: 1px;
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
   text-transform: uppercase;
 }
 .terms-content-box {
-  padding: 10px 12px;
+  padding: 8px 12px;
   font-size: 12px;
-  color: #000 !important;
+  color: #333;
 }
 .terms-content-box p {
   margin: 0 0 5px 0;
@@ -2383,29 +2352,32 @@ onUnmounted(() => {
   margin: 0;
   padding-left: 20px;
 }
+.doc-intro {
+  font-size: 12px;
+}
 .text-closing-final {
   font-size: 12px;
   color: #333;
 }
-
 .signature-container {
-  margin-top: 30px;
-  padding-top: 20px;
-  page-break-inside: avoid;
-  break-inside: avoid;
+  margin-top: 15px;
+  padding-top: 15px;
 }
 .final-sign-space {
   position: relative;
   height: 120px;
   width: 250px;
-  margin: 0 auto 10px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 10px;
 }
 .img-stempel {
   position: absolute;
   width: 110px;
   height: auto;
-  left: 20px;
+  left: 50%;
   bottom: 15px;
+  transform: translateX(-50%);
   z-index: 2;
   opacity: 0.95;
 }
@@ -2413,33 +2385,26 @@ onUnmounted(() => {
   position: absolute;
   max-height: 100px;
   max-width: 180px;
-  right: 10px;
+  left: 50%;
   bottom: 5px;
+  transform: translateX(-50%);
   z-index: 1;
   mix-blend-mode: multiply;
   filter: contrast(1.1) brightness(0.95);
 }
-.signer-name-wrapper {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  height: 40px;
-  border-bottom: 2.5px solid #1a237e;
-  width: 200px;
-  margin: 0 auto;
-  padding-bottom: 4px;
-}
 .text-signer-final {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 900;
   color: #1a237e;
-  line-height: 1.25;
+  border-bottom: 2.5px solid #1a237e;
+  display: inline-block;
+  padding: 0 8px;
+  min-width: 170px;
   text-align: center;
-  width: 100%;
 }
 .text-role-final {
   font-size: 10.5px;
-  margin-top: 6px;
+  margin-top: 4px;
   font-weight: 700;
   color: #444;
 }

@@ -1347,8 +1347,9 @@ onUnmounted(() => {
   position: absolute;
   width: 110px;
   height: auto;
-  left: 20px;
+  left: 50%;
   bottom: 15px;
+  transform: translateX(-50%);
   z-index: 2;
   opacity: 0.95;
 }
@@ -1356,8 +1357,9 @@ onUnmounted(() => {
   position: absolute;
   max-height: 100px;
   max-width: 180px;
-  right: 10px;
+  left: 50%;
   bottom: 5px;
+  transform: translateX(-50%);
   z-index: 1;
   mix-blend-mode: multiply;
   filter: contrast(1.1) brightness(0.95);
