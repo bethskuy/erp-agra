@@ -1,45 +1,17 @@
 <template>
-  <q-page class="bg-grey-2 q-pa-md q-pa-lg-lg font-pro page-wrapper" @click.self="handlePageClick">
-    <!-- FLOATING CONSTRUCTION ICONS CONTAINER -->
-    <div class="floating-icons-container" aria-hidden="true">
-      <span
-        v-for="icon in floatingIcons"
-        :key="icon.id"
-        class="floating-icon"
-        :style="icon.style"
-        v-html="icon.svg"
-      ></span>
-    </div>
-
-    <!-- CLICK EFFECT CONSTRUCTIONS ICONS -->
-    <div class="click-icons-container" aria-hidden="true">
-      <span
-        v-for="ci in clickIcons"
-        :key="ci.id"
-        class="click-icon"
-        :style="{
-          left: ci.x + 'px',
-          top: ci.y + 'px',
-          '--tx': ci.tx + 'px',
-          '--ty': ci.ty + 'px',
-          width: ci.size + 'px',
-          height: ci.size + 'px',
-        }"
-        v-html="ci.svg"
-      ></span>
-    </div>
-
-    <!-- =====================================================================================
-         VIEW 1: LIST DAFTAR TAGIHAN UTAMA
-         ===================================================================================== -->
-    <div v-if="viewMode === 'list_proyek'" class="animate-fade content-relative">
+  <q-page class="bg-grey-2 q-pa-md font-pro page-wrapper">
+    <div class="page-content-wrapper">
+      <!-- =====================================================================================
+           VIEW 1: LIST DAFTAR TAGIHAN UTAMA
+           ===================================================================================== -->
+      <div v-if="viewMode === 'list_proyek'" class="animate-fade content-relative">
       <!-- HEADER SECTION -->
-      <div class="row items-center justify-between q-mb-xl animate-fade no-print">
+      <div class="row items-center justify-between q-mb-xl animate-fade no-print q-col-gutter-sm">
         <div class="col-12 col-md-8">
           <div class="row items-center no-wrap">
             <!-- TOMBOL KEMBALI DIHAPUS SESUAI INSTRUKSI -->
             <div>
-              <div class="text-h4 text-weight-bolder text-teal-10 leading-tight">
+              <div class="text-h4 text-weight-bolder title-teal-custom leading-tight">
                 Monitoring Tagihan
                 <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
                   >Daftar Seluruh Tagihan Proyek</span
@@ -52,7 +24,7 @@
             </div>
           </div>
         </div>
-        <div class="col-12 col-md-auto q-mt-md q-mt-md-none text-right">
+        <div class="col-12 col-md-auto text-right btn-buat-container">
           <!-- Tombol BUAT hanya muncul jika izin `buat` = true -->
           <q-btn
             v-if="canCreate"
@@ -60,120 +32,108 @@
             icon="add_box"
             label="BUAT TAGIHAN BARU"
             @click="openAddTagihanDialog"
-            class="rounded-20 q-px-xl text-weight-bold shadow-premium btn-teal-main"
+            class="rounded-20 q-px-xl text-weight-bold shadow-premium btn-teal-main btn-buat-tagihan"
           />
         </div>
       </div>
 
       <!-- SUMMARY CARDS / KPI FINANCE (WARNA-WARNI FULL GRADIENT) -->
       <div class="row q-col-gutter-lg q-mb-lg animate-fade-up no-print">
-        <!-- Tagihan Aktif (Blue Gradient) -->
+        <!-- Tagihan Aktif (Blue) -->
         <div class="col-12 col-sm-6 col-md-3">
           <q-card
             flat
-            class="list-card rounded-20 card-blue-gradient text-white transition-all hover-shadow"
+            class="list-card rounded-20 card-kpi-blue transition-all hover-shadow border-blue-thin"
           >
             <q-card-section class="row items-center no-wrap q-pa-md">
               <div class="col">
-                <div
-                  class="text-overline leading-none text-weight-bold tracking-widest"
-                  style="color: rgba(255, 255, 255, 0.85)"
-                >
+                <div class="text-overline leading-none text-weight-bold tracking-widest text-blue-9">
                   TAGIHAN AKTIF
                 </div>
-                <div class="text-h4 text-weight-bolder q-mt-xs text-white">
+                <div class="text-h4 text-weight-bolder q-mt-xs text-blue-10">
                   {{ tagihanAktif.length }}
-                  <span class="text-subtitle1 text-weight-medium">Data</span>
+                  <span class="text-subtitle1 text-weight-medium text-grey-7">Data</span>
                 </div>
               </div>
               <div
-                class="bg-white q-pa-md rounded-borders shadow-sm"
+                class="bg-blue-1 q-pa-md rounded-borders shadow-sm"
                 style="min-width: 56px; text-align: center"
               >
-                <q-icon name="receipt_long" color="blue-8" size="28px" />
+                <q-icon name="receipt_long" color="blue-9" size="28px" />
               </div>
             </q-card-section>
           </q-card>
         </div>
 
-        <!-- Tagihan Lunas (Green Gradient) -->
+        <!-- Tagihan Lunas (Green) -->
         <div class="col-12 col-sm-6 col-md-3">
           <q-card
             flat
-            class="list-card rounded-20 card-green-gradient text-white transition-all hover-shadow"
+            class="list-card rounded-20 card-kpi-green transition-all hover-shadow border-green-thin"
           >
             <q-card-section class="row items-center no-wrap q-pa-md">
               <div class="col">
-                <div
-                  class="text-overline leading-none text-weight-bold tracking-widest"
-                  style="color: rgba(255, 255, 255, 0.85)"
-                >
+                <div class="text-overline leading-none text-weight-bold tracking-widest text-green-9">
                   TAGIHAN LUNAS
                 </div>
-                <div class="text-h4 text-weight-bolder q-mt-xs text-white">
+                <div class="text-h4 text-weight-bolder q-mt-xs text-green-10">
                   {{ tagihanLunas.length }}
-                  <span class="text-subtitle1 text-weight-medium">Data</span>
+                  <span class="text-subtitle1 text-weight-medium text-grey-7">Data</span>
                 </div>
               </div>
               <div
-                class="bg-white q-pa-md rounded-borders shadow-sm"
+                class="bg-green-1 q-pa-md rounded-borders shadow-sm"
                 style="min-width: 56px; text-align: center"
               >
-                <q-icon name="task_alt" color="positive" size="28px" />
+                <q-icon name="task_alt" color="green-9" size="28px" />
               </div>
             </q-card-section>
           </q-card>
         </div>
 
-        <!-- Jatuh Tempo (Red Gradient) -->
+        <!-- Jatuh Tempo (Red) -->
         <div class="col-12 col-sm-6 col-md-3">
           <q-card
             flat
-            class="list-card rounded-20 card-red-gradient text-white transition-all hover-shadow"
+            class="list-card rounded-20 card-kpi-red transition-all hover-shadow border-red-thin"
           >
             <q-card-section class="row items-center no-wrap q-pa-md">
               <div class="col">
-                <div
-                  class="text-overline leading-none text-weight-bold tracking-widest"
-                  style="color: rgba(255, 255, 255, 0.85)"
-                >
+                <div class="text-overline leading-none text-weight-bold tracking-widest text-red-9">
                   JATUH TEMPO
                 </div>
-                <div class="text-h4 text-weight-bolder q-mt-xs text-white">
+                <div class="text-h4 text-weight-bolder q-mt-xs text-red-10">
                   {{ tagihanOverdue.length }}
-                  <span class="text-subtitle1 text-weight-medium">Data</span>
+                  <span class="text-subtitle1 text-weight-medium text-grey-7">Data</span>
                 </div>
               </div>
               <div
-                class="bg-white q-pa-md rounded-borders shadow-sm"
+                class="bg-red-1 q-pa-md rounded-borders shadow-sm"
                 style="min-width: 56px; text-align: center"
               >
-                <q-icon name="warning" color="negative" size="28px" />
+                <q-icon name="warning" color="red-9" size="28px" />
               </div>
             </q-card-section>
           </q-card>
         </div>
 
-        <!-- Total Outstanding (Orange Gradient) -->
+        <!-- Total Outstanding (Orange) -->
         <div class="col-12 col-sm-6 col-md-3">
           <q-card
             flat
-            class="list-card rounded-20 card-orange-gradient text-white transition-all hover-shadow"
+            class="list-card rounded-20 card-kpi-orange transition-all hover-shadow border-orange-thin"
           >
             <q-card-section class="row items-center no-wrap q-pa-md">
               <div class="col">
-                <div
-                  class="text-overline leading-none text-weight-bold tracking-widest"
-                  style="color: rgba(255, 255, 255, 0.85)"
-                >
+                <div class="text-overline leading-none text-weight-bold tracking-widest text-orange-9">
                   TOTAL OUTSTANDING
                 </div>
-                <div class="text-h5 text-weight-bolder q-mt-xs">
+                <div class="text-h5 text-weight-bolder q-mt-xs text-orange-10">
                   Rp {{ formatCompact(totalOutstanding) }}
                 </div>
               </div>
               <div
-                class="bg-white q-pa-md rounded-borders shadow-sm"
+                class="bg-orange-1 q-pa-md rounded-borders shadow-sm"
                 style="min-width: 56px; text-align: center"
               >
                 <q-icon name="account_balance_wallet" color="orange-9" size="28px" />
@@ -184,7 +144,7 @@
       </div>
 
       <!-- SEARCH & FILTER AREA -->
-      <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print border-teal-thin">
+      <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 card-premium-gradient-teal no-print border-teal-thin">
         <q-card-section class="q-pa-lg">
           <div class="row items-center q-col-gutter-md q-mb-lg">
             <div class="col-12 col-md-6">
@@ -210,7 +170,7 @@
             <q-space />
             <div class="col-12 col-md-auto">
               <div
-                class="text-caption text-grey-7 q-mb-xs text-weight-bold uppercase font-10 text-right"
+                class="text-caption text-grey-7 q-mb-xs text-weight-bold uppercase font-10"
               >
                 Filter Pembayaran
               </div>
@@ -219,8 +179,9 @@
                 flat
                 rounded
                 toggle-color="teal-10"
+                toggle-bg-color="teal-1"
                 color="grey-7"
-                class="bg-grey-1 text-weight-bold"
+                class="bg-grey-1 text-weight-bold status-toggle"
                 :options="[
                   { label: 'Semua', value: 'ALL' },
                   { label: 'Belum Lunas', value: 'OUTSTANDING' },
@@ -266,6 +227,9 @@
                 clearable
                 use-input
                 color="teal-10"
+                behavior="menu"
+                menu-anchor="bottom left"
+                menu-self="top left"
                 @filter="filterProyekDropdown"
               >
                 <template v-slot:prepend>
@@ -280,6 +244,7 @@
                 icon="restart_alt"
                 label="Reset Filter"
                 class="full-width rounded-12 text-weight-bold hover-teal-btn"
+                style="height: 40px;"
                 @click="resetFilters"
               />
             </div>
@@ -291,7 +256,7 @@
       <q-card
         flat
         bordered
-        class="rounded-20 shadow-sm overflow-hidden bg-white border-teal-thin animate-fade"
+        class="rounded-20 shadow-sm overflow-hidden card-premium-gradient-teal border-teal-thin animate-fade"
       >
         <q-table
           :rows="filteredTagihan"
@@ -485,8 +450,8 @@
       v-else-if="viewMode === 'detail_tagihan' && selectedTagihan"
       class="animate-fade q-pb-xl content-relative"
     >
-      <div class="row items-center justify-between q-mb-xl no-print">
-        <div class="row items-center no-wrap">
+      <div class="row items-center justify-between q-mb-xl no-print q-col-gutter-sm">
+        <div class="col-12 col-sm-auto flex items-center no-wrap">
           <q-btn
             flat
             round
@@ -496,22 +461,22 @@
             class="q-mr-md bg-white shadow-1 hover-teal-btn"
           />
           <div>
-            <div class="text-overline text-grey-6 text-bold tracking-widest q-mb-xs leading-none">
+            <div class="text-overline text-grey-6 text-bold tracking-widest q-mb-xs leading-none detail-header-subtitle-responsive">
               INFORMASI DETAIL TAGIHAN PROYEK
             </div>
-            <div class="text-h5 text-weight-bolder text-teal-10 leading-tight uppercase">
+            <div class="text-h5 text-weight-bolder text-teal-10 leading-tight uppercase detail-header-title-responsive">
               Kode: {{ selectedTagihan.kode_tagihan }}
             </div>
           </div>
         </div>
-        <div class="row items-center q-gutter-md">
+        <div class="col-12 col-sm-auto text-right btn-export-container gt-xs">
           <q-btn
             unelevated
             color="white"
             text-color="teal-10"
             icon="picture_as_pdf"
             label="EXPORT PDF"
-            class="rounded-12 text-weight-bold shadow-2"
+            class="rounded-12 text-weight-bold shadow-2 btn-export-pdf"
             @click="exportToPDF"
           />
         </div>
@@ -521,7 +486,7 @@
         <div class="row items-center justify-between q-mb-lg">
           <div>
             <div
-              class="text-h4 text-weight-bolder text-indigo-10 uppercase tracking-widest letter-spacing-1"
+              class="text-h4 text-weight-bolder text-indigo-10 uppercase tracking-widest letter-spacing-1 detail-title-responsive"
             >
               RINCIAN TAGIHAN
             </div>
@@ -544,8 +509,8 @@
         <div class="row q-col-gutter-lg">
           <div class="col-12 col-md-7">
             <!-- CARD 1: REFERENSI DOKUMEN & PROYEK -->
-            <q-card flat bordered class="rounded-20 shadow-sm q-mb-lg bg-white border-indigo-thin">
-              <q-card-section class="bg-indigo-50 text-indigo-10 q-py-sm border-bottom-subtle">
+            <q-card flat bordered class="rounded-20 shadow-sm q-mb-lg card-premium-gradient-indigo border-indigo-thin">
+              <q-card-section class="detail-card-header q-py-sm">
                 <div class="text-weight-bold uppercase tracking-widest font-11 flex items-center">
                   <q-icon name="dataset" size="sm" class="q-mr-sm" /> REFERENSI DOKUMEN & PROYEK
                 </div>
@@ -601,8 +566,8 @@
             </q-card>
 
             <!-- CARD 2: DESKRIPSI PEKERJAAN & TIMELINE -->
-            <q-card flat bordered class="rounded-20 shadow-sm q-mb-lg bg-white border-indigo-thin">
-              <q-card-section class="bg-indigo-50 text-indigo-10 q-py-sm border-bottom-subtle">
+            <q-card flat bordered class="rounded-20 shadow-sm q-mb-lg card-premium-gradient-indigo border-indigo-thin">
+              <q-card-section class="detail-card-header q-py-sm">
                 <div class="text-weight-bold uppercase tracking-widest font-11 flex items-center">
                   <q-icon name="timeline" size="sm" class="q-mr-sm" /> DESKRIPSI PEKERJAAN &
                   TIMELINE
@@ -704,9 +669,9 @@
             <q-card
               flat
               bordered
-              class="rounded-20 shadow-sm bg-white border-indigo-thin overflow-hidden"
+              class="rounded-20 shadow-sm card-premium-gradient-indigo border-indigo-thin overflow-hidden"
             >
-              <div class="bg-indigo-10 text-white q-pa-lg text-center">
+              <div class="keuangan-header-indigo text-white q-pa-lg text-center">
                 <div class="text-overline text-indigo-2 text-bold tracking-widest uppercase">
                   NET AMOUNT TAGIHAN
                 </div>
@@ -812,9 +777,9 @@
               "
               flat
               bordered
-              class="rounded-20 shadow-sm bg-white border-indigo-thin q-mt-lg no-print"
+              class="rounded-20 shadow-sm card-premium-gradient-indigo border-indigo-thin q-mt-lg no-print"
             >
-              <q-card-section class="bg-indigo-50 text-indigo-10 q-py-sm border-bottom-subtle">
+              <q-card-section class="detail-card-header q-py-sm">
                 <div class="text-weight-bold uppercase tracking-widest font-11 flex items-center">
                   <q-icon name="attachment" size="sm" class="q-mr-sm" /> LAMPIRAN DOKUMEN
                 </div>
@@ -849,9 +814,9 @@
             <q-card
               flat
               bordered
-              class="rounded-20 shadow-sm bg-white border-indigo-thin q-mt-lg no-print"
+              class="rounded-20 shadow-sm card-premium-gradient-indigo border-indigo-thin q-mt-lg no-print"
             >
-              <q-card-section class="bg-indigo-50 text-indigo-10 q-py-sm border-bottom-subtle">
+              <q-card-section class="detail-card-header q-py-sm">
                 <div class="text-weight-bold uppercase tracking-widest font-11 flex items-center">
                   <q-icon name="history" size="sm" class="q-mr-sm" /> RIWAYAT PEMBAYARAN
                 </div>
@@ -906,6 +871,7 @@
         </div>
       </div>
     </div>
+    </div> <!-- Close page-content-wrapper -->
 
     <!-- =====================================================================================
          DIALOG BUAT / EDIT TAGIHAN BARU
@@ -917,7 +883,7 @@
       transition-show="slide-up"
       transition-hide="slide-down"
     >
-      <q-card class="bg-grey-2 column no-wrap">
+      <q-card class="page-wrapper column no-wrap">
         <q-toolbar class="toolbar-teal-gradient text-white q-py-md shadow-4 shrink">
           <q-btn flat round dense icon="close" v-close-popup />
           <q-toolbar-title class="text-weight-black uppercase">
@@ -941,7 +907,7 @@
               <q-card
                 flat
                 bordered
-                class="rounded-20 bg-white shadow-1 q-pa-lg q-pa-md-xl border-teal-thin"
+                class="rounded-20 card-premium-gradient-teal shadow-1 q-pa-lg q-pa-md-xl border-teal-thin"
               >
                 <!-- SECTION 1 -->
                 <div class="text-overline text-teal-10 text-bold tracking-widest q-mb-sm">
@@ -968,6 +934,9 @@
                     label="Pilih Data Proyek"
                     clearable
                     use-input
+                    behavior="menu"
+                    menu-anchor="bottom left"
+                    menu-self="top left"
                     @filter="filterProyek"
                     @update:model-value="onProyekSelect"
                     bg-color="teal-1"
@@ -990,6 +959,9 @@
                     option-label="nomor_spk"
                     label="Pilih No SPK Proyek"
                     clearable
+                    behavior="menu"
+                    menu-anchor="bottom left"
+                    menu-self="top left"
                     bg-color="teal-1"
                     color="teal-10"
                     :disable="!formTagihan.proyek_id"
@@ -1022,6 +994,9 @@
                     label="Tarik Referensi No. Invoice Customer (AR)"
                     clearable
                     use-input
+                    behavior="menu"
+                    menu-anchor="bottom left"
+                    menu-self="top left"
                     @filter="filterInvoiceCust"
                     @update:model-value="onInvoiceSelect"
                     bg-color="teal-1"
@@ -1300,7 +1275,7 @@
       transition-show="slide-up"
       transition-hide="slide-down"
     >
-      <q-card class="bg-grey-2 column no-wrap">
+      <q-card class="page-wrapper column no-wrap">
         <q-toolbar class="toolbar-teal-gradient text-white q-py-md shadow-4 shrink">
           <q-btn flat round dense icon="close" v-close-popup />
           <q-toolbar-title class="text-weight-black uppercase"
@@ -1324,7 +1299,7 @@
               <q-card
                 flat
                 bordered
-                class="rounded-20 bg-white shadow-1 q-pa-lg q-pa-md-xl border-teal-thin"
+                class="rounded-20 card-premium-gradient-teal shadow-1 q-pa-lg q-pa-md-xl border-teal-thin"
               >
                 <div class="text-overline text-teal-10 text-bold tracking-widest q-mb-sm">
                   RINCIAN PEMBAYARAN
@@ -1968,80 +1943,7 @@ const columnsTagihan = [
   { name: 'aksi', align: 'center', label: 'AKSI', field: 'id' },
 ]
 
-// ============================================================================
-// HIGH-FIDELITY SVG VECTOR ICONS (CONSTRUCTION THEMED - TEAL & ORANGE)
-// ============================================================================
-const getConstructionSvg = (index) => {
-  const svgs = [
-    `<svg viewBox="0 0 100 100" style="width: 100%; height: 100%;"><path d="M25,45 C25,25 75,25 75,45 Z" fill="#009688" /><rect x="18" y="42" width="64" height="6" rx="3" fill="#f59e0b" /><path d="M47,20 L53,20 L53,32 L47,32 Z" fill="#f59e0b" /><circle cx="50" cy="58" r="15" fill="#e0f2f1" /><circle cx="76" cy="65" r="9" fill="none" stroke="#ff781e" stroke-width="2.5" stroke-dasharray="3,1.5" /><path d="M28,82 C28,70 72,70 72,82 L72,92 L28,92 Z" fill="#00796b" /></svg>`,
-    `<svg viewBox="0 0 100 100" style="width: 100%; height: 100%;"><circle cx="50" cy="15" r="7" fill="#ff781e" /><line x1="50" y1="15" x2="32" y2="86" stroke="#ff781e" stroke-width="5.5" stroke-linecap="round" /><line x1="50" y1="15" x2="68" y2="86" stroke="#ff781e" stroke-width="5.5" stroke-linecap="round" /><line x1="38" y1="52" x2="62" y2="52" stroke="#009688" stroke-width="4.5" stroke-linecap="round" /></svg>`,
-    `<svg viewBox="0 0 100 100" style="width: 100%; height: 100%;"><rect x="25" y="12" width="50" height="78" rx="6" fill="#0d9488" /><rect x="34" y="22" width="11" height="11" rx="2" fill="#e0f2f1" /><rect x="55" y="22" width="11" height="11" rx="2" fill="#e0f2f1" /><rect x="34" y="42" width="11" height="11" rx="2" fill="#e0f2f1" /><rect x="55" y="42" width="11" height="11" rx="2" fill="#e0f2f1" /><rect x="34" y="62" width="11" height="11" rx="2" fill="#e0f2f1" /><rect x="55" y="62" width="11" height="11" rx="2" fill="#e0f2f1" /></svg>`,
-    `<svg viewBox="0 0 100 100" style="width: 100%; height: 100%;"><rect x="18" y="74" width="54" height="13" rx="4" fill="#ff781e" /><circle cx="26" cy="80.5" r="5.5" fill="#1e293b" /><circle cx="45" cy="80.5" r="5.5" fill="#1e293b" /><circle cx="64" cy="80.5" r="5.5" fill="#1e293b" /><path d="M23,48 L46,48 L54,74 L23,74 Z" fill="#009688" /><line x1="46" y1="56" x2="78" y2="26" stroke="#ff781e" stroke-width="6" stroke-linecap="round" /><line x1="78" y1="26" x2="88" y2="52" stroke="#ff781e" stroke-width="4.5" stroke-linecap="round" /><path d="M82,48 L92,48 L87,62 L77,58 Z" fill="#00796b" /></svg>`,
-    `<svg viewBox="0 0 100 100" style="width: 100%; height: 100%;"><g transform="rotate(45, 50, 50)"><rect x="44" y="12" width="12" height="76" rx="4" fill="#009688" /><circle cx="50" cy="15" r="13" fill="#009688" /><polygon points="50,15 41,4 59,4 50,15" fill="#e0f2f1" /><circle cx="50" cy="85" r="9" fill="#00796b" /></g><g transform="rotate(-45, 50, 50)"><rect x="45" y="18" width="10" height="68" rx="2.5" fill="#ff781e" /><rect x="28" y="10" width="44" height="16" rx="3.5" fill="#78350f" /><path d="M66,13 C73,13 77,23 77,23 L66,23 Z" fill="#78350f" /></g></svg>`,
-  ]
-  return svgs[index % svgs.length]
-}
-
-// Floating Icons States
-const floatingIcons = ref([])
-let iconIdCounter = 0
-
-function spawnFloatingIcon() {
-  const id = iconIdCounter++
-  const left = Math.random() * 95 + '%'
-  const duration = (5 + Math.random() * 6).toFixed(2) + 's'
-  const delay = (Math.random() * 3).toFixed(2) + 's'
-  const size = (24 + Math.random() * 22).toFixed(0)
-  const svgContent = getConstructionSvg(id)
-
-  floatingIcons.value.push({
-    id,
-    svg: svgContent,
-    style: {
-      left,
-      width: size + 'px',
-      height: size + 'px',
-      animationDuration: duration,
-      animationDelay: delay,
-    },
-  })
-  setTimeout(
-    () => {
-      floatingIcons.value = floatingIcons.value.filter((i) => i.id !== id)
-    },
-    (parseFloat(duration) + parseFloat(delay) + 0.5) * 1000,
-  )
-}
-
-let floatingIconInterval = null
-
-// Click Icons States
-const clickIcons = ref([])
-
-function handlePageClick(e) {
-  const count = 4 + Math.floor(Math.random() * 4)
-  for (let i = 0; i < count; i++) {
-    const id = iconIdCounter++
-    const offsetX = (Math.random() - 0.5) * 100
-    const offsetY = -(60 + Math.random() * 80)
-    const size = 26 + Math.floor(Math.random() * 18)
-    const svgContent = getConstructionSvg(id)
-
-    const icon = {
-      id,
-      svg: svgContent,
-      x: e.clientX - size / 2,
-      y: e.clientY - size / 2,
-      tx: offsetX,
-      ty: offsetY,
-      size,
-    }
-    clickIcons.value.push(icon)
-    setTimeout(() => {
-      clickIcons.value = clickIcons.value.filter((i) => i.id !== id)
-    }, 1000)
-  }
-}
+// Floating/Click icons logic removed
 
 // ============================================================================
 // COMPUTED
@@ -2546,9 +2448,6 @@ const exportToPDF = () => {
 onMounted(() => {
   loadUserPermission()
   fetchData()
-  // Start floating icons every 1.5s
-  floatingIconInterval = setInterval(spawnFloatingIcon, 1500)
-  spawnFloatingIcon()
 })
 
 onUnmounted(() => {
@@ -2556,7 +2455,6 @@ onUnmounted(() => {
   if (unsubSpk) unsubSpk()
   if (unsubTagihan) unsubTagihan()
   if (unsubInvoiceCust) unsubInvoiceCust()
-  if (floatingIconInterval) clearInterval(floatingIconInterval)
 })
 </script>
 
@@ -2633,27 +2531,60 @@ onUnmounted(() => {
 }
 
 /* =============================================
-   WARNA-WARNI GRADIEN KPI BARU (IDENTIK GAMBAR)
+   KPI PREMIUM CARDS (LIGHT-TINTED ACCENTS)
    ============================================= */
-.card-teal-gradient {
-  background: linear-gradient(135deg, #0d9488 0%, #08665c 100%) !important;
-  box-shadow: 0 8px 24px rgba(13, 148, 136, 0.35) !important;
+.card-kpi-blue {
+  background: linear-gradient(135deg, #eef2ff 0%, #ffffff 100%) !important;
+  border-left: 6px solid #3b82f6 !important;
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.08) !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
 }
-.card-blue-gradient {
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
-  box-shadow: 0 8px 24px rgba(3, 105, 161, 0.35) !important;
+.card-kpi-blue:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 32px rgba(59, 130, 246, 0.15) !important;
 }
-.card-green-gradient {
-  background: linear-gradient(135deg, #10b981 0%, #047857 100%) !important;
-  box-shadow: 0 8px 24px rgba(4, 120, 87, 0.35) !important;
+.card-kpi-green {
+  background: linear-gradient(135deg, #ecfdf5 0%, #ffffff 100%) !important;
+  border-left: 6px solid #10b981 !important;
+  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.08) !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
 }
-.card-orange-gradient {
-  background: linear-gradient(135deg, #f59e0b 0%, #ff781e 100%) !important;
-  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.35) !important;
+.card-kpi-green:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 32px rgba(16, 185, 129, 0.15) !important;
 }
-.card-red-gradient {
-  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%) !important;
-  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.35) !important;
+.card-kpi-red {
+  background: linear-gradient(135deg, #fff1f2 0%, #ffffff 100%) !important;
+  border-left: 6px solid #f43f5e !important;
+  box-shadow: 0 8px 24px rgba(244, 63, 94, 0.08) !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+.card-kpi-red:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 32px rgba(244, 63, 94, 0.15) !important;
+}
+.card-kpi-orange {
+  background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%) !important;
+  border-left: 6px solid #f59e0b !important;
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.08) !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+.card-kpi-orange:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 32px rgba(245, 158, 11, 0.15) !important;
+}
+
+.border-blue-thin {
+  border: 1px solid rgba(59, 130, 246, 0.15) !important;
+}
+.border-green-thin {
+  border: 1px solid rgba(16, 185, 129, 0.15) !important;
+}
+.border-red-thin {
+  border: 1px solid rgba(244, 63, 94, 0.15) !important;
+}
+.border-orange-thin {
+  border: 1px solid rgba(245, 158, 11, 0.15) !important;
 }
 
 .list-card {
@@ -2725,84 +2656,104 @@ onUnmounted(() => {
 }
 
 /* =======================================================================
-   INTERACTIVE FLOATING & CLICK HIGH-FIDELITY VECTOR ICONS
+   RESPONSIVE LAYOUT & BUTTONS SPACING STYLE
    ======================================================================= */
+.page-content-wrapper {
+  padding: 0 24px;
+}
+@media (min-width: 768px) {
+  .page-content-wrapper {
+    padding: 0 32px;
+  }
+}
+@media (min-width: 1200px) {
+  .page-content-wrapper {
+    padding: 0 48px;
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 767px) {
+  .btn-buat-container, .btn-export-container {
+    width: 100%;
+    text-align: center !important;
+    margin-top: 16px;
+  }
+  .btn-buat-tagihan, .btn-export-pdf {
+    width: 100% !important;
+    justify-content: center !important;
+    border-radius: 14px !important;
+  }
+}
+
+.title-teal-custom {
+  color: #2ca599 !important;
+}
+
+.card-premium-gradient-teal {
+  background: linear-gradient(135deg, #e0f2f1 0%, #f7fbfb 100%) !important;
+  border-left: 6px solid #009688 !important;
+  box-shadow: 0 10px 30px rgba(0, 150, 136, 0.08) !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+.card-premium-gradient-teal:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 35px rgba(0, 150, 136, 0.16) !important;
+  border-left-color: #00796b !important;
+}
+.card-premium-gradient-indigo {
+  background: linear-gradient(135deg, #e8eaf6 0%, #fbfbfc 100%) !important;
+  border-left: 6px solid #3f51b5 !important;
+  box-shadow: 0 10px 30px rgba(63, 81, 181, 0.08) !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+.card-premium-gradient-indigo:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 35px rgba(63, 81, 181, 0.16) !important;
+  border-left-color: #303f9f !important;
+}
+.border-indigo-thin {
+  border: 1px solid rgba(63, 81, 181, 0.18) !important;
+}
+.detail-card-header {
+  background: rgba(63, 81, 181, 0.06) !important;
+  color: #3f51b5 !important;
+  border-bottom: 1px solid rgba(63, 81, 181, 0.12) !important;
+}
+.keuangan-header-indigo {
+  background: linear-gradient(135deg, #1a237e 0%, #3f51b5 100%) !important;
+  color: white !important;
+}
+.finance-table {
+  background: transparent !important;
+}
 .page-wrapper {
-  position: relative;
-  overflow: hidden;
+  background-color: #f6f8fa !important;
 }
 
-.floating-icons-container {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 0;
-  overflow: hidden;
+.status-toggle {
+  padding: 4px;
+}
+.status-toggle :deep(.q-btn) {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  border-radius: 12px;
+}
+.status-toggle :deep(.q-btn:hover) {
+  background-color: rgba(0, 150, 136, 0.08) !important;
 }
 
-.floating-icon {
-  position: absolute;
-  bottom: -60px;
-  opacity: 0;
-  animation: floatUpAnimation linear forwards;
-  will-change: transform, opacity;
-  user-select: none;
-}
-
-@keyframes floatUpAnimation {
-  0% {
-    transform: translateY(0) rotate(-15deg) scale(0.65);
-    opacity: 0;
+@media (max-width: 599px) {
+  .detail-title-responsive {
+    font-size: 1.5rem !important; /* text-h5 size */
+    line-height: 2rem !important;
   }
-  15% {
-    opacity: 0.7;
+  .detail-header-subtitle-responsive {
+    font-size: 0.65rem !important;
+    letter-spacing: 0.05em !important;
   }
-  70% {
-    opacity: 0.45;
-  }
-  90% {
-    opacity: 0.15;
-  }
-  100% {
-    transform: translateY(-112vh) rotate(20deg) scale(1.15);
-    opacity: 0;
-  }
-}
-
-.click-icons-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 9999;
-  overflow: visible;
-}
-
-.click-icon {
-  position: fixed;
-  opacity: 1;
-  animation: clickIconAnimation 0.9s ease-out forwards;
-  will-change: transform, opacity;
-  user-select: none;
-}
-
-@keyframes clickIconAnimation {
-  0% {
-    transform: translate(0, 0) scale(1.1);
-    opacity: 1;
-  }
-  45% {
-    transform: translate(var(--tx), var(--ty)) scale(1.35);
-    opacity: 0.85;
-  }
-  100% {
-    transform: translate(var(--tx), calc(var(--ty) - 35px)) scale(0.35);
-    opacity: 0;
+  .detail-header-title-responsive {
+    font-size: 1.15rem !important;
   }
 }
 

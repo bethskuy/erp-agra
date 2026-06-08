@@ -1,34 +1,5 @@
 <template>
-  <q-page class="bg-grey-2 q-pa-md q-pa-lg-lg font-pro page-wrapper" @click.self="handlePageClick">
-    <!-- FLOATING CONSTRUCTION ICONS CONTAINER -->
-    <div class="floating-icons-container" aria-hidden="true">
-      <span
-        v-for="icon in floatingIcons"
-        :key="icon.id"
-        class="floating-icon"
-        :style="icon.style"
-        v-html="icon.svg"
-      ></span>
-    </div>
-
-    <!-- CLICK EFFECT CONSTRUCTIONS ICONS -->
-    <div class="click-icons-container" aria-hidden="true">
-      <span
-        v-for="ci in clickIcons"
-        :key="ci.id"
-        class="click-icon"
-        :style="{
-          left: ci.x + 'px',
-          top: ci.y + 'px',
-          '--tx': ci.tx + 'px',
-          '--ty': ci.ty + 'px',
-          width: ci.size + 'px',
-          height: ci.size + 'px',
-        }"
-        v-html="ci.svg"
-      ></span>
-    </div>
-
+  <q-page class="bg-page q-pa-md font-pro relative-position">
     <!-- =====================================================================================
          SCREEN 1: LOCK SCREEN JIKA TIDAK MEMILIKI AKSES LIHAT
          ===================================================================================== -->
@@ -62,10 +33,10 @@
     <!-- =====================================================================================
          SCREEN 2: KONTEN UTAMA JIKA AKSES OK
          ===================================================================================== -->
-    <div v-else>
+    <div v-else class="page-content-wrapper">
       <!-- HEADER SECTION (BACK BUTTON TELAH DIHAPUS) -->
       <div class="row items-center justify-between q-mb-xl animate-fade no-print">
-        <div class="col-12 col-md-8">
+        <div class="col-12">
           <div class="row items-center no-wrap">
             <div>
               <div class="text-h4 text-weight-bolder text-teal-10 leading-tight">
@@ -80,20 +51,6 @@
               </div>
             </div>
           </div>
-        </div>
-
-        <!-- ACTION BUTTON: BUAT KWITANSI BARU (MEMBENTANG PADA HP) -->
-        <div class="col-12 col-md-auto q-mt-md q-mt-md-none btn-kwitansi-wrapper">
-          <q-btn
-            color="teal-10"
-            icon="receipt"
-            label="Buat Kwitansi"
-            unelevated
-            rounded
-            no-caps
-            class="q-px-md q-py-sm shadow-premium text-weight-bold btn-teal-main full-width-mobile"
-            @click="clickCreateKwitansi"
-          />
         </div>
       </div>
 
@@ -181,7 +138,8 @@
       <!-- SEARCH & FILTER AREA -->
       <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print">
         <q-card-section class="q-py-md">
-          <div class="row items-center q-col-gutter-md">
+          <div class="row items-center justify-between q-col-gutter-md">
+            <!-- SEARCH INPUT -->
             <div class="col-12 col-md-4">
               <q-input
                 v-model="searchQuery"
@@ -198,77 +156,97 @@
                 </template>
               </q-input>
             </div>
-            <q-space />
 
-            <!-- TABS FILTER STATUS & EXPORT DROPDOWN -->
-            <div class="col-12 col-md-auto row items-center q-gutter-md">
-              <q-tabs
-                v-model="tabFilter"
-                dense
-                class="text-grey-7 bg-grey-1 rounded-12 p-1"
-                active-color="teal-10"
-                indicator-color="transparent"
-                active-bg-color="white"
-                align="justify"
-                narrow-indicator
-              >
-                <q-tab name="ALL" label="Semua" class="text-weight-bold rounded-12 q-px-md" />
-                <q-tab
-                  name="Pending"
-                  label="Menunggu"
-                  class="text-weight-bold rounded-12 q-px-md"
-                />
-                <q-tab
-                  name="Approved"
-                  label="Disetujui"
-                  class="text-weight-bold rounded-12 q-px-md"
-                />
-                <q-tab
-                  name="Rejected"
-                  label="Ditolak"
-                  class="text-weight-bold rounded-12 q-px-md"
-                />
-              </q-tabs>
+            <!-- RIGHT SIDE CONTROLS (TABS & ACTIONS STACKED ON DESKTOP) -->
+            <div class="col-12 col-md-8 column filter-controls-column q-gutter-y-sm">
+              <!-- TABS FILTER STATUS (Scrollable on mobile) -->
+              <div class="filter-tabs-container">
+                <q-tabs
+                  v-model="tabFilter"
+                  dense
+                  class="text-grey-7 bg-grey-1 rounded-12 p-1"
+                  active-color="teal-10"
+                  indicator-color="transparent"
+                  active-bg-color="white"
+                  align="left"
+                  arrows
+                  outside-arrows
+                  style="max-width: 100%;"
+                >
+                  <q-tab name="ALL" label="Semua" class="text-weight-bold rounded-12 q-px-sm" />
+                  <q-tab
+                    name="Pending"
+                    label="Menunggu"
+                    class="text-weight-bold rounded-12 q-px-sm"
+                  />
+                  <q-tab
+                    name="Approved"
+                    label="Disetujui"
+                    class="text-weight-bold rounded-12 q-px-sm"
+                  />
+                  <q-tab
+                    name="Rejected"
+                    label="Ditolak"
+                    class="text-weight-bold rounded-12 q-px-sm"
+                  />
+                </q-tabs>
+              </div>
 
-              <!-- EXPORT DROPDOWN BUTTON (TEMA TEAL) -->
-              <q-btn-dropdown
-                unelevated
-                rounded
-                color="teal-10"
-                icon="file_download"
-                label="Export Laporan"
-                class="shadow-1 font-bold q-px-md btn-teal-main"
-              >
-                <q-list style="min-width: 180px">
-                  <q-item
-                    clickable
-                    v-ripple
-                    @click="exportListToPDF"
-                    class="q-py-md hover-teal-btn"
-                  >
-                    <q-item-section avatar>
-                      <q-avatar color="red-1" text-color="red-9" icon="picture_as_pdf" size="sm" />
-                    </q-item-section>
-                    <q-item-section class="text-weight-bold text-red-9">Export PDF</q-item-section>
-                  </q-item>
-                  <q-separator />
-                  <q-item
-                    clickable
-                    v-ripple
-                    @click="exportListToExcel"
-                    class="q-py-md hover-teal-btn"
-                  >
-                    <q-item-section avatar>
-                      <q-avatar color="green-1" text-color="green-9" icon="table_view" size="sm" />
-                    </q-item-section>
-                    <q-item-section class="text-weight-bold text-green-9"
-                      >Export Excel</q-item-section
+              <!-- ACTION BUTTONS: BUAT KWITANSI, EXPORT DROPDOWN, REFRESH -->
+              <div class="filter-actions-container">
+                <!-- BUAT KWITANSI (Di HP masuk ke dalam card dekat export) -->
+                <q-btn
+                  color="teal-10"
+                  icon="receipt"
+                  label="Buat Kwitansi"
+                  unelevated
+                  rounded
+                  no-caps
+                  class="shadow-premium text-weight-bold btn-teal-main action-btn-item q-px-md"
+                  @click="clickCreateKwitansi"
+                />
+
+                <!-- EXPORT DROPDOWN BUTTON (TEMA TEAL) -->
+                <q-btn-dropdown
+                  unelevated
+                  rounded
+                  color="teal-10"
+                  icon="file_download"
+                  label="Export Laporan"
+                  class="shadow-1 font-bold q-px-md btn-teal-main action-btn-item"
+                  no-caps
+                >
+                  <q-list style="min-width: 180px">
+                    <q-item
+                      clickable
+                      v-ripple
+                      @click="exportListToPDF"
+                      class="q-py-md hover-teal-btn"
                     >
-                  </q-item>
-                </q-list>
-              </q-btn-dropdown>
+                      <q-item-section avatar>
+                        <q-avatar color="red-1" text-color="red-9" icon="picture_as_pdf" size="sm" />
+                      </q-item-section>
+                      <q-item-section class="text-weight-bold text-red-9">Export PDF</q-item-section>
+                    </q-item>
+                    <q-separator />
+                    <q-item
+                      clickable
+                      v-ripple
+                      @click="exportListToExcel"
+                      class="q-py-md hover-teal-btn"
+                    >
+                      <q-item-section avatar>
+                        <q-avatar color="green-1" text-color="green-9" icon="table_view" size="sm" />
+                      </q-item-section>
+                      <q-item-section class="text-weight-bold text-green-9"
+                        >Export Excel</q-item-section
+                      >
+                    </q-item>
+                  </q-list>
+                </q-btn-dropdown>
 
-              <q-btn flat round icon="refresh" color="teal-10" @click="fetchData" />
+                <q-btn flat round icon="refresh" color="teal-10" class="refresh-btn-item" @click="fetchData" />
+              </div>
             </div>
           </div>
         </q-card-section>
@@ -404,67 +382,72 @@
           ===================================================================================== -->
     <q-dialog v-model="showReview" maximized transition-show="fade" transition-hide="fade">
       <q-card class="column no-wrap bg-grey-4">
-        <q-toolbar class="bg-white text-teal-10 q-py-sm no-print shadow-4 shrink">
-          <q-btn flat round dense icon="arrow_back" v-close-popup />
-          <q-toolbar-title class="text-weight-bold uppercase tracking-widest font-11">
-            TINJAU DOKUMEN INVOICE
+        <q-toolbar class="bg-white text-teal-10 q-py-sm no-print shadow-4 shrink" style="position: sticky; top: 0; z-index: 10; width: 100%;">
+          <q-btn flat round dense icon="arrow_back" v-close-popup class="q-mr-sm" />
+          <q-toolbar-title class="text-weight-bold uppercase tracking-widest font-11 text-teal-9">
+            Tinjau Dokumen Invoice
           </q-toolbar-title>
+          
           <q-space />
 
-          <!-- TOMBOL AKSI APPROVAL -->
-          <div
-            class="row q-gutter-md items-center"
-            v-if="
-              selectedInv &&
-              (!selectedInv.approval_status || selectedInv.approval_status === 'Pending')
-            "
-          >
+          <div class="row items-center q-gutter-sm">
+            <!-- DOWNLOAD PDF -->
             <q-btn
+              color="red-9"
+              icon="picture_as_pdf"
+              :label="$q.screen.lt.sm ? '' : 'Download PDF'"
+              @click="exportToPDF"
+              class="text-weight-bold"
               unelevated
-              color="negative"
-              icon="cancel"
-              label="TOLAK"
-              class="rounded-12 text-weight-bold q-px-lg shadow-2"
-              @click="clickReject(selectedInv)"
-              :loading="isProcessing"
+              rounded
+              dense
+              no-caps
+              style="padding: 4px 12px;"
             />
-            <q-btn
-              unelevated
-              color="positive"
-              icon="check_circle"
-              label="SETUJUI INVOICE"
-              class="rounded-12 text-weight-bold q-px-lg shadow-2"
-              @click="clickApprove(selectedInv)"
-              :loading="isProcessing"
-            />
-          </div>
 
-          <!-- JIKA SUDAH DIPROSES -->
-          <div
-            v-else
-            class="row items-center text-weight-bold q-pr-md"
-            :class="selectedInv?.approval_status === 'Approved' ? 'text-green-6' : 'text-red-6'"
-          >
-            <q-icon
-              :name="selectedInv?.approval_status === 'Approved' ? 'check_circle' : 'cancel'"
-              size="sm"
-              class="q-mr-sm"
-            />
-            DOKUMEN INI TELAH DI{{
-              selectedInv?.approval_status === 'Approved' ? 'SETUJUI' : 'TOLAK'
-            }}
-          </div>
+            <!-- TOMBOL AKSI APPROVAL -->
+            <template
+              v-if="
+                selectedInv &&
+                (!selectedInv.approval_status || selectedInv.approval_status === 'Pending')
+              "
+            >
+              <q-btn
+                unelevated
+                color="negative"
+                icon="cancel"
+                :label="$q.screen.lt.sm ? '' : 'Tolak'"
+                class="text-weight-bold rounded-12 shadow-2"
+                @click="clickReject(selectedInv)"
+                :loading="isProcessing"
+                no-caps
+              />
+              <q-btn
+                unelevated
+                color="positive"
+                icon="check_circle"
+                :label="$q.screen.lt.sm ? '' : 'Setujui'"
+                class="text-weight-bold rounded-12 shadow-2"
+                @click="clickApprove(selectedInv)"
+                :loading="isProcessing"
+                no-caps
+              />
+            </template>
 
-          <!-- DOWNLOAD PDF SAJA -->
-          <q-btn
-            color="red-9"
-            icon="picture_as_pdf"
-            label="Download PDF"
-            @click="exportToPDF"
-            class="text-weight-bold q-ml-md"
-            unelevated
-            rounded
-          />
+            <!-- JIKA SUDAH DIPROSES -->
+            <div
+              v-else
+              class="row items-center text-weight-bold text-caption q-px-sm"
+              :class="selectedInv?.approval_status === 'Approved' ? 'text-green-6' : 'text-red-6'"
+            >
+              <q-icon
+                :name="selectedInv?.approval_status === 'Approved' ? 'check_circle' : 'cancel'"
+                size="xs"
+                class="q-mr-xs"
+              />
+              {{ selectedInv?.approval_status === 'Approved' ? 'DISETUJUI' : 'DITOLAK' }}
+            </div>
+          </div>
         </q-toolbar>
 
         <q-card-section class="col scroll q-pa-md q-pa-md-xl flex flex-center preview-container">
@@ -843,7 +826,7 @@
       transition-hide="slide-down"
     >
       <q-card class="bg-grey-2 column no-wrap font-pro">
-        <q-toolbar class="bg-white text-teal-10 q-py-md shadow-2 shrink">
+        <q-toolbar class="bg-white text-teal-10 q-py-md shadow-2 shrink" style="position: sticky; top: 0; z-index: 10; width: 100%;">
           <q-btn flat round dense icon="close" v-close-popup color="grey-7" />
           <q-toolbar-title class="text-weight-bold text-center uppercase tracking-widest font-11">
             PENERBITAN KWITANSI RESMI
@@ -852,7 +835,7 @@
             unelevated
             color="red-9"
             icon="picture_as_pdf"
-            label="DOWNLOAD KWITANSI"
+            :label="$q.screen.lt.sm ? '' : 'DOWNLOAD KWITANSI'"
             rounded
             class="q-px-xl text-weight-bold shadow-3"
             @click="exportKwitansiToPDF"
@@ -931,6 +914,9 @@
                           :placeholder="kwtForm.customer_ref ? '' : 'Pilih Customer...'"
                           bg-color="blue-50"
                           use-input
+                          behavior="menu"
+                          menu-anchor="bottom left"
+                          menu-self="top left"
                           @filter="filterCustomer"
                           @update:model-value="onKwtCustomerSelect"
                         />
@@ -1047,7 +1033,7 @@
 
                 <!-- PREVIEW PRINT KERTAS KANAN -->
                 <div class="col-12 col-md-7">
-                  <div id="kwitansi-pdf-area" class="letter-paper kwitansi-paper shadow-24">
+                  <div id="kwitansi-pdf-area" class="a4-paper kwitansi-paper shadow-24">
                     <!-- TOP THICK BLUE BAR -->
                     <div
                       style="
@@ -1067,19 +1053,20 @@
                         />
                         <div class="text-left">
                           <div
-                            class="text-weight-bolder uppercase text-indigo-10 font-14"
-                            style="line-height: 1.1"
+                            class="text-weight-bolder uppercase text-indigo-10"
+                            style="font-size: 16px; line-height: 1.1;"
                           >
                             {{ kwtForm.nama_pt }}
                           </div>
                           <div
-                            class="text-pt-tagline italic text-blue-grey-9 q-mt-xs font-9 uppercase text-weight-bold"
+                            class="text-pt-tagline italic text-blue-grey-9 q-mt-xs uppercase text-weight-bold"
+                            style="font-size: 10px;"
                           >
                             {{ kwtForm.slogan_pt }}
                           </div>
                           <div
-                            class="q-mt-xs text-grey-7 font-9"
-                            style="line-height: 1.3; max-width: 380px"
+                            class="q-mt-xs text-grey-7"
+                            style="font-size: 10px; line-height: 1.3; max-width: 380px;"
                           >
                             {{ kwtForm.alamat_pt }}
                           </div>
@@ -1089,12 +1076,12 @@
                       <!-- TITLE KWITANSI SISI KANAN HEADER -->
                       <div class="text-right">
                         <div
-                          class="text-weight-black uppercase font-mono tracking-widest text-h5"
-                          style="color: #000; font-family: sans-serif"
+                          class="text-weight-black uppercase font-mono tracking-widest"
+                          style="color: #000; font-family: sans-serif; font-size: 24px; letter-spacing: 2px;"
                         >
                           KWITANSI
                         </div>
-                        <div class="text-weight-bold text-caption text-grey-8 q-mt-xs font-mono">
+                        <div class="text-weight-bold text-grey-8 q-mt-xs font-mono" style="font-size: 11px;">
                           {{ kwtForm.nomor_kwt || 'No. Kwitansi' }}
                         </div>
                       </div>
@@ -1117,14 +1104,14 @@
                       style="
                         font-family: Arial, Helvetica, sans-serif !important;
                         color: #000 !important;
-                        font-size: 13.5px;
+                        font-size: 14px;
                       "
                     >
                       <!-- Telah Diterima Dari -->
                       <div class="row no-wrap items-start">
                         <div class="kwt-label text-weight-bold">Telah diterima dari</div>
                         <div class="kwt-separator">:</div>
-                        <div class="col text-weight-bold uppercase">
+                        <div class="col text-weight-bold uppercase" style="font-size: 14px;">
                           {{
                             kwtForm.customer_nama ||
                             '..................................................................'
@@ -1136,7 +1123,7 @@
                       <div class="row no-wrap items-start">
                         <div class="kwt-label text-weight-bold">Nama Proyek</div>
                         <div class="kwt-separator">:</div>
-                        <div class="col text-weight-medium uppercase text-grey-9">
+                        <div class="col text-weight-bold uppercase text-black" style="font-size: 14px;">
                           {{
                             kwtForm.proyek_nama ||
                             '..................................................................'
@@ -1161,7 +1148,7 @@
                           >
                             :
                           </div>
-                          <div class="col" style="color: #2b579a">
+                          <div class="col" style="color: #2b579a; font-size: 14px;">
                             # {{ kwtForm.terbilang || 'Nol' }} Rupiah #
                           </div>
                         </div>
@@ -1173,7 +1160,7 @@
                         <div class="kwt-separator">:</div>
                         <div
                           class="col leading-relaxed"
-                          style="white-space: pre-wrap; font-size: 13px"
+                          style="white-space: pre-wrap; font-size: 14px;"
                         >
                           {{
                             kwtForm.untuk_pembayaran ||
@@ -1582,83 +1569,7 @@ const columns = ref([
   { name: 'aksi', align: 'center', label: 'AKSI', field: 'id' },
 ])
 
-// High fidelity SVG Vector definitions (Teal & Orange colored templates matching sample images 2 and 3)
-const getConstructionSvg = (index) => {
-  const svgs = [
-    // 1. Hardhat Construction Worker Profile with background gears (Teal/Orange)
-    `<svg viewBox="0 0 100 100" style="width: 100%; height: 100%;"><path d="M25,45 C25,25 75,25 75,45 Z" fill="#009688" /><rect x="18" y="42" width="64" height="6" rx="3" fill="#f59e0b" /><path d="M47,20 L53,20 L53,32 L47,32 Z" fill="#f59e0b" /><circle cx="50" cy="58" r="15" fill="#e0f2f1" /><circle cx="76" cy="65" r="9" fill="none" stroke="#ff781e" stroke-width="2.5" stroke-dasharray="3,1.5" /><path d="M28,82 C28,70 72,70 72,82 L72,92 L28,92 Z" fill="#00796b" /></svg>`,
-    // 2. Draftsman Caliper Divider / Compass tool (Orange/Teal)
-    `<svg viewBox="0 0 100 100" style="width: 100%; height: 100%;"><circle cx="50" cy="15" r="7" fill="#ff781e" /><line x1="50" y1="15" x2="32" y2="86" stroke="#ff781e" stroke-width="5.5" stroke-linecap="round" /><line x1="50" y1="15" x2="68" y2="86" stroke="#ff781e" stroke-width="5.5" stroke-linecap="round" /><line x1="38" y1="52" x2="62" y2="52" stroke="#009688" stroke-width="4.5" stroke-linecap="round" /></svg>`,
-    // 3. High-rise Construction Building Grid Block (Teal/Mint)
-    `<svg viewBox="0 0 100 100" style="width: 100%; height: 100%;"><rect x="25" y="12" width="50" height="78" rx="6" fill="#0d9488" /><rect x="34" y="22" width="11" height="11" rx="2" fill="#e0f2f1" /><rect x="55" y="22" width="11" height="11" rx="2" fill="#e0f2f1" /><rect x="34" y="42" width="11" height="11" rx="2" fill="#e0f2f1" /><rect x="55" y="42" width="11" height="11" rx="2" fill="#e0f2f1" /><rect x="34" y="62" width="11" height="11" rx="2" fill="#e0f2f1" /><rect x="55" y="62" width="11" height="11" rx="2" fill="#e0f2f1" /></svg>`,
-    // 4. Heavy Excavator Crane / Bulldozer (Teal/Teal-dark)
-    `<svg viewBox="0 0 100 100" style="width: 100%; height: 100%;"><rect x="18" y="74" width="54" height="13" rx="4" fill="#ff781e" /><circle cx="26" cy="80.5" r="5.5" fill="#1e293b" /><circle cx="45" cy="80.5" r="5.5" fill="#1e293b" /><circle cx="64" cy="80.5" r="5.5" fill="#1e293b" /><path d="M23,48 L46,48 L54,74 L23,74 Z" fill="#009688" /><line x1="46" y1="56" x2="78" y2="26" stroke="#ff781e" stroke-width="6" stroke-linecap="round" /><line x1="78" y1="26" x2="88" y2="52" stroke="#ff781e" stroke-width="4.5" stroke-linecap="round" /><path d="M82,48 L92,48 L87,62 L77,58 Z" fill="#00796b" /></svg>`,
-    // 5. Crossed Hammer & Wrench Tool configuration (Mint/Amber)
-    `<svg viewBox="0 0 100 100" style="width: 100%; height: 100%;"><g transform="rotate(45, 50, 50)"><rect x="44" y="12" width="12" height="76" rx="4" fill="#009688" /><circle cx="50" cy="15" r="13" fill="#009688" /><polygon points="50,15 41,4 59,4 50,15" fill="#e0f2f1" /><circle cx="50" cy="85" r="9" fill="#00796b" /></g><g transform="rotate(-45, 50, 50)"><rect x="45" y="18" width="10" height="68" rx="2.5" fill="#ff781e" /><rect x="28" y="10" width="44" height="16" rx="3.5" fill="#78350f" /><path d="M66,13 C73,13 77,23 77,23 L66,23 Z" fill="#78350f" /></g></svg>`,
-  ]
-  return svgs[index % svgs.length]
-}
 
-// Floating Icons States
-const floatingIcons = ref([])
-let iconIdCounter = 0
-
-function spawnFloatingIcon() {
-  const id = iconIdCounter++
-  const left = Math.random() * 95 + '%'
-  const duration = (5 + Math.random() * 6).toFixed(2) + 's'
-  const delay = (Math.random() * 3).toFixed(2) + 's'
-  const size = (24 + Math.random() * 22).toFixed(0) // Estimasi ukuran ideal px
-  const svgContent = getConstructionSvg(id)
-
-  floatingIcons.value.push({
-    id,
-    svg: svgContent,
-    style: {
-      left,
-      width: size + 'px',
-      height: size + 'px',
-      animationDuration: duration,
-      animationDelay: delay,
-    },
-  })
-  setTimeout(
-    () => {
-      floatingIcons.value = floatingIcons.value.filter((i) => i.id !== id)
-    },
-    (parseFloat(duration) + parseFloat(delay) + 0.5) * 1000,
-  )
-}
-
-let floatingIconInterval = null
-
-// Click Effect States
-const clickIcons = ref([])
-
-function handlePageClick(e) {
-  const count = 4 + Math.floor(Math.random() * 4)
-  for (let i = 0; i < count; i++) {
-    const id = iconIdCounter++
-    const offsetX = (Math.random() - 0.5) * 100
-    const offsetY = -(60 + Math.random() * 80)
-    const size = 26 + Math.floor(Math.random() * 18)
-    const svgContent = getConstructionSvg(id)
-
-    const icon = {
-      id,
-      svg: svgContent,
-      x: e.clientX - size / 2,
-      y: e.clientY - size / 2,
-      tx: offsetX,
-      ty: offsetY,
-      size,
-    }
-    clickIcons.value.push(icon)
-    setTimeout(() => {
-      clickIcons.value = clickIcons.value.filter((i) => i.id !== id)
-    }, 1000)
-  }
-}
 
 // Prettified Notifications (Posisikan di ATAS TENGAH - position: 'top')
 function notify(opts) {
@@ -2239,20 +2150,91 @@ watch(
 
 onMounted(() => {
   fetchData()
-  // Start floating icons every 1.5s
-  floatingIconInterval = setInterval(spawnFloatingIcon, 1500)
-  spawnFloatingIcon()
 })
 
 onUnmounted(() => {
   if (unsubInvoice) unsubInvoice()
   if (unsubUser) unsubUser()
-  if (floatingIconInterval) clearInterval(floatingIconInterval)
 })
 </script>
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
+
+.filter-controls-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+@media (min-width: 1024px) {
+  .filter-controls-column {
+    align-items: flex-end;
+  }
+}
+
+.filter-tabs-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+.filter-actions-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+  width: 100%;
+}
+.action-btn-item {
+  /* Default: auto width on desktop */
+}
+.refresh-btn-item {
+  /* Default: round button auto size */
+}
+
+@media (min-width: 1024px) {
+  .filter-tabs-container {
+    justify-content: flex-end;
+    width: auto;
+  }
+  .filter-actions-container {
+    justify-content: flex-end;
+    width: auto;
+  }
+}
+
+@media (max-width: 1023px) {
+  .filter-actions-container {
+    flex-direction: column;
+    width: 100%;
+  }
+  .action-btn-item {
+    width: 100% !important;
+    max-width: 400px;
+  }
+  .action-btn-item :deep(.q-btn) {
+    width: 100% !important;
+  }
+  .refresh-btn-item {
+    align-self: center;
+  }
+}
+
+.page-content-wrapper {
+  padding: 0 24px;
+}
+@media (min-width: 768px) {
+  .page-content-wrapper {
+    padding: 0 32px;
+  }
+}
+@media (min-width: 1200px) {
+  .page-content-wrapper {
+    padding: 0 48px;
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+}
 
 .font-pro {
   font-family: 'Plus Jakarta Sans', sans-serif;
@@ -2401,6 +2383,22 @@ onUnmounted(() => {
 .invoice-preview-wrapper {
   flex-shrink: 0 !important;
 }
+.a4-paper {
+  background: white !important;
+  width: 210mm;
+  min-width: 210mm;
+  flex-shrink: 0 !important;
+  height: 297mm;
+  min-height: 297mm;
+  padding: 20mm 20mm;
+  margin: 0 auto;
+  color: #1a1a1a;
+  line-height: 1.5;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  font-family: Arial, Helvetica, sans-serif;
+}
 .letter-paper {
   background: white !important;
   width: 210mm;
@@ -2528,32 +2526,35 @@ onUnmounted(() => {
 .kwitansi-paper {
   font-family: Arial, Helvetica, sans-serif !important;
   color: #000 !important;
-  font-size: 14px;
+  font-size: 14px !important;
 }
 .kwt-label {
   width: 180px;
-  color: #333 !important;
-  font-size: 13.5px;
+  color: #000 !important;
+  font-size: 14px !important;
 }
 .kwt-separator {
   width: 25px;
   font-weight: bold;
+  font-size: 14px !important;
 }
 .kwt-terbilang-container {
   border-top: 1.5px solid #2b579a !important;
   border-bottom: 1.5px solid #2b579a !important;
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 14px !important;
+  line-height: 1.6;
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
 }
 .kwt-label-terbilang {
   width: 180px;
-  font-size: 14px;
+  font-size: 14px !important;
+  color: #000 !important;
 }
 .kwt-separator-terbilang {
   width: 25px;
   font-weight: bold;
+  font-size: 14px !important;
 }
 .kwt-amount-box {
   border: 2px solid #2b579a !important;
@@ -2562,6 +2563,7 @@ onUnmounted(() => {
   background-color: #f8fafc !important;
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
+  font-size: 20px !important;
 }
 
 .bg-blue-50 {
@@ -2575,87 +2577,7 @@ onUnmounted(() => {
   text-transform: uppercase;
 }
 
-/* =======================================================================
-   INTERACTIVE FLOATING & CLICK HIGH-FIDELITY VECTOR ICONS
-   ======================================================================= */
-.page-wrapper {
-  position: relative;
-  overflow: hidden;
-}
 
-.floating-icons-container {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 0;
-  overflow: hidden;
-}
-
-.floating-icon {
-  position: absolute;
-  bottom: -60px;
-  opacity: 0;
-  animation: floatUpAnimation linear forwards;
-  will-change: transform, opacity;
-  user-select: none;
-}
-
-@keyframes floatUpAnimation {
-  0% {
-    transform: translateY(0) rotate(-15deg) scale(0.65);
-    opacity: 0;
-  }
-  15% {
-    opacity: 0.7;
-  }
-  70% {
-    opacity: 0.45;
-  }
-  90% {
-    opacity: 0.15;
-  }
-  100% {
-    transform: translateY(-112vh) rotate(20deg) scale(1.15);
-    opacity: 0;
-  }
-}
-
-.click-icons-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 9999;
-  overflow: visible;
-}
-
-.click-icon {
-  position: fixed;
-  opacity: 1;
-  animation: clickIconAnimation 0.9s ease-out forwards;
-  will-change: transform, opacity;
-  user-select: none;
-}
-
-@keyframes clickIconAnimation {
-  0% {
-    transform: translate(0, 0) scale(1.1);
-    opacity: 1;
-  }
-  45% {
-    transform: translate(var(--tx), var(--ty)) scale(1.35);
-    opacity: 0.85;
-  }
-  100% {
-    transform: translate(var(--tx), calc(var(--ty) - 35px)) scale(0.35);
-    opacity: 0;
-  }
-}
 
 /* =============================================
    BEAUTIFUL TEAL NOTIFICATIONS
@@ -2709,10 +2631,12 @@ onUnmounted(() => {
   .no-print {
     display: none !important;
   }
-  .letter-paper {
+  .letter-paper,
+  .a4-paper {
     box-shadow: none !important;
     margin: 0 !important;
     width: 210mm !important;
+    height: 297mm !important;
   }
   .pdf-table th {
     background-color: #2b579a !important;

@@ -1785,7 +1785,10 @@ const fetchData = async () => {
     .filter((item) => item.module === 'manufacturing')
   optCustomer.value = [...masterCustomer.value]
 
-  const qInv = query(collection(db, 'finance_invoice_customer_manufactur'), orderBy('createdAt', 'desc'))
+  const qInv = query(
+    collection(db, 'finance_invoice_customer_manufactur'),
+    orderBy('createdAt', 'desc'),
+  )
   unsubInvoice = onSnapshot(qInv, (snap) => {
     rows.value = snap.docs.map((d) => {
       const data = d.data()
@@ -1928,13 +1931,19 @@ const onKwtCustomerSelect = async (val) => {
     kwtForm.value.customer_nama = val.nama || ''
     $q.loading.show({ message: 'Mencari rujukan kontrak & proyek...' })
     try {
-      const qProj = query(collection(db, 'manufactur_master_proyek'), where('konsumen', '==', val.nama))
+      const qProj = query(
+        collection(db, 'manufactur_master_proyek'),
+        where('konsumen', '==', val.nama),
+      )
       const snapProj = await getDocs(qProj)
 
       if (!snapProj.empty) {
         const projDoc = snapProj.docs[0]
         kwtForm.value.proyek_nama = projDoc.data().nama_proyek || projDoc.data().nama || ''
-        const qSpk = query(collection(db, 'manufactur_master_proyek_spk'), where('projectId', '==', projDoc.id))
+        const qSpk = query(
+          collection(db, 'manufactur_master_proyek_spk'),
+          where('projectId', '==', projDoc.id),
+        )
         const snapSpk = await getDocs(qSpk)
 
         if (!snapSpk.empty) {
@@ -2205,7 +2214,10 @@ watch(
   (newUser) => {
     if (unsubUser) unsubUser()
     if (newUser?.email) {
-      const qUser = query(collection(db, 'karyawan_manufaktur'), where('email', '==', newUser.email))
+      const qUser = query(
+        collection(db, 'karyawan_manufaktur'),
+        where('email', '==', newUser.email),
+      )
       unsubUser = onSnapshot(qUser, (snapshot) => {
         if (!snapshot.empty) {
           userData.value = snapshot.docs[0].data()
@@ -2716,5 +2728,3 @@ onUnmounted(() => {
   }
 }
 </style>
-
-
