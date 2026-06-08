@@ -2,9 +2,7 @@
   <q-page class="bg-page q-pa-md font-pro relative-position">
     <div v-if="poViewMode === 'list'" class="animate-fade page-content-wrapper">
       <!-- HEADER SECTION -->
-      <div
-        class="row items-center justify-between q-mb-lg no-print"
-      >
+      <div class="row items-center justify-between q-mb-lg no-print">
         <div class="col-12 col-md-8">
           <div class="text-h4 text-weight-bolder text-brand-primary leading-tight">
             Approval & Pesanan Pembelian
@@ -54,176 +52,21 @@
       </div>
 
       <!-- TAB PANELS -->
-      <q-tab-panels
-        v-model="activeTab"
-        animated
-        class="bg-transparent q-pa-none"
-      >
-      <!-- ==========================================
+      <q-tab-panels v-model="activeTab" animated class="bg-transparent q-pa-none">
+        <!-- ==========================================
            TAB 1: PURCHASE REQUEST (PR)
            ========================================== -->
-      <q-tab-panel name="pr" class="q-pa-none">
-        <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print border-subtle">
-          <q-card-section class="q-py-md">
-            <div class="row items-center justify-between q-col-gutter-md">
-              <div class="col-12 col-md-5">
-                <q-input
-                  v-model="filter"
-                  outlined
-                  dense
-                  rounded
-                  placeholder="Cari No. PR, Proyek, atau Pemohon..."
-                  bg-color="white"
-                  class="search-input"
-                  color="brand-primary"
-                >
-                  <template v-slot:prepend>
-                    <q-icon name="search" color="brand-primary" />
-                  </template>
-                  <template v-slot:append v-if="filter">
-                    <q-icon name="close" @click="filter = ''" class="cursor-pointer" />
-                  </template>
-                </q-input>
-              </div>
-              <div class="col-12 col-md-auto row items-center justify-end q-col-gutter-md q-mt-sm q-mt-md-none">
-                <div class="col-12 col-md-auto text-caption text-grey-6 text-weight-medium text-center text-md-right">
-                  Total PR:
-                  <span class="text-weight-bold text-brand-primary">{{ (rows || []).length }} Dokumen</span>
-                </div>
-                <div class="col-12 col-sm-auto text-center text-sm-right">
-                  <q-btn flat round icon="refresh" color="brand-primary" @click="fetchData" />
-                </div>
-              </div>
-            </div>
-          </q-card-section>
-        </q-card>
-
-        <q-card
-          flat
-          bordered
-          class="rounded-20 shadow-sm overflow-hidden bg-white no-print border-subtle"
-        >
-          <q-table
-            :rows="rows"
-            :columns="columns"
-            row-key="id"
-            flat
-            :loading="loading"
-            :filter="filter"
-            binary-state-sort
-            class="approval-table"
-          >
-            <template v-slot:header="props">
-              <q-tr :props="props" class="bg-brand-primary text-white">
-                <q-th
-                  v-for="col in props.cols"
-                  :key="col.name"
-                  :props="props"
-                  class="text-weight-bold uppercase font-11 tracking-widest"
-                >
-                  {{ col.label }}
-                </q-th>
-              </q-tr>
-            </template>
-
-            <template v-slot:body="props">
-              <q-tr
-                :props="props"
-                class="hover-bg transition-all cursor-pointer"
-                @click="openPreview(props.row)"
-              >
-                <q-td key="nomor" class="text-weight-bolder text-brand-primary">
-                  {{ props.row.nomor }}
-                </q-td>
-                <q-td key="proyek_nama">
-                  <div class="text-weight-bold text-blue-grey-9 uppercase">
-                    {{ props.row.proyek_nama || props.row.gudang_nama }}
-                  </div>
-                  <div class="text-caption text-grey-6 italic">
-                    Oleh: {{ props.row.pemohon?.nama || props.row.requestor_nama }}
-                  </div>
-                  <div
-                    v-if="props.row.status === 'Rejected'"
-                    class="text-negative text-caption font-bold"
-                  >
-                    Alasan: {{ props.row.alasan_reject || '-' }}
-                  </div>
-                </q-td>
-                <q-td key="total_estimasi" class="text-right text-weight-bolder">
-                  <span class="text-caption text-grey-6 q-mr-xs">IDR</span>
-                  {{ (props.row.total_estimasi || 0).toLocaleString() }}
-                </q-td>
-                <q-td key="status" class="text-center">
-                  <q-chip
-                    text-color="white"
-                    size="sm"
-                    class="text-weight-bold shadow-sm"
-                    :color="getStatusColor(props.row.status)"
-                  >
-                    {{ props.row.status }}
-                  </q-chip>
-                </q-td>
-                <q-td key="aksi" class="text-center" @click.stop>
-                  <div class="row justify-center q-gutter-xs">
-                    <template v-if="props.row.status === 'Pending'">
-                      <q-btn
-                        v-if="canAction('approve')"
-                        unelevated
-                        rounded
-                        color="positive"
-                        icon="check"
-                        label="Approve"
-                        size="sm"
-                        class="q-px-md"
-                        @click="handleApproval(props.row, 'Approved')"
-                      />
-                      <q-btn
-                        v-if="canAction('approve') || canAction('ubah')"
-                        outline
-                        rounded
-                        color="negative"
-                        icon="close"
-                        label="Reject"
-                        size="sm"
-                        class="q-px-md"
-                        @click="promptReject(props.row)"
-                      />
-                    </template>
-                    <q-btn
-                      flat
-                      round
-                      color="grey-6"
-                      icon="visibility"
-                      size="sm"
-                      @click="openPreview(props.row)"
-                    />
-                  </div>
-                </q-td>
-              </q-tr>
-            </template>
-          </q-table>
-        </q-card>
-      </q-tab-panel>
-
-      <!-- ==========================================
-           TAB 2: PURCHASE ORDER (PO) LIST
-           ========================================== -->
-      <q-tab-panel name="po" class="q-pa-none">
-        <div class="animate-fade">
-          <q-card
-            flat
-            bordered
-            class="q-mb-lg shadow-1 rounded-20 bg-white no-print border-subtle"
-          >
+        <q-tab-panel name="pr" class="q-pa-none">
+          <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print border-subtle">
             <q-card-section class="q-py-md">
               <div class="row items-center justify-between q-col-gutter-md">
                 <div class="col-12 col-md-5">
                   <q-input
-                    v-model="filterPo"
+                    v-model="filter"
                     outlined
                     dense
                     rounded
-                    placeholder="Cari Dokumen PO..."
+                    placeholder="Cari No. PR, Proyek, atau Pemohon..."
                     bg-color="white"
                     class="search-input"
                     color="brand-primary"
@@ -231,46 +74,26 @@
                     <template v-slot:prepend>
                       <q-icon name="search" color="brand-primary" />
                     </template>
-                    <template v-slot:append v-if="filterPo">
-                      <q-icon name="close" @click="filterPo = ''" class="cursor-pointer" />
+                    <template v-slot:append v-if="filter">
+                      <q-icon name="close" @click="filter = ''" class="cursor-pointer" />
                     </template>
                   </q-input>
                 </div>
-                <div class="col-12 col-md-auto row items-center justify-end q-col-gutter-md q-mt-sm q-mt-md-none">
-                  <div class="col-12 col-md-auto text-caption text-grey-6 text-weight-medium text-center text-md-right">
-                    Total PO:
-                    <span class="text-weight-bold text-brand-primary">{{ (poRows || []).length }} Dokumen</span>
+                <div
+                  class="col-12 col-md-auto row items-center justify-end q-col-gutter-md q-mt-sm q-mt-md-none"
+                >
+                  <div
+                    class="col-12 col-md-auto text-caption text-grey-6 text-weight-medium text-center text-md-right"
+                  >
+                    Total PR:
+                    <span class="text-weight-bold text-brand-primary"
+                      >{{ (rows || []).length }} Dokumen</span
+                    >
                   </div>
-                  <div class="col-12 col-sm-auto" v-if="canAction('buat')">
-                    <q-btn
-                      color="brand-primary"
-                      icon="add_circle"
-                      label="Buat PO Baru"
-                      unelevated
-                      rounded
-                      no-caps
-                      class="shadow-premium btn-hover text-weight-bold q-py-sm q-px-md full-width"
-                      @click="openPoForm"
-                    />
+                  <div class="col-12 col-sm-auto text-center text-sm-right">
+                    <q-btn flat round icon="refresh" color="brand-primary" @click="fetchData" />
                   </div>
                 </div>
-              </div>
-            </q-card-section>
-          </q-card>
-
-          <q-card flat bordered class="rounded-20 shadow-sm bg-white" v-if="poRows.length === 0">
-            <q-card-section class="text-center q-pa-xl text-grey-6">
-              <q-icon
-                name="shopping_cart_checkout"
-                size="80px"
-                class="q-mb-md opacity-50"
-                color="brand-primary"
-              />
-              <div class="text-h6 text-weight-bold text-brand-primary">
-                Data Purchase Order Belum Tersedia
-              </div>
-              <div class="text-subtitle2 q-mt-sm">
-                Silakan klik "Buat PO Baru" untuk menerbitkan pesanan ke Supplier.
               </div>
             </q-card-section>
           </q-card>
@@ -278,16 +101,15 @@
           <q-card
             flat
             bordered
-            class="rounded-20 shadow-sm overflow-hidden bg-white border-subtle"
-            v-else
+            class="rounded-20 shadow-sm overflow-hidden bg-white no-print border-subtle"
           >
             <q-table
-              :rows="poRows"
-              :columns="poColumns"
+              :rows="rows"
+              :columns="columns"
               row-key="id"
               flat
               :loading="loading"
-              :filter="filterPo"
+              :filter="filter"
               binary-state-sort
               class="approval-table"
             >
@@ -308,106 +130,73 @@
                 <q-tr
                   :props="props"
                   class="hover-bg transition-all cursor-pointer"
-                  @click="openPoPreview(props.row)"
+                  @click="openPreview(props.row)"
                 >
                   <q-td key="nomor" class="text-weight-bolder text-brand-primary">
                     {{ props.row.nomor }}
                   </q-td>
-                  <q-td key="supplier">
+                  <q-td key="proyek_nama">
                     <div class="text-weight-bold text-blue-grey-9 uppercase">
-                      {{ props.row.kepada_yth }}
+                      {{ props.row.proyek_nama || props.row.gudang_nama }}
                     </div>
                     <div class="text-caption text-grey-6 italic">
-                      Proyek: {{ props.row.proyek_nama || '-' }}
+                      Oleh: {{ props.row.pemohon?.nama || props.row.requestor_nama }}
+                    </div>
+                    <div
+                      v-if="props.row.status === 'Rejected'"
+                      class="text-negative text-caption font-bold"
+                    >
+                      Alasan: {{ props.row.alasan_reject || '-' }}
                     </div>
                   </q-td>
-                  <q-td key="tanggal">
-                    {{ formatDateIndo(props.row.tanggal) }}
-                  </q-td>
-                  <q-td key="grand_total" class="text-right text-weight-bolder">
+                  <q-td key="total_estimasi" class="text-right text-weight-bolder">
                     <span class="text-caption text-grey-6 q-mr-xs">IDR</span>
-                    {{ (props.row.grand_total || 0).toLocaleString() }}
+                    {{ (props.row.total_estimasi || 0).toLocaleString() }}
                   </q-td>
-
-                  <!-- STATUS BADGE -->
                   <q-td key="status" class="text-center">
                     <q-chip
                       text-color="white"
                       size="sm"
                       class="text-weight-bold shadow-sm"
-                      :color="getPoStatusColor(props.row.status)"
-                      :icon="getPoStatusIcon(props.row.status)"
+                      :color="getStatusColor(props.row.status)"
                     >
-                      {{ getPoStatusLabel(props.row.status) }}
+                      {{ props.row.status }}
                     </q-chip>
                   </q-td>
-
-                  <!-- AKSI -->
                   <q-td key="aksi" class="text-center" @click.stop>
-                    <div class="row justify-center items-center q-gutter-xs no-wrap">
-                      <!-- Lihat Detail -->
+                    <div class="row justify-center q-gutter-xs">
+                      <template v-if="props.row.status === 'Pending'">
+                        <q-btn
+                          v-if="canAction('approve')"
+                          unelevated
+                          rounded
+                          color="positive"
+                          icon="check"
+                          label="Approve"
+                          size="sm"
+                          class="q-px-md"
+                          @click="handleApproval(props.row, 'Approved')"
+                        />
+                        <q-btn
+                          v-if="canAction('approve') || canAction('ubah')"
+                          outline
+                          rounded
+                          color="negative"
+                          icon="close"
+                          label="Reject"
+                          size="sm"
+                          class="q-px-md"
+                          @click="promptReject(props.row)"
+                        />
+                      </template>
                       <q-btn
                         flat
                         round
                         color="grey-6"
                         icon="visibility"
                         size="sm"
-                        @click="openPoPreview(props.row)"
-                      >
-                        <q-tooltip>Lihat Detail PO</q-tooltip>
-                      </q-btn>
-
-                      <!-- Ajukan (hanya jika belum Submitted / Approved) -->
-                      <q-btn
-                        v-if="
-                          canAction('buat') && !['Submitted', 'Approved'].includes(props.row.status)
-                        "
-                        unelevated
-                        rounded
-                        color="brand-primary"
-                        icon="send"
-                        label="Ajukan"
-                        size="sm"
-                        no-caps
-                        class="q-px-sm text-weight-bold btn-hover"
-                        @click="ajukanPo(props.row)"
-                      >
-                        <q-tooltip>Ajukan PO ke Approval</q-tooltip>
-                      </q-btn>
-
-                      <!-- Badge sudah diajukan / approved -->
-                      <q-chip
-                        v-if="props.row.status === 'Submitted'"
-                        size="sm"
-                        color="orange-9"
-                        text-color="white"
-                        icon="hourglass_empty"
-                        class="text-weight-bold"
-                      >
-                        Menunggu
-                      </q-chip>
-                      <q-chip
-                        v-if="props.row.status === 'Approved'"
-                        size="sm"
-                        color="positive"
-                        text-color="white"
-                        icon="check_circle"
-                        class="text-weight-bold"
-                      >
-                        Disetujui
-                      </q-chip>
-                      <q-chip
-                        v-if="props.row.status === 'Rejected'"
-                        size="sm"
-                        color="negative"
-                        text-color="white"
-                        icon="cancel"
-                        class="text-weight-bold"
-                      >
-                        Ditolak
-                      </q-chip>
-
-                      <!-- Hapus -->
+                        @click="openPreview(props.row)"
+                      />
                       <q-btn
                         v-if="canAction('hapus')"
                         flat
@@ -415,9 +204,9 @@
                         color="negative"
                         icon="delete_outline"
                         size="sm"
-                        @click="confirmHapusPo(props.row)"
+                        @click="confirmHapusPr(props.row)"
                       >
-                        <q-tooltip>Hapus PO</q-tooltip>
+                        <q-tooltip>Hapus PR</q-tooltip>
                       </q-btn>
                     </div>
                   </q-td>
@@ -425,9 +214,238 @@
               </template>
             </q-table>
           </q-card>
-        </div>
-      </q-tab-panel>
-    </q-tab-panels>
+        </q-tab-panel>
+
+        <!-- ==========================================
+           TAB 2: PURCHASE ORDER (PO) LIST
+           ========================================== -->
+        <q-tab-panel name="po" class="q-pa-none">
+          <div class="animate-fade">
+            <q-card
+              flat
+              bordered
+              class="q-mb-lg shadow-1 rounded-20 bg-white no-print border-subtle"
+            >
+              <q-card-section class="q-py-md">
+                <div class="row items-center justify-between q-col-gutter-md">
+                  <div class="col-12 col-md-5">
+                    <q-input
+                      v-model="filterPo"
+                      outlined
+                      dense
+                      rounded
+                      placeholder="Cari Dokumen PO..."
+                      bg-color="white"
+                      class="search-input"
+                      color="brand-primary"
+                    >
+                      <template v-slot:prepend>
+                        <q-icon name="search" color="brand-primary" />
+                      </template>
+                      <template v-slot:append v-if="filterPo">
+                        <q-icon name="close" @click="filterPo = ''" class="cursor-pointer" />
+                      </template>
+                    </q-input>
+                  </div>
+                  <div
+                    class="col-12 col-md-auto row items-center justify-end q-col-gutter-md q-mt-sm q-mt-md-none"
+                  >
+                    <div
+                      class="col-12 col-md-auto text-caption text-grey-6 text-weight-medium text-center text-md-right"
+                    >
+                      Total PO:
+                      <span class="text-weight-bold text-brand-primary"
+                        >{{ (poRows || []).length }} Dokumen</span
+                      >
+                    </div>
+                    <div class="col-12 col-sm-auto" v-if="canAction('buat')">
+                      <q-btn
+                        color="brand-primary"
+                        icon="add_circle"
+                        label="Buat PO Baru"
+                        unelevated
+                        rounded
+                        no-caps
+                        class="shadow-premium btn-hover text-weight-bold q-py-sm q-px-md full-width"
+                        @click="openPoForm"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+
+            <q-card flat bordered class="rounded-20 shadow-sm bg-white" v-if="poRows.length === 0">
+              <q-card-section class="text-center q-pa-xl text-grey-6">
+                <q-icon
+                  name="shopping_cart_checkout"
+                  size="80px"
+                  class="q-mb-md opacity-50"
+                  color="brand-primary"
+                />
+                <div class="text-h6 text-weight-bold text-brand-primary">
+                  Data Purchase Order Belum Tersedia
+                </div>
+                <div class="text-subtitle2 q-mt-sm">
+                  Silakan klik "Buat PO Baru" untuk menerbitkan pesanan ke Supplier.
+                </div>
+              </q-card-section>
+            </q-card>
+
+            <q-card
+              flat
+              bordered
+              class="rounded-20 shadow-sm overflow-hidden bg-white border-subtle"
+              v-else
+            >
+              <q-table
+                :rows="poRows"
+                :columns="poColumns"
+                row-key="id"
+                flat
+                :loading="loading"
+                :filter="filterPo"
+                binary-state-sort
+                class="approval-table"
+              >
+                <template v-slot:header="props">
+                  <q-tr :props="props" class="bg-brand-primary text-white">
+                    <q-th
+                      v-for="col in props.cols"
+                      :key="col.name"
+                      :props="props"
+                      class="text-weight-bold uppercase font-11 tracking-widest"
+                    >
+                      {{ col.label }}
+                    </q-th>
+                  </q-tr>
+                </template>
+
+                <template v-slot:body="props">
+                  <q-tr
+                    :props="props"
+                    class="hover-bg transition-all cursor-pointer"
+                    @click="openPoPreview(props.row)"
+                  >
+                    <q-td key="nomor" class="text-weight-bolder text-brand-primary">
+                      {{ props.row.nomor }}
+                    </q-td>
+                    <q-td key="supplier">
+                      <div class="text-weight-bold text-blue-grey-9 uppercase">
+                        {{ props.row.kepada_yth }}
+                      </div>
+                      <div class="text-caption text-grey-6 italic">
+                        Proyek: {{ props.row.proyek_nama || '-' }}
+                      </div>
+                    </q-td>
+                    <q-td key="tanggal">
+                      {{ formatDateIndo(props.row.tanggal) }}
+                    </q-td>
+                    <q-td key="grand_total" class="text-right text-weight-bolder">
+                      <span class="text-caption text-grey-6 q-mr-xs">IDR</span>
+                      {{ (props.row.grand_total || 0).toLocaleString() }}
+                    </q-td>
+
+                    <!-- STATUS BADGE -->
+                    <q-td key="status" class="text-center">
+                      <q-chip
+                        text-color="white"
+                        size="sm"
+                        class="text-weight-bold shadow-sm"
+                        :color="getPoStatusColor(props.row.status)"
+                        :icon="getPoStatusIcon(props.row.status)"
+                      >
+                        {{ getPoStatusLabel(props.row.status) }}
+                      </q-chip>
+                    </q-td>
+
+                    <!-- AKSI -->
+                    <q-td key="aksi" class="text-center" @click.stop>
+                      <div class="row justify-center items-center q-gutter-xs no-wrap">
+                        <!-- Lihat Detail -->
+                        <q-btn
+                          flat
+                          round
+                          color="grey-6"
+                          icon="visibility"
+                          size="sm"
+                          @click="openPoPreview(props.row)"
+                        >
+                          <q-tooltip>Lihat Detail PO</q-tooltip>
+                        </q-btn>
+
+                        <!-- Ajukan (hanya jika belum Submitted / Approved) -->
+                        <q-btn
+                          v-if="
+                            canAction('buat') &&
+                            !['Submitted', 'Approved'].includes(props.row.status)
+                          "
+                          unelevated
+                          rounded
+                          color="brand-primary"
+                          icon="send"
+                          label="Ajukan"
+                          size="sm"
+                          no-caps
+                          class="q-px-sm text-weight-bold btn-hover"
+                          @click="ajukanPo(props.row)"
+                        >
+                          <q-tooltip>Ajukan PO ke Approval</q-tooltip>
+                        </q-btn>
+
+                        <!-- Badge sudah diajukan / approved -->
+                        <q-chip
+                          v-if="props.row.status === 'Submitted'"
+                          size="sm"
+                          color="orange-9"
+                          text-color="white"
+                          icon="hourglass_empty"
+                          class="text-weight-bold"
+                        >
+                          Menunggu
+                        </q-chip>
+                        <q-chip
+                          v-if="props.row.status === 'Approved'"
+                          size="sm"
+                          color="positive"
+                          text-color="white"
+                          icon="check_circle"
+                          class="text-weight-bold"
+                        >
+                          Disetujui
+                        </q-chip>
+                        <q-chip
+                          v-if="props.row.status === 'Rejected'"
+                          size="sm"
+                          color="negative"
+                          text-color="white"
+                          icon="cancel"
+                          class="text-weight-bold"
+                        >
+                          Ditolak
+                        </q-chip>
+
+                        <!-- Hapus -->
+                        <q-btn
+                          v-if="canAction('hapus')"
+                          flat
+                          round
+                          color="negative"
+                          icon="delete_outline"
+                          size="sm"
+                          @click="confirmHapusPo(props.row)"
+                        >
+                          <q-tooltip>Hapus PO</q-tooltip>
+                        </q-btn>
+                      </div>
+                    </q-td>
+                  </q-tr>
+                </template>
+              </q-table>
+            </q-card>
+          </div>
+        </q-tab-panel>
+      </q-tab-panels>
     </div>
 
     <!-- ======================================================================
@@ -445,10 +463,14 @@
             class="q-mr-md bg-white shadow-1 flex-shrink-0"
           />
           <div>
-            <div class="text-h5 text-weight-black text-brand-primary uppercase letter-spacing-1 leading-tight">
+            <div
+              class="text-h5 text-weight-black text-brand-primary uppercase letter-spacing-1 leading-tight"
+            >
               Penerbitan Purchase Order
             </div>
-            <div class="text-subtitle1 text-grey-7 q-mt-xs">Isi formulir pengadaan barang ke Supplier</div>
+            <div class="text-subtitle1 text-grey-7 q-mt-xs">
+              Isi formulir pengadaan barang ke Supplier
+            </div>
           </div>
         </div>
         <div class="col-12 col-md-auto">
@@ -907,7 +929,10 @@
       <q-card class="column no-wrap bg-grey-4">
         <q-card-section class="col scroll q-pa-none">
           <!-- STICKY TOOLBAR FOR RESPONSIVE SCROLL -->
-          <q-toolbar class="bg-white text-indigo-10 q-py-sm no-print shadow-2 shrink" style="position: sticky; top: 0; z-index: 10; width: 100%;">
+          <q-toolbar
+            class="bg-white text-indigo-10 q-py-sm no-print shadow-2 shrink"
+            style="position: sticky; top: 0; z-index: 10; width: 100%"
+          >
             <q-btn flat round dense icon="arrow_back" v-close-popup color="indigo-10" />
             <q-toolbar-title class="text-weight-bold ellipsis text-subtitle1">
               PREVIEW DOKUMEN RESMI PR
@@ -942,183 +967,183 @@
           </q-toolbar>
 
           <div class="q-pa-md q-pa-md-xl flex flex-center preview-container">
-          <div id="pr-print-area" class="letter-paper shadow-24" v-if="selectedData">
-            <div class="row no-wrap items-center">
-              <div v-if="selectedData.logoUrl" class="col-auto q-mr-md">
-                <img :src="selectedData.logoUrl" class="final-kop-img" />
-              </div>
-              <div class="col text-left">
-                <div class="final-pt-name uppercase">
-                  {{ selectedData.nama_pt || 'PT AGRA ABHINAYA PERKASA' }}
+            <div id="pr-print-area" class="letter-paper shadow-24" v-if="selectedData">
+              <div class="row no-wrap items-center">
+                <div v-if="selectedData.logoUrl" class="col-auto q-mr-md">
+                  <img :src="selectedData.logoUrl" class="final-kop-img" />
                 </div>
-                <div class="final-pt-tagline italic text-grey-8">
-                  {{ selectedData.slogan_pt || 'General Construction and General Supply' }}
-                </div>
-              </div>
-            </div>
-            <div class="final-divider"></div>
-            <div class="row q-mt-md q-mb-lg text-left doc-meta items-start">
-              <div class="col-7">
-                <table class="meta-info-table">
-                  <tr>
-                    <td class="text-bold label-meta">Kepada Yth</td>
-                    <td class="meta-separator">:</td>
-                    <td class="text-weight-medium">
-                      {{ selectedData.kepada_yth || 'Divisi Purchasing / Procurement' }}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="text-bold label-meta">Gudang / Project</td>
-                    <td class="meta-separator">:</td>
-                    <td class="text-weight-bold text-indigo-10 uppercase">
-                      {{ selectedData.proyek_nama || selectedData.gudang_nama || 'UMUM' }}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="text-bold label-meta">No. Reff</td>
-                    <td class="meta-separator">:</td>
-                    <td>{{ selectedData.no_reff || '-' }}</td>
-                  </tr>
-                  <tr>
-                    <td class="text-bold label-meta">Requestor</td>
-                    <td class="meta-separator">:</td>
-                    <td class="text-weight-medium uppercase">
-                      {{ selectedData.pemohon?.nama || selectedData.requestor_nama }}
-                    </td>
-                  </tr>
-                </table>
-              </div>
-              <div class="col-5 text-right">
-                <div class="quotation-title-pro uppercase">PURCHASE REQUEST</div>
-                <div class="quotation-no-pro text-indigo-10 text-bold font-mono q-mb-md">
-                  No. Pr : {{ selectedData.nomor }}
-                </div>
-                <div class="row no-wrap justify-end">
-                  <div class="text-bold q-mr-md">Tanggal</div>
-                  <div class="text-weight-bold">
-                    : {{ selectedData.kota || 'Bekasi' }},
-                    {{ formatDateIndo(selectedData.tanggal || selectedData.timestamp) }}
+                <div class="col text-left">
+                  <div class="final-pt-name uppercase">
+                    {{ selectedData.nama_pt || 'PT AGRA ABHINAYA PERKASA' }}
+                  </div>
+                  <div class="final-pt-tagline italic text-grey-8">
+                    {{ selectedData.slogan_pt || 'General Construction and General Supply' }}
                   </div>
                 </div>
               </div>
-            </div>
-            <div
-              class="doc-intro q-mb-sm text-left leading-relaxed"
-              v-html="
-                selectedData.introduction ||
-                'Bersama surat ini kami mengajukan permintaan pengadaan material untuk kebutuhan proyek sebagai berikut:'
-              "
-            ></div>
-            <table class="final-pro-table full-width">
-              <thead>
-                <tr>
-                  <th width="5%">NO</th>
-                  <th class="text-left" width="45%">ITEM DESCRIPTION</th>
-                  <th width="10%">QTY</th>
-                  <th width="10%">UNIT</th>
-                  <th class="text-right" width="15%">est UNIT PRICE</th>
-                  <th class="text-right" width="15%">est AMOUNT</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(it, i) in selectedData.items" :key="i">
-                  <td class="text-center font-bold text-grey-8">{{ i + 1 }}</td>
-                  <td class="text-left uppercase text-weight-bold">
-                    {{ it.nama_barang || it.deskripsi }}
-                  </td>
-                  <td class="text-center font-bold">{{ it.qty }}</td>
-                  <td class="text-center uppercase text-weight-bold">{{ it.satuan }}</td>
-                  <td class="text-right">
-                    Rp {{ (it.estimasi_harga || it.est_harga || 0).toLocaleString() }}
-                  </td>
-                  <td class="text-right text-weight-bolder text-indigo-10">
-                    Rp {{ (it.total || 0).toLocaleString() }}
-                  </td>
-                </tr>
-              </tbody>
-              <tfoot>
-                <tr class="row-calculation">
-                  <td colspan="5" class="text-right text-bold uppercase">Subtotal Amount</td>
-                  <td class="text-right text-bold text-indigo-10">
-                    IDR {{ (selectedData.total_estimasi || 0).toLocaleString() }}
-                  </td>
-                </tr>
-                <tr class="row-grand-total">
-                  <td
-                    colspan="5"
-                    class="text-right text-weight-bolder uppercase tracking-widest"
-                    style="font-size: 13px"
-                  >
-                    GRAND TOTAL AMOUNT
-                  </td>
-                  <td class="text-right text-white text-weight-bolder" style="font-size: 13px">
-                    IDR {{ (selectedData.total_estimasi || 0).toLocaleString() }}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
-            <div class="terms-container text-left q-mt-lg">
-              <div class="terms-header uppercase">Syarat & Kondisi :</div>
-              <div
-                class="terms-content-box leading-relaxed"
-                v-html="selectedData.terms || selectedData.syarat || '-'"
-              ></div>
-            </div>
-
-            <!-- CLOSING TEXT MOVED OUTSIDE -->
-            <div
-              class="text-closing-final q-mt-md q-mb-md text-left"
-              v-html="
-                selectedData.closing || 'Demikian permintaan ini kami sampaikan, terima kasih.'
-              "
-            ></div>
-
-            <div class="signature-container text-left">
-              <div class="row justify-end">
-                <div class="col-5 text-center">
-                  <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">
-                    Prepared By,
+              <div class="final-divider"></div>
+              <div class="row q-mt-md q-mb-lg text-left doc-meta items-start">
+                <div class="col-7">
+                  <table class="meta-info-table">
+                    <tr>
+                      <td class="text-bold label-meta">Kepada Yth</td>
+                      <td class="meta-separator">:</td>
+                      <td class="text-weight-medium">
+                        {{ selectedData.kepada_yth || 'Divisi Purchasing / Procurement' }}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="text-bold label-meta">Gudang / Project</td>
+                      <td class="meta-separator">:</td>
+                      <td class="text-weight-bold text-indigo-10 uppercase">
+                        {{ selectedData.proyek_nama || selectedData.gudang_nama || 'UMUM' }}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="text-bold label-meta">No. Reff</td>
+                      <td class="meta-separator">:</td>
+                      <td>{{ selectedData.no_reff || '-' }}</td>
+                    </tr>
+                    <tr>
+                      <td class="text-bold label-meta">Requestor</td>
+                      <td class="meta-separator">:</td>
+                      <td class="text-weight-medium uppercase">
+                        {{ selectedData.pemohon?.nama || selectedData.requestor_nama }}
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+                <div class="col-5 text-right">
+                  <div class="quotation-title-pro uppercase">PURCHASE REQUEST</div>
+                  <div class="quotation-no-pro text-indigo-10 text-bold font-mono q-mb-md">
+                    No. Pr : {{ selectedData.nomor }}
                   </div>
-
-                  <!-- FINAL SIGNATURE & STEMPEL OVERLAY -->
-                  <div class="final-sign-space flex flex-center">
-                    <img
-                      v-if="selectedData.stempel_url"
-                      :src="selectedData.stempel_url"
-                      class="img-stempel"
-                    />
-                    <img
-                      v-if="selectedData.signatureUrl"
-                      :src="selectedData.signatureUrl"
-                      class="img-signature-clean"
-                    />
-                    <div
-                      v-if="!selectedData.signatureUrl && !selectedData.stempel_url"
-                      style="height: 100px"
-                      class="flex flex-center text-grey-4 italic w-full"
-                    >
-                      Belum ada pengesahan
+                  <div class="row no-wrap justify-end">
+                    <div class="text-bold q-mr-md">Tanggal</div>
+                    <div class="text-weight-bold">
+                      : {{ selectedData.kota || 'Bekasi' }},
+                      {{ formatDateIndo(selectedData.tanggal || selectedData.timestamp) }}
                     </div>
                   </div>
+                </div>
+              </div>
+              <div
+                class="doc-intro q-mb-sm text-left leading-relaxed"
+                v-html="
+                  selectedData.introduction ||
+                  'Bersama surat ini kami mengajukan permintaan pengadaan material untuk kebutuhan proyek sebagai berikut:'
+                "
+              ></div>
+              <table class="final-pro-table full-width">
+                <thead>
+                  <tr>
+                    <th width="5%">NO</th>
+                    <th class="text-left" width="45%">ITEM DESCRIPTION</th>
+                    <th width="10%">QTY</th>
+                    <th width="10%">UNIT</th>
+                    <th class="text-right" width="15%">est UNIT PRICE</th>
+                    <th class="text-right" width="15%">est AMOUNT</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(it, i) in selectedData.items" :key="i">
+                    <td class="text-center font-bold text-grey-8">{{ i + 1 }}</td>
+                    <td class="text-left uppercase text-weight-bold">
+                      {{ it.nama_barang || it.deskripsi }}
+                    </td>
+                    <td class="text-center font-bold">{{ it.qty }}</td>
+                    <td class="text-center uppercase text-weight-bold">{{ it.satuan }}</td>
+                    <td class="text-right">
+                      Rp {{ (it.estimasi_harga || it.est_harga || 0).toLocaleString() }}
+                    </td>
+                    <td class="text-right text-weight-bolder text-indigo-10">
+                      Rp {{ (it.total || 0).toLocaleString() }}
+                    </td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr class="row-calculation">
+                    <td colspan="5" class="text-right text-bold uppercase">Subtotal Amount</td>
+                    <td class="text-right text-bold text-indigo-10">
+                      IDR {{ (selectedData.total_estimasi || 0).toLocaleString() }}
+                    </td>
+                  </tr>
+                  <tr class="row-grand-total">
+                    <td
+                      colspan="5"
+                      class="text-right text-weight-bolder uppercase tracking-widest"
+                      style="font-size: 13px"
+                    >
+                      GRAND TOTAL AMOUNT
+                    </td>
+                    <td class="text-right text-white text-weight-bolder" style="font-size: 13px">
+                      IDR {{ (selectedData.total_estimasi || 0).toLocaleString() }}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+              <div class="terms-container text-left q-mt-lg">
+                <div class="terms-header uppercase">Syarat & Kondisi :</div>
+                <div
+                  class="terms-content-box leading-relaxed"
+                  v-html="selectedData.terms || selectedData.syarat || '-'"
+                ></div>
+              </div>
 
-                  <div
-                    class="text-signer-final text-weight-black underline uppercase text-indigo-10"
-                  >
-                    {{
-                      selectedData.ttd_nama ||
-                      selectedData.requestor_nama ||
-                      selectedData.pemohon?.nama
-                    }}
-                  </div>
-                  <div
-                    class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs"
-                  >
-                    {{ selectedData.ttd_jabatan || selectedData.requestor_jabatan || 'Staff' }}
+              <!-- CLOSING TEXT MOVED OUTSIDE -->
+              <div
+                class="text-closing-final q-mt-md q-mb-md text-left"
+                v-html="
+                  selectedData.closing || 'Demikian permintaan ini kami sampaikan, terima kasih.'
+                "
+              ></div>
+
+              <div class="signature-container text-left">
+                <div class="row justify-end">
+                  <div class="col-5 text-center">
+                    <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">
+                      Prepared By,
+                    </div>
+
+                    <!-- FINAL SIGNATURE & STEMPEL OVERLAY -->
+                    <div class="final-sign-space flex flex-center">
+                      <img
+                        v-if="selectedData.stempel_url"
+                        :src="selectedData.stempel_url"
+                        class="img-stempel"
+                      />
+                      <img
+                        v-if="selectedData.signatureUrl"
+                        :src="selectedData.signatureUrl"
+                        class="img-signature-clean"
+                      />
+                      <div
+                        v-if="!selectedData.signatureUrl && !selectedData.stempel_url"
+                        style="height: 100px"
+                        class="flex flex-center text-grey-4 italic w-full"
+                      >
+                        Belum ada pengesahan
+                      </div>
+                    </div>
+
+                    <div
+                      class="text-signer-final text-weight-black underline uppercase text-indigo-10"
+                    >
+                      {{
+                        selectedData.ttd_nama ||
+                        selectedData.requestor_nama ||
+                        selectedData.pemohon?.nama
+                      }}
+                    </div>
+                    <div
+                      class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs"
+                    >
+                      {{ selectedData.ttd_jabatan || selectedData.requestor_jabatan || 'Staff' }}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
           </div>
         </q-card-section>
       </q-card>
@@ -1131,7 +1156,10 @@
       <q-card class="column no-wrap bg-grey-4">
         <q-card-section class="col scroll q-pa-none">
           <!-- STICKY TOOLBAR FOR RESPONSIVE SCROLL -->
-          <q-toolbar class="bg-white text-indigo-10 q-py-sm no-print shadow-2 shrink" style="position: sticky; top: 0; z-index: 10; width: 100%;">
+          <q-toolbar
+            class="bg-white text-indigo-10 q-py-sm no-print shadow-2 shrink"
+            style="position: sticky; top: 0; z-index: 10; width: 100%"
+          >
             <q-btn flat round dense icon="arrow_back" v-close-popup color="indigo-10" />
             <q-toolbar-title class="text-weight-bold ellipsis text-subtitle1">
               PREVIEW PURCHASE ORDER
@@ -1177,195 +1205,242 @@
           </q-toolbar>
 
           <div class="q-pa-md q-pa-md-xl flex flex-center preview-container">
-          <div id="po-print-area" class="letter-paper shadow-24" v-if="selectedPo">
-            <div class="row no-wrap items-center">
-              <div class="col-auto q-mr-md" v-if="selectedPo.logoUrl">
-                <img :src="selectedPo.logoUrl" class="final-kop-img" />
-              </div>
-              <div class="col text-left">
-                <div class="final-pt-name uppercase">
-                  {{ selectedPo.nama_pt || 'PT AGRA ABHINAYA PERKASA' }}
+            <div id="po-print-area" class="letter-paper shadow-24" v-if="selectedPo">
+              <div class="row no-wrap items-center">
+                <div class="col-auto q-mr-md" v-if="selectedPo.logoUrl">
+                  <img :src="selectedPo.logoUrl" class="final-kop-img" />
                 </div>
-                <div class="final-pt-tagline italic text-grey-8">
-                  {{ selectedPo.slogan_pt || 'General Construction and General Supply' }}
+                <div class="col text-left">
+                  <div class="final-pt-name uppercase">
+                    {{ selectedPo.nama_pt || 'PT AGRA ABHINAYA PERKASA' }}
+                  </div>
+                  <div class="final-pt-tagline italic text-grey-8">
+                    {{ selectedPo.slogan_pt || 'General Construction and General Supply' }}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div class="final-divider"></div>
+              <div class="final-divider"></div>
 
-            <div class="row q-mt-md q-mb-lg text-left text-body2 items-start">
-              <div class="col-7">
-                <table class="meta-info-table">
-                  <tr>
-                    <td class="text-bold label-meta">Kepada Yth</td>
-                    <td class="meta-separator">:</td>
-                    <td class="text-weight-bold text-indigo-10 uppercase">
-                      {{ selectedPo.kepada_yth }}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="text-bold label-meta">Address</td>
-                    <td class="meta-separator">:</td>
-                    <td class="text-weight-medium">
-                      {{ selectedPo.alamat_supplier || '-' }}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="text-bold label-meta">Attn</td>
-                    <td class="meta-separator">:</td>
-                    <td class="text-weight-bold">
-                      {{ selectedPo.attn_supplier || '-' }}
-                    </td>
-                  </tr>
-                </table>
-              </div>
-              <div class="col-5 flex justify-end text-right">
-                <div style="width: fit-content; text-align: right;">
-                  <div class="quotation-title-pro uppercase font-13 text-indigo-10 q-mb-sm">PURCHASE ORDER</div>
-                  <table class="meta-info-table text-left" style="width: auto; margin-left: auto;">
+              <div class="row q-mt-md q-mb-lg text-left text-body2 items-start">
+                <div class="col-7">
+                  <table class="meta-info-table">
                     <tr>
-                      <td class="text-bold" style="padding-right: 8px; font-size: 12px; color: #1a237e;">No. PO</td>
-                      <td style="padding-right: 8px; font-size: 12px; color: #1a237e;">:</td>
-                      <td class="text-weight-bolder text-indigo-10 font-mono" style="font-size: 12px;">{{ selectedPo.nomor }}</td>
+                      <td class="text-bold label-meta">Kepada Yth</td>
+                      <td class="meta-separator">:</td>
+                      <td class="text-weight-bold text-indigo-10 uppercase">
+                        {{ selectedPo.kepada_yth }}
+                      </td>
                     </tr>
                     <tr>
-                      <td class="text-bold" style="padding-right: 8px;">Tanggal</td>
-                      <td style="padding-right: 8px;">:</td>
-                      <td class="text-weight-bold">{{ formatDateIndo(selectedPo.tanggal) }}</td>
+                      <td class="text-bold label-meta">Address</td>
+                      <td class="meta-separator">:</td>
+                      <td class="text-weight-medium">
+                        {{ selectedPo.alamat_supplier || '-' }}
+                      </td>
                     </tr>
-                    <tr v-if="selectedPo.no_spk">
-                      <td class="text-bold" style="padding-right: 8px;">No. SPK</td>
-                      <td style="padding-right: 8px;">:</td>
-                      <td class="text-weight-bold">{{ selectedPo.no_spk }}</td>
+                    <tr>
+                      <td class="text-bold label-meta">Attn</td>
+                      <td class="meta-separator">:</td>
+                      <td class="text-weight-bold">
+                        {{ selectedPo.attn_supplier || '-' }}
+                      </td>
                     </tr>
                   </table>
                 </div>
-              </div>
-            </div>
-
-            <table class="final-pro-table full-width">
-              <thead>
-                <tr>
-                  <th width="5%">NO</th>
-                  <th class="text-left" width="45%">ITEM DESCRIPTION</th>
-                  <th width="10%">QTY</th>
-                  <th width="10%">SATUAN</th>
-                  <th class="text-right" width="15%">UNIT PRICE</th>
-                  <th class="text-right" width="15%">AMOUNT</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(item, i) in selectedPo.items" :key="i">
-                  <td class="text-center font-bold text-grey-8">{{ i + 1 }}</td>
-                  <td class="text-left text-weight-bold uppercase">
-                    {{ item.nama_barang }}
-                    <div v-if="item.desc" class="text-caption text-weight-regular text-grey-6 italic lowercase">
-                      {{ item.desc }}
+                <div class="col-5 flex justify-end text-right">
+                  <div style="width: fit-content; text-align: right">
+                    <div class="quotation-title-pro uppercase font-13 text-indigo-10 q-mb-sm">
+                      PURCHASE ORDER
                     </div>
-                  </td>
-                  <td class="text-center font-bold">{{ item.qty }}</td>
-                  <td class="text-center uppercase text-weight-bold">{{ item.satuan }}</td>
-                  <td class="text-right">
-                    Rp {{ (item.harga_satuan || 0).toLocaleString() }}
-                  </td>
-                  <td class="text-right text-weight-bolder text-indigo-10">
-                    Rp {{ ((item.qty || 0) * (item.harga_satuan || 0)).toLocaleString() }}
-                  </td>
-                </tr>
-              </tbody>
-              <tfoot>
-                <tr class="row-calculation">
-                  <td colspan="5" class="text-right text-bold uppercase">Subtotal Amount</td>
-                  <td class="text-right text-bold text-indigo-10">
-                    IDR {{ (selectedPo.total_amount || 0).toLocaleString() }}
-                  </td>
-                </tr>
-                <tr class="row-calculation" v-if="selectedPo.mobdemob">
-                  <td colspan="5" class="text-right text-bold uppercase">Mobdemob / Lainnya</td>
-                  <td class="text-right text-bold text-indigo-10">
-                    IDR {{ (selectedPo.mobdemob || 0).toLocaleString() }}
-                  </td>
-                </tr>
-                <tr class="row-grand-total">
-                  <td
-                    colspan="5"
-                    class="text-right text-weight-bolder uppercase tracking-widest"
-                    style="font-size: 13px"
-                  >
-                    GRAND TOTAL AMOUNT
-                  </td>
-                  <td class="text-right text-white text-weight-bolder" style="font-size: 13px">
-                    IDR {{ (selectedPo.grand_total || 0).toLocaleString() }}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
-
-            <div class="terms-container text-left q-mt-md" v-if="selectedPo.syarat_kondisi">
-              <div class="terms-header uppercase">Syarat & Kondisi</div>
-              <div class="terms-content-box leading-relaxed" v-html="selectedPo.syarat_kondisi"></div>
-            </div>
-
-            <div class="terms-container text-left q-mt-sm" v-if="selectedPo.sistem_pembayaran">
-              <div class="terms-header uppercase">Sistem Pembayaran</div>
-              <div class="terms-content-box leading-relaxed" v-html="selectedPo.sistem_pembayaran"></div>
-            </div>
-
-            <div class="text-closing-final q-mt-md q-mb-md text-left" v-if="selectedPo.closing">
-              {{ selectedPo.closing }}
-            </div>
-
-            <div class="signature-container text-left q-mt-lg">
-              <div class="row justify-between text-center po-signature">
-                <div class="col-4">
-                  <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">Prepared By,</div>
-                  <div class="final-sign-space flex flex-center" style="height: 90px;">
-                    <img v-if="selectedPo.stempel_url" :src="selectedPo.stempel_url" class="img-stempel" />
-                    <img v-if="selectedPo.signatureUrl" :src="selectedPo.signatureUrl" class="img-signature-clean" />
-                  </div>
-                  <div class="signer-name-wrapper">
-                    <div class="text-signer-final text-weight-black uppercase text-indigo-10">
-                      {{ selectedPo.prepared_by || '..............................' }}
-                    </div>
-                  </div>
-                  <div class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs">
-                    Purchasing Staff
-                  </div>
-                </div>
-                
-                <div class="col-4">
-                  <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">Checked By,</div>
-                  <div class="final-sign-space flex flex-center" style="height: 90px;">
-                    <!-- Spacer for signature -->
-                  </div>
-                  <div class="signer-name-wrapper">
-                    <div class="text-signer-final text-weight-black uppercase text-indigo-10">
-                      {{ selectedPo.checked_by || selectedPo.requested_by || '..............................' }}
-                    </div>
-                  </div>
-                  <div class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs">
-                    Project Manager
-                  </div>
-                </div>
-
-                <div class="col-4">
-                  <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">Approved By,</div>
-                  <div class="final-sign-space flex flex-center" style="height: 90px;">
-                    <!-- Spacer for signature -->
-                  </div>
-                  <div class="signer-name-wrapper">
-                    <div class="text-signer-final text-weight-black uppercase text-indigo-10">
-                      {{ selectedPo.approved_by || selectedPo.approved_supplier || '..............................' }}
-                    </div>
-                  </div>
-                  <div class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs">
-                    Direktur
+                    <table class="meta-info-table text-left" style="width: auto; margin-left: auto">
+                      <tr>
+                        <td
+                          class="text-bold"
+                          style="padding-right: 8px; font-size: 12px; color: #1a237e"
+                        >
+                          No. PO
+                        </td>
+                        <td style="padding-right: 8px; font-size: 12px; color: #1a237e">:</td>
+                        <td
+                          class="text-weight-bolder text-indigo-10 font-mono"
+                          style="font-size: 12px"
+                        >
+                          {{ selectedPo.nomor }}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="text-bold" style="padding-right: 8px">Tanggal</td>
+                        <td style="padding-right: 8px">:</td>
+                        <td class="text-weight-bold">{{ formatDateIndo(selectedPo.tanggal) }}</td>
+                      </tr>
+                      <tr v-if="selectedPo.no_spk">
+                        <td class="text-bold" style="padding-right: 8px">No. SPK</td>
+                        <td style="padding-right: 8px">:</td>
+                        <td class="text-weight-bold">{{ selectedPo.no_spk }}</td>
+                      </tr>
+                    </table>
                   </div>
                 </div>
               </div>
+
+              <table class="final-pro-table full-width">
+                <thead>
+                  <tr>
+                    <th width="5%">NO</th>
+                    <th class="text-left" width="45%">ITEM DESCRIPTION</th>
+                    <th width="10%">QTY</th>
+                    <th width="10%">SATUAN</th>
+                    <th class="text-right" width="15%">UNIT PRICE</th>
+                    <th class="text-right" width="15%">AMOUNT</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(item, i) in selectedPo.items" :key="i">
+                    <td class="text-center font-bold text-grey-8">{{ i + 1 }}</td>
+                    <td class="text-left text-weight-bold uppercase">
+                      {{ item.nama_barang }}
+                      <div
+                        v-if="item.desc"
+                        class="text-caption text-weight-regular text-grey-6 italic lowercase"
+                      >
+                        {{ item.desc }}
+                      </div>
+                    </td>
+                    <td class="text-center font-bold">{{ item.qty }}</td>
+                    <td class="text-center uppercase text-weight-bold">{{ item.satuan }}</td>
+                    <td class="text-right">Rp {{ (item.harga_satuan || 0).toLocaleString() }}</td>
+                    <td class="text-right text-weight-bolder text-indigo-10">
+                      Rp {{ ((item.qty || 0) * (item.harga_satuan || 0)).toLocaleString() }}
+                    </td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr class="row-calculation">
+                    <td colspan="5" class="text-right text-bold uppercase">Subtotal Amount</td>
+                    <td class="text-right text-bold text-indigo-10">
+                      IDR {{ (selectedPo.total_amount || 0).toLocaleString() }}
+                    </td>
+                  </tr>
+                  <tr class="row-calculation" v-if="selectedPo.mobdemob">
+                    <td colspan="5" class="text-right text-bold uppercase">Mobdemob / Lainnya</td>
+                    <td class="text-right text-bold text-indigo-10">
+                      IDR {{ (selectedPo.mobdemob || 0).toLocaleString() }}
+                    </td>
+                  </tr>
+                  <tr class="row-grand-total">
+                    <td
+                      colspan="5"
+                      class="text-right text-weight-bolder uppercase tracking-widest"
+                      style="font-size: 13px"
+                    >
+                      GRAND TOTAL AMOUNT
+                    </td>
+                    <td class="text-right text-white text-weight-bolder" style="font-size: 13px">
+                      IDR {{ (selectedPo.grand_total || 0).toLocaleString() }}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+
+              <div class="terms-container text-left q-mt-md" v-if="selectedPo.syarat_kondisi">
+                <div class="terms-header uppercase">Syarat & Kondisi</div>
+                <div
+                  class="terms-content-box leading-relaxed"
+                  v-html="selectedPo.syarat_kondisi"
+                ></div>
+              </div>
+
+              <div class="terms-container text-left q-mt-sm" v-if="selectedPo.sistem_pembayaran">
+                <div class="terms-header uppercase">Sistem Pembayaran</div>
+                <div
+                  class="terms-content-box leading-relaxed"
+                  v-html="selectedPo.sistem_pembayaran"
+                ></div>
+              </div>
+
+              <div class="text-closing-final q-mt-md q-mb-md text-left" v-if="selectedPo.closing">
+                {{ selectedPo.closing }}
+              </div>
+
+              <div class="signature-container text-left q-mt-lg">
+                <div class="row justify-between text-center po-signature">
+                  <div class="col-4">
+                    <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">
+                      Prepared By,
+                    </div>
+                    <div class="final-sign-space flex flex-center" style="height: 90px">
+                      <img
+                        v-if="selectedPo.stempel_url"
+                        :src="selectedPo.stempel_url"
+                        class="img-stempel"
+                      />
+                      <img
+                        v-if="selectedPo.signatureUrl"
+                        :src="selectedPo.signatureUrl"
+                        class="img-signature-clean"
+                      />
+                    </div>
+                    <div class="signer-name-wrapper">
+                      <div class="text-signer-final text-weight-black uppercase text-indigo-10">
+                        {{ selectedPo.prepared_by || '..............................' }}
+                      </div>
+                    </div>
+                    <div
+                      class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs"
+                    >
+                      Purchasing Staff
+                    </div>
+                  </div>
+
+                  <div class="col-4">
+                    <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">
+                      Checked By,
+                    </div>
+                    <div class="final-sign-space flex flex-center" style="height: 90px">
+                      <!-- Spacer for signature -->
+                    </div>
+                    <div class="signer-name-wrapper">
+                      <div class="text-signer-final text-weight-black uppercase text-indigo-10">
+                        {{
+                          selectedPo.checked_by ||
+                          selectedPo.requested_by ||
+                          '..............................'
+                        }}
+                      </div>
+                    </div>
+                    <div
+                      class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs"
+                    >
+                      Project Manager
+                    </div>
+                  </div>
+
+                  <div class="col-4">
+                    <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">
+                      Approved By,
+                    </div>
+                    <div class="final-sign-space flex flex-center" style="height: 90px">
+                      <!-- Spacer for signature -->
+                    </div>
+                    <div class="signer-name-wrapper">
+                      <div class="text-signer-final text-weight-black uppercase text-indigo-10">
+                        {{
+                          selectedPo.approved_by ||
+                          selectedPo.approved_supplier ||
+                          '..............................'
+                        }}
+                      </div>
+                    </div>
+                    <div
+                      class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs"
+                    >
+                      Direktur
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
           </div>
         </q-card-section>
       </q-card>
@@ -1691,6 +1766,12 @@ const savePo = async () => {
       status: 'Draft',
       createdAt: serverTimestamp(),
     }
+    if (poForm.value.referensi_pr) {
+      payload.gudang_id =
+        poForm.value.referensi_pr.gudang_id || poForm.value.referensi_pr.proyek_id || ''
+      payload.proyek_id =
+        poForm.value.referensi_pr.proyek_id || poForm.value.referensi_pr.gudang_id || ''
+    }
     delete payload.supplier
     delete payload.referensi_pr
 
@@ -1774,6 +1855,24 @@ const confirmHapusPo = (row) => {
   })
 }
 
+// ── Hapus PR ──────────────────────────────────────────────────────────────
+const confirmHapusPr = (row) => {
+  $q.dialog({
+    title: 'Hapus Purchase Request?',
+    message: `Menghapus PR Nomor ${row.nomor} secara permanen?`,
+    cancel: true,
+    ok: { color: 'negative', label: 'Ya, Hapus', unelevated: true },
+  }).onOk(async () => {
+    try {
+      await deleteDoc(doc(db, 'permintaan_barang', row.id))
+      $q.notify({ type: 'positive', message: 'PR telah dihapus' })
+    } catch (e) {
+      console.error(e)
+      $q.notify({ type: 'negative', message: 'Gagal menghapus PR.' })
+    }
+  })
+}
+
 // ── Preview PO ────────────────────────────────────────────────────────────
 const openPoPreview = (row) => {
   selectedPo.value = row
@@ -1798,7 +1897,7 @@ const exportPoToPDF = () => {
 
     const currentHeight = e.scrollHeight
     const currentWidth = e.scrollWidth
-    const targetHeight = (currentWidth * 1.414) - 20 // A4 Aspect Ratio with safe margin to prevent blank page overflow
+    const targetHeight = currentWidth * 1.414 - 20 // A4 Aspect Ratio with safe margin to prevent blank page overflow
 
     if (currentHeight > targetHeight) {
       const scaleFactor = targetHeight / currentHeight
@@ -1822,7 +1921,7 @@ const exportPoToPDF = () => {
         image: { type: 'jpeg', quality: 1 },
         html2canvas: { scale: 3, useCORS: true, letterRendering: true },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: 'avoid-all' }
+        pagebreak: { mode: 'avoid-all' },
       }
 
       html2pdf()
@@ -1851,7 +1950,7 @@ const exportPoToPDF = () => {
         image: { type: 'jpeg', quality: 1 },
         html2canvas: { scale: 3, useCORS: true, letterRendering: true },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: 'avoid-all' }
+        pagebreak: { mode: 'avoid-all' },
       }
       html2pdf()
         .set(o)
@@ -1884,7 +1983,7 @@ const handleApproval = (row, status, alasan = null) => {
       label: 'Ya, Proses',
     },
   }).onOk(async () => {
-    $q.loading.show({ message: 'Memproses Approval & Sinkronisasi Stok...' })
+    $q.loading.show({ message: 'Memproses Approval PR...' })
     try {
       const data = {
         status,
@@ -1898,56 +1997,10 @@ const handleApproval = (row, status, alasan = null) => {
 
       await updateDoc(doc(db, 'permintaan_barang', row.id), data)
 
-      if (status === 'Approved') {
-        const gudangId = row.gudang_id || row.proyek_id
-        if (gudangId && row.items?.length > 0) {
-          for (const item of row.items) {
-            const tambahanQty = Number(item.qty) || 0
-            if (tambahanQty > 0) {
-              const qStok = query(
-                collection(db, 'stok_barang'),
-                where('id_gudang', '==', gudangId),
-                where('id_barang', '==', item.id_barang),
-              )
-              const stokSnap = await getDocs(qStok)
-
-              if (!stokSnap.empty) {
-                const stokDoc = stokSnap.docs[0]
-                const currentStok = Number(stokDoc.data().jumlah) || 0
-                await updateDoc(doc(db, 'stok_barang', stokDoc.id), {
-                  jumlah: currentStok + tambahanQty,
-                  updated_at: serverTimestamp(),
-                })
-              } else {
-                await addDoc(collection(db, 'stok_barang'), {
-                  id_gudang: gudangId,
-                  id_barang: item.id_barang || '',
-                  nama_barang: item.nama_barang || item.deskripsi || 'Barang PR',
-                  shadow_gudang: true,
-                  jumlah: tambahanQty,
-                  satuan: item.satuan || 'ls',
-                  created_at: serverTimestamp(),
-                  updated_at: serverTimestamp(),
-                })
-              }
-
-              await addDoc(collection(db, 'aktivitas'), {
-                id_gudang: gudangId,
-                nama_barang: item.nama_barang || item.deskripsi || 'Barang PR',
-                tipe: 'MASUK',
-                jumlah: tambahanQty,
-                keterangan: `Otomatis dari PR Approved (${row.nomor})`,
-                timestamp: serverTimestamp(),
-              })
-            }
-          }
-        }
-      }
-
       showPreview.value = false
       $q.notify({
         type: 'positive',
-        message: `PR telah berhasil di-${status.toLowerCase()} dan stok diperbarui.`,
+        message: `PR telah berhasil di-${status.toLowerCase()}.`,
       })
     } catch (e) {
       console.error(e)
@@ -1977,7 +2030,7 @@ const printPage = () => window.print()
 
 const exportToPDF = () => {
   $q.loading.show({ message: 'Generating PDF...' })
-  
+
   const element = document.getElementById('pr-print-area')
   if (!element || !selectedData.value?.nomor) {
     $q.loading.hide()
@@ -1988,13 +2041,13 @@ const exportToPDF = () => {
     margin: 0,
     filename: `PR_${selectedData.value.nomor.replace(/\//g, '-')}.pdf`,
     image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { 
-      scale: 2, 
+    html2canvas: {
+      scale: 2,
       useCORS: true,
       width: 794,
-      windowWidth: 794
+      windowWidth: 794,
     },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
   }
 
   html2pdf()

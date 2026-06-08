@@ -2,275 +2,297 @@
   <q-page class="bg-page q-pa-md q-pa-md-lg font-pro">
     <div class="page-content-wrapper">
       <!-- HEADER SECTION -->
-    <div class="row items-center no-wrap q-mb-xl animate-fade">
-      <q-btn
-        flat
-        round
-        color="brand-primary"
-        icon="arrow_back"
-        @click="$router.back()"
-        class="q-mr-md bg-white shadow-1 transition-all btn-hover"
-      />
-      <div>
-        <div class="text-h4 text-weight-bolder text-brand-primary leading-tight">
-          Penerimaan Barang Masuk
-          <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs">
-            Gudang Penerima: {{ gudangName || 'Loading...' }}
-          </span>
-        </div>
-        <div class="text-subtitle1 text-grey-7 q-mt-sm">
-          Logistik & konfirmasi penerimaan material proyek secara real-time.
+      <div class="row items-center no-wrap q-mb-xl animate-fade">
+        <q-btn
+          flat
+          round
+          color="brand-primary"
+          icon="arrow_back"
+          @click="$router.back()"
+          class="q-mr-md bg-white shadow-1 transition-all btn-hover"
+        />
+        <div>
+          <div class="text-h4 text-weight-bolder text-brand-primary leading-tight">
+            Penerimaan Barang Masuk
+            <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs">
+              Gudang Penerima: {{ gudangName || 'Loading...' }}
+            </span>
+          </div>
+          <div class="text-subtitle1 text-grey-7 q-mt-sm">
+            Logistik & konfirmasi penerimaan material proyek secara real-time.
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="row justify-center">
-      <div class="col-12 col-lg-10">
-        <q-card flat bordered class="rounded-20 shadow-premium bg-white overflow-hidden">
-          <!-- STEP 1: PILIH JENIS REFERENSI -->
-          <q-card-section class="bg-brand-light q-pa-lg border-bottom">
-            <div class="text-subtitle2 text-brand-primary text-weight-bolder uppercase q-mb-md">
-              <q-icon name="assignment" class="q-mr-xs" /> 1. Tentukan Sumber Barang
-            </div>
-            <div class="row q-col-gutter-md">
-              <div class="col-12 col-md-6">
-                <q-select
-                  outlined
-                  v-model="receiveType"
-                  :options="typeOptions"
-                  label="Metode Penerimaan *"
-                  emit-value
-                  map-options
-                  @update:model-value="resetForm"
-                  bg-color="white"
-                  behavior="menu"
-                >
-                  <template v-slot:prepend><q-icon name="merge_type" color="brand-primary" /></template>
-                </q-select>
+      <div class="row justify-center">
+        <div class="col-12 col-lg-10">
+          <q-card flat bordered class="rounded-20 shadow-premium bg-white overflow-hidden">
+            <!-- STEP 1: PILIH JENIS REFERENSI -->
+            <q-card-section class="bg-brand-light q-pa-lg border-bottom">
+              <div class="text-subtitle2 text-brand-primary text-weight-bolder uppercase q-mb-md">
+                <q-icon name="assignment" class="q-mr-xs" /> 1. Tentukan Sumber Barang
               </div>
-              <div class="col-12 col-md-6" v-if="receiveType !== 'MANUAL'">
-                <q-select
-                  outlined
-                  v-model="selectedRefDoc"
-                  :options="referenceOptions"
-                  :label="
-                    receiveType === 'MUTASI'
-                      ? 'Pilih Nomor Surat Jalan / Mutasi *'
-                      : 'Pilih Nomor Purchase Request (PR) *'
-                  "
-                  option-label="nomor"
-                  @update:model-value="onReferenceDocChange"
-                  :loading="loadingRef"
-                  bg-color="white"
-                  behavior="menu"
-                >
-                  <template v-slot:prepend
-                    ><q-icon name="find_in_page" color="brand-primary"
-                  /></template>
-                  <template v-slot:no-option>
-                    <q-item
-                      ><q-item-section class="text-grey italic"
-                        >Tidak ada antrean dokumen untuk gudang ini</q-item-section
-                      ></q-item
-                    >
-                  </template>
-                </q-select>
-              </div>
-            </div>
-          </q-card-section>
-
-          <!-- STEP 2: DETAIL PENERIMAAN -->
-          <q-card-section class="q-pa-xl">
-            <q-form @submit="simpanTransaksiMasuk" class="q-gutter-y-xl">
-              <!-- INFO DOKUMEN -->
-              <div class="row q-col-gutter-lg" v-if="selectedRefDoc">
+              <div class="row q-col-gutter-md">
                 <div class="col-12 col-md-6">
-                  <div class="label-req q-mb-sm">Nomor Referensi Vendor / Eksternal</div>
-                  <q-input
+                  <q-select
                     outlined
-                    v-model="form.noReferensi"
-                    placeholder="Contoh: No. Invoice atau No. SJ Vendor..."
-                    :rules="[(val) => !!val || 'Wajib diisi untuk pelacakan']"
-                  />
-                </div>
-                <div class="col-12 col-md-6">
-                  <div class="label-req q-mb-sm">Sumber Barang (Pemberi)</div>
-                  <q-input
-                    outlined
-                    :model-value="
-                      receiveType === 'MUTASI'
-                        ? selectedRefDoc.ke_gudang?.nama
-                        : 'Supplier / Vendor'
-                    "
-                    readonly
-                    bg-color="grey-1"
+                    v-model="receiveType"
+                    :options="typeOptions"
+                    label="Metode Penerimaan *"
+                    emit-value
+                    map-options
+                    @update:model-value="resetForm"
+                    bg-color="white"
+                    behavior="menu"
                   >
                     <template v-slot:prepend
-                      ><q-icon :name="receiveType === 'MUTASI' ? 'warehouse' : 'store'"
+                      ><q-icon name="merge_type" color="brand-primary"
                     /></template>
-                  </q-input>
+                  </q-select>
+                </div>
+                <div class="col-12 col-md-6" v-if="receiveType !== 'MANUAL'">
+                  <q-select
+                    outlined
+                    v-model="selectedRefDoc"
+                    :options="referenceOptions"
+                    :label="
+                      receiveType === 'MUTASI'
+                        ? 'Pilih Nomor Surat Jalan / Mutasi *'
+                        : 'Pilih Nomor Purchase Order (PO) *'
+                    "
+                    option-label="nomor"
+                    @update:model-value="onReferenceDocChange"
+                    :loading="loadingRef"
+                    bg-color="white"
+                    behavior="menu"
+                  >
+                    <template v-slot:prepend
+                      ><q-icon name="find_in_page" color="brand-primary"
+                    /></template>
+                    <template v-slot:option="scope">
+                      <q-item v-bind="scope.itemProps">
+                        <q-item-section>
+                          <q-item-label>{{ scope.opt.nomor }}</q-item-label>
+                          <q-item-label caption>
+                            <q-badge
+                              :color="scope.opt.status === 'Completed' ? 'green-3' : 'blue-3'"
+                              :text-color="scope.opt.status === 'Completed' ? 'green-9' : 'blue-9'"
+                              :label="
+                                scope.opt.status === 'Completed'
+                                  ? '✓ Sudah Diproses'
+                                  : 'Pending Penerimaan'
+                              "
+                              class="text-weight-bold text-caption"
+                            />
+                          </q-item-label>
+                        </q-item-section>
+                      </q-item>
+                    </template>
+                    <template v-slot:no-option>
+                      <q-item
+                        ><q-item-section class="text-grey italic"
+                          >Tidak ada antrean dokumen untuk gudang ini</q-item-section
+                        ></q-item
+                      >
+                    </template>
+                  </q-select>
                 </div>
               </div>
+            </q-card-section>
 
-              <!-- TABLE ITEM -->
-              <div class="column" v-if="form.items.length > 0">
-                <div
-                  class="text-subtitle1 text-weight-bold text-brand-primary q-mb-md uppercase flex items-center"
-                >
-                  <q-icon name="list" class="q-mr-sm" color="brand-primary" /> Daftar Barang Yang Diterima
-                </div>
-
-                <q-markup-table flat bordered class="rounded-borders border-subtle">
-                  <thead class="bg-brand-primary text-white">
-                    <tr class="text-weight-bold uppercase font-11 tracking-widest text-white">
-                      <th width="50" class="text-weight-bold">NO</th>
-                      <th class="text-left text-weight-bold">NAMA MATERIAL</th>
-                      <th width="150" class="text-weight-bold">JUMLAH TERIMA</th>
-                      <th width="100" class="text-weight-bold">SATUAN</th>
-                      <th width="150" class="no-print text-weight-bold">STOK DI GUDANG INI</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="(item, index) in form.items" :key="index">
-                      <td class="text-center">{{ index + 1 }}</td>
-                      <td>
-                        <div class="text-weight-bold text-brand-primary uppercase">
-                          {{ item.nama_barang }}
-                        </div>
-                        <div class="text-caption text-grey-6">ID: {{ item.id_barang }}</div>
-                      </td>
-                      <td>
-                        <q-input
-                          dense
-                          outlined
-                          v-model.number="item.qty_diterima"
-                          type="number"
-                          input-class="text-center text-weight-bold"
-                          :suffix="item.satuan"
-                        />
-                      </td>
-                      <td class="text-center uppercase text-caption text-bold">
-                        {{ item.satuan }}
-                      </td>
-                      <td class="text-center no-print">
-                        <q-badge
-                          :color="item.stok_sekarang > 0 ? 'brand-light' : 'grey-2'"
-                          :text-color="item.stok_sekarang > 0 ? 'brand-primary' : 'grey-7'"
-                          class="q-px-md text-weight-bold"
-                        >
-                          {{ item.stok_sekarang || 0 }} {{ item.satuan }}
-                        </q-badge>
-                      </td>
-                    </tr>
-                  </tbody>
-                </q-markup-table>
-              </div>
-
-              <div
-                v-else-if="receiveType !== 'MANUAL'"
-                class="q-pa-xl text-center text-grey-5 border-dashed rounded-20"
-              >
-                <q-icon name="find_in_page" size="64px" class="q-mb-md" />
-                <div class="text-h6">
-                  Pilih dokumen referensi di atas untuk memuat daftar barang
-                </div>
-              </div>
-
-              <!-- UPLOAD BUKTI DINAMIS -->
-              <div class="column q-gutter-y-md">
-                <div class="row items-center justify-between q-col-gutter-y-sm q-mb-sm">
-                  <div class="label-req">
-                    Bukti Penerimaan (Foto/Dokumen Digital)
-                    <span class="text-negative">* Wajib</span>
+            <!-- STEP 2: DETAIL PENERIMAAN -->
+            <q-card-section class="q-pa-xl">
+              <q-form @submit="simpanTransaksiMasuk" class="q-gutter-y-xl">
+                <!-- INFO DOKUMEN -->
+                <div class="row q-col-gutter-lg" v-if="selectedRefDoc">
+                  <div class="col-12 col-md-6">
+                    <div class="label-req q-mb-sm">Nomor Referensi Vendor / Eksternal</div>
+                    <q-input
+                      outlined
+                      v-model="form.noReferensi"
+                      placeholder="Contoh: No. Invoice atau No. SJ Vendor..."
+                      :rules="[(val) => !!val || 'Wajib diisi untuk pelacakan']"
+                    />
                   </div>
-                  <q-btn
-                    flat
-                    rounded
-                    dense
-                    color="brand-primary"
-                    icon="add_a_photo"
-                    label="Tambah Lampiran"
-                    no-caps
-                    class="text-weight-bold"
-                    @click="addBuktiRow"
+                  <div class="col-12 col-md-6">
+                    <div class="label-req q-mb-sm">Sumber Barang (Pemberi)</div>
+                    <q-input
+                      outlined
+                      :model-value="
+                        receiveType === 'MUTASI'
+                          ? selectedRefDoc.dari_gudang?.nama
+                          : 'Supplier / Vendor'
+                      "
+                      readonly
+                      bg-color="grey-1"
+                    >
+                      <template v-slot:prepend
+                        ><q-icon :name="receiveType === 'MUTASI' ? 'warehouse' : 'store'"
+                      /></template>
+                    </q-input>
+                  </div>
+                </div>
+
+                <!-- TABLE ITEM -->
+                <div class="column" v-if="form.items.length > 0">
+                  <div
+                    class="text-subtitle1 text-weight-bold text-brand-primary q-mb-md uppercase flex items-center"
+                  >
+                    <q-icon name="list" class="q-mr-sm" color="brand-primary" /> Daftar Barang Yang
+                    Diterima
+                  </div>
+
+                  <q-markup-table flat bordered class="rounded-borders border-subtle">
+                    <thead class="bg-brand-primary text-white">
+                      <tr class="text-weight-bold uppercase font-11 tracking-widest text-white">
+                        <th width="50" class="text-weight-bold">NO</th>
+                        <th class="text-left text-weight-bold">NAMA MATERIAL</th>
+                        <th width="150" class="text-weight-bold">JUMLAH TERIMA</th>
+                        <th width="100" class="text-weight-bold">SATUAN</th>
+                        <th width="150" class="no-print text-weight-bold">STOK DI GUDANG INI</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(item, index) in form.items" :key="index">
+                        <td class="text-center">{{ index + 1 }}</td>
+                        <td>
+                          <div class="text-weight-bold text-brand-primary uppercase">
+                            {{ item.nama_barang }}
+                          </div>
+                          <div class="text-caption text-grey-6">ID: {{ item.id_barang }}</div>
+                        </td>
+                        <td>
+                          <q-input
+                            dense
+                            outlined
+                            v-model.number="item.qty_diterima"
+                            type="number"
+                            input-class="text-center text-weight-bold"
+                            :suffix="item.satuan"
+                          />
+                        </td>
+                        <td class="text-center uppercase text-caption text-bold">
+                          {{ item.satuan }}
+                        </td>
+                        <td class="text-center no-print">
+                          <q-badge
+                            :color="item.stok_sekarang > 0 ? 'brand-light' : 'grey-2'"
+                            :text-color="item.stok_sekarang > 0 ? 'brand-primary' : 'grey-7'"
+                            class="q-px-md text-weight-bold"
+                          >
+                            {{ item.stok_sekarang || 0 }} {{ item.satuan }}
+                          </q-badge>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </q-markup-table>
+                </div>
+
+                <div
+                  v-else-if="receiveType !== 'MANUAL'"
+                  class="q-pa-xl text-center text-grey-5 border-dashed rounded-20"
+                >
+                  <q-icon name="find_in_page" size="64px" class="q-mb-md" />
+                  <div class="text-h6">
+                    Pilih dokumen referensi di atas untuk memuat daftar barang
+                  </div>
+                </div>
+
+                <!-- UPLOAD BUKTI DINAMIS -->
+                <div class="column q-gutter-y-md">
+                  <div class="row items-center justify-between q-col-gutter-y-sm q-mb-sm">
+                    <div class="label-req">
+                      Bukti Penerimaan (Foto/Dokumen Digital)
+                      <span class="text-negative">* Wajib</span>
+                    </div>
+                    <q-btn
+                      flat
+                      rounded
+                      dense
+                      color="brand-primary"
+                      icon="add_a_photo"
+                      label="Tambah Lampiran"
+                      no-caps
+                      class="text-weight-bold"
+                      @click="addBuktiRow"
+                    />
+                  </div>
+
+                  <div class="row q-col-gutter-md">
+                    <div
+                      v-for="(bukti, bIdx) in buktiFiles"
+                      :key="bIdx"
+                      class="col-12 col-sm-6 col-md-4"
+                    >
+                      <q-card flat bordered class="rounded-borders bg-grey-1 relative-position">
+                        <q-card-section class="q-pa-sm">
+                          <q-file
+                            v-model="bukti.file"
+                            label="Pilih Berkas..."
+                            accept="image/*, .pdf"
+                            outlined
+                            dense
+                            bg-color="white"
+                          >
+                            <template v-slot:prepend>
+                              <q-icon name="cloud_upload" color="brand-primary" />
+                            </template>
+                          </q-file>
+                        </q-card-section>
+
+                        <!-- Tombol Hapus Baris -->
+                        <q-btn
+                          v-if="buktiFiles.length > 1"
+                          flat
+                          round
+                          dense
+                          color="negative"
+                          icon="cancel"
+                          class="absolute-top-right q-mt-xs q-mr-xs z-top"
+                          size="sm"
+                          @click="removeBuktiRow(bIdx)"
+                        />
+                      </q-card>
+                    </div>
+                  </div>
+                  <div class="text-caption text-grey-6 italic">
+                    Format: JPG, PNG, atau PDF (Maks. 5MB per file) - Wajib menyertakan minimal 1
+                    bukti.
+                  </div>
+                </div>
+
+                <!-- CATATAN -->
+                <div class="column">
+                  <div class="label-req q-mb-sm">Keterangan Tambahan</div>
+                  <q-input
+                    outlined
+                    v-model="form.catatan"
+                    label="Kondisi barang atau informasi pengiriman..."
+                    type="textarea"
+                    rows="3"
+                    placeholder="Misal: Barang diterima dalam kondisi baik, segel utuh..."
                   />
                 </div>
 
-                <div class="row q-col-gutter-md">
-                  <div
-                    v-for="(bukti, bIdx) in buktiFiles"
-                    :key="bIdx"
-                    class="col-12 col-sm-6 col-md-4"
-                  >
-                    <q-card flat bordered class="rounded-borders bg-grey-1 relative-position">
-                      <q-card-section class="q-pa-sm">
-                        <q-file
-                          v-model="bukti.file"
-                          label="Pilih Berkas..."
-                          accept="image/*, .pdf"
-                          outlined
-                          dense
-                          bg-color="white"
-                        >
-                          <template v-slot:prepend>
-                            <q-icon name="cloud_upload" color="brand-primary" />
-                          </template>
-                        </q-file>
-                      </q-card-section>
-
-                      <!-- Tombol Hapus Baris -->
-                      <q-btn
-                        v-if="buktiFiles.length > 1"
-                        flat
-                        round
-                        dense
-                        color="negative"
-                        icon="cancel"
-                        class="absolute-top-right q-mt-xs q-mr-xs z-top"
-                        size="sm"
-                        @click="removeBuktiRow(bIdx)"
-                      />
-                    </q-card>
-                  </div>
+                <!-- SUBMIT -->
+                <div class="row justify-end q-mt-xl">
+                  <q-btn
+                    label="Konfirmasi Penerimaan"
+                    type="submit"
+                    color="brand-primary"
+                    class="rounded-20 q-px-lg text-weight-bold shadow-premium btn-hover"
+                    unelevated
+                    icon="check_circle"
+                    :loading="submitting"
+                    :disable="form.items.length === 0"
+                  />
                 </div>
-                <div class="text-caption text-grey-6 italic">
-                  Format: JPG, PNG, atau PDF (Maks. 5MB per file) - Wajib menyertakan minimal 1
-                  bukti.
-                </div>
-              </div>
-
-              <!-- CATATAN -->
-              <div class="column">
-                <div class="label-req q-mb-sm">Keterangan Tambahan</div>
-                <q-input
-                  outlined
-                  v-model="form.catatan"
-                  label="Kondisi barang atau informasi pengiriman..."
-                  type="textarea"
-                  rows="3"
-                  placeholder="Misal: Barang diterima dalam kondisi baik, segel utuh..."
-                />
-              </div>
-
-              <!-- SUBMIT -->
-              <div class="row justify-end q-mt-xl">
-                <q-btn
-                  label="Konfirmasi Penerimaan"
-                  type="submit"
-                  color="brand-primary"
-                  class="rounded-20 q-px-lg text-weight-bold shadow-premium btn-hover"
-                  unelevated
-                  icon="check_circle"
-                  :loading="submitting"
-                  :disable="form.items.length === 0"
-                />
-              </div>
-            </q-form>
-          </q-card-section>
-        </q-card>
+              </q-form>
+            </q-card-section>
+          </q-card>
+        </div>
       </div>
     </div>
-  </div>
 
     <div class="q-py-xl"></div>
   </q-page>
@@ -315,7 +337,7 @@ const buktiFiles = ref([{ file: null }])
 
 const typeOptions = [
   { label: 'Mutasi dari Gudang Lain', value: 'MUTASI' },
-  { label: 'Pembelian Baru (Purchase Request)', value: 'PURCHASE' },
+  { label: 'Pembelian Baru (Purchase Order)', value: 'PURCHASE' },
   { label: 'Input Manual (Penyesuaian)', value: 'MANUAL' },
 ]
 
@@ -342,18 +364,30 @@ const fetchReferences = async () => {
   loadingRef.value = true
   referenceOptions.value = []
   try {
-    // Cari permintaan yang sudah Approved
-    const q = query(
-      collection(db, 'permintaan_barang'),
-      where('status', '==', 'Approved'),
-      where('tipe', '==', receiveType.value === 'MUTASI' ? 'ANTAR_GUDANG' : 'PURCHASE_REQUEST'),
-    )
+    let q
+    if (receiveType.value === 'MUTASI') {
+      // Include Pending so penerima dapat melihat request; actual processing guarded later
+      q = query(
+        collection(db, 'permintaan_barang'),
+        where('status', 'in', ['Pending', 'Approved', 'Completed']),
+        where('tipe', '==', 'ANTAR_GUDANG'),
+      )
+    } else {
+      q = query(collection(db, 'purchase_order'), where('status', 'in', ['Approved', 'Completed']))
+    }
 
     const snap = await getDocs(q)
     let docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
 
-    // Filter di sisi Client: Gudang aktif harus sebagai PENERIMA (dari_gudang.id)
-    referenceOptions.value = docs.filter((d) => d.dari_gudang?.id === gudangId)
+    // Filter di sisi Client: Gudang aktif harus sebagai PENERIMA
+    if (receiveType.value === 'MUTASI') {
+      // Only show requests where this gudang is the receiver (ke_gudang)
+      referenceOptions.value = docs.filter((d) => d.ke_gudang?.id === gudangId)
+    } else {
+      referenceOptions.value = docs.filter(
+        (d) => d.gudang_id === gudangId || d.proyek_id === gudangId,
+      )
+    }
   } catch (e) {
     console.error(e)
   } finally {
@@ -450,6 +484,27 @@ const simpanTransaksiMasuk = async () => {
       }
     }
 
+    // Safety checks: ensure referenced request exists, not already processed, and is Approved
+    if (refDoc) {
+      const freshReqSnap = await getDoc(doc(db, 'permintaan_barang', refDoc.id))
+      if (!freshReqSnap.exists()) {
+        throw new Error('Dokumen referensi tidak ditemukan (mungkin telah dihapus).')
+      }
+      const fresh = freshReqSnap.data()
+      if (fresh.processed) {
+        $q.notify({ type: 'negative', message: 'Permintaan ini sudah diproses sebelumnya.' })
+        return
+      }
+      if (fresh.status !== 'Approved') {
+        $q.notify({
+          type: 'warning',
+          message:
+            'Permintaan belum disetujui oleh gudang sumber. Tunggu approval sebelum memproses penerimaan.',
+        })
+        return
+      }
+    }
+
     await runTransaction(db, async (transaction) => {
       for (const it of form.value.items) {
         const qty = Number(it.qty_diterima)
@@ -482,7 +537,7 @@ const simpanTransaksiMasuk = async () => {
 
         // 2. JIKA JENISNYA MUTASI, KURANGI STOK DI GUDANG SUMBER (Pemberi)
         if (receiveType.value === 'MUTASI' && refDoc) {
-          const sourceGudangId = refDoc.ke_gudang.id
+          const sourceGudangId = refDoc.dari_gudang.id
           const sourceStokQuery = query(
             collection(db, 'stok_barang'),
             where('id_gudang', '==', sourceGudangId),
@@ -527,8 +582,11 @@ const simpanTransaksiMasuk = async () => {
 
       // 4. UPDATE STATUS DOKUMEN ASLI MENJADI 'COMPLETED'
       if (refDoc) {
-        transaction.update(doc(db, 'permintaan_barang', refDoc.id), {
+        const collectionName =
+          receiveType.value === 'MUTASI' ? 'permintaan_barang' : 'purchase_order'
+        transaction.update(doc(db, collectionName, refDoc.id), {
           status: 'Completed',
+          processed: true,
           receivedAt: serverTimestamp(),
           bukti_penerimaan_urls: buktiUrls, // Simpan array URL di dokumen permintaan induk
         })

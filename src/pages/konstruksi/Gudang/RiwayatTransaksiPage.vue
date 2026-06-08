@@ -16,9 +16,7 @@
               class="q-mr-md bg-white shadow-1 transition-all btn-hover"
             />
             <div>
-              <div
-                class="text-h4 text-weight-bolder text-brand-primary leading-tight"
-              >
+              <div class="text-h4 text-weight-bolder text-brand-primary leading-tight">
                 Riwayat Transaksi
                 <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs">
                   Log Mutasi Aset • Gudang:
@@ -61,7 +59,10 @@
             </div>
 
             <!-- Right Side Controls -->
-            <div class="col-12 col-md-8 flex items-center justify-center justify-md-end wrap" style="gap: 16px;">
+            <div
+              class="col-12 col-md-8 flex items-center justify-center justify-md-end wrap"
+              style="gap: 16px"
+            >
               <!-- Type Filter Toggle -->
               <q-btn-toggle
                 v-model="typeFilter"
@@ -81,7 +82,9 @@
               <!-- Records stats -->
               <div class="text-caption text-grey-6 text-weight-medium text-center">
                 Total Record:
-                <span class="text-weight-bold text-brand-primary">{{ filteredRows.length }} Log</span>
+                <span class="text-weight-bold text-brand-primary"
+                  >{{ filteredRows.length }} Log</span
+                >
               </div>
 
               <!-- EXPORT DROPDOWN -->
@@ -94,7 +97,12 @@
                 class="rounded-12 text-weight-bold shadow-2 full-width-mobile"
               >
                 <q-list class="bg-white rounded-borders q-py-sm" style="min-width: 200px">
-                  <q-item clickable v-close-popup @click="exportHistoryToPDF" class="hover-blue-btn">
+                  <q-item
+                    clickable
+                    v-close-popup
+                    @click="exportHistoryToPDF"
+                    class="hover-blue-btn"
+                  >
                     <q-item-section avatar>
                       <q-avatar color="red-1" text-color="red-10" icon="picture_as_pdf" size="sm" />
                     </q-item-section>
@@ -103,7 +111,12 @@
                     </q-item-section>
                   </q-item>
                   <q-separator class="q-my-sm" />
-                  <q-item clickable v-close-popup @click="exportHistoryToExcel" class="hover-blue-btn">
+                  <q-item
+                    clickable
+                    v-close-popup
+                    @click="exportHistoryToExcel"
+                    class="hover-blue-btn"
+                  >
                     <q-item-section avatar>
                       <q-avatar color="green-1" text-color="green-10" icon="table_view" size="sm" />
                     </q-item-section>
@@ -204,6 +217,18 @@
 
               <q-td key="no_spk" class="text-brand-primary text-weight-bolder">
                 {{ props.row.no_spk || '-' }}
+              </q-td>
+              <q-td key="aksi" class="text-center" @click.stop>
+                <q-btn
+                  unelevated
+                  rounded
+                  color="brand-danger"
+                  icon="delete_outline"
+                  size="sm"
+                  @click="deleteHistory(props.row)"
+                >
+                  <q-tooltip>Hapus</q-tooltip>
+                </q-btn>
               </q-td>
             </q-tr>
           </template>
@@ -788,22 +813,25 @@
         <div class="row q-col-gutter-lg q-mb-lg items-start text-left" v-if="selectedItem">
           <!-- Sisi Kiri: Kepada Yth, Lokasi, Up -->
           <div class="col-7">
-            <div class="row no-wrap items-start" style="font-size: 12px;">
-              <div class="text-weight-bold text-grey-7" style="width: 80px;">Kepada Yth</div>
+            <div class="row no-wrap items-start" style="font-size: 12px">
+              <div class="text-weight-bold text-grey-7" style="width: 80px">Kepada Yth</div>
               <div class="q-mr-sm text-grey-7">:</div>
-              <div class="col text-weight-black text-indigo-10 uppercase font-bold font-pro" style="font-size: 13.5px; line-height: 1.2;">
+              <div
+                class="col text-weight-black text-indigo-10 uppercase font-bold font-pro"
+                style="font-size: 13.5px; line-height: 1.2"
+              >
                 {{ selectedItem.tujuan_nama || 'PIHAK PENERIMA' }}
               </div>
             </div>
-            <div class="row no-wrap items-start q-mt-sm" style="font-size: 12px;">
-              <div class="text-weight-bold text-grey-7" style="width: 80px;">Lokasi</div>
+            <div class="row no-wrap items-start q-mt-sm" style="font-size: 12px">
+              <div class="text-weight-bold text-grey-7" style="width: 80px">Lokasi</div>
               <div class="q-mr-sm text-grey-7">:</div>
               <div class="col underline-dotted text-blue-grey-10 text-weight-bold">
                 {{ selectedItem.tujuan_alamat || warehouseName || 'LOKASI PROYEK' }}
               </div>
             </div>
-            <div class="row no-wrap items-start q-mt-sm" style="font-size: 12px;">
-              <div class="text-weight-bold text-grey-7" style="width: 80px;">Up</div>
+            <div class="row no-wrap items-start q-mt-sm" style="font-size: 12px">
+              <div class="text-weight-bold text-grey-7" style="width: 80px">Up</div>
               <div class="q-mr-sm text-grey-7">:</div>
               <div class="col underline-dotted text-blue-grey-10 text-weight-bold">
                 {{ selectedItem.penerima_up || '...........................................' }}
@@ -813,29 +841,50 @@
 
           <!-- Sisi Kanan: SURAT JALAN & Metadata Surat (No. SJ, No. Reff, Tanggal, Ekspedisi) -->
           <div class="col-5 text-right font-pro">
-            <div class="text-weight-black text-indigo-10 uppercase tracking-widest leading-none" style="font-size: 18px; margin-top: 0px; margin-bottom: 8px; line-height: 1.2;">
+            <div
+              class="text-weight-black text-indigo-10 uppercase tracking-widest leading-none"
+              style="font-size: 18px; margin-top: 0px; margin-bottom: 8px; line-height: 1.2"
+            >
               SURAT JALAN
             </div>
-            
+
             <div class="row justify-end">
-              <div style="width: 245px; text-align: left;">
-                <div class="row no-wrap items-center q-mb-xs" style="font-size: 12px; line-height: 1.2;">
-                  <div class="text-weight-bold text-indigo-10" style="width: 80px;">No. SJ</div>
+              <div style="width: 245px; text-align: left">
+                <div
+                  class="row no-wrap items-center q-mb-xs"
+                  style="font-size: 12px; line-height: 1.2"
+                >
+                  <div class="text-weight-bold text-indigo-10" style="width: 80px">No. SJ</div>
                   <div class="text-weight-bold text-indigo-10 q-mr-xs">:</div>
-                  <div class="col text-weight-bold text-indigo-10 font-mono">{{ selectedItem.no_referensi }}</div>
+                  <div class="col text-weight-bold text-indigo-10 font-mono">
+                    {{ selectedItem.no_referensi }}
+                  </div>
                 </div>
-                <div class="row no-wrap items-center q-mb-xs" style="font-size: 12px; line-height: 1.2;">
-                  <div class="text-weight-bold text-grey-7" style="width: 80px;">No Reff</div>
+                <div
+                  class="row no-wrap items-center q-mb-xs"
+                  style="font-size: 12px; line-height: 1.2"
+                >
+                  <div class="text-weight-bold text-grey-7" style="width: 80px">No Reff</div>
                   <div class="text-weight-bold text-grey-7 q-mr-xs">:</div>
-                  <div class="col text-weight-bold text-grey-9 font-mono">{{ selectedItem.no_spk || 'INTERNAL_LOGISTICS' }}</div>
+                  <div class="col text-weight-bold text-grey-9 font-mono">
+                    {{ selectedItem.no_spk || 'INTERNAL_LOGISTICS' }}
+                  </div>
                 </div>
-                <div class="row no-wrap items-center q-mb-xs" style="font-size: 12px; line-height: 1.2;">
-                  <div class="text-weight-bold text-grey-7" style="width: 80px;">Tanggal</div>
+                <div
+                  class="row no-wrap items-center q-mb-xs"
+                  style="font-size: 12px; line-height: 1.2"
+                >
+                  <div class="text-weight-bold text-grey-7" style="width: 80px">Tanggal</div>
                   <div class="text-weight-bold text-grey-7 q-mr-xs">:</div>
-                  <div class="col text-weight-bold text-grey-9">{{ formatDate(selectedItem.timestamp) }}</div>
+                  <div class="col text-weight-bold text-grey-9">
+                    {{ formatDate(selectedItem.timestamp) }}
+                  </div>
                 </div>
-                <div class="row no-wrap items-center q-mb-xs" style="font-size: 12px; line-height: 1.2;">
-                  <div class="text-weight-bold text-grey-7" style="width: 80px;">Ekspedisi</div>
+                <div
+                  class="row no-wrap items-center q-mb-xs"
+                  style="font-size: 12px; line-height: 1.2"
+                >
+                  <div class="text-weight-bold text-grey-7" style="width: 80px">Ekspedisi</div>
                   <div class="text-weight-bold text-grey-7 q-mr-xs">:</div>
                   <div class="col text-weight-bold text-grey-9">Driver Internal</div>
                 </div>
@@ -904,22 +953,23 @@
             <div class="col-3">Pihak Pengirim</div>
             <div class="col-3">Pihak Penerima</div>
           </div>
-          
+
           <!-- Baris 2: Nama / Tanda Tangan (Disejajarkan pada baseline bawah agar rapi jika ada nama yang turun 2 baris) -->
-          <div class="row justify-between items-end" style="margin-top: 60px;">
-            <div class="col-3 text-weight-black underline text-indigo-10 uppercase" style="line-height: 1.2;">
+          <div class="row justify-between items-end" style="margin-top: 60px">
+            <div
+              class="col-3 text-weight-black underline text-indigo-10 uppercase"
+              style="line-height: 1.2"
+            >
               Petugas Terotorisasi
             </div>
-            <div class="col-3 text-weight-black">
-              (..............................)
-            </div>
-            <div class="col-3 text-weight-black">
-              (..............................)
-            </div>
+            <div class="col-3 text-weight-black">(..............................)</div>
+            <div class="col-3 text-weight-black">(..............................)</div>
           </div>
-          
+
           <!-- Baris 3: Sub-Keterangan / Cap -->
-          <div class="row justify-between items-start q-mt-xs text-caption text-bold text-grey-8 uppercase">
+          <div
+            class="row justify-between items-start q-mt-xs text-caption text-bold text-grey-8 uppercase"
+          >
             <div class="col-3">( {{ warehouseName || selectedItem.id_gudang }} )</div>
             <div class="col-3">Driver / Kurir</div>
             <div class="col-3">Nama Jelas & Cap</div>
@@ -954,6 +1004,7 @@ import {
   getDocs,
   getDoc,
   doc,
+  deleteDoc,
 } from 'firebase/firestore'
 import { useQuasar } from 'quasar'
 import html2pdf from 'html2pdf.js'
@@ -990,6 +1041,7 @@ const columns = [
   { name: 'timestamp', label: 'WAKTU', field: 'timestamp', align: 'left', sortable: true },
   { name: 'ref', label: 'DOK. REFERENSI', field: 'no_referensi', align: 'left', sortable: true },
   { name: 'no_spk', label: 'NO. SPK', field: 'no_spk', align: 'left', sortable: true },
+  { name: 'aksi', label: 'AKSI', field: 'aksi', align: 'center' },
 ]
 
 // Computed Logic Filter Tipe (Memory Based for Strict Separation)
@@ -999,7 +1051,8 @@ const filteredRows = computed(() => {
   return data
 })
 
-const getTipeColor = (t) => (t === 'MASUK' ? 'positive' : t === 'KELUAR' ? 'orange-8' : 'brand-primary')
+const getTipeColor = (t) =>
+  t === 'MASUK' ? 'positive' : t === 'KELUAR' ? 'orange-8' : 'brand-primary'
 const getTipeIcon = (t) => (t === 'MASUK' ? 'download' : t === 'KELUAR' ? 'upload' : 'analytics')
 const getAmountColor = (t) =>
   t === 'MASUK' ? 'text-green-9' : t === 'KELUAR' ? 'text-orange-9' : 'text-brand-teal'
@@ -1164,6 +1217,30 @@ const openDetail = async (row) => {
 
 const openLink = (u) => u && window.open(u, '_blank')
 
+const deleteHistory = async (row) => {
+  if (!row?.id) return
+
+  $q.dialog({
+    title: 'Hapus Riwayat Transaksi',
+    message: `Apakah Anda yakin ingin menghapus transaksi <strong>${row.no_referensi || row.tipe}</strong>?`,
+    html: true,
+    cancel: true,
+    persistent: true,
+    ok: { color: 'negative', label: 'Hapus' },
+  }).onOk(async () => {
+    $q.loading.show({ message: 'Menghapus data transaksi...' })
+    try {
+      await deleteDoc(doc(db, 'aktivitas', row.id))
+      $q.notify({ type: 'positive', message: 'Riwayat transaksi berhasil dihapus.' })
+    } catch (err) {
+      console.error('Gagal menghapus transaksi', err)
+      $q.notify({ type: 'negative', message: 'Gagal menghapus riwayat transaksi.' })
+    } finally {
+      $q.loading.hide()
+    }
+  })
+}
+
 // --- EKSPOR ULANG KE PDF (RE-PRINT) - SINKRON DENGAN BARANG KELUAR ---
 const exportDetailToPDF = () => {
   const element = document.getElementById('sj-reprint-target')
@@ -1266,7 +1343,10 @@ onMounted(() => {
 .font-pro :deep(table),
 .font-pro :deep(td:not(.q-icon):not(.material-icons)),
 .font-pro :deep(th:not(.q-icon):not(.material-icons)) {
-  font-family: 'Plus Jakarta Sans', -apple-system, sans-serif !important;
+  font-family:
+    'Plus Jakarta Sans',
+    -apple-system,
+    sans-serif !important;
 }
 
 .font-pro :deep(.q-icon),

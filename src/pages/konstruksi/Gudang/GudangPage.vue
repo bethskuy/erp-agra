@@ -572,6 +572,25 @@
                 </q-td>
               </template>
 
+              <template v-slot:body-cell-aksi="props">
+                <q-td :props="props" class="text-center">
+                  <q-btn
+                    v-if="canAction('hapus')"
+                    flat
+                    round
+                    dense
+                    icon="delete"
+                    color="negative"
+                    size="sm"
+                    @click="deleteStokItem(props.row)"
+                    class="btn-delete-stok"
+                  >
+                    <q-tooltip class="bg-negative text-white" :delay="500">Hapus Stok</q-tooltip>
+                  </q-btn>
+                  <span v-else class="text-grey-5 text-caption">-</span>
+                </q-td>
+              </template>
+
               <template v-slot:no-data>
                 <div class="full-width row flex-center q-pa-xl text-grey-5">
                   <q-icon name="inventory_2" size="64px" class="q-mb-md" />
@@ -801,7 +820,7 @@
 
 <script setup>
 import { ref, watch, onMounted, onUnmounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { db } from 'src/boot/firebase'
 import {
   collection,
@@ -810,6 +829,7 @@ import {
   addDoc,
   serverTimestamp,
   updateDoc,
+  deleteDoc,
   doc,
   orderBy,
   where,
@@ -820,6 +840,7 @@ import html2pdf from 'html2pdf.js'
 import { useAuthStore } from 'src/stores/auth'
 
 const $q = useQuasar()
+const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 
@@ -933,6 +954,7 @@ const columns = [
   },
   { name: 'stok', label: 'KUANTITAS FISIK', field: 'jumlah', align: 'center', sortable: true },
   { name: 'satuan', label: 'SATUAN', field: 'satuan', align: 'center' },
+  { name: 'aksi', label: 'AKSI', field: 'aksi', align: 'center' },
 ]
 
 const stokBarangEnriched = computed(() => {
@@ -945,15 +967,114 @@ const stokBarangEnriched = computed(() => {
   })
 })
 
+const restoreSelectedGudangFromQuery = () => {
+  const selectedId = route.query.id
+  if (!selectedId) {
+    selectedGudang.value = null
+    return
+  }
+
+  if (selectedId === 'UTAMA') {
+    selectedGudang.value = { id: 'UTAMA', nama: 'Gudang Utama' }
+    return
+  }
+
+  const proyek = listProyek.value.find((p) => p.id === selectedId)
+  if (proyek) {
+    selectedGudang.value = {
+      id: proyek.id,
+      nama: 'Gudang ' + (proyek.nama_proyek || proyek.nama),
+      ...proyek,
+    }
+  }
+}
+
 const selectGudang = (gudang) => {
   selectedGudang.value = gudang
+  router.replace({ path: '/konstruksi/gudang', query: { id: gudang.id } })
   window.scrollTo(0, 0)
 }
+
+watch(
+  () => route.query.id,
+  (id) => {
+    if (!id) {
+      selectedGudang.value = null
+      return
+    }
+    restoreSelectedGudangFromQuery()
+  },
+)
 
 const hasAnyGudangNotif = (gudangId) => {
   if (!notifGudang.value[gudangId]) return false
   const n = notifGudang.value[gudangId]
   return n.mutasiPending > 0 || n.mutasiApproved > 0 || n.prApproved > 0 || n.prRejected > 0
+}
+
+const deleteStokItem = (stokItem) => {
+  if (!canAction('hapus')) {
+    showPermissionDenied()
+    return
+  }
+
+  $q.dialog({
+    title: 'Hapus Item Stok',
+    message: `Apakah Anda yakin ingin menghapus <strong>${stokItem.nama_barang}</strong> (${stokItem.jumlah} ${stokItem.satuan}) dari gudang ini?<br><br><span class="text-caption text-grey-7">Catatan: Data aktivitas tidak akan dihapus.</span>`,
+    html: true,
+    cancel: true,
+    persistent: true,
+    ok: {
+      label: 'Ya, Hapus',
+      color: 'negative',
+      class: 'text-weight-bold',
+    },
+    // eslint-disable-next-line no-dupe-keys
+    cancel: {
+      label: 'Batal',
+      color: 'grey-7',
+    },
+  }).onOk(async () => {
+    $q.loading.show({ message: 'Menghapus stok item...' })
+    try {
+      // Hapus dokumen stok dari Firestore
+      await deleteDoc(doc(db, 'stok_barang', stokItem.id))
+
+      // Update list stok di UI (real-time listener akan update otomatis)
+      stokBarang.value = stokBarang.value.filter((s) => s.id !== stokItem.id)
+
+      $q.notify({
+        html: true,
+        message:
+          '<div class="text-weight-bold text-subtitle1 q-mb-none leading-none">Item Stok Dihapus!</div><div class="text-caption q-mt-xs" style="opacity: 0.85">Data stok telah dihapus dari gudang.</div>',
+        color: 'positive',
+        icon: 'task_alt',
+        position: 'top',
+        timeout: 3000,
+        progress: true,
+        classes: 'rounded-12 shadow-premium q-pl-md q-pr-lg q-py-sm border-white-2',
+        actions: [{ icon: 'close', color: 'white', round: true, size: 'sm', dense: true }],
+      })
+    } catch (err) {
+      console.error(err)
+      $q.notify({
+        html: true,
+        message:
+          '<div class="text-weight-bold text-subtitle1 q-mb-none leading-none">Gagal Menghapus!</div><div class="text-caption q-mt-xs" style="opacity: 0.85">' +
+          err.message +
+          '</div>',
+        color: 'negative',
+        icon: 'warning',
+        position: 'top',
+        timeout: 3000,
+        progress: true,
+        classes: 'rounded-12 shadow-premium q-pl-md q-pr-lg q-py-sm border-white-2',
+        actions: [{ icon: 'close', color: 'white', round: true, size: 'sm', dense: true }],
+      })
+    } finally {
+      $q.loading.hide()
+    }
+  })
 }
 
 const fetchMasterData = async () => {
@@ -1283,8 +1404,9 @@ watch(
   { immediate: true },
 )
 
-onMounted(() => {
-  fetchProyek()
+onMounted(async () => {
+  await fetchProyek()
+  restoreSelectedGudangFromQuery()
   fetchMasterData()
 })
 
@@ -1347,6 +1469,16 @@ onUnmounted(() => {
   .q-btn.full-width {
     width: 100% !important;
   }
+}
+
+.btn-delete-stok {
+  transition: all 0.3s ease !important;
+}
+
+.btn-delete-stok:hover {
+  background-color: rgba(173, 54, 64, 0.15) !important;
+  transform: scale(1.15);
+  box-shadow: 0 4px 12px rgba(173, 54, 64, 0.2) !important;
 }
 
 .animate-fade {

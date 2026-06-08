@@ -34,14 +34,19 @@
           <q-card flat :class="stat.cardClass" class="rounded-20 transition-all hover-shadow">
             <q-card-section class="row items-center justify-between no-wrap q-pa-md">
               <div class="col">
-                <div class="text-overline leading-none text-weight-bold" :class="stat.labelColorClass">{{ stat.label }}</div>
+                <div
+                  class="text-overline leading-none text-weight-bold"
+                  :class="stat.labelColorClass"
+                >
+                  {{ stat.label }}
+                </div>
                 <div class="text-h4 text-weight-bolder q-mt-xs" :class="stat.textColorClass">
                   {{ stat.value }}
                 </div>
               </div>
               <div
                 class="bg-white q-pa-md rounded-borders shadow-sm flex flex-center"
-                style="min-width: 50px; height: 50px; border-radius: 12px;"
+                style="min-width: 50px; height: 50px; border-radius: 12px"
               >
                 <q-icon :name="stat.icon" :class="stat.iconColorClass" size="28px" />
               </div>
@@ -93,16 +98,25 @@
                 <q-list style="min-width: 180px" class="bg-white rounded-borders q-py-sm">
                   <q-item clickable v-ripple @click="exportListToPDF" class="hover-blue-btn">
                     <q-item-section avatar>
-                      <q-avatar color="red-1" text-color="brand-danger" icon="picture_as_pdf" size="sm" />
+                      <q-avatar
+                        color="red-1"
+                        text-color="brand-danger"
+                        icon="picture_as_pdf"
+                        size="sm"
+                      />
                     </q-item-section>
-                    <q-item-section class="text-weight-bold text-brand-danger">Export PDF</q-item-section>
+                    <q-item-section class="text-weight-bold text-brand-danger"
+                      >Export PDF</q-item-section
+                    >
                   </q-item>
                   <q-separator class="q-my-sm" />
                   <q-item clickable v-ripple @click="exportListToExcel" class="hover-blue-btn">
                     <q-item-section avatar>
                       <q-avatar color="green-1" text-color="green-9" icon="table_view" size="sm" />
                     </q-item-section>
-                    <q-item-section class="text-weight-bold text-green-9">Export Excel</q-item-section>
+                    <q-item-section class="text-weight-bold text-green-9"
+                      >Export Excel</q-item-section
+                    >
                   </q-item>
                 </q-list>
               </q-btn-dropdown>
@@ -209,16 +223,20 @@
                     icon="visibility"
                     size="sm"
                     @click="viewDetail(props.row)"
-                  />
+                  >
+                    <q-tooltip>Detail</q-tooltip>
+                  </q-btn>
                   <q-btn
-                    v-if="props.row.status === 'Pending'"
-                    flat
+                    unelevated
                     round
                     color="brand-danger"
+                    text-color="white"
                     icon="delete_outline"
                     size="sm"
                     @click="deleteRequest(props.row)"
-                  />
+                  >
+                    <q-tooltip>Hapus</q-tooltip>
+                  </q-btn>
                 </div>
               </q-td>
             </q-tr>
@@ -265,7 +283,10 @@
               <!-- Kop Surat Section -->
               <div class="row no-wrap items-center q-mb-md">
                 <div class="col-auto">
-                  <img :src="editFields.logoUrl || '/icons/logo-agra.png'" class="final-kop-img q-mr-md" />
+                  <img
+                    :src="editFields.logoUrl || '/icons/logo-agra.png'"
+                    class="final-kop-img q-mr-md"
+                  />
                 </div>
                 <div class="col text-left">
                   <div class="text-pt-pro leading-none">
@@ -283,22 +304,25 @@
               <div class="row q-col-gutter-lg q-mb-lg items-start text-left">
                 <!-- Sisi Kiri: Kepada Yth, Lokasi, Up -->
                 <div class="col-7">
-                  <div class="row no-wrap items-start" style="font-size: 12px;">
-                    <div class="text-weight-bold text-grey-7" style="width: 80px;">Kepada Yth</div>
+                  <div class="row no-wrap items-start" style="font-size: 12px">
+                    <div class="text-weight-bold text-grey-7" style="width: 80px">Kepada Yth</div>
                     <div class="q-mr-sm text-grey-7">:</div>
-                    <div class="col text-weight-black text-indigo-10 uppercase font-bold font-pro" style="font-size: 13.5px; line-height: 1.2;">
+                    <div
+                      class="col text-weight-black text-indigo-10 uppercase font-bold font-pro"
+                      style="font-size: 13.5px; line-height: 1.2"
+                    >
                       {{ selectedRequest.ke_gudang?.nama }}
                     </div>
                   </div>
-                  <div class="row no-wrap items-start q-mt-sm" style="font-size: 12px;">
-                    <div class="text-weight-bold text-grey-7" style="width: 80px;">Lokasi</div>
+                  <div class="row no-wrap items-start q-mt-sm" style="font-size: 12px">
+                    <div class="text-weight-bold text-grey-7" style="width: 80px">Lokasi</div>
                     <div class="q-mr-sm text-grey-7">:</div>
                     <div class="col underline-dotted text-blue-grey-10 text-weight-bold">
                       {{ editFields.lokasi || '...........................................' }}
                     </div>
                   </div>
-                  <div class="row no-wrap items-start q-mt-sm" style="font-size: 12px;">
-                    <div class="text-weight-bold text-grey-7" style="width: 80px;">Up</div>
+                  <div class="row no-wrap items-start q-mt-sm" style="font-size: 12px">
+                    <div class="text-weight-bold text-grey-7" style="width: 80px">Up</div>
                     <div class="q-mr-sm text-grey-7">:</div>
                     <div class="col underline-dotted text-blue-grey-10 text-weight-bold">
                       {{ editFields.up || '...........................................' }}
@@ -308,31 +332,58 @@
 
                 <!-- Sisi Kanan: SURAT JALAN & Metadata Surat (No. SJ, No. Reff, Tanggal, Ekspedisi) -->
                 <div class="col-5 text-right font-pro">
-                  <div class="text-weight-black text-indigo-10 uppercase tracking-widest leading-none" style="font-size: 18px; margin-top: 0px; margin-bottom: 8px; line-height: 1.2;">
+                  <div
+                    class="text-weight-black text-indigo-10 uppercase tracking-widest leading-none"
+                    style="font-size: 18px; margin-top: 0px; margin-bottom: 8px; line-height: 1.2"
+                  >
                     SURAT JALAN
                   </div>
-                  
+
                   <div class="row justify-end">
-                    <div style="width: 245px; text-align: left;">
-                      <div class="row no-wrap items-center q-mb-xs" style="font-size: 12px; line-height: 1.2;">
-                        <div class="text-weight-bold text-indigo-10" style="width: 80px;">No. SJ</div>
+                    <div style="width: 245px; text-align: left">
+                      <div
+                        class="row no-wrap items-center q-mb-xs"
+                        style="font-size: 12px; line-height: 1.2"
+                      >
+                        <div class="text-weight-bold text-indigo-10" style="width: 80px">
+                          No. SJ
+                        </div>
                         <div class="text-weight-bold text-indigo-10 q-mr-xs">:</div>
-                        <div class="col text-weight-bold text-indigo-10 font-mono">{{ editFields.nomor_sj }}</div>
+                        <div class="col text-weight-bold text-indigo-10 font-mono">
+                          {{ editFields.nomor_sj }}
+                        </div>
                       </div>
-                      <div class="row no-wrap items-center q-mb-xs" style="font-size: 12px; line-height: 1.2;">
-                        <div class="text-weight-bold text-grey-7" style="width: 80px;">No Reff</div>
+                      <div
+                        class="row no-wrap items-center q-mb-xs"
+                        style="font-size: 12px; line-height: 1.2"
+                      >
+                        <div class="text-weight-bold text-grey-7" style="width: 80px">No Reff</div>
                         <div class="text-weight-bold text-grey-7 q-mr-xs">:</div>
-                        <div class="col text-weight-bold text-grey-9 font-mono">{{ selectedRequest.nomor }}</div>
+                        <div class="col text-weight-bold text-grey-9 font-mono">
+                          {{ selectedRequest.nomor }}
+                        </div>
                       </div>
-                      <div class="row no-wrap items-center q-mb-xs" style="font-size: 12px; line-height: 1.2;">
-                        <div class="text-weight-bold text-grey-7" style="width: 80px;">Tanggal</div>
+                      <div
+                        class="row no-wrap items-center q-mb-xs"
+                        style="font-size: 12px; line-height: 1.2"
+                      >
+                        <div class="text-weight-bold text-grey-7" style="width: 80px">Tanggal</div>
                         <div class="text-weight-bold text-grey-7 q-mr-xs">:</div>
-                        <div class="col text-weight-bold text-grey-9">{{ formatDate(selectedRequest.timestamp) }}</div>
+                        <div class="col text-weight-bold text-grey-9">
+                          {{ formatDate(selectedRequest.timestamp) }}
+                        </div>
                       </div>
-                      <div class="row no-wrap items-center q-mb-xs" style="font-size: 12px; line-height: 1.2;">
-                        <div class="text-weight-bold text-grey-7" style="width: 80px;">Ekspedisi</div>
+                      <div
+                        class="row no-wrap items-center q-mb-xs"
+                        style="font-size: 12px; line-height: 1.2"
+                      >
+                        <div class="text-weight-bold text-grey-7" style="width: 80px">
+                          Ekspedisi
+                        </div>
                         <div class="text-weight-bold text-grey-7 q-mr-xs">:</div>
-                        <div class="col text-weight-bold text-grey-9">{{ editFields.ekspedisi }}</div>
+                        <div class="col text-weight-bold text-grey-9">
+                          {{ editFields.ekspedisi }}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -404,28 +455,28 @@
                   <div class="col-3">Bagian Pengiriman</div>
                   <div class="col-3">Pihak Penerima</div>
                 </div>
-                
+
                 <!-- Baris 2: Nama / Tanda Tangan (Disejajarkan pada baseline bawah agar rapi jika ada nama yang turun 2 baris) -->
-                <div class="row justify-between items-end" style="margin-top: 60px;">
-                  <div class="col-3 text-weight-black underline text-indigo-10 uppercase" style="line-height: 1.2;">
+                <div class="row justify-between items-end" style="margin-top: 60px">
+                  <div
+                    class="col-3 text-weight-black underline text-indigo-10 uppercase"
+                    style="line-height: 1.2"
+                  >
                     {{ selectedRequest.processedBy || 'Petugas' }}
                   </div>
-                  <div class="col-3 text-weight-black">
-                    (..............................)
-                  </div>
-                  <div class="col-3 text-weight-black">
-                    (..............................)
-                  </div>
+                  <div class="col-3 text-weight-black">(..............................)</div>
+                  <div class="col-3 text-weight-black">(..............................)</div>
                 </div>
-                
+
                 <!-- Baris 3: Sub-Keterangan / Cap -->
-                <div class="row justify-between items-start q-mt-xs text-caption text-bold text-grey-8 uppercase">
+                <div
+                  class="row justify-between items-start q-mt-xs text-caption text-bold text-grey-8 uppercase"
+                >
                   <div class="col-3">( Gudang Pengirim )</div>
-                  <div class="col-3" style="text-transform: none;">Nama Driver / Kurir</div>
+                  <div class="col-3" style="text-transform: none">Nama Driver / Kurir</div>
                   <div class="col-3">Nama Jelas & Cap</div>
                 </div>
               </div>
-
             </div>
           </div>
 
@@ -478,8 +529,15 @@
                         </div>
                         <div class="row no-wrap items-center q-col-gutter-sm">
                           <div class="col-auto">
-                            <q-avatar rounded size="40px" class="bg-grey-2 border-brand-light-thin q-pa-xs">
-                              <img :src="editFields.logoUrl || '/icons/logo-agra.png'" style="object-fit: contain;" />
+                            <q-avatar
+                              rounded
+                              size="40px"
+                              class="bg-grey-2 border-brand-light-thin q-pa-xs"
+                            >
+                              <img
+                                :src="editFields.logoUrl || '/icons/logo-agra.png'"
+                                style="object-fit: contain"
+                              />
                             </q-avatar>
                           </div>
                           <div class="col">
@@ -497,7 +555,12 @@
                                 <q-icon name="cloud_upload" color="brand-primary" />
                               </template>
                               <template v-slot:append v-if="editFields.logoUrl">
-                                <q-icon name="cancel" @click.stop="clearCustomLogo" class="cursor-pointer" color="grey-6" />
+                                <q-icon
+                                  name="cancel"
+                                  @click.stop="clearCustomLogo"
+                                  class="cursor-pointer"
+                                  color="grey-6"
+                                />
                               </template>
                             </q-file>
                           </div>
@@ -614,9 +677,7 @@
               </div>
 
               <!-- EDIT KETERANGAN & JUMLAH (QTY) ITEM -->
-              <div
-                class="row items-center justify-start q-mb-md q-col-gutter-xs text-left"
-              >
+              <div class="row items-center justify-start q-mb-md q-col-gutter-xs text-left">
                 <div class="col-auto">
                   <q-icon name="edit_note" color="brand-primary" size="md" />
                 </div>
@@ -630,7 +691,7 @@
                   bordered
                   separator="horizontal"
                   class="bg-white"
-                  style="min-width: 800px;"
+                  style="min-width: 800px"
                 >
                   <thead class="bg-brand-light">
                     <tr class="text-weight-bold text-brand-primary">
@@ -708,7 +769,7 @@
                   color="brand-primary"
                   class="full-width text-weight-black rounded-20 q-py-lg shadow-premium btn-hover"
                   icon="verified"
-                  label="SETUJUI & MUTASI STOK"
+                  label="SETUJUI PERMINTAAN"
                   unelevated
                   @click="processApproval('Approved')"
                 />
@@ -1052,7 +1113,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed, reactive } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { db } from 'src/boot/firebase'
 import {
   collection,
@@ -1065,8 +1126,6 @@ import {
   deleteDoc,
   where,
   serverTimestamp,
-  runTransaction,
-  increment,
 } from 'firebase/firestore'
 import { useQuasar } from 'quasar'
 import { useAuthStore } from 'src/stores/auth'
@@ -1075,6 +1134,8 @@ import html2pdf from 'html2pdf.js'
 // --- INITIALIZATION ---
 const $q = useQuasar()
 const route = useRoute()
+// eslint-disable-next-line no-unused-vars
+const router = useRouter()
 const authStore = useAuthStore()
 
 const rows = ref([])
@@ -1243,7 +1304,6 @@ const clearCustomLogo = () => {
   customLogoFile.value = null
   editFields.logoUrl = ''
 }
-
 
 // =============================================================================
 // FIX EXPORT TO PDF & EXCEL UNTUK LIST TABLE (SOP: PORTRAIT & ANTI-CUT)
@@ -1418,86 +1478,12 @@ const processApproval = async (status) => {
       const plainSuratJalanData = JSON.parse(JSON.stringify(editFields))
 
       if (status === 'Approved' && plainReq.tipe === 'ANTAR_GUDANG') {
-        await runTransaction(db, async (transaction) => {
-          for (const item of plainReq.items) {
-            const idBarang = item.id_barang
-            const qty = Number(item.qty)
-            const sourceGudangId = plainReq.dari_gudang.id
-            const destGudangId = plainReq.ke_gudang.id
-
-            const sourceRefQuery = query(
-              collection(db, 'stok_barang'),
-              where('id_gudang', '==', sourceGudangId),
-              where('id_barang', '==', idBarang),
-            )
-            const sourceSnap = await getDocs(sourceRefQuery)
-            if (sourceSnap.empty)
-              throw new Error(`Stok ${item.nama_barang} tidak ditemukan di gudang sumber!`)
-            const sourceDoc = sourceSnap.docs[0]
-            if (sourceDoc.data().jumlah < qty)
-              throw new Error
-                `Stok ${item.nama_barang} kurang dari yang disetujui! (Diminta: ${qty}, Sisa: ${sourceDoc.data().jumlah})`
-
-            const destRefQuery = query(
-              collection(db, 'stok_barang'),
-              where('id_gudang', '==', destGudangId),
-              where('id_barang', '==', idBarang),
-            )
-            const destSnap = await getDocs(destRefQuery)
-
-            transaction.update(doc(db, 'stok_barang', sourceDoc.id), {
-              jumlah: increment(-qty),
-              updated_at: serverTimestamp(),
-            })
-            if (!destSnap.empty) {
-              transaction.update(doc(db, 'stok_barang', destSnap.docs[0].id), {
-                jumlah: increment(qty),
-                updated_at: serverTimestamp(),
-              })
-            } else {
-              const newStokRef = doc(collection(db, 'stok_barang'))
-              transaction.set(newStokRef, {
-                id_gudang: destGudangId,
-                id_barang: idBarang,
-                nama_barang: item.nama_barang,
-                jumlah: qty,
-                satuan: item.satuan,
-                created_at: serverTimestamp(),
-              })
-            }
-
-            const logOutRef = doc(collection(db, 'aktivitas'))
-            transaction.set(logOutRef, {
-              id_gudang: sourceGudangId,
-              nama_barang: item.nama_barang,
-              tipe: 'KELUAR',
-              jumlah: qty,
-              satuan: item.satuan,
-              no_referensi: plainReq.nomor,
-              keterangan: 'Mutasi keluar ke ' + plainReq.ke_gudang.nama,
-              timestamp: serverTimestamp(),
-            })
-            const logInRef = doc(collection(db, 'aktivitas'))
-            transaction.set(logInRef, {
-              id_gudang: destGudangId,
-              nama_barang: item.nama_barang,
-              tipe: 'MASUK',
-              jumlah: qty,
-              satuan: item.satuan,
-              no_referensi: plainReq.nomor,
-              keterangan: 'Penerimaan mutasi dari ' + plainReq.dari_gudang.nama,
-              timestamp: serverTimestamp(),
-            })
-          }
-
-          transaction.update(doc(db, 'permintaan_barang', plainReq.id), {
-            status: 'Approved',
-            items: plainReq.items,
-            surat_jalan_data: plainSuratJalanData,
-            requester_read: false,
-            updatedAt: serverTimestamp(),
-            processedBy: userData.value?.nama || 'Administrator',
-          })
+        await updateDoc(doc(db, 'permintaan_barang', plainReq.id), {
+          status: 'Approved',
+          surat_jalan_data: plainSuratJalanData,
+          requester_read: false,
+          updatedAt: serverTimestamp(),
+          processedBy: userData.value?.nama || 'Administrator',
         })
       } else {
         await updateDoc(doc(db, 'permintaan_barang', plainReq.id), {
@@ -1506,7 +1492,11 @@ const processApproval = async (status) => {
           processedBy: userData.value?.nama || 'Administrator',
         })
       }
-      $q.notify({ type: 'positive', message: 'Permintaan berhasil di-' + status + '!' })
+      const successMessage =
+        status === 'Approved' && plainReq.tipe === 'ANTAR_GUDANG'
+          ? 'Permintaan berhasil di-Approved! Lanjutkan penerimaan barang melalui halaman Barang Masuk.'
+          : 'Permintaan berhasil di-' + status + '!'
+      $q.notify({ type: 'positive', message: successMessage })
       showDetail.value = false
     } catch (err) {
       $q.notify({ type: 'negative', message: 'Gagal: ' + err.message })
@@ -1539,7 +1529,7 @@ const columns = [
   { name: 'item', align: 'left', label: 'ITEM', field: 'items' },
   { name: 'gudang_asal', align: 'left', label: 'SUMBER', field: 'dari_gudang' },
   { name: 'status', align: 'center', label: 'STATUS', field: 'status' },
-  { name: 'aksi', align: 'center', label: 'KELOLA', field: 'id' },
+  { name: 'aksi', align: 'center', label: 'AKSI', field: 'id' },
 ]
 
 const baseList = computed(() => {
@@ -2033,4 +2023,3 @@ onUnmounted(() => {
   object-fit: contain;
 }
 </style>
-
