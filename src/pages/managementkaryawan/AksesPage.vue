@@ -571,6 +571,19 @@ const generateMatrixFromRoutes = () => {
       })
     }
 
+    if (modulId === 'manufaktur') {
+      menus.push({
+        id: '_manufaktur_gudang',
+        label: 'GUDANG & STOK',
+        level: 1,
+        lihat: false,
+        buat: false,
+        ubah: false,
+        hapus: false,
+        approve: false,
+      })
+    }
+
     // ✅ Tambahkan menu absensi-harian-lepas ke modul absensi secara eksplisit
     // karena route ini mungkin belum terdaftar atau punya path khusus
     if (modulId === 'absensi') {

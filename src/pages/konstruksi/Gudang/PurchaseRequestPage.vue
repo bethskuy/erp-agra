@@ -1151,7 +1151,7 @@ const canAction = (actionType) => {
   if (!userData.value?.permissions_detail) return false
   const modulePerm = userData.value.permissions_detail.find((m) => m.id === 'konstruksi')
   if (!modulePerm || !modulePerm.isActive) return false
-  const targetId = '_konstruksi_gudang_permintaan'
+  const targetId = '_konstruksi_gudang'
   const menu = modulePerm.menus.find((m) => m.id === targetId)
   return menu ? menu[actionType] || false : false
 }
