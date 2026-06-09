@@ -1791,10 +1791,22 @@ const fetchData = async () => {
     console.error('Error fetching suppliers:', error)
   }
 
-  const qPengajuan = query(
-    collection(db, 'finance_pengajuan_pembayaran'),
-    where('pembuat_email', '==', user?.email || 'anonymous'),
-  )
+  let qPengajuan
+  // Check if user has permission to see all pengajuan
+  const perm = getPembayaranMenuPerm()
+  const isSuperUser = user && ['Super Admin', 'Direktur', 'Finance'].includes(user.role)
+  const canSeeAll = isSuperUser || (perm && perm.lihat)
+
+  if (canSeeAll) {
+    // Show all pengajuan for super users or users with lihat permission
+    qPengajuan = query(collection(db, 'finance_pengajuan_pembayaran'))
+  } else {
+    // Only show user's own pengajuan
+    qPengajuan = query(
+      collection(db, 'finance_pengajuan_pembayaran'),
+      where('pembuat_email', '==', user?.email || 'anonymous'),
+    )
+  }
 
   unsubData = onSnapshot(
     qPengajuan,

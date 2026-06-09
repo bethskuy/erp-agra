@@ -149,248 +149,249 @@
         </div>
       </div>
 
-    <!-- ══════════════════════════════════════════════
+      <!-- ══════════════════════════════════════════════
          FILTER & SEARCH BAR
          ══════════════════════════════════════════════ -->
-    <q-card
-      flat
-      bordered
-      class="q-mb-xl shadow-1 rounded-20 bg-white no-print border-subtle"
-    >
-      <q-card-section class="q-py-md">
-        <div class="row items-center justify-between q-col-gutter-md">
-          <div class="col-12 col-md-5">
-            <q-input
-              v-model="filter"
-              outlined
-              dense
-              rounded
-              placeholder="Cari No. PO, Supplier, atau Proyek..."
-              bg-color="white"
-              class="search-input"
-              color="brand-primary"
-            >
-              <template v-slot:prepend>
-                <q-icon name="search" color="brand-primary" />
-              </template>
-              <template v-slot:append v-if="filter">
-                <q-icon name="close" class="cursor-pointer" @click="filter = ''" />
-              </template>
-            </q-input>
-          </div>
-
-          <div class="col-12 col-md-auto flex items-center justify-center justify-md-end q-gutter-md">
-            <q-btn-toggle
-              v-model="filterStatus"
-              unelevated
-              rounded
-              no-caps
-              toggle-color="brand-primary"
-              color="white"
-              text-color="grey-7"
-              class="shadow-1 border-subtle"
-              :options="[
-                { label: 'Semua', value: 'all' },
-                { label: 'Menunggu', value: 'Submitted' },
-                { label: 'Disetujui', value: 'Approved' },
-                { label: 'Ditolak', value: 'Rejected' },
-              ]"
-            />
-            <q-btn flat round icon="refresh" color="brand-primary" @click="fetchData">
-              <q-tooltip>Refresh Data</q-tooltip>
-            </q-btn>
-          </div>
-        </div>
-      </q-card-section>
-    </q-card>
-
-    <!-- ══════════════════════════════════════════════
-         TABLE PO LIST
-         ══════════════════════════════════════════════ -->
-    <q-card
-      flat
-      bordered
-      class="rounded-20 shadow-sm overflow-hidden bg-white border-subtle no-print"
-    >
-      <q-table
-        :rows="filteredRows"
-        :columns="columns"
-        row-key="id"
-        flat
-        :loading="loading"
-        :filter="filter"
-        binary-state-sort
-        class="approval-table"
-        :pagination="{ rowsPerPage: 10 }"
-      >
-        <!-- Header -->
-        <template v-slot:header="props">
-          <q-tr :props="props" class="bg-brand-primary text-white">
-            <q-th
-              v-for="col in props.cols"
-              :key="col.name"
-              :props="props"
-              class="text-weight-bold uppercase font-11 tracking-widest"
-            >
-              {{ col.label }}
-            </q-th>
-          </q-tr>
-        </template>
-
-        <!-- Body -->
-        <template v-slot:body="props">
-          <q-tr
-            :props="props"
-            class="hover-bg transition-all cursor-pointer"
-            @click="openPreview(props.row)"
-          >
-            <!-- No PO -->
-            <q-td key="nomor" class="text-weight-bolder text-brand-primary">
-              {{ props.row.nomor }}
-              <div class="text-caption text-grey-5">
-                {{ formatDateIndo(props.row.submitted_at || props.row.createdAt) }}
-              </div>
-            </q-td>
-
-            <!-- Supplier / Proyek -->
-            <q-td key="supplier">
-              <div class="text-weight-bold text-blue-grey-9 uppercase">
-                {{ props.row.kepada_yth }}
-              </div>
-              <div class="text-caption text-grey-6 italic">
-                Proyek: {{ props.row.proyek_nama || '-' }}
-              </div>
-            </q-td>
-
-            <!-- Pengaju -->
-            <q-td key="submitted_by">
-              <div class="row items-center no-wrap">
-                <q-avatar
-                  size="28px"
-                  color="brand-light"
-                  text-color="brand-primary"
-                  icon="person"
-                  class="q-mr-sm"
-                />
-                <div>
-                  <div class="text-weight-bold text-blue-grey-8" style="font-size: 12px">
-                    {{ props.row.submitted_by || props.row.prepared_by || '-' }}
-                  </div>
-                  <div class="text-caption text-grey-5">Pengaju</div>
-                </div>
-              </div>
-            </q-td>
-
-            <!-- Grand Total -->
-            <q-td key="grand_total" class="text-right text-weight-bolder">
-              <span class="text-caption text-grey-6 q-mr-xs">IDR</span>
-              {{ (props.row.grand_total || 0).toLocaleString('id-ID') }}
-            </q-td>
-
-            <!-- Status -->
-            <q-td key="status" class="text-center">
-              <q-chip
-                text-color="white"
-                size="sm"
-                class="text-weight-bold shadow-sm"
-                :color="getStatusColor(props.row.status)"
-                :icon="getStatusIcon(props.row.status)"
+      <q-card flat bordered class="q-mb-xl shadow-1 rounded-20 bg-white no-print border-subtle">
+        <q-card-section class="q-py-md">
+          <div class="row items-center justify-between q-col-gutter-md">
+            <div class="col-12 col-md-5">
+              <q-input
+                v-model="filter"
+                outlined
+                dense
+                rounded
+                placeholder="Cari No. PO, Supplier, atau Proyek..."
+                bg-color="white"
+                class="search-input"
+                color="brand-primary"
               >
-                {{ getStatusLabel(props.row.status) }}
-              </q-chip>
-              <div
-                v-if="props.row.status === 'Rejected' && props.row.alasan_reject"
-                 class="text-negative text-caption q-mt-xs"
-                 style="font-size: 10px; max-width: 160px"
-              >
-                {{ props.row.alasan_reject }}
-              </div>
-            </q-td>
+                <template v-slot:prepend>
+                  <q-icon name="search" color="brand-primary" />
+                </template>
+                <template v-slot:append v-if="filter">
+                  <q-icon name="close" class="cursor-pointer" @click="filter = ''" />
+                </template>
+              </q-input>
+            </div>
 
-            <!-- Aksi -->
-            <q-td key="aksi" class="text-center" @click.stop>
-              <div class="row justify-center items-center q-gutter-sm no-wrap">
-                <!-- Lihat Detail -->
-                <q-btn
-                  flat
-                  round
-                  color="brand-primary"
-                  icon="visibility"
-                  size="sm"
-                  @click="openPreview(props.row)"
-                  class="hover-blue-btn"
-                >
-                  <q-tooltip>Lihat Detail PO</q-tooltip>
-                </q-btn>
-
-                <!-- Approve (hanya jika status Submitted) -->
-                <q-btn
-                  v-if="props.row.status === 'Submitted' && canAction('approve')"
-                  unelevated
-                  rounded
-                  color="positive"
-                  icon="check_circle"
-                  :label="$q.screen.lt.sm ? '' : 'Approve'"
-                  size="sm"
-                  no-caps
-                  class="q-px-sm text-weight-bold"
-                  @click="handleApproval(props.row, 'Approved')"
-                >
-                  <q-tooltip>Setujui PO</q-tooltip>
-                </q-btn>
-
-                <!-- Reject (hanya jika status Submitted) -->
-                <q-btn
-                  v-if="props.row.status === 'Submitted' && canAction('approve')"
-                  outline
-                  rounded
-                  color="negative"
-                  icon="cancel"
-                  :label="$q.screen.lt.sm ? '' : 'Tolak'"
-                  size="sm"
-                  no-caps
-                  class="q-px-sm text-weight-bold"
-                  @click="promptReject(props.row)"
-                >
-                  <q-tooltip>Tolak PO</q-tooltip>
-                </q-btn>
-              </div>
-            </q-td>
-          </q-tr>
-        </template>
-
-        <!-- Empty State -->
-        <template v-slot:no-data>
-          <div class="full-width row flex-center q-pa-xl text-grey-5">
-            <div class="text-center">
-              <q-icon name="inbox" size="64px" class="q-mb-md opacity-50" color="brand-primary" />
-              <div class="text-h6 text-weight-bold text-brand-primary">Tidak Ada Data PO</div>
-              <div class="text-subtitle2 q-mt-xs text-grey-6">
-                {{
-                  filterStatus !== 'all'
-                    ? 'Tidak ada PO dengan status ini.'
-                    : 'Belum ada Purchase Order yang diajukan.'
-                }}
-              </div>
+            <div
+              class="col-12 col-md-auto flex items-center justify-center justify-md-end q-gutter-md"
+            >
+              <q-btn-toggle
+                v-model="filterStatus"
+                unelevated
+                rounded
+                no-caps
+                toggle-color="brand-primary"
+                color="white"
+                text-color="grey-7"
+                class="shadow-1 border-subtle"
+                :options="[
+                  { label: 'Semua', value: 'all' },
+                  { label: 'Menunggu', value: 'Submitted' },
+                  { label: 'Disetujui', value: 'Approved' },
+                  { label: 'Ditolak', value: 'Rejected' },
+                ]"
+              />
+              <q-btn flat round icon="refresh" color="brand-primary" @click="fetchData">
+                <q-tooltip>Refresh Data</q-tooltip>
+              </q-btn>
             </div>
           </div>
-        </template>
+        </q-card-section>
+      </q-card>
 
-        <!-- Loading -->
-        <template v-slot:loading>
-          <q-inner-loading showing color="brand-primary" />
-        </template>
-      </q-table>
-    </q-card>
-  </div>
+      <!-- ══════════════════════════════════════════════
+         TABLE PO LIST
+         ══════════════════════════════════════════════ -->
+      <q-card
+        flat
+        bordered
+        class="rounded-20 shadow-sm overflow-hidden bg-white border-subtle no-print"
+      >
+        <q-table
+          :rows="filteredRows"
+          :columns="columns"
+          row-key="id"
+          flat
+          :loading="loading"
+          :filter="filter"
+          binary-state-sort
+          class="approval-table"
+          :pagination="{ rowsPerPage: 10 }"
+        >
+          <!-- Header -->
+          <template v-slot:header="props">
+            <q-tr :props="props" class="bg-brand-primary text-white">
+              <q-th
+                v-for="col in props.cols"
+                :key="col.name"
+                :props="props"
+                class="text-weight-bold uppercase font-11 tracking-widest"
+              >
+                {{ col.label }}
+              </q-th>
+            </q-tr>
+          </template>
 
-  <!-- ══════════════════════════════════════════════
+          <!-- Body -->
+          <template v-slot:body="props">
+            <q-tr
+              :props="props"
+              class="hover-bg transition-all cursor-pointer"
+              @click="openPreview(props.row)"
+            >
+              <!-- No PO -->
+              <q-td key="nomor" class="text-weight-bolder text-brand-primary">
+                {{ props.row.nomor }}
+                <div class="text-caption text-grey-5">
+                  {{ formatDateIndo(props.row.submitted_at || props.row.createdAt) }}
+                </div>
+              </q-td>
+
+              <!-- Supplier / Proyek -->
+              <q-td key="supplier">
+                <div class="text-weight-bold text-blue-grey-9 uppercase">
+                  {{ props.row.kepada_yth }}
+                </div>
+                <div class="text-caption text-grey-6 italic">
+                  Proyek: {{ props.row.proyek_nama || '-' }}
+                </div>
+              </q-td>
+
+              <!-- Pengaju -->
+              <q-td key="submitted_by">
+                <div class="row items-center no-wrap">
+                  <q-avatar
+                    size="28px"
+                    color="brand-light"
+                    text-color="brand-primary"
+                    icon="person"
+                    class="q-mr-sm"
+                  />
+                  <div>
+                    <div class="text-weight-bold text-blue-grey-8" style="font-size: 12px">
+                      {{ props.row.submitted_by || props.row.prepared_by || '-' }}
+                    </div>
+                    <div class="text-caption text-grey-5">Pengaju</div>
+                  </div>
+                </div>
+              </q-td>
+
+              <!-- Grand Total -->
+              <q-td key="grand_total" class="text-right text-weight-bolder">
+                <span class="text-caption text-grey-6 q-mr-xs">IDR</span>
+                {{ (props.row.grand_total || 0).toLocaleString('id-ID') }}
+              </q-td>
+
+              <!-- Status -->
+              <q-td key="status" class="text-center">
+                <q-chip
+                  text-color="white"
+                  size="sm"
+                  class="text-weight-bold shadow-sm"
+                  :color="getStatusColor(props.row.status)"
+                  :icon="getStatusIcon(props.row.status)"
+                >
+                  {{ getStatusLabel(props.row.status) }}
+                </q-chip>
+                <div
+                  v-if="props.row.status === 'Rejected' && props.row.alasan_reject"
+                  class="text-negative text-caption q-mt-xs"
+                  style="font-size: 10px; max-width: 160px"
+                >
+                  {{ props.row.alasan_reject }}
+                </div>
+              </q-td>
+
+              <!-- Aksi -->
+              <q-td key="aksi" class="text-center" @click.stop>
+                <div class="row justify-center items-center q-gutter-sm no-wrap">
+                  <!-- Lihat Detail -->
+                  <q-btn
+                    flat
+                    round
+                    color="brand-primary"
+                    icon="visibility"
+                    size="sm"
+                    @click="openPreview(props.row)"
+                    class="hover-blue-btn"
+                  >
+                    <q-tooltip>Lihat Detail PO</q-tooltip>
+                  </q-btn>
+
+                  <!-- Approve (hanya jika status Submitted) -->
+                  <q-btn
+                    v-if="props.row.status === 'Submitted' && canAction('approve')"
+                    unelevated
+                    rounded
+                    color="positive"
+                    icon="check_circle"
+                    :label="$q.screen.lt.sm ? '' : 'Approve'"
+                    size="sm"
+                    no-caps
+                    class="q-px-sm text-weight-bold"
+                    @click="handleApproval(props.row, 'Approved')"
+                  >
+                    <q-tooltip>Setujui PO</q-tooltip>
+                  </q-btn>
+
+                  <!-- Reject (hanya jika status Submitted) -->
+                  <q-btn
+                    v-if="props.row.status === 'Submitted' && canAction('approve')"
+                    outline
+                    rounded
+                    color="negative"
+                    icon="cancel"
+                    :label="$q.screen.lt.sm ? '' : 'Tolak'"
+                    size="sm"
+                    no-caps
+                    class="q-px-sm text-weight-bold"
+                    @click="promptReject(props.row)"
+                  >
+                    <q-tooltip>Tolak PO</q-tooltip>
+                  </q-btn>
+                </div>
+              </q-td>
+            </q-tr>
+          </template>
+
+          <!-- Empty State -->
+          <template v-slot:no-data>
+            <div class="full-width row flex-center q-pa-xl text-grey-5">
+              <div class="text-center">
+                <q-icon name="inbox" size="64px" class="q-mb-md opacity-50" color="brand-primary" />
+                <div class="text-h6 text-weight-bold text-brand-primary">Tidak Ada Data PO</div>
+                <div class="text-subtitle2 q-mt-xs text-grey-6">
+                  {{
+                    filterStatus !== 'all'
+                      ? 'Tidak ada PO dengan status ini.'
+                      : 'Belum ada Purchase Order yang diajukan.'
+                  }}
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <!-- Loading -->
+          <template v-slot:loading>
+            <q-inner-loading showing color="brand-primary" />
+          </template>
+        </q-table>
+      </q-card>
+    </div>
+
+    <!-- ══════════════════════════════════════════════
          DIALOG: PREVIEW DETAIL PO + APPROVAL ACTION (CETAK DIHAPUS, STATUS NAVBAR DIHAPUS)
          ══════════════════════════════════════════════ -->
     <q-dialog v-model="showPreview" maximized transition-show="fade" transition-hide="fade">
       <q-card class="column no-wrap bg-grey-4 font-pro">
         <!-- Toolbar Preview (Tombol Cetak dan Status Badge Dihapus) -->
-        <q-toolbar class="bg-white text-indigo-10 q-py-sm no-print shadow-2 shrink" style="position: sticky; top: 0; z-index: 10; width: 100%;">
+        <q-toolbar
+          class="bg-white text-indigo-10 q-py-sm no-print shadow-2 shrink"
+          style="position: sticky; top: 0; z-index: 10; width: 100%"
+        >
           <q-btn flat round dense icon="arrow_back" v-close-popup color="indigo-10" />
           <q-toolbar-title class="text-weight-bold uppercase tracking-widest font-11 ellipsis">
             DETAIL PURCHASE ORDER
@@ -479,22 +480,34 @@
                 </table>
               </div>
               <div class="col-5 flex justify-end text-right">
-                <div style="width: fit-content; text-align: right;">
-                  <div class="quotation-title-pro uppercase font-13 text-indigo-10 q-mb-sm">PURCHASE ORDER</div>
-                  <table class="meta-info-table text-left" style="width: auto; margin-left: auto;">
+                <div style="width: fit-content; text-align: right">
+                  <div class="quotation-title-pro uppercase font-13 text-indigo-10 q-mb-sm">
+                    PURCHASE ORDER
+                  </div>
+                  <table class="meta-info-table text-left" style="width: auto; margin-left: auto">
                     <tr>
-                      <td class="text-bold" style="padding-right: 8px; font-size: 12px; color: #1a237e;">No. PO</td>
-                      <td style="padding-right: 8px; font-size: 12px; color: #1a237e;">:</td>
-                      <td class="text-weight-bolder text-indigo-10 font-mono" style="font-size: 12px;">{{ selectedPo.nomor }}</td>
+                      <td
+                        class="text-bold"
+                        style="padding-right: 8px; font-size: 12px; color: #1a237e"
+                      >
+                        No. PO
+                      </td>
+                      <td style="padding-right: 8px; font-size: 12px; color: #1a237e">:</td>
+                      <td
+                        class="text-weight-bolder text-indigo-10 font-mono"
+                        style="font-size: 12px"
+                      >
+                        {{ selectedPo.nomor }}
+                      </td>
                     </tr>
                     <tr>
-                      <td class="text-bold" style="padding-right: 8px;">Tanggal</td>
-                      <td style="padding-right: 8px;">:</td>
+                      <td class="text-bold" style="padding-right: 8px">Tanggal</td>
+                      <td style="padding-right: 8px">:</td>
                       <td class="text-weight-bold">{{ formatDateIndo(selectedPo.tanggal) }}</td>
                     </tr>
                     <tr v-if="selectedPo.no_spk">
-                      <td class="text-bold" style="padding-right: 8px;">No. SPK</td>
-                      <td style="padding-right: 8px;">:</td>
+                      <td class="text-bold" style="padding-right: 8px">No. SPK</td>
+                      <td style="padding-right: 8px">:</td>
                       <td class="text-weight-bold">{{ selectedPo.no_spk }}</td>
                     </tr>
                   </table>
@@ -518,15 +531,16 @@
                   <td class="text-center font-bold text-grey-8">{{ i + 1 }}</td>
                   <td class="text-left text-weight-bold uppercase">
                     {{ item.nama_barang }}
-                    <div v-if="item.desc" class="text-caption text-weight-regular text-grey-6 italic lowercase">
+                    <div
+                      v-if="item.desc"
+                      class="text-caption text-weight-regular text-grey-6 italic lowercase"
+                    >
                       {{ item.desc }}
                     </div>
                   </td>
                   <td class="text-center font-bold">{{ item.qty }}</td>
                   <td class="text-center uppercase text-weight-bold">{{ item.satuan }}</td>
-                  <td class="text-right">
-                    Rp {{ (item.harga_satuan || 0).toLocaleString() }}
-                  </td>
+                  <td class="text-right">Rp {{ (item.harga_satuan || 0).toLocaleString() }}</td>
                   <td class="text-right text-weight-bolder text-indigo-10">
                     Rp {{ ((item.qty || 0) * (item.harga_satuan || 0)).toLocaleString() }}
                   </td>
@@ -565,12 +579,18 @@
 
             <div class="terms-container text-left q-mt-md" v-if="selectedPo.syarat_kondisi">
               <div class="terms-header uppercase">Syarat & Kondisi</div>
-              <div class="terms-content-box leading-relaxed" v-html="selectedPo.syarat_kondisi"></div>
+              <div
+                class="terms-content-box leading-relaxed"
+                v-html="selectedPo.syarat_kondisi"
+              ></div>
             </div>
 
             <div class="terms-container text-left q-mt-sm" v-if="selectedPo.sistem_pembayaran">
               <div class="terms-header uppercase">Sistem Pembayaran</div>
-              <div class="terms-content-box leading-relaxed" v-html="selectedPo.sistem_pembayaran"></div>
+              <div
+                class="terms-content-box leading-relaxed"
+                v-html="selectedPo.sistem_pembayaran"
+              ></div>
             </div>
 
             <div class="text-closing-final q-mt-md q-mb-md text-left" v-if="selectedPo.closing">
@@ -581,50 +601,64 @@
             <div
               v-if="selectedPo.status === 'Rejected' && selectedPo.alasan_reject"
               class="terms-container text-left q-mt-md"
-              style="border-color: #b71c1c !important;"
+              style="border-color: #b71c1c !important"
             >
-              <div class="terms-header uppercase" style="background: #b71c1c !important;">Alasan Penolakan</div>
-              <div class="terms-content-box leading-relaxed text-red-9" style="color: #b71c1c !important; font-weight: bold;">
+              <div class="terms-header uppercase" style="background: #b71c1c !important">
+                Alasan Penolakan
+              </div>
+              <div
+                class="terms-content-box leading-relaxed text-red-9"
+                style="color: #b71c1c !important; font-weight: bold"
+              >
                 {{ selectedPo.alasan_reject }}
               </div>
             </div>
 
             <div class="signature-container text-left q-mt-lg">
               <div class="row justify-between text-center po-signature">
-                <div class="col-4">
-                  <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">Prepared By,</div>
-                  <div class="final-sign-space flex flex-center" style="height: 90px;">
-                    <img v-if="selectedPo.stempel_url" :src="selectedPo.stempel_url" class="img-stempel" />
-                    <img v-if="selectedPo.signatureUrl" :src="selectedPo.signatureUrl" class="img-signature-clean" />
+                <div class="col-3">
+                  <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">
+                    Request By,
                   </div>
-                  <div class="signer-name-wrapper">
-                    <div class="text-signer-final text-weight-black uppercase text-indigo-10">
-                      {{ selectedPo.prepared_by || '..............................' }}
-                    </div>
-                  </div>
-                  <div class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs">
-                    Purchasing Staff
-                  </div>
-                </div>
-                
-                <div class="col-4">
-                  <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">Checked By,</div>
-                  <div class="final-sign-space flex flex-center" style="height: 90px;">
+                  <div class="final-sign-space flex flex-center" style="height: 60px">
                     <!-- Spacer for signature -->
                   </div>
                   <div class="signer-name-wrapper">
                     <div class="text-signer-final text-weight-black uppercase text-indigo-10">
-                      {{ selectedPo.checked_by || selectedPo.requested_by || '..............................' }}
+                      {{ selectedPo.requested_by || '..............................' }}
                     </div>
                   </div>
-                  <div class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs">
+                  <div
+                    class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs"
+                  >
+                    Requestor
+                  </div>
+                </div>
+
+                <div class="col-3">
+                  <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">
+                    Checked By,
+                  </div>
+                  <div class="final-sign-space flex flex-center" style="height: 60px">
+                    <!-- Spacer for signature -->
+                  </div>
+                  <div class="signer-name-wrapper">
+                    <div class="text-signer-final text-weight-black uppercase text-indigo-10">
+                      {{ selectedPo.checked_by || '..............................' }}
+                    </div>
+                  </div>
+                  <div
+                    class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs"
+                  >
                     Project Manager
                   </div>
                 </div>
 
-                <div class="col-4">
-                  <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">Approved By,</div>
-                  <div class="final-sign-space flex flex-center" style="height: 90px;">
+                <div class="col-3">
+                  <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">
+                    Approved By,
+                  </div>
+                  <div class="final-sign-space flex flex-center" style="height: 60px">
                     <!-- Spacer for signature or checkmark -->
                     <div
                       v-if="selectedPo.status === 'Approved' && selectedPo.approved_by_nama"
@@ -636,11 +670,36 @@
                   </div>
                   <div class="signer-name-wrapper">
                     <div class="text-signer-final text-weight-black uppercase text-indigo-10">
-                      {{ selectedPo.approved_by || selectedPo.approved_supplier || '..............................' }}
+                      {{ selectedPo.approved_by || '..............................' }}
                     </div>
                   </div>
-                  <div class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs">
+                  <div
+                    class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs"
+                  >
                     Direktur
+                  </div>
+                </div>
+
+                <div class="col-3">
+                  <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">
+                    Accepted By,
+                  </div>
+                  <div class="final-sign-space flex flex-center" style="height: 60px">
+                    <!-- Spacer for signature supplier -->
+                  </div>
+                  <div class="signer-name-wrapper">
+                    <div class="text-signer-final text-weight-black uppercase text-indigo-10">
+                      {{
+                        selectedPo.approved_supplier ||
+                        selectedPo.kepada_yth ||
+                        '..............................'
+                      }}
+                    </div>
+                  </div>
+                  <div
+                    class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs"
+                  >
+                    Supplier
                   </div>
                 </div>
               </div>
@@ -920,7 +979,7 @@ const exportToPDF = () => {
 
     const currentHeight = e.scrollHeight
     const currentWidth = e.scrollWidth
-    const targetHeight = (currentWidth * 1.414) - 20 // A4 Aspect Ratio with safe margin to prevent blank page overflow
+    const targetHeight = currentWidth * 1.414 - 20 // A4 Aspect Ratio with safe margin to prevent blank page overflow
 
     if (currentHeight > targetHeight) {
       const scaleFactor = targetHeight / currentHeight
@@ -944,7 +1003,7 @@ const exportToPDF = () => {
         image: { type: 'jpeg', quality: 1 },
         html2canvas: { scale: 3, useCORS: true, letterRendering: true },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: 'avoid-all' }
+        pagebreak: { mode: 'avoid-all' },
       }
 
       html2pdf()
@@ -973,7 +1032,7 @@ const exportToPDF = () => {
         image: { type: 'jpeg', quality: 1 },
         html2canvas: { scale: 3, useCORS: true, letterRendering: true },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: 'avoid-all' }
+        pagebreak: { mode: 'avoid-all' },
       }
       html2pdf()
         .set(opt)
@@ -1364,27 +1423,52 @@ onUnmounted(() => {
   mix-blend-mode: multiply;
   filter: contrast(1.1) brightness(0.95);
 }
-.signer-name-wrapper {
+
+/* PO Signature Styling */
+.po-signature {
   display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  height: 40px;
-  border-bottom: 2.5px solid #1a237e;
-  width: 200px;
-  margin: 0 auto;
-  padding-bottom: 4px;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: flex-start;
+  width: 100%;
 }
-.text-signer-final {
+.po-signature .col-3 {
+  flex: 0 0 auto;
+  width: auto;
+  max-width: 220px;
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 120px;
+}
+.po-signature .q-mb-xs {
+  margin-bottom: 15px !important;
+}
+.po-signature .signer-name-wrapper {
+  width: 180px;
+  text-align: center;
+  margin-bottom: 5px;
+}
+.po-signature .text-signer-final {
+  box-sizing: border-box;
+  width: 180px;
+  padding-bottom: 4px;
+  padding-top: 5px;
+  border-bottom: 1px solid #1a237e;
+  word-wrap: break-word;
+  white-space: normal;
+  min-height: 40px;
   font-size: 13px;
   font-weight: 900;
   color: #1a237e;
   line-height: 1.25;
   text-align: center;
-  width: 100%;
 }
-.text-role-final {
+.po-signature .text-role-final {
+  margin-top: 0px !important;
   font-size: 10.5px;
-  margin-top: 6px;
   font-weight: 700;
   color: #444;
 }
