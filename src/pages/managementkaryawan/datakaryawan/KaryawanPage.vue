@@ -167,6 +167,16 @@
                       {{ props.row.lokasi_dinas }}
                     </q-badge>
                   </template>
+
+                  <!-- REINSTATED: Badge Status Bypass AI di Tabel Grid Utama -->
+                  <q-badge
+                    v-if="props.row.is_face_recognition_mandatory === false"
+                    color="deep-orange-1"
+                    text-color="deep-orange-9"
+                    class="q-px-sm q-py-xs text-weight-bold shadow-sm border-subtle"
+                  >
+                    <q-icon name="no_photography" size="10px" class="q-mr-xs" /> BYPASS AI
+                  </q-badge>
                 </div>
               </q-td>
 
@@ -228,119 +238,65 @@
       </div>
 
       <div class="row q-col-gutter-lg justify-center animate-fade-up" v-if="selectedKaryawan">
-        <!-- ID CARD PREVIEW (KOLOM KIRI: DESAIN ULTRA PREMIUM CYBER-GLASS TITANIUM BEZEL) -->
+        <!-- ID CARD PREVIEW (KOLOM KIRI: SINKRON FOTO PROFIL SOSIAL & LINGKARAN SEMPURNA) -->
         <div class="col-12 col-md-4 flex flex-center">
           <div class="column items-center full-width">
             <div
-              class="text-subtitle1 text-weight-bolder text-blue-grey-9 q-mb-md text-center uppercase tracking-wide font-pro"
+              class="text-subtitle1 text-weight-bolder text-blue-grey-9 q-mb-sm text-center uppercase tracking-wide"
             >
               Access Badge Resmi Perusahaan
             </div>
 
-            <!-- ID CARD CONTAINER UTAMA (ULTRAPREMIUM HIGH-TECH GLASS) -->
-            <div id="digital-id-card-badge" class="id-card-container relative-position">
-              <!-- Metal Screws in Corners (Mekanikal Presisi) -->
-              <div class="bezel-screw tl"></div>
-              <div class="bezel-screw tr"></div>
-              <div class="bezel-screw bl"></div>
-              <div class="bezel-screw br"></div>
+            <div id="digital-id-card-badge" class="id-card-container shadow-24 relative-position">
+              <div class="lanyard-hole"></div>
 
-              <!-- Top Lanyard Mount (Klip Logam Industri) -->
-              <div class="bezel-hanger-mount">
-                <div class="bezel-hanger-core"></div>
-              </div>
-
-              <!-- Cyber Schematic Grids & Glow Layers -->
-              <div class="cyber-grid-overlay"></div>
-              <div class="cyber-glow-blue"></div>
-              <div class="cyber-glow-purple"></div>
-
-              <!-- Top Telemetry & Status Bar -->
-              <div class="cyber-status-bar row no-wrap justify-between items-center full-width">
-                <span class="status-indicator">
-                  <span class="status-pulse-dot"></span>
-                  SYS.SECURE // LIVE_PASS
-                </span>
-                <span class="tech-serial font-mono">AGR.026_X</span>
-              </div>
-
-              <!-- Header dengan Logo Resmi & Branding Modern -->
               <div class="id-card-header text-center column flex-center">
-                <div class="id-logo-box q-mb-xs">
-                  <img
-                    src="/icons/logo-agra.png"
-                    class="id-logo-element"
-                    @error="useFallbackLogo = true"
-                    v-if="!useFallbackLogo"
-                    alt="AGRA Logo"
-                  />
-                  <q-icon name="corporate_fare" size="24px" class="text-indigo-10" v-else />
-                </div>
+                <q-icon name="corporate_fare" size="28px" class="q-mb-xs" />
                 <div class="id-company-title">PT AGRA ABHINAYA PERKASA</div>
-                <div class="id-company-sub">SISTEM INTEGRASI ERP CLOUD</div>
+                <div class="id-company-sub">Sistem Integrasi ERP Cloud</div>
               </div>
 
-              <!-- Biometric Scanning Target Frame & Glowing Pulse -->
-              <div class="id-card-photo-wrapper flex flex-center relative-position">
-                <div class="photo-glow-ring"></div>
-                <div class="biometric-scanner-reticle"></div>
-                <div class="scanner-sweep-line"></div>
-
-                <q-avatar size="108px" class="id-card-photo-box">
-                  <img
-                    :src="selectedKaryawan.fotoUrl || 'https://cdn.quasar.dev/img/avatar.png'"
-                    style="object-fit: cover"
-                  />
-                </q-avatar>
-
-                <!-- Shield Security Badge (Plat Logam Holografik) -->
-                <div class="id-official-badge">
-                  <q-icon name="verified" size="12px" class="text-cyan-4 animate-pulse" />OFFICIAL
-                  ID
+              <!-- Foto pada ID Card ditarik dari foto profil sosial (fotoUrl), serta didesain bulat sempurna (border-radius 50%) -->
+              <div class="id-card-photo-box flex flex-center relative-position">
+                <img
+                  :src="
+                    selectedKaryawan.fotoUrl ||
+                    selectedKaryawan.foto_profil ||
+                    'https://cdn.quasar.dev/img/avatar.png'
+                  "
+                  class="id-photo-element"
+                />
+                <div class="id-lock-tag">
+                  <q-icon name="verified" size="10px" class="q-mr-xs" />BIOMETRIC VALID
                 </div>
               </div>
 
-              <!-- Grid Informasi Karyawan & Pembagian Visual -->
               <div class="id-card-info text-center">
                 <div class="id-employee-name uppercase">{{ selectedKaryawan.nama }}</div>
                 <div class="id-employee-job">{{ selectedKaryawan.jabatan }}</div>
-
-                <div class="row justify-center q-mt-sm">
-                  <span
-                    class="id-custom-divisi-tag"
-                    :class="selectedKaryawan.divisi?.toLowerCase() || 'staff'"
-                  >
-                    <q-icon
-                      name="engineering"
-                      size="11px"
-                      class="q-mr-xs"
-                      v-if="selectedKaryawan.divisi?.toLowerCase() === 'konstruksi'"
-                    />
-                    <q-icon
-                      name="settings_suggest"
-                      size="11px"
-                      class="q-mr-xs"
-                      v-else-if="selectedKaryawan.divisi?.toLowerCase() === 'manufaktur'"
-                    />
-                    {{ selectedKaryawan.divisi || 'STAFF' }}
-                  </span>
-                </div>
+                <q-badge
+                  color="indigo-10"
+                  text-color="white"
+                  class="q-px-sm text-weight-bold text-overline font-mono q-mt-xs"
+                >
+                  {{ selectedKaryawan.divisi || 'STAFF' }}
+                </q-badge>
               </div>
 
-              <!-- Enclosed QR Code & Barcode Telemetry -->
+              <!-- QR Code Absensi Otomatis dari NIK -->
               <div class="id-card-qr-box text-center column flex-center">
-                <div class="qr-cyber-wrapper">
-                  <img :src="generateQrUrl(selectedKaryawan)" class="qr-element" />
-                  <!-- Cyberpunk Angle brackets -->
-                  <div class="corner-accent tl"></div>
-                  <div class="corner-accent tr"></div>
-                  <div class="corner-accent bl"></div>
-                  <div class="corner-accent br"></div>
+                <div class="qr-white-wrapper shadow-soft">
+                  <img
+                    :src="
+                      'https://api.qrserver.com/v1/create-qr-code/?size=120x120&color=1a237e&data=' +
+                      selectedKaryawan.nik
+                    "
+                    class="qr-element"
+                  />
                 </div>
                 <div class="id-employee-nik font-mono">{{ selectedKaryawan.nik }}</div>
               </div>
 
-              <!-- Premium Footer Strip -->
               <div class="id-card-footer text-center">KARTU IDENTITAS DIGITAL RESMI PERUSAHAAN</div>
             </div>
           </div>
@@ -361,9 +317,12 @@
                 <div class="col-auto">
                   <q-avatar size="64px" class="border-white-5">
                     <img
-                      :src="selectedKaryawan.fotoUrl || 'https://cdn.quasar.dev/img/avatar.png'"
+                      :src="
+                        selectedKaryawan.fotoUrl ||
+                        selectedKaryawan.foto_profil ||
+                        'https://cdn.quasar.dev/img/avatar.png'
+                      "
                       alt="Avatar"
-                      style="object-fit: cover"
                     />
                   </q-avatar>
                 </div>
@@ -378,7 +337,7 @@
               </div>
             </div>
 
-            <!-- Tab Selector -->
+            <!-- Tab Selector Asli -->
             <q-tabs
               v-model="tab"
               dense
@@ -394,7 +353,7 @@
               <q-tab name="dokumen" label="Dokumen" class="text-weight-bold" />
             </q-tabs>
 
-            <!-- Tab Panels -->
+            <!-- Tab Panels Asli -->
             <q-tab-panels v-model="tab" animated class="q-pa-md">
               <!-- PANEL 1: PERSONAL -->
               <q-tab-panel name="personal">
@@ -461,10 +420,39 @@
                         {{ calculateTenorDays(selectedKaryawan.tglMasuk) }}
                       </td>
                     </tr>
+
+                    <!-- REINSTATED: MENAMPILKAN STATUS BYPASS DI DETAIL PROFILE -->
+                    <tr>
+                      <td>Metode Presensi Wajah</td>
+                      <td>
+                        <q-badge
+                          :color="
+                            selectedKaryawan.is_face_recognition_mandatory !== false
+                              ? 'teal-6'
+                              : 'deep-orange-7'
+                          "
+                          class="q-px-md q-py-xs text-weight-bold rounded-6 shadow-sm"
+                        >
+                          <q-icon
+                            :name="
+                              selectedKaryawan.is_face_recognition_mandatory !== false
+                                ? 'face'
+                                : 'no_photography'
+                            "
+                            class="q-mr-xs"
+                          />
+                          {{
+                            selectedKaryawan.is_face_recognition_mandatory !== false
+                              ? 'WAJIB VERIFIKASI AI'
+                              : 'BYPASS AI AKTIF (CUKUP FOTO BIASA)'
+                          }}
+                        </q-badge>
+                      </td>
+                    </tr>
+
                     <tr>
                       <td>Jam Dinas / Shift Kerja</td>
                       <td>
-                        <!-- Jadwal per hari jika ada, fallback ke jam lama -->
                         <template
                           v-if="
                             Array.isArray(selectedKaryawan.jadwal_harian) &&
@@ -489,8 +477,11 @@
                                 class="text-weight-bold text-blue-grey-8"
                                 style="font-size: 12px"
                               >
-                                <q-icon name="schedule" size="12px" class="q-mr-xs text-orange-7" />
-                                {{ j.jam_masuk }} – {{ j.jam_pulang }}
+                                <q-icon
+                                  name="schedule"
+                                  size="12px"
+                                  class="q-mr-xs text-orange-7"
+                                />{{ j.jam_masuk }} – {{ j.jam_pulang }}
                               </span>
                               <span v-else class="text-grey-5 text-caption">Libur</span>
                             </div>
@@ -502,9 +493,10 @@
                             text-color="orange-9"
                             class="q-px-md q-py-xs text-weight-bolder rounded-6"
                           >
-                            <q-icon name="schedule" size="14px" class="q-mr-xs" />
-                            {{ selectedKaryawan.jam_masuk || '08:00' }} -
-                            {{ selectedKaryawan.jam_pulang || '17:00' }}
+                            <q-icon name="schedule" size="14px" class="q-mr-xs" />{{
+                              selectedKaryawan.jam_masuk || '08:00'
+                            }}
+                            - {{ selectedKaryawan.jam_pulang || '17:00' }}
                           </q-badge>
                         </template>
                       </td>
@@ -515,14 +507,13 @@
                         <div class="row q-gutter-xs">
                           <template v-if="Array.isArray(selectedKaryawan.lokasi_dinas)">
                             <q-badge
-                              v-for="loc in selectedKaryawan.lokasi_dinas"
-                              :key="loc"
                               color="teal-1"
                               text-color="teal-9"
                               class="q-px-md q-py-xs text-weight-bolder rounded-6"
+                              v-for="loc in selectedKaryawan.lokasi_dinas"
+                              :key="loc"
                             >
-                              <q-icon name="place" size="14px" class="q-mr-xs" />
-                              {{ loc }}
+                              <q-icon name="place" size="14px" class="q-mr-xs" />{{ loc }}
                             </q-badge>
                             <span
                               v-if="selectedKaryawan.lokasi_dinas.length === 0"
@@ -536,12 +527,10 @@
                               text-color="teal-9"
                               class="q-px-md q-py-xs text-weight-bolder rounded-6"
                             >
-                              <q-icon name="place" size="14px" class="q-mr-xs" />
-                              {{ selectedKaryawan.lokasi_dinas }}
+                              <q-icon name="place" size="14px" class="q-mr-xs" />{{
+                                selectedKaryawan.lokasi_dinas
+                              }}
                             </q-badge>
-                          </template>
-                          <template v-else>
-                            <span class="text-grey-6">Belum Ditugaskan</span>
                           </template>
                         </div>
                       </td>
@@ -627,12 +616,6 @@
                       ><q-icon name="open_in_new" color="grey-6" size="xs"
                     /></q-item-section>
                   </q-item>
-                  <q-item v-if="!selectedKaryawan.docs?.length">
-                    <q-item-section
-                      class="text-center q-pa-lg text-slate-400 font-medium italic font-12"
-                      >Belum ada berkas terlampir.</q-item-section
-                    >
-                  </q-item>
                 </q-list>
               </q-tab-panel>
             </q-tab-panels>
@@ -643,7 +626,7 @@
     </template>
 
     <!-- =====================================================================================
-         VIEW 3: FORM REGISTRASI / EDIT
+         VIEW 3: FORM REGISTRASI / EDIT (DENGAN INTEGRASI SHIFT DINAMIS)
          ===================================================================================== -->
     <template v-else-if="currentView === 'form'">
       <div class="row items-center justify-between q-mb-xl animate-fade">
@@ -717,7 +700,7 @@
                   />
                   <q-input class="col-12" outlined v-model="form.nama" label="Nama Lengkap" dense />
                   <q-input
-                    class="col-12 col-sm-6"
+                    class="col-12 q-col-sm-6"
                     outlined
                     v-model="form.hp"
                     label="No Handphone"
@@ -775,7 +758,7 @@
                     <div
                       class="text-subtitle1 text-weight-bold text-slate-800 leading-none q-mb-xs"
                     >
-                      Mulai Kerja & Shift Dinas
+                      Mulai Kerja &amp; Shift Dinas
                     </div>
                     <div class="text-caption text-grey-6 leading-none">
                       Tanggal bergabung resmi dan jam kerja shift karyawan
@@ -792,7 +775,6 @@
                     label="Mulai Kerja"
                     dense
                   />
-
                   <div class="col-12 col-sm-6">
                     <div
                       class="text-caption text-weight-bold text-blue-grey-8 uppercase letter-spacing-1 q-mb-xs"
@@ -823,7 +805,6 @@
                       :rules="[(val) => !!val || 'Jam pulang wajib diisi']"
                     />
                   </div>
-
                   <div class="col-12">
                     <div
                       class="text-caption text-weight-bold text-blue-grey-8 uppercase letter-spacing-1 q-mb-xs"
@@ -867,7 +848,7 @@
                     <div
                       class="text-subtitle1 text-weight-bold text-slate-800 leading-none q-mb-xs"
                     >
-                      BPJS & Rekening Bank
+                      BPJS &amp; Rekening Bank
                     </div>
                     <div class="text-caption text-grey-6 leading-none">
                       Informasi jaminan sosial dan payroll transfer
@@ -943,6 +924,16 @@
                     label="Password"
                     type="password"
                     dense
+                    :rules="[
+                      (val) => {
+                        if (isEditMode) {
+                          return !val || val.length >= 6 || 'Password minimal 6 karakter'
+                        } else {
+                          if (!val) return 'Password wajib diisi'
+                          return val.length >= 6 || 'Password minimal 6 karakter'
+                        }
+                      }
+                    ]"
                   />
                 </div>
               </q-card>
@@ -1013,11 +1004,26 @@
                     class="q-mr-sm rounded-8 shadow-sm"
                   />
                   <div class="text-subtitle1 text-weight-bold text-slate-800">
-                    Foto Registrasi Absen (Terkunci)
+                    Foto Registrasi Absen &amp; AI Setting
                   </div>
                 </div>
 
-                <!-- Tampilkan preview foto yang sudah tersimpan -->
+                <!-- REINSTATED: SAKELAR INTEGRASI BYPASS FILTER AI ABSENSI PAK HAFIDZ -->
+                <div
+                  class="row items-center justify-between q-mb-md q-pa-sm rounded-12 bg-orange-50/40 border border-orange-200 animate-fade"
+                >
+                  <div class="col q-pr-sm">
+                    <div class="text-subtitle2 text-weight-bold text-orange-9 leading-none q-mb-xs">
+                      Wajib Validasi AI Wajah
+                    </div>
+                    <div class="text-caption text-grey-7" style="font-size: 11px; line-height: 1.3">
+                      Jika dimatikan, buruh bebas absen foto biasa (Bypass Match Score AI). Solusi
+                      cepat kendala device!
+                    </div>
+                  </div>
+                  <q-toggle v-model="form.is_face_recognition_mandatory" color="orange-8" />
+                </div>
+
                 <div
                   v-if="form.foto_registrasi && !fotoRegistrasiFile"
                   class="text-center q-pa-md rounded-12 border-subtle bg-slate-50 q-mb-sm"
@@ -1035,7 +1041,6 @@
                   </div>
                 </div>
 
-                <!-- Preview foto baru yang dipilih (sebelum disimpan) -->
                 <div
                   v-if="fotoRegistrasiFile"
                   class="text-center q-pa-sm rounded-12 border-subtle bg-orange-1 q-mb-sm"
@@ -1075,7 +1080,6 @@
                   </template>
                 </q-file>
 
-                <!-- Dokumen Pendukung -->
                 <div class="row items-center q-mb-md q-mt-lg">
                   <q-avatar
                     size="36px"
@@ -1124,9 +1128,6 @@
       <div class="q-py-xl"></div>
     </template>
 
-    <!-- =====================================================================================
-         VIEW 4: HALAMAN VERIFIKASI PROFIL PUBLIK (OVERLAY RESPONSIF BAGI SCANNED VISITOR)
-         ===================================================================================== -->
     <template v-else-if="currentView === 'public-profile'">
       <div class="fixed-full bg-slate-100 flex flex-center q-pa-md z-max overflow-y-auto font-pro">
         <div
@@ -1154,7 +1155,6 @@
           style="max-width: 450px; width: 100%"
         >
           <q-card flat bordered class="rounded-24 shadow-24 bg-white overflow-hidden border-subtle">
-            <!-- Header Status Verified -->
             <div class="bg-teal-50 q-py-md q-px-lg flex flex-center border-bottom-subtle">
               <div class="row items-center q-gutter-md text-teal-10">
                 <q-icon name="check_circle" size="md" />
@@ -1169,7 +1169,6 @@
               </div>
             </div>
 
-            <!-- Profile Frame Bulat Sempurna -->
             <div class="q-pt-xl q-pb-md flex flex-center">
               <div class="profile-verified-photo-box shadow-md">
                 <img
@@ -1186,10 +1185,8 @@
               <div class="text-subtitle2 text-weight-bold text-indigo-10 q-mb-md">
                 {{ publicKaryawan.jabatan }}
               </div>
-
               <q-separator inset class="q-my-md" />
 
-              <!-- Data Non-Sensitif / Publik -->
               <div class="text-left q-gutter-y-sm">
                 <div class="row items-center justify-between q-py-xs border-bottom-subtle">
                   <span class="text-caption text-grey-6 font-weight-bold"
@@ -1227,48 +1224,20 @@
                         <q-icon name="place" size="10px" class="q-mr-xs" />{{ loc }}
                       </q-badge>
                     </template>
-                    <template v-else-if="publicKaryawan.lokasi_dinas">
-                      <q-badge
-                        color="teal-1"
-                        text-color="teal-10"
-                        class="q-px-sm q-py-xs text-weight-bold"
-                      >
-                        <q-icon name="place" size="10px" class="q-mr-xs" />{{
-                          publicKaryawan.lokasi_dinas
-                        }}
-                      </q-badge>
-                    </template>
                   </div>
-                </div>
-                <div class="row items-center justify-between q-py-xs">
-                  <span class="text-caption text-grey-6 font-weight-bold">Status Kepegawaian</span>
-                  <q-badge
-                    color="positive"
-                    class="q-px-md q-py-xs text-weight-bold rounded-pill text-overline"
-                    >AKTIF</q-badge
-                  >
                 </div>
               </div>
             </q-card-section>
-
             <div class="bg-blue-grey-1 q-py-md text-caption text-grey-6 text-center border-top">
-              Sistem Informasi SDM Terintegrasi AGRA ERP<br />
-              <span class="font-bold text-indigo-10">Valid &amp; Tercatat Resmi</span>
+              Sistem Informasi SDM Terintegrasi AGRA ERP<br /><span class="font-bold text-indigo-10"
+                >Valid &amp; Tercatat Resmi</span
+              >
             </div>
           </q-card>
-        </div>
-
-        <div v-else class="text-center animate-fade-up">
-          <q-icon name="error_outline" color="negative" size="64px" />
-          <div class="text-h6 q-mt-md text-red-7">Verifikasi Profil Gagal</div>
-          <div class="text-caption text-grey-6 q-px-md">
-            ID Karyawan tidak terdaftar atau telah dinonaktifkan dari PT AGRA ABHINAYA PERKASA.
-          </div>
         </div>
       </div>
     </template>
 
-    <!-- DIALOG POPUP SHIFT PER HARI & MULTI LOKASI PENUGASAN -->
     <q-dialog v-model="dialogShift" persistent backdrop-filter="blur(5px)">
       <q-card
         style="
@@ -1280,7 +1249,6 @@
         "
         class="rounded-24 bg-white overflow-hidden shadow-soft"
       >
-        <!-- Header -->
         <q-card-section class="row items-center q-pb-none q-pt-lg q-px-lg">
           <div class="row items-center">
             <q-avatar
@@ -1292,15 +1260,14 @@
             />
             <div>
               <div class="text-h6 text-weight-bold text-blue-grey-10 line-height-1">
-                Atur Shift & Lokasi Dinas
+                Atur Shift &amp; Lokasi Dinas
               </div>
               <div class="text-caption text-blue-grey-5">
                 Atur jam kerja per hari, bisa campur shift berbeda tiap hari.
               </div>
             </div>
           </div>
-          <q-space />
-          <q-btn
+          <q-space /><q-btn
             icon="close"
             flat
             round
@@ -1313,7 +1280,6 @@
 
         <q-card-section class="q-pa-lg q-pt-md" style="overflow-y: auto; flex: 1 1 auto">
           <div class="q-gutter-y-md">
-            <!-- PANEL: Terapkan jam ke range hari sekaligus -->
             <q-card flat bordered class="rounded-12 bg-orange-1 border-subtle q-pa-md">
               <div
                 class="text-caption text-weight-bold text-orange-9 uppercase q-mb-sm"
@@ -1322,7 +1288,7 @@
                 ⚡ Terapkan Cepat ke Beberapa Hari
               </div>
               <div class="row q-col-gutter-sm items-end">
-                <div class="col-6 col-sm-3">
+                <div class="col-6 sm:col-3">
                   <div class="text-caption text-blue-grey-7 q-mb-xs">Dari Hari</div>
                   <q-select
                     outlined
@@ -1334,7 +1300,7 @@
                     bg-color="white"
                   />
                 </div>
-                <div class="col-6 col-sm-3">
+                <div class="col-6 sm:col-3">
                   <div class="text-caption text-blue-grey-7 q-mb-xs">Sampai Hari</div>
                   <q-select
                     outlined
@@ -1346,7 +1312,7 @@
                     bg-color="white"
                   />
                 </div>
-                <div class="col-6 col-sm-2">
+                <div class="col-6 sm:col-2">
                   <div class="text-caption text-blue-grey-7 q-mb-xs">Jam Masuk</div>
                   <q-input
                     outlined
@@ -1356,7 +1322,7 @@
                     bg-color="white"
                   />
                 </div>
-                <div class="col-6 col-sm-2">
+                <div class="col-6 sm:col-2">
                   <div class="text-caption text-blue-grey-7 q-mb-xs">Jam Pulang</div>
                   <q-input
                     outlined
@@ -1366,7 +1332,7 @@
                     bg-color="white"
                   />
                 </div>
-                <div class="col-12 col-sm-2">
+                <div class="col-12 sm:col-2">
                   <q-btn
                     unelevated
                     color="orange-8"
@@ -1380,7 +1346,6 @@
               </div>
             </q-card>
 
-            <!-- TABEL JADWAL PER HARI -->
             <div>
               <div
                 class="text-caption text-weight-bold text-blue-grey-8 uppercase q-mb-sm"
@@ -1389,7 +1354,6 @@
                 Jadwal Harian (Senin – Sabtu)
               </div>
               <q-card flat bordered class="rounded-12 overflow-hidden border-subtle">
-                <!-- Header tabel -->
                 <div
                   class="row bg-blue-grey-9 text-white q-px-md q-py-xs"
                   style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px"
@@ -1399,7 +1363,6 @@
                   <div class="col-4 text-center">JAM MASUK</div>
                   <div class="col-4 text-center">JAM PULANG</div>
                 </div>
-                <!-- Row per hari -->
                 <div
                   v-for="jadwal in shiftForm.jadwal"
                   :key="jadwal.hari"
@@ -1407,19 +1370,16 @@
                   :class="jadwal.aktif ? 'bg-white' : 'bg-grey-1'"
                   style="border-bottom: 1px solid #f1f5f9"
                 >
-                  <!-- Toggle aktif -->
                   <div class="col-1 flex flex-center">
                     <q-toggle v-model="jadwal.aktif" color="primary" dense size="sm" />
                   </div>
-                  <!-- Nama hari -->
                   <div class="col-3 q-pl-sm">
                     <span
                       class="text-weight-bold"
                       :class="jadwal.aktif ? 'text-blue-grey-9' : 'text-grey-5'"
                       style="font-size: 13px"
+                      >{{ jadwal.hari }}</span
                     >
-                      {{ jadwal.hari }}
-                    </span>
                     <q-badge
                       v-if="!jadwal.aktif"
                       color="grey-3"
@@ -1429,7 +1389,6 @@
                       >LIBUR</q-badge
                     >
                   </div>
-                  <!-- Jam masuk -->
                   <div class="col-4 q-px-xs">
                     <q-input
                       outlined
@@ -1441,7 +1400,6 @@
                       style="font-size: 13px"
                     />
                   </div>
-                  <!-- Jam pulang -->
                   <div class="col-4 q-px-xs">
                     <q-input
                       outlined
@@ -1457,10 +1415,9 @@
               </q-card>
             </div>
 
-            <!-- Lokasi Dinas -->
             <div>
               <div
-                class="text-caption text-weight-bold text-blue-grey-8 uppercase q-mb-xs"
+                class="text-caption text-weight-bold text-blue-grey-8 uppercase letter-spacing-1 q-mb-xs"
                 style="font-size: 11px; letter-spacing: 1px"
               >
                 Lokasi Dinas Penugasan (Bisa Pilih Beberapa) *
@@ -1475,9 +1432,8 @@
                 use-chips
                 dense
                 placeholder="Pilih lokasi proyek/kantor penempatan aktif"
-              >
-                <template v-slot:prepend><q-icon name="place" color="blue-grey-4" /></template>
-              </q-select>
+                ><template v-slot:prepend><q-icon name="place" color="blue-grey-4" /></template
+              ></q-select>
             </div>
           </div>
         </q-card-section>
@@ -1501,7 +1457,6 @@
       </q-card>
     </q-dialog>
 
-    <!-- HIDDEN EXPORT TABLE -->
     <div style="position: absolute; top: -9999px; left: -9999px; width: 297mm; z-index: -1">
       <div id="table-pdf-export" class="landscape-paper">
         <div
@@ -1607,12 +1562,9 @@ const isEditMode = ref(false)
 const submitting = ref(false)
 const loading = ref(true)
 const tab = ref('personal')
-
 const dialogShift = ref(false)
 
-// Struktur jadwal per hari: setiap hari punya jam_masuk, jam_pulang, aktif
 const hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
-
 const defaultJadwalHarian = () =>
   hariList.map((hari) => ({
     hari,
@@ -1621,18 +1573,8 @@ const defaultJadwalHarian = () =>
     jam_pulang: '17:00',
   }))
 
-const shiftForm = ref({
-  karyawanId: '',
-  lokasi_dinas: [],
-  jadwal: defaultJadwalHarian(),
-})
-
-const applyRangeJam = ref({
-  dari: 0,
-  sampai: 4,
-  jam_masuk: '08:00',
-  jam_pulang: '17:00',
-})
+const shiftForm = ref({ karyawanId: '', lokasi_dinas: [], jadwal: defaultJadwalHarian() })
+const applyRangeJam = ref({ dari: 0, sampai: 4, jam_masuk: '08:00', jam_pulang: '17:00' })
 
 const terapkanRange = () => {
   const dari = parseInt(applyRangeJam.value.dari)
@@ -1651,32 +1593,27 @@ const terapkanRange = () => {
     message: `Jam diterapkan ke ${hariList[dari]}–${hariList[sampai]}`,
   })
 }
-const lokasiOptions = ref([])
 
+const lokasiOptions = ref([])
 const karyawanList = ref([])
 const jabatanOptions = ref([])
 const docList = ref([{ name: '', file: null }])
 const fotoFile = ref(null)
 const fotoRegistrasiFile = ref(null)
 
-// Preview URL untuk foto registrasi baru yang dipilih (sebelum di-upload)
 const fotoRegistrasiPreview = computed(() => {
   if (!fotoRegistrasiFile.value) return null
   return URL.createObjectURL(fotoRegistrasiFile.value)
 })
 
-// Fallback jika asset logo-agra.png tidak berhasil dipanggil
-const useFallbackLogo = ref(false)
-
 const divOptions = ['Konstruksi', 'Manufaktur']
-
-// Variable khusus menyimpan data verifikasi karyawan publik
 const publicKaryawan = ref(null)
 
 const selectedKaryawan = computed(() => {
   return karyawanList.value.find((k) => k.id === selectedKaryawanId.value) || null
 })
 
+// REINSTATED: is_face_recognition_mandatory default true
 const formDefault = {
   id: null,
   nik: '',
@@ -1700,13 +1637,14 @@ const formDefault = {
   jam_masuk: '08:00',
   jam_pulang: '17:00',
   lokasi_dinas: [],
+  is_face_recognition_mandatory: true, // REVISI EMAS: Default wajib AI Face-API
 }
 const form = ref({ ...formDefault })
 
 let unsubUser = null,
   unsubKaryawan = null,
   unsubJabatan = null,
-  unsubLokasi = null
+  unsubLocations = null
 const userData = ref(null)
 
 const currentUserRole = computed(() => userData.value?.jabatan || authStore.user?.role || '')
@@ -1790,6 +1728,9 @@ const editKaryawan = (data) => {
     jam_masuk: data.jam_masuk || '08:00',
     jam_pulang: data.jam_pulang || '17:00',
     lokasi_dinas: initialLocs,
+    // REINSTATED: Parsing kondisi bypass jika data lama kosongan
+    is_face_recognition_mandatory:
+      data.is_face_recognition_mandatory !== undefined ? data.is_face_recognition_mandatory : true,
   }
   docList.value = data.docs ? [...data.docs] : [{ name: '', file: null }]
   fotoFile.value = null
@@ -1804,12 +1745,10 @@ const openShiftDialog = (karyawan) => {
     initialLocs = initialLocs ? [initialLocs] : []
   }
 
-  // Load jadwal per hari dari data karyawan, fallback ke default jika belum ada
   let jadwalLoaded = defaultJadwalHarian()
   if (Array.isArray(karyawan.jadwal_harian) && karyawan.jadwal_harian.length === 6) {
     jadwalLoaded = karyawan.jadwal_harian
   } else if (karyawan.jam_masuk || karyawan.jam_pulang) {
-    // Migrasi dari data lama: apply jam lama ke semua hari aktif
     jadwalLoaded = jadwalLoaded.map((j) => ({
       ...j,
       jam_masuk: karyawan.jam_masuk || '08:00',
@@ -1817,12 +1756,7 @@ const openShiftDialog = (karyawan) => {
     }))
   }
 
-  shiftForm.value = {
-    karyawanId: karyawan.id,
-    lokasi_dinas: initialLocs,
-    jadwal: jadwalLoaded,
-  }
-
+  shiftForm.value = { karyawanId: karyawan.id, lokasi_dinas: initialLocs, jadwal: jadwalLoaded }
   applyRangeJam.value = { dari: 0, sampai: 4, jam_masuk: '08:00', jam_pulang: '17:00' }
   dialogShift.value = true
 }
@@ -1839,7 +1773,6 @@ const saveShiftSettings = async () => {
   }
   $q.loading.show({ message: 'Memproses perubahan dinas reaktif...' })
   try {
-    // Ambil jam dari hari pertama yang aktif sebagai backward compat
     const firstAktif = hariAktif[0]
     const userRef = doc(db, 'karyawan', shiftForm.value.karyawanId)
     await updateDoc(userRef, {
@@ -1848,9 +1781,8 @@ const saveShiftSettings = async () => {
       jam_pulang: firstAktif.jam_pulang,
       lokasi_dinas: shiftForm.value.lokasi_dinas,
     })
-
     dialogShift.value = false
-    $q.notify({ type: 'positive', message: 'Dinas & Jadwal Kerja Karyawan Berhasil Diperbarui!' })
+    $q.notify({ type: 'positive', message: 'Dinas & Jadwal Kerja Karyawan Berbaru!' })
   } catch (error) {
     $q.notify({ type: 'negative', message: 'Gagal memperbarui: ' + error.message })
   } finally {
@@ -1873,9 +1805,8 @@ const saveKaryawan = async () => {
     $q.notify({ type: 'warning', message: 'Nama dan divisi wajib diisi!' })
     return
   }
-
   if (!form.value.foto_registrasi && !fotoRegistrasiFile.value) {
-    $q.notify({ type: 'warning', message: 'Foto Registrasi wajib diunggah untuk data acuan AI!' })
+    $q.notify({ type: 'warning', message: 'Foto Registrasi wajib diunggah untuk acuan AI!' })
     return
   }
 
@@ -1924,6 +1855,9 @@ const saveKaryawan = async () => {
     delete payload.password
 
     if (docId) {
+      if (pwd && pwd.trim() !== '') {
+        payload.tempPassword = pwd
+      }
       await updateDoc(doc(db, 'karyawan', docId), payload)
     } else {
       const cred = await createUserWithEmailAndPassword(auth, form.value.email, pwd)
@@ -1935,7 +1869,6 @@ const saveKaryawan = async () => {
     currentView.value = 'list'
     $q.notify({ type: 'positive', message: 'Data karyawan berhasil disimpan!' })
   } catch (error) {
-    console.error(error)
     $q.notify({ type: 'negative', message: error.message })
   } finally {
     $q.loading.hide()
@@ -1966,7 +1899,6 @@ const deleteKaryawan = (row) => {
 const cetakIdCardLokal = () => {
   const element = document.getElementById('digital-id-card-badge')
   if (!element) return
-
   const opt = {
     margin: [5, 5, 5, 5],
     filename: `ID_Card_AGRA_${selectedKaryawan.value.nama.replace(/\s+/g, '_')}.pdf`,
@@ -1974,7 +1906,6 @@ const cetakIdCardLokal = () => {
     html2canvas: { scale: 3, useCORS: true, allowTaint: true },
     jsPDF: { unit: 'mm', format: [85, 140], orientation: 'portrait' },
   }
-
   $q.loading.show({ message: 'Mengolah ID Card Biometrik...' })
   window
     .html2pdf()
@@ -2033,30 +1964,16 @@ const formatDateIndo = (d) =>
     ? new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
     : '-'
 
-// METODE KHUSUS: Membuat Link Enkripsi QR Code Ke Halaman Validasi Publik
-const generateQrUrl = (karyawan) => {
-  if (!karyawan || !karyawan.id) return ''
-  const baseUrl = window.location.origin + window.location.pathname
-  const fullUrl = `${baseUrl}?public_id=${karyawan.id}`
-  return (
-    'https://api.qrserver.com/v1/create-qr-code/?size=150x150&color=1a237e&data=' +
-    encodeURIComponent(fullUrl)
-  )
-}
-
-// METODE KHUSUS: Cek apakah visitor men-scan QR Code & mengarah ke halaman verifikasi publik
 const checkPublicVerificationRoute = async () => {
   const searchStr =
     window.location.search ||
     (window.location.hash.includes('?') ? window.location.hash.split('?')[1] : '')
   const urlParams = new URLSearchParams(searchStr)
   const publicId = urlParams.get('public_id')
-
   if (publicId) {
     currentView.value = 'public-profile'
     loading.value = true
     try {
-      // Jika visitor tidak login, gunakan login anonim agar dapat bypass Firebase Rule pembacaan data
       if (!auth.currentUser) {
         await signInAnonymously(auth)
       }
@@ -2067,8 +1984,7 @@ const checkPublicVerificationRoute = async () => {
       } else {
         $q.notify({ type: 'negative', message: 'Data verifikasi karyawan tidak ditemukan.' })
       }
-    } catch (err) {
-      console.error('Portal Verifikasi Publik Error:', err)
+    } catch {
       $q.notify({ type: 'negative', message: 'Koneksi ke sistem database terhambat.' })
     } finally {
       loading.value = false
@@ -2078,10 +1994,7 @@ const checkPublicVerificationRoute = async () => {
 
 onMounted(async () => {
   await loadExternalLibraries()
-
-  // Cek apakah ini adalah link hasil scan QR ID Card karyawan
   await checkPublicVerificationRoute()
-
   if (currentView.value !== 'public-profile') {
     if (authStore.user?.email) {
       unsubUser = onSnapshot(
@@ -2109,13 +2022,10 @@ onMounted(async () => {
         value: d.data().namaJabatan,
       }))
     })
-    unsubLokasi = onSnapshot(query(collection(db, 'lokasi_kantor')), (s) => {
+    unsubLocations = onSnapshot(query(collection(db, 'lokasi_kantor')), (s) => {
       lokasiOptions.value = s.docs.map((d) => {
         const name = d.data().nama_lokasi || ''
-        return {
-          label: name.toUpperCase(),
-          value: name,
-        }
+        return { label: name.toUpperCase(), value: name }
       })
     })
   }
@@ -2125,7 +2035,7 @@ onUnmounted(() => {
   if (unsubUser) unsubUser()
   if (unsubKaryawan) unsubKaryawan()
   if (unsubJabatan) unsubJabatan()
-  if (unsubLokasi) unsubLokasi()
+  if (unsubLocations) unsubLocations()
 })
 
 const columns = [
@@ -2138,7 +2048,6 @@ const columns = [
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
 .font-pro {
   font-family: 'Plus Jakarta Sans', sans-serif;
 }
@@ -2177,17 +2086,14 @@ const columns = [
   line-height: 1;
 }
 
-/* =========================================================================
-   ULTRAPREMIUM CYBER-GLASSMOPHISM ID CARD (FUTURISTIC SCI-FI TECH BADGE)
-   ========================================================================= */
 .id-card-container {
   width: 280px;
   height: 440px;
-  background: rgba(255, 255, 255, 0.82); /* Frosted Ice-glass */
+  background: rgba(255, 255, 255, 0.82);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-radius: 18px;
-  border: 4px solid #94a3b8; /* Brushed Titanium Matte Frame */
+  border: 4px solid #94a3b8;
   padding: 14px;
   box-sizing: border-box;
   display: flex;
@@ -2200,8 +2106,6 @@ const columns = [
     0 15px 35px rgba(15, 23, 42, 0.15),
     inset 0 0 20px rgba(99, 102, 241, 0.06);
 }
-
-/* Metal Screws on Corners (Mekanikal Hardware) */
 .bezel-screw {
   position: absolute;
   width: 7px;
@@ -2227,8 +2131,6 @@ const columns = [
   bottom: 6px;
   right: 6px;
 }
-
-/* Titanium Lanyard Holder (Klip Gantung Atas) */
 .bezel-hanger-mount {
   position: absolute;
   top: -6px;
@@ -2251,8 +2153,6 @@ const columns = [
   background: #1e293b;
   border-radius: 2px;
 }
-
-/* High-tech Background Schematic Grid Lines */
 .cyber-grid-overlay {
   position: absolute;
   inset: 0;
@@ -2263,8 +2163,6 @@ const columns = [
   pointer-events: none;
   z-index: 1;
 }
-
-/* Back-glow Ambient Orbs */
 .cyber-glow-blue {
   position: absolute;
   top: -40px;
@@ -2285,8 +2183,6 @@ const columns = [
   pointer-events: none;
   z-index: 1;
 }
-
-/* Tech Telemetry Bar */
 .cyber-status-bar {
   font-size: 7px;
   font-weight: 800;
@@ -2310,8 +2206,6 @@ const columns = [
   box-shadow: 0 0 6px #06b6d4;
   animation: pulseNeon 1.5s infinite ease-in-out;
 }
-
-/* Header & Logo */
 .id-card-header {
   width: 100%;
   z-index: 3;
@@ -2333,7 +2227,7 @@ const columns = [
   font-size: 11px;
   font-weight: 900;
   letter-spacing: 1.2px;
-  color: #0f172a; /* Dark Navy Slate */
+  color: #0f172a;
 }
 .id-company-sub {
   font-size: 8px;
@@ -2341,8 +2235,6 @@ const columns = [
   font-weight: 800;
   letter-spacing: 0.8px;
 }
-
-/* Biometric Scanner Frame with Circular Sweep Line */
 .id-card-photo-wrapper {
   z-index: 3;
   margin: 4px 0;
@@ -2383,14 +2275,20 @@ const columns = [
   z-index: 2;
   box-shadow: 0 4px 15px rgba(99, 102, 241, 0.12);
   box-sizing: border-box;
+  border-radius: 50% !important;
+  overflow: hidden;
 }
-
-/* Premium Shield Badge (Plat Keamanan Biometrik) */
+.id-photo-element {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
 .id-official-badge {
   position: absolute;
   bottom: -6px;
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-  color: #22d3ee; /* Glowing Electric Cyan */
+  color: #22d3ee;
   font-size: 8px;
   font-weight: 900;
   text-align: center;
@@ -2405,8 +2303,6 @@ const columns = [
   align-items: center;
   gap: 4px;
 }
-
-/* Karyawan Metadata Area */
 .id-card-info {
   width: 100%;
   z-index: 3;
@@ -2426,8 +2322,6 @@ const columns = [
   letter-spacing: 0.5px;
   text-transform: uppercase;
 }
-
-/* Custom Cyberpunk Division Chips with Glowing Border */
 .id-custom-divisi-tag {
   font-size: 8px;
   font-weight: 900;
@@ -2456,8 +2350,6 @@ const columns = [
   color: #059669;
   border: 1.2px solid rgba(16, 185, 129, 0.35);
 }
-
-/* QR Code Bracket Enclosure */
 .qr-cyber-wrapper {
   background: #ffffff;
   padding: 6px;
@@ -2472,8 +2364,6 @@ const columns = [
   height: 58px;
   display: block;
 }
-
-/* Cyberpunk Corner Highlight Brackets */
 .corner-accent {
   position: absolute;
   width: 6px;
@@ -2502,8 +2392,6 @@ const columns = [
   right: -1px;
   border-width: 0 1.5px 1.5px 0;
 }
-
-/* Secure digital hash code NIK */
 .id-employee-nik {
   font-size: 11px;
   font-weight: 900;
@@ -2517,12 +2405,10 @@ const columns = [
   border: 1px solid rgba(99, 102, 241, 0.15);
   z-index: 3;
 }
-
-/* Secure Bottom Branding Strip */
 .id-card-footer {
   width: 100%;
   background: linear-gradient(90deg, #1e1b4b 0%, #312e81 100%);
-  color: #22d3ee; /* Glowing cyan font */
+  color: #22d3ee;
   font-size: 7px;
   font-weight: 900;
   padding: 4px 0;
@@ -2533,15 +2419,11 @@ const columns = [
   text-transform: uppercase;
 }
 
-/* =========================================================================
-   SCI-FI MICRO-ANIMATIONS
-   ========================================================================= */
 @keyframes spinRing {
   100% {
     transform: rotate(360deg);
   }
 }
-
 @keyframes pulseNeon {
   0%,
   100% {
@@ -2553,7 +2435,6 @@ const columns = [
     box-shadow: 0 0 10px rgba(6, 182, 212, 0.7);
   }
 }
-
 @keyframes sweepAction {
   0%,
   100% {
@@ -2566,7 +2447,6 @@ const columns = [
   }
 }
 
-/* Landscape Export Hidden View */
 .landscape-paper {
   background: white;
   width: 297mm;
@@ -2612,7 +2492,6 @@ const columns = [
   color: #1e293b;
 }
 
-/* Shift row item hover */
 .shift-row-item {
   transition: background 0.15s;
 }
@@ -2624,14 +2503,11 @@ const columns = [
   position: relative;
   overflow: hidden;
 }
-
 .border-white-5 {
   border: 4px solid white;
   box-sizing: border-box;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
-
-/* CSS Khusus Portal Verifikasi Publik */
 .profile-verified-photo-box {
   width: 140px;
   height: 140px;

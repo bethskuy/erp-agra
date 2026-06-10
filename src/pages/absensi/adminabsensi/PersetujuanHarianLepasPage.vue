@@ -373,15 +373,29 @@
                   </div>
                 </div>
 
-                <!-- Mandor Status Static Badge -->
-                <div class="row items-center no-wrap q-gutter-x-sm bg-white q-py-xs q-px-md rounded-12 border border-subtle">
-                  <span class="text-caption text-weight-bold text-grey-6">STATUS MANDOR:</span>
-                  <q-badge
-                    :color="getMandorStatus(m.id) === 'hadir' ? 'brand-primary' : 'brand-danger'"
-                    class="text-weight-bold q-px-md q-py-xs rounded-6 uppercase"
-                  >
-                    {{ getMandorStatus(m.id) === 'hadir' ? 'Hadir' : 'Tidak Hadir' }}
-                  </q-badge>
+                <!-- Mandor Status & Group Photo Preview -->
+                <div class="row items-center no-wrap q-gutter-x-sm">
+                  <q-btn
+                    v-if="getMandorFotoBersama(m.id)"
+                    outline
+                    no-caps
+                    size="sm"
+                    color="brand-primary"
+                    class="rounded-8 text-weight-bold q-px-sm bg-white"
+                    icon="groups"
+                    label="Lihat Foto Bersama"
+                    @click="openPhotoPreview(getMandorFotoBersama(m.id), `Foto Bersama - Mandor ${m.nama}`)"
+                  />
+                  
+                  <div class="row items-center no-wrap q-gutter-x-sm bg-white q-py-xs q-px-md rounded-12 border border-subtle">
+                    <span class="text-caption text-weight-bold text-grey-6">STATUS MANDOR:</span>
+                    <q-badge
+                      :color="getMandorStatus(m.id) === 'hadir' ? 'brand-primary' : 'brand-danger'"
+                      class="text-weight-bold q-px-md q-py-xs rounded-6 uppercase"
+                    >
+                      {{ getMandorStatus(m.id) === 'hadir' ? 'Hadir' : 'Tidak Hadir' }}
+                    </q-badge>
+                  </div>
                 </div>
               </div>
 
@@ -402,6 +416,7 @@
                         <th class="text-center text-weight-bold font-11 tracking-widest">LEMBUR</th>
                         <th class="text-right text-weight-bold font-11 tracking-widest">UPAH LEMBUR</th>
                         <th class="text-right text-weight-bold font-11 tracking-widest text-teal-10">TOTAL UPAH</th>
+                        <th class="text-center text-weight-bold font-11 tracking-widest" style="width: 70px;">BUKTI</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -447,6 +462,20 @@
                         </td>
                         <td class="text-right font-mono text-weight-bold text-brand-primary">
                           Rp {{ formatUang(calculateWorkerTotalWage(p, m.id)) }}
+                        </td>
+                        <td class="text-center">
+                          <q-btn
+                            v-if="getWorkerFoto(m.id, p.id)"
+                            outline
+                            color="brand-primary"
+                            class="rounded-8 bg-white"
+                            icon="photo"
+                            size="sm"
+                            @click="openPhotoPreview(getWorkerFoto(m.id, p.id), p.nama)"
+                          >
+                            <q-tooltip class="bg-brand-primary">Lihat Foto Bukti</q-tooltip>
+                          </q-btn>
+                          <span v-else class="text-grey-4 text-weight-bold">-</span>
                         </td>
                       </tr>
                     </tbody>
@@ -513,6 +542,40 @@
         </div>
       </div>
     </div>
+
+    <!-- ======================================================================= -->
+    <!-- DIALOG: PREVIEW FOTO BUKTI ABSENSI                                      -->
+    <!-- ======================================================================= -->
+    <q-dialog v-model="showPreviewDialog" transition-show="scale" transition-hide="scale">
+      <q-card class="rounded-24 shadow-premium overflow-hidden bg-slate-900 border-subtle" style="width: 550px; max-width: 95vw;">
+        <!-- Header -->
+        <q-card-section class="bg-brand-primary text-white row items-center justify-between q-py-md">
+          <div class="row items-center">
+            <q-icon name="image" size="20px" class="q-mr-sm" />
+            <div class="text-subtitle1 text-weight-bolder uppercase tracking-wide">
+              Detail Foto Bukti
+            </div>
+          </div>
+          <q-btn flat round dense icon="close" color="white" v-close-popup />
+        </q-card-section>
+
+        <!-- Image Preview Card -->
+        <q-card-section class="q-pa-none bg-slate-950 flex flex-center" style="min-height: 350px;">
+          <q-img
+            :src="previewPhotoUrl"
+            style="width: 100%; height: auto; max-height: 480px;"
+            fit="contain"
+          />
+        </q-card-section>
+
+        <!-- Footer Title -->
+        <q-card-section class="bg-white q-pa-md text-center">
+          <div class="text-subtitle2 text-weight-bolder text-blue-grey-9 uppercase">
+            {{ previewPhotoTitle }}
+          </div>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
@@ -674,6 +737,25 @@ const viewDetail = (record) => {
   )
 }
 
+// --- Preview Foto Bukti Absensi ---
+const showPreviewDialog = ref(false)
+const previewPhotoUrl = ref('')
+const previewPhotoTitle = ref('')
+
+const openPhotoPreview = (url, title) => {
+  previewPhotoUrl.value = url
+  previewPhotoTitle.value = title
+  showPreviewDialog.value = true
+}
+
+const getWorkerFoto = (mandorId, pekerjaId) => {
+  return selectedRecord.value?.absen?.[mandorId]?.[pekerjaId]?.foto || ''
+}
+
+const getMandorFotoBersama = (mandorId) => {
+  return selectedRecord.value?.absen?.[mandorId]?._self?.fotoBersama || ''
+}
+
 const getMandorStatus = (mandorId) => {
   return selectedRecord.value?.absen?.[mandorId]?._self?.status || 'hadir'
 }
@@ -698,7 +780,8 @@ const calculateWorkerEffectiveWage = (pekerja, mandorId) => {
 
 const calculateWorkerLemburWage = (pekerja, mandorId) => {
   const hours = Number(getWorkerLembur(mandorId, pekerja.id)) || 0
-  return hours * rateLembur.value
+  const rate = pekerja.upahLembur !== undefined ? pekerja.upahLembur : rateLembur.value
+  return hours * rate
 }
 
 const calculateWorkerTotalWage = (pekerja, mandorId) => {
@@ -1173,6 +1256,15 @@ table.abs-tbl tr:hover {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+}
+.hover-scale {
+  transition: transform 0.2s ease-in-out;
+}
+.hover-scale:hover {
+  transform: scale(1.15);
+}
+.transition-smooth {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 </style>
 

@@ -2,7 +2,7 @@
   <q-page class="bg-slate-50 q-pa-md q-pa-lg-xl font-inter">
     <div class="bento-container mx-auto">
       <!-- ======================================================================= -->
-      <!-- REVOLUSI DESAIN: BANNER SIARAN PEMBERITAHUAN ULTRA PREMIUM (APPLE STYLE)-->
+      <!-- BANNER SIARAN PEMBERITAHUAN ULTRA PREMIUM (APPLE STYLE)                 -->
       <!-- ======================================================================= -->
       <div
         v-if="pemberitahuanList.length > 0 && !showCamera && !isAnnouncementDismissed"
@@ -12,13 +12,10 @@
           flat
           class="bento-card announcement-cyber-card relative-position overflow-hidden shadow-2xl"
         >
-          <!-- Abstract Tech Glowing Mesh in Background -->
           <div class="cyber-mesh"></div>
           <div class="glow-orb blue"></div>
           <div class="glow-orb orange"></div>
           <div class="cyber-grid-light"></div>
-
-          <!-- Floating Cyber Dust Particles -->
           <div class="particle-emitter">
             <div class="particle p1"></div>
             <div class="particle p2"></div>
@@ -28,7 +25,6 @@
 
           <q-card-section class="q-pa-md q-pa-sm-lg relative-position z-content">
             <div class="row items-center no-wrap">
-              <!-- Pulsing Holographic Megaphone with 3 radar ripples -->
               <div class="q-mr-md relative-position">
                 <div class="tech-icon-glow"></div>
                 <div class="tech-icon-container text-white rounded-16 flex flex-center">
@@ -39,14 +35,9 @@
                 <div class="radar-ripple ring-3"></div>
               </div>
 
-              <!-- Content Area with Styled Carousel -->
               <div class="col overflow-hidden">
                 <div class="row items-center q-gutter-x-sm q-mb-xs">
-                  <!-- Live Badge Tech -->
-                  <div class="tech-live-tag">
-                    <span class="live-dot"></span>
-                    PENGUMUMAN RESMI
-                  </div>
+                  <div class="tech-live-tag"><span class="live-dot"></span>PENGUMUMAN RESMI</div>
                   <span class="tech-brand-sub font-mono">• AGR.SECURE // BROADCAST SYSTEM</span>
                 </div>
 
@@ -77,8 +68,9 @@
                       class="text-subtitle2 text-weight-black text-slate-900 ellipsis tracking-tight"
                       style="font-size: 14.5px"
                     >
-                      <q-icon name="shield" size="16px" class="q-mr-xs text-orange-7" />
-                      {{ item.judul }}
+                      <q-icon name="shield" size="16px" class="q-mr-xs text-orange-7" />{{
+                        item.judul
+                      }}
                     </div>
                     <div
                       class="text-caption text-slate-600 ellipsis-2-lines line-height-tight q-mt-xs font-medium"
@@ -90,7 +82,6 @@
                 </q-carousel>
               </div>
 
-              <!-- Dismiss Button with Glass Hover Effect -->
               <q-btn
                 flat
                 round
@@ -100,16 +91,10 @@
                 size="sm"
                 class="glass-dismiss-btn self-start q-ml-sm"
                 @click="dismissAnnouncement"
-              >
-                <q-tooltip class="bg-blue-grey-9 text-weight-bold">Tutup Siaran</q-tooltip>
-              </q-btn>
+              />
             </div>
           </q-card-section>
-
-          <!-- Auto-play progress bar track synced to 6s interval -->
-          <div class="tech-progress-track">
-            <div class="tech-progress-bar"></div>
-          </div>
+          <div class="tech-progress-track"><div class="tech-progress-bar"></div></div>
         </q-card>
       </div>
 
@@ -117,7 +102,6 @@
       <!-- BAGIAN ATAS: PROFIL & WAKTU                -->
       <!-- ========================================== -->
       <div class="row q-col-gutter-lg q-mb-lg" v-if="!showCamera">
-        <!-- WIDGET 1: PROFIL KARYAWAN -->
         <div class="col-12 col-md-7 col-lg-8 hide-on-mobile">
           <q-card flat class="bento-card bg-white full-height relative-position overflow-hidden">
             <div class="decor-circle-1"></div>
@@ -168,8 +152,18 @@
                       class="text-weight-bold q-px-sm q-py-xs rounded-6 ellipsis"
                       style="max-width: 100%"
                     >
-                      <q-icon name="mail" size="10px" class="q-mr-xs" />
-                      {{ userData.email || 'Memuat email...' }}
+                      <q-icon name="mail" size="10px" class="q-mr-xs" />{{
+                        userData.email || 'Memuat email...'
+                      }}
+                    </q-badge>
+
+                    <q-badge
+                      v-if="userData.is_face_recognition_mandatory === false"
+                      color="deep-orange-5"
+                      text-color="white"
+                      class="text-weight-bold q-px-sm q-py-xs rounded-6 animate-pulse"
+                    >
+                      <q-icon name="no_photography" size="10px" class="q-mr-xs" /> BYPASS AI ACTIVE
                     </q-badge>
                   </div>
                 </div>
@@ -178,7 +172,6 @@
           </q-card>
         </div>
 
-        <!-- WIDGET 2: JAM "AURORA HOLOGRAPHIC" PREMIUM -->
         <div class="col-12 col-md-5 col-lg-4">
           <q-card
             flat
@@ -186,7 +179,6 @@
           >
             <div class="aurora-bg"></div>
             <div class="glass-layer"></div>
-
             <q-card-section class="text-center z-content q-pa-lg full-width">
               <div class="row items-center justify-center q-mb-md opacity-80">
                 <q-icon name="schedule" size="xs" color="white" class="q-mr-sm" />
@@ -194,7 +186,6 @@
                   Waktu Server AGRA
                 </div>
               </div>
-
               <div class="time-wrapper drop-shadow-glow text-white">
                 <span class="time-hhmm"
                   >{{ currentHours }}<span class="blink text-blue-2">:</span
@@ -202,7 +193,6 @@
                 >
                 <span class="time-ss text-blue-3">{{ currentSeconds }}</span>
               </div>
-
               <div class="date-chip q-mt-md shadow-2">{{ currentDate }}</div>
             </q-card-section>
           </q-card>
@@ -213,7 +203,6 @@
       <!-- BAGIAN TENGAH: RADAR LOKASI & ACTION       -->
       <!-- ========================================== -->
       <div class="row q-col-gutter-lg q-mb-lg flex" v-if="!showCamera">
-        <!-- WIDGET 3: RADAR GPS -->
         <div class="col-12 col-md-6 mobile-order-2 desktop-order-1">
           <q-card flat class="bento-card bg-white full-height">
             <q-card-section class="q-pa-lg">
@@ -224,15 +213,13 @@
                     Sistem Radar Lokasi
                   </div>
                 </div>
-                <!-- Tampilan Jam Kerja Shift membaca secara dinamis dari Firestore Karyawan -->
                 <q-badge
                   outline
                   color="indigo-5"
                   class="q-px-sm q-py-xs rounded-6 font-mono text-weight-bold bg-indigo-50"
+                  ><q-icon name="work_outline" size="12px" class="q-mr-xs" /> SHIFT:
+                  {{ userData.jam_masuk }} - {{ userData.jam_pulang }}</q-badge
                 >
-                  <q-icon name="work_outline" size="12px" class="q-mr-xs" /> SHIFT:
-                  {{ userData.jam_masuk }} - {{ userData.jam_pulang }}
-                </q-badge>
               </div>
 
               <div
@@ -261,8 +248,7 @@
                         locationData.inRange && !locationData.securityRisk ? 'teal-6' : 'red-5'
                       "
                       size="48px"
-                    >
-                      <q-icon
+                      ><q-icon
                         :name="
                           locationData.securityRisk
                             ? 'gavel'
@@ -271,10 +257,8 @@
                               : 'location_off'
                         "
                         size="28px"
-                      />
-                    </q-avatar>
+                    /></q-avatar>
                   </div>
-
                   <div class="col">
                     <div
                       class="text-subtitle2 text-weight-bolder q-mb-xs"
@@ -298,9 +282,7 @@
                     </div>
                   </div>
                 </div>
-
                 <q-separator class="q-my-md opacity-50" />
-
                 <div class="row items-center justify-between q-mb-sm">
                   <div
                     class="text-caption text-weight-bold text-blue-grey-6 uppercase letter-spacing-1"
@@ -310,15 +292,13 @@
                   <q-badge
                     :color="locationData.inRange ? 'teal-5' : 'red-5'"
                     class="text-weight-bold shadow-1"
-                  >
-                    {{
+                    >{{
                       locationData.inRange
                         ? locationData.matchedLocationName
                         : 'TIDAK ADA ZONA VALID'
-                    }}
-                  </q-badge>
+                    }}</q-badge
+                  >
                 </div>
-
                 <div class="row items-center justify-between">
                   <div
                     class="text-caption text-weight-bold text-blue-grey-6 uppercase letter-spacing-1"
@@ -328,21 +308,20 @@
                   <q-badge
                     :color="locationData.securityRisk ? 'red-6' : 'green-6'"
                     class="text-weight-bold shadow-1"
-                  >
-                    <q-icon
+                    ><q-icon
                       :name="locationData.securityRisk ? 'warning' : 'shield'"
                       size="xs"
                       class="q-mr-xs"
-                    />
-                    {{ locationData.securityRisk ? 'FAKE GPS TERDETEKSI' : 'AMAN (ENCRYPTED)' }}
-                  </q-badge>
+                    />{{
+                      locationData.securityRisk ? 'FAKE GPS TERDETEKSI' : 'AMAN (ENCRYPTED)'
+                    }}</q-badge
+                  >
                 </div>
               </div>
             </q-card-section>
           </q-card>
         </div>
 
-        <!-- WIDGET 4: TOMBOL AKSI -->
         <div class="col-12 col-md-6 mobile-order-1 desktop-order-2">
           <q-card flat class="bento-card bg-white full-height flex column justify-center">
             <q-card-section class="q-pa-lg">
@@ -350,7 +329,6 @@
                 <q-icon name="touch_app" color="blue-grey-4" size="sm" class="q-mr-sm" />
                 <div class="text-subtitle1 text-weight-bold text-blue-grey-9">Aksi Presensi</div>
               </div>
-
               <div class="row q-col-gutter-md">
                 <div class="col-12 col-sm-6">
                   <button
@@ -359,15 +337,15 @@
                     @click="startAbsensi('in')"
                     :disabled="!isAiReady"
                   >
-                    <q-icon name="camera_alt" size="24px" class="q-mb-xs" />
-                    <span>CLOCK IN</span>
+                    <q-icon name="camera_alt" size="24px" class="q-mb-xs" /><span>CLOCK IN</span>
                   </button>
                   <button v-else class="btn-premium btn-locked full-width" :disabled="true">
-                    <q-icon name="lock" size="24px" class="q-mb-xs text-blue-grey-4" />
-                    <span class="text-blue-grey-5">TERKUNCI</span>
+                    <q-icon name="lock" size="24px" class="q-mb-xs text-blue-grey-4" /><span
+                      class="text-blue-grey-5"
+                      >TERKUNCI</span
+                    >
                   </button>
                 </div>
-
                 <div class="col-12 col-sm-6">
                   <button
                     v-if="locationData.inRange && !locationData.securityRisk && documentId"
@@ -375,36 +353,59 @@
                     @click="startAbsensi('out')"
                     :disabled="!isAiReady"
                   >
-                    <q-icon name="logout" size="24px" class="q-mb-xs" />
-                    <span>CLOCK OUT</span>
+                    <q-icon name="logout" size="24px" class="q-mb-xs" /><span>CLOCK OUT</span>
                   </button>
                   <button v-else class="btn-premium btn-locked full-width" :disabled="true">
-                    <q-icon name="lock" size="24px" class="q-mb-xs text-blue-grey-4" />
-                    <span class="text-blue-grey-5">OUT TERKUNCI</span>
+                    <q-icon name="lock" size="24px" class="q-mb-xs text-blue-grey-4" /><span
+                      class="text-blue-grey-5"
+                      >OUT TERKUNCI</span
+                    >
                   </button>
                 </div>
               </div>
 
-              <!-- SENSOR ENGINE & AI STATUS BOARD -->
               <div
                 class="row items-center q-mt-md q-pa-sm rounded-8 border-grey"
-                :class="isAiReady ? 'bg-teal-50 border-teal-200' : 'bg-orange-50 border-orange-200'"
+                :class="
+                  isAiReady
+                    ? userData.is_face_recognition_mandatory === false
+                      ? 'bg-orange-50 border-orange-200'
+                      : 'bg-teal-50 border-teal-200'
+                    : 'bg-orange-50 border-orange-200'
+                "
               >
                 <q-icon
-                  :name="isAiReady ? 'face' : 'psychology'"
-                  :color="isAiReady ? 'teal-6' : 'orange-7'"
+                  :name="
+                    isAiReady
+                      ? userData.is_face_recognition_mandatory === false
+                        ? 'no_photography'
+                        : 'face'
+                      : 'psychology'
+                  "
+                  :color="
+                    isAiReady
+                      ? userData.is_face_recognition_mandatory === false
+                        ? 'orange-8'
+                        : 'teal-6'
+                      : 'orange-7'
+                  "
                   size="16px"
                   class="q-mr-sm"
                 />
                 <div
                   class="text-caption text-weight-bold"
-                  :class="isAiReady ? 'text-teal-8' : 'text-orange-9'"
+                  :class="
+                    isAiReady
+                      ? userData.is_face_recognition_mandatory === false
+                        ? 'text-orange-9'
+                        : 'text-teal-8'
+                      : 'text-orange-9'
+                  "
                   style="font-size: 11px"
                 >
                   {{ aiStatusText }}
                 </div>
               </div>
-
               <q-btn
                 flat
                 no-caps
@@ -419,21 +420,18 @@
         </div>
       </div>
 
-      <!-- ========================================== -->
-      <!-- BAGIAN BAWAH: RIWAYAT                      -->
-      <!-- ========================================== -->
+      <!-- RIWAYAT DATA -->
       <div class="row q-col-gutter-lg" v-if="!showCamera">
         <div class="col-12">
           <q-card flat class="bento-card bg-white full-height">
-            <q-card-section class="q-pa-lg border-bottom row items-center justify-between">
-              <div class="text-subtitle1 text-weight-bold text-blue-grey-9">
+            <q-card-section class="q-pa-lg border-bottom row items-center justify-between"
+              ><div class="text-subtitle1 text-weight-bold text-blue-grey-9">
                 Aktivitas Saya Hari Ini
               </div>
               <q-badge color="indigo-1" text-color="indigo-7" class="text-weight-bold"
                 >Log Pribadi</q-badge
-              >
-            </q-card-section>
-
+              ></q-card-section
+            >
             <q-card-section class="q-pa-none">
               <q-list>
                 <div v-if="riwayatData.length === 0" class="text-center q-pa-xl">
@@ -442,57 +440,52 @@
                     Belum ada rekam jejak absensi hari ini.
                   </div>
                 </div>
-
                 <q-item
                   v-for="item in riwayatData"
                   :key="item.id"
                   class="q-py-md q-px-lg hover-bg border-bottom-light"
                 >
-                  <q-item-section avatar>
-                    <q-avatar
+                  <q-item-section avatar
+                    ><q-avatar
                       :color="item.status === 'Selesai' ? 'teal-1' : 'orange-1'"
                       size="42px"
-                    >
-                      <q-icon
+                      ><q-icon
                         name="fact_check"
                         :color="item.status === 'Selesai' ? 'teal-6' : 'orange-6'"
-                        size="20px"
-                      />
-                    </q-avatar>
-                  </q-item-section>
-                  <q-item-section>
-                    <q-item-label class="text-weight-bold text-blue-grey-9 text-subtitle2">{{
+                        size="20px" /></q-avatar
+                  ></q-item-section>
+                  <q-item-section
+                    ><q-item-label class="text-weight-bold text-blue-grey-9 text-subtitle2">{{
                       item.tanggal
-                    }}</q-item-label>
-                    <q-item-label caption class="text-blue-grey-5 q-mt-xs flex items-center">
-                      <q-icon name="place" size="12px" class="q-mr-xs" />
-                      <span class="text-weight-bold text-blue-grey-7">{{ item.nama_tempat }}</span>
-                    </q-item-label>
-                  </q-item-section>
-
-                  <q-item-section side class="text-right">
-                    <div class="text-weight-bold font-mono text-body2">
+                    }}</q-item-label
+                    ><q-item-label caption class="text-blue-grey-5 q-mt-xs flex items-center"
+                      ><q-icon name="place" size="12px" class="q-mr-xs" /><span
+                        class="text-weight-bold text-blue-grey-7"
+                        >{{ item.nama_tempat }}</span
+                      ></q-item-label
+                    ></q-item-section
+                  >
+                  <q-item-section side class="text-right"
+                    ><div class="text-weight-bold font-mono text-body2">
                       <span :class="item.is_late ? 'text-red-6' : 'text-blue-grey-10'">{{
                         formatWaktu(item.waktu_masuk)
-                      }}</span>
-                      <span class="text-grey-4 q-mx-xs">━</span>
-                      <span class="text-blue-grey-10">{{ formatWaktu(item.waktu_pulang) }}</span>
+                      }}</span
+                      ><span class="text-grey-4 q-mx-xs">━</span
+                      ><span>{{ formatWaktu(item.waktu_pulang) }}</span>
                     </div>
-
                     <div class="row q-gutter-x-xs q-mt-sm justify-end">
                       <q-badge
                         v-if="item.is_late"
                         color="red-5"
                         class="rounded-6 shadow-1 text-weight-bold"
                         >TERLAMBAT</q-badge
-                      >
-                      <q-badge
+                      ><q-badge
                         :color="item.status === 'Selesai' ? 'teal-5' : 'orange-5'"
                         class="rounded-6 shadow-1 text-weight-bold"
                         >{{ item.status.toUpperCase() }}</q-badge
                       >
-                    </div>
-                  </q-item-section>
+                    </div></q-item-section
+                  >
                 </q-item>
               </q-list>
             </q-card-section>
@@ -501,7 +494,7 @@
       </div>
 
       <!-- ======================================================================= -->
-      <!-- MODAL SCREEN ABSEN DIGITAL VERIFICATION (RESPONSIF FIXED TOTAL)        -->
+      <!-- MODAL SCREEN CAMERA SCANNER (RESPONSIF FIXED TOTAL)                     -->
       <!-- ======================================================================= -->
       <q-slide-transition>
         <div v-if="showCamera" class="row justify-center camera-outer-wrapper">
@@ -531,9 +524,8 @@
                 <div
                   class="col-12 col-md-7 bg-black relative-position flex flex-center camera-video-container"
                 >
-                  <video ref="video" autoplay playsinline class="video-stream"></video>
-                  <canvas ref="canvas" class="hidden"></canvas>
-
+                  <video ref="video" autoplay playsinline class="video-stream"></video
+                  ><canvas ref="canvas" class="hidden"></canvas>
                   <div class="scanner-overlay" v-if="!capturedImage">
                     <div class="scanner-frame">
                       <div class="corner t-l"></div>
@@ -553,7 +545,6 @@
                       </q-chip>
                     </div>
                   </div>
-
                   <q-img
                     v-if="capturedImage"
                     :src="capturedImage"
@@ -572,7 +563,6 @@
                     >
                       Informasi Log Presensi
                     </div>
-
                     <div class="row items-center q-mb-xs">
                       <q-avatar
                         size="28px"
@@ -606,7 +596,11 @@
                     >
                       <q-icon :name="isFaceMatched ? 'verified' : 'lock'" class="q-mr-xs" />
                       {{
-                        isFaceMatched ? 'WAJAH COCOK DENGAN DATA HRD' : 'SILAKAN AMBIL FOTO WAJAH'
+                        isFaceMatched
+                          ? userData.is_face_recognition_mandatory === false
+                            ? 'BYPASS AKTIF: FOTO TERVERIFIKASI'
+                            : 'WAJAH COCOK DENGAN DATA HRD'
+                          : 'SILAKAN AMBIL FOTO WAJAH'
                       }}
                     </div>
 
@@ -616,7 +610,6 @@
                         {{ locationData.matchedLocationName }}
                       </div>
                     </div>
-
                     <div class="text-10 text-blue-grey-5 ellipsis line-height-tight q-pl-sm">
                       {{ locationData.address }}
                     </div>
@@ -628,13 +621,16 @@
                         unelevated
                         color="primary"
                         icon="photo_camera"
-                        label="PINDAI WAJAH ANDA"
+                        :label="
+                          userData.is_face_recognition_mandatory === false
+                            ? 'AMBIL FOTO PRESENSI'
+                            : 'PINDAI WAJAH ANDA'
+                        "
                         class="full-width rounded-12 q-py-sm text-weight-bolder shadow-soft-primary text-subtitle2"
                         @click="takePhoto"
                         :disabled="!isAiReady || isVerifyingFace"
                       />
                     </div>
-
                     <div v-else class="column q-gutter-y-sm">
                       <q-btn
                         v-if="isFaceMatched"
@@ -653,7 +649,6 @@
                         class="full-width rounded-12 q-py-sm text-weight-bolder text-subtitle2"
                         icon="block"
                       />
-
                       <q-btn
                         outline
                         color="blue-grey-6"
@@ -675,7 +670,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+/*eslint-disable*/
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { db, storage } from 'src/boot/firebase'
 import {
   collection,
@@ -694,30 +690,20 @@ import { ref as storageRef, uploadString, getDownloadURL } from 'firebase/storag
 import { useQuasar, date } from 'quasar'
 import { useRouter } from 'vue-router'
 
-// INTEGRASI EMAS: Import modul Capacitor Geolocation resmi untuk APK Mobile
-import { Geolocation } from '@capacitor/geolocation'
-
 const $q = useQuasar()
 const router = useRouter()
 
-// Deklarasi Listener
 let timer, unsubMe, unsubAll, unsubUser, unsubLokasi, locationTimer, unsubPemberitahuan
+const currentHours = ref(''),
+  currentMinutes = ref(''),
+  currentSeconds = ref(''),
+  currentDate = ref('')
+const riwayatData = ref([]),
+  dataSeluruhKaryawan = ref([]),
+  pemberitahuanList = ref([])
+const activeAnnouncementSlide = ref(0),
+  isAnnouncementDismissed = ref(false)
 
-// State Engine Waktu
-const currentHours = ref('')
-const currentMinutes = ref('')
-const currentSeconds = ref('')
-const currentDate = ref('')
-
-const riwayatData = ref([])
-const dataSeluruhKaryawan = ref([])
-
-// SINKRONISASI EMAS: Real-time Pemberitahuan Umum untuk Karyawan
-const pemberitahuanList = ref([])
-const activeAnnouncementSlide = ref(0)
-const isAnnouncementDismissed = ref(false)
-
-// Profil Karyawan Terintegrasi
 const userData = ref({
   nama: 'Memuat...',
   jabatan: 'Staff',
@@ -730,22 +716,20 @@ const userData = ref({
   jam_masuk: '08:00',
   jam_pulang: '17:00',
   lokasi_dinas: [],
+  is_face_recognition_mandatory: true,
 })
 
-// STATE AI FACE VERIFICATION
-const isAiReady = ref(false)
-const isFaceMatched = ref(false)
-const isVerifyingFace = ref(false)
+const isAiReady = ref(false),
+  isFaceMatched = ref(false),
+  isVerifyingFace = ref(false)
 const aiStatusText = ref('Menginisialisasi modul kecerdasan buatan...')
-
-const attendanceMode = ref('in')
-
-const documentId = ref(null)
-const showCamera = ref(false)
-const capturedImage = ref(null)
-const video = ref(null)
-const canvas = ref(null)
-const daftarLokasiKantor = ref([])
+const attendanceMode = ref('in'),
+  documentId = ref(null),
+  showCamera = ref(false),
+  capturedImage = ref(null)
+const video = ref(null),
+  canvas = ref(null),
+  daftarLokasiKantor = ref([])
 
 const locationData = ref({
   lat: '0.0000',
@@ -756,14 +740,12 @@ const locationData = ref({
   matchedLocationName: 'MENCARI LOKASI',
   securityRisk: false,
 })
-
 const lateLimit = computed(() => userData.value.jam_masuk || '08:00')
 
 const ulangiPindai = () => {
   capturedImage.value = null
   isFaceMatched.value = false
 }
-
 const dismissAnnouncement = () => {
   isAnnouncementDismissed.value = true
 }
@@ -792,30 +774,18 @@ const updateTime = () => {
   })
 }
 
-// SINKRONISASI EMAS: Monitor siaran pengumuman aktif secara realtime
 const loadPemberitahuanRealtime = () => {
   const q = query(collection(db, 'pemberitahuan'), orderBy('tgl_publikasi', 'desc'))
-  unsubPemberitahuan = onSnapshot(
-    q,
-    (snap) => {
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-
-      pemberitahuanList.value = snap.docs
-        .map((docObj) => {
-          const data = docObj.data()
-          return { id: docObj.id, ...data }
-        })
-        .filter((item) => {
-          if (!item.tgl_kadaluarsa) return true
-          const kadaluarsa = new Date(item.tgl_kadaluarsa)
-          return kadaluarsa >= today
-        })
-    },
-    (err) => {
-      console.warn('Gagal realtime sync pemberitahuan:', err.message)
-    },
-  )
+  unsubPemberitahuan = onSnapshot(q, (snap) => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    pemberitahuanList.value = snap.docs
+      .map((docObj) => ({ id: docObj.id, ...docObj.data() }))
+      .filter((item) => {
+        if (!item.tgl_kadaluarsa) return true
+        return new Date(item.tgl_kadaluarsa) >= today
+      })
+  })
 }
 
 const loadFaceApiScript = () => {
@@ -827,24 +797,19 @@ const loadFaceApiScript = () => {
     const script = document.createElement('script')
     script.src = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js'
     script.async = true
-    script.onload = () => {
-      resolve()
-    }
-    script.onerror = () => {
-      reject(new Error('Gagal memuat library AI Face-API dari CDN.'))
-    }
+    script.onload = resolve
+    script.onerror = () => reject(new Error('Gagal load Face-API'))
     document.head.appendChild(script)
   })
 }
 
 const initFaceEngine = async () => {
+  if (isAiReady.value || userData.value.is_face_recognition_mandatory === false) return
   try {
     aiStatusText.value = 'Menghubungkan ke server satelit AI...'
     await loadFaceApiScript()
-
     aiStatusText.value = 'AI sedang mengunduh bobot jaringan dari Cloud...'
     const modelUrl = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model'
-
     await window.faceapi.nets.ssdMobilenetv1.loadFromUri(modelUrl)
     await window.faceapi.nets.faceLandmark68Net.loadFromUri(modelUrl)
     await window.faceapi.nets.faceRecognitionNet.loadFromUri(modelUrl)
@@ -852,27 +817,22 @@ const initFaceEngine = async () => {
     isAiReady.value = true
     aiStatusText.value = 'Double-Guard GPS & Pemindai Wajah Biometrik Aktif (Aman)'
   } catch (e) {
-    console.error('Gagal memuat AI Engine:', e)
     aiStatusText.value = 'Gagal memuat model AI: ' + e.message
   }
 }
 
 const lakukanFaceMatch = async (rawImgBase64) => {
   const masterFotoUrl = userData.value.foto_registrasi
-
   if (!masterFotoUrl) {
     $q.notify({
       color: 'negative',
       icon: 'error',
-      message:
-        'SISTEM DIKUNCI: Anda belum melakukan registrasi wajah biometrik resmi di database HRD!',
+      message: 'SISTEM DIKUNCI: Anda belum melakukan registrasi wajah biometrik di HRD!',
       position: 'top',
       timeout: 6000,
     })
-    isFaceMatched.value = false
     return false
   }
-
   try {
     const liveImg = new Image()
     liveImg.src = rawImgBase64
@@ -881,37 +841,22 @@ const lakukanFaceMatch = async (rawImgBase64) => {
       .detectSingleFace(liveImg)
       .withFaceLandmarks()
       .withFaceDescriptor()
-
     const refImg = new Image()
     refImg.crossOrigin = 'anonymous'
     refImg.src = masterFotoUrl
     await new Promise((res, rej) => {
       refImg.onload = res
-      refImg.onerror = () => rej(new Error('Gagal mengunduh foto master HRD.'))
+      refImg.onerror = () => rej(new Error('Gagal unduh master'))
     })
     const refDesc = await window.faceapi
       .detectSingleFace(refImg)
       .withFaceLandmarks()
       .withFaceDescriptor()
 
-    if (!liveDesc) {
-      $q.notify({
-        color: 'negative',
-        message: 'Wajah gagal terdeteksi kamera! Dekatkan wajah Anda ke kamera.',
-      })
+    if (!liveDesc || !refDesc) {
       isFaceMatched.value = false
       return false
     }
-
-    if (!refDesc) {
-      $q.notify({
-        color: 'negative',
-        message: 'Foto registrasi master tidak valid! Harap hubungi HRD untuk registrasi ulang.',
-      })
-      isFaceMatched.value = false
-      return false
-    }
-
     const distance = window.faceapi.euclideanDistance(liveDesc.descriptor, refDesc.descriptor)
     const matchScore = (1 - distance) * 100
 
@@ -920,9 +865,8 @@ const lakukanFaceMatch = async (rawImgBase64) => {
       $q.notify({
         color: 'positive',
         icon: 'verified',
-        message: `Verifikasi Wajah Berhasil! (Kecocokan: ${matchScore.toFixed(0)}%)`,
+        message: `Verifikasi Wajah Berhasil! (${matchScore.toFixed(0)}%)`,
         position: 'top',
-        timeout: 3000,
       })
       return true
     } else {
@@ -930,15 +874,12 @@ const lakukanFaceMatch = async (rawImgBase64) => {
       $q.notify({
         color: 'negative',
         icon: 'block',
-        message: `Wajah Tidak Cocok! (Kecocokan: ${matchScore.toFixed(0)}% - Butuh Min. 52%)`,
+        message: `Wajah Tidak Cocok! (${matchScore.toFixed(0)}% - Butuh Min 52%)`,
         position: 'top',
-        timeout: 4000,
       })
       return false
     }
   } catch (err) {
-    console.error(err)
-    $q.notify({ color: 'negative', message: 'Koneksi AI Terganggu: ' + err.message })
     isFaceMatched.value = false
     return false
   }
@@ -953,23 +894,18 @@ const applyWatermark = (base64Image, isClockIn = true) => {
       wCanvas.width = img.width
       wCanvas.height = img.height
       const ctx = wCanvas.getContext('2d')
-
       ctx.drawImage(img, 0, 0)
-
       const padding = Math.max(12, img.width * 0.035)
       const watermarkHeight = img.height * 0.2
       const startY = img.height - watermarkHeight
-
       const grad = ctx.createLinearGradient(0, startY, 0, img.height)
-      grad.addColorStop(0, 'rgba(0, 0, 0, 0)')
+      grad.addColorStop(0, 'rgba(0,0,0,0)')
       grad.addColorStop(1, 'rgba(15, 23, 42, 0.75)')
       ctx.fillStyle = grad
       ctx.fillRect(0, startY, img.width, watermarkHeight)
-
       const mapSize = Math.max(55, img.height * 0.13)
       const mapX = padding
       const mapY = img.height - mapSize - padding
-
       ctx.save()
       ctx.shadowColor = 'rgba(0,0,0,0.4)'
       ctx.shadowBlur = 6
@@ -978,43 +914,33 @@ const applyWatermark = (base64Image, isClockIn = true) => {
       ctx.arc(mapX + mapSize / 2, mapY + mapSize / 2, mapSize / 2, 0, Math.PI * 2)
       ctx.fill()
       ctx.restore()
-
       ctx.strokeStyle = '#cbd5e1'
       ctx.lineWidth = 1
       ctx.beginPath()
       ctx.arc(mapX + mapSize / 2, mapY + mapSize / 2, mapSize / 3, 0, Math.PI * 2)
       ctx.stroke()
-
       ctx.beginPath()
       ctx.moveTo(mapX, mapY + mapSize / 2)
       ctx.lineTo(mapX + mapSize, mapY + mapSize / 2)
       ctx.moveTo(mapX + mapSize / 2, mapY)
       ctx.lineTo(mapX + mapSize / 2, mapY + mapSize)
       ctx.stroke()
-
-      const pinX = mapX + mapSize / 2
-      const pinY = mapY + mapSize / 2
       ctx.fillStyle = '#ef4444'
       ctx.beginPath()
-      ctx.arc(pinX, pinY, 4, 0, Math.PI * 2)
+      ctx.arc(mapX + mapSize / 2, mapY + mapSize / 2, 4, 0, Math.PI * 2)
       ctx.fill()
 
       const textX = mapX + mapSize + 15
       let textY = mapY - 4
       const fontSize = Math.max(10, Math.floor(img.width * 0.028))
-
       ctx.textBaseline = 'top'
       ctx.fillStyle = '#ffffff'
-
       ctx.shadowColor = 'rgba(0, 0, 0, 0.85)'
       ctx.shadowBlur = 4
       ctx.shadowOffsetX = 1
       ctx.shadowOffsetY = 1
-
       ctx.font = `bold ${fontSize}px sans-serif`
-      const formattedNow = date.formatDate(new Date(), 'DD MMM YYYY HH.mm.ss')
-      ctx.fillText(formattedNow, textX, textY)
-
+      ctx.fillText(date.formatDate(new Date(), 'DD MMM YYYY HH.mm.ss'), textX, textY)
       textY += fontSize + 4
       ctx.font = `${fontSize - 1}px sans-serif`
       ctx.fillText(
@@ -1022,18 +948,12 @@ const applyWatermark = (base64Image, isClockIn = true) => {
         textX,
         textY,
       )
-
       textY += fontSize + 3
       ctx.font = `${fontSize - 2}px sans-serif`
       const addrParts = locationData.value.address
         ? locationData.value.address.split(',')
-        : ['Deltamas, Cikarang', 'Bekasi, Jawa Barat']
+        : ['Deltamas', 'Bekasi']
       ctx.fillText((addrParts[0] || '').trim(), textX, textY)
-
-      textY += fontSize + 2
-      const line4Str = `${(addrParts[1] || '').trim()}, ${(addrParts[2] || '').trim()}`
-      ctx.fillText(line4Str, textX, textY)
-
       textY += fontSize + 2
       ctx.font = `italic ${fontSize - 2}px sans-serif`
       ctx.fillText(
@@ -1041,7 +961,6 @@ const applyWatermark = (base64Image, isClockIn = true) => {
         textX,
         textY,
       )
-
       resolve(wCanvas.toDataURL('image/jpeg', 0.9))
     }
   })
@@ -1057,7 +976,21 @@ const takePhoto = async () => {
   capturedImage.value = rawImg
 
   isVerifyingFace.value = true
-  const isMatched = await lakukanFaceMatch(rawImg)
+  let isMatched = false
+
+  if (userData.value.is_face_recognition_mandatory === false) {
+    isMatched = true
+    $q.notify({
+      color: 'orange-8',
+      icon: 'photo_camera',
+      message: 'Bypass AI Aktif: Foto buruh berhasil diabadikan sebagai bukti visual HRD!',
+      position: 'top',
+      timeout: 3000,
+    })
+  } else {
+    isMatched = await lakukanFaceMatch(rawImg)
+  }
+
   isVerifyingFace.value = false
 
   if (isMatched) {
@@ -1068,16 +1001,9 @@ const takePhoto = async () => {
   }
 }
 
-const getInitial = (name) => {
-  if (!name) return 'U'
-  return name.charAt(0).toUpperCase()
-}
-
-const getRandomColor = (name) => {
-  if (!name) return 'primary'
-  const colors = ['blue-6', 'teal-5', 'indigo-5', 'deep-purple-5', 'cyan-7']
-  return colors[name.length % colors.length]
-}
+const getInitial = (name) => (name ? name.charAt(0).toUpperCase() : 'U')
+const getRandomColor = (name) =>
+  ['blue-6', 'teal-5', 'indigo-5', 'deep-purple-5', 'cyan-7'][name ? name.length % 5 : 0]
 
 const getAddressName = async (lat, lng) => {
   try {
@@ -1104,7 +1030,6 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)))
 }
 
-// INTEGRASI EMAS: Logika pengolahan koordinat reaktif yang bersih & aman (Bebas Duplikasi)
 const processCoordinates = (lat, lng, accuracy, mocked = false) => {
   const isSuspicious =
     mocked === true || accuracy === 10 || accuracy === 5 || accuracy === 1 || accuracy === 100
@@ -1160,92 +1085,33 @@ const processCoordinates = (lat, lng, accuracy, mocked = false) => {
   getAddressName(lat, lng)
 }
 
-// INTEGRASI EMAS: Fallback browser Geolocation (Jika tes di localhost/Chrome web)
-const fallbackWebGeolocation = () => {
+const detectLocation = () => {
   if (!navigator.geolocation) {
     locationData.value.statusText = 'GPS TIDAK DIDUKUNG BROWSER'
     return
   }
+
   navigator.geolocation.getCurrentPosition(
     (p) => {
-      const isMocked = p.coords.mocked === true
+      const isMocked = p.coords.mocked === true || p.coords.isMocked === true
       processCoordinates(p.coords.latitude, p.coords.longitude, p.coords.accuracy, isMocked)
     },
-    () => {
-      locationData.value.statusText = 'IZINKAN GPS BROWSER!'
+    (err) => {
+      console.warn('Gagal mendapatkan lokasi:', err)
+      locationData.value.statusText = 'IZINKAN AKSES LOKASI (GPS)!'
     },
     { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 },
   )
 }
 
-// INTEGRASI EMAS: Logika asinkron pendeteksi lokasi dengan deteksi cerdas Capacitor Native APK + Web Fallback
-const detectLocation = async () => {
-  // Mengecek apakah aplikasi berjalan di dalam platform Capacitor asli (APK HP)
-  const isCapacitor =
-    typeof window !== 'undefined' &&
-    window.Capacitor &&
-    window.Capacitor.isPluginAvailable('Geolocation')
-
-  if (isCapacitor) {
-    try {
-      // Membuka Dialog Izin Native Android/OS HP bawaan secara resmi
-      const permission = await Geolocation.requestPermissions()
-
-      if (permission.location === 'granted') {
-        const posisi = await Geolocation.getCurrentPosition({
-          enableHighAccuracy: true,
-          timeout: 15000,
-        })
-        const isMocked = posisi.coords.mocked || false
-        processCoordinates(
-          posisi.coords.latitude,
-          posisi.coords.longitude,
-          posisi.coords.accuracy,
-          isMocked,
-        )
-      } else {
-        locationData.value.statusText = 'IZINKAN LOKASI DI SETTING HP ANDA!'
-        $q.notify({
-          color: 'negative',
-          icon: 'warning',
-          message: 'Izin Lokasi Ditolak. Harap izinkan akses GPS di pengaturan aplikasi HP Anda.',
-          position: 'top',
-        })
-      }
-    } catch (e) {
-      console.warn('Native Capacitor Geolocation gagal, dialihkan ke Web Fallback:', e)
-      fallbackWebGeolocation()
-    }
-  } else {
-    // Mode testing lokal via Web Browser normal
-    fallbackWebGeolocation()
-  }
-}
-
 const startAbsensi = (mode) => {
   if (locationData.value.securityRisk || !locationData.value.inRange) return
-
   attendanceMode.value = mode
 
-  if (mode === 'in') {
-    const timeStr = `${currentHours.value}:${currentMinutes.value}`
-    if (timeStr > lateLimit.value) {
-      $q.notify({
-        color: 'red-6',
-        icon: 'warning',
-        message: `Waktu presensi sudah melebihi ${lateLimit.value}. Log tersimpan sebagai Terlambat.`,
-        position: 'top',
-      })
-    }
+  if (userData.value.is_face_recognition_mandatory === false) {
+    aiStatusText.value = 'Mode Pemantauan Visual: Validasi AI Di-bypass oleh Admin (Cukup Foto)'
   } else {
-    if (!documentId.value) {
-      $q.notify({
-        color: 'red-6',
-        icon: 'warning',
-        message: 'Gagal mendeteksi dokumen masuk hari ini. Silakan hubungi admin.',
-      })
-      return
-    }
+    aiStatusText.value = 'Double-Guard GPS & Pemindai Wajah Biometrik Aktif (Aman)'
   }
 
   showCamera.value = true
@@ -1272,39 +1138,22 @@ const executeAbsensiAction = async () => {
   }
 }
 
-// UTILITY: Fungsi penentu penempatan storage vs direct Base64 berdasarkan ukuran file (threshold 500 KB)
 const uploadOrGetBase64 = async (base64Data, filename) => {
   if (!base64Data) return null
-
-  // Menghitung ukuran biner asli dari string base64
   const stringLength = base64Data.split(',')[1]?.length || base64Data.length
-  const sizeInBytes = stringLength * 0.75
-  const sizeInKb = sizeInBytes / 1024
-
-  if (sizeInKb < 500) {
-    // Di bawah 500 KB: simpan string Base64 langsung ke Firestore
-    return base64Data
-  } else {
-    // Di atas 500 KB: unggah ke Firebase Storage dan kembalikan URL HTTPS unduhannya
-    const fRef = storageRef(storage, `absensi/${filename}_${Date.now()}.jpg`)
-    await uploadString(fRef, base64Data, 'data_url')
-    return await getDownloadURL(fRef)
-  }
+  if ((stringLength * 0.75) / 1024 < 500) return base64Data
+  const fRef = storageRef(storage, `absensi/${filename}_${Date.now()}.jpg`)
+  await uploadString(fRef, base64Data, 'data_url')
+  return await getDownloadURL(fRef)
 }
 
-// REVISI EMAS: SISTEM HYBRID STORAGE PENYIMPANAN ABSENSI MASUK (<500KB = Base64, >500KB = Storage)
 const saveAbsensi = async () => {
   if (!locationData.value.inRange || locationData.value.securityRisk || !isFaceMatched.value) return
-
   $q.loading.show({ message: 'Menyimpan berkas presensi masuk...' })
   try {
     const formattedName = (userData.value.nama || 'USER').toUpperCase()
     const nowObj = new Date()
     const timeStr = `${nowObj.getHours().toString().padStart(2, '0')}:${nowObj.getMinutes().toString().padStart(2, '0')}`
-
-    const isLate = timeStr > lateLimit.value
-
-    // Proses penentuan alokasi penyimpanan file
     const fotoUrl = await uploadOrGetBase64(capturedImage.value, `${formattedName}_IN`)
 
     await addDoc(collection(db, 'absensi'), {
@@ -1317,24 +1166,21 @@ const saveAbsensi = async () => {
       alamat_lengkap: locationData.value.address,
       koordinat: `${locationData.value.lat}, ${locationData.value.lng}`,
       foto_masuk: fotoUrl,
-      is_late: isLate,
+      is_late: timeStr > lateLimit.value,
     })
-
     $q.notify({
       color: 'positive',
       message: 'Clock-In Sukses! Selamat bekerja.',
       icon: 'check_circle',
     })
     stopCamera()
-  } catch (err) {
-    console.error('Gagal simpan absensi in:', err)
+  } catch {
     $q.notify({ color: 'negative', message: 'Koneksi gagal, coba lagi.' })
   } finally {
     $q.loading.hide()
   }
 }
 
-// REVISI EMAS: SISTEM HYBRID STORAGE PENYIMPANAN ABSENSI PULANG (<500KB = Base64, >500KB = Storage)
 const saveAbsensiOut = async () => {
   if (
     !documentId.value ||
@@ -1343,14 +1189,10 @@ const saveAbsensiOut = async () => {
     !isFaceMatched.value
   )
     return
-
   $q.loading.show({ message: 'Menyimpan bukti presensi pulang...' })
   try {
     const formattedName = (userData.value.nama || 'USER').toUpperCase()
-
-    // Proses penentuan alokasi penyimpanan file
     const fotoPulangUrl = await uploadOrGetBase64(capturedImage.value, `${formattedName}_OUT`)
-
     await updateDoc(doc(db, 'absensi', documentId.value), {
       waktu_pulang: serverTimestamp(),
       status: 'Selesai',
@@ -1358,16 +1200,14 @@ const saveAbsensiOut = async () => {
       nama_tempat_pulang: locationData.value.matchedLocationName,
       foto_pulang: fotoPulangUrl,
     })
-
     $q.notify({
       color: 'primary',
-      message: 'Clock-Out Sukses! Selamat beristirahat di rumah.',
+      message: 'Clock-Out Sukses! Selamat beristirahat.',
       icon: 'logout',
     })
     stopCamera()
-  } catch (err) {
-    console.error('Gagal simpan absensi out:', err)
-    $q.notify({ color: 'negative', message: 'Gagal memproses pengakhiran shift.' })
+  } catch {
+    $q.notify({ color: 'negative', message: 'Gagal memproses.' })
   } finally {
     $q.loading.hide()
   }
@@ -1378,9 +1218,7 @@ const formatWaktu = (ts) => (ts ? date.formatDate(ts.toDate(), 'HH:mm') : '--:--
 onMounted(() => {
   updateTime()
   timer = setInterval(updateTime, 1000)
-  initFaceEngine()
-  loadPemberitahuanRealtime() // SINKRONISASI EMAS: Mengaktifkan sinkronisasi pengumuman resmi dari Firestore
-
+  loadPemberitahuanRealtime()
   unsubLokasi = onSnapshot(collection(db, 'lokasi_kantor'), (snap) => {
     daftarLokasiKantor.value = snap.docs.map((docItem) => docItem.data())
     detectLocation()
@@ -1391,70 +1229,83 @@ onMounted(() => {
   if (saved) {
     try {
       const parsed = JSON.parse(saved)
-      userData.value = { ...userData.value, email: parsed.email || '', nama: parsed.nama || 'User' }
+      userData.value = {
+        ...userData.value,
+        email: parsed.email || '',
+        nama: parsed.nama || 'User',
+        is_face_recognition_mandatory:
+          parsed.is_face_recognition_mandatory !== undefined
+            ? parsed.is_face_recognition_mandatory
+            : true,
+      }
+
+      if (userData.value.is_face_recognition_mandatory === false) {
+        isAiReady.value = true
+        aiStatusText.value = 'Mode Pemantauan Visual: Validasi AI Di-bypass oleh Admin (Cukup Foto)'
+      } else {
+        initFaceEngine()
+      }
 
       if (userData.value.email) {
-        const qUser = query(collection(db, 'karyawan'), where('email', '==', userData.value.email))
-        unsubUser = onSnapshot(qUser, (snap) => {
-          if (!snap.empty) {
-            const data = snap.docs[0].data()
-
-            let initialLocs = data.lokasi_dinas || []
-            if (typeof initialLocs === 'string') {
-              initialLocs = initialLocs ? [initialLocs] : []
+        unsubUser = onSnapshot(
+          query(collection(db, 'karyawan'), where('email', '==', userData.value.email)),
+          (snap) => {
+            if (!snap.empty) {
+              const data = snap.docs[0].data()
+              userData.value = {
+                ...userData.value,
+                nama: data.nama || userData.value.nama,
+                jabatan: data.jabatan || data.role,
+                foto_profil: data.foto_profil || data.fotoUrl || '',
+                foto_registrasi: data.foto_registrasi || '',
+                nik: data.nik || '',
+                jam_masuk: data.jam_masuk || '08:00',
+                jam_pulang: data.jam_pulang || '17:00',
+                lokasi_dinas: data.lokasi_dinas || [],
+                is_face_recognition_mandatory:
+                  data.is_face_recognition_mandatory !== undefined
+                    ? data.is_face_recognition_mandatory
+                    : true,
+              }
+              if (userData.value.is_face_recognition_mandatory === false) {
+                isAiReady.value = true
+                aiStatusText.value =
+                  'Mode Pemantauan Visual: Validasi AI Di-bypass oleh Admin (Cukup Foto)'
+              } else {
+                if (!isAiReady.value) {
+                  initFaceEngine()
+                } else {
+                  aiStatusText.value = 'Double-Guard GPS & Pemindai Wajah Biometrik Aktif (Aman)'
+                }
+              }
+              detectLocation()
             }
-
-            userData.value = {
-              ...userData.value,
-              nama: data.nama || userData.value.nama,
-              jabatan: data.jabatan || data.role,
-              foto_profil: data.foto_profil || data.fotoUrl || '',
-              foto_registrasi: data.foto_registrasi || '',
-              nik: data.nik || '',
-              jam_masuk: data.jam_masuk || '08:00',
-              jam_pulang: data.jam_pulang || '17:00',
-              lokasi_dinas: initialLocs,
-            }
-            detectLocation()
-          }
-        })
+          },
+        )
       }
-    } catch (e) {
-      console.error(e)
-    }
+    } catch {}
+  } else {
+    initFaceEngine()
   }
 
-  const searchName = (userData.value.nama || 'USER').toUpperCase()
-  unsubMe = onSnapshot(
-    query(
-      collection(db, 'absensi'),
-      where('nama_karyawan', '==', searchName),
-      orderBy('waktu_masuk', 'desc'),
-      limit(5),
-    ),
-    (snap) => {
-      riwayatData.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
-      const active = riwayatData.value.find(
-        (a) => a.tanggal === currentDate.value && a.status === 'Hadir',
-      )
-      documentId.value = active ? active.id : null
-    },
-  )
-
-  unsubAll = onSnapshot(
-    query(
-      collection(db, 'absensi'),
-      where('waktu_masuk', '>=', Timestamp.fromDate(new Date(new Date().setHours(0, 0, 0, 0)))),
-      orderBy('waktu_masuk', 'desc'),
-    ),
-    (snap) => {
-      dataSeluruhKaryawan.value = snap.docs.map((d, i) => ({
-        no: i + 1,
-        nama_karyawan: d.data().nama_karyawan,
-        checkin: formatWaktu(d.data().waktu_masuk),
-      }))
-    },
-  )
+  setTimeout(() => {
+    const searchName = (userData.value.nama || 'USER').toUpperCase()
+    unsubMe = onSnapshot(
+      query(
+        collection(db, 'absensi'),
+        where('nama_karyawan', '==', searchName),
+        orderBy('waktu_masuk', 'desc'),
+        limit(5),
+      ),
+      (snap) => {
+        riwayatData.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+        const active = riwayatData.value.find(
+          (a) => a.tanggal === currentDate.value && a.status === 'Hadir',
+        )
+        documentId.value = active ? active.id : null
+      },
+    )
+  }, 1000)
 })
 
 onUnmounted(() => {
@@ -1464,7 +1315,7 @@ onUnmounted(() => {
   if (unsubAll) unsubAll()
   if (unsubUser) unsubUser()
   if (unsubLokasi) unsubLokasi()
-  if (unsubPemberitahuan) unsubPemberitahuan() // Hapus listener saat halaman ditutup
+  if (unsubPemberitahuan) unsubPemberitahuan()
 })
 </script>
 
@@ -1522,20 +1373,15 @@ onUnmounted(() => {
   border: 1px solid #f97316;
 }
 
-/* =======================================================================
-   REVOLUSI DESAIN: BANNER SIARAN PEMBERITAHUAN UTRA-PREMIUM CYBER METRO
-   ======================================================================= */
 .announcement-cyber-card {
   background: rgba(255, 255, 255, 0.7) !important;
   backdrop-filter: blur(20px) saturate(190%) !important;
   -webkit-backdrop-filter: blur(20px) saturate(190%) !important;
-  border: 1.5px solid rgba(249, 115, 22, 0.25) !important; /* Elegant neon orange border */
+  border: 1.5px solid rgba(249, 115, 22, 0.25) !important;
   box-shadow:
     0 20px 45px -12px rgba(249, 115, 22, 0.12),
     inset 0 1px 1px rgba(255, 255, 255, 0.5) !important;
 }
-
-/* Cyber mesh abstract lines */
 .cyber-mesh {
   position: absolute;
   inset: 0;
@@ -1545,8 +1391,6 @@ onUnmounted(() => {
   pointer-events: none;
   z-index: 0;
 }
-
-/* Floating Light Orbs */
 .glow-orb {
   position: absolute;
   width: 140px;
@@ -1569,7 +1413,6 @@ onUnmounted(() => {
   right: 25%;
   animation: floatOrb2 10s infinite alternate ease-in-out;
 }
-
 @keyframes floatOrb1 {
   0% {
     transform: translate(0, 0) scale(1);
@@ -1586,7 +1429,6 @@ onUnmounted(() => {
     transform: translate(-30px, -25px) scale(0.85);
   }
 }
-
 .cyber-grid-light {
   position: absolute;
   inset: 0;
@@ -1597,8 +1439,6 @@ onUnmounted(() => {
   pointer-events: none;
   z-index: 0;
 }
-
-/* Floating Particles */
 .particle-emitter {
   position: absolute;
   inset: 0;
@@ -1616,26 +1456,21 @@ onUnmounted(() => {
 .particle.p1 {
   top: 15%;
   left: 35%;
-  animation-delay: 0s;
 }
 .particle.p2 {
   top: 75%;
   left: 75%;
-  animation-delay: 1.8s;
   width: 6px;
   height: 6px;
 }
 .particle.p3 {
   top: 35%;
   left: 10%;
-  animation-delay: 3.5s;
 }
 .particle.p4 {
   top: 85%;
   left: 50%;
-  animation-delay: 5s;
 }
-
 @keyframes floatParticle {
   0% {
     transform: translateY(15px);
@@ -1649,8 +1484,6 @@ onUnmounted(() => {
     opacity: 0;
   }
 }
-
-/* Futuristic Hologram Megaphone Container */
 .tech-icon-container {
   background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
   width: 50px;
@@ -1680,8 +1513,6 @@ onUnmounted(() => {
     transform: translateY(-4px) rotate(-3deg);
   }
 }
-
-/* Radar Pulse Waves */
 .radar-ripple {
   position: absolute;
   top: 50%;
@@ -1703,7 +1534,6 @@ onUnmounted(() => {
   animation: ripple 4.5s infinite linear;
   animation-delay: 3s;
 }
-
 @keyframes ripple {
   0% {
     width: 44px;
@@ -1716,8 +1546,6 @@ onUnmounted(() => {
     opacity: 0;
   }
 }
-
-/* Glass Live Tag Badge */
 .tech-live-tag {
   background: linear-gradient(90deg, #fffbeb, #ffedd5);
   border: 1px solid rgba(249, 115, 22, 0.35);
@@ -1750,15 +1578,12 @@ onUnmounted(() => {
     box-shadow: 0 0 12px #ef4444;
   }
 }
-
 .tech-brand-sub {
   font-size: 10px;
   color: #475569;
   letter-spacing: 0.6px;
   font-weight: 800;
 }
-
-/* Liqueur Glass close icon */
 .glass-dismiss-btn {
   background: rgba(148, 163, 184, 0.12);
   border: 1px solid rgba(255, 255, 255, 0.45);
@@ -1770,8 +1595,6 @@ onUnmounted(() => {
   border-color: rgba(239, 68, 68, 0.35);
   transform: rotate(90deg) scale(1.1);
 }
-
-/* Bottom Progress Tracker corresponding to 6s autoplay */
 .tech-progress-track {
   position: absolute;
   bottom: 0;
@@ -1796,9 +1619,6 @@ onUnmounted(() => {
   }
 }
 
-/* =======================================================================
-   STYLING BAGIAN LAIN
-   ======================================================================= */
 .mx-auto {
   margin-left: auto;
   margin-right: auto;
@@ -1830,7 +1650,6 @@ onUnmounted(() => {
 .rounded-6 {
   border-radius: 6px;
 }
-
 .decor-circle-1 {
   position: absolute;
   width: 300px;
@@ -1916,7 +1735,6 @@ onUnmounted(() => {
   font-weight: 500;
   letter-spacing: 0.5px;
 }
-
 .radar-box {
   border: 1px solid #f1f5f9;
   background: #fafafa;
@@ -2017,7 +1835,6 @@ onUnmounted(() => {
   box-shadow: none;
   cursor: not-allowed;
 }
-
 .hover-bg {
   transition: background 0.3s;
 }
@@ -2111,18 +1928,13 @@ onUnmounted(() => {
   background: rgba(0, 77, 64, 0.8) !important;
 }
 
-/* =======================================================================
-   REVISI RESPONSIF LAYOUT MOBILE - ZERO-SCROLL SINGLE PANEL CONFIG
-   ======================================================================= */
 @media (max-width: 767px) {
-  /* Fluid text scaling prevent layout break */
   .time-hhmm {
     font-size: 3.8rem !important;
   }
   .time-ss {
     font-size: 1.8rem !important;
   }
-
   .camera-outer-wrapper {
     position: fixed;
     top: 0;
@@ -2134,30 +1946,26 @@ onUnmounted(() => {
     padding: 0 !important;
     margin: 0 !important;
     overflow: hidden;
-    height: 100dvh !important; /* REVISI: Paksa ikut tinggi dynamic screen */
+    height: 100dvh !important;
   }
-
   .height-fill-dvh {
     height: 100% !important;
     display: flex;
     flex-direction: column;
   }
-
   .camera-modal-card {
     border-radius: 0 !important;
-    height: 100dvh !important; /* REVISI: Mengunci tinggi bodi modal penuh */
+    height: 100dvh !important;
     max-height: 100dvh !important;
     display: flex;
     flex-direction: column;
     margin: 0 !important;
     border: none !important;
   }
-
   .camera-header {
     padding: 12px 16px !important;
     flex: none;
   }
-
   .camera-row-container {
     flex-direction: column !important;
     flex-wrap: nowrap !important;
@@ -2165,15 +1973,13 @@ onUnmounted(() => {
     overflow: hidden;
     display: flex !important;
   }
-
   .camera-video-container {
-    height: 38vh !important; /* REVISI: Pangkas sedikit area stream video agar control naik */
+    height: 38vh !important;
     min-height: 180px !important;
     max-height: 230px !important;
     flex: none !important;
     background: #000000 !important;
   }
-
   .video-stream,
   .captured-preview {
     height: 100% !important;
@@ -2181,18 +1987,16 @@ onUnmounted(() => {
     object-fit: contain !important;
     background: #000000 !important;
   }
-
   .camera-control-panel {
-    padding: 14px 14px calc(14px + env(safe-area-inset-bottom)) 14px !important; /* REVISI: Inject safe-area-inset otomatis naik */
+    padding: 14px 14px calc(14px + env(safe-area-inset-bottom)) 14px !important;
     flex: 1;
     display: flex !important;
     flex-direction: column !important;
     flex-wrap: nowrap !important;
-    justify-content: flex-start !important; /* REVISI: Susun dari atas ke bawah, bukan space-between */
+    justify-content: flex-start !important;
     background-color: #f8fafc !important;
-    overflow-y: auto; /* Mencegah crash jika screen super cebol */
+    overflow-y: auto;
   }
-
   .info-summary-card {
     padding: 10px 14px !important;
     border-radius: 12px !important;
@@ -2201,39 +2005,31 @@ onUnmounted(() => {
     background: white;
     flex-shrink: 0;
   }
-
   .action-button-container {
-    margin-top: 10px !important; /* REVISI: Tombol langsung di bawah info card, bukan nempel di bawah layar */
+    margin-top: 10px !important;
     padding-bottom: 4px !important;
     flex-shrink: 0;
   }
-
   .info-summary-card .text-subtitle2 {
     font-size: 13px !important;
   }
-
   .font-10 {
     font-size: 9px !important;
   }
-
   .text-11 {
     font-size: 10px !important;
     padding: 4px !important;
   }
-
   .text-10 {
     font-size: 9px !important;
   }
-
   .q-mt-sm {
     margin-top: 6px !important;
   }
-
   .text-subtitle2 {
     font-size: 13px !important;
   }
 }
-
 @media (max-width: 1023px) {
   .hide-on-mobile {
     display: none !important;

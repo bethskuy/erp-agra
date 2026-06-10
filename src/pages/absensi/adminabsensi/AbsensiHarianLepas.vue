@@ -653,7 +653,7 @@
                     type="number"
                     prefix="Rp"
                     label="Upah Base / Hari"
-                    class="col-12 col-sm-3 rounded-input"
+                    class="col-12 col-sm-2 rounded-input"
                   />
                   <q-input
                     v-model.number="pekerjaForms[m.id].koef"
@@ -662,7 +662,17 @@
                     bg-color="white"
                     type="number"
                     step="0.05"
-                    label="Koefisien Multiplier"
+                    label="Koef"
+                    class="col-12 col-sm-1 rounded-input"
+                  />
+                  <q-input
+                    v-model.number="pekerjaForms[m.id].upahLembur"
+                    outlined
+                    dense
+                    bg-color="white"
+                    type="number"
+                    prefix="Rp"
+                    label="Lembur / Jam"
                     class="col-12 col-sm-2 rounded-input"
                   />
                   <div class="col-12 col-sm-2">
@@ -729,6 +739,13 @@
                         >
                           Koef: {{ (p.koef || 1.0).toFixed(2) }}x
                         </q-badge>
+                        <q-badge
+                          color="orange-1"
+                          text-color="orange-9"
+                          class="text-weight-bold q-px-sm q-py-xs rounded-6 text-11"
+                        >
+                          Lembur: Rp {{ formatUang(p.upahLembur || 25000) }}/Jam
+                        </q-badge>
                       </div>
                       <div
                         class="row items-center justify-between text-caption q-mt-sm bg-white q-pa-sm rounded-8 border border-subtle"
@@ -764,6 +781,7 @@
                           <th class="text-right">UPAH BASE / HARI</th>
                           <th class="text-center">KOEF.</th>
                           <th class="text-right">UPAH EFEKTIF / HARI</th>
+                          <th class="text-right">UPAH LEMBUR / JAM</th>
                           <th style="width: 60px" class="text-center no-print">AKSI</th>
                         </tr>
                       </thead>
@@ -790,6 +808,9 @@
                           </td>
                           <td class="text-right text-weight-bold text-brand-primary font-mono">
                             Rp {{ formatUang((p.upahHari || 0) * (p.koef || 1.0)) }}
+                          </td>
+                          <td class="text-right text-weight-bold text-amber-9 font-mono">
+                            Rp {{ formatUang(p.upahLembur || 25000) }}
                           </td>
                           <td class="text-center no-print">
                             <q-btn
@@ -1313,7 +1334,13 @@ watch(activeTab, async (newTab, oldTab) => {
 const syncPekerjaFormsStructure = () => {
   mandors.value.forEach((m) => {
     if (!pekerjaForms.value[m.id]) {
-      pekerjaForms.value[m.id] = { nama: '', jabatan: 'Tukang', upahHari: 150000, koef: 1.0 }
+      pekerjaForms.value[m.id] = {
+        nama: '',
+        jabatan: 'Tukang',
+        upahHari: 150000,
+        koef: 1.0,
+        upahLembur: projectSetup.value.lembur || 25000
+      }
     }
   })
 }
@@ -1413,6 +1440,7 @@ const addPekerja = async (mandorId) => {
       jabatan: f.jabatan,
       upahHari: parseInt(f.upahHari) || 0,
       koef: parseFloat(f.koef) || 1.0,
+      upahLembur: parseInt(f.upahLembur) || 0,
     },
   ]
 
@@ -1479,7 +1507,7 @@ const calculateRowDailyWage = (pekerja, state) => {
   if (state.status === 'hadir') upahDinas = base * k
   else if (state.status === 'setengah') upahDinas = base * k * 0.5
 
-  const rateLembur = projectSetup.value.lembur || 25000
+  const rateLembur = pekerja.upahLembur !== undefined ? pekerja.upahLembur : (projectSetup.value.lembur || 25000)
   const totalLembur = (parseFloat(state.lembur) || 0) * rateLembur
 
   return Math.round(upahDinas + totalLembur)

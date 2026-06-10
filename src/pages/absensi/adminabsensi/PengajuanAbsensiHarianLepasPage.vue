@@ -384,31 +384,57 @@
                 </div>
               </div>
 
-              <!-- MANDOR OWN ATTENDANCE BUTTONS -->
-              <div class="row items-center no-wrap q-gutter-x-xs bg-white q-pa-xs rounded-12 border border-subtle">
-                <span class="text-caption text-weight-bold text-grey-7 q-mr-sm q-pl-xs">ABSENSI MANDOR:</span>
+              <!-- MANDOR OWN ATTENDANCE BUTTONS & GROUP PHOTO -->
+              <div class="row items-center no-wrap q-gutter-x-sm">
                 <q-btn
-                  label="Hadir"
-                  size="sm"
-                  unelevated
+                  v-if="!getMandorFotoBersama(m.id)"
+                  outline
                   no-caps
-                  :disable="currentStatus === 'disetujui'"
-                  :color="getMandorStatus(m.id) === 'hadir' ? 'brand-primary' : 'grey-2'"
-                  :text-color="getMandorStatus(m.id) === 'hadir' ? 'white' : 'grey-8'"
-                  class="rounded-8 text-weight-bold"
-                  @click="setMandorStatus(m.id, 'hadir')"
+                  size="sm"
+                  color="grey-7"
+                  class="rounded-8 text-weight-bold q-px-sm bg-white"
+                  icon="groups"
+                  label="Foto Bersama"
+                  @click="openPhotoCapture(m.id, '_group', `Grup Mandor ${m.nama}`)"
                 />
                 <q-btn
-                  label="Tidak Hadir"
-                  size="sm"
+                  v-else
                   unelevated
                   no-caps
-                  :disable="currentStatus === 'disetujui'"
-                  :color="getMandorStatus(m.id) === 'alpha' ? 'brand-danger' : 'grey-2'"
-                  :text-color="getMandorStatus(m.id) === 'alpha' ? 'white' : 'grey-8'"
-                  class="rounded-8 text-weight-bold"
-                  @click="setMandorStatus(m.id, 'alpha')"
+                  size="sm"
+                  color="brand-primary"
+                  text-color="white"
+                  class="rounded-8 text-weight-bold q-px-sm shadow-premium"
+                  icon="groups"
+                  label="Foto Bersama (Ada)"
+                  @click="openPhotoCapture(m.id, '_group', `Grup Mandor ${m.nama}`)"
                 />
+                
+                <div class="row items-center no-wrap q-gutter-x-xs bg-white q-pa-xs rounded-12 border border-subtle">
+                  <span class="text-caption text-weight-bold text-grey-7 q-mr-sm q-pl-xs">ABSENSI MANDOR:</span>
+                  <q-btn
+                    label="Hadir"
+                    size="sm"
+                    unelevated
+                    no-caps
+                    :disable="currentStatus === 'disetujui'"
+                    :color="getMandorStatus(m.id) === 'hadir' ? 'brand-primary' : 'grey-2'"
+                    :text-color="getMandorStatus(m.id) === 'hadir' ? 'white' : 'grey-8'"
+                    class="rounded-8 text-weight-bold"
+                    @click="setMandorStatus(m.id, 'hadir')"
+                  />
+                  <q-btn
+                    label="Tidak Hadir"
+                    size="sm"
+                    unelevated
+                    no-caps
+                    :disable="currentStatus === 'disetujui'"
+                    :color="getMandorStatus(m.id) === 'alpha' ? 'brand-danger' : 'grey-2'"
+                    :text-color="getMandorStatus(m.id) === 'alpha' ? 'white' : 'grey-8'"
+                    class="rounded-8 text-weight-bold"
+                    @click="setMandorStatus(m.id, 'alpha')"
+                  />
+                </div>
               </div>
             </div>
 
@@ -425,6 +451,7 @@
                       <th class="text-center text-weight-bold font-11 tracking-widest" style="width: 140px;">JAM MASUK</th>
                       <th class="text-center text-weight-bold font-11 tracking-widest" style="width: 140px;">JAM PULANG</th>
                       <th class="text-center text-weight-bold font-11 tracking-widest" style="width: 110px;">LEMBUR (JAM)</th>
+                      <th class="text-center text-weight-bold font-11 tracking-widest" style="width: 80px;">AKSI</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -534,6 +561,31 @@
                           input-class="text-center font-mono text-weight-bold"
                         />
                       </td>
+                      <td class="text-center">
+                        <q-btn
+                          v-if="!getWorkerFoto(m.id, p.id)"
+                          outline
+                          color="grey-7"
+                          class="rounded-8 bg-white"
+                          icon="photo_camera"
+                          size="sm"
+                          @click="openPhotoCapture(m.id, p.id, p.nama)"
+                        >
+                          <q-tooltip class="bg-brand-primary">Ambil Foto Bukti</q-tooltip>
+                        </q-btn>
+                        <q-btn
+                          v-else
+                          unelevated
+                          color="brand-primary"
+                          text-color="white"
+                          class="rounded-8 shadow-sm"
+                          icon="photo"
+                          size="sm"
+                          @click="openPhotoCapture(m.id, p.id, p.nama)"
+                        >
+                          <q-tooltip class="bg-brand-primary">Lihat / Ubah Foto Bukti</q-tooltip>
+                        </q-btn>
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -543,12 +595,192 @@
         </div>
       </div>
     </div>
+
+    <!-- ======================================================================= -->
+    <!-- DIALOG: AMBIL FOTO BUKTI DENGAN WATERMARK                               -->
+    <!-- ======================================================================= -->
+    <q-dialog v-model="showPhotoDialog" persistent>
+      <q-card class="rounded-24 shadow-soft bg-white border-subtle overflow-hidden font-pro" style="width: 480px; max-width: 95vw;">
+        <!-- Card Header -->
+        <q-card-section class="bg-brand-primary text-white row items-center justify-between q-py-md">
+          <div class="row items-center">
+            <q-icon name="photo_camera" size="20px" class="q-mr-sm" />
+            <div class="text-subtitle1 text-weight-bolder uppercase tracking-wide">
+              {{ photoDialogContext.pekerjaId === '_group' ? 'Foto Bersama Mandor' : 'Foto Bukti Pekerja' }}
+            </div>
+          </div>
+          <q-btn
+            flat
+            round
+            dense
+            icon="close"
+            color="white"
+            v-close-popup
+            @click="stopCamera"
+          />
+        </q-card-section>
+
+        <!-- Card Body -->
+        <q-card-section class="q-pa-lg relative-position">
+          <div class="text-weight-bold text-blue-grey-9 text-subtitle2 q-mb-md text-center uppercase">
+            {{ photoDialogContext.title }}
+          </div>
+
+          <!-- Video Stream or Photo Preview -->
+          <div class="relative-position overflow-hidden rounded-16 bg-slate-900 flex flex-center shadow-inner" style="min-height: 260px; max-height: 320px;">
+            <!-- New Photo Preview -->
+            <q-img
+              v-if="photoDialogPreview"
+              :src="photoDialogPreview"
+              class="absolute-full"
+              fit="contain"
+            />
+
+            <!-- Live Camera Video -->
+            <video
+              v-else-if="cameraActive"
+              ref="videoEl"
+              autoplay
+              playsinline
+              class="absolute-full"
+              :style="{ transform: activeCameraFacing === 'user' ? 'scaleX(-1)' : 'none', objectFit: 'cover' }"
+            />
+
+            <!-- Camera Inactive Placeholder -->
+            <div v-else class="text-center q-pa-xl text-blue-grey-3">
+              <q-icon name="camera_alt" size="4em" class="q-mb-sm opacity-40" />
+              <div class="text-weight-bold text-subtitle2 opacity-80">Kamera Belum Aktif</div>
+              <div class="text-caption opacity-60">Silakan aktifkan kamera atau pilih file foto.</div>
+            </div>
+
+            <!-- Loading Spinner -->
+            <q-inner-loading :showing="photoDialogLoading" color="brand-primary">
+              <q-spinner-dots size="40px" color="brand-primary" />
+              <div class="text-brand-primary q-mt-sm text-weight-bold font-pro text-caption">Memproses Watermark...</div>
+            </q-inner-loading>
+          </div>
+
+          <!-- GPS Information Panel (Small Badge) -->
+          <div class="q-mt-sm row items-center justify-between text-caption text-blue-grey-6 q-px-xs">
+            <div class="row items-center">
+              <q-icon name="place" color="brand-primary" size="14px" class="q-mr-xs" />
+              <span class="text-weight-bold">{{ locationData.lat !== '0.0000' ? `${locationData.lat}, ${locationData.lng}` : 'Melacak GPS...' }}</span>
+            </div>
+            <div class="ellipsis max-w-200 text-weight-medium">
+              {{ locationData.address || 'Mengambil alamat...' }}
+            </div>
+          </div>
+        </q-card-section>
+
+        <!-- Card Actions -->
+        <q-card-actions align="center" class="q-px-lg q-pb-lg q-pt-none q-col-gutter-sm">
+          <!-- Active Camera Controls -->
+          <template v-if="cameraActive && !photoDialogPreview">
+            <div class="col-6">
+              <q-btn
+                unelevated
+                color="brand-primary"
+                icon="photo_camera"
+                label="Ambil Foto"
+                class="full-width rounded-12 text-weight-bold q-py-sm"
+                no-caps
+                @click="captureFromVideo"
+              />
+            </div>
+            <div class="col-3">
+              <q-btn
+                outline
+                color="blue-grey-7"
+                icon="switch_camera"
+                class="full-width rounded-12 q-py-sm"
+                @click="toggleCameraFacing"
+              >
+                <q-tooltip>Ganti Kamera</q-tooltip>
+              </q-btn>
+            </div>
+            <div class="col-3">
+              <q-btn
+                outline
+                color="brand-danger"
+                icon="videocam_off"
+                class="full-width rounded-12 q-py-sm"
+                @click="stopCamera"
+              >
+                <q-tooltip>Matikan Kamera</q-tooltip>
+              </q-btn>
+            </div>
+          </template>
+
+          <!-- Captured Photo Actions -->
+          <template v-else-if="photoDialogPreview">
+            <div class="col-6">
+              <q-btn
+                unelevated
+                color="brand-primary"
+                icon="done"
+                label="Simpan Foto"
+                class="full-width rounded-12 text-weight-bold q-py-sm"
+                no-caps
+                :loading="photoDialogLoading"
+                @click="saveCapturedPhoto"
+              />
+            </div>
+            <div class="col-6">
+              <q-btn
+                outline
+                color="blue-grey-7"
+                icon="refresh"
+                label="Ambil Ulang"
+                class="full-width rounded-12 text-weight-bold q-py-sm"
+                no-caps
+                :disabled="photoDialogLoading"
+                @click="photoDialogPreview = null; startCamera();"
+              />
+            </div>
+          </template>
+
+          <!-- Inactive Camera Controls -->
+          <template v-else>
+            <div class="col-6">
+              <q-btn
+                unelevated
+                color="brand-primary"
+                icon="videocam"
+                label="Aktifkan Kamera"
+                class="full-width rounded-12 text-weight-bold q-py-sm"
+                no-caps
+                @click="startCamera"
+              />
+            </div>
+            <div class="col-6">
+              <q-btn
+                outline
+                color="blue-grey-7"
+                icon="file_upload"
+                label="Pilih File Foto"
+                class="full-width rounded-12 text-weight-bold q-py-sm"
+                no-caps
+                @click="$refs.fileInputRef.click()"
+              />
+              <input
+                ref="fileInputRef"
+                type="file"
+                accept="image/*"
+                class="hidden"
+                style="display: none;"
+                @change="onFileSelected"
+              />
+            </div>
+          </template>
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
 <script setup>
 import { ref, onMounted, computed, onUnmounted } from 'vue'
-import { db } from 'src/boot/firebase'
+import { db, storage } from 'src/boot/firebase'
 import { useQuasar, date } from 'quasar'
 import {
   collection,
@@ -561,6 +793,7 @@ import {
   serverTimestamp,
   orderBy,
 } from 'firebase/firestore'
+import { ref as storageRef, uploadString, getDownloadURL } from 'firebase/storage'
 
 const $q = useQuasar()
 
@@ -591,6 +824,338 @@ const loadingDetails = ref(false)
 const saving = ref(false)
 const submitting = ref(false)
 let unsubMandors = null
+
+// --- State & Logika Bukti Foto, Watermark & GPS ---
+const locationData = ref({
+  lat: '0.0000',
+  lng: '0.0000',
+  address: '',
+})
+
+const getAddressName = async (lat, lng) => {
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+    const d = await res.json()
+    locationData.value.address = d.display_name.split(',').slice(0, 4).join(', ')
+  } catch {
+    locationData.value.address = 'Gagal memuat koordinat jalan'
+  }
+}
+
+const detectLocation = () => {
+  if (!navigator.geolocation) {
+    locationData.value.address = 'GPS tidak didukung oleh browser'
+    return
+  }
+  navigator.geolocation.getCurrentPosition(
+    async (p) => {
+      locationData.value.lat = p.coords.latitude.toFixed(5)
+      locationData.value.lng = p.coords.longitude.toFixed(5)
+      await getAddressName(p.coords.latitude, p.coords.longitude)
+    },
+    (err) => {
+      console.warn('Gagal mendapatkan lokasi:', err)
+      locationData.value.address = 'Akses lokasi tidak diizinkan'
+    },
+    { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
+  )
+}
+
+// Dialog Kamera & Upload State
+const showPhotoDialog = ref(false)
+const photoDialogContext = ref({ mandorId: '', pekerjaId: '', title: '' })
+const videoEl = ref(null)
+const mediaStream = ref(null)
+const activeCameraFacing = ref('environment') // 'user' or 'environment'
+const photoDialogLoading = ref(false)
+const photoDialogPreview = ref(null) // base64 watermarked image preview
+const cameraActive = ref(false)
+
+const startCamera = async () => {
+  if (mediaStream.value) {
+    stopCamera()
+  }
+  try {
+    const constraints = {
+      video: {
+        facingMode: activeCameraFacing.value
+      }
+    }
+    const stream = await navigator.mediaDevices.getUserMedia(constraints)
+    mediaStream.value = stream
+    cameraActive.value = true
+    setTimeout(() => {
+      if (videoEl.value) {
+        videoEl.value.srcObject = stream
+      }
+    }, 100)
+  } catch (err) {
+    console.error('Gagal membuka kamera:', err)
+    $q.notify({
+      type: 'negative',
+      message: 'Kamera tidak dapat diakses. Gunakan pilihan file fallback.',
+      position: 'top'
+    })
+    cameraActive.value = false
+  }
+}
+
+const toggleCameraFacing = async () => {
+  activeCameraFacing.value = activeCameraFacing.value === 'user' ? 'environment' : 'user'
+  if (cameraActive.value) {
+    await startCamera()
+  }
+}
+
+const stopCamera = () => {
+  if (mediaStream.value) {
+    mediaStream.value.getTracks().forEach(track => track.stop())
+    mediaStream.value = null
+  }
+  cameraActive.value = false
+}
+
+// Watermark logic
+const resizeImage = (base64Image, maxWidth = 640) => {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.src = base64Image
+    img.onload = () => {
+      if (img.width <= maxWidth) {
+        resolve(base64Image)
+        return
+      }
+      const canvas = document.createElement('canvas')
+      const scale = maxWidth / img.width
+      canvas.width = maxWidth
+      canvas.height = img.height * scale
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+      resolve(canvas.toDataURL('image/jpeg', 0.85))
+    }
+  })
+}
+
+const applyWatermark = (base64Image, label = 'ABSENSI HARIAN LEPAS') => {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.src = base64Image
+    img.onload = () => {
+      const wCanvas = document.createElement('canvas')
+      wCanvas.width = img.width
+      wCanvas.height = img.height
+      const ctx = wCanvas.getContext('2d')
+      ctx.drawImage(img, 0, 0)
+      const padding = Math.max(12, img.width * 0.035)
+      const watermarkHeight = img.height * 0.2
+      const startY = img.height - watermarkHeight
+      const grad = ctx.createLinearGradient(0, startY, 0, img.height)
+      grad.addColorStop(0, 'rgba(0,0,0,0)')
+      grad.addColorStop(1, 'rgba(15, 23, 42, 0.75)')
+      ctx.fillStyle = grad
+      ctx.fillRect(0, startY, img.width, watermarkHeight)
+      
+      const mapSize = Math.max(55, img.height * 0.13)
+      const mapX = padding
+      const mapY = img.height - mapSize - padding
+      ctx.save()
+      ctx.shadowColor = 'rgba(0,0,0,0.4)'
+      ctx.shadowBlur = 6
+      ctx.fillStyle = '#e2e8f0'
+      ctx.beginPath()
+      ctx.arc(mapX + mapSize / 2, mapY + mapSize / 2, mapSize / 2, 0, Math.PI * 2)
+      ctx.fill()
+      ctx.restore()
+      
+      ctx.strokeStyle = '#cbd5e1'
+      ctx.lineWidth = 1
+      ctx.beginPath()
+      ctx.arc(mapX + mapSize / 2, mapY + mapSize / 2, mapSize / 3, 0, Math.PI * 2)
+      ctx.stroke()
+      ctx.beginPath()
+      ctx.moveTo(mapX, mapY + mapSize / 2)
+      ctx.lineTo(mapX + mapSize, mapY + mapSize / 2)
+      ctx.moveTo(mapX + mapSize / 2, mapY)
+      ctx.lineTo(mapX + mapSize / 2, mapY + mapSize)
+      ctx.stroke()
+      
+      ctx.fillStyle = '#ef4444'
+      ctx.beginPath()
+      ctx.arc(mapX + mapSize / 2, mapY + mapSize / 2, 4, 0, Math.PI * 2)
+      ctx.fill()
+
+      const textX = mapX + mapSize + 15
+      let textY = mapY - 4
+      const fontSize = Math.max(10, Math.floor(img.width * 0.028))
+      ctx.textBaseline = 'top'
+      ctx.fillStyle = '#ffffff'
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.85)'
+      ctx.shadowBlur = 4
+      ctx.shadowOffsetX = 1
+      ctx.shadowOffsetY = 1
+      ctx.font = `bold ${fontSize}px sans-serif`
+      ctx.fillText(date.formatDate(new Date(), 'DD MMM YYYY HH.mm.ss'), textX, textY)
+      textY += fontSize + 4
+      
+      ctx.font = `${fontSize - 1}px sans-serif`
+      ctx.fillText(
+        selectedProjectData.value?.nama || 'PT AGRA ABHINAYA PERKASA',
+        textX,
+        textY
+      )
+      textY += fontSize + 3
+      
+      ctx.font = `${fontSize - 2}px sans-serif`
+      const addrParts = locationData.value.address
+        ? locationData.value.address.split(',')
+        : ['Deltamas', 'Bekasi']
+      ctx.fillText((addrParts[0] || '').trim(), textX, textY)
+      textY += fontSize + 2
+      
+      ctx.font = `italic ${fontSize - 2}px sans-serif`
+      ctx.fillText(
+        `GPS: ${locationData.value.lat}, ${locationData.value.lng} (${label})`,
+        textX,
+        textY
+      )
+      resolve(wCanvas.toDataURL('image/jpeg', 0.9))
+    }
+  })
+}
+
+const processFileAndWatermark = async (base64Image) => {
+  photoDialogLoading.value = true
+  try {
+    detectLocation()
+    const resized = await resizeImage(base64Image, 640)
+    const label = photoDialogContext.value.pekerjaId === '_group' ? 'FOTO BERSAMA HARIAN' : 'BUKTI ABSENSI HARIAN'
+    const watermarked = await applyWatermark(resized, label)
+    photoDialogPreview.value = watermarked
+  } catch (err) {
+    console.error('Gagal memproses watermark:', err)
+  } finally {
+    photoDialogLoading.value = false
+  }
+}
+
+const onFileSelected = (ev) => {
+  const file = ev.target.files?.[0]
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = async (e) => {
+    await processFileAndWatermark(e.target.result)
+  }
+  reader.readAsDataURL(file)
+}
+
+const captureFromVideo = async () => {
+  if (!videoEl.value || !cameraActive.value) return
+  const canvas = document.createElement('canvas')
+  canvas.width = videoEl.value.videoWidth
+  canvas.height = videoEl.value.videoHeight
+  const ctx = canvas.getContext('2d')
+  ctx.drawImage(videoEl.value, 0, 0)
+  const rawBase64 = canvas.toDataURL('image/jpeg')
+  stopCamera()
+  await processFileAndWatermark(rawBase64)
+}
+
+const uploadPhotoToStorage = async (base64Image, filename) => {
+  const fRef = storageRef(storage, `absensi_harian_lepas/${filename}_${Date.now()}.jpg`)
+  await uploadString(fRef, base64Image, 'data_url')
+  return await getDownloadURL(fRef)
+}
+
+const openPhotoCapture = (mandorId, pekerjaId, title) => {
+  photoDialogContext.value = { mandorId, pekerjaId, title }
+  photoDialogPreview.value = null
+  showPhotoDialog.value = true
+  detectLocation()
+  
+  let existingFoto = ''
+  if (pekerjaId === '_group') {
+    existingFoto = getMandorFotoBersama(mandorId)
+  } else {
+    existingFoto = getWorkerFoto(mandorId, pekerjaId)
+  }
+  if (existingFoto) {
+    photoDialogPreview.value = existingFoto
+  }
+}
+
+const saveCapturedPhoto = async () => {
+  if (!photoDialogPreview.value) return
+  photoDialogLoading.value = true
+  try {
+    const ctx = photoDialogContext.value
+    let finalUrl = photoDialogPreview.value
+    
+    if (finalUrl.startsWith('data:image')) {
+      const filename = ctx.pekerjaId === '_group'
+        ? `group_${ctx.mandorId}`
+        : `worker_${ctx.mandorId}_${ctx.pekerjaId}`
+      finalUrl = await uploadPhotoToStorage(finalUrl, filename)
+    }
+    
+    if (ctx.pekerjaId === '_group') {
+      setMandorFotoBersama(ctx.mandorId, finalUrl)
+    } else {
+      setWorkerFoto(ctx.mandorId, ctx.pekerjaId, finalUrl)
+    }
+    
+    $q.notify({
+      type: 'positive',
+      message: 'Foto bukti berhasil disimpan!',
+      position: 'top'
+    })
+    showPhotoDialog.value = false
+    stopCamera()
+  } catch (err) {
+    console.error('Gagal mengunggah foto:', err)
+    $q.notify({
+      type: 'negative',
+      message: 'Gagal mengunggah foto: ' + err.message,
+      position: 'top'
+    })
+  } finally {
+    photoDialogLoading.value = false
+  }
+}
+
+const getWorkerFoto = (mandorId, pekerjaId) => {
+  return localAttendance.value?.[mandorId]?.[pekerjaId]?.foto || ''
+}
+
+const setWorkerFoto = (mandorId, pekerjaId, val) => {
+  if (!localAttendance.value[mandorId]) {
+    localAttendance.value[mandorId] = {}
+  }
+  if (!localAttendance.value[mandorId][pekerjaId]) {
+    localAttendance.value[mandorId][pekerjaId] = {
+      status: 'hadir',
+      lembur: 0,
+      potongan: 0,
+      keterangan: '',
+      jamMasuk: defaultJamMasuk.value,
+      jamPulang: defaultJamPulang.value,
+    }
+  }
+  localAttendance.value[mandorId][pekerjaId].foto = val
+}
+
+const getMandorFotoBersama = (mandorId) => {
+  return localAttendance.value?.[mandorId]?._self?.fotoBersama || ''
+}
+
+const setMandorFotoBersama = (mandorId, val) => {
+  if (!localAttendance.value[mandorId]) {
+    localAttendance.value[mandorId] = {}
+  }
+  if (!localAttendance.value[mandorId]._self) {
+    localAttendance.value[mandorId]._self = { status: 'hadir' }
+  }
+  localAttendance.value[mandorId]._self.fotoBersama = val
+}
 
 const qDateProxy = ref(null)
 
@@ -959,11 +1524,13 @@ const displaySelectedDate = computed(() => {
 // ============================================================================
 onMounted(() => {
   fetchProyekList()
+  detectLocation()
 })
 
 onUnmounted(() => {
   if (unsubProyek) unsubProyek()
   if (unsubMandors) unsubMandors()
+  stopCamera()
 })
 </script>
 
@@ -1282,5 +1849,15 @@ table.abs-tbl tr:hover {
 }
 .lembur-input-box :deep(.q-field__native) {
   padding: 0;
+}
+
+.hover-scale {
+  transition: transform 0.2s ease-in-out;
+}
+.hover-scale:hover {
+  transform: scale(1.15);
+}
+.transition-smooth {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 </style>
