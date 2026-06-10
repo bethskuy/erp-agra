@@ -1,9 +1,9 @@
 <template>
-  <q-page class="bg-page q-pa-md font-pro relative-position">
+  <q-page class="bg-page q-pa-md q-pa-lg font-pro relative-position">
     <!-- ======================================================================= -->
     <!-- VIEW 1: DAFTAR PROYEK AKTIF (RINGKASAN)                                  -->
     <!-- ======================================================================= -->
-    <div v-if="!selectedProjectId" class="animate-fade page-content-wrapper">
+    <div v-if="!selectedProjectId" class="animate-fade premium-container q-mx-auto page-content-wrapper">
       <!-- HEADER SECTION -->
       <div class="row items-center justify-between q-mb-md content-relative">
         <div class="col-12 q-mb-md q-mb-md-none">
@@ -153,7 +153,7 @@
     <!-- ======================================================================= -->
     <!-- VIEW 2: FORM PENGAJUAN ABSENSI TERISOLASI PER PROYEK                    -->
     <!-- ======================================================================= -->
-    <div v-else class="animate-fade page-content-wrapper">
+    <div v-else class="animate-fade premium-container q-mx-auto page-content-wrapper">
       <!-- HEADER BAR (VIEW SWITCHER STYLE) -->
       <div class="row items-center justify-between detail-header-row">
         <div class="col-12 col-md-8 detail-header-col">
@@ -1859,5 +1859,9 @@ table.abs-tbl tr:hover {
 }
 .transition-smooth {
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.premium-container {
+  max-width: 1200px;
+  width: 100%;
 }
 </style>

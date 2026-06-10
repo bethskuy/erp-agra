@@ -1,5 +1,6 @@
 <template>
-  <q-page class="bg-blue-grey-1 q-pa-lg font-inter">
+  <q-page class="bg-blue-grey-1 q-pa-md q-pa-lg font-inter">
+    <div class="premium-container mx-auto">
     <!-- HEADER SECTION -->
     <div class="row items-center justify-between q-mb-xl">
       <div>
@@ -285,6 +286,7 @@
         </template>
       </q-table>
     </q-card>
+    </div>
   </q-page>
 </template>
 
@@ -596,5 +598,9 @@ onMounted(() => {
 }
 .hover-effect:hover td {
   background-color: #f8fafc !important;
+}
+.premium-container {
+  max-width: 1200px;
+  width: 100%;
 }
 </style>

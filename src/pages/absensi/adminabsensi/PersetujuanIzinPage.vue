@@ -1,5 +1,5 @@
 <template>
-  <q-page class="bg-slate-50 q-pa-md q-pa-lg-xl font-inter">
+  <q-page class="bg-slate-50 q-pa-md q-pa-lg font-inter">
     <div class="premium-container mx-auto">
       <!-- =====================================================================================
            VIEW 1: LIST (DEFAULT)
@@ -948,6 +948,7 @@ onUnmounted(() => {
 
 .premium-container {
   max-width: 1400px;
+  width: 100%;
 }
 .bento-card {
   border-radius: 24px;
@@ -1048,5 +1049,9 @@ onUnmounted(() => {
     opacity: 1;
     transform: translateY(0);
   }
+}
+.premium-container {
+  max-width: 1200px;
+  width: 100%;
 }
 </style>

@@ -1,26 +1,25 @@
 <template>
-  <q-page class="bg-blue-grey-1 q-pa-md q-pa-md-lg font-pro">
+  <q-page class="jabatan-page font-pro">
     <!-- HEADER SECTION -->
     <div class="row items-center justify-between q-mb-lg">
       <div class="col-12 col-md-auto q-mb-md q-mb-md-none">
-        <div class="text-h4 text-weight-bolder text-blue-grey-10">Master Jabatan</div>
-        <div class="text-subtitle2 text-grey-7">
+        <div class="text-h4 text-weight-bolder text-pink-7 font-pro">Master Jabatan 🏷️</div>
+        <div class="text-subtitle2 text-pink-5">
           Kelola daftar jabatan dan role operasional perusahaan
         </div>
       </div>
       <q-btn
-        color="primary"
+        color="pink-6"
         icon="add"
-        label="Tambah Jabatan Baru"
+        label="Tambah Jabatan Baru 🧸"
         @click="openDialog()"
         unelevated
-        rounded
-        class="q-px-lg shadow-3"
+        class="cute-btn-pink q-px-lg font-pro"
       />
     </div>
 
     <!-- SEARCH & FILTER AREA -->
-    <q-card flat bordered class="q-mb-md shadow-1 rounded-borders bg-white">
+    <q-card flat class="cute-search-card q-mb-md">
       <q-card-section class="q-py-sm">
         <div class="row items-center q-col-gutter-md">
           <div class="col-12 col-md-4">
@@ -33,7 +32,7 @@
               bg-color="white"
             >
               <template v-slot:prepend>
-                <q-icon name="search" color="primary" />
+                <q-icon name="search" color="pink-6" />
               </template>
               <template v-slot:append v-if="filter">
                 <q-icon name="close" @click="filter = ''" class="cursor-pointer" />
@@ -41,16 +40,24 @@
             </q-input>
           </div>
           <q-space class="gt-sm" />
-          <div class="text-caption text-grey-6 q-pr-md">
+          <div class="text-caption text-pink-5 text-weight-bold q-pr-md">
             Total Kategori:
-            <span class="text-weight-bold text-primary">{{ jabatanList.length }}</span> Role
+            <span class="text-weight-bold text-pink-7 font-pro" style="font-size: 15px;">{{ jabatanList.length }}</span> Role
           </div>
         </div>
       </q-card-section>
     </q-card>
 
     <!-- TABLE SECTION -->
-    <q-card flat bordered class="rounded-borders shadow-2 overflow-hidden bg-white">
+    <div class="mac-card q-mb-lg">
+      <div class="mac-header">
+        <div class="dots-row">
+          <span class="dot red"></span>
+          <span class="dot yellow"></span>
+          <span class="dot green"></span>
+        </div>
+        <div class="mac-title">🏷️ DATABASE JABATAN / ROLE 🏷️</div>
+      </div>
       <q-table
         :rows="jabatanList"
         :columns="columns"
@@ -123,21 +130,24 @@
           </div>
         </template>
       </q-table>
-    </q-card>
+    </div>
 
     <!-- MODERN DIALOG FORM -->
     <q-dialog v-model="showDialog" persistent backdrop-filter="blur(4px)">
-      <q-card style="width: 450px; max-width: 90vw" class="rounded-borders">
-        <q-card-section class="row items-center bg-blue-grey-10 text-white q-py-md">
-          <div class="text-h6 text-weight-bold">
-            <q-icon :name="form.id ? 'edit' : 'add_circle'" class="q-mr-sm" />
-            {{ form.id ? 'Ubah Data' : 'Tambah' }} Jabatan
+      <q-card style="width: 450px; max-width: 90vw" class="cute-dialog-card overflow-hidden">
+        <q-card-section class="q-pa-none">
+          <div class="mac-header row items-center justify-between no-wrap">
+            <div class="dots-row col-auto">
+              <span class="dot red"></span>
+              <span class="dot yellow"></span>
+              <span class="dot green"></span>
+            </div>
+            <div class="mac-title col text-center text-weight-bold text-pink-7">🏷️ {{ form.id ? 'Ubah' : 'Tambah' }} Jabatan</div>
+            <q-btn icon="close" flat round dense v-close-popup color="pink-7" class="col-auto bg-pink-1" size="sm" />
           </div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
 
-        <q-card-section class="q-pa-xl">
+        <q-card-section class="q-pa-lg">
           <q-form @submit="saveJabatan" class="q-gutter-y-lg">
             <div class="text-subtitle2 text-grey-7">
               Silakan masukkan nama kategori jabatan yang baru untuk sistem AGRA ERP.
@@ -153,19 +163,18 @@
               class="text-weight-medium"
               autofocus
             >
-              <template v-slot:prepend><q-icon name="work_outline" color="primary" /></template>
+              <template v-slot:prepend><q-icon name="work_outline" color="pink-6" /></template>
             </q-input>
 
-            <div class="row justify-end q-mt-xl q-gutter-sm">
-              <q-btn label="Batalkan" flat color="grey-7" v-close-popup rounded class="q-px-md" />
+            <div class="row justify-end q-mt-xl q-gutter-sm border-top-dashed q-pt-md">
+              <q-btn label="Batalkan" flat color="pink-6" v-close-popup class="cute-btn-main font-pro" />
               <q-btn
-                label="Simpan Jabatan"
+                label="Simpan Jabatan ✨"
                 type="submit"
-                color="indigo-10"
+                color="pink-6"
                 unelevated
-                rounded
                 :loading="loading"
-                class="q-px-lg text-weight-bold"
+                class="cute-btn-pink font-pro"
               />
             </div>
           </q-form>
@@ -265,30 +274,197 @@ onMounted(() => {
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&display=swap');
+
+.jabatan-page {
+  padding: 16px;
+  background-color: #ffe4e6; /* Cute pastel rose pink background */
+  background-image: 
+    radial-gradient(#ffd1dc 2px, transparent 2px), 
+    radial-gradient(#ffd1dc 2px, transparent 2px);
+  background-size: 32px 32px;
+  background-position: 0 0, 16px 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+@media (min-width: 600px) {
+  .jabatan-page {
+    padding: 24px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .jabatan-page {
+    padding: 32px 40px;
+  }
+}
+
 .font-pro {
-  font-family:
-    'Inter',
-    -apple-system,
-    Helvetica,
-    Arial,
-    sans-serif;
+  font-family: 'Fredoka', sans-serif;
+}
+
+/* ==========================================
+   CUTE SHADOWS, CARDS, BUBBLES
+   ========================================== */
+.cute-search-card {
+  background: #ffffff;
+  border: 2.5px solid #ffb7c5;
+  border-radius: 20px;
+  box-shadow: 0 6px 0px #fecdd3 !important;
+}
+
+.cute-form-card {
+  background: #ffffff;
+  border: 2.5px solid #ffb7c5;
+  border-radius: 24px;
+  box-shadow: 0 6px 0px #fecdd3 !important;
+}
+
+.cute-dialog-card {
+  background: #ffffff;
+  border: 3.5px solid #ffb7c5 !important;
+  border-radius: 28px !important;
+  box-shadow: 0 10px 0px #fecdd3 !important;
+}
+
+.border-top-dashed {
+  border-top: 2px dashed #ffccd5;
+}
+
+/* ==========================================
+   CUTE BUTTONS
+   ========================================== */
+.cute-btn-main {
+  background-color: #fff1f2 !important;
+  border: 2.5px solid #fda4af !important;
+  border-radius: 50px !important;
+  color: #db2777 !important;
+  box-shadow: 0 4px 0px #fecdd3 !important;
+  transition: all 0.2s ease;
+  font-weight: 700;
+}
+.cute-btn-main:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0px #fecdd3 !important;
+  background-color: #ffe4e6 !important;
+}
+.cute-btn-main:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 0px #fecdd3 !important;
+}
+
+.cute-btn-pink {
+  background-color: #db2777 !important;
+  border: 2.5px solid #be185d !important;
+  border-radius: 50px !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 0px #fecdd3 !important;
+  transition: all 0.2s ease;
+  font-weight: 700;
+}
+.cute-btn-pink:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0px #fecdd3 !important;
+  background-color: #ec4899 !important;
+}
+.cute-btn-pink:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 0px #fecdd3 !important;
+}
+
+/* ==========================================
+   MAC WINDOW SHELL CARDS
+   ========================================== */
+.mac-card {
+  background: #ffffff;
+  border: 3px solid #ffb7c5;
+  border-radius: 24px;
+  box-shadow: 0 10px 0px #fecdd3, 0 16px 30px rgba(225, 29, 72, 0.08) !important;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.mac-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 0px #fecdd3, 0 20px 35px rgba(225, 29, 72, 0.12) !important;
+}
+
+.mac-header {
+  background: #fff0f2;
+  border-bottom: 3px solid #ffb7c5;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.dots-row {
+  display: flex;
+  gap: 8px;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  border: 1.5px solid transparent;
+}
+.dot.red { background-color: #ff5f56; border-color: #e0443e; }
+.dot.yellow { background-color: #ffbd2e; border-color: #dea123; }
+.dot.green { background-color: #27c93f; border-color: #1aab29; }
+
+.mac-title {
+  width: 100%;
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #db2777;
+}
+
+/* ==========================================
+   TABLE CUSTOM STYLING
+   ========================================== */
+.jabatan-table {
+  background-color: transparent !important;
 }
 
 .jabatan-table :deep(thead tr th) {
   position: sticky;
   top: 0;
   z-index: 1;
+  background: #fff0f2 !important;
+  color: #db2777 !important;
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 800 !important;
+  border-bottom: 3px solid #ffb7c5 !important;
 }
 
 .hover-bg:hover {
-  background-color: rgba(25, 118, 210, 0.04) !important;
+  background-color: rgba(219, 39, 119, 0.05) !important;
+}
+
+/* Inputs Scoped styling */
+.jabatan-page :deep(.q-field--outlined .q-field__control) {
+  border-radius: 14px;
+  border-color: #ffb7c5;
+  transition: all 0.2s ease;
+}
+.jabatan-page :deep(.q-field--outlined .q-field__control:hover) {
+  border-color: #fda4af;
+}
+.jabatan-page :deep(.q-field--focused .q-field__control) {
+  border-color: #db2777 !important;
+  box-shadow: 0 0 0 3px rgba(219, 39, 119, 0.15);
+}
+
+.jabatan-page :deep(.q-field__label) {
+  color: #db2777;
+  font-weight: 600;
 }
 
 .transition-all {
   transition: all 0.3s ease;
-}
-
-.rounded-borders {
-  border-radius: 12px;
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <q-page class="bg-slate-50 q-pa-md q-pa-lg-xl font-inter">
+  <q-page class="bg-slate-50 q-pa-md q-pa-lg font-inter">
     <div class="premium-container mx-auto">
       <!-- =====================================================================================
            VIEW 1: LIST (DEFAULT)
@@ -2061,6 +2061,7 @@ const HOLIDAY_DATA = {
 
 .premium-container {
   max-width: 1400px;
+  width: 100%;
 }
 .bento-card {
   border-radius: 24px;
@@ -2264,5 +2265,9 @@ const HOLIDAY_DATA = {
 .cal-sunday {
   color: #ef9a9a !important;
   font-weight: 600 !important;
+}
+.premium-container {
+  max-width: 1200px;
+  width: 100%;
 }
 </style>

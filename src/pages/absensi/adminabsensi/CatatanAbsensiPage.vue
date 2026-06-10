@@ -1,5 +1,5 @@
 <template>
-  <q-page class="bg-slate-50 q-pa-md q-pa-lg-xl font-inter">
+  <q-page class="bg-slate-50 q-pa-md q-pa-lg font-inter">
     <div class="premium-container mx-auto">
       <div class="row items-center justify-between q-mb-xl">
         <div class="col-12 col-md-7">
@@ -1025,6 +1025,7 @@ onMounted(() => {
 
 .premium-container {
   max-width: 1400px;
+  width: 100%;
 }
 .bento-card {
   border-radius: 24px;
@@ -1145,5 +1146,9 @@ onMounted(() => {
     display: block;
     margin-bottom: 8px;
   }
+}
+.premium-container {
+  max-width: 1200px;
+  width: 100%;
 }
 </style>

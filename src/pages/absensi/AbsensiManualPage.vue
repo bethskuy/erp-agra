@@ -1,6 +1,6 @@
 <template>
-  <q-page class="bg-slate-50 q-pa-md q-pa-lg-xl font-inter">
-    <div class="premium-container mx-auto">
+  <q-page class="bg-slate-50 q-pa-md q-pa-lg font-inter">
+    <div class="premium-container q-mx-auto">
       <!-- HEADER SECTION -->
       <div class="row items-center justify-between q-mb-xl">
         <div class="col-12 col-md-8">
@@ -309,6 +309,7 @@ onMounted(() => {
 
 .premium-container {
   max-width: 1200px;
+  width: 100%;
 }
 .bento-card {
   border-radius: 24px;

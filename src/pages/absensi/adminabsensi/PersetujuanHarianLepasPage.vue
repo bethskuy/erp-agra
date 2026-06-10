@@ -1,5 +1,5 @@
 <template>
-  <q-page class="bg-page font-inter">
+  <q-page class="bg-page q-pa-md q-pa-lg font-inter">
     <div class="premium-container mx-auto">
       <!-- ======================================================================= -->
       <!-- VIEW 1: LIST (DEFAULT)                                                 -->
@@ -1265,6 +1265,10 @@ table.abs-tbl tr:hover {
 }
 .transition-smooth {
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+.premium-container {
+  max-width: 1200px;
+  width: 100%;
 }
 </style>
 

@@ -1,6 +1,6 @@
 <template>
-  <q-page class="bg-slate-50 q-pa-md q-pa-lg-xl font-inter">
-    <div class="premium-container mx-auto">
+  <q-page class="bg-slate-50 q-pa-md q-pa-lg font-inter">
+    <div class="premium-container q-mx-auto">
       <!-- ========================================== -->
       <!-- BAGIAN 1: HEADER PROFIL MODERN (CLEAN SAAS)-->
       <!-- ========================================== -->
@@ -582,6 +582,7 @@ onMounted(() => {
 /* LAYOUTING & BENTO GRID */
 .premium-container {
   max-width: 1200px;
+  width: 100%;
 }
 .bento-card {
   border-radius: 24px;

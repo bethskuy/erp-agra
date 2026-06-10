@@ -1,5 +1,5 @@
 <template>
-  <q-page class="bg-blue-grey-1 q-pa-md q-pa-md-lg font-pro">
+  <q-page class="karyawan-page font-pro">
     <!-- =====================================================================================
          VIEW 1: DAFTAR KARYAWAN (LIST VIEW)
          ===================================================================================== -->
@@ -7,10 +7,10 @@
       <!-- HEADER DATABASE -->
       <div class="row items-center justify-between q-mb-md q-mb-md-lg no-print animate-fade">
         <div class="col-12 col-md-auto q-mb-md q-mb-md-none">
-          <div class="text-h5 text-md-h4 text-weight-bolder text-blue-grey-10">
-            Database Karyawan
+          <div class="text-h4 text-weight-bolder text-pink-7 font-pro">
+            Database Karyawan 🧸
           </div>
-          <div class="text-caption text-md-subtitle2 text-grey-7">
+          <div class="text-caption text-md-subtitle2 text-pink-5">
             Manajemen data, berkas legalitas, dan profil biometrik karyawan AGRA
           </div>
         </div>
@@ -19,42 +19,40 @@
           <!-- Tombol Export -->
           <q-btn-dropdown
             outline
-            color="blue-grey-8"
+            color="pink-6"
             label="Export Master"
             icon="download"
-            rounded
-            class="col col-md-auto"
+            class="col col-md-auto cute-btn-main font-pro"
           >
             <q-list>
               <q-item clickable v-ripple @click="exportToExcel">
                 <q-item-section avatar>
                   <q-icon name="description" color="green-8" />
                 </q-item-section>
-                <q-item-section>Excel (.xlsx)</q-item-section>
+                <q-item-section class="text-weight-bold text-pink-7">Excel (.xlsx)</q-item-section>
               </q-item>
               <q-item clickable v-ripple @click="exportToPDF">
                 <q-item-section avatar>
                   <q-icon name="picture_as_pdf" color="red-8" />
                 </q-item-section>
-                <q-item-section>PDF (.pdf)</q-item-section>
+                <q-item-section class="text-weight-bold text-pink-7">PDF (.pdf)</q-item-section>
               </q-item>
             </q-list>
           </q-btn-dropdown>
 
           <q-btn
-            color="primary"
-            label="Tambah Karyawan"
+            color="pink-6"
+            label="Tambah Karyawan 🧸"
             icon="add"
             @click="openDialog"
             unelevated
-            rounded
-            class="col col-md-auto shadow-3 text-weight-bold"
+            class="col col-md-auto cute-btn-pink text-weight-bold font-pro"
           />
         </div>
       </div>
 
       <!-- FILTER & SEARCH AREA -->
-      <q-card flat bordered class="q-mb-md shadow-1 rounded-borders no-print animate-fade">
+      <q-card flat class="cute-search-card q-mb-md no-print animate-fade font-pro">
         <q-card-section class="q-py-sm">
           <div class="row items-center q-col-gutter-sm q-col-gutter-md-md">
             <div class="col-12 col-md-5">
@@ -67,7 +65,7 @@
                 bg-color="white"
               >
                 <template v-slot:prepend>
-                  <q-icon name="search" color="primary" />
+                  <q-icon name="search" color="pink-6" />
                 </template>
                 <template v-slot:append v-if="filter">
                   <q-icon name="close" @click="filter = ''" class="cursor-pointer" />
@@ -75,20 +73,24 @@
               </q-input>
             </div>
             <q-space class="gt-sm" />
-            <div class="col-12 col-md-auto text-center text-md-right text-caption text-grey-6">
+            <div class="col-12 col-md-auto text-center text-md-right text-caption text-pink-5 text-weight-bold">
               Total:
-              <span class="text-weight-bold text-primary">{{ karyawanList.length }}</span> Karyawan
+              <span class="text-weight-bold text-pink-7 font-pro" style="font-size: 15px;">{{ karyawanList.length }}</span> Karyawan
             </div>
           </div>
         </q-card-section>
       </q-card>
 
       <!-- TABLE LIST KARYAWAN -->
-      <q-card
-        flat
-        bordered
-        class="shadow-2 rounded-borders overflow-hidden no-print animate-fade-up"
-      >
+      <div class="mac-card q-mb-lg no-print animate-fade-up">
+        <div class="mac-header">
+          <div class="dots-row">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+          </div>
+          <div class="mac-title">📂 DATABASE KARYAWAN 📂</div>
+        </div>
         <q-table
           :rows="karyawanList"
           :columns="columns"
@@ -208,7 +210,7 @@
             </div>
           </template>
         </q-table>
-      </q-card>
+      </div>
     </template>
 
     <!-- =====================================================================================
@@ -222,17 +224,15 @@
           icon="arrow_back"
           label="Kembali ke List"
           @click="currentView = 'list'"
-          color="blue-grey-8"
-          rounded
-          class="bg-white shadow-soft border-subtle text-weight-bold"
+          color="pink-6"
+          class="cute-btn-main font-pro"
         />
         <q-space />
         <q-btn
           unelevated
           icon="print"
-          color="indigo-10"
           label="Cetak ID Card Karyawan"
-          class="rounded-8 font-bold text-weight-bold q-px-lg shadow-md"
+          class="cute-btn-pink font-pro q-px-lg"
           @click="cetakIdCardLokal"
         />
       </div>
@@ -242,7 +242,7 @@
         <div class="col-12 col-md-4 flex flex-center">
           <div class="column items-center full-width">
             <div
-              class="text-subtitle1 text-weight-bolder text-blue-grey-9 q-mb-sm text-center uppercase tracking-wide"
+              class="text-subtitle1 text-weight-bolder text-pink-7 q-mb-sm text-center uppercase tracking-wide font-pro"
             >
               Access Badge Resmi Perusahaan
             </div>
@@ -250,7 +250,7 @@
             <div id="digital-id-card-badge" class="id-card-container shadow-24 relative-position">
               <div class="lanyard-hole"></div>
 
-              <div class="id-card-header text-center column flex-center">
+              <div class="id-card-header text-center column flex-center font-pro">
                 <q-icon name="corporate_fare" size="28px" class="q-mb-xs" />
                 <div class="id-company-title">PT AGRA ABHINAYA PERKASA</div>
                 <div class="id-company-sub">Sistem Integrasi ERP Cloud</div>
@@ -266,16 +266,16 @@
                   "
                   class="id-photo-element"
                 />
-                <div class="id-lock-tag">
+                <div class="id-lock-tag font-pro">
                   <q-icon name="verified" size="10px" class="q-mr-xs" />BIOMETRIC VALID
                 </div>
               </div>
 
-              <div class="id-card-info text-center">
+              <div class="id-card-info text-center font-pro">
                 <div class="id-employee-name uppercase">{{ selectedKaryawan.nama }}</div>
                 <div class="id-employee-job">{{ selectedKaryawan.jabatan }}</div>
                 <q-badge
-                  color="indigo-10"
+                  color="pink-6"
                   text-color="white"
                   class="q-px-sm text-weight-bold text-overline font-mono q-mt-xs"
                 >
@@ -288,7 +288,7 @@
                 <div class="qr-white-wrapper shadow-soft">
                   <img
                     :src="
-                      'https://api.qrserver.com/v1/create-qr-code/?size=120x120&color=1a237e&data=' +
+                      'https://api.qrserver.com/v1/create-qr-code/?size=120x120&color=db2777&data=' +
                       selectedKaryawan.nik
                     "
                     class="qr-element"
@@ -297,18 +297,22 @@
                 <div class="id-employee-nik font-mono">{{ selectedKaryawan.nik }}</div>
               </div>
 
-              <div class="id-card-footer text-center">KARTU IDENTITAS DIGITAL RESMI PERUSAHAAN</div>
+              <div class="id-card-footer text-center font-pro">KARTU IDENTITAS DIGITAL RESMI PERUSAHAAN</div>
             </div>
           </div>
         </div>
 
         <!-- DETAILS BIODATA TABS -->
         <div class="col-12 col-md-8">
-          <q-card
-            flat
-            bordered
-            class="rounded-16 shadow-soft bg-white border-subtle overflow-hidden"
-          >
+          <div class="mac-card overflow-hidden">
+            <div class="mac-header">
+              <div class="dots-row">
+                <span class="dot red"></span>
+                <span class="dot yellow"></span>
+                <span class="dot green"></span>
+              </div>
+              <div class="mac-title">🧸 DATA DETAIL PROFIL 🧸</div>
+            </div>
             <!-- Header Nama & Avatar Hero -->
             <div
               class="saas-gradient-primary relative-position flex items-end q-px-lg q-py-md text-white"
@@ -341,13 +345,13 @@
             <q-tabs
               v-model="tab"
               dense
-              class="text-grey-7 bg-slate-50 border-bottom-subtle"
-              active-color="primary"
-              indicator-color="primary"
+              class="text-pink-4 bg-pink-1/10 border-bottom-subtle"
+              active-color="pink-7"
+              indicator-color="pink-7"
               align="justify"
               narrow-indicator
             >
-              <q-tab name="personal" label="Personal" class="text-weight-bold" />
+              <q-tab name="personal" label="Personal" class="text-weight-bold font-pro" />
               <q-tab name="kepegawaian" label="Kepegawaian" class="text-weight-bold" />
               <q-tab name="bpjs" label="BPJS & Rekening" class="text-weight-bold" />
               <q-tab name="dokumen" label="Dokumen" class="text-weight-bold" />
@@ -619,10 +623,10 @@
                 </q-list>
               </q-tab-panel>
             </q-tab-panels>
-          </q-card>
+          </div>
         </div>
       </div>
-      <div class="q-py-xl"></div>
+      <div class="q-py-md"></div>
     </template>
 
     <!-- =====================================================================================
@@ -634,29 +638,26 @@
           <q-btn
             flat
             round
-            color="indigo-10"
             icon="arrow_back"
             @click="currentView = 'list'"
-            class="q-mr-md bg-white shadow-1"
+            class="q-mr-md cute-btn-main"
           />
           <div>
             <div
-              class="text-overline text-slate-500 text-bold tracking-widest q-mb-xs leading-none"
+              class="text-overline text-pink-4 text-bold tracking-widest q-mb-xs leading-none font-pro"
             >
               DATABASE KARYAWAN
             </div>
-            <div class="text-h4 text-weight-bolder text-indigo-10 leading-tight uppercase">
-              {{ form.id ? 'Perbarui Data Karyawan' : 'Registrasi Baru' }}
+            <div class="text-h4 text-weight-bolder text-pink-7 leading-tight uppercase font-pro">
+              {{ form.id ? 'Perbarui Data Karyawan' : 'Registrasi Baru 🧸' }}
             </div>
           </div>
         </div>
         <q-btn
-          label="SIMPAN DATA"
+          label="SIMPAN DATA 🧸"
           @click="saveKaryawan"
           unelevated
-          rounded
-          class="text-white shadow-6 q-px-xl q-py-sm text-weight-bold"
-          style="background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%)"
+          class="cute-btn-pink q-px-xl q-py-sm text-weight-bold"
           :loading="submitting"
         />
       </div>
@@ -667,7 +668,7 @@
             <!-- INPUT KOLOM KIRI (7/12) -->
             <div class="col-12 col-md-7">
               <!-- CARD 1: INFORMASI PERSONAL -->
-              <q-card flat bordered class="rounded-borders q-pa-lg bg-white shadow-soft q-mb-lg">
+              <q-card flat class="cute-form-card q-pa-lg q-mb-lg">
                 <div class="row items-center q-mb-lg border-bottom-subtle q-pb-md">
                   <q-avatar
                     size="36px"
@@ -745,7 +746,7 @@
               </q-card>
 
               <!-- CARD 2: KEPEGAWAIAN & SHIFT DINAMIS -->
-              <q-card flat bordered class="rounded-borders q-pa-lg bg-white shadow-soft q-mb-lg">
+              <q-card flat class="cute-form-card q-pa-lg q-mb-lg">
                 <div class="row items-center q-mb-lg border-bottom-subtle q-pb-md">
                   <q-avatar
                     size="36px"
@@ -835,7 +836,7 @@
               </q-card>
 
               <!-- CARD 3: BPJS & REKENING -->
-              <q-card flat bordered class="rounded-borders q-pa-lg bg-white shadow-soft q-mb-lg">
+              <q-card flat class="cute-form-card q-pa-lg q-mb-lg">
                 <div class="row items-center q-mb-lg border-bottom-subtle q-pb-md">
                   <q-avatar
                     size="36px"
@@ -888,7 +889,7 @@
               </q-card>
 
               <!-- CARD 4: AKUN SISTEM -->
-              <q-card flat bordered class="rounded-borders q-pa-lg bg-white shadow-soft">
+              <q-card flat class="cute-form-card q-pa-lg q-mb-lg">
                 <div class="row items-center q-mb-lg border-bottom-subtle q-pb-md">
                   <q-avatar
                     size="36px"
@@ -941,7 +942,7 @@
 
             <!-- INPUT KOLOM KANAN (5/12) -->
             <div class="col-12 col-md-5">
-              <q-card flat bordered class="rounded-borders q-pa-lg bg-white shadow-soft">
+              <q-card flat class="cute-form-card q-pa-lg q-mb-lg">
                 <!-- Divisi -->
                 <div class="row items-center q-mb-lg border-bottom-subtle q-pb-md">
                   <q-avatar
@@ -1247,35 +1248,18 @@
           display: flex;
           flex-direction: column;
         "
-        class="rounded-24 bg-white overflow-hidden shadow-soft"
+        class="cute-dialog-card overflow-hidden"
       >
-        <q-card-section class="row items-center q-pb-none q-pt-lg q-px-lg">
-          <div class="row items-center">
-            <q-avatar
-              color="orange-1"
-              text-color="orange-9"
-              icon="schedule"
-              size="42px"
-              class="q-mr-md"
-            />
-            <div>
-              <div class="text-h6 text-weight-bold text-blue-grey-10 line-height-1">
-                Atur Shift &amp; Lokasi Dinas
-              </div>
-              <div class="text-caption text-blue-grey-5">
-                Atur jam kerja per hari, bisa campur shift berbeda tiap hari.
-              </div>
+        <q-card-section class="q-pa-none">
+          <div class="mac-header row items-center justify-between no-wrap">
+            <div class="dots-row col-auto">
+              <span class="dot red"></span>
+              <span class="dot yellow"></span>
+              <span class="dot green"></span>
             </div>
+            <div class="mac-title col text-center text-weight-bold text-pink-7">🕒 SHIFT &amp; LOKASI 🕒</div>
+            <q-btn icon="close" flat round dense v-close-popup color="pink-7" class="col-auto bg-pink-1" size="sm" />
           </div>
-          <q-space /><q-btn
-            icon="close"
-            flat
-            round
-            dense
-            v-close-popup
-            color="blue-grey-4"
-            class="bg-grey-2"
-          />
         </q-card-section>
 
         <q-card-section class="q-pa-lg q-pt-md" style="overflow-y: auto; flex: 1 1 auto">
@@ -1438,20 +1422,19 @@
           </div>
         </q-card-section>
 
-        <q-card-actions align="right" class="bg-grey-1 q-pa-md border-top">
+        <q-card-actions align="right" class="q-pa-md border-top-dashed">
           <q-btn
             flat
             label="Batal"
-            color="blue-grey-6"
+            color="pink-6"
             v-close-popup
-            class="text-weight-bold rounded-8 q-px-md"
+            class="cute-btn-main font-pro"
           />
           <q-btn
             unelevated
-            label="SIMPAN PERUBAHAN"
-            color="primary"
+            label="SIMPAN PERUBAHAN ✨"
             @click="saveShiftSettings"
-            class="text-weight-bold rounded-12 q-px-xl shadow-soft-primary"
+            class="cute-btn-pink font-pro"
           />
         </q-card-actions>
       </q-card>
@@ -2047,54 +2030,250 @@ const columns = [
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&display=swap');
+
+.karyawan-page {
+  padding: 16px;
+  background-color: #ffe4e6; /* Cute pastel rose pink background */
+  background-image: 
+    radial-gradient(#ffd1dc 2px, transparent 2px), 
+    radial-gradient(#ffd1dc 2px, transparent 2px);
+  background-size: 32px 32px;
+  background-position: 0 0, 16px 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+@media (min-width: 600px) {
+  .karyawan-page {
+    padding: 24px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .karyawan-page {
+    padding: 32px 40px;
+  }
+}
+
 .font-pro {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Fredoka', sans-serif;
 }
-.rounded-borders {
-  border-radius: 12px;
-}
-.rounded-16 {
-  border-radius: 16px;
-}
-.rounded-20 {
+
+/* ==========================================
+   CUTE SHADOWS, CARDS, BUBBLES
+   ========================================== */
+.cute-search-card {
+  background: #ffffff;
+  border: 2.5px solid #ffb7c5;
   border-radius: 20px;
+  box-shadow: 0 6px 0px #fecdd3 !important;
 }
-.rounded-24 {
+
+.cute-form-card {
+  background: #ffffff;
+  border: 2.5px solid #ffb7c5;
   border-radius: 24px;
+  box-shadow: 0 6px 0px #fecdd3 !important;
 }
-.border-subtle {
-  border: 1px solid #f1f5f9 !important;
+
+.cute-dialog-card {
+  background: #ffffff;
+  border: 3.5px solid #ffb7c5 !important;
+  border-radius: 28px !important;
+  box-shadow: 0 10px 0px #fecdd3 !important;
 }
-.border-bottom-subtle {
-  border-bottom: 1px solid #f1f5f9 !important;
+
+.border-top-dashed {
+  border-top: 2px dashed #ffccd5;
 }
-.hover-bg:hover {
-  background-color: rgba(25, 118, 210, 0.04) !important;
+
+/* ==========================================
+   CUTE BUTTONS
+   ========================================== */
+.cute-btn-main {
+  background-color: #fff1f2 !important;
+  border: 2.5px solid #fda4af !important;
+  border-radius: 50px !important;
+  color: #db2777 !important;
+  box-shadow: 0 4px 0px #fecdd3 !important;
+  transition: all 0.2s ease;
+  font-weight: 700;
 }
-.shadow-soft {
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+.cute-btn-main:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0px #fecdd3 !important;
+  background-color: #ffe4e6 !important;
 }
+.cute-btn-main:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 0px #fecdd3 !important;
+}
+
+.cute-btn-pink {
+  background-color: #db2777 !important;
+  border: 2.5px solid #be185d !important;
+  border-radius: 50px !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 0px #fecdd3 !important;
+  transition: all 0.2s ease;
+  font-weight: 700;
+}
+.cute-btn-pink:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0px #fecdd3 !important;
+  background-color: #ec4899 !important;
+}
+.cute-btn-pink:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 0px #fecdd3 !important;
+}
+
+/* ==========================================
+   MAC WINDOW SHELL CARDS
+   ========================================== */
+.mac-card {
+  background: #ffffff;
+  border: 3px solid #ffb7c5;
+  border-radius: 24px;
+  box-shadow: 0 10px 0px #fecdd3, 0 16px 30px rgba(225, 29, 72, 0.08) !important;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.mac-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 0px #fecdd3, 0 20px 35px rgba(225, 29, 72, 0.12) !important;
+}
+
+.mac-header {
+  background: #fff0f2;
+  border-bottom: 3px solid #ffb7c5;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.dots-row {
+  display: flex;
+  gap: 8px;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  border: 1.5px solid transparent;
+}
+.dot.red { background-color: #ff5f56; border-color: #e0443e; }
+.dot.yellow { background-color: #ffbd2e; border-color: #dea123; }
+.dot.green { background-color: #27c93f; border-color: #1aab29; }
+
+.mac-title {
+  width: 100%;
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #db2777;
+}
+
+/* ==========================================
+   KARYAWAN TABLE CUSTOM STYLING
+   ========================================== */
+.karyawan-table {
+  background-color: transparent !important;
+}
+
 .karyawan-table :deep(thead tr th) {
   position: sticky;
   top: 0;
   z-index: 1;
-  background: #263238;
-  color: white;
-}
-.leading-none {
-  line-height: 1;
+  background: #fff0f2 !important;
+  color: #db2777 !important;
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 800 !important;
+  border-bottom: 3px solid #ffb7c5 !important;
 }
 
+.hover-bg:hover {
+  background-color: rgba(219, 39, 119, 0.05) !important;
+}
+
+.border-subtle {
+  border: 1px solid #ffe4e6 !important;
+}
+
+.border-bottom-subtle {
+  border-bottom: 1px solid #ffe4e6 !important;
+}
+
+/* Inputs Scoped styling */
+.karyawan-page :deep(.q-field--outlined .q-field__control) {
+  border-radius: 14px;
+  border-color: #ffb7c5;
+  transition: all 0.2s ease;
+}
+.karyawan-page :deep(.q-field--outlined .q-field__control:hover) {
+  border-color: #fda4af;
+}
+.karyawan-page :deep(.q-field--focused .q-field__control) {
+  border-color: #db2777 !important;
+  box-shadow: 0 0 0 3px rgba(219, 39, 119, 0.15);
+}
+
+.karyawan-page :deep(.q-field__label) {
+  color: #db2777;
+  font-weight: 600;
+}
+
+/* ==========================================
+   BIODATA DETAIL STYLING
+   ========================================== */
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.detail-table td {
+  padding: 14px 8px;
+  font-size: 13.5px;
+  border-bottom: 1px dashed #ffe4e6;
+}
+.detail-table tr:last-child td {
+  border-bottom: none;
+}
+.detail-table td:first-child {
+  width: 35%;
+  color: #db2777;
+  font-weight: 700;
+}
+.detail-table td:last-child {
+  color: #4c0519;
+  font-weight: 600;
+}
+
+.saas-gradient-primary {
+  background: linear-gradient(135deg, #db2777 0%, #ec4899 100%) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.border-white-5 {
+  border: 4px solid #fff;
+  box-shadow: 0 4px 10px rgba(219, 39, 119, 0.15);
+}
+
+/* ==========================================
+   LANYARD ACCESS BADGE (HYBRID CUTE PINK SYSTEM)
+   ========================================== */
 .id-card-container {
   width: 280px;
   height: 440px;
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-radius: 18px;
-  border: 4px solid #94a3b8;
-  padding: 14px;
+  background: #ffffff;
+  border-radius: 24px;
+  border: 4px solid #ffb7c5;
+  padding: 16px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -2102,349 +2281,143 @@ const columns = [
   justify-content: space-between;
   overflow: hidden;
   position: relative;
-  box-shadow:
-    0 15px 35px rgba(15, 23, 42, 0.15),
-    inset 0 0 20px rgba(99, 102, 241, 0.06);
+  box-shadow: 0 15px 35px rgba(219, 39, 119, 0.12), inset 0 0 20px rgba(219, 39, 119, 0.05);
 }
-.bezel-screw {
-  position: absolute;
-  width: 7px;
-  height: 7px;
-  background: radial-gradient(circle, #cbd5e1 30%, #475569 80%);
-  border-radius: 50%;
-  border: 0.5px solid #94a3b8;
-  z-index: 4;
-}
-.bezel-screw.tl {
-  top: 6px;
-  left: 6px;
-}
-.bezel-screw.tr {
-  top: 6px;
-  right: 6px;
-}
-.bezel-screw.bl {
-  bottom: 6px;
-  left: 6px;
-}
-.bezel-screw.br {
-  bottom: 6px;
-  right: 6px;
-}
-.bezel-hanger-mount {
-  position: absolute;
-  top: -6px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 48px;
-  height: 12px;
-  background: linear-gradient(180deg, #94a3b8 0%, #475569 100%);
-  border: 1px solid #cbd5e1;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 5;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-}
-.bezel-hanger-core {
-  width: 22px;
-  height: 3px;
-  background: #1e293b;
-  border-radius: 2px;
-}
-.cyber-grid-overlay {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(99, 102, 241, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(99, 102, 241, 0.04) 1px, transparent 1px);
-  background-size: 14px 14px;
-  pointer-events: none;
-  z-index: 1;
-}
-.cyber-glow-blue {
-  position: absolute;
-  top: -40px;
-  left: -40px;
-  width: 140px;
-  height: 140px;
-  background: radial-gradient(circle, rgba(6, 182, 212, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
-  pointer-events: none;
-  z-index: 1;
-}
-.cyber-glow-purple {
-  position: absolute;
-  bottom: -40px;
-  right: -40px;
-  width: 140px;
-  height: 140px;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, rgba(255, 255, 255, 0) 70%);
-  pointer-events: none;
-  z-index: 1;
-}
-.cyber-status-bar {
-  font-size: 7px;
-  font-weight: 800;
-  color: #64748b;
-  letter-spacing: 0.8px;
+
+.lanyard-hole {
+  width: 35px;
+  height: 8px;
+  background: #ffe4e6;
+  border: 2px solid #ffb7c5;
+  border-radius: 10px;
+  margin-bottom: 6px;
   z-index: 3;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
-  padding: 4px 6px 2px 6px;
-  margin-top: 4px;
 }
-.status-indicator {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-.status-pulse-dot {
-  width: 4px;
-  height: 4px;
-  background-color: #06b6d4;
-  border-radius: 50%;
-  box-shadow: 0 0 6px #06b6d4;
-  animation: pulseNeon 1.5s infinite ease-in-out;
-}
+
 .id-card-header {
   width: 100%;
+  color: #db2777;
   z-index: 3;
-  margin-top: 2px;
 }
-.id-logo-box {
-  width: 26px;
-  height: 26px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.id-logo-element {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
+
 .id-company-title {
   font-size: 11px;
   font-weight: 900;
-  letter-spacing: 1.2px;
-  color: #0f172a;
+  letter-spacing: 0.5px;
+  color: #be185d;
 }
+
 .id-company-sub {
   font-size: 8px;
-  color: #4f46e5;
-  font-weight: 800;
-  letter-spacing: 0.8px;
+  color: #db2777;
+  font-weight: 700;
+  letter-spacing: 0.5px;
 }
-.id-card-photo-wrapper {
-  z-index: 3;
-  margin: 4px 0;
-}
-.photo-glow-ring {
-  position: absolute;
-  width: 116px;
-  height: 116px;
-  border-radius: 50%;
-  background: conic-gradient(from 0deg, #6366f1, #06b6d4, #6366f1);
-  animation: spinRing 5s linear infinite;
-  opacity: 0.8;
-  filter: blur(1.5px);
-}
-.biometric-scanner-reticle {
-  position: absolute;
-  width: 122px;
-  height: 122px;
-  border-radius: 50%;
-  border: 1px dashed rgba(6, 182, 212, 0.6);
-  animation: pulseNeon 2s infinite ease-in-out;
-  pointer-events: none;
-}
-.scanner-sweep-line {
-  position: absolute;
-  width: 110px;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, #06b6d4, transparent);
-  box-shadow: 0 0 8px #06b6d4;
-  z-index: 3;
-  animation: sweepAction 3.5s infinite ease-in-out;
-}
+
 .id-card-photo-box {
-  width: 106px;
-  height: 106px;
-  border: 3px solid #ffffff !important;
-  background: #f8fafc;
+  width: 110px;
+  height: 110px;
+  border: 4.5px solid #ffccd5 !important;
+  background: #fff0f2;
   z-index: 2;
-  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.12);
+  box-shadow: 0 4px 12px rgba(219, 39, 119, 0.1);
   box-sizing: border-box;
   border-radius: 50% !important;
   overflow: hidden;
+  position: relative;
 }
+
 .id-photo-element {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 50%;
 }
-.id-official-badge {
+
+.id-lock-tag {
   position: absolute;
-  bottom: -6px;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-  color: #22d3ee;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #db2777;
+  color: #ffffff;
   font-size: 8px;
-  font-weight: 900;
-  text-align: center;
-  padding: 3px 12px;
-  border-radius: 20px;
-  letter-spacing: 1px;
-  box-shadow: 0 4px 10px rgba(6, 182, 212, 0.25);
-  z-index: 4;
-  text-transform: uppercase;
-  border: 1.5px solid #06b6d4;
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+  border: 1.5px solid #be185d;
 }
+
 .id-card-info {
   width: 100%;
   z-index: 3;
+  margin-top: 4px;
 }
+
 .id-employee-name {
   font-size: 14px;
-  font-weight: 900;
-  color: #0f172a;
+  font-weight: 800;
+  color: #be185d;
   letter-spacing: 0.5px;
-  line-height: 1.2;
 }
+
 .id-employee-job {
   font-size: 10px;
-  color: #475569;
-  font-weight: 700;
-  margin-top: 1px;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
-.id-custom-divisi-tag {
-  font-size: 8px;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  padding: 3px 14px;
-  border-radius: 6px;
-  box-sizing: border-box;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.5);
-}
-.id-custom-divisi-tag.konstruksi {
-  background: linear-gradient(135deg, rgba(79, 70, 229, 0.08) 0%, rgba(99, 102, 241, 0.12) 100%);
-  color: #4f46e5;
-  border: 1.2px solid rgba(79, 70, 229, 0.35);
-}
-.id-custom-divisi-tag.manufaktur {
-  background: linear-gradient(135deg, rgba(236, 72, 153, 0.08) 0%, rgba(219, 39, 119, 0.12) 100%);
   color: #db2777;
-  border: 1.2px solid rgba(236, 72, 153, 0.35);
-}
-.id-custom-divisi-tag.staff {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.12) 100%);
-  color: #059669;
-  border: 1.2px solid rgba(16, 185, 129, 0.35);
-}
-.qr-cyber-wrapper {
-  background: #ffffff;
-  padding: 6px;
-  border-radius: 10px;
-  border: 1px solid #cbd5e1;
-  position: relative;
-  z-index: 3;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
-}
-.qr-element {
-  width: 58px;
-  height: 58px;
-  display: block;
-}
-.corner-accent {
-  position: absolute;
-  width: 6px;
-  height: 6px;
-  border-color: #06b6d4;
-  border-style: solid;
-  pointer-events: none;
-}
-.corner-accent.tl {
-  top: -1px;
-  left: -1px;
-  border-width: 1.5px 0 0 1.5px;
-}
-.corner-accent.tr {
-  top: -1px;
-  right: -1px;
-  border-width: 1.5px 1.5px 0 0;
-}
-.corner-accent.bl {
-  bottom: -1px;
-  left: -1px;
-  border-width: 0 0 1.5px 1.5px;
-}
-.corner-accent.br {
-  bottom: -1px;
-  right: -1px;
-  border-width: 0 1.5px 1.5px 0;
-}
-.id-employee-nik {
-  font-size: 11px;
-  font-weight: 900;
-  color: #1e1b4b;
-  margin-top: 4px;
-  letter-spacing: 0.8px;
-  font-family: 'Courier New', Courier, monospace;
-  background: rgba(99, 102, 241, 0.07);
-  padding: 1.5px 8px;
-  border-radius: 4px;
-  border: 1px solid rgba(99, 102, 241, 0.15);
-  z-index: 3;
-}
-.id-card-footer {
-  width: 100%;
-  background: linear-gradient(90deg, #1e1b4b 0%, #312e81 100%);
-  color: #22d3ee;
-  font-size: 7px;
-  font-weight: 900;
-  padding: 4px 0;
-  border-radius: 5px;
-  letter-spacing: 0.8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  z-index: 3;
+  font-weight: 700;
   text-transform: uppercase;
 }
 
-@keyframes spinRing {
-  100% {
-    transform: rotate(360deg);
-  }
+.qr-white-wrapper {
+  background: #ffffff;
+  padding: 4px;
+  border-radius: 12px;
+  border: 2.5px solid #ffccd5;
+  z-index: 3;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05);
 }
-@keyframes pulseNeon {
-  0%,
-  100% {
-    opacity: 0.6;
-    box-shadow: 0 0 4px rgba(6, 182, 212, 0.3);
-  }
-  50% {
-    opacity: 1;
-    box-shadow: 0 0 10px rgba(6, 182, 212, 0.7);
-  }
+
+.qr-element {
+  width: 60px;
+  height: 60px;
 }
-@keyframes sweepAction {
-  0%,
-  100% {
-    top: 4px;
-    opacity: 0.2;
-  }
-  50% {
-    top: 102px;
-    opacity: 0.9;
-  }
+
+.id-employee-nik {
+  font-size: 11px;
+  font-weight: 700;
+  color: #be185d;
+  margin-top: 4px;
+  font-family: 'Courier New', monospace;
+  background: #fff1f2;
+  padding: 2px 10px;
+  border-radius: 6px;
+  border: 1.5px dashed #fda4af;
+}
+
+.id-card-footer {
+  width: 100%;
+  background: #db2777;
+  color: #ffffff;
+  font-size: 7px;
+  font-weight: 900;
+  padding: 4px 0;
+  border-radius: 8px;
+  letter-spacing: 0.8px;
+}
+
+.profile-verified-photo-box {
+  width: 140px;
+  height: 140px;
+  border: 4px solid #ffccd5;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #fff5f6;
+  box-shadow: 0 6px 15px rgba(219, 39, 119, 0.1);
+}
+.profile-verified-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .landscape-paper {
@@ -2460,7 +2433,7 @@ const columns = [
   margin-top: 10px;
 }
 .pdf-export-table th {
-  background-color: #1a237e;
+  background-color: #db2777;
   color: #ffffff;
   padding: 10px;
   font-size: 11px;
@@ -2468,28 +2441,7 @@ const columns = [
 .pdf-export-table td {
   padding: 10px;
   font-size: 10px;
-  border: 1px solid #e0e0e0;
-}
-
-.detail-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-.detail-table td {
-  padding: 12px 0;
-  font-size: 13.5px;
-  border-bottom: 1px solid #f1f5f9;
-}
-.detail-table tr:last-child td {
-  border-bottom: none;
-}
-.detail-table td:first-child {
-  width: 35%;
-  color: #64748b;
-  font-weight: 500;
-}
-.detail-table td:last-child {
-  color: #1e293b;
+  border: 1px solid #ffe4e6;
 }
 
 .shift-row-item {
@@ -2497,28 +2449,5 @@ const columns = [
 }
 .shift-row-item:last-child {
   border-bottom: none !important;
-}
-.saas-gradient-primary {
-  background: linear-gradient(135deg, #1a237e 0%, #3b82f6 100%);
-  position: relative;
-  overflow: hidden;
-}
-.border-white-5 {
-  border: 4px solid white;
-  box-sizing: border-box;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-.profile-verified-photo-box {
-  width: 140px;
-  height: 140px;
-  border: 4px solid #009688;
-  border-radius: 50%;
-  overflow: hidden;
-  background: #f8fafc;
-}
-.profile-verified-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 </style>

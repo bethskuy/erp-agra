@@ -1,20 +1,20 @@
 <template>
-  <q-page class="bg-blue-grey-1 q-pa-md q-pa-md-lg font-pro">
+  <q-page class="akses-page font-pro">
     <!-- =====================================================================================
          VIEW 1: LIST KARYAWAN
          ===================================================================================== -->
     <template v-if="currentView === 'list'">
       <div class="row items-center justify-between q-mb-lg">
         <div>
-          <div class="text-h4 text-weight-bolder text-blue-grey-10">Manajemen Hak Akses</div>
-          <div class="text-subtitle2 text-grey-7">
+          <div class="text-h4 text-weight-bolder text-pink-7 font-pro">Manajemen Hak Akses 🔐</div>
+          <div class="text-subtitle2 text-pink-5">
             Konfigurasi izin modul dan fitur secara spesifik per karyawan
           </div>
         </div>
       </div>
 
       <!-- SEARCH BAR -->
-      <q-card flat bordered class="q-mb-md shadow-1 rounded-borders">
+      <q-card flat class="cute-search-card q-mb-md">
         <q-card-section class="q-py-sm">
           <div class="row items-center q-col-gutter-md">
             <div class="col-12 col-md-4">
@@ -27,7 +27,7 @@
                 bg-color="white"
               >
                 <template v-slot:prepend>
-                  <q-icon name="search" color="primary" />
+                  <q-icon name="search" color="pink-6" />
                 </template>
                 <template v-slot:append v-if="filter">
                   <q-icon name="close" @click="filter = ''" class="cursor-pointer" />
@@ -35,15 +35,23 @@
               </q-input>
             </div>
             <q-space class="gt-sm" />
-            <div class="text-caption text-grey-6 q-pr-md">
-              Klik pada baris karyawan untuk mengatur izin spesifik
+            <div class="text-caption text-pink-5 text-weight-bold q-pr-md">
+              Klik pada baris karyawan untuk mengatur izin spesifik 🧸
             </div>
           </div>
         </q-card-section>
       </q-card>
 
       <!-- TABLE LIST KARYAWAN -->
-      <q-card flat bordered class="shadow-2 rounded-borders overflow-hidden">
+      <div class="mac-card q-mb-lg">
+        <div class="mac-header">
+          <div class="dots-row">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+          </div>
+          <div class="mac-title">🔑 MATRIX AKSES KARYAWAN 🔑</div>
+        </div>
         <q-table
           :rows="karyawanList"
           :columns="columns"
@@ -128,7 +136,7 @@
             </q-tr>
           </template>
         </q-table>
-      </q-card>
+      </div>
     </template>
 
     <!-- =====================================================================================
@@ -141,13 +149,12 @@
             flat
             round
             icon="arrow_back"
-            color="blue-grey-8"
             @click="currentView = 'list'"
-            class="q-mr-md"
+            class="q-mr-md cute-btn-main"
           />
           <div>
-            <div class="text-h5 text-weight-bold text-blue-grey-10">Konfigurasi Hak Akses</div>
-            <div class="text-caption text-grey-7">
+            <div class="text-h5 text-weight-bold text-pink-7 font-pro">Konfigurasi Hak Akses 🔐</div>
+            <div class="text-caption text-pink-5">
               Atur izin CRUD dan Approve untuk setiap menu di dalam modul
             </div>
           </div>
@@ -155,21 +162,18 @@
 
         <q-btn
           @click="handleSave"
-          color="indigo-10"
-          class="q-px-xl text-weight-bold shadow-4"
-          unelevated
-          rounded
+          class="cute-btn-pink q-px-xl text-weight-bold"
           :loading="loading"
           icon="save"
-          label="SIMPAN PERUBAHAN"
+          label="SIMPAN PERUBAHAN ✨"
         />
       </div>
 
       <div class="row q-col-gutter-lg">
         <!-- Sidebar Info Karyawan -->
         <div class="col-12 col-md-4">
-          <q-card flat bordered class="rounded-borders sticky-card shadow-1">
-            <q-card-section class="bg-blue-grey-10 text-white text-center q-pa-lg">
+          <q-card flat class="cute-form-card sticky-card q-mb-lg">
+            <q-card-section class="saas-gradient-primary text-white text-center q-pa-lg rounded-top-24">
               <q-avatar size="100px" class="shadow-5 border-white-2 q-mb-md">
                 <img :src="selectedKaryawan.fotoUrl || 'https://cdn.quasar.dev/img/avatar.png'" />
               </q-avatar>
@@ -260,7 +264,15 @@
         <!-- Matrix Editor -->
         <div class="col-12 col-md-8">
           <template v-if="isSuperRole(selectedKaryawan)">
-            <q-card flat bordered class="rounded-borders overflow-hidden shadow-2">
+            <div class="mac-card overflow-hidden">
+              <div class="mac-header">
+                <div class="dots-row">
+                  <span class="dot red"></span>
+                  <span class="dot yellow"></span>
+                  <span class="dot green"></span>
+                </div>
+                <div class="mac-title">👑 OTORITAS FULL ACCESS 👑</div>
+              </div>
               <div class="q-pa-xl text-center">
                 <q-icon name="admin_panel_settings" size="80px" color="green-8" class="q-mb-md" />
                 <div class="text-h5 text-weight-bold text-green-9 q-mb-sm">
@@ -314,27 +326,28 @@
                 <div class="q-mt-xl">
                   <q-btn
                     unelevated
-                    color="green-10"
+                    color="pink-6"
                     icon="save"
-                    rounded
-                    label="SIMPAN (KONFIRMASI FULL ACCESS)"
+                    label="SIMPAN (KONFIRMASI FULL ACCESS) ✨"
                     @click="handleSave"
                     :loading="loading"
-                    class="q-px-xl text-weight-bold"
+                    class="cute-btn-pink q-px-xl text-weight-bold"
                   />
                 </div>
               </div>
-            </q-card>
+            </div>
           </template>
 
           <!-- Matrix Normal untuk non-Super Admin -->
           <template v-else>
-            <q-card flat bordered class="rounded-borders overflow-hidden shadow-2">
-              <div
-                class="q-pa-md bg-grey-2 text-weight-bold text-blue-grey-9 border-bottom flex items-center"
-              >
-                <q-icon name="rule" class="q-mr-sm" size="sm" />
-                MATRIX OTORISASI MODUL &amp; MENU
+            <div class="mac-card overflow-hidden">
+              <div class="mac-header">
+                <div class="dots-row">
+                  <span class="dot red"></span>
+                  <span class="dot yellow"></span>
+                  <span class="dot green"></span>
+                </div>
+                <div class="mac-title">🔑 MATRIX OTORISASI MODUL &amp; MENU 🔑</div>
               </div>
 
               <q-list separator>
@@ -465,7 +478,7 @@
                   </q-card>
                 </q-expansion-item>
               </q-list>
-            </q-card>
+            </div>
           </template>
 
           <div class="q-py-xl"></div>
@@ -777,75 +790,227 @@ export default {
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&display=swap');
+
+.akses-page {
+  padding: 16px;
+  background-color: #ffe4e6; /* Cute pastel rose pink background */
+  background-image: 
+    radial-gradient(#ffd1dc 2px, transparent 2px), 
+    radial-gradient(#ffd1dc 2px, transparent 2px);
+  background-size: 32px 32px;
+  background-position: 0 0, 16px 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+@media (min-width: 600px) {
+  .akses-page {
+    padding: 24px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .akses-page {
+    padding: 32px 40px;
+  }
+}
+
 .font-pro {
-  font-family:
-    'Plus Jakarta Sans',
-    'Inter',
-    -apple-system,
-    sans-serif;
+  font-family: 'Fredoka', sans-serif;
+}
+
+.saas-gradient-primary {
+  background: linear-gradient(135deg, #db2777 0%, #ec4899 100%) !important;
+}
+
+.rounded-top-24 {
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+}
+
+.border-white-2 {
+  border: 3.5px solid white;
+}
+
+/* ==========================================
+   CUTE SHADOWS, CARDS, BUBBLES
+   ========================================== */
+.cute-search-card {
+  background: #ffffff;
+  border: 2.5px solid #ffb7c5;
+  border-radius: 20px;
+  box-shadow: 0 6px 0px #fecdd3 !important;
+}
+
+.cute-form-card {
+  background: #ffffff;
+  border: 2.5px solid #ffb7c5;
+  border-radius: 24px;
+  box-shadow: 0 6px 0px #fecdd3 !important;
+}
+
+/* ==========================================
+   CUTE BUTTONS
+   ========================================== */
+.cute-btn-main {
+  background-color: #fff1f2 !important;
+  border: 2.5px solid #fda4af !important;
+  border-radius: 50px !important;
+  color: #db2777 !important;
+  box-shadow: 0 4px 0px #fecdd3 !important;
+  transition: all 0.2s ease;
+  font-weight: 700;
+}
+.cute-btn-main:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0px #fecdd3 !important;
+  background-color: #ffe4e6 !important;
+}
+.cute-btn-main:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 0px #fecdd3 !important;
+}
+
+.cute-btn-pink {
+  background-color: #db2777 !important;
+  border: 2.5px solid #be185d !important;
+  border-radius: 50px !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 0px #fecdd3 !important;
+  transition: all 0.2s ease;
+  font-weight: 700;
+}
+.cute-btn-pink:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0px #fecdd3 !important;
+  background-color: #ec4899 !important;
+}
+.cute-btn-pink:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 0px #fecdd3 !important;
+}
+
+/* ==========================================
+   MAC WINDOW SHELL CARDS
+   ========================================== */
+.mac-card {
+  background: #ffffff;
+  border: 3px solid #ffb7c5;
+  border-radius: 24px;
+  box-shadow: 0 10px 0px #fecdd3, 0 16px 30px rgba(225, 29, 72, 0.08) !important;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.mac-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 0px #fecdd3, 0 20px 35px rgba(225, 29, 72, 0.12) !important;
+}
+
+.mac-header {
+  background: #fff0f2;
+  border-bottom: 3px solid #ffb7c5;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.dots-row {
+  display: flex;
+  gap: 8px;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+  border: 1.5px solid transparent;
+}
+.dot.red { background-color: #ff5f56; border-color: #e0443e; }
+.dot.yellow { background-color: #ffbd2e; border-color: #dea123; }
+.dot.green { background-color: #27c93f; border-color: #1aab29; }
+
+.mac-title {
+  width: 100%;
+  text-align: center;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #db2777;
+}
+
+/* ==========================================
+   TABLE CUSTOM STYLING
+   ========================================== */
+.akses-table {
+  background-color: transparent !important;
 }
 
 .akses-table :deep(thead tr th) {
   position: sticky;
   top: 0;
   z-index: 1;
+  background: #fff0f2 !important;
+  color: #db2777 !important;
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 800 !important;
+  border-bottom: 3px solid #ffb7c5 !important;
 }
 
 .hover-bg:hover {
-  background-color: rgba(25, 118, 210, 0.04) !important;
+  background-color: rgba(219, 39, 119, 0.05) !important;
 }
 
 .border-subtle {
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid #ffe4e6 !important;
 }
 
 .border-green-thin {
-  border: 1px solid rgba(56, 142, 60, 0.2);
+  border: 1.5px dashed #4ade80;
+  background: #f0fdf4;
 }
 
 .border-orange-thin {
-  border: 1px solid rgba(230, 126, 34, 0.25);
-}
-
-.rounded-borders {
-  border-radius: 12px;
-}
-
-.rounded-12 {
-  border-radius: 12px;
-}
-
-.border-bottom {
-  border-bottom: 1px solid #e0e0e0;
+  border: 1.5px dashed #fb923c;
+  background: #fff7ed;
 }
 
 .modul-expansion {
-  border-bottom: 1px solid #f0f0f0;
-  transition: background 0.3s ease;
+  border-bottom: 1px dashed #ffe4e6;
+  transition: all 0.2s ease;
 }
 
 .modul-expansion:hover {
-  background-color: #fafafa;
+  background-color: #fff1f2;
+}
+
+/* Matrix Table checkboxes and headers */
+.matrix-table {
+  background: #fff8f9 !important;
 }
 
 .matrix-table thead th {
   font-size: 0.75rem;
   font-weight: 800;
+  color: #db2777;
   letter-spacing: 0.05em;
   padding: 12px;
+  background-color: #fff0f2;
+  border-bottom: 2px solid #ffccd5;
 }
 
 .matrix-table tbody td {
   padding: 8px 12px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px dashed #ffe4e6;
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+  color: #db2777;
 }
 
 .hover-row:hover {
-  background-color: #fff;
-}
-
-.border-white-2 {
-  border: 3px solid white;
+  background-color: #fff5f6;
 }
 
 .transition-all {

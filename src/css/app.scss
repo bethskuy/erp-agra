@@ -67,3 +67,16 @@ body {
   background: linear-gradient(135deg, #36ada3 0%, #1e6e69 100%) !important;
   box-shadow: 0 8px 24px rgba(54, 173, 163, 0.35) !important;
 }
+
+/* Centering and containers for desktop screen layout consistency */
+.mx-auto {
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+.premium-container {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+

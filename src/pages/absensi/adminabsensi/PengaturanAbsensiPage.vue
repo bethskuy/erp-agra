@@ -1,5 +1,6 @@
 <template>
-  <q-page class="bg-blue-grey-1 q-pa-lg font-inter">
+  <q-page class="bg-blue-grey-1 q-pa-md q-pa-lg font-inter">
+    <div class="premium-container q-mx-auto">
     <!-- HEADER SECTION -->
     <div class="row items-center justify-between q-mb-xl">
       <div class="col-12 col-md-8">
@@ -412,6 +413,7 @@
         </q-card-section>
       </q-card>
     </q-dialog>
+    </div>
   </q-page>
 </template>
 
@@ -791,5 +793,9 @@ onMounted(() => {
 /* LEAFLET OVERRIDES */
 #leaflet-map-container {
   font-family: 'Inter', sans-serif;
+}
+.premium-container {
+  max-width: 1200px;
+  width: 100%;
 }
 </style>

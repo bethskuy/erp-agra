@@ -1,5 +1,5 @@
 <template>
-  <q-page class="bg-slate-50 q-pa-md q-pa-lg-xl font-inter">
+  <q-page class="bg-slate-50 q-pa-md q-pa-lg font-inter">
     <div class="premium-container mx-auto">
       <!-- ========================================== -->
       <!-- HEADER SECTION                             -->
@@ -530,7 +530,8 @@ onUnmounted(() => {
 }
 
 .premium-container {
-  max-width: 1400px;
+  max-width: 1200px;
+  width: 100%;
 }
 .bento-card {
   border-radius: 24px;

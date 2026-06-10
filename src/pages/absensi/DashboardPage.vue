@@ -1,6 +1,6 @@
 <template>
-  <q-page class="bg-slate-50 q-pa-md q-pa-lg-xl font-inter">
-    <div class="bento-container mx-auto">
+  <q-page class="bg-slate-50 q-pa-md q-pa-lg font-inter">
+    <div class="bento-container q-mx-auto">
       <!-- ======================================================================= -->
       <!-- BANNER SIARAN PEMBERITAHUAN ULTRA PREMIUM (APPLE STYLE)                 -->
       <!-- ======================================================================= -->
@@ -1617,6 +1617,11 @@ onUnmounted(() => {
   100% {
     width: 100%;
   }
+}
+
+.bento-container {
+  max-width: 1200px;
+  width: 100%;
 }
 
 .mx-auto {

@@ -1,6 +1,6 @@
 <template>
-  <q-page class="bg-slate-50 q-pa-md q-pa-lg-xl font-inter">
-    <div class="bento-container mx-auto" style="max-width: 1200px">
+  <q-page class="bg-slate-50 q-pa-md q-pa-lg font-inter">
+    <div class="bento-container q-mx-auto" style="max-width: 1200px; width: 100%;">
       <!-- ========================================== -->
       <!-- BAGIAN 1: HEADER & SISA KUOTA CUTI        -->
       <!-- ========================================== -->
@@ -1310,8 +1310,12 @@ onUnmounted(() => {
 }
 
 /* LAYOUTING & BENTO GRID */
+.bento-container {
+  width: 100%;
+}
 .premium-container {
   max-width: 1400px;
+  width: 100%;
 }
 .bento-card {
   border-radius: 24px;
