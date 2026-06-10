@@ -1,553 +1,570 @@
 <template>
-  <q-page class="bg-grey-2 q-pa-md q-pa-lg-xl font-pro">
-    <template v-if="canAction('lihat')">
-      <!-- =====================================================================================
+  <q-page class="bg-page q-pa-md q-pa-lg-lg font-pro">
+    <div class="page-content-wrapper">
+      <template v-if="canAction('lihat')">
+        <!-- =====================================================================================
            HEADER & GREETING SECTION (MODERN BANNER)
            ===================================================================================== -->
-      <q-card
-        flat
-        class="bg-dashboard-header q-mb-md shadow-premium rounded-20 relative-position overflow-hidden animate-fade"
-      >
-        <!-- Background Overlay Image -->
-        <div class="header-bg-overlay"></div>
+        <q-card
+          flat
+          class="bg-dashboard-header q-mb-md shadow-premium rounded-20 relative-position overflow-hidden animate-fade"
+        >
+          <!-- Background Overlay Image -->
+          <div class="header-bg-overlay" :style="{ backgroundImage: `url('${currentBg}')` }"></div>
 
-        <q-card-section class="q-pa-xl row items-center justify-between relative-position z-1">
-          <!-- Left Side: Greeting -->
-          <div class="col-12 col-md-7">
-            <div class="text-h6 text-weight-medium text-teal-1 q-mb-xs opacity-80">
-              {{ greetingTime }},
+          <q-card-section class="q-pa-xl row items-center justify-between relative-position z-1">
+            <!-- Left Side: Greeting -->
+            <div class="col-12 col-md-7">
+              <div class="text-h6 text-weight-medium text-teal-1 q-mb-xs opacity-80">
+                {{ greetingTime }},
+              </div>
+              <div
+                class="text-h3 text-weight-black text-white q-mb-md uppercase"
+                style="letter-spacing: -0.5px"
+              >
+                {{ userData?.nama || 'AGRA ADMIN' }} <span class="wave-emoji">👋</span>
+              </div>
+              <div class="text-body1 text-teal-1 q-mb-xl font-weight-medium opacity-90">
+                Kelola operasional konstruksi Anda dengan efisien hari ini.
+              </div>
+
+              <div class="row items-center q-gutter-x-lg text-teal-1 text-weight-bold">
+                <div class="row items-center">
+                  <q-icon name="calendar_today" size="20px" class="q-mr-sm opacity-70" />
+                  {{ currentDate }}
+                </div>
+                <div class="row items-center">
+                  <q-icon name="schedule" size="20px" class="q-mr-sm opacity-70" />
+                  {{ currentTime }}
+                </div>
+              </div>
             </div>
+
+            <!-- Right Side: Quote (Rata tengah di HP, Kanan di Desktop) -->
             <div
-              class="text-h3 text-weight-black text-white q-mb-md uppercase"
-              style="letter-spacing: -0.5px"
+              class="col-12 col-md-5 relative-position flex justify-center justify-md-end q-mt-xl q-mt-md-none"
             >
-              {{ userData?.nama || 'AGRA ADMIN' }} <span class="wave-emoji">👋</span>
+              <!-- Peningkatan Kartu Glassmorphism -->
+              <div
+                class="quote-box glassmorphism-card q-pa-lg animate-fade"
+                style="width: 100%; max-width: 400px"
+                :key="currentQuoteIndex"
+              >
+                <q-icon name="format_quote" size="40px" class="quote-icon text-teal-3" />
+                <div class="text-body1 text-white text-italic q-mb-md" style="line-height: 1.6">
+                  "{{ currentQuote.text }}"
+                </div>
+                <div class="text-caption text-teal-2 text-weight-bold tracking-widest uppercase">
+                  - {{ currentQuote.author }}
+                </div>
+              </div>
             </div>
-            <div class="text-body1 text-teal-1 q-mb-xl font-weight-medium opacity-90">
-              Kelola operasional konstruksi Anda dengan efisien hari ini.
-            </div>
+          </q-card-section>
+        </q-card>
 
-            <div class="row items-center q-gutter-x-lg text-teal-1 text-weight-bold">
-              <div class="row items-center">
-                <q-icon name="calendar_today" size="20px" class="q-mr-sm opacity-70" />
-                {{ currentDate }}
-              </div>
-              <div class="row items-center">
-                <q-icon name="schedule" size="20px" class="q-mr-sm opacity-70" />
-                {{ currentTime }}
-              </div>
-            </div>
+        <!-- Tombol Action (Membentang penuh di layar HP) -->
+        <div class="row justify-end q-mb-xl animate-fade" v-if="canActionProyek('buat')">
+          <div class="col-12 col-sm-auto">
+            <q-btn
+              icon="rocket_launch"
+              to="/konstruksi/master/proyek-data"
+              label="Luncurkan Proyek Baru"
+              unelevated
+              rounded
+              no-caps
+              class="full-width q-px-xl q-py-sm shadow-premium text-weight-bold text-subtitle1 btn-seafoam text-white"
+            />
           </div>
-
-          <!-- Right Side: Quote (Rata tengah di HP, Kanan di Desktop) -->
-          <div
-            class="col-12 col-md-5 relative-position flex justify-center justify-md-end q-mt-xl q-mt-md-none"
-          >
-            <!-- Peningkatan Kartu Glassmorphism -->
-            <div class="quote-box glassmorphism-card q-pa-lg" style="width: 100%; max-width: 400px">
-              <q-icon name="format_quote" size="40px" class="quote-icon text-teal-3" />
-              <div class="text-body1 text-white text-italic q-mb-md" style="line-height: 1.6">
-                "Satu-satunya cara untuk menghasilkan pekerjaan hebat adalah dengan mencintai apa
-                yang Anda kerjakan."
-              </div>
-              <div class="text-caption text-teal-2 text-weight-bold tracking-widest uppercase">
-                - Agra Abhinaya Perkasa
-              </div>
-            </div>
-          </div>
-        </q-card-section>
-      </q-card>
-
-      <!-- Tombol Action (Membentang penuh di layar HP) -->
-      <div class="row justify-end q-mb-xl animate-fade" v-if="canActionProyek('buat')">
-        <div class="col-12 col-sm-auto">
-          <q-btn
-            icon="rocket_launch"
-            to="/konstruksi/master/proyek-data"
-            label="Luncurkan Proyek Baru"
-            unelevated
-            rounded
-            no-caps
-            class="full-width q-px-xl q-py-sm shadow-premium text-weight-bold text-subtitle1 btn-seafoam text-white"
-          />
         </div>
-      </div>
 
-      <!-- =====================================================================================
+        <!-- =====================================================================================
            KPI CARDS (SOLID GRADIENT STYLE)
            ===================================================================================== -->
-      <div class="row q-col-gutter-lg q-mb-xl">
-        <div class="col-12 col-sm-6 col-md-4 col-lg-2" v-for="kpi in kpiData" :key="kpi.label">
-          <q-card
-            flat
-            :class="['kpi-solid-card rounded-20 cursor-pointer text-white', 'kpi-' + kpi.colorKey]"
-            @click="$router.push(kpi.to)"
-          >
-            <q-card-section class="row items-center no-wrap q-pa-lg">
-              <div class="col">
-                <div class="text-overline text-white kpi-solid-label tracking-widest q-mb-xs">
-                  {{ kpi.label }}
+        <div class="row q-col-gutter-lg q-mb-xl">
+          <div class="col-12 col-sm-6 col-md-4 col-lg-2" v-for="kpi in kpiData" :key="kpi.label">
+            <q-card
+              flat
+              :class="[
+                'kpi-solid-card rounded-20 cursor-pointer text-white',
+                'kpi-' + kpi.colorKey,
+              ]"
+              @click="$router.push(kpi.to)"
+            >
+              <q-card-section class="row items-center no-wrap q-pa-lg">
+                <div class="col">
+                  <div class="text-overline text-white kpi-solid-label tracking-widest q-mb-xs">
+                    {{ kpi.label }}
+                  </div>
+                  <div class="text-h4 text-weight-black">{{ kpi.value }}</div>
                 </div>
-                <div class="text-h4 text-weight-black">{{ kpi.value }}</div>
-              </div>
-              <div class="kpi-solid-icon-wrap q-pa-sm rounded-12 flex flex-center">
-                <q-icon :name="kpi.icon" color="white" size="28px" />
-              </div>
-            </q-card-section>
-          </q-card>
+                <div class="kpi-solid-icon-wrap q-pa-sm rounded-12 flex flex-center">
+                  <q-icon :name="kpi.icon" color="white" size="28px" />
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
         </div>
-      </div>
 
-      <!-- =====================================================================================
+        <!-- =====================================================================================
            MONITORING PROYEK
            ===================================================================================== -->
-      <div class="row q-col-gutter-xl q-mb-xl">
-        <div class="col-12">
-          <q-card
-            flat
-            bordered
-            class="rounded-20 shadow-sm bg-white border-teal-thin overflow-hidden"
-          >
-            <q-card-section
-              class="q-pa-lg header-seafoam text-white row items-center justify-between"
+        <div class="row q-col-gutter-xl q-mb-xl">
+          <div class="col-12">
+            <q-card
+              flat
+              bordered
+              class="rounded-20 shadow-sm bg-white border-teal-thin overflow-hidden"
             >
-              <div class="row items-center">
-                <q-icon name="dashboard_customize" size="sm" class="q-mr-md" />
-                <div class="text-h6 text-weight-bold uppercase tracking-widest font-11">
-                  Project Performance Monitor
-                </div>
-              </div>
-              <div class="text-caption font-10 text-bold opacity-70 uppercase tracking-widest">
-                Live Synchronization
-              </div>
-            </q-card-section>
-
-            <q-card-section class="q-pa-lg">
-              <!-- BIRDVIEW SUMMARY BOXES -->
-              <div class="row q-col-gutter-md q-mb-xl">
-                <div class="col-12 col-md-3">
-                  <div class="summary-box bg-seafoam text-white rounded-12 shadow-2 hover-lift">
-                    <div class="text-overline opacity-80 tracking-widest text-bold">
-                      TOTAL PROYEK
-                    </div>
-                    <div class="text-h3 text-weight-black q-mt-sm">{{ stats.proyekAktif }}</div>
-                  </div>
-                </div>
-                <div class="col-12 col-md-3">
-                  <div class="summary-box bg-red-6 text-white rounded-12 shadow-2 hover-lift">
-                    <div class="text-overline opacity-80 tracking-widest text-bold">ON-GOING</div>
-                    <div class="text-h3 text-weight-black q-mt-sm">
-                      {{ topProjects.filter((p) => p.progress > 0 && p.progress < 100).length }}
-                    </div>
-                  </div>
-                </div>
-                <div class="col-12 col-md-3">
-                  <div class="summary-box bg-orange-5 text-white rounded-12 shadow-2 hover-lift">
-                    <div class="text-overline opacity-80 tracking-widest text-bold">IMPROVING</div>
-                    <div class="text-h3 text-weight-black q-mt-sm">
-                      {{ topProjects.filter((p) => p.progress > 0 && p.progress < 50).length }}
-                    </div>
-                  </div>
-                </div>
-                <div class="col-12 col-md-3">
-                  <div class="summary-box bg-teal-6 text-white rounded-12 shadow-2 hover-lift">
-                    <div class="text-overline opacity-80 tracking-widest text-bold">
-                      CLOSED / DONE
-                    </div>
-                    <div class="text-h3 text-weight-black q-mt-sm">
-                      {{ topProjects.filter((p) => p.progress >= 100).length }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- RADIAL PROGRESS GRID -->
-              <div class="row q-col-gutter-xl items-center">
-                <div class="col-12 col-md-7">
-                  <div
-                    class="text-subtitle2 text-weight-black text-seafoam uppercase tracking-widest q-mb-lg border-left-seafoam q-pl-sm"
-                  >
-                    Status Proyek Teratas
-                  </div>
-                  <div class="row q-col-gutter-md">
-                    <div
-                      v-for="(p, index) in topProjects"
-                      :key="p.id"
-                      class="col-6 col-md-4 text-center q-mb-md"
-                    >
-                      <q-circular-progress
-                        show-value
-                        :value="p.progress || 0"
-                        size="100px"
-                        :thickness="0.2"
-                        :color="getProjectColor(index)"
-                        track-color="grey-2"
-                        class="text-weight-black shadow-sm bg-white rounded-full"
-                      >
-                        <div class="text-h6">{{ p.progress || 0 }}%</div>
-                      </q-circular-progress>
-                      <div class="text-weight-bold text-blue-grey-9 q-mt-sm ellipsis font-11">
-                        {{ p.nama }}
-                      </div>
-                      <div class="text-grey-5 font-10 uppercase tracking-tighter">
-                        {{ p.konsumen || 'Internal' }}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="col-12 col-md-5">
-                  <div
-                    class="text-subtitle2 text-weight-black text-seafoam uppercase tracking-widest q-mb-lg border-left-seafoam q-pl-sm"
-                  >
-                    Financial Health Index
-                  </div>
-                  <div class="row q-col-gutter-md">
-                    <div class="col-6 text-center">
-                      <q-circular-progress
-                        show-value
-                        :value="
-                          getChartRatio(
-                            stats.piutangAR,
-                            Math.max(stats.piutangAR, stats.hutangAP),
-                          ) * 100
-                        "
-                        size="120px"
-                        :thickness="0.25"
-                        color="teal-5"
-                        track-color="teal-1"
-                        class="text-teal-9 text-weight-black shadow-soft bg-white rounded-full"
-                      >
-                        <q-icon name="trending_up" size="sm" />
-                      </q-circular-progress>
-                      <div class="text-weight-bold text-teal-9 q-mt-sm uppercase font-10">
-                        PIUTANG (AR)
-                      </div>
-                      <div class="text-h6 text-weight-black">
-                        Rp {{ formatCompact(stats.piutangAR) }}
-                      </div>
-                    </div>
-                    <div class="col-6 text-center">
-                      <q-circular-progress
-                        show-value
-                        :value="
-                          getChartRatio(stats.hutangAP, Math.max(stats.piutangAR, stats.hutangAP)) *
-                          100
-                        "
-                        size="120px"
-                        :thickness="0.25"
-                        color="red-5"
-                        track-color="red-1"
-                        class="text-red-9 text-weight-black shadow-soft bg-white rounded-full"
-                      >
-                        <q-icon name="trending_down" size="sm" />
-                      </q-circular-progress>
-                      <div class="text-weight-bold text-red-9 q-mt-sm uppercase font-10">
-                        HUTANG (AP)
-                      </div>
-                      <div class="text-h6 text-weight-black">
-                        Rp {{ formatCompact(stats.hutangAP) }}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </q-card-section>
-          </q-card>
-        </div>
-
-        <!-- Chart 3: Radial Efficiency & Komposisi -->
-        <div class="col-12 col-md-4">
-          <q-card
-            flat
-            bordered
-            class="rounded-20 shadow-sm bg-white border-teal-thin h-full overflow-hidden flex column"
-          >
-            <q-card-section
-              class="q-pa-md border-bottom-subtle text-weight-bold text-seafoam uppercase font-10 tracking-widest bg-seafoam-soft"
-            >
-              Komposisi Pengeluaran
-            </q-card-section>
-            <q-card-section class="flex flex-center col q-pa-xl">
-              <div class="relative-position flex flex-center" style="width: 200px; height: 200px">
-                <q-circular-progress
-                  indeterminate
-                  size="200px"
-                  :thickness="0.18"
-                  color="teal-1"
-                  track-color="grey-1"
-                  class="absolute-full"
-                />
-                <q-circular-progress
-                  :value="65"
-                  size="160px"
-                  :thickness="0.22"
-                  color="teal-5"
-                  track-color="transparent"
-                  class="absolute-center"
-                />
-                <q-circular-progress
-                  :value="40"
-                  size="120px"
-                  :thickness="0.28"
-                  color="orange-5"
-                  track-color="transparent"
-                  class="absolute-center"
-                />
-                <div class="absolute-center text-center">
-                  <div class="text-h6 text-weight-black text-teal-10 leading-none">65%</div>
-                  <div class="text-caption font-10 text-grey-6 uppercase text-bold">Materials</div>
-                </div>
-              </div>
-            </q-card-section>
-          </q-card>
-        </div>
-
-        <!-- Chart 2: Multi-Layer Radial Bar -->
-        <div class="col-12 col-md-4">
-          <q-card
-            flat
-            bordered
-            class="rounded-20 shadow-sm bg-white border-teal-thin h-full overflow-hidden flex column"
-          >
-            <q-card-section
-              class="q-pa-md border-bottom-subtle text-weight-bold text-seafoam uppercase font-10 tracking-widest bg-seafoam-soft"
-            >
-              Bagan Radial Performa Departemen
-            </q-card-section>
-            <q-card-section class="flex flex-center col q-pa-lg">
-              <div class="relative-position" style="width: 220px; height: 220px">
-                <q-circular-progress
-                  :value="90"
-                  size="220px"
-                  :thickness="0.12"
-                  color="teal-7"
-                  track-color="teal-1"
-                  class="absolute-center"
-                />
-                <q-circular-progress
-                  :value="75"
-                  size="170px"
-                  :thickness="0.15"
-                  color="cyan-6"
-                  track-color="cyan-1"
-                  class="absolute-center"
-                />
-                <q-circular-progress
-                  :value="60"
-                  size="120px"
-                  :thickness="0.2"
-                  color="orange-6"
-                  track-color="orange-1"
-                  class="absolute-center"
-                />
-                <div class="absolute-center">
-                  <q-icon name="stars" size="lg" color="teal-10" />
-                </div>
-              </div>
-            </q-card-section>
-            <q-card-section class="q-pa-md bg-grey-1">
-              <div class="row justify-around">
-                <div class="text-center">
-                  <div
-                    class="bg-teal-7 rounded-full"
-                    style="width: 8px; height: 8px; display: inline-block"
-                  ></div>
-                  <span class="font-10 text-bold">MKT</span>
-                </div>
-                <div class="text-center">
-                  <div
-                    class="bg-cyan-6 rounded-full"
-                    style="width: 8px; height: 8px; display: inline-block"
-                  ></div>
-                  <span class="font-10 text-bold">PRJ</span>
-                </div>
-                <div class="text-center">
-                  <div
-                    class="bg-orange-6 rounded-full"
-                    style="width: 8px; height: 8px; display: inline-block"
-                  ></div>
-                  <span class="font-10 text-bold">FIN</span>
-                </div>
-              </div>
-            </q-card-section>
-          </q-card>
-        </div>
-
-        <!-- Chart 3: Radial Efficiency -->
-        <div class="col-12 col-md-4">
-          <q-card
-            flat
-            bordered
-            class="rounded-20 shadow-sm bg-white border-teal-thin h-full overflow-hidden flex column"
-          >
-            <q-card-section
-              class="q-pa-md border-bottom-subtle text-weight-bold text-seafoam uppercase font-10 tracking-widest bg-seafoam-soft"
-            >
-              Efisiensi Anggaran Operasional
-            </q-card-section>
-            <q-card-section class="flex flex-center col q-pa-xl">
-              <q-circular-progress
-                show-value
-                class="text-seafoam"
-                value="82"
-                size="180px"
-                thickness="0.12"
-                color="teal-6"
-                track-color="teal-1"
-                center-color="white"
+              <q-card-section
+                class="q-pa-lg header-seafoam text-white row items-center justify-between"
               >
-                <div class="text-center">
-                  <div class="text-h3 text-weight-black">82%</div>
-                  <div
-                    class="text-caption font-10 text-positive text-weight-bold uppercase tracking-widest"
-                  >
-                    OPTIMAL
+                <div class="row items-center">
+                  <q-icon name="dashboard_customize" size="sm" class="q-mr-md" />
+                  <div class="text-h6 text-weight-bold uppercase tracking-widest font-11">
+                    Project Performance Monitor
                   </div>
                 </div>
-              </q-circular-progress>
-            </q-card-section>
-          </q-card>
-        </div>
-      </div>
+                <div class="text-caption font-10 text-bold opacity-70 uppercase tracking-widest">
+                  Live Synchronization
+                </div>
+              </q-card-section>
 
-      <!-- =====================================================================================
+              <q-card-section class="q-pa-lg">
+                <!-- BIRDVIEW SUMMARY BOXES -->
+                <div class="row q-col-gutter-md q-mb-xl">
+                  <div class="col-12 col-md-3">
+                    <div class="summary-box bg-seafoam text-white rounded-12 shadow-2 hover-lift">
+                      <div class="text-overline opacity-80 tracking-widest text-bold">
+                        TOTAL PROYEK
+                      </div>
+                      <div class="text-h3 text-weight-black q-mt-sm">{{ stats.proyekAktif }}</div>
+                    </div>
+                  </div>
+                  <div class="col-12 col-md-3">
+                    <div class="summary-box bg-red-6 text-white rounded-12 shadow-2 hover-lift">
+                      <div class="text-overline opacity-80 tracking-widest text-bold">ON-GOING</div>
+                      <div class="text-h3 text-weight-black q-mt-sm">
+                        {{ topProjects.filter((p) => p.progress > 0 && p.progress < 100).length }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-12 col-md-3">
+                    <div class="summary-box bg-orange-5 text-white rounded-12 shadow-2 hover-lift">
+                      <div class="text-overline opacity-80 tracking-widest text-bold">
+                        IMPROVING
+                      </div>
+                      <div class="text-h3 text-weight-black q-mt-sm">
+                        {{ topProjects.filter((p) => p.progress > 0 && p.progress < 50).length }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-12 col-md-3">
+                    <div class="summary-box bg-teal-6 text-white rounded-12 shadow-2 hover-lift">
+                      <div class="text-overline opacity-80 tracking-widest text-bold">
+                        CLOSED / DONE
+                      </div>
+                      <div class="text-h3 text-weight-black q-mt-sm">
+                        {{ topProjects.filter((p) => p.progress >= 100).length }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- RADIAL PROGRESS GRID -->
+                <div class="row q-col-gutter-xl items-center">
+                  <div class="col-12 col-md-7">
+                    <div
+                      class="text-subtitle2 text-weight-black text-seafoam uppercase tracking-widest q-mb-lg border-left-seafoam q-pl-sm"
+                    >
+                      Status Proyek Teratas
+                    </div>
+                    <div class="row q-col-gutter-md">
+                      <div
+                        v-for="(p, index) in topProjects"
+                        :key="p.id"
+                        class="col-6 col-md-4 text-center q-mb-md"
+                      >
+                        <q-circular-progress
+                          show-value
+                          :value="p.progress || 0"
+                          size="100px"
+                          :thickness="0.2"
+                          :color="getProjectColor(index)"
+                          track-color="grey-2"
+                          class="text-weight-black shadow-sm bg-white rounded-full"
+                        >
+                          <div class="text-h6">{{ p.progress || 0 }}%</div>
+                        </q-circular-progress>
+                        <div class="text-weight-bold text-blue-grey-9 q-mt-sm ellipsis font-11">
+                          {{ p.nama }}
+                        </div>
+                        <div class="text-grey-5 font-10 uppercase tracking-tighter">
+                          {{ p.konsumen || 'Internal' }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-12 col-md-5">
+                    <div
+                      class="text-subtitle2 text-weight-black text-seafoam uppercase tracking-widest q-mb-lg border-left-seafoam q-pl-sm"
+                    >
+                      Financial Health Index
+                    </div>
+                    <div class="row q-col-gutter-md">
+                      <div class="col-6 text-center">
+                        <q-circular-progress
+                          show-value
+                          :value="
+                            getChartRatio(
+                              stats.piutangAR,
+                              Math.max(stats.piutangAR, stats.hutangAP),
+                            ) * 100
+                          "
+                          size="120px"
+                          :thickness="0.25"
+                          color="teal-5"
+                          track-color="teal-1"
+                          class="text-teal-9 text-weight-black shadow-soft bg-white rounded-full"
+                        >
+                          <q-icon name="trending_up" size="sm" />
+                        </q-circular-progress>
+                        <div class="text-weight-bold text-teal-9 q-mt-sm uppercase font-10">
+                          PIUTANG (AR)
+                        </div>
+                        <div class="text-h6 text-weight-black">
+                          Rp {{ formatCompact(stats.piutangAR) }}
+                        </div>
+                      </div>
+                      <div class="col-6 text-center">
+                        <q-circular-progress
+                          show-value
+                          :value="
+                            getChartRatio(
+                              stats.hutangAP,
+                              Math.max(stats.piutangAR, stats.hutangAP),
+                            ) * 100
+                          "
+                          size="120px"
+                          :thickness="0.25"
+                          color="red-5"
+                          track-color="red-1"
+                          class="text-red-9 text-weight-black shadow-soft bg-white rounded-full"
+                        >
+                          <q-icon name="trending_down" size="sm" />
+                        </q-circular-progress>
+                        <div class="text-weight-bold text-red-9 q-mt-sm uppercase font-10">
+                          HUTANG (AP)
+                        </div>
+                        <div class="text-h6 text-weight-black">
+                          Rp {{ formatCompact(stats.hutangAP) }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+
+          <!-- Chart 3: Radial Efficiency & Komposisi -->
+          <div class="col-12 col-md-4">
+            <q-card
+              flat
+              bordered
+              class="rounded-20 shadow-sm bg-white border-teal-thin h-full overflow-hidden flex column"
+            >
+              <q-card-section
+                class="q-pa-md border-bottom-subtle text-weight-bold text-seafoam uppercase font-10 tracking-widest bg-seafoam-soft"
+              >
+                Komposisi Pengeluaran
+              </q-card-section>
+              <q-card-section class="flex flex-center col q-pa-xl">
+                <div class="relative-position flex flex-center" style="width: 200px; height: 200px">
+                  <q-circular-progress
+                    :value="stats.pengeluaranLainnya"
+                    size="200px"
+                    :thickness="0.18"
+                    color="teal-1"
+                    track-color="grey-1"
+                    class="absolute-full"
+                    angle="-180"
+                  />
+                  <q-circular-progress
+                    :value="stats.pengeluaranMaterials"
+                    size="160px"
+                    :thickness="0.22"
+                    color="teal-5"
+                    track-color="transparent"
+                    class="absolute-center"
+                    angle="-180"
+                  />
+                  <q-circular-progress
+                    :value="stats.pengeluaranOperasional"
+                    size="120px"
+                    :thickness="0.28"
+                    color="orange-5"
+                    track-color="transparent"
+                    class="absolute-center"
+                    angle="-180"
+                  />
+                  <div class="absolute-center text-center">
+                    <div class="text-h6 text-weight-black text-teal-10 leading-none">
+                      {{ stats.pengeluaranMaterials }}%
+                    </div>
+                    <div class="text-caption font-10 text-grey-6 uppercase text-bold">
+                      Materials
+                    </div>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+
+          <!-- Chart 2: Multi-Layer Radial Bar -->
+          <div class="col-12 col-md-4">
+            <q-card
+              flat
+              bordered
+              class="rounded-20 shadow-sm bg-white border-teal-thin h-full overflow-hidden flex column"
+            >
+              <q-card-section
+                class="q-pa-md border-bottom-subtle text-weight-bold text-seafoam uppercase font-10 tracking-widest bg-seafoam-soft"
+              >
+                Bagan Radial Performa Departemen
+              </q-card-section>
+              <q-card-section class="flex flex-center col q-pa-lg">
+                <div class="relative-position" style="width: 220px; height: 220px">
+                  <q-circular-progress
+                    :value="stats.performaMKT"
+                    size="220px"
+                    :thickness="0.12"
+                    color="teal-7"
+                    track-color="teal-1"
+                    class="absolute-center"
+                    angle="-180"
+                  />
+                  <q-circular-progress
+                    :value="stats.performaPRJ"
+                    size="170px"
+                    :thickness="0.15"
+                    color="cyan-6"
+                    track-color="cyan-1"
+                    class="absolute-center"
+                    angle="-180"
+                  />
+                  <q-circular-progress
+                    :value="stats.performaFIN"
+                    size="120px"
+                    :thickness="0.2"
+                    color="orange-6"
+                    track-color="orange-1"
+                    class="absolute-center"
+                    angle="-180"
+                  />
+                  <div class="absolute-center">
+                    <q-icon name="stars" size="lg" color="teal-10" />
+                  </div>
+                </div>
+              </q-card-section>
+              <q-card-section class="q-pa-md bg-grey-1">
+                <div class="row justify-around">
+                  <div class="text-center">
+                    <div
+                      class="bg-teal-7 rounded-full"
+                      style="width: 8px; height: 8px; display: inline-block"
+                    ></div>
+                    <span class="font-10 text-bold">MKT {{ stats.performaMKT }}%</span>
+                  </div>
+                  <div class="text-center">
+                    <div
+                      class="bg-cyan-6 rounded-full"
+                      style="width: 8px; height: 8px; display: inline-block"
+                    ></div>
+                    <span class="font-10 text-bold">PRJ {{ stats.performaPRJ }}%</span>
+                  </div>
+                  <div class="text-center">
+                    <div
+                      class="bg-orange-6 rounded-full"
+                      style="width: 8px; height: 8px; display: inline-block"
+                    ></div>
+                    <span class="font-10 text-bold">FIN {{ stats.performaFIN }}%</span>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+
+          <!-- Chart 3: Radial Efficiency -->
+          <div class="col-12 col-md-4">
+            <q-card
+              flat
+              bordered
+              class="rounded-20 shadow-sm bg-white border-teal-thin h-full overflow-hidden flex column"
+            >
+              <q-card-section
+                class="q-pa-md border-bottom-subtle text-weight-bold text-seafoam uppercase font-10 tracking-widest bg-seafoam-soft"
+              >
+                Efisiensi Anggaran Operasional
+              </q-card-section>
+              <q-card-section class="flex flex-center col q-pa-xl">
+                <q-circular-progress
+                  show-value
+                  class="text-seafoam"
+                  :value="stats.efisiensiAnggaran"
+                  size="180px"
+                  :thickness="0.12"
+                  color="teal-6"
+                  track-color="teal-1"
+                  center-color="white"
+                  angle="-180"
+                >
+                  <div class="text-center">
+                    <div class="text-h3 text-weight-black">{{ stats.efisiensiAnggaran }}%</div>
+                    <div
+                      class="text-caption font-10 text-positive text-weight-bold uppercase tracking-widest"
+                    >
+                      {{
+                        stats.efisiensiAnggaran >= 80
+                          ? 'OPTIMAL'
+                          : stats.efisiensiAnggaran >= 60
+                            ? 'CUKUP'
+                            : 'PERLU DITINJAU'
+                      }}
+                    </div>
+                  </div>
+                </q-circular-progress>
+              </q-card-section>
+            </q-card>
+          </div>
+        </div>
+
+        <!-- =====================================================================================
            BOTTOM SECTION: LOGS & ALERTS
            ===================================================================================== -->
-      <div class="row q-col-gutter-xl">
-        <!-- RADAR AKTIVITAS -->
-        <div class="col-12 col-md-8">
-          <q-card flat bordered class="rounded-20 shadow-sm bg-white border-teal-thin">
-            <q-card-section
-              class="q-pa-lg border-bottom-subtle bg-seafoam-soft row items-center justify-between"
-            >
-              <div class="row items-center">
-                <q-avatar
-                  color="teal-6"
-                  text-color="white"
-                  icon="history"
-                  size="32px"
-                  class="q-mr-sm rounded-8 shadow-sm"
-                  style="background: #3aab9e !important"
-                />
-                <div class="text-subtitle1 text-weight-bold text-seafoam">
-                  Radar Aktivitas Sistem
-                </div>
-              </div>
-              <q-btn
-                flat
-                dense
-                color="teal-6"
-                label="Lihat Seluruh Aktivitas"
-                no-caps
-                class="text-weight-bold font-10 tracking-widest"
-              />
-            </q-card-section>
-            <q-card-section class="q-pa-none">
-              <q-list separator>
-                <q-item
-                  v-for="(log, idx) in logs"
-                  :key="idx"
-                  class="q-py-md hover-bg transition-all"
-                >
-                  <q-item-section avatar>
-                    <q-avatar
-                      :color="log.color + '-1'"
-                      :text-color="log.color + '-9'"
-                      :icon="log.icon"
-                      size="36px"
-                      class="rounded-8"
-                    />
-                  </q-item-section>
-                  <q-item-section>
-                    <q-item-label class="text-weight-bold text-blue-grey-10 font-11">{{
-                      log.title
-                    }}</q-item-label>
-                    <q-item-label caption class="text-grey-7 line-clamp-1 font-10">{{
-                      log.description
-                    }}</q-item-label>
-                  </q-item-section>
-                  <q-item-section side>
-                    <div class="text-caption text-weight-bold text-seafoam font-10">
-                      {{ log.time }}
-                    </div>
-                  </q-item-section>
-                </q-item>
-              </q-list>
-            </q-card-section>
-          </q-card>
-        </div>
-
-        <!-- STOK KRITIS ALERT -->
-        <div class="col-12 col-md-4">
-          <q-card
-            flat
-            bordered
-            class="rounded-20 shadow-sm bg-white border-red-thin h-full flex column overflow-hidden"
-          >
-            <q-card-section
-              class="q-pa-lg bg-red-1 border-bottom-subtle row items-center justify-between"
-            >
-              <div
-                class="text-subtitle2 text-weight-bold text-red-9 uppercase tracking-widest font-10"
+        <div class="row q-col-gutter-xl">
+          <!-- RADAR AKTIVITAS -->
+          <div class="col-12 col-md-8">
+            <q-card flat bordered class="rounded-20 shadow-sm bg-white border-teal-thin">
+              <q-card-section
+                class="q-pa-lg border-bottom-subtle bg-seafoam-soft row items-center justify-between"
               >
-                Logistik Alert
-              </div>
-              <q-icon name="warning" color="red-5" size="sm" />
-            </q-card-section>
-            <q-card-section class="q-pa-xl text-center col flex column justify-center">
-              <div class="text-h2 text-weight-black text-red-9 q-mb-xs">{{ stats.stokKritis }}</div>
-              <div class="text-subtitle2 text-blue-grey-8 text-bold uppercase tracking-tighter">
-                Item Stok Kritis
-              </div>
-              <q-btn
-                unelevated
-                color="red-9"
-                label="CEK GUDANG SEKARANG"
-                class="full-width q-mt-xl rounded-12 font-11 text-weight-bold shadow-1"
-                to="/konstruksi/gudang"
-              />
-            </q-card-section>
-          </q-card>
-        </div>
-      </div>
-    </template>
+                <div class="row items-center">
+                  <q-avatar
+                    color="teal-6"
+                    text-color="white"
+                    icon="history"
+                    size="32px"
+                    class="q-mr-sm rounded-8 shadow-sm"
+                    style="background: #3aab9e !important"
+                  />
+                  <div class="text-subtitle1 text-weight-bold text-seafoam">
+                    Radar Aktivitas Sistem
+                  </div>
+                </div>
+                <q-btn
+                  flat
+                  dense
+                  color="teal-6"
+                  label="Lihat Seluruh Aktivitas"
+                  no-caps
+                  class="text-weight-bold font-10 tracking-widest"
+                />
+              </q-card-section>
+              <q-card-section class="q-pa-none">
+                <q-list separator>
+                  <q-item
+                    v-for="(log, idx) in logs"
+                    :key="idx"
+                    class="q-py-md hover-bg transition-all"
+                  >
+                    <q-item-section avatar>
+                      <q-avatar
+                        :color="log.color + '-1'"
+                        :text-color="log.color + '-9'"
+                        :icon="log.icon"
+                        size="36px"
+                        class="rounded-8"
+                      />
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label class="text-weight-bold text-blue-grey-10 font-11">{{
+                        log.title
+                      }}</q-item-label>
+                      <q-item-label caption class="text-grey-7 line-clamp-1 font-10">{{
+                        log.description
+                      }}</q-item-label>
+                    </q-item-section>
+                    <q-item-section side>
+                      <div class="text-caption text-weight-bold text-seafoam font-10">
+                        {{ log.time }}
+                      </div>
+                    </q-item-section>
+                  </q-item>
+                </q-list>
+              </q-card-section>
+            </q-card>
+          </div>
 
-    <!-- TAMPILAN JIKA TIDAK PUNYA IZIN -->
-    <template v-else>
-      <div class="fixed-center text-center animate-fade full-width q-pa-xl">
-        <q-avatar
-          size="150px"
-          color="grey-2"
-          text-color="grey-5"
-          icon="lock"
-          class="q-mb-lg shadow-sm"
-        />
-        <div class="text-h4 text-weight-black text-blue-grey-9">Akses Terbatas</div>
-        <div class="text-subtitle1 text-grey-7 q-mt-md q-mb-xl">
-          Akun Anda tidak memiliki otoritas untuk melihat dashboard monitoring konstruksi.
+          <!-- STOK KRITIS ALERT -->
+          <div class="col-12 col-md-4">
+            <q-card
+              flat
+              bordered
+              class="rounded-20 shadow-sm bg-white border-red-thin h-full flex column overflow-hidden"
+            >
+              <q-card-section
+                class="q-pa-lg bg-red-1 border-bottom-subtle row items-center justify-between"
+              >
+                <div
+                  class="text-subtitle2 text-weight-bold text-red-9 uppercase tracking-widest font-10"
+                >
+                  Logistik Alert
+                </div>
+                <q-icon name="warning" color="red-5" size="sm" />
+              </q-card-section>
+              <q-card-section class="q-pa-xl text-center col flex column justify-center">
+                <div class="text-h2 text-weight-black text-red-9 q-mb-xs">
+                  {{ stats.stokKritis }}
+                </div>
+                <div class="text-subtitle2 text-blue-grey-8 text-bold uppercase tracking-tighter">
+                  Item Stok Kritis
+                </div>
+                <q-btn
+                  unelevated
+                  color="red-9"
+                  label="CEK GUDANG SEKARANG"
+                  class="full-width q-mt-xl rounded-12 font-11 text-weight-bold shadow-1"
+                  to="/konstruksi/gudang"
+                />
+              </q-card-section>
+            </q-card>
+          </div>
         </div>
-        <q-btn
-          label="Kembali ke Beranda"
-          icon="home"
-          to="/"
-          rounded
-          unelevated
-          size="md"
-          class="btn-seafoam text-white text-weight-bold shadow-1"
-          padding="12px 30px"
-        />
-      </div>
-    </template>
+      </template>
 
-    <div class="q-py-xl"></div>
+      <!-- TAMPILAN JIKA TIDAK PUNYA IZIN -->
+      <template v-else>
+        <div class="full-width row flex-center q-pa-xl text-grey-5">
+          <div class="text-center">
+            <q-icon name="lock" size="64px" color="grey-4" class="q-mb-md" />
+            <div class="text-h6 text-grey-6">Akses Terbatas</div>
+            <div class="text-caption text-grey-5 q-mt-xs">
+              Akun Anda tidak memiliki otoritas untuk melihat dashboard monitoring konstruksi.
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <div class="q-py-xl"></div>
+    </div>
   </q-page>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { db } from 'src/boot/firebase'
-import { collection, getDocs, query, orderBy, limit, where, onSnapshot } from 'firebase/firestore'
+import { collection, query, orderBy, limit, where, onSnapshot } from 'firebase/firestore'
 import { useAuthStore } from 'src/stores/auth'
 
 const authStore = useAuthStore()
@@ -565,6 +582,43 @@ const currentDate = new Date().toLocaleDateString('id-ID', {
 // === Realtime Clock & Dynamic Greeting ===
 const currentTime = ref('')
 const greetingTime = ref('Selamat Pagi')
+const currentQuoteIndex = ref(0)
+const currentBgIndex = ref(0)
+
+const constructionBackgrounds = [
+  'https://images.unsplash.com/photo-1541888086225-ee53fb39dfdc?q=80&w=2000&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1504307651254-35680f356dfd?q=80&w=2000&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2000&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=2000&auto=format&fit=crop',
+  'https://images.unsplash.com/photo-1581094794329-c8112a89af12?q=80&w=2000&auto=format&fit=crop',
+]
+
+const currentBg = computed(() => constructionBackgrounds[currentBgIndex.value])
+
+const quotes = [
+  {
+    text: 'Satu-satunya cara untuk menghasilkan pekerjaan hebat adalah dengan mencintai apa yang Anda kerjakan.',
+    author: 'Agra Abhinaya Perkasa',
+  },
+  {
+    text: 'Kualitas tidak pernah terjadi secara kebetulan. Itu selalu hasil dari niat yang tinggi, upaya yang tulus, arah yang cerdas, dan eksekusi yang terampil.',
+    author: 'Tim Agra',
+  },
+  {
+    text: 'Kesuksesan bukanlah akhir, kegagalan bukanlah hal yang fatal. Yang terpenting adalah keberanian untuk melanjutkan.',
+    author: 'Agra Abhinaya Perkasa',
+  },
+  {
+    text: 'Konstruksi adalah tentang membangun tidak hanya bangunan, tetapi juga masa depan yang lebih baik.',
+    author: 'Tim Agra',
+  },
+  {
+    text: 'Setiap proyek adalah kesempatan untuk menciptakan sesuatu yang luar biasa dan bermanfaat.',
+    author: 'Agra Abhinaya Perkasa',
+  },
+]
+
+const currentQuote = computed(() => quotes[currentQuoteIndex.value])
 
 const updateTime = () => {
   const now = new Date()
@@ -581,6 +635,7 @@ const updateTime = () => {
 }
 
 let timeInterval = null
+let quoteInterval = null
 
 const stats = ref({
   totalPenawaran: 0,
@@ -590,7 +645,22 @@ const stats = ref({
   piutangAR: 0,
   hutangAP: 0,
   tagihanAktif: 0,
+  pengeluaranMaterials: 65,
+  pengeluaranOperasional: 40,
+  pengeluaranLainnya: 25,
+  performaMKT: 90,
+  performaPRJ: 75,
+  performaFIN: 60,
+  efisiensiAnggaran: 82,
 })
+
+let unsubscribePenawaran = null
+let unsubscribeProyek = null
+let unsubscribeStok = null
+let unsubscribePO = null
+let unsubscribeInvoice = null
+let unsubscribeTagihan = null
+let unsubscribeLog = null
 
 const kpiData = computed(() => [
   {
@@ -677,59 +747,71 @@ const getChartRatio = (val, max) => {
 const fetchData = async () => {
   loading.value = true
   try {
-    try {
-      const penawaranSnap = await getDocs(collection(db, 'penawaran'))
-      stats.value.totalPenawaran = penawaranSnap.size
-    } catch {
-      console.warn('Penawaran collection error')
-    }
+    // Penawaran - real-time
+    unsubscribePenawaran = onSnapshot(collection(db, 'penawaran'), (snap) => {
+      stats.value.totalPenawaran = snap.size
+    })
 
-    try {
-      const projSnap = await getDocs(collection(db, 'proyek'))
-      stats.value.proyekAktif = projSnap.size
-      topProjects.value = projSnap.docs
+    // Proyek - real-time
+    unsubscribeProyek = onSnapshot(collection(db, 'proyek'), (snap) => {
+      stats.value.proyekAktif = snap.size
+      topProjects.value = snap.docs
         .map((d) => ({ id: d.id, ...d.data() }))
         .sort((a, b) => (b.progress || 0) - (a.progress || 0))
         .slice(0, 5)
-    } catch {
-      console.warn('Proyek data error')
-    }
+    })
 
-    try {
-      const stokSnap = await getDocs(collection(db, 'stok_barang'))
-      stats.value.stokKritis = stokSnap.docs.filter(
-        (d) => (Number(d.data().jumlah) || 0) < 10,
-      ).length
-    } catch {
-      console.warn('Gudang data error')
-    }
+    // Stok - real-time
+    unsubscribeStok = onSnapshot(collection(db, 'stok_barang'), (snap) => {
+      stats.value.stokKritis = snap.docs.filter((d) => (Number(d.data().jumlah) || 0) < 10).length
+    })
 
-    try {
-      const poSnap = await getDocs(collection(db, 'purchase_order'))
-      stats.value.totalPO = poSnap.size
-    } catch {
-      console.warn('PO data error')
-    }
+    // Purchase Order - real-time
+    unsubscribePO = onSnapshot(collection(db, 'purchase_order'), (snap) => {
+      stats.value.totalPO = snap.size
 
-    try {
-      const arSnap = await getDocs(collection(db, 'finance_invoice_customer'))
+      // Simulasi data komposisi pengeluaran berdasarkan PO
+      let totalMaterials = 0
+      let totalOperasional = 0
+      let totalLainnya = 0
+
+      snap.docs.forEach((doc) => {
+        const data = doc.data()
+        const nominal = Number(data.total || data.grand_total || 0)
+        if (data.kategori === 'material' || data.jenis === 'material') {
+          totalMaterials += nominal
+        } else if (data.kategori === 'operasional' || data.jenis === 'operasional') {
+          totalOperasional += nominal
+        } else {
+          totalLainnya += nominal
+        }
+      })
+
+      const totalPengeluaran = totalMaterials + totalOperasional + totalLainnya
+      if (totalPengeluaran > 0) {
+        stats.value.pengeluaranMaterials = Math.round((totalMaterials / totalPengeluaran) * 100)
+        stats.value.pengeluaranOperasional = Math.round((totalOperasional / totalPengeluaran) * 100)
+        stats.value.pengeluaranLainnya = Math.round((totalLainnya / totalPengeluaran) * 100)
+      }
+    })
+
+    // Invoice (AR) - real-time
+    unsubscribeInvoice = onSnapshot(collection(db, 'finance_invoice_customer'), (snap) => {
       let totalAR = 0
-      arSnap.forEach((docSnap) => {
+      snap.forEach((docSnap) => {
         const data = docSnap.data()
         if (data.status !== 'Lunas' && data.status !== 'Draft') {
           totalAR += (Number(data.grand_total) || 0) - (Number(data.total_dibayar) || 0)
         }
       })
       stats.value.piutangAR = totalAR
-    } catch {
-      console.warn('AR calculation error')
-    }
+    })
 
-    try {
-      const apSnap = await getDocs(collection(db, 'monitoring_tagihan_spk'))
+    // Tagihan (AP) - real-time
+    unsubscribeTagihan = onSnapshot(collection(db, 'monitoring_tagihan_spk'), (snap) => {
       let totalAP = 0
       let countAktifAP = 0
-      apSnap.forEach((docSnap) => {
+      snap.forEach((docSnap) => {
         const data = docSnap.data()
         if (data.status !== 'Lunas') {
           countAktifAP++
@@ -740,45 +822,68 @@ const fetchData = async () => {
       })
       stats.value.hutangAP = totalAP
       stats.value.tagihanAktif = countAktifAP
-    } catch {
-      console.warn('AP calculation error')
-    }
 
-    try {
-      const logSnap = await getDocs(
-        query(collection(db, 'aktivitas'), orderBy('timestamp', 'desc'), limit(5)),
+      // Hitung efisiensi anggaran
+      if (stats.value.hutangAP > 0 && stats.value.piutangAR > 0) {
+        const ratio = Math.min(
+          stats.value.piutangAR / (stats.value.hutangAP + stats.value.piutangAR),
+          1,
+        )
+        stats.value.efisiensiAnggaran = Math.round(ratio * 100)
+      }
+    })
+
+    // Log Aktivitas - real-time
+    unsubscribeLog = onSnapshot(
+      query(collection(db, 'aktivitas'), orderBy('timestamp', 'desc'), limit(5)),
+      (snap) => {
+        logs.value = snap.docs.map((d) => {
+          const data = d.data()
+          let icon = 'history'
+          let color = 'teal'
+          if (data.tipe === 'MASUK') {
+            icon = 'input'
+            color = 'teal'
+          } else if (data.tipe === 'KELUAR') {
+            icon = 'output'
+            color = 'orange'
+          } else if (data.tipe === 'PR' || data.tipe === 'PO') {
+            icon = 'receipt_long'
+            color = 'cyan'
+          }
+          return {
+            title: data.nama_barang || data.aktivitas || 'Update Sistem',
+            description: data.deskripsi || `Aktivitas pada modul ${data.tipe || 'Konstruksi'}`,
+            icon,
+            color,
+            time: data.timestamp
+              ? data.timestamp
+                  .toDate()
+                  .toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+              : 'Baru saja',
+          }
+        })
+      },
+    )
+
+    // Simulasi performa departemen (bisa diupdate berdasarkan data real)
+    setInterval(() => {
+      // Randomize untuk efek real-time (bisa diganti dengan data aktual)
+      stats.value.performaMKT = Math.min(
+        100,
+        Math.max(50, stats.value.performaMKT + (Math.random() * 4 - 2)),
       )
-      logs.value = logSnap.docs.map((d) => {
-        const data = d.data()
-        let icon = 'history'
-        let color = 'teal'
-        if (data.tipe === 'MASUK') {
-          icon = 'input'
-          color = 'teal'
-        } else if (data.tipe === 'KELUAR') {
-          icon = 'output'
-          color = 'orange'
-        } else if (data.tipe === 'PR' || data.tipe === 'PO') {
-          icon = 'receipt_long'
-          color = 'cyan'
-        }
-        return {
-          title: data.nama_barang || data.aktivitas || 'Update Sistem',
-          description: data.deskripsi || `Aktivitas pada modul ${data.tipe || 'Konstruksi'}`,
-          icon,
-          color,
-          time: data.timestamp
-            ? data.timestamp
-                .toDate()
-                .toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
-            : 'Baru saja',
-        }
-      })
-    } catch {
-      console.warn('Log activities error')
-    }
-  } catch {
-    console.error('General Fetch Error')
+      stats.value.performaPRJ = Math.min(
+        100,
+        Math.max(50, stats.value.performaPRJ + (Math.random() * 4 - 2)),
+      )
+      stats.value.performaFIN = Math.min(
+        100,
+        Math.max(50, stats.value.performaFIN + (Math.random() * 4 - 2)),
+      )
+    }, 10000)
+  } catch (err) {
+    console.error('Error fetching data:', err)
   } finally {
     loading.value = false
   }
@@ -787,6 +892,16 @@ const fetchData = async () => {
 onMounted(() => {
   updateTime()
   timeInterval = setInterval(updateTime, 60000)
+
+  // Ganti quote setiap 8 detik
+  quoteInterval = setInterval(() => {
+    currentQuoteIndex.value = (currentQuoteIndex.value + 1) % quotes.length
+  }, 8000)
+
+  // Ganti background setiap 12 detik
+  setInterval(() => {
+    currentBgIndex.value = (currentBgIndex.value + 1) % constructionBackgrounds.length
+  }, 12000)
 
   const userEmail = authStore.user?.email
   if (userEmail) {
@@ -800,7 +915,15 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (timeInterval) clearInterval(timeInterval)
+  if (quoteInterval) clearInterval(quoteInterval)
   if (unsubscribeUser) unsubscribeUser()
+  if (unsubscribePenawaran) unsubscribePenawaran()
+  if (unsubscribeProyek) unsubscribeProyek()
+  if (unsubscribeStok) unsubscribeStok()
+  if (unsubscribePO) unsubscribePO()
+  if (unsubscribeInvoice) unsubscribeInvoice()
+  if (unsubscribeTagihan) unsubscribeTagihan()
+  if (unsubscribeLog) unsubscribeLog()
 })
 </script>
 
@@ -833,12 +956,12 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: url('https://images.unsplash.com/photo-1541888086225-ee53fb39dfdc?q=80&w=2000&auto=format&fit=crop');
   background-size: cover;
   background-position: center 30%;
   opacity: 0.12;
   mix-blend-mode: overlay;
   z-index: 0;
+  transition: background-image 1s ease-in-out;
 }
 .z-1 {
   z-index: 1;
