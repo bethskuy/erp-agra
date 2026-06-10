@@ -1102,7 +1102,7 @@
                 <div class="row justify-end">
                   <div class="col-5 text-center">
                     <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">
-                      Prepared By,
+                      Requestor By,
                     </div>
 
                     <!-- FINAL SIGNATURE & STEMPEL OVERLAY -->
@@ -1365,35 +1365,26 @@
 
               <div class="signature-container text-left q-mt-lg">
                 <div class="row justify-between text-center po-signature">
-                  <div class="col-4">
+                  <div class="col-3">
                     <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">
-                      Prepared By,
+                      Request By,
                     </div>
                     <div class="final-sign-space flex flex-center" style="height: 90px">
-                      <img
-                        v-if="selectedPo.stempel_url"
-                        :src="selectedPo.stempel_url"
-                        class="img-stempel"
-                      />
-                      <img
-                        v-if="selectedPo.signatureUrl"
-                        :src="selectedPo.signatureUrl"
-                        class="img-signature-clean"
-                      />
+                      <!-- Spacer for signature -->
                     </div>
                     <div class="signer-name-wrapper">
                       <div class="text-signer-final text-weight-black uppercase text-indigo-10">
-                        {{ selectedPo.prepared_by || '..............................' }}
+                        {{ selectedPo.requested_by || '..............................' }}
                       </div>
                     </div>
                     <div
                       class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs"
                     >
-                      Purchasing Staff
+                      Requestor
                     </div>
                   </div>
 
-                  <div class="col-4">
+                  <div class="col-3">
                     <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">
                       Checked By,
                     </div>
@@ -1402,11 +1393,7 @@
                     </div>
                     <div class="signer-name-wrapper">
                       <div class="text-signer-final text-weight-black uppercase text-indigo-10">
-                        {{
-                          selectedPo.checked_by ||
-                          selectedPo.requested_by ||
-                          '..............................'
-                        }}
+                        {{ selectedPo.checked_by || '..............................' }}
                       </div>
                     </div>
                     <div
@@ -1416,7 +1403,7 @@
                     </div>
                   </div>
 
-                  <div class="col-4">
+                  <div class="col-3">
                     <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">
                       Approved By,
                     </div>
@@ -1425,9 +1412,28 @@
                     </div>
                     <div class="signer-name-wrapper">
                       <div class="text-signer-final text-weight-black uppercase text-indigo-10">
+                        {{ selectedPo.approved_by || '..............................' }}
+                      </div>
+                    </div>
+                    <div
+                      class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs"
+                    >
+                      Direktur
+                    </div>
+                  </div>
+
+                  <div class="col-3">
+                    <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">
+                      Accepted By,
+                    </div>
+                    <div class="final-sign-space flex flex-center" style="height: 90px">
+                      <!-- Spacer for signature supplier -->
+                    </div>
+                    <div class="signer-name-wrapper">
+                      <div class="text-signer-final text-weight-black uppercase text-indigo-10">
                         {{
-                          selectedPo.approved_by ||
                           selectedPo.approved_supplier ||
+                          selectedPo.kepada_yth ||
                           '..............................'
                         }}
                       </div>
@@ -1435,7 +1441,7 @@
                     <div
                       class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs"
                     >
-                      Direktur
+                      Supplier
                     </div>
                   </div>
                 </div>
@@ -1515,8 +1521,10 @@ const poFormDefault = {
   closing:
     'Kami berharap Purchase Order ini dapat memenuhi kebutuhan Kami. Jika ada pertanyaan atau klarifikasi lebih lanjut, jangan ragu untuk menghubungi kami.\nTerima kasih atas perhatiannya.',
   prepared_by: '',
+  requested_by: '',
   checked_by: '',
   approved_by: '',
+  approved_supplier: '',
 }
 
 const poForm = ref({ ...poFormDefault })
@@ -1625,7 +1633,7 @@ const canAction = (actionType) => {
 }
 
 // ── Computed ──────────────────────────────────────────────────────────────
-const optPr = computed(() => rows.value.filter((r) => r.status === 'Approved'))
+const optPr = computed(() => rows.value.filter((r) => ['Approved', 'Ordered'].includes(r.status)))
 
 // ── Fetch Data ────────────────────────────────────────────────────────────
 const fetchData = async () => {
@@ -1717,6 +1725,12 @@ const onSupplierSelect = (supp) => {
     poForm.value.alamat_supplier = supp.alamat || ''
     poForm.value.attn_supplier =
       supp.pic_nama || supp.pic_kontak || supp.kontak_person || supp.pic || ''
+    poForm.value.approved_supplier = supp.nama || ''
+  } else {
+    poForm.value.kepada_yth = ''
+    poForm.value.alamat_supplier = ''
+    poForm.value.attn_supplier = ''
+    poForm.value.approved_supplier = ''
   }
 }
 
@@ -1776,12 +1790,6 @@ const savePo = async () => {
     delete payload.referensi_pr
 
     await addDoc(collection(db, 'purchase_order'), payload)
-
-    if (poForm.value.referensi_pr?.id) {
-      await updateDoc(doc(db, 'permintaan_barang', poForm.value.referensi_pr.id), {
-        status: 'Ordered',
-      })
-    }
 
     $q.notify({ type: 'positive', message: 'Purchase Order berhasil diterbitkan!' })
     poViewMode.value = 'list'
@@ -2451,15 +2459,54 @@ onUnmounted(() => {
   color: #1a237e;
   border-bottom: 2.5px solid #1a237e;
   display: inline-block;
-  padding: 0 8px;
-  min-width: 170px;
+  width: 180px;
+  max-width: 180px;
   text-align: center;
+  padding-bottom: 4px;
+  min-height: 40px;
+  word-wrap: break-word;
+  white-space: normal;
 }
 .text-role-final {
   font-size: 10.5px;
   margin-top: 4px;
   font-weight: 700;
   color: #444;
+}
+
+/* CSS khusus untuk tanda tangan PO agar sejajar */
+.po-signature .row {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-around;
+}
+.po-signature .col-3 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: auto;
+  max-width: 220px;
+  padding: 0 20px;
+}
+.po-signature .final-sign-space {
+  height: 60px !important;
+}
+.po-signature .q-mb-xs {
+  margin-bottom: 15px !important;
+}
+.po-signature .signer-name-wrapper {
+  width: 180px;
+  text-align: center;
+  margin-bottom: 5px;
+}
+.po-signature .text-signer-final {
+  box-sizing: border-box;
+  width: 180px;
+  padding-bottom: 4px;
+  padding-top: 5px;
+}
+.po-signature .text-role-final {
+  margin-top: 0px !important;
 }
 
 /* ════════════════════════════════════════════════

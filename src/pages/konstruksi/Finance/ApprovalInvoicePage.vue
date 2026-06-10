@@ -33,361 +33,389 @@
     <!-- =====================================================================================
          SCREEN 2: KONTEN UTAMA JIKA AKSES OK
          ===================================================================================== -->
-    <div v-else class="page-content-wrapper">
-      <!-- HEADER SECTION (BACK BUTTON TELAH DIHAPUS) -->
-      <div class="row items-center justify-between q-mb-xl animate-fade no-print">
-        <div class="col-12">
-          <div class="row items-center no-wrap">
-            <div>
-              <div class="text-h4 text-weight-bolder text-teal-10 leading-tight">
-                Approval Invoice
-                <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs">
-                  Otorisasi Penagihan (AR)
-                </span>
-              </div>
-              <div class="text-subtitle1 text-grey-7 q-mt-sm">
-                Tinjau, setujui, atau tolak draf invoice pelanggan sebelum dikirimkan ke pihak
-                eksternal.
+    <template v-else>
+      <div class="page-content-wrapper">
+        <!-- HEADER SECTION (BACK BUTTON TELAH DIHAPUS) -->
+        <div class="row items-center justify-between q-mb-xl animate-fade no-print">
+          <div class="col-12">
+            <div class="row items-center no-wrap">
+              <div>
+                <div class="text-h4 text-weight-bolder leading-tight" style="color: #2b908a">
+                  Approval Invoice
+                  <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs">
+                    Otorisasi Penagihan (AR)
+                  </span>
+                </div>
+                <div class="text-subtitle1 text-grey-7 q-mt-sm">
+                  Tinjau, setujui, atau tolak draf invoice pelanggan sebelum dikirimkan ke pihak
+                  eksternal.
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- SUMMARY CARDS / KPI APPROVAL (WARNA WARNI LUCU DAN GORGEOUS SESUAI CONTOH) -->
-      <div class="row q-col-gutter-lg q-mb-lg animate-fade-up no-print">
-        <!-- Menunggu Approval (Gradien Amber/Orange Kreatif) -->
-        <div class="col-12 col-sm-4">
-          <q-card flat class="list-card rounded-20 card-orange-gradient text-white">
-            <q-card-section class="row items-center no-wrap q-pa-md">
-              <div class="col">
-                <div
-                  class="text-caption text-bold tracking-widest uppercase font-10 q-mb-xs"
-                  style="color: rgba(255, 255, 255, 0.85)"
-                >
-                  MENUNGGU REVIEW
+        <!-- SUMMARY CARDS / KPI APPROVAL (WARNA WARNI LUCU DAN GORGEOUS SESUAI CONTOH) -->
+        <div class="row q-col-gutter-lg q-mb-lg animate-fade-up no-print">
+          <!-- Menunggu Approval (Gradien Amber/Orange Kreatif) -->
+          <div class="col-12 col-sm-4">
+            <q-card flat class="list-card rounded-20 card-orange-gradient text-white">
+              <q-card-section class="row items-center no-wrap q-pa-md">
+                <div class="col">
+                  <div
+                    class="text-caption text-bold tracking-widest uppercase font-10 q-mb-xs"
+                    style="color: rgba(255, 255, 255, 0.85)"
+                  >
+                    MENUNGGU REVIEW
+                  </div>
+                  <div class="text-h3 text-weight-black">{{ pendingCount }}</div>
                 </div>
-                <div class="text-h3 text-weight-black">{{ pendingCount }}</div>
-              </div>
-              <div class="col-auto">
-                <q-avatar
-                  size="54px"
-                  color="white"
-                  text-color="orange-9"
-                  icon="pending_actions"
-                  class="shadow-premium rounded-12"
-                />
-              </div>
-            </q-card-section>
-          </q-card>
-        </div>
-
-        <!-- Disetujui (Gradien Teal Elegan) -->
-        <div class="col-12 col-sm-4">
-          <q-card flat class="list-card rounded-20 card-teal-gradient text-white">
-            <q-card-section class="row items-center no-wrap q-pa-md">
-              <div class="col">
-                <div
-                  class="text-caption text-bold tracking-widest uppercase font-10 q-mb-xs"
-                  style="color: rgba(255, 255, 255, 0.85)"
-                >
-                  INVOICE DISETUJUI
-                </div>
-                <div class="text-h3 text-weight-black">{{ approvedCount }}</div>
-              </div>
-              <div class="col-auto">
-                <q-avatar
-                  size="54px"
-                  color="white"
-                  text-color="teal-9"
-                  icon="fact_check"
-                  class="shadow-premium rounded-12"
-                />
-              </div>
-            </q-card-section>
-          </q-card>
-        </div>
-
-        <!-- Ditolak (Gradien Red Coral Tegas) -->
-        <div class="col-12 col-sm-4">
-          <q-card flat class="list-card rounded-20 card-red-gradient text-white">
-            <q-card-section class="row items-center no-wrap q-pa-md">
-              <div class="col">
-                <div
-                  class="text-caption text-bold tracking-widest uppercase font-10 q-mb-xs"
-                  style="color: rgba(255, 255, 255, 0.85)"
-                >
-                  INVOICE DITOLAK
-                </div>
-                <div class="text-h3 text-weight-black">{{ rejectedCount }}</div>
-              </div>
-              <div class="col-auto">
-                <q-avatar
-                  size="54px"
-                  color="white"
-                  text-color="negative"
-                  icon="cancel_presentation"
-                  class="shadow-premium rounded-12"
-                />
-              </div>
-            </q-card-section>
-          </q-card>
-        </div>
-      </div>
-
-      <!-- SEARCH & FILTER AREA -->
-      <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print">
-        <q-card-section class="q-py-md">
-          <div class="row items-center justify-between q-col-gutter-md">
-            <!-- SEARCH INPUT -->
-            <div class="col-12 col-md-4">
-              <q-input
-                v-model="searchQuery"
-                outlined
-                dense
-                rounded
-                placeholder="Cari No. Invoice atau Klien..."
-                bg-color="white"
-                class="search-input"
-              >
-                <template v-slot:prepend><q-icon name="search" color="teal-10" /></template>
-                <template v-slot:append v-if="searchQuery">
-                  <q-icon name="close" @click="searchQuery = ''" class="cursor-pointer" />
-                </template>
-              </q-input>
-            </div>
-
-            <!-- RIGHT SIDE CONTROLS (TABS & ACTIONS STACKED ON DESKTOP) -->
-            <div class="col-12 col-md-8 column filter-controls-column q-gutter-y-sm">
-              <!-- TABS FILTER STATUS (Scrollable on mobile) -->
-              <div class="filter-tabs-container">
-                <q-tabs
-                  v-model="tabFilter"
-                  dense
-                  class="text-grey-7 bg-grey-1 rounded-12 p-1"
-                  active-color="teal-10"
-                  indicator-color="transparent"
-                  active-bg-color="white"
-                  align="left"
-                  arrows
-                  outside-arrows
-                  style="max-width: 100%;"
-                >
-                  <q-tab name="ALL" label="Semua" class="text-weight-bold rounded-12 q-px-sm" />
-                  <q-tab
-                    name="Pending"
-                    label="Menunggu"
-                    class="text-weight-bold rounded-12 q-px-sm"
-                  />
-                  <q-tab
-                    name="Approved"
-                    label="Disetujui"
-                    class="text-weight-bold rounded-12 q-px-sm"
-                  />
-                  <q-tab
-                    name="Rejected"
-                    label="Ditolak"
-                    class="text-weight-bold rounded-12 q-px-sm"
-                  />
-                </q-tabs>
-              </div>
-
-              <!-- ACTION BUTTONS: BUAT KWITANSI, EXPORT DROPDOWN, REFRESH -->
-              <div class="filter-actions-container">
-                <!-- BUAT KWITANSI (Di HP masuk ke dalam card dekat export) -->
-                <q-btn
-                  color="teal-10"
-                  icon="receipt"
-                  label="Buat Kwitansi"
-                  unelevated
-                  rounded
-                  no-caps
-                  class="shadow-premium text-weight-bold btn-teal-main action-btn-item q-px-md"
-                  @click="clickCreateKwitansi"
-                />
-
-                <!-- EXPORT DROPDOWN BUTTON (TEMA TEAL) -->
-                <q-btn-dropdown
-                  unelevated
-                  rounded
-                  color="teal-10"
-                  icon="file_download"
-                  label="Export Laporan"
-                  class="shadow-1 font-bold q-px-md btn-teal-main action-btn-item"
-                  no-caps
-                >
-                  <q-list style="min-width: 180px">
-                    <q-item
-                      clickable
-                      v-ripple
-                      @click="exportListToPDF"
-                      class="q-py-md hover-teal-btn"
-                    >
-                      <q-item-section avatar>
-                        <q-avatar color="red-1" text-color="red-9" icon="picture_as_pdf" size="sm" />
-                      </q-item-section>
-                      <q-item-section class="text-weight-bold text-red-9">Export PDF</q-item-section>
-                    </q-item>
-                    <q-separator />
-                    <q-item
-                      clickable
-                      v-ripple
-                      @click="exportListToExcel"
-                      class="q-py-md hover-teal-btn"
-                    >
-                      <q-item-section avatar>
-                        <q-avatar color="green-1" text-color="green-9" icon="table_view" size="sm" />
-                      </q-item-section>
-                      <q-item-section class="text-weight-bold text-green-9"
-                        >Export Excel</q-item-section
-                      >
-                    </q-item>
-                  </q-list>
-                </q-btn-dropdown>
-
-                <q-btn flat round icon="refresh" color="teal-10" class="refresh-btn-item" @click="fetchData" />
-              </div>
-            </div>
-          </div>
-        </q-card-section>
-      </q-card>
-
-      <!-- MAIN TABLE DATA (MENGGUNAKAN KOLOM YANG DIKUNCI KHUSUS AGAR INDAH TANPA SCROLLBAR HORIZONTAL) -->
-      <q-card
-        flat
-        bordered
-        class="rounded-20 shadow-sm overflow-hidden bg-white no-print border-teal-thin"
-      >
-        <q-table
-          :rows="filteredRows"
-          :columns="columns"
-          row-key="id"
-          flat
-          :loading="loading"
-          binary-state-sort
-          class="finance-table"
-          :pagination="{ rowsPerPage: 10 }"
-        >
-          <template v-slot:header="props">
-            <q-tr :props="props" class="table-header-teal text-white">
-              <q-th
-                v-for="col in props.cols"
-                :key="col.name"
-                :props="props"
-                class="text-weight-bold uppercase font-11 tracking-widest"
-              >
-                {{ col.label }}
-              </q-th>
-            </q-tr>
-          </template>
-
-          <template v-slot:body="props">
-            <q-tr
-              :props="props"
-              class="hover-bg transition-all cursor-pointer"
-              @click="openReviewDialog(props.row)"
-            >
-              <q-td key="invoice">
-                <div class="row items-center no-wrap">
+                <div class="col-auto">
                   <q-avatar
-                    size="36px"
-                    color="teal-1"
-                    text-color="teal-10"
-                    icon="receipt_long"
-                    class="q-mr-md shadow-sm rounded-12"
+                    size="54px"
+                    color="white"
+                    text-color="orange-9"
+                    icon="pending_actions"
+                    class="shadow-premium rounded-12"
                   />
-                  <div>
-                    <div
-                      class="text-weight-bold text-blue-grey-10 text-subtitle2 leading-none q-mb-xs"
-                    >
-                      {{ props.row.nomor_invoice }}
-                    </div>
-                    <div class="text-caption text-grey-6 uppercase text-weight-medium">
-                      KLIEN:
-                      <span class="text-blue-grey-9 text-bold">{{ props.row.customer_nama }}</span>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+
+          <!-- Disetujui (Gradien Teal Elegan) -->
+          <div class="col-12 col-sm-4">
+            <q-card flat class="list-card rounded-20 card-teal-gradient text-white">
+              <q-card-section class="row items-center no-wrap q-pa-md">
+                <div class="col">
+                  <div
+                    class="text-caption text-bold tracking-widest uppercase font-10 q-mb-xs"
+                    style="color: rgba(255, 255, 255, 0.85)"
+                  >
+                    INVOICE DISETUJUI
+                  </div>
+                  <div class="text-h3 text-weight-black">{{ approvedCount }}</div>
+                </div>
+                <div class="col-auto">
+                  <q-avatar
+                    size="54px"
+                    color="white"
+                    text-color="teal-9"
+                    icon="fact_check"
+                    class="shadow-premium rounded-12"
+                  />
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+
+          <!-- Ditolak (Gradien Red Coral Tegas) -->
+          <div class="col-12 col-sm-4">
+            <q-card flat class="list-card rounded-20 card-red-gradient text-white">
+              <q-card-section class="row items-center no-wrap q-pa-md">
+                <div class="col">
+                  <div
+                    class="text-caption text-bold tracking-widest uppercase font-10 q-mb-xs"
+                    style="color: rgba(255, 255, 255, 0.85)"
+                  >
+                    INVOICE DITOLAK
+                  </div>
+                  <div class="text-h3 text-weight-black">{{ rejectedCount }}</div>
+                </div>
+                <div class="col-auto">
+                  <q-avatar
+                    size="54px"
+                    color="white"
+                    text-color="negative"
+                    icon="cancel_presentation"
+                    class="shadow-premium rounded-12"
+                  />
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+        </div>
+
+        <!-- SEARCH & FILTER AREA -->
+        <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print">
+          <q-card-section class="q-py-md">
+            <div class="row items-center justify-between q-col-gutter-md">
+              <!-- SEARCH INPUT -->
+              <div class="col-12 col-md-4">
+                <q-input
+                  v-model="searchQuery"
+                  outlined
+                  dense
+                  rounded
+                  placeholder="Cari No. Invoice atau Klien..."
+                  bg-color="white"
+                  class="search-input"
+                >
+                  <template v-slot:prepend><q-icon name="search" color="teal-10" /></template>
+                  <template v-slot:append v-if="searchQuery">
+                    <q-icon name="close" @click="searchQuery = ''" class="cursor-pointer" />
+                  </template>
+                </q-input>
+              </div>
+
+              <!-- RIGHT SIDE CONTROLS (TABS & ACTIONS STACKED ON DESKTOP) -->
+              <div class="col-12 col-md-8 column filter-controls-column q-gutter-y-sm">
+                <!-- TABS FILTER STATUS (Scrollable on mobile) -->
+                <div class="filter-tabs-container">
+                  <q-tabs
+                    v-model="tabFilter"
+                    dense
+                    class="text-grey-7 bg-grey-1 rounded-12 p-1"
+                    active-color="teal-10"
+                    indicator-color="transparent"
+                    active-bg-color="white"
+                    align="left"
+                    arrows
+                    outside-arrows
+                    style="max-width: 100%"
+                  >
+                    <q-tab name="ALL" label="Semua" class="text-weight-bold rounded-12 q-px-sm" />
+                    <q-tab
+                      name="Pending"
+                      label="Menunggu"
+                      class="text-weight-bold rounded-12 q-px-sm"
+                    />
+                    <q-tab
+                      name="Approved"
+                      label="Disetujui"
+                      class="text-weight-bold rounded-12 q-px-sm"
+                    />
+                    <q-tab
+                      name="Rejected"
+                      label="Ditolak"
+                      class="text-weight-bold rounded-12 q-px-sm"
+                    />
+                  </q-tabs>
+                </div>
+
+                <!-- ACTION BUTTONS: BUAT KWITANSI, EXPORT DROPDOWN, REFRESH -->
+                <div class="filter-actions-container">
+                  <!-- BUAT KWITANSI (Di HP masuk ke dalam card dekat export) -->
+                  <q-btn
+                    color="teal-10"
+                    icon="receipt"
+                    label="Buat Kwitansi"
+                    unelevated
+                    rounded
+                    no-caps
+                    class="shadow-premium text-weight-bold btn-teal-main action-btn-item q-px-md"
+                    @click="clickCreateKwitansi"
+                  />
+
+                  <!-- EXPORT DROPDOWN BUTTON (TEMA TEAL) -->
+                  <q-btn-dropdown
+                    unelevated
+                    rounded
+                    color="teal-10"
+                    icon="file_download"
+                    label="Export Laporan"
+                    class="shadow-1 font-bold q-px-md btn-teal-main action-btn-item"
+                    no-caps
+                  >
+                    <q-list style="min-width: 180px">
+                      <q-item
+                        clickable
+                        v-ripple
+                        @click="exportListToPDF"
+                        class="q-py-md hover-teal-btn"
+                      >
+                        <q-item-section avatar>
+                          <q-avatar
+                            color="red-1"
+                            text-color="red-9"
+                            icon="picture_as_pdf"
+                            size="sm"
+                          />
+                        </q-item-section>
+                        <q-item-section class="text-weight-bold text-red-9"
+                          >Export PDF</q-item-section
+                        >
+                      </q-item>
+                      <q-separator />
+                      <q-item
+                        clickable
+                        v-ripple
+                        @click="exportListToExcel"
+                        class="q-py-md hover-teal-btn"
+                      >
+                        <q-item-section avatar>
+                          <q-avatar
+                            color="green-1"
+                            text-color="green-9"
+                            icon="table_view"
+                            size="sm"
+                          />
+                        </q-item-section>
+                        <q-item-section class="text-weight-bold text-green-9"
+                          >Export Excel</q-item-section
+                        >
+                      </q-item>
+                    </q-list>
+                  </q-btn-dropdown>
+
+                  <q-btn
+                    flat
+                    round
+                    icon="refresh"
+                    color="teal-10"
+                    class="refresh-btn-item"
+                    @click="fetchData"
+                  />
+                </div>
+              </div>
+            </div>
+          </q-card-section>
+        </q-card>
+
+        <!-- MAIN TABLE DATA (MENGGUNAKAN KOLOM YANG DIKUNCI KHUSUS AGAR INDAH TANPA SCROLLBAR HORIZONTAL) -->
+        <q-card
+          flat
+          bordered
+          class="rounded-20 shadow-sm overflow-hidden bg-white no-print border-teal-thin"
+        >
+          <q-table
+            :rows="filteredRows"
+            :columns="columns"
+            row-key="id"
+            flat
+            :loading="loading"
+            binary-state-sort
+            class="finance-table"
+            :pagination="{ rowsPerPage: 10 }"
+          >
+            <template v-slot:header="props">
+              <q-tr :props="props" class="table-header-teal text-white">
+                <q-th
+                  v-for="col in props.cols"
+                  :key="col.name"
+                  :props="props"
+                  class="text-weight-bold uppercase font-11 tracking-widest"
+                >
+                  {{ col.label }}
+                </q-th>
+              </q-tr>
+            </template>
+
+            <template v-slot:body="props">
+              <q-tr
+                :props="props"
+                class="hover-bg transition-all cursor-pointer"
+                @click="openReviewDialog(props.row)"
+              >
+                <q-td key="invoice">
+                  <div class="row items-center no-wrap">
+                    <q-avatar
+                      size="36px"
+                      color="teal-1"
+                      text-color="teal-10"
+                      icon="receipt_long"
+                      class="q-mr-md shadow-sm rounded-12"
+                    />
+                    <div>
+                      <div
+                        class="text-weight-bold text-blue-grey-10 text-subtitle2 leading-none q-mb-xs"
+                      >
+                        {{ props.row.nomor_invoice }}
+                      </div>
+                      <div class="text-caption text-grey-6 uppercase text-weight-medium">
+                        KLIEN:
+                        <span class="text-blue-grey-9 text-bold">{{
+                          props.row.customer_nama
+                        }}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </q-td>
+                </q-td>
 
-              <q-td key="proyek">
-                <div class="text-weight-bold text-blue-grey-9 uppercase font-11">
-                  {{ props.row.proyek_nama || '-' }}
-                </div>
-                <div class="text-caption text-grey-6 font-10">
-                  SPK: {{ props.row.spk_nomor || '-' }}
-                </div>
-              </q-td>
+                <q-td key="proyek">
+                  <div class="text-weight-bold text-blue-grey-9 uppercase font-11">
+                    {{ props.row.proyek_nama || '-' }}
+                  </div>
+                  <div class="text-caption text-grey-6 font-10">
+                    SPK: {{ props.row.spk_nomor || '-' }}
+                  </div>
+                </q-td>
 
-              <q-td key="nominal" class="text-right">
-                <div class="text-weight-bolder text-teal-10 text-subtitle2">
-                  Rp {{ (props.row.grand_total || 0).toLocaleString('id-ID') }}
-                </div>
-                <div class="text-caption text-grey-6 font-10 q-mt-xs">
-                  {{ formatDateIndo(props.row.tanggal) }}
-                </div>
-              </q-td>
+                <q-td key="nominal" class="text-right">
+                  <div class="text-weight-bolder text-teal-10 text-subtitle2">
+                    Rp {{ (props.row.grand_total || 0).toLocaleString('id-ID') }}
+                  </div>
+                  <div class="text-caption text-grey-6 font-10 q-mt-xs">
+                    {{ formatDateIndo(props.row.tanggal) }}
+                  </div>
+                </q-td>
 
-              <q-td key="status_approval" class="text-center">
-                <q-chip
-                  dense
-                  :color="getApprovalColor(props.row.approval_status).bg"
-                  :text-color="getApprovalColor(props.row.approval_status).text"
-                  class="text-weight-bold font-10 uppercase q-ma-none shadow-sm q-px-md"
-                >
-                  <q-icon
-                    :name="getApprovalColor(props.row.approval_status).icon"
-                    size="xs"
-                    class="q-mr-xs"
+                <q-td key="status_approval" class="text-center">
+                  <q-chip
+                    dense
+                    :color="getApprovalColor(props.row.approval_status).bg"
+                    :text-color="getApprovalColor(props.row.approval_status).text"
+                    class="text-weight-bold font-10 uppercase q-ma-none shadow-sm q-px-md"
+                  >
+                    <q-icon
+                      :name="getApprovalColor(props.row.approval_status).icon"
+                      size="xs"
+                      class="q-mr-xs"
+                    />
+                    {{ props.row.approval_status || 'Pending' }}
+                  </q-chip>
+                </q-td>
+
+                <q-td key="aksi" class="text-center" @click.stop>
+                  <q-btn
+                    unelevated
+                    rounded
+                    :color="
+                      props.row.approval_status === 'Pending' || !props.row.approval_status
+                        ? 'teal-9'
+                        : 'grey-7'
+                    "
+                    icon="plagiarism"
+                    :label="
+                      props.row.approval_status === 'Pending' || !props.row.approval_status
+                        ? 'Review'
+                        : 'Lihat'
+                    "
+                    size="sm"
+                    class="text-weight-bold q-px-md shadow-1"
+                    @click="openReviewDialog(props.row)"
                   />
-                  {{ props.row.approval_status || 'Pending' }}
-                </q-chip>
-              </q-td>
+                </q-td>
+              </q-tr>
+            </template>
 
-              <q-td key="aksi" class="text-center" @click.stop>
-                <q-btn
-                  unelevated
-                  rounded
-                  :color="
-                    props.row.approval_status === 'Pending' || !props.row.approval_status
-                      ? 'teal-9'
-                      : 'grey-7'
-                  "
-                  icon="plagiarism"
-                  :label="
-                    props.row.approval_status === 'Pending' || !props.row.approval_status
-                      ? 'Review'
-                      : 'Lihat'
-                  "
-                  size="sm"
-                  class="text-weight-bold q-px-md shadow-1"
-                  @click="openReviewDialog(props.row)"
-                />
-              </q-td>
-            </q-tr>
-          </template>
-
-          <template v-slot:no-data>
-            <div class="full-width row flex-center q-pa-xl text-grey-5">
-              <q-icon name="fact_check" size="64px" class="q-mb-md opacity-50" />
-              <div class="text-h6 full-width text-center">Data invoice pada filter ini kosong.</div>
-            </div>
-          </template>
-        </q-table>
-      </q-card>
-    </div>
+            <template v-slot:no-data>
+              <div class="full-width row flex-center q-pa-xl text-grey-5">
+                <q-icon name="fact_check" size="64px" class="q-mb-md opacity-50" />
+                <div class="text-h6 full-width text-center">
+                  Data invoice pada filter ini kosong.
+                </div>
+              </div>
+            </template>
+          </q-table>
+        </q-card>
+      </div>
+    </template>
 
     <!-- =====================================================================================
           DIALOG REVIEW INVOICE (SINKRONISASI TOTAL PREVIEW SAMA PERSIS DENGAN INVOICECUSTOMERPAGE)
           ===================================================================================== -->
     <q-dialog v-model="showReview" maximized transition-show="fade" transition-hide="fade">
       <q-card class="column no-wrap bg-grey-4">
-        <q-toolbar class="bg-white text-teal-10 q-py-sm no-print shadow-4 shrink" style="position: sticky; top: 0; z-index: 10; width: 100%;">
+        <q-toolbar
+          class="bg-white text-teal-10 q-py-sm no-print shadow-4 shrink"
+          style="position: sticky; top: 0; z-index: 10; width: 100%"
+        >
           <q-btn flat round dense icon="arrow_back" v-close-popup class="q-mr-sm" />
           <q-toolbar-title class="text-weight-bold uppercase tracking-widest font-11 text-teal-9">
             Tinjau Dokumen Invoice
           </q-toolbar-title>
-          
+
           <q-space />
 
           <div class="row items-center q-gutter-sm">
@@ -402,7 +430,7 @@
               rounded
               dense
               no-caps
-              style="padding: 4px 12px;"
+              style="padding: 4px 12px"
             />
 
             <!-- TOMBOL AKSI APPROVAL -->
@@ -452,7 +480,10 @@
 
         <q-card-section class="col scroll q-pa-md q-pa-md-xl flex flex-center preview-container">
           <!-- WRAPPER UNTUK PREVIEW LAYAR (DENGAN SHADOW) -->
-          <div class="invoice-preview-wrapper shadow-24 no-print" style="border-radius: 4px; overflow: hidden; margin: 0 auto; width: fit-content;">
+          <div
+            class="invoice-preview-wrapper shadow-24 no-print"
+            style="border-radius: 4px; overflow: hidden; margin: 0 auto; width: fit-content"
+          >
             <div id="invoice-pdf-area" class="letter-paper" v-if="selectedInv">
               <!-- GARIS BIRU ATAS -->
               <div
@@ -465,21 +496,25 @@
                 "
               ></div>
               <div class="row no-wrap items-center q-mb-md">
-                <img :src="config.kopUrl || 'icons/logo-agra.png'" class="final-kop-img q-mr-md" style="height: 60px; max-width: 150px; object-fit: contain;" />
+                <img
+                  :src="config.kopUrl || 'icons/logo-agra.png'"
+                  class="final-kop-img q-mr-md"
+                  style="height: 60px; max-width: 150px; object-fit: contain"
+                />
                 <div>
                   <div
                     class="text-weight-bolder uppercase"
-                    style="color: #2b579a; font-size: 18px; letter-spacing: 0.5px; line-height: 1.2;"
+                    style="color: #2b579a; font-size: 18px; letter-spacing: 0.5px; line-height: 1.2"
                   >
                     {{ config.nama_pt || 'PT. AGRA ABHINAYA PERKASA' }}
                   </div>
                   <div
-                    style="font-size: 9.5px; color: #555; letter-spacing: 0.5px;"
+                    style="font-size: 9.5px; color: #555; letter-spacing: 0.5px"
                     class="q-mt-xs text-uppercase text-weight-bold"
                   >
                     {{ config.slogan_pt || 'GENERAL CONSTRUCTION AND GENERAL SUPPLY' }}
                   </div>
-                  <div style="font-size: 10px; color: #666; line-height: 1.3;" class="q-mt-xs">
+                  <div style="font-size: 10px; color: #666; line-height: 1.3" class="q-mt-xs">
                     {{
                       config.alamat_pt ||
                       'Jl. Tegal Danas No. 9A, Sertajaya, Cikarang Timur, Kabupaten Bekasi, Jawa Barat 17530'
@@ -488,7 +523,7 @@
                 </div>
               </div>
               <div
-                style="height: 3px; background-color: #2b579a; width: 100%; margin-bottom: 25px;"
+                style="height: 3px; background-color: #2b579a; width: 100%; margin-bottom: 25px"
               ></div>
 
               <!-- ROW 1: Kepada & Invoice Header -->
@@ -497,17 +532,23 @@
                 <div class="col-7 text-left">
                   <div
                     class="text-grey-6 text-bold tracking-widest uppercase q-mb-xs"
-                    style="font-size: 10px;"
+                    style="font-size: 10px"
                   >
                     TAGIHAN KEPADA :
                   </div>
                   <div
                     class="text-weight-bold uppercase"
-                    style="color: #2b579a; font-size: 14px; letter-spacing: 0.5px; line-height: 1.2; margin-bottom: 2px;"
+                    style="
+                      color: #2b579a;
+                      font-size: 14px;
+                      letter-spacing: 0.5px;
+                      line-height: 1.2;
+                      margin-bottom: 2px;
+                    "
                   >
                     {{ selectedInv.customer_nama }}
                   </div>
-                  <div class="text-grey-9" style="font-size: 11px; line-height: 1.4;">
+                  <div class="text-grey-9" style="font-size: 11px; line-height: 1.4">
                     {{ selectedInv.customer_alamat }}
                   </div>
                 </div>
@@ -516,11 +557,11 @@
                 <div class="col-5 text-right font-pro">
                   <div
                     class="text-weight-900 text-italic"
-                    style="color: #2b579a; font-size: 26px; letter-spacing: 2px; line-height: 1;"
+                    style="color: #2b579a; font-size: 26px; letter-spacing: 2px; line-height: 1"
                   >
                     INVOICE
                   </div>
-                  <div class="text-weight-bold text-grey-9 q-mt-xs" style="font-size: 12px;">
+                  <div class="text-weight-bold text-grey-9 q-mt-xs" style="font-size: 12px">
                     # {{ selectedInv.nomor_invoice }}
                   </div>
                 </div>
@@ -530,286 +571,398 @@
               <div class="row q-col-gutter-lg q-mb-md items-start">
                 <!-- LEFT COLUMN -->
                 <div class="col-7 text-left">
-                  <table class="text-grey-9 text-left" style="font-size: 11px; width: 100%; border-collapse: collapse; line-height: 1.3;">
+                  <table
+                    class="text-grey-9 text-left"
+                    style="
+                      font-size: 11px;
+                      width: 100%;
+                      border-collapse: collapse;
+                      line-height: 1.3;
+                    "
+                  >
                     <tr>
-                      <td width="90" style="vertical-align: top; color: #666; padding: 2px 0 6px 0;">Proyek</td>
-                      <td width="15" class="text-center" style="vertical-align: top; color: #666; padding: 2px 0 6px 0;">:</td>
-                      <td class="text-weight-bold uppercase" style="color: #222; vertical-align: top; padding: 2px 0 6px 0;">
+                      <td width="90" style="vertical-align: top; color: #666; padding: 2px 0 6px 0">
+                        Proyek
+                      </td>
+                      <td
+                        width="15"
+                        class="text-center"
+                        style="vertical-align: top; color: #666; padding: 2px 0 6px 0"
+                      >
+                        :
+                      </td>
+                      <td
+                        class="text-weight-bold uppercase"
+                        style="color: #222; vertical-align: top; padding: 2px 0 6px 0"
+                      >
                         {{ selectedInv.proyek_nama || '-' }}
                       </td>
                     </tr>
                     <tr>
-                      <td style="vertical-align: top; color: #666; padding: 2px 0 0 0;">SPK / PO Ref</td>
-                      <td class="text-center" style="vertical-align: top; color: #666; padding: 2px 0 0 0;">:</td>
-                      <td class="text-weight-bold uppercase" style="color: #222; vertical-align: top; padding: 2px 0 0 0;">
+                      <td style="vertical-align: top; color: #666; padding: 2px 0 0 0">
+                        SPK / PO Ref
+                      </td>
+                      <td
+                        class="text-center"
+                        style="vertical-align: top; color: #666; padding: 2px 0 0 0"
+                      >
+                        :
+                      </td>
+                      <td
+                        class="text-weight-bold uppercase"
+                        style="color: #222; vertical-align: top; padding: 2px 0 0 0"
+                      >
                         {{ selectedInv.spk_nomor || '-' }}
                       </td>
                     </tr>
                   </table>
                 </div>
 
-                 <!-- RIGHT COLUMN -->
+                <!-- RIGHT COLUMN -->
                 <div class="col-5 text-right">
-                  <table class="text-grey-9" style="font-size: 11px; margin-left: auto; width: fit-content; border-collapse: collapse; line-height: 1.3;">
+                  <table
+                    class="text-grey-9"
+                    style="
+                      font-size: 11px;
+                      margin-left: auto;
+                      width: fit-content;
+                      border-collapse: collapse;
+                      line-height: 1.3;
+                    "
+                  >
                     <tr>
-                      <td width="78" class="text-right" style="vertical-align: top; color: #666; padding: 2px 0 6px 0;">Tanggal</td>
-                      <td width="12" class="text-center" style="vertical-align: top; color: #666; padding: 2px 0 6px 0;">:</td>
-                      <td class="text-weight-bold text-black text-left" style="vertical-align: top; padding: 2px 0 6px 0;">
+                      <td
+                        width="78"
+                        class="text-right"
+                        style="vertical-align: top; color: #666; padding: 2px 0 6px 0"
+                      >
+                        Tanggal
+                      </td>
+                      <td
+                        width="12"
+                        class="text-center"
+                        style="vertical-align: top; color: #666; padding: 2px 0 6px 0"
+                      >
+                        :
+                      </td>
+                      <td
+                        class="text-weight-bold text-black text-left"
+                        style="vertical-align: top; padding: 2px 0 6px 0"
+                      >
                         {{ formatDateIndo(selectedInv.tanggal) }}
                       </td>
                     </tr>
                     <tr>
-                      <td class="text-right" style="vertical-align: top; color: #666; padding: 2px 0 0 0;">Jatuh Tempo</td>
-                      <td class="text-center" style="vertical-align: top; color: #666; padding: 2px 0 0 0;">:</td>
-                      <td class="text-weight-bold text-red-9 text-left" style="vertical-align: top; padding: 2px 0 0 0;">
+                      <td
+                        class="text-right"
+                        style="vertical-align: top; color: #666; padding: 2px 0 0 0"
+                      >
+                        Jatuh Tempo
+                      </td>
+                      <td
+                        class="text-center"
+                        style="vertical-align: top; color: #666; padding: 2px 0 0 0"
+                      >
+                        :
+                      </td>
+                      <td
+                        class="text-weight-bold text-red-9 text-left"
+                        style="vertical-align: top; padding: 2px 0 0 0"
+                      >
                         {{ formatDateIndo(selectedInv.jatuh_tempo) }}
                       </td>
                     </tr>
                   </table>
                 </div>
               </div>
-            <table class="pdf-table full-width">
-              <thead>
-                <tr>
-                  <th width="40" class="text-center">NO</th>
-                  <th class="text-center">DESKRIPSI PEKERJAAN / TAGIHAN</th>
-                  <th width="160" class="text-center">JUMLAH (IDR)</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(item, i) in selectedInv.items" :key="i">
-                  <td
-                    class="text-center text-weight-bold border-bottom-none border-top-none q-py-sm"
-                    style="vertical-align: top"
-                  >
-                    {{ i + 1 }}
-                  </td>
-                  <td
-                    class="q-px-md q-py-sm border-bottom-none border-top-none"
-                    style="vertical-align: top"
-                  >
-                    <div class="text-weight-bold">{{ item.judul || item.uraian }}</div>
-                    <div
-                      class="text-grey-8"
-                      style="font-size: 10px; margin-top: 4px"
-                      v-if="item.deskripsi"
-                    >
-                      {{ item.deskripsi }}
-                    </div>
-                  </td>
-                  <td
-                    class="text-right q-px-md q-py-sm border-bottom-none border-top-none"
-                    style="vertical-align: top"
-                  >
-                    {{ (item.nominal || 0).toLocaleString('id-ID', { minimumFractionDigits: 0 }) }}
-                  </td>
-                </tr>
-                <tr>
-                  <td class="border-top-none border-bottom-none" style="height: 15px"></td>
-                  <td class="border-top-none border-bottom-none"></td>
-                  <td class="border-top-none border-bottom-none"></td>
-                </tr>
-                 <tr class="row-calculation">
-                  <td
-                    class="border-none-right border-bottom-none"
-                    style="background: white !important;"
-                  ></td>
-                  <td
-                    class="q-px-md q-py-xs text-right border-left-blue text-weight-bold"
-                    style="font-size: 11px;"
-                  >
-                    Subtotal (DPP)
-                  </td>
-                  <td class="text-right q-px-md text-weight-bold" style="font-size: 11px;">
-                    Rp
-                    {{
-                      (selectedInv.nilai_dpp || 0).toLocaleString('id-ID', {
-                        minimumFractionDigits: 0,
-                      })
-                    }}
-                  </td>
-                </tr>
-                <tr class="row-calculation" v-if="selectedInv.ppn_persen > 0">
-                  <td
-                    class="border-none-right border-bottom-none border-top-none"
-                    style="background: white !important;"
-                  ></td>
-                  <td
-                    class="q-px-md q-py-xs text-right border-left-blue text-weight-bold"
-                    style="font-size: 11px;"
-                  >
-                    PPN ({{ selectedInv.ppn_persen }}%)
-                  </td>
-                  <td class="text-right q-px-md text-weight-bold" style="font-size: 11px;">
-                    Rp
-                    {{
-                      (selectedInv.ppn_nominal || 0).toLocaleString('id-ID', {
-                        minimumFractionDigits: 0,
-                      })
-                    }}
-                  </td>
-                </tr>
-                <tr class="row-calculation" v-if="selectedInv.pph_persen > 0">
-                  <td
-                    class="border-none-right border-bottom-none border-top-none"
-                    style="background: white !important;"
-                  ></td>
-                  <td
-                    class="q-px-md q-py-xs text-right border-left-blue text-weight-bold text-negative"
-                    style="font-size: 11px;"
-                  >
-                    Potongan PPh ({{ selectedInv.pph_persen }}%)
-                  </td>
-                  <td class="text-right q-px-md text-weight-bold text-negative" style="font-size: 11px;">
-                    - Rp
-                    {{
-                      (selectedInv.pph_nominal || 0).toLocaleString('id-ID', {
-                        minimumFractionDigits: 0,
-                      })
-                    }}
-                  </td>
-                </tr>
-                <tr class="row-grand-total" style="background-color: #2b579a !important; color: white !important;">
-                  <td
-                    colspan="2"
-                    class="text-center text-weight-bold uppercase tracking-widest"
-                    style="font-size: 11.5px; padding: 8px 12px; color: white !important; border: 1px solid #2b579a;"
-                  >
-                    TOTAL TAGIHAN (GRAND TOTAL)
-                  </td>
-                  <td class="text-right text-weight-black q-px-md" style="font-size: 14px; padding: 8px 12px; color: white !important; border: 1px solid #2b579a;">
-                    Rp
-                    {{
-                      (selectedInv.grand_total || 0).toLocaleString('id-ID', {
-                        minimumFractionDigits: 0,
-                      })
-                    }}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-            <div
-              class="bg-grey-2 q-pa-md rounded-borders text-blue-grey-9 q-mb-xl q-mt-md"
-              style="font-size: 11px; border: 1px solid #e0e0e0"
-            >
-              <div class="text-weight-bold q-mb-xs">Terbilang :</div>
-              <div># {{ terbilangRupiah(selectedInv.grand_total) }} Rupiah #</div>
-            </div>
-            <div class="row" style="margin-top: 24px">
-              <!-- KIRI: Instruksi Pembayaran -->
-              <div style="width: 58%; padding-right: 20px; box-sizing: border-box">
-                <div
-                  style="
-                    color: #2b579a;
-                    font-size: 11px;
-                    font-weight: 800;
-                    letter-spacing: 0.8px;
-                    text-transform: uppercase;
-                    margin-bottom: 6px;
-                  "
-                >
-                  INSTRUKSI PEMBAYARAN
-                </div>
-                <div style="font-size: 10px; color: #777; margin-bottom: 8px">
-                  Mohon lakukan pembayaran penuh (full amount) ke rekening berikut:
-                </div>
-                <table class="bank-table-bordered text-weight-bold text-blue-grey-9">
+              <table class="pdf-table full-width">
+                <thead>
                   <tr>
-                    <td width="90" class="q-px-md bg-grey-2">Bank</td>
-                    <td class="text-uppercase" style="color: #2b579a">
-                      : {{ selectedInv.rek_bank }}
+                    <th width="40" class="text-center">NO</th>
+                    <th class="text-center">DESKRIPSI PEKERJAAN / TAGIHAN</th>
+                    <th width="60" class="text-center">VOL</th>
+                    <th width="60" class="text-center">SAT</th>
+                    <th width="160" class="text-center">JUMLAH (IDR)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="(item, i) in selectedInv.items"
+                    :key="i"
+                    style="border-bottom: 1px solid #dde3ed"
+                  >
+                    <td
+                      class="text-center text-weight-bold q-py-sm"
+                      style="vertical-align: top; border-right: 1px solid #dde3ed"
+                    >
+                      {{ i + 1 }}
+                    </td>
+                    <td
+                      class="q-px-md q-py-sm"
+                      style="vertical-align: top; border-right: 1px solid #dde3ed"
+                    >
+                      <div class="text-weight-bold">{{ item.judul || item.uraian }}</div>
+                      <div
+                        class="text-grey-8"
+                        style="font-size: 10px; margin-top: 4px"
+                        v-if="item.deskripsi"
+                      >
+                        {{ item.deskripsi }}
+                      </div>
+                    </td>
+                    <td
+                      class="text-center q-px-sm q-py-sm"
+                      style="vertical-align: top; font-size: 11px; border-right: 1px solid #dde3ed"
+                    >
+                      {{ item.volume || '' }}
+                    </td>
+                    <td
+                      class="text-center q-px-sm q-py-sm text-weight-bold"
+                      style="
+                        vertical-align: top;
+                        font-size: 11px;
+                        color: #2b579a;
+                        border-right: 1px solid #dde3ed;
+                      "
+                    >
+                      {{ item.satuan || '' }}
+                    </td>
+                    <td class="text-right q-px-md q-py-sm" style="vertical-align: top">
+                      {{
+                        (item.nominal || 0).toLocaleString('id-ID', { minimumFractionDigits: 0 })
+                      }}
                     </td>
                   </tr>
                   <tr>
-                    <td class="q-px-md bg-grey-2">No. Rekening</td>
-                    <td class="text-primary">: {{ selectedInv.rek_nomor }}</td>
+                    <td class="border-top-none border-bottom-none" style="height: 15px"></td>
+                    <td class="border-top-none border-bottom-none"></td>
+                    <td class="border-top-none border-bottom-none"></td>
+                    <td class="border-top-none border-bottom-none"></td>
+                    <td class="border-top-none border-bottom-none"></td>
                   </tr>
-                  <tr>
-                    <td class="q-px-md bg-grey-2">Atas Nama</td>
-                    <td class="text-uppercase text-grey-8">: {{ selectedInv.rek_nama }}</td>
+                  <tr class="row-calculation">
+                    <td
+                      colspan="3"
+                      class="border-none-right border-bottom-none"
+                      style="background: white !important"
+                    ></td>
+                    <td
+                      class="q-px-md q-py-xs text-right border-left-blue text-weight-bold"
+                      style="font-size: 11px"
+                    >
+                      Subtotal (DPP)
+                    </td>
+                    <td class="text-right q-px-md text-weight-bold" style="font-size: 11px">
+                      Rp
+                      {{
+                        (selectedInv.nilai_dpp || 0).toLocaleString('id-ID', {
+                          minimumFractionDigits: 0,
+                        })
+                      }}
+                    </td>
                   </tr>
-                </table>
-                <div
-                  style="font-size: 9.5px; color: #555; margin-top: 10px"
-                  v-if="selectedInv.keterangan"
-                >
-                  <span style="font-weight: 700">Catatan Tambahan:</span><br />{{
-                    selectedInv.keterangan
-                  }}
-                </div>
-              </div>
-
-              <!-- KANAN: Tanda Tangan -->
+                  <tr class="row-calculation" v-if="selectedInv.ppn_persen > 0">
+                    <td
+                      colspan="3"
+                      class="border-none-right border-bottom-none border-top-none"
+                      style="background: white !important"
+                    ></td>
+                    <td
+                      class="q-px-md q-py-xs text-right border-left-blue text-weight-bold"
+                      style="font-size: 11px"
+                    >
+                      PPN ({{ selectedInv.ppn_persen }}%)
+                    </td>
+                    <td class="text-right q-px-md text-weight-bold" style="font-size: 11px">
+                      Rp
+                      {{
+                        (selectedInv.ppn_nominal || 0).toLocaleString('id-ID', {
+                          minimumFractionDigits: 0,
+                        })
+                      }}
+                    </td>
+                  </tr>
+                  <tr class="row-calculation" v-if="selectedInv.pph_persen > 0">
+                    <td
+                      colspan="3"
+                      class="border-none-right border-bottom-none border-top-none"
+                      style="background: white !important"
+                    ></td>
+                    <td
+                      class="q-px-md q-py-xs text-right border-left-blue text-weight-bold text-negative"
+                      style="font-size: 11px"
+                    >
+                      Potongan PPh ({{ selectedInv.pph_persen }}%)
+                    </td>
+                    <td
+                      class="text-right q-px-md text-weight-bold text-negative"
+                      style="font-size: 11px"
+                    >
+                      - Rp
+                      {{
+                        (selectedInv.pph_nominal || 0).toLocaleString('id-ID', {
+                          minimumFractionDigits: 0,
+                        })
+                      }}
+                    </td>
+                  </tr>
+                  <tr
+                    class="row-grand-total"
+                    style="background-color: #2b579a !important; color: white !important"
+                  >
+                    <td
+                      colspan="4"
+                      class="text-center text-weight-bold uppercase tracking-widest"
+                      style="
+                        font-size: 11.5px;
+                        padding: 8px 12px;
+                        color: white !important;
+                        border: 1px solid #2b579a;
+                      "
+                    >
+                      TOTAL TAGIHAN (GRAND TOTAL)
+                    </td>
+                    <td
+                      class="text-right text-weight-black q-px-md"
+                      style="
+                        font-size: 14px;
+                        padding: 8px 12px;
+                        color: white !important;
+                        border: 1px solid #2b579a;
+                      "
+                    >
+                      Rp
+                      {{
+                        (selectedInv.grand_total || 0).toLocaleString('id-ID', {
+                          minimumFractionDigits: 0,
+                        })
+                      }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
               <div
-                style="
-                  width: 42%;
-                  box-sizing: border-box;
-                  display: flex;
-                  flex-direction: column;
-                  align-items: center;
-                  text-align: center;
-                "
+                class="bg-grey-2 q-pa-md rounded-borders text-blue-grey-9 q-mb-lg q-mt-md"
+                style="font-size: 11px; border: 1px solid #e0e0e0; line-height: 1.4"
               >
-                <!-- Nama PT (menggantikan "Hormat Kami,") -->
-                <div
-                  style="
-                    color: #2b579a;
-                    font-size: 11px;
-                    font-weight: 800;
-                    text-transform: uppercase;
-                    letter-spacing: 0.5px;
-                    margin-bottom: 48px;
-                  "
-                >
-                  {{ config.nama_pt || 'PT AGRA ABHINAYA PERKASA' }}
-                </div>
-
-                <!-- Ruang tanda tangan -->
-                <div
-                  style="
-                    height: 52px;
-                    width: 100%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    margin-bottom: 6px;
-                  "
-                >
-                  <img
-                    v-if="selectedInv.signatureUrl"
-                    :src="selectedInv.signatureUrl"
+                <div class="text-weight-bold q-mb-xs">Terbilang :</div>
+                <div># {{ terbilangRupiah(selectedInv.grand_total) }} Rupiah #</div>
+              </div>
+              <div class="row" style="margin-top: 24px">
+                <!-- KIRI: Instruksi Pembayaran -->
+                <div style="width: 58%; padding-right: 20px; box-sizing: border-box">
+                  <div
                     style="
-                      max-height: 52px;
-                      max-width: 180px;
-                      object-fit: contain;
-                      mix-blend-mode: multiply;
+                      color: #2b579a;
+                      font-size: 11px;
+                      font-weight: 800;
+                      letter-spacing: 0.8px;
+                      text-transform: uppercase;
+                      margin-bottom: 6px;
                     "
-                  />
+                  >
+                    INSTRUKSI PEMBAYARAN
+                  </div>
+                  <div style="font-size: 10px; color: #777; margin-bottom: 8px">
+                    Mohon lakukan pembayaran penuh (full amount) ke rekening berikut:
+                  </div>
+                  <table class="bank-table-bordered text-weight-bold text-blue-grey-9">
+                    <tr>
+                      <td width="90" class="q-px-md bg-grey-2">Bank</td>
+                      <td class="text-uppercase" style="color: #2b579a">
+                        : {{ selectedInv.rek_bank }}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="q-px-md bg-grey-2">No. Rekening</td>
+                      <td class="text-primary">: {{ selectedInv.rek_nomor }}</td>
+                    </tr>
+                    <tr>
+                      <td class="q-px-md bg-grey-2">Atas Nama</td>
+                      <td class="text-uppercase text-grey-8">: {{ selectedInv.rek_nama }}</td>
+                    </tr>
+                  </table>
+                  <div
+                    style="font-size: 9.5px; color: #555; margin-top: 10px"
+                    v-if="selectedInv.keterangan"
+                  >
+                    <span style="font-weight: 700">Catatan Tambahan:</span><br />{{
+                      selectedInv.keterangan
+                    }}
+                  </div>
                 </div>
 
-                <!-- Nama italic + garis bawah -->
+                <!-- KANAN: Tanda Tangan -->
                 <div
                   style="
-                    font-style: italic;
-                    font-weight: 700;
-                    font-size: 12px;
-                    color: #1a1a1a;
-                    border-bottom: 1.5px solid #1a1a1a;
-                    padding-bottom: 3px;
-                    min-width: 180px;
-                    margin-bottom: 5px;
+                    width: 42%;
+                    box-sizing: border-box;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    text-align: center;
                   "
                 >
-                  {{ selectedInv.ttd_nama || 'Deni Purwanti' }}
-                </div>
+                  <!-- Nama PT (menggantikan "Hormat Kami,") -->
+                  <div
+                    style="
+                      color: #2b579a;
+                      font-size: 11px;
+                      font-weight: 800;
+                      text-transform: uppercase;
+                      letter-spacing: 0.5px;
+                      margin-bottom: 48px;
+                    "
+                  >
+                    {{ config.nama_pt || 'PT AGRA ABHINAYA PERKASA' }}
+                  </div>
 
-                <!-- Jabatan -->
-                <div style="font-size: 11px; color: #555; font-weight: 400">
-                  {{ selectedInv.ttd_jabatan || 'Direktur Utama' }}
+                  <!-- Ruang tanda tangan -->
+                  <div
+                    style="
+                      height: 52px;
+                      width: 100%;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      margin-bottom: 6px;
+                    "
+                  >
+                    <img
+                      v-if="selectedInv.signatureUrl"
+                      :src="selectedInv.signatureUrl"
+                      style="
+                        max-height: 52px;
+                        max-width: 180px;
+                        object-fit: contain;
+                        mix-blend-mode: multiply;
+                      "
+                    />
+                  </div>
+
+                  <!-- Nama italic + garis bawah -->
+                  <div
+                    style="
+                      font-style: italic;
+                      font-weight: 700;
+                      font-size: 12px;
+                      color: #1a1a1a;
+                      border-bottom: 1.5px solid #1a1a1a;
+                      padding-bottom: 3px;
+                      min-width: 180px;
+                      margin-bottom: 5px;
+                    "
+                  >
+                    {{ selectedInv.ttd_nama || 'Deni Purwanti' }}
+                  </div>
+
+                  <!-- Jabatan -->
+                  <div style="font-size: 11px; color: #555; font-weight: 400">
+                    {{ selectedInv.ttd_jabatan || 'Direktur Utama' }}
+                  </div>
                 </div>
               </div>
-            </div>
-            <div style="margin-top: 40px; border-bottom: 6px solid #2b579a"></div>
+              <div style="margin-top: 40px; border-bottom: 6px solid #2b579a"></div>
             </div>
           </div>
         </q-card-section>
@@ -826,7 +979,10 @@
       transition-hide="slide-down"
     >
       <q-card class="bg-grey-2 column no-wrap font-pro">
-        <q-toolbar class="bg-white text-teal-10 q-py-md shadow-2 shrink" style="position: sticky; top: 0; z-index: 10; width: 100%;">
+        <q-toolbar
+          class="bg-white text-teal-10 q-py-md shadow-2 shrink"
+          style="position: sticky; top: 0; z-index: 10; width: 100%"
+        >
           <q-btn flat round dense icon="close" v-close-popup color="grey-7" />
           <q-toolbar-title class="text-weight-bold text-center uppercase tracking-widest font-11">
             PENERBITAN KWITANSI RESMI
@@ -1054,19 +1210,19 @@
                         <div class="text-left">
                           <div
                             class="text-weight-bolder uppercase text-indigo-10"
-                            style="font-size: 16px; line-height: 1.1;"
+                            style="font-size: 16px; line-height: 1.1"
                           >
                             {{ kwtForm.nama_pt }}
                           </div>
                           <div
                             class="text-pt-tagline italic text-blue-grey-9 q-mt-xs uppercase text-weight-bold"
-                            style="font-size: 10px;"
+                            style="font-size: 10px"
                           >
                             {{ kwtForm.slogan_pt }}
                           </div>
                           <div
                             class="q-mt-xs text-grey-7"
-                            style="font-size: 10px; line-height: 1.3; max-width: 380px;"
+                            style="font-size: 10px; line-height: 1.3; max-width: 380px"
                           >
                             {{ kwtForm.alamat_pt }}
                           </div>
@@ -1077,11 +1233,19 @@
                       <div class="text-right">
                         <div
                           class="text-weight-black uppercase font-mono tracking-widest"
-                          style="color: #000; font-family: sans-serif; font-size: 24px; letter-spacing: 2px;"
+                          style="
+                            color: #000;
+                            font-family: sans-serif;
+                            font-size: 24px;
+                            letter-spacing: 2px;
+                          "
                         >
                           KWITANSI
                         </div>
-                        <div class="text-weight-bold text-grey-8 q-mt-xs font-mono" style="font-size: 11px;">
+                        <div
+                          class="text-weight-bold text-grey-8 q-mt-xs font-mono"
+                          style="font-size: 11px"
+                        >
                           {{ kwtForm.nomor_kwt || 'No. Kwitansi' }}
                         </div>
                       </div>
@@ -1111,7 +1275,7 @@
                       <div class="row no-wrap items-start">
                         <div class="kwt-label text-weight-bold">Telah diterima dari</div>
                         <div class="kwt-separator">:</div>
-                        <div class="col text-weight-bold uppercase" style="font-size: 14px;">
+                        <div class="col text-weight-bold uppercase" style="font-size: 14px">
                           {{
                             kwtForm.customer_nama ||
                             '..................................................................'
@@ -1123,7 +1287,10 @@
                       <div class="row no-wrap items-start">
                         <div class="kwt-label text-weight-bold">Nama Proyek</div>
                         <div class="kwt-separator">:</div>
-                        <div class="col text-weight-bold uppercase text-black" style="font-size: 14px;">
+                        <div
+                          class="col text-weight-bold uppercase text-black"
+                          style="font-size: 14px"
+                        >
                           {{
                             kwtForm.proyek_nama ||
                             '..................................................................'
@@ -1148,7 +1315,7 @@
                           >
                             :
                           </div>
-                          <div class="col" style="color: #2b579a; font-size: 14px;">
+                          <div class="col" style="color: #2b579a; font-size: 14px">
                             # {{ kwtForm.terbilang || 'Nol' }} Rupiah #
                           </div>
                         </div>
@@ -1160,7 +1327,7 @@
                         <div class="kwt-separator">:</div>
                         <div
                           class="col leading-relaxed"
-                          style="white-space: pre-wrap; font-size: 14px;"
+                          style="white-space: pre-wrap; font-size: 14px"
                         >
                           {{
                             kwtForm.untuk_pembayaran ||
@@ -1568,8 +1735,6 @@ const columns = ref([
   },
   { name: 'aksi', align: 'center', label: 'AKSI', field: 'id' },
 ])
-
-
 
 // Prettified Notifications (Posisikan di ATAS TENGAH - position: 'top')
 function notify(opts) {
@@ -2185,13 +2350,6 @@ onUnmounted(() => {
   justify-content: center;
   width: 100%;
 }
-.action-btn-item {
-  /* Default: auto width on desktop */
-}
-.refresh-btn-item {
-  /* Default: round button auto size */
-}
-
 @media (min-width: 1024px) {
   .filter-tabs-container {
     justify-content: flex-end;
@@ -2217,22 +2375,6 @@ onUnmounted(() => {
   }
   .refresh-btn-item {
     align-self: center;
-  }
-}
-
-.page-content-wrapper {
-  padding: 0 24px;
-}
-@media (min-width: 768px) {
-  .page-content-wrapper {
-    padding: 0 32px;
-  }
-}
-@media (min-width: 1200px) {
-  .page-content-wrapper {
-    padding: 0 48px;
-    max-width: 1440px;
-    margin: 0 auto;
   }
 }
 
@@ -2363,6 +2505,23 @@ onUnmounted(() => {
 }
 .search-input :deep(.q-field__control:hover) {
   border-color: #009688 !important;
+}
+
+/* =======================================================================
+   PAGE CONTENT WRAPPER
+   ======================================================================= */
+.page-content-wrapper {
+  padding: 0 16px;
+}
+@media (min-width: 768px) {
+  .page-content-wrapper {
+    padding: 0 20px;
+  }
+}
+@media (min-width: 1200px) {
+  .page-content-wrapper {
+    padding: 0 24px;
+  }
 }
 
 /* =======================================================================
@@ -2576,8 +2735,6 @@ onUnmounted(() => {
   letter-spacing: 0.5px;
   text-transform: uppercase;
 }
-
-
 
 /* =============================================
    BEAUTIFUL TEAL NOTIFICATIONS
