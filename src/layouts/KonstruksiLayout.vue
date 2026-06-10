@@ -12,10 +12,10 @@
         />
 
         <q-toolbar-title class="text-weight-bolder">
-          <div class="row items-center no-wrap">
+          <div class="row items-center no-wrap q-ml-xs" style="margin-left: -8px;">
             <div class="row items-center no-wrap text-subtitle1 text-md-h6">
-              <span class="q-mr-xs tracking-tighter">AGRA</span>
-              <span class="text-weight-light text-brand-light-text">ERP</span>
+              <span class="q-mr-xs tracking-tighter text-weight-bolder">AGRA</span>
+              <span class="text-weight-bolder text-brand-light-text">ERP</span>
             </div>
           </div>
         </q-toolbar-title>

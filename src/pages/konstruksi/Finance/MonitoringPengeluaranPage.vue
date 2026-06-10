@@ -1,1184 +1,1200 @@
 <template>
-  <q-page class="bg-grey-2 q-pa-md q-pa-lg-lg font-pro">
-    <div class="row items-center justify-between q-mb-xl animate-fade no-print">
-      <div class="col-12 col-md-8">
-        <div>
-          <div class="text-h4 text-weight-bolder text-teal-10 leading-tight">
-            Monitoring Pengeluaran
-            <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs">
-              Cash Disbursement &amp; Expense Ledger
-            </span>
-          </div>
-          <div class="text-subtitle1 text-grey-7 q-mt-sm">
-            Pantau seluruh arus kas keluar dari pengajuan pembayaran yang telah disetujui dan
-            direalisasikan.
+  <q-page class="bg-page q-pa-md font-pro">
+    <div class="page-content-wrapper">
+      <div class="row items-center justify-between q-mb-lg no-print">
+        <div class="col-12">
+          <div class="row items-center no-wrap">
+            <div>
+              <div class="text-h4 text-weight-bolder text-brand-primary leading-tight">
+                Monitoring Pengeluaran
+                <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs">
+                  Cash Disbursement &amp; Expense Ledger
+                </span>
+              </div>
+              <div class="text-subtitle1 text-grey-7 q-mt-sm">
+                Pantau seluruh arus kas keluar dari pengajuan pembayaran yang telah disetujui dan
+                direalisasikan.
+              </div>
+            </div>
           </div>
         </div>
       </div>
-      <div class="col-12 col-md-auto q-mt-md q-mt-md-none row items-center q-gutter-md justify-end">
-        <q-btn
-          unelevated
-          color="teal-10"
-          text-color="white"
-          icon="add_circle"
-          label="Pengeluaran Manual"
-          class="rounded-12 text-weight-bold shadow-2 btn-pengeluaran-manual"
-          @click="openAddManualDialog"
-        />
 
-        <q-btn-dropdown
-          unelevated
-          color="white"
-          text-color="teal-10"
-          icon="ios_share"
-          label="Export Data"
-          class="rounded-12 text-weight-bold shadow-2"
-        >
-          <q-list class="bg-white rounded-borders q-py-sm" style="min-width: 200px">
-            <q-item clickable v-close-popup @click="exportTablePDF" class="hover-blue-btn">
-              <q-item-section avatar>
-                <q-avatar color="red-1" text-color="red-10" icon="picture_as_pdf" size="sm" />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label class="text-weight-bold">Download PDF</q-item-label>
-              </q-item-section>
-            </q-item>
-            <q-separator class="q-my-sm" />
-            <q-item clickable v-close-popup @click="exportTableExcel" class="hover-blue-btn">
-              <q-item-section avatar>
-                <q-avatar color="green-1" text-color="green-10" icon="table_view" size="sm" />
-              </q-item-section>
-              <q-item-section>
-                <q-item-label class="text-weight-bold">Export Excel</q-item-label>
-              </q-item-section>
-            </q-item>
-          </q-list>
-        </q-btn-dropdown>
-
-        <div class="text-right">
-          <div class="text-caption text-grey-6 q-mb-xs uppercase tracking-widest font-bold">
-            Status Buku Kas
-          </div>
-          <q-badge color="positive" class="q-px-md q-py-xs text-weight-bold shadow-2 rounded-12">
-            <q-icon name="sync" size="xs" class="q-mr-sm animate-spin-slow" />
-            AUTO-SYNC AKTIF
-          </q-badge>
-        </div>
-      </div>
-    </div>
-
-    <!-- KPI CARDS UTAMA (3 card) -->
-    <div class="row q-col-gutter-lg q-mb-lg animate-fade-up no-print">
-      <div class="col-12 col-sm-4">
-        <q-card flat class="rounded-20 kpi-card kpi-teal text-white transition-all hover-shadow">
-          <q-card-section class="row items-center no-wrap q-pa-lg">
-            <div class="col">
-              <div class="text-overline text-white kpi-label tracking-widest q-mb-xs">
-                TOTAL DISETUJUI
-              </div>
-              <div class="text-h5 text-weight-black q-mt-xs">
-                Rp {{ formatCompact(totalDisetujui) }}
-              </div>
-              <div class="text-caption text-white opacity-70 q-mt-xs">
-                {{ approvedExpenses.length }} transaksi approved
-              </div>
-            </div>
-            <div class="kpi-icon-wrap q-pa-md rounded-borders flex flex-center">
-              <q-icon name="verified" color="white" size="32px" />
-            </div>
-          </q-card-section>
-          <div class="q-px-lg q-pb-md">
-            <div class="kpi-bar-track">
-              <div class="kpi-bar-fill bg-white" style="width: 100%"></div>
-            </div>
-          </div>
-        </q-card>
-      </div>
-
-      <div class="col-12 col-sm-4">
-        <q-card flat class="rounded-20 kpi-card kpi-green text-white transition-all hover-shadow">
-          <q-card-section class="row items-center no-wrap q-pa-lg">
-            <div class="col">
-              <div class="text-overline text-white kpi-label tracking-widest q-mb-xs">
-                TOTAL TEREALISASI
-              </div>
-              <div class="text-h5 text-weight-black q-mt-xs">
-                Rp {{ formatCompact(totalTerealisasi) }}
-              </div>
-              <div class="text-caption text-white opacity-70 q-mt-xs">
-                {{ cairExpenses.length }} transaksi telah cair
-              </div>
-            </div>
-            <div class="kpi-icon-wrap q-pa-md rounded-borders flex flex-center">
-              <q-icon name="price_check" color="white" size="32px" />
-            </div>
-          </q-card-section>
-          <div class="q-px-lg q-pb-md">
-            <div class="kpi-bar-track">
-              <div class="kpi-bar-fill bg-white" :style="{ width: realisasiPct + '%' }"></div>
-            </div>
-            <div class="text-caption text-white opacity-70 q-mt-xs text-right">
-              {{ realisasiPct }}% dari total disetujui
-            </div>
-          </div>
-        </q-card>
-      </div>
-
-      <div class="col-12 col-sm-4">
-        <q-card flat class="rounded-20 kpi-card kpi-orange text-white transition-all hover-shadow">
-          <q-card-section class="row items-center no-wrap q-pa-lg">
-            <div class="col">
-              <div class="text-overline text-white kpi-label tracking-widest q-mb-xs">
-                OUTSTANDING (ANTREAN)
-              </div>
-              <div class="text-h5 text-weight-black q-mt-xs">
-                Rp {{ formatCompact(totalOutstanding) }}
-              </div>
-              <div class="text-caption text-white opacity-70 q-mt-xs">
-                {{ outstandingExpenses.length }} pengajuan belum cair
-              </div>
-            </div>
-            <div class="kpi-icon-wrap q-pa-md rounded-borders flex flex-center">
-              <q-icon name="pending_actions" color="white" size="32px" />
-            </div>
-          </q-card-section>
-          <div class="q-px-lg q-pb-md">
-            <div class="kpi-bar-track">
-              <div class="kpi-bar-fill bg-white" :style="{ width: outstandingPct + '%' }"></div>
-            </div>
-            <div class="text-caption text-white opacity-70 q-mt-xs text-right">
-              {{ outstandingPct }}% masih perlu direalisasi
-            </div>
-          </div>
-        </q-card>
-      </div>
-    </div>
-
-    <!-- KPI SEKUNDER (4 card) -->
-    <div class="row q-col-gutter-lg q-mb-lg animate-fade-up no-print">
-      <div class="col-12 col-sm-6 col-md-3">
-        <q-card flat class="rounded-20 kpi-card kpi-sec-red text-white transition-all hover-shadow">
-          <q-card-section class="row items-center no-wrap q-pa-md">
-            <div class="col">
-              <div class="text-overline kpi-sec-label tracking-widest q-mb-xs">
-                TOTAL PENGELUARAN
-              </div>
-              <div class="text-h5 text-weight-bolder q-mt-xs">
-                Rp {{ formatCompact(totalPengeluaran) }}
-              </div>
-              <div class="text-caption opacity-70 q-mt-xs">Semua realisasi</div>
-            </div>
-            <div class="kpi-sec-icon-wrap">
-              <q-icon name="trending_down" color="white" size="26px" />
-            </div>
-          </q-card-section>
-          <div class="q-px-md q-pb-md">
-            <div class="kpi-bar-track">
-              <div class="kpi-bar-fill bg-white" style="width: 100%"></div>
-            </div>
-          </div>
-        </q-card>
-      </div>
-
-      <div class="col-12 col-sm-6 col-md-3">
-        <q-card
-          flat
-          class="rounded-20 kpi-card kpi-sec-amber text-white transition-all hover-shadow"
-        >
-          <q-card-section class="row items-center no-wrap q-pa-md">
-            <div class="col">
-              <div class="text-overline kpi-sec-label tracking-widest q-mb-xs">
-                BULAN INI ({{ currentMonthName }})
-              </div>
-              <div class="text-h5 text-weight-bolder q-mt-xs">
-                Rp {{ formatCompact(pengeluaranBulanIni) }}
-              </div>
-              <div class="text-caption opacity-70 q-mt-xs">Periode berjalan</div>
-            </div>
-            <div class="kpi-sec-icon-wrap">
-              <q-icon name="date_range" color="white" size="26px" />
-            </div>
-          </q-card-section>
-          <div class="q-px-md q-pb-md">
-            <div class="kpi-bar-track">
-              <div
-                class="kpi-bar-fill bg-white"
-                :style="{
-                  width: totalPengeluaran
-                    ? Math.min(Math.round((pengeluaranBulanIni / totalPengeluaran) * 100), 100) +
-                      '%'
-                    : '0%',
-                }"
-              ></div>
-            </div>
-          </div>
-        </q-card>
-      </div>
-
-      <div class="col-12 col-sm-6 col-md-3">
-        <q-card
-          flat
-          class="rounded-20 kpi-card kpi-sec-teal text-white transition-all hover-shadow"
-        >
-          <q-card-section class="row items-center no-wrap q-pa-md">
-            <div class="col">
-              <div class="text-overline kpi-sec-label tracking-widest q-mb-xs">
-                VOLUME TRANSAKSI
-              </div>
-              <div class="text-h4 text-weight-bolder q-mt-xs">
-                {{ approvedExpenses.length }}
-                <span class="text-subtitle1 text-weight-medium opacity-80">TRX</span>
-              </div>
-              <div class="text-caption opacity-70 q-mt-xs">Total semua status</div>
-            </div>
-            <div class="kpi-sec-icon-wrap">
-              <q-icon name="receipt" color="white" size="26px" />
-            </div>
-          </q-card-section>
-          <div class="q-px-md q-pb-md">
-            <div class="kpi-bar-track">
-              <div class="kpi-bar-fill bg-white" style="width: 100%"></div>
-            </div>
-          </div>
-        </q-card>
-      </div>
-
-      <div class="col-12 col-sm-6 col-md-3">
-        <q-card
-          flat
-          class="rounded-20 kpi-card kpi-sec-slate text-white transition-all hover-shadow"
-        >
-          <q-card-section class="row items-center no-wrap q-pa-md">
-            <div class="col">
-              <div class="text-overline kpi-sec-label tracking-widest q-mb-xs">
-                RATA-RATA / TRANSAKSI
-              </div>
-              <div class="text-h5 text-weight-bolder q-mt-xs">
-                Rp {{ formatCompact(rataRataPengeluaran) }}
-              </div>
-              <div class="text-caption opacity-70 q-mt-xs">Per realisasi cair</div>
-            </div>
-            <div class="kpi-sec-icon-wrap">
-              <q-icon name="analytics" color="white" size="26px" />
-            </div>
-          </q-card-section>
-          <div class="q-px-md q-pb-md">
-            <div class="kpi-bar-track">
-              <div class="kpi-bar-fill bg-white" style="width: 65%"></div>
-            </div>
-          </div>
-        </q-card>
-      </div>
-    </div>
-
-    <!-- DISTRIBUSI PENGELUARAN PER DIVISI -->
-    <q-card flat bordered class="rounded-20 shadow-sm bg-white q-mb-lg no-print">
-      <q-card-section
-        class="bg-teal-1 q-py-sm text-teal-10 text-weight-bold flex items-center border-bottom"
-      >
-        <q-icon name="donut_small" class="q-mr-xs" size="sm" />
-        DISTRIBUSI PENGELUARAN PER DIVISI / TIPE
-      </q-card-section>
-      <q-card-section class="q-pa-lg">
-        <div v-if="distribusiDivisi.length === 0" class="text-center q-pa-xl text-grey-5">
-          <q-icon name="bar_chart" size="48px" class="q-mb-sm opacity-50" />
-          <div>Belum ada data pengeluaran untuk divisualisasikan.</div>
-        </div>
-        <div v-else class="q-gutter-y-md">
-          <div v-for="(divisi, idx) in distribusiDivisi" :key="idx">
-            <div class="row items-center q-col-gutter-md no-wrap">
-              <div class="col-12 col-md-3">
-                <div class="text-weight-bold text-blue-grey-9 font-11 uppercase truncate-label">
-                  {{ divisi.label }}
-                </div>
-                <div class="text-caption text-grey-6">{{ divisi.count }} transaksi</div>
-              </div>
+      <!-- KPI CARDS UTAMA (3 card) -->
+      <div class="row q-col-gutter-lg q-mb-lg animate-fade-up no-print">
+        <div class="col-12 col-sm-4">
+          <q-card flat class="rounded-20 kpi-card kpi-brand text-white transition-all hover-shadow">
+            <q-card-section class="row items-center no-wrap q-pa-lg">
               <div class="col">
-                <div class="dist-bar-track">
-                  <div
-                    class="dist-bar-fill"
-                    :class="distBarColors[idx % distBarColors.length]"
-                    :style="{ width: divisi.pct + '%' }"
-                  >
-                    <span class="dist-bar-label"> {{ divisi.pct }}% </span>
-                  </div>
+                <div class="text-overline text-white kpi-label tracking-widest q-mb-xs">
+                  TOTAL DISETUJUI
+                </div>
+                <div class="text-h5 text-weight-black q-mt-xs">
+                  Rp {{ formatCompact(totalDisetujui) }}
+                </div>
+                <div class="text-caption text-white opacity-70 q-mt-xs">
+                  {{ approvedExpenses.length }} transaksi approved
                 </div>
               </div>
-              <div class="col-12 col-md-3 text-right">
-                <div class="text-weight-bolder text-negative font-11">
-                  Rp {{ formatCompact(divisi.total) }}
-                </div>
+              <div class="kpi-icon-wrap q-pa-md rounded-borders flex flex-center">
+                <q-icon name="verified" color="white" size="32px" />
+              </div>
+            </q-card-section>
+            <div class="q-px-lg q-pb-md">
+              <div class="kpi-bar-track">
+                <div class="kpi-bar-fill bg-white" style="width: 100%"></div>
               </div>
             </div>
-          </div>
+          </q-card>
         </div>
-      </q-card-section>
-    </q-card>
 
-    <!-- FILTER -->
-    <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print border-teal-thin">
-      <q-card-section class="q-py-md">
-        <div class="row items-center q-col-gutter-md">
-          <div class="col-12 col-md-4">
-            <q-input
-              v-model="searchQuery"
-              outlined
-              dense
-              rounded
-              placeholder="Cari Vendor, No. Voucher, Invoice..."
-              bg-color="white"
-              class="search-input"
-            >
-              <template v-slot:prepend>
-                <q-icon name="search" color="primary" />
-              </template>
-              <template v-slot:append v-if="searchQuery">
-                <q-icon name="close" @click="searchQuery = ''" class="cursor-pointer" />
-              </template>
-            </q-input>
-          </div>
-          <div class="col-12 col-md-auto">
-            <q-tabs
-              v-model="statusRealisasiFilter"
-              dense
-              class="text-grey-7 bg-grey-1 rounded-12"
-              active-color="white"
-              active-bg-color="teal-10"
-              indicator-color="transparent"
-              align="left"
-              narrow-indicator
-            >
-              <q-tab name="ALL" label="Semua Status" class="text-weight-bold rounded-12 q-px-md" />
-              <q-tab name="Cair" label="Sudah Cair" class="text-weight-bold rounded-12 q-px-md" />
-              <q-tab
-                name="Approved"
-                label="Belum Cair"
-                class="text-weight-bold rounded-12 q-px-md"
-              />
-            </q-tabs>
-          </div>
-          <div class="col-12 col-md-auto">
-            <q-select
-              v-model="metodeFilter"
-              :options="metodeOptions"
-              outlined
-              dense
-              rounded
-              label="Metode Bayar"
-              bg-color="white"
-              style="min-width: 180px"
-              class="text-weight-bold"
-              color="teal"
-              emit-value
-              map-options
-            />
-          </div>
+        <div class="col-12 col-sm-4">
+          <q-card flat class="rounded-20 kpi-card kpi-green text-white transition-all hover-shadow">
+            <q-card-section class="row items-center no-wrap q-pa-lg">
+              <div class="col">
+                <div class="text-overline text-white kpi-label tracking-widest q-mb-xs">
+                  TOTAL TEREALISASI
+                </div>
+                <div class="text-h5 text-weight-black q-mt-xs">
+                  Rp {{ formatCompact(totalTerealisasi) }}
+                </div>
+                <div class="text-caption text-white opacity-70 q-mt-xs">
+                  {{ cairExpenses.length }} transaksi telah cair
+                </div>
+              </div>
+              <div class="kpi-icon-wrap q-pa-md rounded-borders flex flex-center">
+                <q-icon name="price_check" color="white" size="32px" />
+              </div>
+            </q-card-section>
+            <div class="q-px-lg q-pb-md">
+              <div class="kpi-bar-track">
+                <div class="kpi-bar-fill bg-white" :style="{ width: realisasiPct + '%' }"></div>
+              </div>
+              <div class="text-caption text-white opacity-70 q-mt-xs text-right">
+                {{ realisasiPct }}% dari total disetujui
+              </div>
+            </div>
+          </q-card>
         </div>
-      </q-card-section>
-    </q-card>
 
-    <!-- MAIN TABLE -->
-    <q-card
-      flat
-      bordered
-      class="rounded-20 shadow-sm overflow-hidden bg-white no-print border-teal-thin"
-    >
-      <q-table
-        :rows="filteredExpenses"
-        :columns="columns"
-        row-key="id"
-        flat
-        :loading="loading"
-        binary-state-sort
-        class="finance-table"
-        :pagination="{ rowsPerPage: 15 }"
-        no-data-label="Belum ada catatan pengeluaran kas."
-      >
-        <template v-slot:header="props">
-          <q-tr :props="props" class="bg-teal-10 text-white">
-            <q-th
-              v-for="col in props.cols"
-              :key="col.name"
-              :props="props"
-              class="text-weight-bold uppercase font-11 tracking-widest"
-            >
-              {{ col.label }}
-            </q-th>
-          </q-tr>
-        </template>
-
-        <template v-slot:body="props">
-          <q-tr
-            :props="props"
-            class="hover-bg transition-all cursor-pointer"
-            @click="openVoucher(props.row)"
+        <div class="col-12 col-sm-4">
+          <q-card
+            flat
+            class="rounded-20 kpi-card kpi-orange text-white transition-all hover-shadow"
           >
-            <q-td key="waktu">
-              <div class="text-weight-bold text-blue-grey-10 text-subtitle2 leading-none q-mb-xs">
-                {{ formatDateIndo(props.row.approvedAt || props.row.createdAt) }}
+            <q-card-section class="row items-center no-wrap q-pa-lg">
+              <div class="col">
+                <div class="text-overline text-white kpi-label tracking-widest q-mb-xs">
+                  OUTSTANDING (ANTREAN)
+                </div>
+                <div class="text-h5 text-weight-black q-mt-xs">
+                  Rp {{ formatCompact(totalOutstanding) }}
+                </div>
+                <div class="text-caption text-white opacity-70 q-mt-xs">
+                  {{ outstandingExpenses.length }} pengajuan belum cair
+                </div>
               </div>
-              <div class="text-caption text-teal-8 font-10 uppercase text-weight-bold">
-                {{ generateNomorBKK(props.row) }}
+              <div class="kpi-icon-wrap q-pa-md rounded-borders flex flex-center">
+                <q-icon name="pending_actions" color="white" size="32px" />
               </div>
-              <div class="text-caption text-grey-6 font-10">
-                REQ: {{ props.row.no_request || props.row.nomor_req || '-' }}
+            </q-card-section>
+            <div class="q-px-lg q-pb-md">
+              <div class="kpi-bar-track">
+                <div class="kpi-bar-fill bg-white" :style="{ width: outstandingPct + '%' }"></div>
               </div>
-            </q-td>
-
-            <q-td key="penerima">
-              <div class="text-weight-bold text-teal-10 uppercase font-11">
-                {{ props.row.vendor_nama || props.row.supplier_nama || '-' }}
+              <div class="text-caption text-white opacity-70 q-mt-xs text-right">
+                {{ outstandingPct }}% masih perlu direalisasi
               </div>
-              <div class="text-caption text-grey-7 font-10">
-                Inv Ref: {{ props.row.tagihan_nomor_invoice || props.row.nomor_invoice || '-' }}
-              </div>
-              <div class="text-caption text-grey-6 font-10">
-                {{ props.row.rek_bank }} - {{ props.row.rek_nomor }}
-              </div>
-            </q-td>
-
-            <q-td key="metode" class="text-center">
-              <q-chip
-                dense
-                :color="getMetodeColor(props.row.tipe_pengajuan || props.row.metode_bayar).bg"
-                :text-color="
-                  getMetodeColor(props.row.tipe_pengajuan || props.row.metode_bayar).text
-                "
-                class="text-weight-bold font-10 uppercase q-ma-none shadow-sm q-px-sm"
-              >
-                <q-icon
-                  :name="getMetodeColor(props.row.tipe_pengajuan || props.row.metode_bayar).icon"
-                  class="q-mr-xs"
-                  size="12px"
-                />
-                {{ props.row.tipe_pengajuan || props.row.metode_bayar || '-' }}
-              </q-chip>
-            </q-td>
-
-            <q-td key="keperluan" class="text-left" style="max-width: 250px">
-              <div class="text-body2 text-blue-grey-8 ellipsis-2-lines italic">
-                "{{ props.row.keterangan || props.row.keperluan || '-' }}"
-              </div>
-            </q-td>
-
-            <q-td key="nominal" class="text-right">
-              <div class="text-weight-black text-negative text-subtitle1">
-                - Rp
-                {{
-                  (props.row.nominal || props.row.nominal_pengajuan || 0).toLocaleString('id-ID')
-                }}
-              </div>
-            </q-td>
-
-            <q-td key="status_realisasi" class="text-center">
-              <q-chip
-                dense
-                :color="props.row.status === 'Cair' ? 'green-1' : 'orange-1'"
-                :text-color="props.row.status === 'Cair' ? 'text-positive' : 'text-orange-9'"
-                class="text-weight-bold font-10 uppercase q-ma-none shadow-sm q-px-sm"
-              >
-                <q-icon
-                  :name="props.row.status === 'Cair' ? 'task_alt' : 'hourglass_empty'"
-                  size="xs"
-                  class="q-mr-xs"
-                />
-                {{ props.row.status === 'Cair' ? 'SUDAH CAIR' : 'BELUM CAIR' }}
-              </q-chip>
-            </q-td>
-
-            <q-td key="aksi" class="text-center" @click.stop>
-              <q-btn
-                flat
-                round
-                color="teal-10"
-                icon="receipt_long"
-                size="sm"
-                @click="openVoucher(props.row)"
-              >
-                <q-tooltip>Lihat Voucher BKK</q-tooltip>
-              </q-btn>
-            </q-td>
-          </q-tr>
-        </template>
-
-        <template v-slot:no-data>
-          <div class="full-width row flex-center q-pa-xl text-grey-5">
-            <q-icon name="receipt_long" size="64px" class="q-mb-md opacity-50" />
-            <div class="text-h6 full-width text-center">Belum ada catatan pengeluaran kas.</div>
-          </div>
-        </template>
-      </q-table>
-    </q-card>
-
-    <!-- DIALOG VOUCHER BKK -->
-    <q-dialog
-      v-model="showVoucher"
-      maximized
-      transition-show="slide-up"
-      transition-hide="slide-down"
-      backdrop-filter="blur(8px)"
-    >
-      <q-card class="bg-grey-3 column no-wrap">
-        <q-toolbar class="bg-teal-10 text-white q-py-md shadow-4 shrink no-print">
-          <q-btn flat round dense icon="arrow_back" v-close-popup />
-          <q-toolbar-title>
-            <div class="text-weight-bold uppercase tracking-widest font-11">
-              Arsip Dokumen Keuangan
             </div>
-            <div class="text-caption opacity-70">Bukti Kas Keluar (BKK)</div>
-          </q-toolbar-title>
-          <q-btn
-            unelevated
-            color="white"
-            text-color="teal-10"
-            icon="print"
-            label="CETAK / PDF BUKTI"
-            class="q-mr-md text-weight-black rounded-12 shadow-2"
-            @click="exportVoucherToPDF"
-          />
-        </q-toolbar>
+          </q-card>
+        </div>
+      </div>
 
-        <q-scroll-area class="col q-pa-md q-pa-lg-xl flex flex-center">
-          <div class="row justify-center">
-            <div class="col-12 col-md-11 col-xl-8">
-              <div id="voucher-pdf-target" class="voucher-paper shadow-24" v-if="selectedVoucher">
-                <div class="row items-start justify-between q-mb-md border-bottom-thick q-pb-md">
-                  <div class="row items-center no-wrap">
-                    <img
-                      :src="compConfig.kopUrl || '/icons/logo-agra.png'"
-                      class="voucher-logo q-mr-md"
-                      @error="$event.target.style.display = 'none'"
-                    />
-                    <div class="column">
-                      <div
-                        class="text-h6 text-weight-black text-teal-10 tracking-tighter leading-none"
-                      >
-                        {{ compConfig.nama_perusahaan || 'PT AGRA ABHINAYA PERKASA' }}
-                      </div>
-                      <div class="text-caption text-grey-8 font-bold uppercase tracking-widest">
-                        {{
-                          compConfig.slogan_perusahaan || 'General Construction & General Supplier'
-                        }}
-                      </div>
-                      <div class="text-caption text-grey-6 q-mt-xs">
-                        {{ compConfig.alamat || '-' }}
-                      </div>
-                    </div>
-                  </div>
-                  <div class="text-right">
-                    <div
-                      class="text-h5 text-weight-black text-teal-10 uppercase tracking-widest leading-none"
-                    >
-                      BUKTI KAS KELUAR
-                    </div>
-                    <div class="text-subtitle2 text-weight-bold text-grey-8 font-mono q-mt-xs">
-                      No: {{ generateNomorBKK(selectedVoucher) }}
-                    </div>
-                  </div>
+      <!-- KPI SEKUNDER (4 card) -->
+      <div class="row q-col-gutter-lg q-mb-lg animate-fade-up no-print">
+        <div class="col-12 col-sm-6 col-md-3">
+          <q-card
+            flat
+            class="rounded-20 kpi-card kpi-sec-red text-white transition-all hover-shadow"
+          >
+            <q-card-section class="row items-center no-wrap q-pa-md">
+              <div class="col">
+                <div class="text-overline kpi-sec-label tracking-widest q-mb-xs">
+                  TOTAL PENGELUARAN
                 </div>
-
-                <div class="row q-col-gutter-lg q-mb-md">
-                  <div class="col-7">
-                    <table class="voucher-info-table full-width">
-                      <tr>
-                        <td width="145" class="text-grey-7 font-bold">Dibayarkan Kepada</td>
-                        <td width="12">:</td>
-                        <td class="text-weight-bolder text-uppercase text-subtitle2">
-                          {{ selectedVoucher.vendor_nama || selectedVoucher.supplier_nama }}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td class="text-grey-7 font-bold">Referensi Invoice</td>
-                        <td>:</td>
-                        <td class="text-weight-bold">
-                          {{
-                            selectedVoucher.tagihan_nomor_invoice ||
-                            selectedVoucher.nomor_invoice ||
-                            '-'
-                          }}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td class="text-grey-7 font-bold">Metode Pembayaran</td>
-                        <td>:</td>
-                        <td class="text-weight-bold text-primary">
-                          {{
-                            selectedVoucher.tipe_pengajuan ||
-                            selectedVoucher.metode_bayar ||
-                            'Transfer Bank'
-                          }}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td class="text-grey-7 font-bold">Rekening Tujuan</td>
-                        <td>:</td>
-                        <td class="text-weight-bold">
-                          {{ selectedVoucher.rek_bank }} - {{ selectedVoucher.rek_nomor }}<br />
-                          <span class="text-caption italic">
-                            A/N: {{ selectedVoucher.rek_nama || '-' }}
-                          </span>
-                        </td>
-                      </tr>
-                    </table>
-                  </div>
-                  <div class="col-5">
-                    <table class="voucher-info-table full-width">
-                      <tr>
-                        <td width="120" class="text-grey-7 font-bold">Tgl Pembayaran</td>
-                        <td width="12">:</td>
-                        <td class="text-weight-bold">
-                          {{
-                            formatDateIndo(selectedVoucher.approvedAt || selectedVoucher.updatedAt)
-                          }}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td class="text-grey-7 font-bold">Tgl Pengajuan</td>
-                        <td>:</td>
-                        <td class="text-weight-bold">
-                          {{ formatDateIndo(selectedVoucher.tanggal_pengajuan) }}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td class="text-grey-7 font-bold">Target Cair</td>
-                        <td>:</td>
-                        <td class="text-weight-bold text-negative">
-                          {{ formatDateIndo(selectedVoucher.tanggal_dibutuhkan) }}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td class="text-grey-7 font-bold">Pemohon (Req)</td>
-                        <td>:</td>
-                        <td class="text-weight-bold">
-                          {{ selectedVoucher.pembuat_nama || selectedVoucher.pemohon || '-' }}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td class="text-grey-7 font-bold">Otorisator</td>
-                        <td>:</td>
-                        <td class="text-weight-bold">
-                          {{ selectedVoucher.approvedBy || '-' }}
-                        </td>
-                      </tr>
-                    </table>
-                  </div>
+                <div class="text-h5 text-weight-bolder q-mt-xs">
+                  Rp {{ formatCompact(totalPengeluaran) }}
                 </div>
+                <div class="text-caption opacity-70 q-mt-xs">Semua realisasi</div>
+              </div>
+              <div class="kpi-sec-icon-wrap">
+                <q-icon name="trending_down" color="white" size="26px" />
+              </div>
+            </q-card-section>
+            <div class="q-px-md q-pb-md">
+              <div class="kpi-bar-track">
+                <div class="kpi-bar-fill bg-white" style="width: 100%"></div>
+              </div>
+            </div>
+          </q-card>
+        </div>
 
-                <div class="voucher-box q-mb-md">
-                  <div class="voucher-box-header">URAIAN / KEPERLUAN PEMBAYARAN</div>
-                  <div
-                    class="voucher-box-content text-body2 leading-relaxed italic text-blue-grey-9"
-                  >
-                    "{{ selectedVoucher.keterangan || selectedVoucher.keperluan || '-' }}"
-                  </div>
+        <div class="col-12 col-sm-6 col-md-3">
+          <q-card
+            flat
+            class="rounded-20 kpi-card kpi-sec-amber text-white transition-all hover-shadow"
+          >
+            <q-card-section class="row items-center no-wrap q-pa-md">
+              <div class="col">
+                <div class="text-overline kpi-sec-label tracking-widest q-mb-xs">
+                  BULAN INI ({{ currentMonthName }})
                 </div>
-
-                <div class="q-mb-md">
-                  <table
-                    style="
-                      width: 100%;
-                      border-collapse: collapse;
-                      border: 2px solid #00695c;
-                      border-radius: 8px;
-                      overflow: hidden;
-                    "
-                  >
-                    <tr>
-                      <td
-                        style="
-                          background: #eceff1;
-                          padding: 10px 16px;
-                          font-weight: 800;
-                          text-transform: uppercase;
-                          color: #37474f;
-                          font-size: 11px;
-                          letter-spacing: 1px;
-                          width: 40%;
-                        "
-                      >
-                        TOTAL DIBAYARKAN
-                      </td>
-                      <td
-                        style="
-                          background: #00695c;
-                          color: white;
-                          font-size: 20px;
-                          font-weight: 900;
-                          padding: 10px 16px;
-                          text-align: right;
-                        "
-                      >
-                        Rp
-                        {{
-                          (
-                            selectedVoucher.nominal_eksekusi ||
-                            selectedVoucher.nominal ||
-                            0
-                          ).toLocaleString('id-ID')
-                        }}
-                      </td>
-                    </tr>
-                    <tr>
-                      <td
-                        colspan="2"
-                        style="
-                          border-top: 1px solid #c5cae9;
-                          padding: 8px 16px;
-                          font-size: 11px;
-                          font-style: italic;
-                          color: #37474f;
-                        "
-                      >
-                        Terbilang:
-                        <strong
-                          >{{
-                            convertToTerbilang(
-                              selectedVoucher.nominal_eksekusi || selectedVoucher.nominal || 0,
-                            )
-                          }}
-                          Rupiah</strong
-                        >
-                      </td>
-                    </tr>
-                  </table>
-                  <div class="text-right q-mt-xs text-caption text-grey-6 italic">
-                    Telah diverifikasi dan disetujui sesuai dengan bukti invoice yang sah.
-                  </div>
+                <div class="text-h5 text-weight-bolder q-mt-xs">
+                  Rp {{ formatCompact(pengeluaranBulanIni) }}
                 </div>
-
-                <div class="ttd-grid">
-                  <div class="ttd-col">
-                    <div class="ttd-role">Disetujui Oleh,</div>
-                    <div class="ttd-jabatan text-caption text-grey-6">(Direktur / Pimpinan)</div>
-                    <div class="ttd-area"></div>
-                    <div class="ttd-name">
-                      {{ selectedVoucher.approvedBy || '.......................' }}
-                    </div>
-                    <div class="ttd-role-label">Finance / Direksi</div>
-                  </div>
-                  <div class="ttd-col">
-                    <div class="ttd-role">Diperiksa Oleh,</div>
-                    <div class="ttd-jabatan text-caption text-grey-6">(Accounting / Audit)</div>
-                    <div class="ttd-area"></div>
-                    <div class="ttd-name">.......................</div>
-                    <div class="ttd-role-label">Accounting Staff</div>
-                  </div>
-                  <div class="ttd-col">
-                    <div class="ttd-role">Dibayarkan Oleh,</div>
-                    <div class="ttd-jabatan text-caption text-grey-6">(Kasir / Finance)</div>
-                    <div class="ttd-area"></div>
-                    <div class="ttd-name">.......................</div>
-                    <div class="ttd-role-label">Finance / Kasir</div>
-                  </div>
-                  <div class="ttd-col">
-                    <div class="ttd-role">Diterima Oleh,</div>
-                    <div class="ttd-jabatan text-caption text-grey-6">(Penerima Dana)</div>
-                    <div class="ttd-area"></div>
-                    <div class="ttd-name">
-                      {{
-                        selectedVoucher.vendor_nama ||
-                        selectedVoucher.supplier_nama ||
-                        '.......................'
-                      }}
-                    </div>
-                    <div class="ttd-role-label">Vendor / TTD & Cap</div>
-                  </div>
-                </div>
-
+                <div class="text-caption opacity-70 q-mt-xs">Periode berjalan</div>
+              </div>
+              <div class="kpi-sec-icon-wrap">
+                <q-icon name="date_range" color="white" size="26px" />
+              </div>
+            </q-card-section>
+            <div class="q-px-md q-pb-md">
+              <div class="kpi-bar-track">
                 <div
-                  class="q-mt-md text-center text-grey-4 text-caption font-bold tracking-widest uppercase"
-                  style="font-size: 9px; border-top: 1px dashed #ccc; padding-top: 8px"
-                >
-                  Sistem Informasi Keuangan Agra ERP • Dokumen Resmi • Dicetak
-                  {{ new Date().toLocaleDateString('id-ID') }}
-                </div>
-              </div>
-
-              <div
-                class="q-mt-lg text-center no-print"
-                v-if="
-                  selectedVoucher &&
-                  (selectedVoucher.lampiran?.length > 0 || selectedVoucher.bukti_transfer)
-                "
-              >
-                <q-btn
-                  outline
-                  color="teal-10"
-                  icon="attachment"
-                  label="Buka Lampiran / Bukti Transfer"
-                  class="bg-white rounded-12 text-weight-bold shadow-1"
-                  @click="
-                    openLink(selectedVoucher.bukti_transfer || selectedVoucher.lampiran?.[0]?.url)
-                  "
-                />
+                  class="kpi-bar-fill bg-white"
+                  :style="{
+                    width: totalPengeluaran
+                      ? Math.min(Math.round((pengeluaranBulanIni / totalPengeluaran) * 100), 100) +
+                        '%'
+                      : '0%',
+                  }"
+                ></div>
               </div>
             </div>
-          </div>
-        </q-scroll-area>
-      </q-card>
-    </q-dialog>
+          </q-card>
+        </div>
 
-    <!-- DIALOG INPUT PENGELUARAN MANUAL -->
-    <q-dialog v-model="showAddDialog" persistent backdrop-filter="blur(8px)">
-      <q-card style="width: 700px; max-width: 90vw;" class="rounded-20 font-pro">
-        <q-card-section class="bg-teal-10 text-white q-py-md">
-          <div class="row items-center justify-between">
-            <div class="text-h6 text-weight-bold">Input Pengeluaran Manual</div>
-            <q-btn flat round dense icon="close" v-close-popup />
+        <div class="col-12 col-sm-6 col-md-3">
+          <q-card
+            flat
+            class="rounded-20 kpi-card kpi-sec-teal text-white transition-all hover-shadow"
+          >
+            <q-card-section class="row items-center no-wrap q-pa-md">
+              <div class="col">
+                <div class="text-overline kpi-sec-label tracking-widest q-mb-xs">
+                  VOLUME TRANSAKSI
+                </div>
+                <div class="text-h4 text-weight-bolder q-mt-xs">
+                  {{ approvedExpenses.length }}
+                  <span class="text-subtitle1 text-weight-medium opacity-80">TRX</span>
+                </div>
+                <div class="text-caption opacity-70 q-mt-xs">Total semua status</div>
+              </div>
+              <div class="kpi-sec-icon-wrap">
+                <q-icon name="receipt" color="white" size="26px" />
+              </div>
+            </q-card-section>
+            <div class="q-px-md q-pb-md">
+              <div class="kpi-bar-track">
+                <div class="kpi-bar-fill bg-white" style="width: 100%"></div>
+              </div>
+            </div>
+          </q-card>
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-3">
+          <q-card
+            flat
+            class="rounded-20 kpi-card kpi-sec-slate text-white transition-all hover-shadow"
+          >
+            <q-card-section class="row items-center no-wrap q-pa-md">
+              <div class="col">
+                <div class="text-overline kpi-sec-label tracking-widest q-mb-xs">
+                  RATA-RATA / TRANSAKSI
+                </div>
+                <div class="text-h5 text-weight-bolder q-mt-xs">
+                  Rp {{ formatCompact(rataRataPengeluaran) }}
+                </div>
+                <div class="text-caption opacity-70 q-mt-xs">Per realisasi cair</div>
+              </div>
+              <div class="kpi-sec-icon-wrap">
+                <q-icon name="analytics" color="white" size="26px" />
+              </div>
+            </q-card-section>
+            <div class="q-px-md q-pb-md">
+              <div class="kpi-bar-track">
+                <div class="kpi-bar-fill bg-white" style="width: 65%"></div>
+              </div>
+            </div>
+          </q-card>
+        </div>
+      </div>
+
+      <!-- DISTRIBUSI PENGELUARAN PER DIVISI -->
+      <q-card flat bordered class="rounded-20 shadow-sm bg-white q-mb-lg no-print">
+        <q-card-section
+          class="bg-teal-1 q-py-sm text-teal-10 text-weight-bold flex items-center border-bottom"
+        >
+          <q-icon name="donut_small" class="q-mr-xs" size="sm" />
+          DISTRIBUSI PENGELUARAN PER DIVISI / TIPE
+        </q-card-section>
+        <q-card-section class="q-pa-lg">
+          <div v-if="distribusiDivisi.length === 0" class="text-center q-pa-xl text-grey-5">
+            <q-icon name="bar_chart" size="48px" class="q-mb-sm opacity-50" />
+            <div>Belum ada data pengeluaran untuk divisualisasikan.</div>
+          </div>
+          <div v-else class="q-gutter-y-md">
+            <div v-for="(divisi, idx) in distribusiDivisi" :key="idx">
+              <div class="row items-center q-col-gutter-md no-wrap">
+                <div class="col-12 col-md-3">
+                  <div class="text-weight-bold text-blue-grey-9 font-11 uppercase truncate-label">
+                    {{ divisi.label }}
+                  </div>
+                  <div class="text-caption text-grey-6">{{ divisi.count }} transaksi</div>
+                </div>
+                <div class="col">
+                  <div class="dist-bar-track">
+                    <div
+                      class="dist-bar-fill"
+                      :class="distBarColors[idx % distBarColors.length]"
+                      :style="{ width: divisi.pct + '%' }"
+                    >
+                      <span class="dist-bar-label"> {{ divisi.pct }}% </span>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-12 col-md-3 text-right">
+                  <div class="text-weight-bolder text-negative font-11">
+                    Rp {{ formatCompact(divisi.total) }}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </q-card-section>
+      </q-card>
 
-        <q-card-section class="q-pa-lg scroll" style="max-height: 70vh">
-          <div class="q-gutter-y-md">
-            <!-- 1. DETAIL PENERIMA -->
-            <div class="text-subtitle2 text-teal-10 text-weight-bold uppercase tracking-wider">
-              1. Detail Penerima & Pembayaran
-            </div>
-            
-            <div>
-              <div class="text-caption text-grey-8 font-bold q-mb-xs">Nama Penerima / Vendor *</div>
+      <!-- FILTER -->
+      <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print border-subtle">
+        <q-card-section class="q-py-md">
+          <div class="row items-center justify-between q-col-gutter-md">
+            <div class="col-12 col-md-5">
               <q-input
+                v-model="searchQuery"
                 outlined
                 dense
-                v-model="form.vendor_nama"
-                placeholder="Contoh: Toko Bangunan Jaya"
-                class="text-weight-bold uppercase"
-              />
-            </div>
-
-            <div class="row q-col-gutter-md">
-              <div class="col-12 col-md-4">
-                <div class="text-caption text-grey-8 font-bold q-mb-xs">Bank / Cash *</div>
-                <q-input
-                  outlined
-                  dense
-                  v-model="form.rek_bank"
-                  placeholder="BCA / Mandiri / Tunai"
-                  class="uppercase text-weight-bold"
-                />
-              </div>
-              <div class="col-12 col-md-8">
-                <div class="text-caption text-grey-8 font-bold q-mb-xs">Nomor Rekening (Gunakan '-' jika tunai) *</div>
-                <q-input
-                  outlined
-                  dense
-                  v-model="form.rek_nomor"
-                  placeholder="12345678 atau -"
-                  class="text-weight-bold text-primary"
-                />
-              </div>
-              <div class="col-12">
-                <div class="text-caption text-grey-8 font-bold q-mb-xs">Atas Nama Rekening</div>
-                <q-input
-                  outlined
-                  dense
-                  v-model="form.rek_nama"
-                  placeholder="Sesuai rekening atau nama penerima"
-                  class="uppercase"
-                />
-              </div>
-            </div>
-
-            <q-separator class="q-my-md" />
-
-            <!-- 2. NOMINAL & URAIAN -->
-            <div class="text-subtitle2 text-teal-10 text-weight-bold uppercase tracking-wider">
-              2. Jumlah & Keperluan
-            </div>
-
-            <div class="row q-col-gutter-md">
-              <div class="col-12 col-md-6">
-                <div class="text-caption text-grey-8 font-bold q-mb-xs">Nominal Pengeluaran (Rp) *</div>
-                <q-input
-                  outlined
-                  dense
-                  type="number"
-                  v-model.number="form.nominal"
-                  class="text-weight-bold text-teal-10"
-                  prefix="Rp"
-                />
-              </div>
-              <div class="col-12 col-md-6">
-                <div class="text-caption text-grey-8 font-bold q-mb-xs">Tanggal Pembayaran *</div>
-                <q-input
-                  outlined
-                  dense
-                  type="date"
-                  v-model="form.tanggal_pembayaran"
-                />
-              </div>
-            </div>
-
-            <div>
-              <div class="text-caption text-grey-8 font-bold q-mb-xs">Uraian / Keterangan Keperluan *</div>
-              <q-input
-                outlined
-                dense
-                type="textarea"
-                rows="3"
-                v-model="form.keterangan"
-                placeholder="Deskripsikan secara lengkap pengeluaran kas ini..."
-              />
-            </div>
-
-            <q-separator class="q-my-md" />
-
-            <!-- 3. ALOKASI PROYEK & SPK/BOQ -->
-            <div class="text-subtitle2 text-teal-10 text-weight-bold uppercase tracking-wider">
-              3. Alokasi Proyek & Pekerjaan (Opsional)
-            </div>
-
-            <div>
-              <div class="text-caption text-grey-8 font-bold q-mb-xs">Alokasi Proyek</div>
-              <q-select
-                outlined
-                dense
-                v-model="form.proyek_id"
-                :options="allProyek"
-                option-label="nama"
-                option-value="id"
-                emit-value
-                map-options
-                placeholder="Pilih Proyek jika untuk proyek tertentu..."
-                clearable
-                @update:model-value="onProyekSelect"
-              />
-            </div>
-
-            <div v-if="form.proyek_id">
-              <div class="text-caption text-grey-8 font-bold q-mb-xs">Pilih SPK (Bisa Lebih dari 1)</div>
-              <q-select
-                outlined
-                dense
-                multiple
-                v-model="form.selected_spk"
-                :options="currentSpkOptions"
-                option-label="nomor_spk"
-                option-value="id"
-                emit-value
-                map-options
-                placeholder="Pilih SPK..."
-                clearable
-                use-chips
+                rounded
+                placeholder="Cari Vendor, No. Voucher, Invoice..."
+                bg-color="white"
+                class="search-input"
+                color="brand-primary"
               >
-                <template v-slot:option="scope">
-                  <q-item v-bind="scope.itemProps">
+                <template v-slot:prepend>
+                  <q-icon name="search" color="brand-primary" />
+                </template>
+                <template v-slot:append v-if="searchQuery">
+                  <q-icon name="close" @click="searchQuery = ''" class="cursor-pointer" />
+                </template>
+              </q-input>
+            </div>
+            <div
+              class="col-12 col-md-auto flex items-center justify-center justify-sm-end q-gutter-x-md q-mt-sm q-mt-sm-none"
+            >
+              <q-tabs
+                v-model="statusRealisasiFilter"
+                dense
+                class="text-grey-7 bg-grey-1 rounded-12 p-1"
+                active-color="white"
+                active-bg-color="brand-primary"
+                indicator-color="transparent"
+                align="left"
+                narrow-indicator
+              >
+                <q-tab
+                  name="ALL"
+                  label="Semua Status"
+                  class="text-weight-bold rounded-12 q-px-md"
+                />
+                <q-tab name="Cair" label="Sudah Cair" class="text-weight-bold rounded-12 q-px-md" />
+                <q-tab
+                  name="Approved"
+                  label="Belum Cair"
+                  class="text-weight-bold rounded-12 q-px-md"
+                />
+              </q-tabs>
+
+              <q-btn-dropdown
+                unelevated
+                color="white"
+                text-color="brand-primary"
+                icon="ios_share"
+                label="Export Data"
+                class="rounded-12 text-weight-bold shadow-2"
+              >
+                <q-list class="bg-white rounded-borders q-py-sm" style="min-width: 200px">
+                  <q-item clickable v-close-popup @click="exportTablePDF" class="hover-brand-btn">
+                    <q-item-section avatar>
+                      <q-avatar color="red-1" text-color="red-10" icon="picture_as_pdf" size="sm" />
+                    </q-item-section>
                     <q-item-section>
-                      <q-item-label class="text-weight-bold">
-                        {{ scope.opt.nomor_spk || scope.opt.nama_kontrak || `SPK: ${scope.opt.id}` }}
-                      </q-item-label>
-                      <q-item-label caption>{{ scope.opt.nama_kontrak || scope.opt.id }}</q-item-label>
+                      <q-item-label class="text-weight-bold">Download PDF</q-item-label>
                     </q-item-section>
                   </q-item>
-                </template>
-              </q-select>
+                  <q-separator class="q-my-sm" />
+                  <q-item clickable v-close-popup @click="exportTableExcel" class="hover-brand-btn">
+                    <q-item-section avatar>
+                      <q-avatar color="green-1" text-color="green-10" icon="table_view" size="sm" />
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label class="text-weight-bold">Export Excel</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                </q-list>
+              </q-btn-dropdown>
+              <q-btn
+                unelevated
+                color="brand-primary"
+                text-color="white"
+                icon="add_circle"
+                label="Pengeluaran Manual"
+                class="rounded-12 text-weight-bold shadow-2 btn-pengeluaran-manual"
+                @click="openAddManualDialog"
+              />
             </div>
+          </div>
+        </q-card-section>
+      </q-card>
 
-            <div v-if="form.proyek_id && form.selected_spk && form.selected_spk.length > 0">
-              <div class="text-caption text-grey-8 font-bold q-mb-sm">Detail Kategori & Item BOQ per SPK</div>
-              <div class="q-gutter-y-md">
-                <div
-                  v-for="(spkId, idx) in form.selected_spk"
-                  :key="idx"
-                  class="bg-grey-1 q-pa-md rounded-12"
+      <!-- MAIN TABLE -->
+      <q-card flat bordered class="rounded-20 shadow-sm overflow-hidden bg-white no-print">
+        <q-table
+          :rows="filteredExpenses"
+          :columns="columns"
+          row-key="id"
+          flat
+          :loading="loading"
+          binary-state-sort
+          class="finance-table"
+          :pagination="{ rowsPerPage: 15 }"
+          no-data-label="Belum ada catatan pengeluaran kas."
+        >
+          <template v-slot:header="props">
+            <q-tr :props="props" class="bg-brand-primary text-white">
+              <q-th
+                v-for="col in props.cols"
+                :key="col.name"
+                :props="props"
+                class="text-weight-bold uppercase font-11 tracking-widest"
+              >
+                {{ col.label }}
+              </q-th>
+            </q-tr>
+          </template>
+
+          <template v-slot:body="props">
+            <q-tr
+              :props="props"
+              class="hover-bg transition-all cursor-pointer"
+              @click="openVoucher(props.row)"
+            >
+              <q-td key="waktu">
+                <div class="text-weight-bold text-blue-grey-10 text-subtitle2 leading-none q-mb-xs">
+                  {{ formatDateIndo(props.row.approvedAt || props.row.createdAt) }}
+                </div>
+                <div class="text-caption text-teal-8 font-10 uppercase text-weight-bold">
+                  {{ generateNomorBKK(props.row) }}
+                </div>
+                <div class="text-caption text-grey-6 font-10">
+                  REQ: {{ props.row.no_request || props.row.nomor_req || '-' }}
+                </div>
+              </q-td>
+
+              <q-td key="penerima">
+                <div class="text-weight-bold text-teal-10 uppercase font-11">
+                  {{ props.row.vendor_nama || props.row.supplier_nama || '-' }}
+                </div>
+                <div class="text-caption text-grey-7 font-10">
+                  Inv Ref: {{ props.row.tagihan_nomor_invoice || props.row.nomor_invoice || '-' }}
+                </div>
+                <div class="text-caption text-grey-6 font-10">
+                  {{ props.row.rek_bank }} - {{ props.row.rek_nomor }}
+                </div>
+              </q-td>
+
+              <q-td key="metode" class="text-center">
+                <q-chip
+                  dense
+                  :color="getMetodeColor(props.row.tipe_pengajuan || props.row.metode_bayar).bg"
+                  :text-color="
+                    getMetodeColor(props.row.tipe_pengajuan || props.row.metode_bayar).text
+                  "
+                  class="text-weight-bold font-10 uppercase q-ma-none shadow-sm q-px-sm"
                 >
-                  <div class="text-weight-bold text-teal-10 q-mb-sm">
-                    {{ getSpkById(spkId)?.nomor_spk || 'SPK' }} - {{ getSpkById(spkId)?.nama_kontrak || '' }}
-                  </div>
-                  <template v-if="form.spk_boq_selection[spkId]">
-                    <div class="text-caption text-grey-8 font-bold q-mb-xs">Pilih Kategori BOQ</div>
-                    <q-select
-                      outlined
-                      dense
-                      multiple
-                      emit-value
-                      map-options
-                      v-model="form.spk_boq_selection[spkId].selected_groups"
-                      :options="getSpkBoqGroups(spkId)"
-                      option-label="title"
-                      option-value="title"
-                      placeholder="Pilih Kategori..."
-                      clearable
-                      use-chips
-                    />
-                    
-                    <div v-if="form.spk_boq_selection[spkId].selected_groups.length" class="q-mt-md">
-                      <div class="text-caption text-grey-8 font-bold q-mb-xs">Pilih Item BOQ</div>
-                      <div class="q-gutter-y-sm">
+                  <q-icon
+                    :name="getMetodeColor(props.row.tipe_pengajuan || props.row.metode_bayar).icon"
+                    class="q-mr-xs"
+                    size="12px"
+                  />
+                  {{ props.row.tipe_pengajuan || props.row.metode_bayar || '-' }}
+                </q-chip>
+              </q-td>
+
+              <q-td key="keperluan" class="text-left" style="max-width: 250px">
+                <div class="text-body2 text-blue-grey-8 ellipsis-2-lines italic">
+                  "{{ props.row.keterangan || props.row.keperluan || '-' }}"
+                </div>
+              </q-td>
+
+              <q-td key="nominal" class="text-right">
+                <div class="text-weight-black text-negative text-subtitle1">
+                  - Rp
+                  {{
+                    (props.row.nominal || props.row.nominal_pengajuan || 0).toLocaleString('id-ID')
+                  }}
+                </div>
+              </q-td>
+
+              <q-td key="status_realisasi" class="text-center">
+                <q-chip
+                  dense
+                  :color="props.row.status === 'Cair' ? 'green-1' : 'orange-1'"
+                  :text-color="props.row.status === 'Cair' ? 'text-positive' : 'text-orange-9'"
+                  class="text-weight-bold font-10 uppercase q-ma-none shadow-sm q-px-sm"
+                >
+                  <q-icon
+                    :name="props.row.status === 'Cair' ? 'task_alt' : 'hourglass_empty'"
+                    size="xs"
+                    class="q-mr-xs"
+                  />
+                  {{ props.row.status === 'Cair' ? 'SUDAH CAIR' : 'BELUM CAIR' }}
+                </q-chip>
+              </q-td>
+
+              <q-td key="aksi" class="text-center" @click.stop>
+                <q-btn
+                  flat
+                  round
+                  color="brand-primary"
+                  icon="receipt_long"
+                  size="sm"
+                  @click="openVoucher(props.row)"
+                >
+                  <q-tooltip>Lihat Voucher BKK</q-tooltip>
+                </q-btn>
+              </q-td>
+            </q-tr>
+          </template>
+
+          <template v-slot:no-data>
+            <div class="full-width row flex-center q-pa-xl text-grey-5">
+              <q-icon name="receipt_long" size="64px" class="q-mb-md opacity-50" />
+              <div class="text-h6 full-width text-center">Belum ada catatan pengeluaran kas.</div>
+            </div>
+          </template>
+        </q-table>
+      </q-card>
+
+      <!-- DIALOG VOUCHER BKK -->
+      <q-dialog
+        v-model="showVoucher"
+        maximized
+        transition-show="slide-up"
+        transition-hide="slide-down"
+        backdrop-filter="blur(8px)"
+      >
+        <q-card class="bg-grey-3 column no-wrap">
+          <q-toolbar class="bg-teal-10 text-white q-py-md shadow-4 shrink no-print">
+            <q-btn flat round dense icon="arrow_back" v-close-popup />
+            <q-toolbar-title>
+              <div class="text-weight-bold uppercase tracking-widest font-11">
+                Arsip Dokumen Keuangan
+              </div>
+              <div class="text-caption opacity-70">Bukti Kas Keluar (BKK)</div>
+            </q-toolbar-title>
+            <q-btn
+              unelevated
+              color="white"
+              text-color="teal-10"
+              icon="print"
+              label="CETAK / PDF BUKTI"
+              class="q-mr-md text-weight-black rounded-12 shadow-2"
+              @click="exportVoucherToPDF"
+            />
+          </q-toolbar>
+
+          <q-scroll-area class="col q-pa-md q-pa-lg-xl flex flex-center">
+            <div class="row justify-center">
+              <div class="col-12 col-md-11 col-xl-8">
+                <div id="voucher-pdf-target" class="voucher-paper shadow-24" v-if="selectedVoucher">
+                  <div class="row items-start justify-between q-mb-md border-bottom-thick q-pb-md">
+                    <div class="row items-center no-wrap">
+                      <img
+                        :src="compConfig.kopUrl || '/icons/logo-agra.png'"
+                        class="voucher-logo q-mr-md"
+                        @error="$event.target.style.display = 'none'"
+                      />
+                      <div class="column">
                         <div
-                          v-for="(groupTitle, gIdx) in form.spk_boq_selection[spkId].selected_groups"
-                          :key="gIdx"
-                          class="bg-white q-pa-sm rounded-8"
+                          class="text-h6 text-weight-black text-teal-10 tracking-tighter leading-none"
                         >
-                          <div class="text-weight-bold text-caption q-mb-xs">{{ groupTitle }}</div>
-                          <q-select
-                            outlined
-                            dense
-                            multiple
-                            emit-value
-                            map-options
-                            v-model="form.spk_boq_selection[spkId].selected_items_by_group[groupTitle]"
-                            :options="getSpkBoqGroupItems(spkId, groupTitle)"
-                            option-label="deskripsi"
-                            option-value="deskripsi"
-                            placeholder="Pilih Item..."
-                            clearable
-                            use-chips
-                          />
+                          {{ compConfig.nama_perusahaan || 'PT AGRA ABHINAYA PERKASA' }}
+                        </div>
+                        <div class="text-caption text-grey-8 font-bold uppercase tracking-widest">
+                          {{
+                            compConfig.slogan_perusahaan ||
+                            'General Construction & General Supplier'
+                          }}
+                        </div>
+                        <div class="text-caption text-grey-6 q-mt-xs">
+                          {{ compConfig.alamat || '-' }}
                         </div>
                       </div>
                     </div>
-                  </template>
+                    <div class="text-right">
+                      <div
+                        class="text-h5 text-weight-black text-teal-10 uppercase tracking-widest leading-none"
+                      >
+                        BUKTI KAS KELUAR
+                      </div>
+                      <div class="text-subtitle2 text-weight-bold text-grey-8 font-mono q-mt-xs">
+                        No: {{ generateNomorBKK(selectedVoucher) }}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="row q-col-gutter-lg q-mb-md">
+                    <div class="col-7">
+                      <table class="voucher-info-table full-width">
+                        <tr>
+                          <td width="145" class="text-grey-7 font-bold">Dibayarkan Kepada</td>
+                          <td width="12">:</td>
+                          <td class="text-weight-bolder text-uppercase text-subtitle2">
+                            {{ selectedVoucher.vendor_nama || selectedVoucher.supplier_nama }}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td class="text-grey-7 font-bold">Referensi Invoice</td>
+                          <td>:</td>
+                          <td class="text-weight-bold">
+                            {{
+                              selectedVoucher.tagihan_nomor_invoice ||
+                              selectedVoucher.nomor_invoice ||
+                              '-'
+                            }}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td class="text-grey-7 font-bold">Metode Pembayaran</td>
+                          <td>:</td>
+                          <td class="text-weight-bold text-primary">
+                            {{
+                              selectedVoucher.tipe_pengajuan ||
+                              selectedVoucher.metode_bayar ||
+                              'Transfer Bank'
+                            }}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td class="text-grey-7 font-bold">Rekening Tujuan</td>
+                          <td>:</td>
+                          <td class="text-weight-bold">
+                            {{ selectedVoucher.rek_bank }} - {{ selectedVoucher.rek_nomor }}<br />
+                            <span class="text-caption italic">
+                              A/N: {{ selectedVoucher.rek_nama || '-' }}
+                            </span>
+                          </td>
+                        </tr>
+                      </table>
+                    </div>
+                    <div class="col-5">
+                      <table class="voucher-info-table full-width">
+                        <tr>
+                          <td width="120" class="text-grey-7 font-bold">Tgl Pembayaran</td>
+                          <td width="12">:</td>
+                          <td class="text-weight-bold">
+                            {{
+                              formatDateIndo(
+                                selectedVoucher.approvedAt || selectedVoucher.updatedAt,
+                              )
+                            }}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td class="text-grey-7 font-bold">Tgl Pengajuan</td>
+                          <td>:</td>
+                          <td class="text-weight-bold">
+                            {{ formatDateIndo(selectedVoucher.tanggal_pengajuan) }}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td class="text-grey-7 font-bold">Target Cair</td>
+                          <td>:</td>
+                          <td class="text-weight-bold text-negative">
+                            {{ formatDateIndo(selectedVoucher.tanggal_dibutuhkan) }}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td class="text-grey-7 font-bold">Pemohon (Req)</td>
+                          <td>:</td>
+                          <td class="text-weight-bold">
+                            {{ selectedVoucher.pembuat_nama || selectedVoucher.pemohon || '-' }}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td class="text-grey-7 font-bold">Otorisator</td>
+                          <td>:</td>
+                          <td class="text-weight-bold">
+                            {{ selectedVoucher.approvedBy || '-' }}
+                          </td>
+                        </tr>
+                      </table>
+                    </div>
+                  </div>
+
+                  <div class="voucher-box q-mb-md">
+                    <div class="voucher-box-header">URAIAN / KEPERLUAN PEMBAYARAN</div>
+                    <div
+                      class="voucher-box-content text-body2 leading-relaxed italic text-blue-grey-9"
+                    >
+                      "{{ selectedVoucher.keterangan || selectedVoucher.keperluan || '-' }}"
+                    </div>
+                  </div>
+
+                  <div class="q-mb-md">
+                    <table
+                      style="
+                        width: 100%;
+                        border-collapse: collapse;
+                        border: 2px solid #00695c;
+                        border-radius: 8px;
+                        overflow: hidden;
+                      "
+                    >
+                      <tr>
+                        <td
+                          style="
+                            background: #eceff1;
+                            padding: 10px 16px;
+                            font-weight: 800;
+                            text-transform: uppercase;
+                            color: #37474f;
+                            font-size: 11px;
+                            letter-spacing: 1px;
+                            width: 40%;
+                          "
+                        >
+                          TOTAL DIBAYARKAN
+                        </td>
+                        <td
+                          style="
+                            background: #00695c;
+                            color: white;
+                            font-size: 20px;
+                            font-weight: 900;
+                            padding: 10px 16px;
+                            text-align: right;
+                          "
+                        >
+                          Rp
+                          {{
+                            (
+                              selectedVoucher.nominal_eksekusi ||
+                              selectedVoucher.nominal ||
+                              0
+                            ).toLocaleString('id-ID')
+                          }}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td
+                          colspan="2"
+                          style="
+                            border-top: 1px solid #c5cae9;
+                            padding: 8px 16px;
+                            font-size: 11px;
+                            font-style: italic;
+                            color: #37474f;
+                          "
+                        >
+                          Terbilang:
+                          <strong
+                            >{{
+                              convertToTerbilang(
+                                selectedVoucher.nominal_eksekusi || selectedVoucher.nominal || 0,
+                              )
+                            }}
+                            Rupiah</strong
+                          >
+                        </td>
+                      </tr>
+                    </table>
+                    <div class="text-right q-mt-xs text-caption text-grey-6 italic">
+                      Telah diverifikasi dan disetujui sesuai dengan bukti invoice yang sah.
+                    </div>
+                  </div>
+
+                  <div class="ttd-grid">
+                    <div class="ttd-col">
+                      <div class="ttd-role">Disetujui Oleh,</div>
+                      <div class="ttd-jabatan text-caption text-grey-6">(Direktur / Pimpinan)</div>
+                      <div class="ttd-area"></div>
+                      <div class="ttd-name">
+                        {{ selectedVoucher.approvedBy || '.......................' }}
+                      </div>
+                      <div class="ttd-role-label">Finance / Direksi</div>
+                    </div>
+                    <div class="ttd-col">
+                      <div class="ttd-role">Diperiksa Oleh,</div>
+                      <div class="ttd-jabatan text-caption text-grey-6">(Accounting / Audit)</div>
+                      <div class="ttd-area"></div>
+                      <div class="ttd-name">.......................</div>
+                      <div class="ttd-role-label">Accounting Staff</div>
+                    </div>
+                    <div class="ttd-col">
+                      <div class="ttd-role">Dibayarkan Oleh,</div>
+                      <div class="ttd-jabatan text-caption text-grey-6">(Kasir / Finance)</div>
+                      <div class="ttd-area"></div>
+                      <div class="ttd-name">.......................</div>
+                      <div class="ttd-role-label">Finance / Kasir</div>
+                    </div>
+                    <div class="ttd-col">
+                      <div class="ttd-role">Diterima Oleh,</div>
+                      <div class="ttd-jabatan text-caption text-grey-6">(Penerima Dana)</div>
+                      <div class="ttd-area"></div>
+                      <div class="ttd-name">
+                        {{
+                          selectedVoucher.vendor_nama ||
+                          selectedVoucher.supplier_nama ||
+                          '.......................'
+                        }}
+                      </div>
+                      <div class="ttd-role-label">Vendor / TTD & Cap</div>
+                    </div>
+                  </div>
+
+                  <div
+                    class="q-mt-md text-center text-grey-4 text-caption font-bold tracking-widest uppercase"
+                    style="font-size: 9px; border-top: 1px dashed #ccc; padding-top: 8px"
+                  >
+                    Sistem Informasi Keuangan Agra ERP • Dokumen Resmi • Dicetak
+                    {{ new Date().toLocaleDateString('id-ID') }}
+                  </div>
+                </div>
+
+                <div
+                  class="q-mt-lg text-center no-print"
+                  v-if="
+                    selectedVoucher &&
+                    (selectedVoucher.lampiran?.length > 0 || selectedVoucher.bukti_transfer)
+                  "
+                >
+                  <q-btn
+                    outline
+                    color="teal-10"
+                    icon="attachment"
+                    label="Buka Lampiran / Bukti Transfer"
+                    class="bg-white rounded-12 text-weight-bold shadow-1"
+                    @click="
+                      openLink(selectedVoucher.bukti_transfer || selectedVoucher.lampiran?.[0]?.url)
+                    "
+                  />
                 </div>
               </div>
             </div>
-          </div>
-        </q-card-section>
+          </q-scroll-area>
+        </q-card>
+      </q-dialog>
 
-        <q-separator />
+      <!-- DIALOG INPUT PENGELUARAN MANUAL -->
+      <q-dialog v-model="showAddDialog" persistent backdrop-filter="blur(8px)">
+        <q-card style="width: 700px; max-width: 90vw" class="rounded-20 font-pro">
+          <q-card-section class="bg-teal-10 text-white q-py-md">
+            <div class="row items-center justify-between">
+              <div class="text-h6 text-weight-bold">Input Pengeluaran Manual</div>
+              <q-btn flat round dense icon="close" v-close-popup />
+            </div>
+          </q-card-section>
 
-        <q-card-actions align="right" class="q-pa-md bg-grey-1">
-          <q-btn flat label="Batal" color="grey-7" v-close-popup class="rounded-12 text-weight-bold" />
-          <q-btn
-            unelevated
-            label="Simpan Pengeluaran"
-            color="teal-10"
-            :loading="submitting"
-            @click="simpanManualExpense"
-            class="rounded-12 text-weight-bold q-px-lg"
-          />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
+          <q-card-section class="q-pa-lg scroll" style="max-height: 70vh">
+            <div class="q-gutter-y-md">
+              <!-- 1. DETAIL PENERIMA -->
+              <div class="text-subtitle2 text-teal-10 text-weight-bold uppercase tracking-wider">
+                1. Detail Penerima & Pembayaran
+              </div>
 
-    <!-- HIDDEN AREA PDF EXPORT TABLE -->
-    <div style="position: absolute; top: -9999px; left: -9999px; width: 297mm; z-index: -1">
-      <div id="table-pdf-export" class="landscape-paper">
-        <div
-          style="
-            border-bottom: 3px solid #00695c;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-          "
-        >
+              <div>
+                <div class="text-caption text-grey-8 font-bold q-mb-xs">
+                  Nama Penerima / Vendor *
+                </div>
+                <q-input
+                  outlined
+                  dense
+                  v-model="form.vendor_nama"
+                  placeholder="Contoh: Toko Bangunan Jaya"
+                  class="text-weight-bold uppercase"
+                />
+              </div>
+
+              <div class="row q-col-gutter-md">
+                <div class="col-12 col-md-4">
+                  <div class="text-caption text-grey-8 font-bold q-mb-xs">Bank / Cash *</div>
+                  <q-input
+                    outlined
+                    dense
+                    v-model="form.rek_bank"
+                    placeholder="BCA / Mandiri / Tunai"
+                    class="uppercase text-weight-bold"
+                  />
+                </div>
+                <div class="col-12 col-md-8">
+                  <div class="text-caption text-grey-8 font-bold q-mb-xs">
+                    Nomor Rekening (Gunakan '-' jika tunai) *
+                  </div>
+                  <q-input
+                    outlined
+                    dense
+                    v-model="form.rek_nomor"
+                    placeholder="12345678 atau -"
+                    class="text-weight-bold text-primary"
+                  />
+                </div>
+                <div class="col-12">
+                  <div class="text-caption text-grey-8 font-bold q-mb-xs">Atas Nama Rekening</div>
+                  <q-input
+                    outlined
+                    dense
+                    v-model="form.rek_nama"
+                    placeholder="Sesuai rekening atau nama penerima"
+                    class="uppercase"
+                  />
+                </div>
+              </div>
+
+              <q-separator class="q-my-md" />
+
+              <!-- 2. NOMINAL & URAIAN -->
+              <div class="text-subtitle2 text-teal-10 text-weight-bold uppercase tracking-wider">
+                2. Jumlah & Keperluan
+              </div>
+
+              <div class="row q-col-gutter-md">
+                <div class="col-12 col-md-6">
+                  <div class="text-caption text-grey-8 font-bold q-mb-xs">
+                    Nominal Pengeluaran (Rp) *
+                  </div>
+                  <q-input
+                    outlined
+                    dense
+                    type="number"
+                    v-model.number="form.nominal"
+                    class="text-weight-bold text-teal-10"
+                    prefix="Rp"
+                  />
+                </div>
+                <div class="col-12 col-md-6">
+                  <div class="text-caption text-grey-8 font-bold q-mb-xs">Tanggal Pembayaran *</div>
+                  <q-input outlined dense type="date" v-model="form.tanggal_pembayaran" />
+                </div>
+              </div>
+
+              <div>
+                <div class="text-caption text-grey-8 font-bold q-mb-xs">
+                  Uraian / Keterangan Keperluan *
+                </div>
+                <q-input
+                  outlined
+                  dense
+                  type="textarea"
+                  rows="3"
+                  v-model="form.keterangan"
+                  placeholder="Deskripsikan secara lengkap pengeluaran kas ini..."
+                />
+              </div>
+
+              <q-separator class="q-my-md" />
+
+              <!-- 3. ALOKASI PROYEK & SPK/BOQ -->
+              <div class="text-subtitle2 text-teal-10 text-weight-bold uppercase tracking-wider">
+                3. Alokasi Proyek & Pekerjaan (Opsional)
+              </div>
+
+              <div>
+                <div class="text-caption text-grey-8 font-bold q-mb-xs">Alokasi Proyek</div>
+                <q-select
+                  outlined
+                  dense
+                  v-model="form.proyek_id"
+                  :options="allProyek"
+                  option-label="nama"
+                  option-value="id"
+                  emit-value
+                  map-options
+                  placeholder="Pilih Proyek jika untuk proyek tertentu..."
+                  clearable
+                  @update:model-value="onProyekSelect"
+                />
+              </div>
+
+              <div v-if="form.proyek_id">
+                <div class="text-caption text-grey-8 font-bold q-mb-xs">
+                  Pilih SPK (Bisa Lebih dari 1)
+                </div>
+                <q-select
+                  outlined
+                  dense
+                  multiple
+                  v-model="form.selected_spk"
+                  :options="currentSpkOptions"
+                  option-label="nomor_spk"
+                  option-value="id"
+                  emit-value
+                  map-options
+                  placeholder="Pilih SPK..."
+                  clearable
+                  use-chips
+                >
+                  <template v-slot:option="scope">
+                    <q-item v-bind="scope.itemProps">
+                      <q-item-section>
+                        <q-item-label class="text-weight-bold">
+                          {{
+                            scope.opt.nomor_spk || scope.opt.nama_kontrak || `SPK: ${scope.opt.id}`
+                          }}
+                        </q-item-label>
+                        <q-item-label caption>{{
+                          scope.opt.nama_kontrak || scope.opt.id
+                        }}</q-item-label>
+                      </q-item-section>
+                    </q-item>
+                  </template>
+                </q-select>
+              </div>
+
+              <div v-if="form.proyek_id && form.selected_spk && form.selected_spk.length > 0">
+                <div class="text-caption text-grey-8 font-bold q-mb-sm">
+                  Detail Kategori & Item BOQ per SPK
+                </div>
+                <div class="q-gutter-y-md">
+                  <div
+                    v-for="(spkId, idx) in form.selected_spk"
+                    :key="idx"
+                    class="bg-grey-1 q-pa-md rounded-12"
+                  >
+                    <div class="text-weight-bold text-teal-10 q-mb-sm">
+                      {{ getSpkById(spkId)?.nomor_spk || 'SPK' }} -
+                      {{ getSpkById(spkId)?.nama_kontrak || '' }}
+                    </div>
+                    <template v-if="form.spk_boq_selection[spkId]">
+                      <div class="text-caption text-grey-8 font-bold q-mb-xs">
+                        Pilih Kategori BOQ
+                      </div>
+                      <q-select
+                        outlined
+                        dense
+                        multiple
+                        emit-value
+                        map-options
+                        v-model="form.spk_boq_selection[spkId].selected_groups"
+                        :options="getSpkBoqGroups(spkId)"
+                        option-label="title"
+                        option-value="title"
+                        placeholder="Pilih Kategori..."
+                        clearable
+                        use-chips
+                      />
+
+                      <div
+                        v-if="form.spk_boq_selection[spkId].selected_groups.length"
+                        class="q-mt-md"
+                      >
+                        <div class="text-caption text-grey-8 font-bold q-mb-xs">Pilih Item BOQ</div>
+                        <div class="q-gutter-y-sm">
+                          <div
+                            v-for="(groupTitle, gIdx) in form.spk_boq_selection[spkId]
+                              .selected_groups"
+                            :key="gIdx"
+                            class="bg-white q-pa-sm rounded-8"
+                          >
+                            <div class="text-weight-bold text-caption q-mb-xs">
+                              {{ groupTitle }}
+                            </div>
+                            <q-select
+                              outlined
+                              dense
+                              multiple
+                              emit-value
+                              map-options
+                              v-model="
+                                form.spk_boq_selection[spkId].selected_items_by_group[groupTitle]
+                              "
+                              :options="getSpkBoqGroupItems(spkId, groupTitle)"
+                              option-label="deskripsi"
+                              option-value="deskripsi"
+                              placeholder="Pilih Item..."
+                              clearable
+                              use-chips
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </q-card-section>
+
+          <q-separator />
+
+          <q-card-actions align="right" class="q-pa-md bg-grey-1">
+            <q-btn
+              flat
+              label="Batal"
+              color="grey-7"
+              v-close-popup
+              class="rounded-12 text-weight-bold"
+            />
+            <q-btn
+              unelevated
+              label="Simpan Pengeluaran"
+              color="teal-10"
+              :loading="submitting"
+              @click="simpanManualExpense"
+              class="rounded-12 text-weight-bold q-px-lg"
+            />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
+
+      <!-- HIDDEN AREA PDF EXPORT TABLE -->
+      <div style="position: absolute; top: -9999px; left: -9999px; width: 297mm; z-index: -1">
+        <div id="table-pdf-export" class="landscape-paper">
           <div
             style="
-              background-color: #00695c;
-              color: white;
-              border-radius: 8px;
-              padding: 12px;
-              margin-right: 15px;
+              border-bottom: 3px solid #00695c;
+              padding-bottom: 15px;
+              margin-bottom: 20px;
+              display: flex;
+              align-items: center;
             "
           >
-            <span style="font-size: 24px">💸</span>
-          </div>
-          <div>
             <div
               style="
-                font-size: 24px;
-                font-weight: 900;
-                color: #00695c;
-                text-transform: uppercase;
-                letter-spacing: 1px;
+                background-color: #00695c;
+                color: white;
+                border-radius: 8px;
+                padding: 12px;
+                margin-right: 15px;
               "
             >
-              Laporan Monitoring Pengeluaran Kas
+              <span style="font-size: 24px">💸</span>
             </div>
-            <div style="font-size: 12px; color: #666; margin-top: 4px">
-              Diekspor pada: {{ new Date().toLocaleString('id-ID') }}
+            <div>
+              <div
+                style="
+                  font-size: 24px;
+                  font-weight: 900;
+                  color: #00695c;
+                  text-transform: uppercase;
+                  letter-spacing: 1px;
+                "
+              >
+                Laporan Monitoring Pengeluaran Kas
+              </div>
+              <div style="font-size: 12px; color: #666; margin-top: 4px">
+                Diekspor pada: {{ new Date().toLocaleString('id-ID') }}
+              </div>
             </div>
           </div>
+          <table class="report-table" style="width: 100%; border-collapse: collapse">
+            <thead>
+              <tr>
+                <th style="width: 5%; text-align: center">NO</th>
+                <th style="width: 12%; text-align: left">NO BKK</th>
+                <th style="width: 20%; text-align: left">VENDOR / PENERIMA</th>
+                <th style="width: 13%; text-align: left">METODE</th>
+                <th style="width: 20%; text-align: left">KETERANGAN</th>
+                <th style="width: 15%; text-align: right">NOMINAL (Rp)</th>
+                <th style="width: 15%; text-align: center">STATUS</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(row, idx) in filteredExpenses" :key="idx">
+                <td style="text-align: center; font-weight: bold">{{ idx + 1 }}</td>
+                <td>
+                  <div style="font-weight: bold; color: #00695c">{{ generateNomorBKK(row) }}</div>
+                  <div style="font-size: 9px; color: #666; margin-top: 2px">
+                    REQ: {{ row.no_request }}
+                  </div>
+                </td>
+                <td>
+                  <div style="font-weight: bold; text-transform: uppercase">
+                    {{ row.vendor_nama || row.supplier_nama }}
+                  </div>
+                  <div style="font-size: 9px; color: #666; margin-top: 2px">
+                    {{ row.rek_bank }} - {{ row.rek_nomor }}
+                  </div>
+                </td>
+                <td>{{ row.tipe_pengajuan || row.metode_bayar || '-' }}</td>
+                <td style="font-size: 10px; font-style: italic">
+                  {{ (row.keterangan || row.keperluan || '-').substring(0, 80) }}
+                </td>
+                <td style="text-align: right; font-weight: bold">
+                  {{ (row.nominal || row.nominal_pengajuan || 0).toLocaleString('id-ID') }}
+                </td>
+                <td
+                  style="
+                    text-align: center;
+                    font-weight: bold;
+                    text-transform: uppercase;
+                    font-size: 10px;
+                  "
+                >
+                  {{ row.status === 'Cair' ? 'SUDAH CAIR' : 'BELUM CAIR' }}
+                </td>
+              </tr>
+              <tr v-if="filteredExpenses.length === 0">
+                <td
+                  colspan="7"
+                  style="text-align: center; padding: 20px; color: #888; font-style: italic"
+                >
+                  Tidak ada data.
+                </td>
+              </tr>
+              <tr v-if="filteredExpenses.length > 0">
+                <td
+                  colspan="5"
+                  style="
+                    text-align: right;
+                    font-weight: 900;
+                    font-size: 12px;
+                    padding: 10px;
+                    background: #eceff1;
+                  "
+                >
+                  GRAND TOTAL PENGELUARAN
+                </td>
+                <td
+                  style="
+                    text-align: right;
+                    font-weight: 900;
+                    font-size: 12px;
+                    padding: 10px;
+                    background: #00695c;
+                    color: white;
+                  "
+                >
+                  {{
+                    filteredExpenses
+                      .reduce((s, r) => s + (r.nominal || r.nominal_pengajuan || 0), 0)
+                      .toLocaleString('id-ID')
+                  }}
+                </td>
+                <td style="background: #eceff1"></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <table class="report-table" style="width: 100%; border-collapse: collapse">
-          <thead>
-            <tr>
-              <th style="width: 5%; text-align: center">NO</th>
-              <th style="width: 12%; text-align: left">NO BKK</th>
-              <th style="width: 20%; text-align: left">VENDOR / PENERIMA</th>
-              <th style="width: 13%; text-align: left">METODE</th>
-              <th style="width: 20%; text-align: left">KETERANGAN</th>
-              <th style="width: 15%; text-align: right">NOMINAL (Rp)</th>
-              <th style="width: 15%; text-align: center">STATUS</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(row, idx) in filteredExpenses" :key="idx">
-              <td style="text-align: center; font-weight: bold">{{ idx + 1 }}</td>
-              <td>
-                <div style="font-weight: bold; color: #00695c">{{ generateNomorBKK(row) }}</div>
-                <div style="font-size: 9px; color: #666; margin-top: 2px">
-                  REQ: {{ row.no_request }}
-                </div>
-              </td>
-              <td>
-                <div style="font-weight: bold; text-transform: uppercase">
-                  {{ row.vendor_nama || row.supplier_nama }}
-                </div>
-                <div style="font-size: 9px; color: #666; margin-top: 2px">
-                  {{ row.rek_bank }} - {{ row.rek_nomor }}
-                </div>
-              </td>
-              <td>{{ row.tipe_pengajuan || row.metode_bayar || '-' }}</td>
-              <td style="font-size: 10px; font-style: italic">
-                {{ (row.keterangan || row.keperluan || '-').substring(0, 80) }}
-              </td>
-              <td style="text-align: right; font-weight: bold">
-                {{ (row.nominal || row.nominal_pengajuan || 0).toLocaleString('id-ID') }}
-              </td>
-              <td
-                style="
-                  text-align: center;
-                  font-weight: bold;
-                  text-transform: uppercase;
-                  font-size: 10px;
-                "
-              >
-                {{ row.status === 'Cair' ? 'SUDAH CAIR' : 'BELUM CAIR' }}
-              </td>
-            </tr>
-            <tr v-if="filteredExpenses.length === 0">
-              <td
-                colspan="7"
-                style="text-align: center; padding: 20px; color: #888; font-style: italic"
-              >
-                Tidak ada data.
-              </td>
-            </tr>
-            <tr v-if="filteredExpenses.length > 0">
-              <td
-                colspan="5"
-                style="
-                  text-align: right;
-                  font-weight: 900;
-                  font-size: 12px;
-                  padding: 10px;
-                  background: #eceff1;
-                "
-              >
-                GRAND TOTAL PENGELUARAN
-              </td>
-              <td
-                style="
-                  text-align: right;
-                  font-weight: 900;
-                  font-size: 12px;
-                  padding: 10px;
-                  background: #00695c;
-                  color: white;
-                "
-              >
-                {{
-                  filteredExpenses
-                    .reduce((s, r) => s + (r.nominal || r.nominal_pengajuan || 0), 0)
-                    .toLocaleString('id-ID')
-                }}
-              </td>
-              <td style="background: #eceff1"></td>
-            </tr>
-          </tbody>
-        </table>
       </div>
     </div>
   </q-page>
@@ -1430,6 +1446,7 @@ const compConfig = ref({
 
 let unsubExpenses = null
 
+// eslint-disable-next-line no-unused-vars
 const metodeOptions = [
   { label: 'Semua Metode', value: 'ALL' },
   { label: 'Tagihan Supplier', value: 'Tagihan Supplier' },
@@ -1950,10 +1967,9 @@ onUnmounted(() => {
   border: none !important;
 }
 
-/* Card 1: Total Disetujui — teal */
-.kpi-teal {
-  background: linear-gradient(135deg, #00897b 0%, #00695c 100%) !important;
-  box-shadow: 0 8px 24px rgba(0, 105, 92, 0.4) !important;
+/* Card 1: Total Disetujui — brand */
+.kpi-brand {
+  background: linear-gradient(135deg, #36ada3 0%, #1e6e69 100%) !important;
 }
 /* Card 2: Total Terealisasi — hijau */
 .kpi-green {
@@ -1972,7 +1988,7 @@ onUnmounted(() => {
   opacity: 0.9;
 }
 .kpi-icon-wrap {
-  background: rgba(255, 255, 255, 0.18) !important;
+  background: rgba(255, 255, 255, 0.15) !important;
   border-radius: 12px !important;
   min-width: 56px;
   text-align: center;
@@ -2065,14 +2081,18 @@ onUnmounted(() => {
   padding: 16px;
 }
 .hover-bg:hover {
-  background-color: rgba(0, 137, 123, 0.03) !important;
+  background-color: rgba(43, 87, 154, 0.03) !important;
 }
 .transition-all {
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 .hover-shadow:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 25px rgba(0, 105, 92, 0.15) !important;
+  box-shadow: 0 12px 28px rgba(30, 110, 105, 0.18) !important;
+}
+.hover-brand-btn:hover {
+  background-color: #e0f7f6 !important;
+  color: #1e6e69 !important;
 }
 .hover-blue-btn:hover {
   background-color: #e0f2f1 !important;

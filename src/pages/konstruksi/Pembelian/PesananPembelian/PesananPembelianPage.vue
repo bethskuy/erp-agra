@@ -374,6 +374,19 @@
                           <q-tooltip>Lihat Detail PO</q-tooltip>
                         </q-btn>
 
+                        <!-- Edit PO -->
+                        <q-btn
+                          v-if="canAction('ubah') && props.row.status === 'Draft'"
+                          flat
+                          round
+                          color="blue-8"
+                          icon="edit_note"
+                          size="sm"
+                          @click="openEditPoForm(props.row)"
+                        >
+                          <q-tooltip>Edit PO</q-tooltip>
+                        </q-btn>
+
                         <!-- Ajukan (hanya jika belum Submitted / Approved) -->
                         <q-btn
                           v-if="
@@ -1098,7 +1111,7 @@
                 "
               ></div>
 
-              <div class="signature-container text-left">
+              <div class="signature-container text-left q-mt-lg">
                 <div class="row justify-end">
                   <div class="col-5 text-center">
                     <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">
@@ -1106,7 +1119,7 @@
                     </div>
 
                     <!-- FINAL SIGNATURE & STEMPEL OVERLAY -->
-                    <div class="final-sign-space flex flex-center">
+                    <div class="final-sign-space flex flex-center" style="height: 90px">
                       <img
                         v-if="selectedData.stempel_url"
                         :src="selectedData.stempel_url"
@@ -1119,21 +1132,20 @@
                       />
                       <div
                         v-if="!selectedData.signatureUrl && !selectedData.stempel_url"
-                        style="height: 100px"
-                        class="flex flex-center text-grey-4 italic w-full"
+                        class="flex flex-center text-grey-4 italic w-full h-full"
                       >
                         Belum ada pengesahan
                       </div>
                     </div>
 
-                    <div
-                      class="text-signer-final text-weight-black underline uppercase text-indigo-10"
-                    >
-                      {{
-                        selectedData.ttd_nama ||
-                        selectedData.requestor_nama ||
-                        selectedData.pemohon?.nama
-                      }}
+                    <div class="signer-name-wrapper">
+                      <div class="text-signer-final text-weight-black uppercase text-indigo-10">
+                        {{
+                          selectedData.ttd_nama ||
+                          selectedData.requestor_nama ||
+                          selectedData.pemohon?.nama
+                        }}
+                      </div>
                     </div>
                     <div
                       class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs"
@@ -1249,19 +1261,38 @@
                   </table>
                 </div>
                 <div class="col-5 flex justify-end text-right">
-                  <div style="width: fit-content; text-align: right">
-                    <div class="quotation-title-pro uppercase font-13 text-indigo-10 q-mb-sm">
+                  <div
+                    style="
+                      width: 100%;
+                      display: flex;
+                      flex-direction: column;
+                      align-items: flex-end;
+                    "
+                  >
+                    <div
+                      class="quotation-title-pro uppercase font-13 text-indigo-10 q-mb-sm"
+                      style="text-align: right"
+                    >
                       PURCHASE ORDER
                     </div>
-                    <table class="meta-info-table text-left" style="width: auto; margin-left: auto">
+                    <table class="meta-info-table" style="width: auto">
                       <tr>
                         <td
                           class="text-bold"
-                          style="padding-right: 8px; font-size: 12px; color: #1a237e"
+                          style="
+                            padding-right: 12px;
+                            font-size: 12px;
+                            color: #1a237e;
+                            min-width: 80px;
+                          "
                         >
                           No. PO
                         </td>
-                        <td style="padding-right: 8px; font-size: 12px; color: #1a237e">:</td>
+                        <td
+                          style="padding-right: 8px; font-size: 12px; color: #1a237e; width: 10px"
+                        >
+                          :
+                        </td>
                         <td
                           class="text-weight-bolder text-indigo-10 font-mono"
                           style="font-size: 12px"
@@ -1270,14 +1301,11 @@
                         </td>
                       </tr>
                       <tr>
-                        <td class="text-bold" style="padding-right: 8px">Tanggal</td>
-                        <td style="padding-right: 8px">:</td>
+                        <td class="text-bold" style="padding-right: 12px; min-width: 80px">
+                          Tanggal
+                        </td>
+                        <td style="padding-right: 8px; width: 10px">:</td>
                         <td class="text-weight-bold">{{ formatDateIndo(selectedPo.tanggal) }}</td>
-                      </tr>
-                      <tr v-if="selectedPo.no_spk">
-                        <td class="text-bold" style="padding-right: 8px">No. SPK</td>
-                        <td style="padding-right: 8px">:</td>
-                        <td class="text-weight-bold">{{ selectedPo.no_spk }}</td>
                       </tr>
                     </table>
                   </div>
@@ -1424,24 +1452,21 @@
 
                   <div class="col-3">
                     <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">
-                      Accepted By,
+                      Approved Supplier,
                     </div>
                     <div class="final-sign-space flex flex-center" style="height: 90px">
                       <!-- Spacer for signature supplier -->
                     </div>
                     <div class="signer-name-wrapper">
                       <div class="text-signer-final text-weight-black uppercase text-indigo-10">
-                        {{
-                          selectedPo.approved_supplier ||
-                          selectedPo.kepada_yth ||
-                          '..............................'
-                        }}
+                        ..............................
                       </div>
                     </div>
                     <div
                       class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs"
+                      style="opacity: 0"
                     >
-                      Supplier
+                      &nbsp;
                     </div>
                   </div>
                 </div>
@@ -1693,6 +1718,15 @@ const openPoForm = async () => {
   }
 }
 
+const openEditPoForm = (row) => {
+  poForm.value = {
+    ...poFormDefault,
+    ...row,
+    id: row.id,
+  }
+  poViewMode.value = 'form'
+}
+
 const handleLogoUploadPo = async (file) => {
   if (!file) return
   const reader = new FileReader()
@@ -1778,7 +1812,7 @@ const savePo = async () => {
       total_amount: calculatePoTotal(),
       grand_total: calculatePoTotal() + (poForm.value.mobdemob || 0),
       status: 'Draft',
-      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
     }
     if (poForm.value.referensi_pr) {
       payload.gudang_id =
@@ -1788,14 +1822,23 @@ const savePo = async () => {
     }
     delete payload.supplier
     delete payload.referensi_pr
+    delete payload.id // Hapus field id dari payload
 
-    await addDoc(collection(db, 'purchase_order'), payload)
+    if (poForm.value.id) {
+      // Mode Edit: Update existing document
+      await updateDoc(doc(db, 'purchase_order', poForm.value.id), payload)
+      $q.notify({ type: 'positive', message: 'Purchase Order berhasil diperbarui!' })
+    } else {
+      // Mode Baru: Create new document
+      payload.createdAt = serverTimestamp()
+      await addDoc(collection(db, 'purchase_order'), payload)
+      $q.notify({ type: 'positive', message: 'Purchase Order berhasil diterbitkan!' })
+    }
 
-    $q.notify({ type: 'positive', message: 'Purchase Order berhasil diterbitkan!' })
     poViewMode.value = 'list'
   } catch (e) {
     console.error(e)
-    $q.notify({ type: 'negative', message: 'Gagal menerbitkan PO.' })
+    $q.notify({ type: 'negative', message: 'Gagal menyimpan PO.' })
   } finally {
     submitting.value = false
   }
@@ -2266,6 +2309,11 @@ onUnmounted(() => {
   width: auto;
   object-fit: contain;
 }
+.sign-kop-img {
+  height: 60px;
+  width: auto;
+  object-fit: contain;
+}
 .final-pt-name {
   font-size: 24px;
   font-weight: 900;
@@ -2421,16 +2469,61 @@ onUnmounted(() => {
   color: #333;
 }
 .signature-container {
-  margin-top: 15px;
-  padding-top: 15px;
+  margin-top: 40px;
+}
+.po-signature {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+.po-signature .col-3 {
+  flex: 1;
+  text-align: center;
+  max-width: 25%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+.po-signature .col-3 > * {
+  align-self: center;
 }
 .final-sign-space {
   position: relative;
-  height: 120px;
-  width: 250px;
-  margin-left: auto;
-  margin-right: auto;
-  margin-bottom: 10px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0px;
+  width: 100%;
+}
+.signer-name-wrapper {
+  margin-top: 0px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+.text-signer-final {
+  font-size: 14px;
+  font-weight: 900;
+  color: #1a237e;
+  display: block;
+  text-align: center;
+  word-wrap: break-word;
+  white-space: normal;
+  width: 180px;
+  max-width: 180px;
+  line-height: 1.2;
+}
+.text-role-final {
+  font-size: 10.5px;
+  margin-top: 2px;
+  font-weight: 700;
+  color: #444;
+  display: block;
+  text-align: center;
+  line-height: 1.2;
 }
 .img-stempel {
   position: absolute;
@@ -2453,62 +2546,6 @@ onUnmounted(() => {
   mix-blend-mode: multiply;
   filter: contrast(1.1) brightness(0.95);
 }
-.text-signer-final {
-  font-size: 14px;
-  font-weight: 900;
-  color: #1a237e;
-  border-bottom: 2.5px solid #1a237e;
-  display: inline-block;
-  width: 180px;
-  max-width: 180px;
-  text-align: center;
-  padding-bottom: 4px;
-  min-height: 40px;
-  word-wrap: break-word;
-  white-space: normal;
-}
-.text-role-final {
-  font-size: 10.5px;
-  margin-top: 4px;
-  font-weight: 700;
-  color: #444;
-}
-
-/* CSS khusus untuk tanda tangan PO agar sejajar */
-.po-signature .row {
-  display: flex;
-  flex-wrap: nowrap;
-  justify-content: space-around;
-}
-.po-signature .col-3 {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: auto;
-  max-width: 220px;
-  padding: 0 20px;
-}
-.po-signature .final-sign-space {
-  height: 60px !important;
-}
-.po-signature .q-mb-xs {
-  margin-bottom: 15px !important;
-}
-.po-signature .signer-name-wrapper {
-  width: 180px;
-  text-align: center;
-  margin-bottom: 5px;
-}
-.po-signature .text-signer-final {
-  box-sizing: border-box;
-  width: 180px;
-  padding-bottom: 4px;
-  padding-top: 5px;
-}
-.po-signature .text-role-final {
-  margin-top: 0px !important;
-}
-
 /* ════════════════════════════════════════════════
    PO PREVIEW (tetap indigo)
 ════════════════════════════════════════════════ */

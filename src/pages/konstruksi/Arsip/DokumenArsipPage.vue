@@ -1,427 +1,400 @@
 <template>
-  <q-page class="bg-grey-2 q-pa-md q-pa-lg-lg font-pro page-wrapper" @click.self="handlePageClick">
-    <!-- FLOATING CONSTRUCTION ICONS CONTAINER (ANIMASI INDAH TEAL) -->
-    <div class="floating-icons-container" aria-hidden="true">
-      <span
-        v-for="icon in floatingIcons"
-        :key="icon.id"
-        class="floating-icon"
-        :style="icon.style"
-        v-html="icon.svg"
-      ></span>
-    </div>
-
-    <!-- CLICK EFFECT CONSTRUCTIONS ICONS -->
-    <div class="click-icons-container" aria-hidden="true">
-      <span
-        v-for="ci in clickIcons"
-        :key="ci.id"
-        class="click-icon"
-        :style="{
-          left: ci.x + 'px',
-          top: ci.y + 'px',
-          '--tx': ci.tx + 'px',
-          '--ty': ci.ty + 'px',
-          width: ci.size + 'px',
-          height: ci.size + 'px',
-        }"
-        v-html="ci.svg"
-      ></span>
-    </div>
-
-    <!-- =====================================================================================
-         HEADER UTAMA (TIDAK ADA TOMBOL KEMBALI)
-         ===================================================================================== -->
-    <div class="row items-center justify-between q-mb-xl animate-fade no-print content-relative">
-      <div class="col-12 col-md-8">
-        <div class="text-h4 text-weight-bolder text-teal-10 leading-tight">
-          Arsip Dokumen Digital
-          <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
-            >Pusat Sinkronisasi & Penyimpanan Berkas Agra ERP</span
-          >
-        </div>
-        <div class="text-subtitle1 text-grey-7 q-mt-sm">
-          Pusat penyimpanan berkas otomatis yang tersinkronisasi dari aktivitas modul Gudang,
-          Finance, Kepegawaian, dan Pembelian.
-        </div>
-      </div>
-      <div class="col-12 col-md-auto q-mt-md q-mt-md-none text-right">
-        <q-btn
-          color="teal-10"
-          icon="cloud_upload"
-          label="Unggah Berkas Langsung"
-          unelevated
-          rounded
-          no-caps
-          class="q-px-lg q-py-sm shadow-premium btn-teal-main text-weight-bold"
-          @click="openUploadDialog"
-        />
-      </div>
-    </div>
-
-    <!-- =====================================================================================
-         BREADCRUMBS & NAVIGATION
-         ===================================================================================== -->
-    <div class="row items-center q-mb-lg no-print content-relative" v-if="activeFolder">
-      <q-btn
-        flat
-        round
-        dense
-        color="teal-10"
-        icon="arrow_back"
-        class="bg-white shadow-1 q-mr-md hover-teal-btn"
-        @click="activeFolder = null"
-      />
-      <div class="text-subtitle1 text-weight-bold text-blue-grey-9 flex items-center no-wrap">
-        <span class="cursor-pointer text-teal-10" @click="activeFolder = null">Arsip Utama</span>
-        <q-icon name="chevron_right" class="q-mx-xs" color="grey-6" />
-        <span class="text-grey-7 uppercase">{{ activeFolder }}</span>
-      </div>
-    </div>
-
-    <!-- =====================================================================================
-         FOLDER GRID VIEW (KETIKA BELUM MEMILIH FOLDER)
-         ===================================================================================== -->
-    <div v-if="!activeFolder" class="row q-col-gutter-lg q-mb-xl animate-fade content-relative">
-      <div v-for="folder in folders" :key="folder.name" class="col-12 col-sm-6 col-md-4 col-lg-3">
-        <q-card
-          flat
-          bordered
-          class="folder-card rounded-20 bg-white transition-all cursor-pointer shadow-sm"
-          @click="activeFolder = folder.name"
-        >
-          <q-card-section class="q-pa-lg text-center column items-center">
-            <!-- Ikon Folder Berwarna Warni Sesuai Kategori -->
-            <q-avatar
-              size="72px"
-              :color="folder.bgColor"
-              :text-color="folder.textColor"
-              :icon="folder.icon"
-              class="q-mb-md shadow-sm rounded-16"
-            />
-            <div class="text-subtitle1 text-weight-bold text-blue-grey-9 line-clamp-1">
-              {{ folder.name }}
-            </div>
-            <div class="text-caption text-grey-6 text-weight-medium q-mt-xs">
-              {{ getFileCountInFolder(folder.name) }} Berkas Digital
-            </div>
-          </q-card-section>
-        </q-card>
-      </div>
-    </div>
-
-    <!-- =====================================================================================
-         FILE LIST EXPLORER (KETIKA FOLDER AKTIF)
-         ===================================================================================== -->
-    <div v-else class="animate-fade content-relative">
-      <!-- PANEL CARI & FILTER INTERNAL FOLDER -->
-      <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print border-teal-thin">
-        <q-card-section class="q-py-md">
-          <div class="row items-center q-col-gutter-md">
-            <div class="col-12 col-md-5">
-              <q-input
-                v-model="searchQuery"
-                outlined
-                dense
-                rounded
-                placeholder="Cari nama berkas, nomor referensi, atau pengunggah..."
-                bg-color="white"
-                color="teal-10"
-              >
-                <template v-slot:prepend><q-icon name="search" color="teal-10" /></template>
-                <template v-slot:append v-if="searchQuery">
-                  <q-icon name="close" @click="searchQuery = ''" class="cursor-pointer" />
-                </template>
-              </q-input>
-            </div>
-            <q-space />
-            <div class="col-12 col-md-auto text-caption text-grey-6 text-weight-bold uppercase">
-              Menampilkan {{ filteredFiles.length }} Berkas di {{ activeFolder }}
+  <q-page class="bg-page q-pa-md font-pro">
+    <div class="page-content-wrapper">
+      <!-- =====================================================================================
+           HEADER UTAMA (TIDAK ADA TOMBOL KEMBALI)
+           ===================================================================================== -->
+      <div class="row items-center justify-between q-mb-lg animate-fade no-print">
+        <div class="col-12 col-md-8">
+          <div class="row items-center no-wrap">
+            <div>
+              <div class="text-h4 text-weight-bolder text-brand-primary leading-tight">
+                Arsip Dokumen Digital
+                <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
+                  >Pusat Sinkronisasi & Penyimpanan Berkas Agra ERP</span
+                >
+              </div>
+              <div class="text-subtitle1 text-grey-7 q-mt-sm">
+                Pusat penyimpanan berkas otomatis yang tersinkronisasi dari aktivitas modul Gudang,
+                Finance, Kepegawaian, dan Pembelian.
+              </div>
             </div>
           </div>
-        </q-card-section>
-      </q-card>
+        </div>
+        <div class="col-12 col-md-auto q-mt-md q-mt-md-none text-center text-md-right">
+          <q-btn
+            color="brand-primary"
+            icon="cloud_upload"
+            label="Unggah Berkas Langsung"
+            unelevated
+            rounded
+            no-caps
+            class="q-px-lg q-py-sm shadow-premium text-weight-bold"
+            @click="openUploadDialog"
+          />
+        </div>
+      </div>
 
-      <!-- DATA CARDS BERKAS / FILE GRID -->
-      <div class="row q-col-gutter-lg" v-if="filteredFiles.length > 0">
-        <div v-for="file in filteredFiles" :key="file.id" class="col-12 col-sm-6 col-md-4 col-lg-3">
+      <!-- =====================================================================================
+           BREADCRUMBS & NAVIGATION
+           ===================================================================================== -->
+      <div class="row items-center q-mb-lg no-print" v-if="activeFolder">
+        <q-btn
+          flat
+          round
+          dense
+          color="brand-primary"
+          icon="arrow_back"
+          class="bg-white shadow-1 q-mr-md"
+          @click="activeFolder = null"
+        />
+        <div class="text-subtitle1 text-weight-bold text-blue-grey-9 flex items-center no-wrap">
+          <span class="cursor-pointer text-brand-primary" @click="activeFolder = null"
+            >Arsip Utama</span
+          >
+          <q-icon name="chevron_right" class="q-mx-xs" color="grey-6" />
+          <span class="text-grey-7 uppercase">{{ activeFolder }}</span>
+        </div>
+      </div>
+
+      <!-- =====================================================================================
+           FOLDER GRID VIEW (KETIKA BELUM MEMILIH FOLDER)
+           ===================================================================================== -->
+      <div v-if="!activeFolder" class="row q-col-gutter-lg q-mb-xl animate-fade">
+        <div v-for="folder in folders" :key="folder.name" class="col-12 col-sm-6 col-md-4 col-lg-3">
           <q-card
             flat
             bordered
-            class="file-card rounded-20 bg-white shadow-xs overflow-hidden transition-all hover-shadow"
+            class="folder-card rounded-20 bg-white transition-all cursor-pointer shadow-sm border-subtle"
+            @click="activeFolder = folder.name"
           >
-            <q-card-section class="q-pa-md relative-position">
-              <!-- Format Badge -->
-              <q-badge
-                :color="getFileTypeBadge(file.tipe).color"
-                class="absolute-top-right q-ma-md q-px-sm q-py-xs text-weight-bold"
-                rounded
-              >
-                {{ getFileTypeBadge(file.tipe).label }}
-              </q-badge>
-
-              <!-- Ilustrasi / Thumbnail berdasarkan tipe file -->
-              <div
-                class="file-preview-thumbnail flex flex-center rounded-12 bg-grey-1 q-mb-md cursor-pointer"
-                @click="viewFile(file)"
-              >
-                <q-icon
-                  :name="getFileTypeBadge(file.tipe).icon"
-                  size="54px"
-                  :color="getFileTypeBadge(file.tipe).color"
-                  v-if="file.tipe !== 'image'"
-                />
-                <img v-else :src="file.url" class="image-thumbnail" />
+            <q-card-section class="q-pa-lg text-center column items-center">
+              <!-- Ikon Folder Berwarna Warni Sesuai Kategori -->
+              <q-avatar
+                size="72px"
+                :color="folder.bgColor"
+                :text-color="folder.textColor"
+                :icon="folder.icon"
+                class="q-mb-md shadow-sm rounded-16"
+              />
+              <div class="text-subtitle1 text-weight-bold text-blue-grey-10 line-clamp-1">
+                {{ folder.name }}
               </div>
-
-              <!-- Info Berkas -->
-              <div
-                class="text-subtitle2 text-weight-bold text-blue-grey-10 line-clamp-2 leading-tight cursor-pointer"
-                style="min-height: 2.8em"
-                @click="viewFile(file)"
-              >
-                {{ file.nama }}
-              </div>
-              <q-separator class="q-my-sm" />
-
-              <div class="text-caption text-grey-7">
-                <div class="row items-center no-wrap q-mb-xs">
-                  <q-icon name="dataset" class="q-mr-xs text-teal-8" />
-                  <span class="ellipsis text-weight-bold">Ref: {{ file.sumber }}</span>
-                </div>
-                <div class="row items-center no-wrap q-mb-xs">
-                  <q-icon name="person" class="q-mr-xs" />
-                  <span class="ellipsis">Oleh: {{ file.pembuat }}</span>
-                </div>
-                <div class="row items-center no-wrap">
-                  <q-icon name="event" class="q-mr-xs" />
-                  <span>{{ formatDateIndo(file.tanggal) }}</span>
-                </div>
+              <div class="text-caption text-grey-6 text-weight-medium q-mt-xs">
+                {{ getFileCountInFolder(folder.name) }} Berkas Digital
               </div>
             </q-card-section>
-
-            <!-- Aksi Tombol -->
-            <q-card-actions align="right" class="bg-grey-1 q-px-md q-py-sm border-top">
-              <q-btn
-                flat
-                round
-                dense
-                color="teal-10"
-                icon="visibility"
-                size="sm"
-                @click="viewFile(file)"
-              >
-                <q-tooltip>Buka Berkas</q-tooltip>
-              </q-btn>
-              <q-btn
-                flat
-                round
-                dense
-                color="indigo-8"
-                icon="download"
-                size="sm"
-                @click="downloadFile(file)"
-              >
-                <q-tooltip>Unduh Berkas</q-tooltip>
-              </q-btn>
-              <q-btn
-                v-if="file.isManualUpload"
-                flat
-                round
-                dense
-                color="negative"
-                icon="delete_outline"
-                size="sm"
-                @click="deleteManualFile(file)"
-              >
-                <q-tooltip>Hapus Berkas</q-tooltip>
-              </q-btn>
-            </q-card-actions>
           </q-card>
         </div>
       </div>
 
-      <!-- Jika folder kosong -->
-      <div
-        v-else
-        class="text-center q-pa-xl bg-white rounded-20 border-teal-thin q-mt-lg text-grey-5 animate-fade"
-      >
-        <q-icon name="folder_open" size="80px" class="q-mb-md opacity-50" color="teal-3" />
-        <div class="text-h6 text-weight-bold text-teal-10">Folder Kosong</div>
-        <div class="text-subtitle2 q-mt-xs">
-          Belum ada berkas digital yang tersimpan di folder ini.
+      <!-- =====================================================================================
+           FILE LIST EXPLORER (KETIKA FOLDER AKTIF)
+           ===================================================================================== -->
+      <div v-else class="animate-fade">
+        <!-- PANEL CARI & FILTER INTERNAL FOLDER -->
+        <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print border-subtle">
+          <q-card-section class="q-py-md">
+            <div class="row items-center q-col-gutter-md">
+              <div class="col-12 col-md-5">
+                <q-input
+                  v-model="searchQuery"
+                  outlined
+                  dense
+                  rounded
+                  placeholder="Cari nama berkas, nomor referensi, atau pengunggah..."
+                  bg-color="white"
+                  color="brand-primary"
+                  class="search-input"
+                >
+                  <template v-slot:prepend><q-icon name="search" color="brand-primary" /></template>
+                  <template v-slot:append v-if="searchQuery">
+                    <q-icon name="close" @click="searchQuery = ''" class="cursor-pointer" />
+                  </template>
+                </q-input>
+              </div>
+              <q-space />
+              <div class="col-12 col-md-auto text-caption text-grey-6 text-weight-bold uppercase">
+                Menampilkan {{ filteredFiles.length }} Berkas di {{ activeFolder }}
+              </div>
+            </div>
+          </q-card-section>
+        </q-card>
+
+        <!-- DATA CARDS BERKAS / FILE GRID -->
+        <div class="row q-col-gutter-lg" v-if="filteredFiles.length > 0">
+          <div
+            v-for="file in filteredFiles"
+            :key="file.id"
+            class="col-12 col-sm-6 col-md-4 col-lg-3"
+          >
+            <q-card
+              flat
+              bordered
+              class="file-card rounded-20 bg-white shadow-xs overflow-hidden transition-all hover-shadow border-subtle"
+            >
+              <q-card-section class="q-pa-md relative-position">
+                <!-- Format Badge -->
+                <q-badge
+                  :color="getFileTypeBadge(file.tipe).color"
+                  class="absolute-top-right q-ma-md q-px-sm q-py-xs text-weight-bold"
+                  rounded
+                >
+                  {{ getFileTypeBadge(file.tipe).label }}
+                </q-badge>
+
+                <!-- Ilustrasi / Thumbnail berdasarkan tipe file -->
+                <div
+                  class="file-preview-thumbnail flex flex-center rounded-12 bg-grey-1 q-mb-md cursor-pointer"
+                  @click="viewFile(file)"
+                >
+                  <q-icon
+                    :name="getFileTypeBadge(file.tipe).icon"
+                    size="54px"
+                    :color="getFileTypeBadge(file.tipe).color"
+                    v-if="file.tipe !== 'image'"
+                  />
+                  <img v-else :src="file.url" class="image-thumbnail" />
+                </div>
+
+                <!-- Info Berkas -->
+                <div
+                  class="text-subtitle2 text-weight-bold text-blue-grey-10 line-clamp-2 leading-tight cursor-pointer"
+                  style="min-height: 2.8em"
+                  @click="viewFile(file)"
+                >
+                  {{ file.nama }}
+                </div>
+                <q-separator class="q-my-sm" />
+
+                <div class="text-caption text-grey-7">
+                  <div class="row items-center no-wrap q-mb-xs">
+                    <q-icon name="dataset" class="q-mr-xs text-brand-primary" />
+                    <span class="ellipsis text-weight-bold">Ref: {{ file.sumber }}</span>
+                  </div>
+                  <div class="row items-center no-wrap q-mb-xs">
+                    <q-icon name="person" class="q-mr-xs" />
+                    <span class="ellipsis">Oleh: {{ file.pembuat }}</span>
+                  </div>
+                  <div class="row items-center no-wrap">
+                    <q-icon name="event" class="q-mr-xs" />
+                    <span>{{ formatDateIndo(file.tanggal) }}</span>
+                  </div>
+                </div>
+              </q-card-section>
+
+              <!-- Aksi Tombol -->
+              <q-card-actions align="right" class="bg-grey-1 q-px-md q-py-sm border-top">
+                <q-btn
+                  flat
+                  round
+                  dense
+                  color="brand-primary"
+                  icon="visibility"
+                  size="sm"
+                  @click="viewFile(file)"
+                >
+                  <q-tooltip>Buka Berkas</q-tooltip>
+                </q-btn>
+                <q-btn
+                  flat
+                  round
+                  dense
+                  color="blue-8"
+                  icon="download"
+                  size="sm"
+                  @click="downloadFile(file)"
+                >
+                  <q-tooltip>Unduh Berkas</q-tooltip>
+                </q-btn>
+                <q-btn
+                  v-if="file.isManualUpload"
+                  flat
+                  round
+                  dense
+                  color="negative"
+                  icon="delete_outline"
+                  size="sm"
+                  @click="deleteManualFile(file)"
+                >
+                  <q-tooltip>Hapus Berkas</q-tooltip>
+                </q-btn>
+              </q-card-actions>
+            </q-card>
+          </div>
+        </div>
+
+        <!-- Jika folder kosong -->
+        <div
+          v-else
+          class="text-center q-pa-xl bg-white rounded-20 border-subtle q-mt-lg text-grey-5 animate-fade"
+        >
+          <q-icon name="folder_open" size="80px" class="q-mb-md opacity-50" color="brand-primary" />
+          <div class="text-h6 text-weight-bold text-brand-primary">Folder Kosong</div>
+          <div class="text-subtitle2 q-mt-xs">
+            Belum ada berkas digital yang tersimpan di folder ini.
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- =====================================================================================
-         DIALOG UNGGAL MANUAL BERKAS DARI ARSIP
-         ===================================================================================== -->
-    <q-dialog v-model="showUploadDialog" persistent backdrop-filter="blur(4px)">
-      <q-card
-        style="width: 450px; max-width: 90vw"
-        class="rounded-20 shadow-24 font-pro border-teal-thin"
-      >
-        <q-card-section class="row items-center q-pb-none q-pt-lg q-px-lg">
-          <div class="row items-center">
-            <q-avatar
-              color="teal-1"
-              text-color="teal-10"
-              icon="cloud_upload"
-              size="md"
-              class="q-mr-md"
-            />
-            <div>
-              <div class="text-h6 text-weight-bold text-blue-grey-10">Unggah Berkas Baru</div>
-              <div class="text-caption text-grey-6">Simpan berkas pelengkap langsung ke server</div>
-            </div>
-          </div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup color="grey-7" />
-        </q-card-section>
-
-        <q-card-section class="q-pa-lg q-gutter-y-md">
-          <div>
-            <div class="label-req q-mb-xs">PILIH FOLDER TUJUAN *</div>
-            <q-select
-              outlined
-              dense
-              v-model="uploadForm.folder"
-              :options="folders.map((f) => f.name)"
-              placeholder="Tentukan folder arsip..."
-              color="teal-10"
-            />
-          </div>
-
-          <div>
-            <div class="label-req q-mb-xs">NAMA / JUDUL BERKAS *</div>
-            <q-input
-              outlined
-              dense
-              v-model="uploadForm.nama"
-              placeholder="Contoh: Dokumen Legalitas Tanah Proyek A"
-              color="teal-10"
-            />
-          </div>
-
-          <div>
-            <div class="label-req q-mb-xs">REFERENSI / KETERANGAN *</div>
-            <q-input
-              outlined
-              dense
-              v-model="uploadForm.deskripsi"
-              placeholder="Contoh: Berkas pembebasan lahan"
-              color="teal-10"
-            />
-          </div>
-
-          <div>
-            <div class="label-req q-mb-xs">UNGGAH FILE DOKUMEN *</div>
-            <q-file
-              outlined
-              dense
-              v-model="uploadForm.fileRaw"
-              label="Pilih Berkas (PDF / Image)"
-              accept="image/*, .pdf"
-              color="teal-10"
-            >
-              <template v-slot:prepend><q-icon name="attach_file" /></template>
-            </q-file>
-          </div>
-        </q-card-section>
-
-        <q-card-actions align="right" class="bg-grey-1 q-pa-md border-top">
-          <q-btn
-            flat
-            label="Batal"
-            color="grey-7"
-            v-close-popup
-            class="rounded-8 text-weight-bold"
-          />
-          <q-btn
-            unelevated
-            color="teal-10"
-            label="UNGGAH DOKUMEN"
-            class="rounded-12 text-weight-bold q-px-lg shadow-4 btn-teal-main"
-            @click="uploadManualDoc"
-            :loading="uploading"
-          />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
-    <!-- =====================================================================================
-         PREVIEW DIALOG FILE (MODAL VIEW)
-         ===================================================================================== -->
-    <q-dialog v-model="showPreviewDialog" maximized transition-show="fade" transition-hide="fade">
-      <q-card class="column no-wrap bg-grey-10">
-        <q-toolbar class="bg-grey-9 text-white q-py-sm shrink">
-          <q-btn flat round dense icon="arrow_back" v-close-popup color="white" />
-          <q-toolbar-title class="text-weight-bold text-subtitle1 uppercase ellipsis">
-            {{ activeFile?.nama }}
-          </q-toolbar-title>
-          <q-space />
-          <q-btn flat round icon="download" color="white" @click="downloadFile(activeFile)">
-            <q-tooltip>Unduh Dokumen</q-tooltip>
-          </q-btn>
-        </q-toolbar>
-
-        <q-card-section class="col scroll flex flex-center q-pa-none">
-          <div v-if="activeFile" class="full-width full-height flex flex-center">
-            <!-- Jika PDF -->
-            <iframe
-              v-if="activeFile.tipe === 'pdf'"
-              :src="activeFile.url"
-              style="width: 100%; height: 100%; border: none"
-            ></iframe>
-
-            <!-- Jika Image -->
-            <img
-              v-else-if="activeFile.tipe === 'image'"
-              :src="activeFile.url"
-              style="max-width: 95%; max-height: 90vh; object-fit: contain"
-            />
-
-            <!-- Jika tipe lain -->
-            <div v-else class="text-center text-white q-pa-xl">
-              <q-icon name="description" size="80px" color="teal-4" class="q-mb-md" />
-              <div class="text-h6">Format Dokumen Tidak Didukung untuk Preview Langsung</div>
-              <div class="text-subtitle2 q-mt-xs opacity-75">
-                Silakan unduh dokumen untuk membukanya secara lokal.
+      <!-- =====================================================================================
+           DIALOG UNGGAL MANUAL BERKAS DARI ARSIP
+           ===================================================================================== -->
+      <q-dialog v-model="showUploadDialog" persistent backdrop-filter="blur(4px)">
+        <q-card
+          style="width: 450px; max-width: 90vw"
+          class="rounded-20 shadow-24 font-pro border-subtle"
+        >
+          <q-card-section class="row items-center q-pb-none q-pt-lg q-px-lg">
+            <div class="row items-center">
+              <q-avatar
+                color="brand-light"
+                text-color="brand-primary"
+                icon="cloud_upload"
+                size="md"
+                class="q-mr-md"
+              />
+              <div>
+                <div class="text-h6 text-weight-bold text-blue-grey-10">Unggah Berkas Baru</div>
+                <div class="text-caption text-grey-6">
+                  Simpan berkas pelengkap langsung ke server
+                </div>
               </div>
-              <q-btn
-                unelevated
-                color="teal-10"
-                icon="download"
-                label="Unduh Sekarang"
-                class="q-mt-lg rounded-12"
-                @click="downloadFile(activeFile)"
+            </div>
+            <q-space />
+            <q-btn icon="close" flat round dense v-close-popup color="grey-7" />
+          </q-card-section>
+
+          <q-card-section class="q-pa-lg q-gutter-y-md">
+            <div>
+              <div class="label-req q-mb-xs">PILIH FOLDER TUJUAN *</div>
+              <q-select
+                outlined
+                dense
+                v-model="uploadForm.folder"
+                :options="folders.map((f) => f.name)"
+                placeholder="Tentukan folder arsip..."
+                color="brand-primary"
               />
             </div>
-          </div>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
+
+            <div>
+              <div class="label-req q-mb-xs">NAMA / JUDUL BERKAS *</div>
+              <q-input
+                outlined
+                dense
+                v-model="uploadForm.nama"
+                placeholder="Contoh: Dokumen Legalitas Tanah Proyek A"
+                color="brand-primary"
+              />
+            </div>
+
+            <div>
+              <div class="label-req q-mb-xs">REFERENSI / KETERANGAN *</div>
+              <q-input
+                outlined
+                dense
+                v-model="uploadForm.deskripsi"
+                placeholder="Contoh: Berkas pembebasan lahan"
+                color="brand-primary"
+              />
+            </div>
+
+            <div>
+              <div class="label-req q-mb-xs">UNGGAH FILE DOKUMEN *</div>
+              <q-file
+                outlined
+                dense
+                v-model="uploadForm.fileRaw"
+                label="Pilih Berkas (PDF / Image)"
+                accept="image/*, .pdf"
+                color="brand-primary"
+              >
+                <template v-slot:prepend><q-icon name="attach_file" /></template>
+              </q-file>
+            </div>
+          </q-card-section>
+
+          <q-card-actions align="right" class="bg-grey-1 q-pa-md border-top">
+            <q-btn
+              flat
+              label="Batal"
+              color="grey-7"
+              v-close-popup
+              class="rounded-8 text-weight-bold"
+            />
+            <q-btn
+              unelevated
+              color="brand-primary"
+              label="UNGGAH DOKUMEN"
+              class="rounded-12 text-weight-bold q-px-lg shadow-4"
+              @click="uploadManualDoc"
+              :loading="uploading"
+            />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
+
+      <!-- =====================================================================================
+           PREVIEW DIALOG FILE (MODAL VIEW)
+           ===================================================================================== -->
+      <q-dialog v-model="showPreviewDialog" maximized transition-show="fade" transition-hide="fade">
+        <q-card class="column no-wrap bg-page">
+          <q-toolbar class="bg-brand-primary text-white q-py-sm shrink">
+            <q-btn flat round dense icon="arrow_back" v-close-popup color="white" />
+            <q-toolbar-title class="text-weight-bold text-subtitle1 uppercase ellipsis">
+              {{ activeFile?.nama }}
+            </q-toolbar-title>
+            <q-space />
+            <q-btn flat round icon="download" color="white" @click="downloadFile(activeFile)">
+              <q-tooltip>Unduh Dokumen</q-tooltip>
+            </q-btn>
+          </q-toolbar>
+
+          <q-card-section class="col scroll flex flex-center q-pa-none">
+            <div v-if="activeFile" class="full-width full-height flex flex-center">
+              <!-- Jika PDF -->
+              <iframe
+                v-if="activeFile.tipe === 'pdf'"
+                :src="activeFile.url"
+                style="width: 100%; height: 100%; border: none"
+              ></iframe>
+
+              <!-- Jika Image -->
+              <img
+                v-else-if="activeFile.tipe === 'image'"
+                :src="activeFile.url"
+                style="max-width: 95%; max-height: 90vh; object-fit: contain"
+              />
+
+              <!-- Jika tipe lain -->
+              <div v-else class="text-center text-white q-pa-xl">
+                <q-icon name="description" size="80px" color="brand-light" class="q-mb-md" />
+                <div class="text-h6">Format Dokumen Tidak Didukung untuk Preview Langsung</div>
+                <div class="text-subtitle2 q-mt-xs opacity-75">
+                  Silakan unduh dokumen untuk membukanya secara lokal.
+                </div>
+                <q-btn
+                  unelevated
+                  color="brand-primary"
+                  icon="download"
+                  label="Unduh Sekarang"
+                  class="q-mt-lg rounded-12"
+                  @click="downloadFile(activeFile)"
+                />
+              </div>
+            </div>
+          </q-card-section>
+        </q-card>
+      </q-dialog>
+    </div>
   </q-page>
 </template>
 
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { db, storage } from 'src/boot/firebase'
-import {
-  collection,
-  onSnapshot,
-  // eslint-disable-next-line no-unused-vars
-  getDocs,
-  doc,
-  addDoc,
-  deleteDoc,
-  // eslint-disable-next-line no-unused-vars
-  query,
-  // eslint-disable-next-line no-unused-vars
-  where,
-  serverTimestamp,
-} from 'firebase/firestore'
+import { collection, onSnapshot, doc, addDoc, deleteDoc, serverTimestamp } from 'firebase/firestore'
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { useQuasar } from 'quasar'
 import { useAuthStore } from 'src/stores/auth'
@@ -450,97 +423,40 @@ const activeFile = ref(null)
 
 // State data mentah database acuan (real-time listeners)
 const rawPermintaan = ref([])
-const rawKaryawan = ref([])
 const rawTagihanSupplier = ref([])
 const rawTagihanCustomer = ref([])
 const rawArsipManual = ref([])
+const rawPurchaseOrder = ref([])
+const rawPenawaran = ref([])
+const rawProyek = ref([])
+const rawSpkCustomer = ref([])
+const rawSuppliers = ref([])
 
 let unsubPermintaan = null
-let unsubKaryawan = null
 let unsubTagihanSupplier = null
 let unsubTagihanCustomer = null
 let unsubArsipManual = null
-
-// ============================================================================
-// VECTOR ICONS (CONSTRUCTION THEMED - TEAL & ORANGE)
-// ============================================================================
-const getConstructionSvg = (index) => {
-  const svgs = [
-    `<svg viewBox="0 0 100 100" style="width: 100%; height: 100%;"><path d="M25,45 C25,25 75,25 75,45 Z" fill="#009688" /><rect x="18" y="42" width="64" height="6" rx="3" fill="#f59e0b" /><path d="M47,20 L53,20 L53,32 L47,32 Z" fill="#f59e0b" /><circle cx="50" cy="58" r="15" fill="#e0f2f1" /><circle cx="76" cy="65" r="9" fill="none" stroke="#ff781e" stroke-width="2.5" stroke-dasharray="3,1.5" /><path d="M28,82 C28,70 72,70 72,82 L72,92 L28,92 Z" fill="#00796b" /></svg>`,
-    `<svg viewBox="0 0 100 100" style="width: 100%; height: 100%;"><circle cx="50" cy="15" r="7" fill="#ff781e" /><line x1="50" y1="15" x2="32" y2="86" stroke="#ff781e" stroke-width="5.5" stroke-linecap="round" /><line x1="50" y1="15" x2="68" y2="86" stroke="#ff781e" stroke-width="5.5" stroke-linecap="round" /><line x1="38" y1="52" x2="62" y2="52" stroke="#009688" stroke-width="4.5" stroke-linecap="round" /></svg>`,
-    `<svg viewBox="0 0 100 100" style="width: 100%; height: 100%;"><rect x="25" y="12" width="50" height="78" rx="6" fill="#0d9488" /><rect x="34" y="22" width="11" height="11" rx="2" fill="#e0f2f1" /><rect x="55" y="22" width="11" height="11" rx="2" fill="#e0f2f1" /><rect x="34" y="42" width="11" height="11" rx="2" fill="#e0f2f1" /><rect x="55" y="42" width="11" height="11" rx="2" fill="#e0f2f1" /><rect x="34" y="62" width="11" height="11" rx="2" fill="#e0f2f1" /><rect x="55" y="62" width="11" height="11" rx="2" fill="#e0f2f1" /></svg>`,
-    `<svg viewBox="0 0 100 100" style="width: 100%; height: 100%;"><rect x="18" y="74" width="54" height="13" rx="4" fill="#ff781e" /><circle cx="26" cy="80.5" r="5.5" fill="#1e293b" /><circle cx="45" cy="80.5" r="5.5" fill="#1e293b" /><circle cx="64" cy="80.5" r="5.5" fill="#1e293b" /><path d="M23,48 L46,48 L54,74 L23,74 Z" fill="#009688" /><line x1="46" y1="56" x2="78" y2="26" stroke="#ff781e" stroke-width="6" stroke-linecap="round" /><line x1="78" y1="26" x2="88" y2="52" stroke="#ff781e" stroke-width="4.5" stroke-linecap="round" /><path d="M82,48 L92,48 L87,62 L77,58 Z" fill="#00796b" /></svg>`,
-    `<svg viewBox="0 0 100 100" style="width: 100%; height: 100%;"><g transform="rotate(45, 50, 50)"><rect x="44" y="12" width="12" height="76" rx="4" fill="#009688" /><circle cx="50" cy="15" r="13" fill="#009688" /><polygon points="50,15 41,4 59,4 50,15" fill="#e0f2f1" /><circle cx="50" cy="85" r="9" fill="#00796b" /></g><g transform="rotate(-45, 50, 50)"><rect x="45" y="18" width="10" height="68" rx="2.5" fill="#ff781e" /><rect x="28" y="10" width="44" height="16" rx="3.5" fill="#78350f" /><path d="M66,13 C73,13 77,23 77,23 L66,23 Z" fill="#78350f" /></g></svg>`,
-  ]
-  return svgs[index % svgs.length]
-}
-
-const floatingIcons = ref([])
-let iconIdCounter = 0
-
-function spawnFloatingIcon() {
-  const id = iconIdCounter++
-  const left = Math.random() * 95 + '%'
-  const duration = (5 + Math.random() * 6).toFixed(2) + 's'
-  const delay = (Math.random() * 3).toFixed(2) + 's'
-  const size = (24 + Math.random() * 22).toFixed(0)
-  const svgContent = getConstructionSvg(id)
-
-  floatingIcons.value.push({
-    id,
-    svg: svgContent,
-    style: {
-      left,
-      width: size + 'px',
-      height: size + 'px',
-      animationDuration: duration,
-      animationDelay: delay,
-    },
-  })
-  setTimeout(
-    () => {
-      floatingIcons.value = floatingIcons.value.filter((i) => i.id !== id)
-    },
-    (parseFloat(duration) + parseFloat(delay) + 0.5) * 1000,
-  )
-}
-
-let floatingIconInterval = null
-
-const clickIcons = ref([])
-
-function handlePageClick(e) {
-  const count = 4 + Math.floor(Math.random() * 4)
-  for (let i = 0; i < count; i++) {
-    const id = iconIdCounter++
-    const offsetX = (Math.random() - 0.5) * 100
-    const offsetY = -(60 + Math.random() * 80)
-    const size = 26 + Math.floor(Math.random() * 18)
-    const svgContent = getConstructionSvg(id)
-
-    const icon = {
-      id,
-      svg: svgContent,
-      x: e.clientX - size / 2,
-      y: e.clientY - size / 2,
-      tx: offsetX,
-      ty: offsetY,
-      size,
-    }
-    clickIcons.value.push(icon)
-    setTimeout(() => {
-      clickIcons.value = clickIcons.value.filter((i) => i.id !== id)
-    }, 1000)
-  }
-}
+let unsubPurchaseOrder = null
+let unsubPenawaran = null
+let unsubProyek = null
+let unsubSpkCustomer = null
+let unsubSuppliers = null
 
 // ============================================================================
 // DAFTAR VIRTUAL FOLDERS
 // ============================================================================
 const folders = [
-  { name: 'Gudang & Logistik', icon: 'warehouse', bgColor: 'teal-1', textColor: 'teal-10' },
-  { name: 'Kepegawaian / Karyawan', icon: 'groups', bgColor: 'blue-1', textColor: 'blue-8' },
+  {
+    name: 'Gudang & Logistik',
+    icon: 'warehouse',
+    bgColor: 'brand-light',
+    textColor: 'brand-primary',
+  },
   { name: 'Finance & Invoice', icon: 'payments', bgColor: 'green-1', textColor: 'green-9' },
+  { name: 'Pembelian & PO', icon: 'shopping_cart', bgColor: 'purple-1', textColor: 'purple-9' },
+  { name: 'Marketing & Penawaran', icon: 'local_offer', bgColor: 'pink-1', textColor: 'pink-9' },
+  { name: 'Proyek & SPK', icon: 'work', bgColor: 'teal-1', textColor: 'teal-9' },
+  { name: 'Supplier', icon: 'business', bgColor: 'deep-orange-1', textColor: 'deep-orange-9' },
   { name: 'Arsip Umum', icon: 'folder_shared', bgColor: 'orange-1', textColor: 'orange-9' },
 ]
 
@@ -578,7 +494,7 @@ const getFileTypeBadge = (type) => {
     case 'pdf':
       return { label: 'PDF', color: 'red-9', icon: 'picture_as_pdf' }
     case 'image':
-      return { label: 'IMAGE', color: 'teal-10', icon: 'image' }
+      return { label: 'IMAGE', color: 'brand-primary', icon: 'image' }
     case 'excel':
       return { label: 'EXCEL', color: 'green-9', icon: 'table_view' }
     case 'doc':
@@ -659,48 +575,7 @@ const allFiles = computed(() => {
     }
   })
 
-  // 2. SINKRONISASI BERKAS DARI MODUL KEPEGAWAIAN / KARYAWAN
-  rawKaryawan.value.forEach((k) => {
-    // Cek berbagai kemungkinan nama field dokumen
-    const docsArr = k.docs || k.dokumen || k.lampiran || k.files || []
-    if (Array.isArray(docsArr)) {
-      docsArr.forEach((docItem, idx) => {
-        const url =
-          docItem?.url || docItem?.fileUrl || (typeof docItem === 'string' ? docItem : null)
-        if (url) {
-          list.push({
-            id: `karyawan-legal-${k.id}-${idx}`,
-            nama: docItem?.name || docItem?.nama || docItem?.label || `Arsip Legalitas - ${k.nama}`,
-            url,
-            folder: 'Kepegawaian / Karyawan',
-            sumber: `NIK: ${k.nik || '-'} (${k.nama || '-'})`,
-            tanggal: k.updatedAt || k.createdAt || null,
-            tipe: detectFileType(url, docItem?.name || docItem?.nama),
-            pembuat: k.nama || 'HRD',
-            isManualUpload: false,
-          })
-        }
-      })
-    }
-
-    // Foto Biometrik / Foto Registrasi Karyawan
-    const fotoUrl = k.foto_registrasi || k.foto || k.photo || k.fotoUrl || null
-    if (fotoUrl) {
-      list.push({
-        id: `karyawan-bio-${k.id}`,
-        nama: `Biometrik Absensi Resmi - ${k.nama || '-'}`,
-        url: fotoUrl,
-        folder: 'Kepegawaian / Karyawan',
-        sumber: `Master Face Database NIK: ${k.nik || '-'}`,
-        tanggal: k.createdAt || k.updatedAt || null,
-        tipe: 'image',
-        pembuat: 'System AI Registrasi',
-        isManualUpload: false,
-      })
-    }
-  })
-
-  // 3. SINKRONISASI BERKAS FINANCE & INVOICE (Tagihan Supplier & AP)
+  // 2. SINKRONISASI BERKAS FINANCE & INVOICE (Tagihan Supplier & AP)
   rawTagihanSupplier.value.forEach((t) => {
     const lampiranArr = t.lampiran || t.dokumen_lampiran || t.files || []
     if (Array.isArray(lampiranArr)) {
@@ -772,7 +647,162 @@ const allFiles = computed(() => {
     }
   })
 
-  // 4. BERKAS YANG DIUNGGAH MANUAL LANGSUNG DARI HALAMAN ARSIP INI
+  // 3. SINKRONISASI BERKAS PEMBELIAN & PO
+  rawPurchaseOrder.value.forEach((po) => {
+    const lampiranArr = po.lampiran || po.dokumen_lampiran || po.files || po.attachments || []
+    if (Array.isArray(lampiranArr)) {
+      lampiranArr.forEach((docItem, idx) => {
+        const url =
+          docItem?.url ||
+          docItem?.fileUrl ||
+          docItem?.link ||
+          (typeof docItem === 'string' ? docItem : null)
+        if (url) {
+          list.push({
+            id: `pembelian-po-${po.id}-${idx}`,
+            nama:
+              docItem?.label ||
+              docItem?.name ||
+              docItem?.nama ||
+              `Lampiran PO ${po.nomor || po.nomor_po || ''}`,
+            url,
+            folder: 'Pembelian & PO',
+            sumber: `PO No: ${po.nomor || po.nomor_po || po.id || '-'}`,
+            tanggal: po.updatedAt || po.createdAt || null,
+            tipe: detectFileType(url, docItem?.label || docItem?.name),
+            pembuat: po.pembuat || po.dibuat_oleh || 'Logistik',
+            isManualUpload: false,
+          })
+        }
+      })
+    }
+  })
+
+  // 4. SINKRONISASI BERKAS MARKETING & PENAWARAN
+  rawPenawaran.value.forEach((pnw) => {
+    const lampiranArr = pnw.lampiran || pnw.dokumen_lampiran || pnw.files || pnw.attachments || []
+    if (Array.isArray(lampiranArr)) {
+      lampiranArr.forEach((docItem, idx) => {
+        const url =
+          docItem?.url ||
+          docItem?.fileUrl ||
+          docItem?.link ||
+          (typeof docItem === 'string' ? docItem : null)
+        if (url) {
+          list.push({
+            id: `marketing-penawaran-${pnw.id}-${idx}`,
+            nama:
+              docItem?.label ||
+              docItem?.name ||
+              docItem?.nama ||
+              `Lampiran Penawaran ${pnw.nomor || ''}`,
+            url,
+            folder: 'Marketing & Penawaran',
+            sumber: `Penawaran No: ${pnw.nomor || pnw.id || '-'}`,
+            tanggal: pnw.updatedAt || pnw.createdAt || null,
+            tipe: detectFileType(url, docItem?.label || docItem?.name),
+            pembuat: pnw.pembuat || pnw.dibuat_oleh || 'Marketing',
+            isManualUpload: false,
+          })
+        }
+      })
+    }
+  })
+
+  // 5. SINKRONISASI BERKAS PROYEK & SPK
+  rawProyek.value.forEach((proyek) => {
+    const lampiranArr =
+      proyek.lampiran || proyek.dokumen_lampiran || proyek.files || proyek.dokumen || []
+    if (Array.isArray(lampiranArr)) {
+      lampiranArr.forEach((docItem, idx) => {
+        const url =
+          docItem?.url ||
+          docItem?.fileUrl ||
+          docItem?.link ||
+          (typeof docItem === 'string' ? docItem : null)
+        if (url) {
+          list.push({
+            id: `proyek-dokumen-${proyek.id}-${idx}`,
+            nama:
+              docItem?.label ||
+              docItem?.name ||
+              docItem?.nama ||
+              `Dokumen Proyek ${proyek.nama || ''}`,
+            url,
+            folder: 'Proyek & SPK',
+            sumber: `Proyek: ${proyek.nama || proyek.id || '-'}`,
+            tanggal: proyek.updatedAt || proyek.createdAt || null,
+            tipe: detectFileType(url, docItem?.label || docItem?.name),
+            pembuat: proyek.pembuat || proyek.dibuat_oleh || 'PM',
+            isManualUpload: false,
+          })
+        }
+      })
+    }
+  })
+
+  rawSpkCustomer.value.forEach((spk) => {
+    const lampiranArr = spk.lampiran || spk.dokumen_lampiran || spk.files || spk.attachments || []
+    if (Array.isArray(lampiranArr)) {
+      lampiranArr.forEach((docItem, idx) => {
+        const url =
+          docItem?.url ||
+          docItem?.fileUrl ||
+          docItem?.link ||
+          (typeof docItem === 'string' ? docItem : null)
+        if (url) {
+          list.push({
+            id: `spk-dokumen-${spk.id}-${idx}`,
+            nama:
+              docItem?.label || docItem?.name || docItem?.nama || `Dokumen SPK ${spk.nomor || ''}`,
+            url,
+            folder: 'Proyek & SPK',
+            sumber: `SPK No: ${spk.nomor || spk.id || '-'}`,
+            tanggal: spk.updatedAt || spk.createdAt || null,
+            tipe: detectFileType(url, docItem?.label || docItem?.name),
+            pembuat: spk.pembuat || spk.dibuat_oleh || 'PM',
+            isManualUpload: false,
+          })
+        }
+      })
+    }
+  })
+
+  // 6. SINKRONISASI BERKAS SUPPLIER
+  rawSuppliers.value.forEach((supplier) => {
+    const docsArr =
+      supplier.docs ||
+      supplier.dokumen ||
+      supplier.lampiran ||
+      supplier.files ||
+      supplier.dokumen_legalitas ||
+      []
+    if (Array.isArray(docsArr)) {
+      docsArr.forEach((docItem, idx) => {
+        const url =
+          docItem?.url || docItem?.fileUrl || (typeof docItem === 'string' ? docItem : null)
+        if (url) {
+          list.push({
+            id: `supplier-legal-${supplier.id}-${idx}`,
+            nama:
+              docItem?.name ||
+              docItem?.nama ||
+              docItem?.label ||
+              `Dokumen Legalitas - ${supplier.nama || ''}`,
+            url,
+            folder: 'Supplier',
+            sumber: `Supplier: ${supplier.nama || supplier.id || '-'}`,
+            tanggal: supplier.updatedAt || supplier.createdAt || null,
+            tipe: detectFileType(url, docItem?.name || docItem?.nama),
+            pembuat: 'Admin',
+            isManualUpload: false,
+          })
+        }
+      })
+    }
+  })
+
+  // 7. BERKAS YANG DIUNGGAH MANUAL LANGSUNG DARI HALAMAN ARSIP INI
   rawArsipManual.value.forEach((m) => {
     list.push({
       ...m,
@@ -916,22 +946,42 @@ const fetchData = () => {
     rawPermintaan.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
   })
 
-  // 2. Listen ke Database Karyawan (Modul HRD)
-  unsubKaryawan = onSnapshot(collection(db, 'karyawan'), (snap) => {
-    rawKaryawan.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
-  })
-
-  // 3. Listen ke Tagihan Supplier (AP)
+  // 2. Listen ke Tagihan Supplier (AP)
   unsubTagihanSupplier = onSnapshot(collection(db, 'finance_tagihan'), (snap) => {
     rawTagihanSupplier.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
   })
 
-  // 4. Listen ke Invoice Customer (AR)
+  // 3. Listen ke Invoice Customer (AR)
   unsubTagihanCustomer = onSnapshot(collection(db, 'finance_invoice_customer'), (snap) => {
     rawTagihanCustomer.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
   })
 
-  // 5. Listen ke Unggahan Manual khusus Arsip Page
+  // 4. Listen ke Purchase Order
+  unsubPurchaseOrder = onSnapshot(collection(db, 'purchase_order'), (snap) => {
+    rawPurchaseOrder.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+  })
+
+  // 5. Listen ke Penawaran
+  unsubPenawaran = onSnapshot(collection(db, 'penawaran'), (snap) => {
+    rawPenawaran.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+  })
+
+  // 6. Listen ke Proyek
+  unsubProyek = onSnapshot(collection(db, 'proyek'), (snap) => {
+    rawProyek.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+  })
+
+  // 7. Listen ke SPK Customer
+  unsubSpkCustomer = onSnapshot(collection(db, 'spk_customer'), (snap) => {
+    rawSpkCustomer.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+  })
+
+  // 8. Listen ke Supplier
+  unsubSuppliers = onSnapshot(collection(db, 'suppliers'), (snap) => {
+    rawSuppliers.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+  })
+
+  // 9. Listen ke Unggahan Manual khusus Arsip Page
   unsubArsipManual = onSnapshot(collection(db, 'monitoring_arsip_dokumen'), (snap) => {
     rawArsipManual.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
     loading.value = false
@@ -940,17 +990,18 @@ const fetchData = () => {
 
 onMounted(() => {
   fetchData()
-  floatingIconInterval = setInterval(spawnFloatingIcon, 1500)
-  spawnFloatingIcon()
 })
 
 onUnmounted(() => {
   if (unsubPermintaan) unsubPermintaan()
-  if (unsubKaryawan) unsubKaryawan()
   if (unsubTagihanSupplier) unsubTagihanSupplier()
   if (unsubTagihanCustomer) unsubTagihanCustomer()
+  if (unsubPurchaseOrder) unsubPurchaseOrder()
+  if (unsubPenawaran) unsubPenawaran()
+  if (unsubProyek) unsubProyek()
+  if (unsubSpkCustomer) unsubSpkCustomer()
+  if (unsubSuppliers) unsubSuppliers()
   if (unsubArsipManual) unsubArsipManual()
-  if (floatingIconInterval) clearInterval(floatingIconInterval)
 })
 </script>
 
@@ -978,62 +1029,41 @@ onUnmounted(() => {
 .tracking-widest {
   letter-spacing: 0.12em;
 }
-.border-teal-thin {
-  border: 1px solid rgba(0, 150, 136, 0.18) !important;
+.border-subtle {
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
 }
 .border-top {
   border-top: 1px solid #f1f5f9;
 }
-.border-dashed-teal {
-  border: 2px dashed #009688;
-}
 
-/* ── Teal tokens ── */
-.text-teal-10 {
-  color: #009688 !important;
-}
-.bg-teal-10 {
-  background-color: #009688 !important;
-}
-.bg-teal-1 {
-  background-color: #e0f2f1 !important;
-}
-.bg-teal-50 {
-  background-color: #f2faf9 !important;
-}
+/* ── Brand tokens ── */
 .btn-teal-main {
-  background: linear-gradient(135deg, #009688 0%, #00acc1 100%) !important;
+  background: linear-gradient(135deg, #36ada3 0%, #1e6e69 100%) !important;
   color: #fff !important;
-  box-shadow: 0 6px 20px rgba(0, 150, 136, 0.3) !important;
+  box-shadow: 0 6px 20px rgba(54, 173, 163, 0.3) !important;
   transition: all 0.3s ease !important;
 }
 .btn-teal-main:hover {
-  box-shadow: 0 10px 28px rgba(0, 150, 136, 0.45) !important;
+  box-shadow: 0 10px 28px rgba(54, 173, 163, 0.45) !important;
   transform: translateY(-1.5px) !important;
-}
-.hover-teal-btn:hover {
-  background-color: #e0f2f1 !important;
-  color: #009688 !important;
 }
 
 /* ── Folder Card ── */
 .folder-card {
-  border: 1.5px solid rgba(0, 150, 136, 0.12);
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 .folder-card:hover {
   transform: translateY(-5px);
-  border-color: #009688 !important;
-  box-shadow: 0 15px 30px rgba(0, 150, 136, 0.15) !important;
+  border-color: #36ada3 !important;
+  box-shadow: 0 15px 30px rgba(54, 173, 163, 0.15) !important;
 }
 
 /* ── File Card ── */
 .file-card {
   transition: all 0.25s ease;
-  border: 1px solid #e2e8f0;
 }
 .file-card:hover {
-  border-color: #009688;
+  border-color: #36ada3;
 }
 .file-preview-thumbnail {
   height: 140px;
@@ -1095,94 +1125,11 @@ onUnmounted(() => {
   }
 }
 
-/* =======================================================================
-   INTERACTIVE FLOATING & CLICK HIGH-FIDELITY VECTOR ICONS
-   ======================================================================= */
-.page-wrapper {
-  position: relative;
-  overflow: hidden;
-}
-
-.floating-icons-container {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 0;
-  overflow: hidden;
-}
-
-.floating-icon {
-  position: absolute;
-  bottom: -60px;
-  opacity: 0;
-  animation: floatUpAnimation linear forwards;
-  will-change: transform, opacity;
-  user-select: none;
-}
-
-@keyframes floatUpAnimation {
-  0% {
-    transform: translateY(0) rotate(-15deg) scale(0.65);
-    opacity: 0;
-  }
-  15% {
-    opacity: 0.7;
-  }
-  70% {
-    opacity: 0.45;
-  }
-  90% {
-    opacity: 0.15;
-  }
-  100% {
-    transform: translateY(-112vh) rotate(20deg) scale(1.15);
-    opacity: 0;
-  }
-}
-
-.click-icons-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 9999;
-  overflow: visible;
-}
-
-.click-icon {
-  position: fixed;
-  opacity: 1;
-  animation: clickIconAnimation 0.9s ease-out forwards;
-  will-change: transform, opacity;
-  user-select: none;
-}
-
-@keyframes clickIconAnimation {
-  0% {
-    transform: translate(0, 0) scale(1.1);
-    opacity: 1;
-  }
-  45% {
-    transform: translate(var(--tx), var(--ty)) scale(1.35);
-    opacity: 0.85;
-  }
-  100% {
-    transform: translate(var(--tx), calc(var(--ty) - 35px)) scale(0.35);
-    opacity: 0;
-  }
-}
-
-.content-relative {
-  position: relative;
-  z-index: 1;
-}
-
 .shadow-premium {
-  box-shadow: 0 4px 15px rgba(0, 150, 136, 0.2);
+  box-shadow: 0 10px 30px rgba(54, 173, 163, 0.15);
+}
+
+.search-input :deep(.q-field__control) {
+  border-radius: 30px;
 }
 </style>
