@@ -895,18 +895,18 @@
 
               <div class="row q-col-gutter-md">
                 <div class="col-4">
-                  <div class="label-req q-mb-xs">Prepared By</div>
+                  <div class="label-req q-mb-xs">Dibuat</div>
                   <q-input
                     outlined
                     dense
                     v-model="poForm.prepared_by"
                     bg-color="white"
-                    placeholder="Nama..."
+                    placeholder="Nama pembuat PO..."
                     color="brand-primary"
                   />
                 </div>
                 <div class="col-4">
-                  <div class="label-req q-mb-xs">Checked BY</div>
+                  <div class="label-req q-mb-xs">Mengetahui</div>
                   <q-input
                     outlined
                     dense
@@ -917,13 +917,13 @@
                   />
                 </div>
                 <div class="col-4">
-                  <div class="label-req q-mb-xs">Approved BY</div>
+                  <div class="label-req q-mb-xs">Disetujui</div>
                   <q-input
                     outlined
                     dense
                     v-model="poForm.approved_by"
                     bg-color="white"
-                    placeholder="Kosongkan jika blm ttd"
+                    placeholder="Nama..."
                     color="brand-primary"
                   />
                 </div>
@@ -1077,7 +1077,7 @@
                 <tfoot>
                   <tr class="row-calculation">
                     <td colspan="5" class="text-right text-bold uppercase">Subtotal Amount</td>
-                    <td class="text-right text-bold text-indigo-10">
+                    <td class="text-right text-bold text-indigo-10" style="white-space: nowrap;">
                       IDR {{ (selectedData.total_estimasi || 0).toLocaleString() }}
                     </td>
                   </tr>
@@ -1089,7 +1089,7 @@
                     >
                       GRAND TOTAL AMOUNT
                     </td>
-                    <td class="text-right text-white text-weight-bolder" style="font-size: 13px">
+                    <td class="text-right text-white text-weight-bolder" style="font-size: 13px; white-space: nowrap;">
                       IDR {{ (selectedData.total_estimasi || 0).toLocaleString() }}
                     </td>
                   </tr>
@@ -1263,19 +1263,20 @@
                 <div class="col-5 flex justify-end text-right">
                   <div
                     style="
-                      width: 100%;
+                      width: fit-content;
+                      margin-left: auto;
                       display: flex;
                       flex-direction: column;
-                      align-items: flex-end;
+                      align-items: flex-start;
                     "
                   >
                     <div
                       class="quotation-title-pro uppercase font-13 text-indigo-10 q-mb-sm"
-                      style="text-align: right"
+                      style="text-align: left;"
                     >
                       PURCHASE ORDER
                     </div>
-                    <table class="meta-info-table" style="width: auto">
+                    <table class="meta-info-table" style="width: auto; text-align: left;">
                       <tr>
                         <td
                           class="text-bold"
@@ -1346,13 +1347,13 @@
                 <tfoot>
                   <tr class="row-calculation">
                     <td colspan="5" class="text-right text-bold uppercase">Subtotal Amount</td>
-                    <td class="text-right text-bold text-indigo-10">
+                    <td class="text-right text-bold text-indigo-10" style="white-space: nowrap;">
                       IDR {{ (selectedPo.total_amount || 0).toLocaleString() }}
                     </td>
                   </tr>
                   <tr class="row-calculation" v-if="selectedPo.mobdemob">
                     <td colspan="5" class="text-right text-bold uppercase">Mobdemob / Lainnya</td>
-                    <td class="text-right text-bold text-indigo-10">
+                    <td class="text-right text-bold text-indigo-10" style="white-space: nowrap;">
                       IDR {{ (selectedPo.mobdemob || 0).toLocaleString() }}
                     </td>
                   </tr>
@@ -1364,7 +1365,7 @@
                     >
                       GRAND TOTAL AMOUNT
                     </td>
-                    <td class="text-right text-white text-weight-bolder" style="font-size: 13px">
+                    <td class="text-right text-white text-weight-bolder" style="font-size: 13px; white-space: nowrap;">
                       IDR {{ (selectedPo.grand_total || 0).toLocaleString() }}
                     </td>
                   </tr>
@@ -1394,15 +1395,19 @@
               <div class="signature-container text-left q-mt-lg">
                 <div class="row justify-between text-center po-signature">
                   <div class="col-3">
-                    <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">
-                      Request By,
+                    <div class="q-mb-xs text-caption uppercase tracking-widest text-weight-bold text-grey-8" style="font-size: 11px;">
+                      Dibuat,
                     </div>
-                    <div class="final-sign-space flex flex-center" style="height: 90px">
+                    <div class="final-sign-space flex flex-center" style="height: 60px">
                       <!-- Spacer for signature -->
                     </div>
                     <div class="signer-name-wrapper">
-                      <div class="text-signer-final text-weight-black uppercase text-indigo-10">
-                        {{ selectedPo.requested_by || '..............................' }}
+                      <div class="text-signer-final text-weight-bold uppercase text-indigo-10">
+                        {{
+                          selectedPo.prepared_by ||
+                          selectedPo.requested_by ||
+                          '..............................'
+                        }}
                       </div>
                     </div>
                     <div
@@ -1413,14 +1418,14 @@
                   </div>
 
                   <div class="col-3">
-                    <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">
-                      Checked By,
+                    <div class="q-mb-xs text-caption uppercase tracking-widest text-weight-bold text-grey-8" style="font-size: 11px;">
+                      Mengetahui,
                     </div>
-                    <div class="final-sign-space flex flex-center" style="height: 90px">
+                    <div class="final-sign-space flex flex-center" style="height: 60px">
                       <!-- Spacer for signature -->
                     </div>
                     <div class="signer-name-wrapper">
-                      <div class="text-signer-final text-weight-black uppercase text-indigo-10">
+                      <div class="text-signer-final text-weight-bold uppercase text-indigo-10">
                         {{ selectedPo.checked_by || '..............................' }}
                       </div>
                     </div>
@@ -1432,14 +1437,21 @@
                   </div>
 
                   <div class="col-3">
-                    <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">
-                      Approved By,
+                    <div class="q-mb-xs text-caption uppercase tracking-widest text-weight-bold text-grey-8" style="font-size: 11px;">
+                      Disetujui,
                     </div>
-                    <div class="final-sign-space flex flex-center" style="height: 90px">
-                      <!-- Spacer for signature -->
+                    <div class="final-sign-space flex flex-center" style="height: 60px">
+                      <!-- Spacer for signature or checkmark -->
+                      <div
+                        v-if="selectedPo.status === 'Approved' && selectedPo.approved_by_nama"
+                        class="text-positive text-weight-bold"
+                        style="font-size: 11px"
+                      >
+                        ✓ {{ selectedPo.approved_by_nama }}
+                      </div>
                     </div>
                     <div class="signer-name-wrapper">
-                      <div class="text-signer-final text-weight-black uppercase text-indigo-10">
+                      <div class="text-signer-final text-weight-bold uppercase text-indigo-10">
                         {{ selectedPo.approved_by || '..............................' }}
                       </div>
                     </div>
@@ -1451,22 +1463,25 @@
                   </div>
 
                   <div class="col-3">
-                    <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">
+                    <div class="q-mb-xs text-caption uppercase tracking-widest text-weight-bold text-grey-8" style="font-size: 11px;">
                       Approved Supplier,
                     </div>
-                    <div class="final-sign-space flex flex-center" style="height: 90px">
+                    <div class="final-sign-space flex flex-center" style="height: 60px">
                       <!-- Spacer for signature supplier -->
                     </div>
                     <div class="signer-name-wrapper">
-                      <div class="text-signer-final text-weight-black uppercase text-indigo-10">
-                        ..............................
+                      <div class="text-signer-final text-weight-bold uppercase text-indigo-10">
+                        {{
+                          selectedPo.approved_supplier ||
+                          selectedPo.kepada_yth ||
+                          '..............................'
+                        }}
                       </div>
                     </div>
                     <div
                       class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs"
-                      style="opacity: 0"
                     >
-                      &nbsp;
+                      Supplier
                     </div>
                   </div>
                 </div>
@@ -1708,7 +1723,9 @@ const openPoForm = async () => {
       nama_pt: config.value.nama_pt || poFormDefault.nama_pt,
       slogan_pt: config.value.slogan_pt || poFormDefault.slogan_pt,
       nomor: generatedNo,
-      prepared_by: userData.value?.nama || '',
+      prepared_by: userData.value?.nama || authStore.user?.nama || '',
+      checked_by: '',
+      approved_by: '',
     }
     poViewMode.value = 'form'
   } catch (e) {
@@ -1772,7 +1789,6 @@ const onPrSelect = (prData) => {
   if (prData) {
     poForm.value.proyek_nama = prData.proyek_nama || prData.gudang_nama || ''
     poForm.value.no_spk = prData.no_reff || ''
-    poForm.value.checked_by = prData.pemohon?.nama || prData.requestor_nama || ''
     poForm.value.requested_by = prData.pemohon?.nama || prData.requestor_nama || ''
     poForm.value.items = prData.items.map((it) => ({
       id_barang: it.id_barang,
@@ -1785,7 +1801,6 @@ const onPrSelect = (prData) => {
   } else {
     poForm.value.proyek_nama = ''
     poForm.value.no_spk = ''
-    poForm.value.checked_by = ''
     poForm.value.requested_by = ''
     poForm.value.items = []
   }
@@ -1806,8 +1821,8 @@ const savePo = async () => {
   try {
     const payload = {
       ...poForm.value,
-      requested_by: poForm.value.checked_by || poForm.value.requested_by || '',
-      approved_supplier: poForm.value.approved_by || poForm.value.approved_supplier || '',
+      requested_by: poForm.value.requested_by || '',
+      approved_supplier: poForm.value.approved_supplier || '',
       no_spk: poForm.value.no_spk || '',
       total_amount: calculatePoTotal(),
       grand_total: calculatePoTotal() + (poForm.value.mobdemob || 0),
@@ -2505,8 +2520,8 @@ onUnmounted(() => {
   justify-content: flex-start;
 }
 .text-signer-final {
-  font-size: 14px;
-  font-weight: 900;
+  font-size: 12px;
+  font-weight: 700;
   color: #1a237e;
   display: block;
   text-align: center;
@@ -2514,13 +2529,13 @@ onUnmounted(() => {
   white-space: normal;
   width: 180px;
   max-width: 180px;
-  line-height: 1.2;
+  line-height: 1.25;
 }
 .text-role-final {
-  font-size: 10.5px;
+  font-size: 9.5px;
   margin-top: 2px;
   font-weight: 700;
-  color: #444;
+  color: #666;
   display: block;
   text-align: center;
   line-height: 1.2;

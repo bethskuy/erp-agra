@@ -480,19 +480,39 @@
                 </table>
               </div>
               <div class="col-5 flex justify-end text-right">
-                <div style="width: fit-content; text-align: right">
-                  <div class="quotation-title-pro uppercase font-13 text-indigo-10 q-mb-sm">
+                <div
+                  style="
+                    width: fit-content;
+                    margin-left: auto;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: flex-start;
+                  "
+                >
+                  <div
+                    class="quotation-title-pro uppercase font-13 text-indigo-10 q-mb-sm"
+                    style="text-align: left;"
+                  >
                     PURCHASE ORDER
                   </div>
-                  <table class="meta-info-table text-left" style="width: auto; margin-left: auto">
+                  <table class="meta-info-table" style="width: auto; text-align: left;">
                     <tr>
                       <td
                         class="text-bold"
-                        style="padding-right: 8px; font-size: 12px; color: #1a237e"
+                        style="
+                          padding-right: 12px;
+                          font-size: 12px;
+                          color: #1a237e;
+                          min-width: 80px;
+                        "
                       >
                         No. PO
                       </td>
-                      <td style="padding-right: 8px; font-size: 12px; color: #1a237e">:</td>
+                      <td
+                        style="padding-right: 8px; font-size: 12px; color: #1a237e; width: 10px"
+                      >
+                        :
+                      </td>
                       <td
                         class="text-weight-bolder text-indigo-10 font-mono"
                         style="font-size: 12px"
@@ -501,14 +521,11 @@
                       </td>
                     </tr>
                     <tr>
-                      <td class="text-bold" style="padding-right: 8px">Tanggal</td>
-                      <td style="padding-right: 8px">:</td>
+                      <td class="text-bold" style="padding-right: 12px; min-width: 80px">
+                        Tanggal
+                      </td>
+                      <td style="padding-right: 8px; width: 10px">:</td>
                       <td class="text-weight-bold">{{ formatDateIndo(selectedPo.tanggal) }}</td>
-                    </tr>
-                    <tr v-if="selectedPo.no_spk">
-                      <td class="text-bold" style="padding-right: 8px">No. SPK</td>
-                      <td style="padding-right: 8px">:</td>
-                      <td class="text-weight-bold">{{ selectedPo.no_spk }}</td>
                     </tr>
                   </table>
                 </div>
@@ -552,13 +569,13 @@
               <tfoot>
                 <tr class="row-calculation">
                   <td colspan="5" class="text-right text-bold uppercase">Subtotal Amount</td>
-                  <td class="text-right text-bold text-indigo-10">
+                  <td class="text-right text-bold text-indigo-10" style="white-space: nowrap;">
                     IDR {{ (selectedPo.total_amount || 0).toLocaleString() }}
                   </td>
                 </tr>
                 <tr class="row-calculation" v-if="selectedPo.mobdemob">
                   <td colspan="5" class="text-right text-bold uppercase">Mobdemob / Lainnya</td>
-                  <td class="text-right text-bold text-indigo-10">
+                  <td class="text-right text-bold text-indigo-10" style="white-space: nowrap;">
                     IDR {{ (selectedPo.mobdemob || 0).toLocaleString() }}
                   </td>
                 </tr>
@@ -570,7 +587,7 @@
                   >
                     GRAND TOTAL AMOUNT
                   </td>
-                  <td class="text-right text-white text-weight-bolder" style="font-size: 13px">
+                  <td class="text-right text-white text-weight-bolder" style="font-size: 13px; white-space: nowrap;">
                     IDR {{ (selectedPo.grand_total || 0).toLocaleString() }}
                   </td>
                 </tr>
@@ -617,15 +634,19 @@
             <div class="signature-container text-left q-mt-lg">
               <div class="row justify-between text-center po-signature">
                 <div class="col-3">
-                  <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">
-                    Request By,
+                  <div class="q-mb-xs text-caption uppercase tracking-widest text-weight-bold text-grey-8" style="font-size: 11px;">
+                    Dibuat,
                   </div>
                   <div class="final-sign-space flex flex-center" style="height: 60px">
                     <!-- Spacer for signature -->
                   </div>
                   <div class="signer-name-wrapper">
-                    <div class="text-signer-final text-weight-black uppercase text-indigo-10">
-                      {{ selectedPo.requested_by || '..............................' }}
+                    <div class="text-signer-final text-weight-bold uppercase text-indigo-10">
+                      {{
+                        selectedPo.prepared_by ||
+                        selectedPo.requested_by ||
+                        '..............................'
+                      }}
                     </div>
                   </div>
                   <div
@@ -636,14 +657,14 @@
                 </div>
 
                 <div class="col-3">
-                  <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">
-                    Checked By,
+                  <div class="q-mb-xs text-caption uppercase tracking-widest text-weight-bold text-grey-8" style="font-size: 11px;">
+                    Mengetahui,
                   </div>
                   <div class="final-sign-space flex flex-center" style="height: 60px">
                     <!-- Spacer for signature -->
                   </div>
                   <div class="signer-name-wrapper">
-                    <div class="text-signer-final text-weight-black uppercase text-indigo-10">
+                    <div class="text-signer-final text-weight-bold uppercase text-indigo-10">
                       {{ selectedPo.checked_by || '..............................' }}
                     </div>
                   </div>
@@ -655,8 +676,8 @@
                 </div>
 
                 <div class="col-3">
-                  <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">
-                    Approved By,
+                  <div class="q-mb-xs text-caption uppercase tracking-widest text-weight-bold text-grey-8" style="font-size: 11px;">
+                    Disetujui,
                   </div>
                   <div class="final-sign-space flex flex-center" style="height: 60px">
                     <!-- Spacer for signature or checkmark -->
@@ -669,7 +690,7 @@
                     </div>
                   </div>
                   <div class="signer-name-wrapper">
-                    <div class="text-signer-final text-weight-black uppercase text-indigo-10">
+                    <div class="text-signer-final text-weight-bold uppercase text-indigo-10">
                       {{ selectedPo.approved_by || '..............................' }}
                     </div>
                   </div>
@@ -681,14 +702,14 @@
                 </div>
 
                 <div class="col-3">
-                  <div class="q-mb-xs text-body2 uppercase tracking-widest text-bold">
-                    Accepted By,
+                  <div class="q-mb-xs text-caption uppercase tracking-widest text-weight-bold text-grey-8" style="font-size: 11px;">
+                    Approved Supplier,
                   </div>
                   <div class="final-sign-space flex flex-center" style="height: 60px">
                     <!-- Spacer for signature supplier -->
                   </div>
                   <div class="signer-name-wrapper">
-                    <div class="text-signer-final text-weight-black uppercase text-indigo-10">
+                    <div class="text-signer-final text-weight-bold uppercase text-indigo-10">
                       {{
                         selectedPo.approved_supplier ||
                         selectedPo.kepada_yth ||
@@ -1391,16 +1412,16 @@ onUnmounted(() => {
 }
 
 .signature-container {
-  margin-top: 30px;
-  padding-top: 20px;
-  page-break-inside: avoid;
-  break-inside: avoid;
+  margin-top: 40px;
 }
 .final-sign-space {
   position: relative;
-  height: 120px;
-  width: 250px;
-  margin: 0 auto 10px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0px;
+  width: 100%;
 }
 .img-stempel {
   position: absolute;
@@ -1427,50 +1448,48 @@ onUnmounted(() => {
 /* PO Signature Styling */
 .po-signature {
   display: flex;
-  flex-direction: row;
-  justify-content: space-around;
-  align-items: flex-start;
+  justify-content: space-between;
   width: 100%;
 }
 .po-signature .col-3 {
-  flex: 0 0 auto;
-  width: auto;
-  max-width: 220px;
-  padding: 0 20px;
+  flex: 1;
+  text-align: center;
+  max-width: 25%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  min-height: 120px;
 }
-.po-signature .q-mb-xs {
-  margin-bottom: 15px !important;
+.po-signature .col-3 > * {
+  align-self: center;
 }
 .po-signature .signer-name-wrapper {
-  width: 180px;
-  text-align: center;
-  margin-bottom: 5px;
+  margin-top: 0px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
 }
 .po-signature .text-signer-final {
-  box-sizing: border-box;
-  width: 180px;
-  padding-bottom: 4px;
-  padding-top: 5px;
-  border-bottom: 1px solid #1a237e;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1a237e;
+  display: block;
+  text-align: center;
   word-wrap: break-word;
   white-space: normal;
-  min-height: 40px;
-  font-size: 13px;
-  font-weight: 900;
-  color: #1a237e;
+  width: 180px;
+  max-width: 180px;
   line-height: 1.25;
-  text-align: center;
 }
 .po-signature .text-role-final {
-  margin-top: 0px !important;
-  font-size: 10.5px;
+  font-size: 9.5px;
+  margin-top: 2px;
   font-weight: 700;
-  color: #444;
+  color: #666;
+  display: block;
+  text-align: center;
+  line-height: 1.2;
 }
 
 /* ── Print Media ── */
