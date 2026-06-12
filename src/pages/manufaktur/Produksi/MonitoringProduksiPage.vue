@@ -348,7 +348,7 @@ import { db } from 'src/boot/firebase'
 
 const $q = useQuasar()
 const SPK_SUBCOLLECTION = 'spk'
-const PLANNING_COLLECTION = 'planning_produksi_manufaktur'
+const PLANNING_COLLECTION = 'mf_production_planning'
 const PRODUKSI_COLLECTION = 'manufactur_departemen_produksi'
 const QC_COLLECTION = 'qc_produksi_manufaktur'
 const REWORK_QUEUE_COLLECTION = 'produksi_rework_queue'

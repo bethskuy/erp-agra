@@ -271,7 +271,7 @@ import { useQuasar } from 'quasar'
 import { addDoc, collection, onSnapshot, orderBy, query, serverTimestamp } from 'firebase/firestore'
 import { db } from 'src/boot/firebase'
 
-const COLLECTION_NAME = 'planning_produksi_manufaktur'
+const COLLECTION_NAME = 'mf_production_planning'
 const statusOptions = ['Draft', 'Planning', 'On Progress', 'Finished']
 const statusFilterOptions = [
   { label: 'Semua Status', value: 'all' },

@@ -16,7 +16,7 @@
           rounded
           color="green-10"
           icon="add_circle"
-          label="Tambah Planning"
+          label="Generate Planning"
           class="q-px-lg shadow-premium"
           @click="openCreateDialog"
         />
@@ -37,186 +37,323 @@
       </div>
     </div>
 
-    <q-card flat bordered class="filter-card bg-white q-mb-lg">
-      <q-card-section class="q-py-md">
-        <div class="row q-col-gutter-md items-center">
-          <div class="col-12 col-md-5">
-            <q-input
-              v-model="search"
-              outlined
-              dense
-              rounded
-              debounce="250"
-              placeholder="Cari planning, project, customer, produk, atau departemen..."
-              bg-color="white"
-            >
-              <template #prepend>
-                <q-icon name="search" color="green-10" />
-              </template>
-            </q-input>
-          </div>
-
-          <div class="col-12 col-md-3">
-            <q-select
-              v-model="statusFilter"
-              :options="statusFilterOptions"
-              outlined
-              dense
-              rounded
-              emit-value
-              map-options
-              label="Filter Status"
-              bg-color="white"
-            />
-          </div>
-
-          <div class="col-12 col-md-3">
-            <q-select
-              v-model="priorityFilter"
-              :options="priorityFilterOptions"
-              outlined
-              dense
-              rounded
-              emit-value
-              map-options
-              label="Filter Prioritas"
-              bg-color="white"
-            />
-          </div>
-
-          <div class="col-12 col-md-1">
-            <q-btn
-              outline
-              rounded
-              color="green-10"
-              icon="refresh"
-              class="full-width"
-              @click="resetFilter"
-            />
-          </div>
-        </div>
-      </q-card-section>
-    </q-card>
-
-    <q-card flat bordered class="table-card bg-white">
-      <q-table
-        :rows="filteredRows"
-        :columns="columns"
-        row-key="id"
-        flat
-        binary-state-sort
-        :loading="loading"
-        :pagination="{ rowsPerPage: 10 }"
-        class="planning-table"
+    <q-card flat bordered class="tabs-card bg-white q-mb-lg">
+      <q-tabs
+        v-model="activeSection"
+        align="left"
+        class="text-green-10"
+        active-color="green-10"
+        indicator-color="green-10"
       >
-        <template #top v-if="errorMessage">
-          <q-banner rounded class="full-width bg-red-1 text-negative">
-            <template #avatar>
-              <q-icon name="error" />
-            </template>
-            {{ errorMessage }}
-          </q-banner>
-        </template>
-
-        <template #header="props">
-          <q-tr :props="props" class="bg-green-10 text-white">
-            <q-th v-for="col in props.cols" :key="col.name" :props="props" class="table-head">
-              {{ col.label }}
-            </q-th>
-          </q-tr>
-        </template>
-
-        <template #body="props">
-          <q-tr :props="props" class="planning-row">
-            <q-td key="no_planning" :props="props" class="text-weight-bolder text-green-10">
-              {{ props.row.nomor_planning || props.row.no_planning }}
-              <div class="text-caption text-grey-6">
-                {{ props.row.nomor_approved || props.row.nomor_spk || '-' }}
-              </div>
-            </q-td>
-
-            <q-td key="nomor_approved" :props="props" class="text-weight-bold">
-              {{ props.row.nomor_approved || props.row.nomor_spk || '-' }}
-            </q-td>
-
-            <q-td key="customer" :props="props">
-              <div class="text-weight-bold text-green-10">{{ props.row.customer_nama || props.row.customer || '-' }}</div>
-            </q-td>
-
-            <q-td key="produk" :props="props">
-              <div>{{ props.row.nama_produk || props.row.item_produksi || '-' }}</div>
-              <div class="text-caption text-grey-6">{{ props.row.kode_produk || '-' }}</div>
-            </q-td>
-
-            <q-td key="qty_target" :props="props" class="text-right text-weight-bold">
-              {{ formatNumber(props.row.qty_target || props.row.qty) }} {{ props.row.satuan }}
-            </q-td>
-
-            <q-td key="departemen" :props="props">
-              {{ formatDepartemenRoute(props.row) }}
-            </q-td>
-
-            <q-td key="deadline" :props="props">
-              {{ formatDate(props.row.deadline) }}
-            </q-td>
-
-            <q-td key="prioritas" :props="props">
-              <q-badge :color="priorityColor(props.row.prioritas)" class="status-badge">
-                {{ props.row.prioritas }}
-              </q-badge>
-            </q-td>
-
-            <q-td key="status_planning" :props="props">
-              <q-badge :color="statusColor(props.row.status_planning || props.row.status)" class="status-badge">
-                {{ props.row.status_planning || props.row.status }}
-              </q-badge>
-            </q-td>
-
-            <q-td key="action" :props="props" class="text-center">
-              <div class="row justify-center q-gutter-xs no-wrap">
-                <q-btn
-                  flat
-                  round
-                  dense
-                  color="green-10"
-                  icon="visibility"
-                  @click="openDetailDialog(props.row)"
-                >
-                  <q-tooltip>Detail</q-tooltip>
-                </q-btn>
-                <q-btn
-                  flat
-                  round
-                  dense
-                  color="blue-grey-7"
-                  icon="edit"
-                  @click="openEditDialog(props.row)"
-                >
-                  <q-tooltip>Edit</q-tooltip>
-                </q-btn>
-                <q-btn
-                  flat
-                  round
-                  dense
-                  color="negative"
-                  icon="delete"
-                  @click="confirmDelete(props.row)"
-                >
-                  <q-tooltip>Delete</q-tooltip>
-                </q-btn>
-              </div>
-            </q-td>
-          </q-tr>
-        </template>
-
-        <template #no-data>
-          <div class="full-width row flex-center text-grey-7 q-pa-xl">
-            <q-icon name="event_note" size="28px" class="q-mr-sm" />
-            Belum ada planning produksi.
-          </div>
-        </template>
-      </q-table>
+        <q-tab name="planning" icon="assignment" label="Planning" no-caps />
+        <q-tab name="schedule" icon="event_note" label="Schedule" no-caps />
+      </q-tabs>
     </q-card>
+
+    <q-tab-panels v-model="activeSection" animated keep-alive class="bg-transparent">
+      <q-tab-panel name="planning" class="q-pa-none">
+        <q-card flat bordered class="filter-card bg-white q-mb-lg">
+          <q-card-section class="q-py-md">
+            <div class="row q-col-gutter-md items-center">
+              <div class="col-12 col-md-5">
+                <q-input
+                  v-model="search"
+                  outlined
+                  dense
+                  rounded
+                  debounce="250"
+                  placeholder="Cari planning, project, customer, produk, atau departemen..."
+                  bg-color="white"
+                >
+                  <template #prepend>
+                    <q-icon name="search" color="green-10" />
+                  </template>
+                </q-input>
+              </div>
+
+              <div class="col-12 col-md-3">
+                <q-select
+                  v-model="statusFilter"
+                  :options="statusFilterOptions"
+                  outlined
+                  dense
+                  rounded
+                  emit-value
+                  map-options
+                  label="Filter Status"
+                  bg-color="white"
+                />
+              </div>
+
+              <div class="col-12 col-md-3">
+                <q-select
+                  v-model="priorityFilter"
+                  :options="priorityFilterOptions"
+                  outlined
+                  dense
+                  rounded
+                  emit-value
+                  map-options
+                  label="Filter Prioritas"
+                  bg-color="white"
+                />
+              </div>
+
+              <div class="col-12 col-md-1">
+                <q-btn
+                  outline
+                  rounded
+                  color="green-10"
+                  icon="refresh"
+                  class="full-width"
+                  @click="resetFilter"
+                />
+              </div>
+            </div>
+          </q-card-section>
+        </q-card>
+
+        <q-card flat bordered class="table-card bg-white">
+          <q-table
+            :rows="filteredRows"
+            :columns="columns"
+            row-key="id"
+            flat
+            binary-state-sort
+            :loading="loading"
+            :pagination="{ rowsPerPage: 10 }"
+            class="planning-table"
+          >
+            <template #top v-if="errorMessage">
+              <q-banner rounded class="full-width bg-red-1 text-negative">
+                <template #avatar>
+                  <q-icon name="error" />
+                </template>
+                {{ errorMessage }}
+              </q-banner>
+            </template>
+
+            <template #header="props">
+              <q-tr :props="props" class="bg-green-10 text-white">
+                <q-th v-for="col in props.cols" :key="col.name" :props="props" class="table-head">
+                  {{ col.label }}
+                </q-th>
+              </q-tr>
+            </template>
+
+            <template #body="props">
+              <q-tr :props="props" class="planning-row">
+                <q-td key="project_id" :props="props" class="text-weight-bolder text-green-10">
+                  {{ props.row.planning_number || props.row.no_planning || props.row.nomor_planning || props.row.project_id || props.row.id }}
+                  <div class="text-caption text-grey-6">
+                    {{ props.row.project_id || props.row.project_number || '-' }}
+                  </div>
+                </q-td>
+
+                <q-td key="customer" :props="props">
+                  <div class="text-weight-bold text-green-10">{{ props.row.customer_name || props.row.customer_nama || props.row.customer || '-' }}</div>
+                </q-td>
+
+                <q-td key="products" :props="props">
+                  <div>{{ formatProducts(props.row.products) }}</div>
+                  <div class="text-caption text-grey-6">{{ props.row.products?.length || 0 }} item</div>
+                </q-td>
+
+                <q-td key="quantity" :props="props" class="text-right text-weight-bold">
+                  {{ formatNumber(props.row.quantity) }} {{ props.row.satuan }}
+                </q-td>
+
+                <q-td key="deadline" :props="props">
+                  {{ formatDate(props.row.deadline) }}
+                </q-td>
+
+                <q-td key="prioritas" :props="props">
+                  <q-badge :color="priorityColor(props.row.priority)" class="status-badge">
+                    {{ props.row.priority }}
+                  </q-badge>
+                </q-td>
+
+                <q-td key="status" :props="props">
+                  <q-badge :color="statusColor(props.row.planning_status || props.row.status)" class="status-badge">
+                    {{ formatPlanningStatus(props.row.planning_status || props.row.status) }}
+                  </q-badge>
+                </q-td>
+
+                <q-td key="action" :props="props" class="text-center">
+                  <div class="row justify-center q-gutter-xs no-wrap">
+                    <q-btn
+                      v-if="!props.row.is_generated"
+                      unelevated
+                      rounded
+                      dense
+                      color="green-10"
+                      icon="playlist_add_check"
+                      label="Generate Planning"
+                      no-caps
+                      @click="openGenerateDialog(props.row)"
+                    >
+                      <q-tooltip>Buat draft planning dari master project</q-tooltip>
+                    </q-btn>
+                    <q-btn
+                      v-if="props.row.is_generated"
+                      flat
+                      round
+                      dense
+                      color="green-10"
+                      icon="task_alt"
+                      :disable="isApprovedPlanning(props.row)"
+                      @click="approvePlanning(props.row)"
+                    >
+                      <q-tooltip>Approve planning</q-tooltip>
+                    </q-btn>
+                  </div>
+                </q-td>
+              </q-tr>
+            </template>
+
+            <template #no-data>
+              <div class="full-width row flex-center text-grey-7 q-pa-xl">
+                <q-icon name="event_note" size="28px" class="q-mr-sm" />
+                Belum ada project atau planning produksi.
+              </div>
+            </template>
+          </q-table>
+        </q-card>
+      </q-tab-panel>
+
+      <q-tab-panel name="schedule" class="q-pa-none">
+        <q-card flat bordered class="filter-card bg-white q-mb-lg">
+          <q-card-section class="q-py-md">
+            <div class="row q-col-gutter-md items-center">
+              <div class="col-12 col-md-6">
+                <q-select
+                  v-model="selectedSchedulePlanning"
+                  :options="schedulePlanningOptions"
+                  outlined
+                  dense
+                  use-input
+                  input-debounce="200"
+                  label="Pilih planning untuk schedule"
+                  @filter="filterSchedulePlanning"
+                />
+              </div>
+              <div class="col-12 col-md-auto">
+                <q-btn
+                  unelevated
+                  rounded
+                  color="green-10"
+                  icon="event_repeat"
+                  label="Generate Schedule"
+                  no-caps
+                  :disable="!selectedScheduleRow"
+                  :loading="scheduleSaving"
+                  @click="generateScheduleForPlanning(selectedScheduleRow)"
+                />
+              </div>
+              <div class="col-12 col-md-auto">
+                <q-chip dense color="blue-grey-7" text-color="white" class="text-weight-bold q-px-md">
+                  Total workload: {{ formatNumber(selectedScheduleWorkload) }}
+                </q-chip>
+              </div>
+            </div>
+          </q-card-section>
+        </q-card>
+
+        <q-card flat bordered class="table-card bg-white q-mb-lg">
+          <q-table
+            :rows="selectedScheduleRows"
+            :columns="scheduleColumns"
+            row-key="key"
+            flat
+            binary-state-sort
+            :pagination="{ rowsPerPage: 0 }"
+            hide-pagination
+            class="planning-table"
+          >
+            <template #header="props">
+              <q-tr :props="props" class="bg-green-10 text-white">
+                <q-th v-for="col in props.cols" :key="col.name" :props="props" class="table-head">
+                  {{ col.label }}
+                </q-th>
+              </q-tr>
+            </template>
+
+            <template #body-cell-target_qty="props">
+              <q-td :props="props">
+                <q-input
+                  v-model.number="props.row.target_qty"
+                  dense
+                  outlined
+                  type="number"
+                  min="0"
+                  @blur="saveScheduleRow(props.row)"
+                />
+              </q-td>
+            </template>
+
+            <template #body-cell-actual_qty="props">
+              <q-td :props="props">
+                <q-input
+                  v-model.number="props.row.actual_qty"
+                  dense
+                  outlined
+                  type="number"
+                  min="0"
+                  @blur="saveScheduleRow(props.row)"
+                />
+              </q-td>
+            </template>
+
+            <template #body-cell-status="props">
+              <q-td :props="props">
+                <q-select
+                  v-model="props.row.status"
+                  dense
+                  outlined
+                  emit-value
+                  map-options
+                  :options="scheduleStatusOptions"
+                  @update:model-value="saveScheduleRow(props.row)"
+                />
+              </q-td>
+            </template>
+
+            <template #no-data>
+              <div class="full-width row flex-center text-grey-7 q-pa-xl">
+                <q-icon name="event_busy" size="28px" class="q-mr-sm" />
+                Pilih planning, lalu generate schedule.
+              </div>
+            </template>
+          </q-table>
+        </q-card>
+
+        <q-card flat bordered class="table-card bg-white">
+          <q-card-section class="row items-center justify-between q-pb-sm">
+            <div class="text-subtitle1 text-weight-bolder text-green-10">Daily Workload</div>
+            <q-chip dense color="green-10" text-color="white" class="text-weight-bold">
+              {{ dailyWorkloadRows.length }} hari
+            </q-chip>
+          </q-card-section>
+          <q-table
+            :rows="dailyWorkloadRows"
+            :columns="dailyWorkloadColumns"
+            row-key="date"
+            flat
+            dense
+            binary-state-sort
+            :pagination="{ rowsPerPage: 10 }"
+          >
+            <template #header="props">
+              <q-tr :props="props" class="bg-grey-2 text-grey-9">
+                <q-th v-for="col in props.cols" :key="col.name" :props="props" class="table-head">
+                  {{ col.label }}
+                </q-th>
+              </q-tr>
+            </template>
+          </q-table>
+        </q-card>
+      </q-tab-panel>
+    </q-tab-panels>
 
     <q-dialog v-model="formDialog" persistent maximized transition-show="fade" transition-hide="fade">
       <q-card class="planning-dialog">
@@ -250,7 +387,7 @@
                   use-input
                   input-debounce="200"
                   label="Project / Item Project"
-                  :loading="loadingApproved"
+                  :loading="loadingProjects"
                   :rules="[(val) => !!val || 'Project wajib dipilih']"
                   @filter="filterApproved"
                   @update:model-value="handleApprovedSelected"
@@ -264,6 +401,14 @@
                   dense
                   label="Status Planning"
                   :rules="[(val) => !!val || 'Status wajib dipilih']"
+                />
+              </div>
+              <div class="col-12 col-md-4">
+                <q-input
+                  v-model="form.assigned_ic"
+                  outlined
+                  dense
+                  label="IC / PIC Planning"
                 />
               </div>
 
@@ -348,8 +493,8 @@
               unelevated
               rounded
               color="green-10"
-              icon="save"
-              label="Simpan"
+              icon="playlist_add_check"
+              label="Generate Planning"
               no-caps
               type="submit"
               :loading="submitting"
@@ -359,65 +504,6 @@
       </q-card>
     </q-dialog>
 
-    <q-dialog v-model="detailDialog">
-      <q-card class="detail-dialog">
-        <q-card-section class="row items-center justify-between bg-green-10 text-white">
-          <div>
-            <div class="text-h6 text-weight-bold">Detail Planning Produksi</div>
-            <div class="text-caption">{{ selectedRow?.no_planning }}</div>
-          </div>
-          <q-btn flat round dense icon="close" v-close-popup />
-        </q-card-section>
-
-        <q-card-section v-if="selectedRow" class="q-pa-lg">
-          <div class="row q-col-gutter-md">
-            <div class="col-12 col-md-6">
-              <div class="detail-label">Project</div>
-              <div class="detail-value">{{ selectedRow.nomor_approved || selectedRow.nomor_spk || '-' }}</div>
-            </div>
-            <div class="col-12 col-md-6">
-              <div class="detail-label">Departemen Tujuan</div>
-              <div class="detail-value">{{ formatDepartemenRoute(selectedRow) }}</div>
-            </div>
-            <div class="col-12 col-md-6">
-              <div class="detail-label">Customer</div>
-              <div class="detail-value">{{ selectedRow.customer_nama || selectedRow.customer || '-' }}</div>
-            </div>
-            <div class="col-12 col-md-6">
-              <div class="detail-label">Produk</div>
-              <div class="detail-value">{{ selectedRow.nama_produk || selectedRow.item_produksi || '-' }}</div>
-            </div>
-            <div class="col-12 col-md-6">
-              <div class="detail-label">Qty Target</div>
-              <div class="detail-value">
-                {{ formatNumber(selectedRow.qty_target || selectedRow.qty) }} {{ selectedRow.satuan }}
-              </div>
-            </div>
-            <div class="col-12 col-md-6">
-              <div class="detail-label">Deadline</div>
-              <div class="detail-value">{{ formatDate(selectedRow.deadline) }}</div>
-            </div>
-            <div class="col-12 col-md-6">
-              <div class="detail-label">Prioritas</div>
-              <q-badge :color="priorityColor(selectedRow.prioritas)" class="status-badge">
-                {{ selectedRow.prioritas }}
-              </q-badge>
-            </div>
-            <div class="col-12 col-md-6">
-              <div class="detail-label">Status Planning</div>
-              <q-badge :color="statusColor(selectedRow.status_planning || selectedRow.status)" class="status-badge">
-                {{ selectedRow.status_planning || selectedRow.status }}
-              </q-badge>
-            </div>
-          </div>
-
-          <q-separator class="q-my-md" />
-
-          <div class="detail-label q-mb-sm">Catatan PPIC</div>
-          <div class="note-box">{{ selectedRow.catatan || '-' }}</div>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
   </q-page>
 </template>
 
@@ -425,50 +511,59 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import {
-  addDoc,
   collection,
-  deleteDoc,
   doc,
   onSnapshot,
   orderBy,
   query,
   serverTimestamp,
   updateDoc,
+  writeBatch,
 } from 'firebase/firestore'
 import { db } from 'src/boot/firebase'
 
 const $q = useQuasar()
-const PLANNING_COLLECTION = 'planning_produksi_manufaktur'
-const PROJECT_COLLECTION = 'mf_projects'
+const PLANNING_COLLECTION = 'mf_production_planning'
+const MASTER_PROJECT_COLLECTION = 'mf_projects'
 const PROJECT_ITEMS_COLLECTION = 'mf_project_items'
 const PROJECT_MONITORING_COLLECTION = 'mf_project_monitoring'
+const DEPARTMENT_PROGRESS_COLLECTION = 'mf_department_progress'
 const MASTER_PRODUK_COLLECTION = 'master_produk'
 const MASTER_DEPARTEMEN_COLLECTION = 'manufactur_master_departemen'
 
 const search = ref('')
 const statusFilter = ref('all')
 const priorityFilter = ref('all')
+const activeSection = ref('planning')
 const formDialog = ref(false)
-const detailDialog = ref(false)
-const selectedRow = ref(null)
+const selectedSchedulePlanning = ref(null)
 const editingId = ref(null)
 const rows = ref([])
+const planningRows = ref([])
+const departmentProgressRows = ref([])
 const departemenRows = ref([])
-const approvedRows = ref([])
+const masterProjectRows = ref([])
 const produkRows = ref([])
-const filteredApprovedOptions = ref([])
+const filteredProjectOptions = ref([])
 const loading = ref(true)
 const loadingDepartemen = ref(true)
-const loadingApproved = ref(true)
+const loadingProjects = ref(true)
 const submitting = ref(false)
+const scheduleSaving = ref(false)
 const errorMessage = ref('')
 let unsubscribePlanning = null
+let unsubscribeDepartmentProgress = null
 let unsubscribeDepartemen = null
-let unsubscribeApproved = null
+let unsubscribeProjects = null
 let unsubscribeProduk = null
 
-const statusOptions = ['Draft', 'Scheduled', 'On Progress', 'Selesai']
+const statusOptions = ['not_started', 'planned', 'approved', 'in_progress', 'done']
 const priorityOptions = ['High', 'Medium', 'Low']
+const scheduleStatusOptions = [
+  { label: 'Not Started', value: 'not_started' },
+  { label: 'In Progress', value: 'in_progress' },
+  { label: 'Done', value: 'done' },
+]
 
 const planningCollection = collection(db, PLANNING_COLLECTION)
 
@@ -480,20 +575,35 @@ const listenPlanningProduksi = (callback, errorCallback) =>
     errorCallback,
   )
 
-const createPlanningProduksi = (payload) =>
-  addDoc(planningCollection, {
+const listenDepartmentProgress = (callback, errorCallback) =>
+  onSnapshot(
+    collection(db, DEPARTMENT_PROGRESS_COLLECTION),
+    (snapshot) =>
+      callback(snapshot.docs.map((progressDoc) => ({ id: progressDoc.id, ...progressDoc.data() }))),
+    errorCallback,
+  )
+
+const createPlanningFromProject = async (project, payload) => {
+  const batch = writeBatch(db)
+  const planningRef = doc(planningCollection)
+
+  batch.set(planningRef, {
     ...payload,
+    planning_id: planningRef.id,
     created_at: serverTimestamp(),
     updated_at: serverTimestamp(),
   })
 
-const updatePlanningProduksi = (id, payload) =>
-  updateDoc(doc(db, PLANNING_COLLECTION, id), {
-    ...payload,
-    updated_at: serverTimestamp(),
+  batch.update(doc(db, MASTER_PROJECT_COLLECTION, project.master_project_doc_id), {
+    planning_status: 'planned',
+    planning_id: planningRef.id,
+    planning_status_updated_at: serverTimestamp(),
+    updatedAt: serverTimestamp(),
   })
 
-const deletePlanningProduksi = (id) => deleteDoc(doc(db, PLANNING_COLLECTION, id))
+  await batch.commit()
+  return planningRef
+}
 
 const mapDepartemen = (departemenDoc) => {
   const data = departemenDoc.data()
@@ -517,7 +627,7 @@ const listenMasterDepartemen = (callback, errorCallback) =>
     errorCallback,
   )
 
-const listenApprovedQuotations = (callback, errorCallback) =>
+const listenMasterProjectSources = (callback, errorCallback) =>
   {
     const snapshots = {
       projects: [],
@@ -525,16 +635,16 @@ const listenApprovedQuotations = (callback, errorCallback) =>
       monitoring: [],
     }
 
-    const emit = () => callback(buildProjectPlanningSources(snapshots))
+    const emit = () => callback(buildMasterProjectPlanningSources(snapshots))
     const handleError = (error) => {
       if (errorCallback) errorCallback(error)
     }
 
-    const unsubscribeProjects = onSnapshot(collection(db, PROJECT_COLLECTION), (snapshot) => {
+    const unsubscribeMasterProjects = onSnapshot(collection(db, MASTER_PROJECT_COLLECTION), (snapshot) => {
       snapshots.projects = snapshot.docs.map((projectDoc) => ({
         id: projectDoc.id,
         ...projectDoc.data(),
-        __collection: PROJECT_COLLECTION,
+        __collection: MASTER_PROJECT_COLLECTION,
       }))
       emit()
     }, handleError)
@@ -558,7 +668,7 @@ const listenApprovedQuotations = (callback, errorCallback) =>
     }, handleError)
 
     return () => {
-      unsubscribeProjects()
+      unsubscribeMasterProjects()
       unsubscribeProjectItems()
       unsubscribeMonitoring()
     }
@@ -578,7 +688,11 @@ const listenMasterProduk = (callback, errorCallback) =>
 
 const statusFilterOptions = [
   { label: 'Semua Status', value: 'all' },
-  ...statusOptions.map((status) => ({ label: status, value: status })),
+  { label: 'Not Started', value: 'not_started' },
+  { label: 'Planned', value: 'planned' },
+  { label: 'Approved', value: 'approved' },
+  { label: 'In Progress', value: 'in_progress' },
+  { label: 'Done', value: 'done' },
 ]
 
 const priorityFilterOptions = [
@@ -586,11 +700,29 @@ const priorityFilterOptions = [
   ...priorityOptions.map((priority) => ({ label: priority, value: priority })),
 ]
 
+const scheduleColumns = [
+  { name: 'day', align: 'right', label: 'Day', field: 'day', sortable: true },
+  { name: 'date', align: 'left', label: 'Date', field: 'date', sortable: true },
+  { name: 'customer', align: 'left', label: 'Customer', field: 'customer', sortable: true },
+  { name: 'product', align: 'left', label: 'Product', field: 'product', sortable: true },
+  { name: 'target_qty', align: 'right', label: 'Target Qty', field: 'target_qty', sortable: true },
+  { name: 'actual_qty', align: 'right', label: 'Actual Qty', field: 'actual_qty', sortable: true },
+  { name: 'status', align: 'left', label: 'Status', field: 'status', sortable: true },
+]
+
+const dailyWorkloadColumns = [
+  { name: 'day', align: 'right', label: 'Day', field: 'day', sortable: true },
+  { name: 'date', align: 'left', label: 'Date', field: 'date', sortable: true },
+  { name: 'customers', align: 'left', label: 'Customer Load', field: 'customers', sortable: true },
+  { name: 'total_target_qty', align: 'right', label: 'Total Target Qty', field: 'total_target_qty', sortable: true },
+  { name: 'total_actual_qty', align: 'right', label: 'Total Actual Qty', field: 'total_actual_qty', sortable: true },
+]
+
 const generatePlanningNumber = () => {
   const now = new Date()
   const year = now.getFullYear()
   const month = String(now.getMonth() + 1).padStart(2, '0')
-  const countThisMonth = rows.value.filter((row) =>
+  const countThisMonth = planningRows.value.filter((row) =>
     String(row.no_planning || row.nomor_planning || '').includes(`PLN-MFG/${year}${month}`),
   ).length
   return `PLN-MFG/${year}${month}/${String(countThisMonth + 1).padStart(4, '0')}`
@@ -600,9 +732,6 @@ const defaultForm = () => ({
   no_planning: generatePlanningNumber(),
   nomor_planning: generatePlanningNumber(),
   approved_obj: null,
-  approved_id: '',
-  nomor_approved: '',
-  quotation_id: '',
   project_id: '',
   project_name: '',
   project_item_id: '',
@@ -627,6 +756,8 @@ const defaultForm = () => ({
   departemen_id: '',
   departemen_nama: '',
   departemen_kode: '',
+  assigned_ic: '',
+  ic: '',
   all_departemen: false,
   routing_mode: 'single',
   route_departemen: [],
@@ -634,8 +765,10 @@ const defaultForm = () => ({
   current_departemen_id: '',
   current_departemen_nama: '',
   prioritas: 'Medium',
-  status: 'Draft',
-  status_planning: 'Draft',
+  priority: 'Medium',
+  status: 'not_started',
+  status_planning: 'not_started',
+  planning_status: 'not_started',
   progress: 0,
   catatan: '',
 })
@@ -644,20 +777,18 @@ const form = ref(defaultForm())
 
 const columns = [
   {
-    name: 'no_planning',
+    name: 'project_id',
     align: 'left',
-    label: 'Nomor Planning',
-    field: 'no_planning',
+    label: 'Planning Number',
+    field: 'project_id',
     sortable: true,
   },
-  { name: 'nomor_approved', align: 'left', label: 'Nomor Approved', field: 'nomor_approved', sortable: true },
-  { name: 'customer', align: 'left', label: 'Customer', field: 'customer_nama', sortable: true },
-  { name: 'produk', align: 'left', label: 'Produk', field: 'nama_produk' },
-  { name: 'qty_target', align: 'right', label: 'Qty', field: 'qty_target', sortable: true },
-  { name: 'departemen', align: 'left', label: 'Departemen', field: 'departemen_nama' },
+  { name: 'customer', align: 'left', label: 'Customer', field: 'customer_name', sortable: true },
+  { name: 'products', align: 'left', label: 'Products', field: 'products' },
+  { name: 'quantity', align: 'right', label: 'Quantity', field: 'quantity', sortable: true },
   { name: 'deadline', align: 'left', label: 'Deadline', field: 'deadline', sortable: true },
-  { name: 'prioritas', align: 'center', label: 'Prioritas', field: 'prioritas', sortable: true },
-  { name: 'status_planning', align: 'center', label: 'Status Planning', field: 'status_planning', sortable: true },
+  { name: 'prioritas', align: 'center', label: 'Priority', field: 'priority', sortable: true },
+  { name: 'status', align: 'center', label: 'Status', field: 'status', sortable: true },
   { name: 'action', align: 'center', label: 'Action' },
 ]
 
@@ -665,31 +796,121 @@ const filteredRows = computed(() => {
   const keyword = search.value.trim().toLowerCase()
 
   return rows.value.filter((row) => {
-    const rowStatus = row.status_planning || row.status
+    const rowStatus = row.planning_status || row.status_planning || row.status
     const matchesStatus = statusFilter.value === 'all' || rowStatus === statusFilter.value
-    const matchesPriority = priorityFilter.value === 'all' || row.prioritas === priorityFilter.value
+    const matchesPriority = priorityFilter.value === 'all' || row.priority === priorityFilter.value
     const matchesSearch =
       !keyword ||
       [
-        row.nomor_planning,
-        row.no_planning,
-        row.nomor_approved,
-        row.nomor_spk,
-        row.customer_nama,
+        row.project_id,
+        row.project_number,
+        row.project_name,
+        row.customer_name,
         row.customer,
-        row.nama_produk,
-        row.item_produksi,
-        row.departemen_nama,
-        formatDepartemenRoute(row),
+        formatProducts(row.products),
+        formatDepartmentProgress(row),
         row.tujuan_departemen?.nama_departemen,
+        formatPlanningStatus(rowStatus),
         rowStatus,
-        row.prioritas,
+        row.priority,
       ]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(keyword))
 
     return matchesStatus && matchesPriority && matchesSearch
   })
+})
+
+const generatedPlanningRows = computed(() => rows.value.filter((row) => row.is_generated))
+
+const schedulePlanningRows = computed(() =>
+  generatedPlanningRows.value.filter((row) =>
+    ['planned', 'approved', 'in_progress', 'done'].includes(normalizeStatus(row.planning_status || row.status)),
+  ),
+)
+
+const mapSchedulePlanningOption = (row) => ({
+  label: `${planningNumber(row)} - ${row.customer_name || row.customer_nama || row.customer || '-'} - ${formatNumber(row.quantity)} ${row.satuan || 'Unit'}`,
+  value: planningIdOf(row),
+  item: row,
+})
+
+const schedulePlanningOptions = ref([])
+
+const refreshSchedulePlanningOptions = (needle = '') => {
+  const searchText = normalizeText(needle)
+  schedulePlanningOptions.value = schedulePlanningRows.value
+    .filter((row) => {
+      if (!searchText) return true
+      return [
+        planningNumber(row),
+        row.project_id,
+        row.customer_name,
+        formatProducts(row.products),
+        row.deadline,
+      ]
+        .filter(Boolean)
+        .some((value) => normalizeText(value).includes(searchText))
+    })
+    .map(mapSchedulePlanningOption)
+}
+
+const filterSchedulePlanning = (value, update) => {
+  update(() => refreshSchedulePlanningOptions(value || ''))
+}
+
+const selectedScheduleRow = computed(() => {
+  const planningId = selectedSchedulePlanning.value?.value
+  if (!planningId) return null
+  return generatedPlanningRows.value.find((row) => planningIdOf(row) === planningId) || null
+})
+
+const selectedScheduleRows = computed(() => normalizeScheduleRows(selectedScheduleRow.value))
+
+const selectedScheduleWorkload = computed(() =>
+  selectedScheduleRows.value.reduce((sum, row) => sum + Number(row.target_qty || 0), 0),
+)
+
+const allScheduleRows = computed(() =>
+  generatedPlanningRows.value.flatMap((planning) => normalizeScheduleRows(planning)),
+)
+
+const dailyWorkloadRows = computed(() => {
+  const rowsByDate = new Map()
+  allScheduleRows.value.forEach((row) => {
+    const key = row.date || ''
+    if (!key) return
+    if (!rowsByDate.has(key)) {
+      rowsByDate.set(key, {
+        day: row.day,
+        date: key,
+        customerLoads: new Map(),
+        total_target_qty: 0,
+        total_actual_qty: 0,
+      })
+    }
+
+    const item = rowsByDate.get(key)
+    const customerKey = row.customer || '-'
+    item.customerLoads.set(
+      customerKey,
+      Number(item.customerLoads.get(customerKey) || 0) + Number(row.target_qty || 0),
+    )
+    item.total_target_qty += Number(row.target_qty || 0)
+    item.total_actual_qty += Number(row.actual_qty || 0)
+  })
+
+  return Array.from(rowsByDate.values())
+    .map((row) => ({
+      day: row.day,
+      date: row.date,
+      customers: Array.from(row.customerLoads.entries())
+        .map(([customer, qty]) => `${customer}: ${formatNumber(qty)}`)
+        .join(' | '),
+      total_target_qty: row.total_target_qty,
+      total_actual_qty: row.total_actual_qty,
+    }))
+    .sort((a, b) => String(a.date).localeCompare(String(b.date)))
 })
 
 const summaryCards = computed(() => [
@@ -700,26 +921,26 @@ const summaryCards = computed(() => [
     color: 'green-10',
   },
   {
-    title: 'Planning Aktif',
-    value: rows.value.filter((row) => ['Draft', 'Scheduled', 'On Progress'].includes(row.status_planning || row.status)).length,
+    title: 'Not Started',
+    value: rows.value.filter((row) => (row.planning_status || row.status) === 'not_started').length,
     icon: 'assignment_turned_in',
     color: 'blue-grey-7',
   },
   {
-    title: 'Approved Terhubung',
-    value: rows.value.filter((row) => row.approved_id || row.nomor_approved || row.spk_id).length,
+    title: 'Approved',
+    value: rows.value.filter((row) => (row.planning_status || row.status) === 'approved').length,
     icon: 'assignment',
     color: 'teal-8',
   },
   {
-    title: 'Planning Baru',
-    value: rows.value.filter((row) => row.is_new !== false && (row.status_planning || row.status) !== 'Selesai').length,
+    title: 'Done',
+    value: rows.value.filter((row) => (row.planning_status || row.status) === 'done').length,
     icon: 'fiber_new',
     color: 'positive',
   },
 ])
 
-const formTitle = computed(() => (editingId.value ? 'Edit Planning Produksi' : 'Tambah Planning Produksi'))
+const formTitle = computed(() => 'Generate Planning Produksi')
 
 const departemenOptions = computed(() =>
   [
@@ -740,7 +961,7 @@ const departemenOptions = computed(() =>
   ],
 )
 
-const approvedOptions = computed(() => filteredApprovedOptions.value)
+const approvedOptions = computed(() => filteredProjectOptions.value)
 
 const normalizeText = (value) =>
   String(value || '')
@@ -767,8 +988,7 @@ const getProjectName = (row = {}, fallback = '') =>
   fallback ||
   ''
 
-const getApprovedNumber = (row) =>
-  row.nomor_approved ||
+const getProjectNumber = (row) =>
   row.nomor_project ||
   row.nomor_monitoring ||
   row.nomor_spk ||
@@ -777,7 +997,7 @@ const getApprovedNumber = (row) =>
   row.project_name ||
   row.id
 
-const getApprovedItems = (row) =>
+const getProjectItems = (row) =>
   (Array.isArray(row.items) && row.items.length
     ? row.items
     : [
@@ -836,137 +1056,180 @@ const flattenMonitoringItems = (monitoring) => {
   return []
 }
 
-const normalizeProjectPlanningItem = (item, context, index = 0) => {
-  const qty = Number(
-    item.qty_target ??
-      item.target_qty ??
-      item.qty ??
-      item.volume ??
-      item.target ??
-      item.quantity ??
-      0,
-  )
-  const namaProduk =
-    item.nama_produk ||
-    item.nama_barang ||
-    item.nama_item ||
-    item.pekerjaan ||
-    item.deskripsi ||
-    item.name ||
-    `Item Project ${index + 1}`
+const normalizeStatus = (status) => String(status || '').trim().toLowerCase()
+
+const isReadyProjectStatus = (status) => {
+  if (!status) return true
+  const normalized = normalizeStatus(status)
+  return ['approved', 'approve', 'ready', 'aktif', 'active', 'project active', 'not_started'].includes(normalized)
+}
+
+const isPlanningGenerated = (project, generatedProjectIds) =>
+  ['planned', 'approved', 'in_progress', 'done'].includes(normalizeStatus(project.planning_status)) ||
+  generatedProjectIds.has(getProjectRefId(project)) ||
+  generatedProjectIds.has(project.id)
+
+const normalizePlanningRow = (planning, sourceProject = {}) => {
+  const projectId = planning.project_id || getProjectRefId(sourceProject) || planning.source_document_id || planning.id
+  const sourceProducts = Array.isArray(sourceProject.products) ? sourceProject.products : []
+  const sourceItems = Array.isArray(sourceProject.items) ? sourceProject.items : []
+  const mergedPlanning = {
+    ...planning,
+    ...sourceProject,
+    id: planning.id,
+    planning_id: planning.planning_id || planning.id,
+    project_id: projectId,
+    status: planning.status,
+    assigned_departments: planning.assigned_departments || [],
+    is_generated: true,
+  }
+  const progress = projectProgress(mergedPlanning)
+  const planningStatus = normalizePlanningStatus(planning.planning_status || planning.status_planning || planning.status, progress)
 
   return {
-    ...item,
-    item_id: item.item_id || item.id || `project-item-${index + 1}`,
-    project_item_id: item.project_item_id || item.id || item.item_id || '',
-    project_monitoring_id: context.project_monitoring_id || item.project_monitoring_id || '',
-    project_id: context.project_id,
-    project_name: context.project_name,
-    nama_produk: namaProduk,
-    deskripsi: item.deskripsi || namaProduk,
-    qty,
-    satuan: item.satuan || item.unit || context.satuan || 'Unit',
-    kode_produk: item.kode_produk || item.kode_barang || '',
-    produk_id: item.produk_id || item.product_id || item.id_produk || null,
-    target_qty: qty,
-    realisasi: Number(item.realisasi || item.actual_qty || item.qty_realisasi || 0),
+    ...mergedPlanning,
+    id: planning.id,
+    is_generated: true,
+    planning_id: planning.planning_id || planning.id,
+    project_id: projectId,
+    project_name: sourceProject.project_name || planning.project_name || planning.project || '-',
+    customer_name:
+      sourceProject.customer_name ||
+      planning.customer_name ||
+      planning.customer_nama ||
+      planning.customer ||
+      '',
+    products: sourceProducts.length ? sourceProducts : buildProducts(sourceItems),
+    items: sourceItems,
+    quantity: Number(sourceProject.quantity || 0),
+    satuan: sourceProject.satuan || planning.satuan || 'Unit',
+    deadline: sourceProject.deadline || planning.deadline || '',
+    priority: sourceProject.priority || planning.priority || planning.prioritas || 'Medium',
+    planning_status: planningStatus,
+    status: planningStatus,
+    production_schedule: Array.isArray(planning.production_schedule) ? planning.production_schedule : [],
+    progress,
   }
 }
 
-const buildProjectPlanningSources = ({ projects, items, monitoring }) => {
-  const projectsById = new Map(projects.map((project) => [getProjectRefId(project), project]))
-  const rows = []
+const buildProducts = (items) =>
+  items.map((item, index) => {
+    const productName =
+      item.nama_produk ||
+      item.nama_barang ||
+      item.nama_item ||
+      item.pekerjaan ||
+      item.deskripsi ||
+      item.name ||
+      `Item Project ${index + 1}`
+    return {
+      product_id: item.produk_id || item.product_id || item.id_produk || '',
+      product_code: item.kode_produk || item.kode_barang || '',
+      product_name: productName,
+      name: productName,
+      quantity: Number(item.qty ?? item.quantity ?? item.qty_target ?? item.volume ?? item.target ?? 0),
+      unit: item.satuan || item.unit || 'Unit',
+    }
+  })
 
-  items.forEach((item, index) => {
+const buildMasterProjectPlanningSources = ({ projects, items, monitoring }) => {
+  const itemsByProjectId = new Map()
+  const monitoringByProjectId = new Map()
+
+  items.forEach((item) => {
     const projectId = getProjectRefId(item)
-    const project = projectsById.get(projectId) || {}
-    const projectName = getProjectName(item, getProjectName(project, projectId))
-    rows.push({
-      ...item,
-      id: item.id,
-      status: 'Project Active',
-      project_id: projectId,
-      project_name: projectName,
-      project_item_id: item.id,
-      project_monitoring_id: item.project_monitoring_id || '',
-      source_collection: PROJECT_ITEMS_COLLECTION,
-      source_document_id: item.id,
-      nomor: item.nomor || project.nomor_project || project.nomor || projectId,
-      customer_nama: item.customer_nama || project.customer_nama || project.customer || '',
-      items: [normalizeProjectPlanningItem(item, { project_id: projectId, project_name: projectName }, index)],
-    })
+    if (!itemsByProjectId.has(projectId)) itemsByProjectId.set(projectId, [])
+    itemsByProjectId.get(projectId).push(item)
   })
 
   monitoring.forEach((monitoringRow) => {
     const projectId = getProjectRefId(monitoringRow)
-    const project = projectsById.get(projectId) || {}
-    const projectName = getProjectName(monitoringRow, getProjectName(project, projectId))
-    const monitoringItems = flattenMonitoringItems(monitoringRow)
-    const normalizedItems = monitoringItems.map((item, index) =>
-      normalizeProjectPlanningItem(
-        item,
-        {
-          project_id: projectId,
-          project_name: projectName,
-          project_monitoring_id: monitoringRow.id,
-          satuan: monitoringRow.satuan,
-        },
-        index,
+    if (!monitoringByProjectId.has(projectId)) monitoringByProjectId.set(projectId, [])
+    monitoringByProjectId.get(projectId).push(monitoringRow)
+  })
+
+  return projects
+    .filter((project) =>
+      isReadyProjectStatus(
+        project.status ||
+          project.project_status ||
+          project.status_project ||
+          project.approval_status ||
+          project.approvalStatus,
       ),
     )
+    .map((project) => {
+      const projectId = getProjectRefId(project)
+      const projectName = getProjectName(project, projectId)
+      const relatedMonitoring = monitoringByProjectId.get(projectId) || []
+      const readyMonitoring = relatedMonitoring.find((item) => isReadyProjectStatus(item.status)) || relatedMonitoring[0] || {}
+      const sourceItems = [
+        ...(itemsByProjectId.get(projectId) || []),
+        ...relatedMonitoring.flatMap(flattenMonitoringItems),
+      ]
+      const normalizedItems = sourceItems.length ? sourceItems : [project]
+      const products = buildProducts(normalizedItems)
+      const quantity = products.reduce((sum, item) => sum + Number(item.quantity || 0), 0)
 
-    rows.push({
-      ...monitoringRow,
-      id: monitoringRow.id,
-      status: 'Project Active',
-      project_id: projectId,
-      project_name: projectName,
-      project_monitoring_id: monitoringRow.id,
-      source_collection: PROJECT_MONITORING_COLLECTION,
-      source_document_id: monitoringRow.id,
-      nomor:
-        monitoringRow.nomor_monitoring ||
-        monitoringRow.nomor_spk ||
-        monitoringRow.nomor ||
-        project.nomor_project ||
-        projectId,
-      customer_nama: monitoringRow.customer_nama || project.customer_nama || project.customer || '',
-      items: normalizedItems.length
-        ? normalizedItems
-        : [
-            normalizeProjectPlanningItem(
-              monitoringRow,
-              {
-                project_id: projectId,
-                project_name: projectName,
-                project_monitoring_id: monitoringRow.id,
-              },
-              0,
-            ),
-          ],
+      return {
+        ...project,
+        id: project.id,
+        is_generated: false,
+        master_project_doc_id: project.id,
+        master_project_status:
+          project.status ||
+          project.project_status ||
+          project.status_project ||
+          project.approval_status ||
+          project.approvalStatus ||
+          '',
+        status: 'not_started',
+        planning_status: 'not_started',
+        project_id: projectId,
+        project_name: projectName,
+        project_number: project.nomor_project || project.nomor || readyMonitoring.nomor_spk || projectId,
+        customer_id: project.customer_id || project.customer?.id || readyMonitoring.customer_id || '',
+        customer_name:
+          project.customer_name ||
+          project.customer_nama ||
+          project.konsumen ||
+          project.customer?.nama ||
+          readyMonitoring.customer_nama ||
+          readyMonitoring.konsumen ||
+          '',
+        products,
+        quantity,
+        satuan: products[0]?.unit || project.satuan || 'Unit',
+        deadline: project.deadline || project.tgl_akhir || readyMonitoring.deadline || readyMonitoring.tgl_akhir || '',
+        priority: project.priority || project.prioritas || readyMonitoring.priority || readyMonitoring.prioritas || 'Medium',
+        progress: 0,
+        project_monitoring_id: readyMonitoring.id || '',
+        source_collection: MASTER_PROJECT_COLLECTION,
+        source_document_id: project.id,
+        related_monitoring_ids: relatedMonitoring.map((item) => item.id).filter(Boolean),
+        items: getProjectItems({ ...project, items: normalizedItems }),
+      }
     })
-  })
+}
 
-  projects.forEach((project) => {
-    const projectId = getProjectRefId(project)
-    const alreadyHasSource = rows.some((row) => row.project_id === projectId)
-    if (alreadyHasSource) return
-    const projectName = getProjectName(project, projectId)
-    rows.push({
-      ...project,
-      id: project.id,
-      status: 'Project Active',
-      project_id: projectId,
-      project_name: projectName,
-      source_collection: PROJECT_COLLECTION,
-      source_document_id: project.id,
-      nomor: project.nomor_project || project.nomor || projectId,
-      customer_nama: project.customer_nama || project.customer || '',
-      items: [normalizeProjectPlanningItem(project, { project_id: projectId, project_name: projectName }, 0)],
-    })
+const syncPlanningRows = () => {
+  const sourceByProjectId = new Map()
+  masterProjectRows.value.forEach((project) => {
+    sourceByProjectId.set(project.project_id, project)
+    sourceByProjectId.set(project.id, project)
+    sourceByProjectId.set(project.master_project_doc_id, project)
   })
+  const generatedRows = planningRows.value.map((planning) =>
+    normalizePlanningRow(planning, sourceByProjectId.get(planning.project_id)),
+  )
+  const generatedProjectIds = new Set(generatedRows.map((planning) => planning.project_id).filter(Boolean))
+  const candidateRows = masterProjectRows.value.filter(
+    (project) => !isPlanningGenerated(project, generatedProjectIds),
+  )
 
-  return rows
+  rows.value = [...generatedRows, ...candidateRows]
+  filteredProjectOptions.value = candidateRows.map(mapApprovedOption)
+  refreshSchedulePlanningOptions()
 }
 
 const findMasterProduk = (item) => {
@@ -990,12 +1253,9 @@ const findMasterProduk = (item) => {
 }
 
 const mapApprovedOption = (row) => {
-  const items = getApprovedItems(row)
-  const item = items[0] || {}
-  const produk = findMasterProduk(item)
-  const produkName = produk?.nama_produk || produk?.nama || item.nama_produk || item.deskripsi || '-'
+  const items = getProjectItems(row)
   return {
-    label: `${getApprovedNumber(row)} - ${produkName}${items.length > 1 ? ` +${items.length - 1} item` : ''}`,
+    label: `${row.project_id || row.id} - ${row.project_name || '-'}${items.length > 1 ? ` +${items.length - 1} item` : ''}`,
     value: row.id,
     item: row,
   }
@@ -1003,22 +1263,18 @@ const mapApprovedOption = (row) => {
 
 const refreshApprovedOptions = (needle = '') => {
   const searchText = normalizeText(needle)
-  filteredApprovedOptions.value = approvedRows.value
+  const generatedProjectIds = new Set(planningRows.value.map((planning) => planning.project_id).filter(Boolean))
+  filteredProjectOptions.value = masterProjectRows.value
+    .filter((row) => !isPlanningGenerated(row, generatedProjectIds))
     .filter((row) => {
-      const items = getApprovedItems(row)
       return (
         !searchText ||
         [
-          getApprovedNumber(row),
-          row.project_name,
           row.project_id,
-          row.nama_customer,
-          row.customer_nama,
-          row.customer?.nama,
-          ...items.flatMap((item) => {
-            const produk = findMasterProduk(item)
-            return [produk?.nama_produk, item.nama_produk, item.deskripsi, item.kode_produk]
-          }),
+          row.project_number,
+          row.project_name,
+          row.customer_name,
+          formatProducts(row.products),
         ]
           .filter(Boolean)
           .some((value) => normalizeText(value).includes(searchText))
@@ -1082,47 +1338,100 @@ const handleDepartemenSelected = (option) => {
   form.value.departemen_kode = isAllSelected ? 'ALL' : firstDepartemen?.kode_departemen || ''
 }
 
+const normalizeDepartment = (department = {}, index = 0) => {
+  const departmentId =
+    department.department_id ||
+    department.departemen_id ||
+    department.id ||
+    department.value ||
+    department.department_key ||
+    department.kode_departemen ||
+    ''
+  const departmentName =
+    department.department_name ||
+    department.department_label ||
+    department.departemen_nama ||
+    department.nama_departemen ||
+    department.name ||
+    department.label ||
+    departmentId ||
+    `Departemen ${index + 1}`
+
+  return {
+    department_id: String(departmentId || departmentName).trim(),
+    department_name: String(departmentName).trim(),
+  }
+}
+
+const uniqueDepartments = (departments = []) => {
+  const seen = new Set()
+  return departments
+    .map(normalizeDepartment)
+    .filter((department) => {
+      if (!department.department_id || seen.has(department.department_id)) return false
+      seen.add(department.department_id)
+      return true
+    })
+}
+
+const assignedDepartmentsFor = (row = {}) => {
+  const explicitDepartments = [
+    ...(Array.isArray(row.assigned_departments) ? row.assigned_departments : []),
+    ...(Array.isArray(row.route_departemen) ? row.route_departemen : []),
+    ...(Array.isArray(row.target_departemen) ? row.target_departemen : []),
+  ]
+
+  if (row.tujuan_departemen?.id || row.tujuan_departemen?.nama_departemen) {
+    explicitDepartments.push(row.tujuan_departemen)
+  }
+
+  if (row.departemen_id || row.departemen_nama) {
+    explicitDepartments.push({
+      department_id: row.departemen_id,
+      department_name: row.departemen_nama,
+    })
+  }
+
+  return uniqueDepartments(explicitDepartments)
+}
+
 const handleApprovedSelected = (option) => {
-  const approved = option?.item || option
-  if (!approved) return
+  const project = option?.item || option
+  if (!project) return
 
-  const selectedItem = getApprovedItems(approved)[0] || {}
+  const selectedItem = getProjectItems(project)[0] || {}
   const produk = findMasterProduk(selectedItem)
-  const approvedNumber = getApprovedNumber(approved)
 
-  form.value.approved_id = approved.id
-  form.value.quotation_id = ''
-  form.value.project_id = approved.project_id || getProjectRefId(approved)
-  form.value.project_name = approved.project_name || getProjectName(approved, form.value.project_id)
-  form.value.project_item_id = selectedItem.project_item_id || approved.project_item_id || selectedItem.item_id || ''
-  form.value.project_monitoring_id = approved.project_monitoring_id || selectedItem.project_monitoring_id || ''
-  form.value.nomor_approved = approvedNumber
-  form.value.spk_id = approved.project_monitoring_id || approved.id
-  form.value.nomor_spk = approvedNumber
-  form.value.no_so = approved.nomor_project || approved.nomor || approvedNumber
+  form.value.project_id = project.project_id || getProjectRefId(project)
+  form.value.project_name = project.project_name || getProjectName(project, form.value.project_id)
+  form.value.project_item_id = selectedItem.project_item_id || project.project_item_id || selectedItem.item_id || ''
+  form.value.project_monitoring_id = project.project_monitoring_id || selectedItem.project_monitoring_id || ''
+  form.value.nomor_spk = project.project_number || getProjectNumber(project)
+  form.value.no_so = project.project_number || getProjectNumber(project)
   form.value.project = form.value.project_name
-  form.value.customer_id = approved.customer_id || approved.customer?.id || ''
-  form.value.customer_nama =
-    approved.customer_nama || approved.nama_customer || approved.customer?.nama || approved.customerName || ''
+  form.value.customer_id = project.customer_id || ''
+  form.value.customer_nama = project.customer_name || project.customer_nama || project.customer || ''
   form.value.customer = form.value.customer_nama
-  form.value.produk_id = produk?.id || selectedItem.produk_id || approved.produk_id || ''
-  form.value.kode_produk = produk?.kode_produk || selectedItem.kode_produk || approved.kode_produk || ''
+  form.value.produk_id = produk?.id || selectedItem.produk_id || project.produk_id || ''
+  form.value.kode_produk = produk?.kode_produk || selectedItem.kode_produk || project.kode_produk || ''
   form.value.nama_produk =
     produk?.nama_produk ||
     produk?.nama ||
     selectedItem.nama_produk ||
     selectedItem.deskripsi ||
-    approved.nama_produk ||
+    formatProducts(project.products) ||
     ''
   form.value.item_produksi = form.value.nama_produk
-  form.value.qty_target = Number(selectedItem.qty || approved.qty_target || approved.qty_po || approved.qty || 0)
+  form.value.qty_target = Number(project.quantity || selectedItem.qty || 0)
   form.value.qty = form.value.qty_target
-  form.value.satuan = produk?.satuan || selectedItem.satuan || approved.satuan || 'Unit'
-  form.value.prioritas = 'Medium'
+  form.value.satuan = produk?.satuan || selectedItem.satuan || project.satuan || 'Unit'
+  form.value.prioritas = project.priority || 'Medium'
+  form.value.priority = form.value.prioritas
+  form.value._source_project = project
 
   const departemenOption = findDepartemenOption(
-    approved.departemen_id || approved.tujuan_departemen?.id,
-    approved.departemen_nama || approved.tujuan_departemen?.nama_departemen,
+    project.departemen_id || project.tujuan_departemen?.id,
+    project.departemen_nama || project.tujuan_departemen?.nama_departemen,
   )
   if (departemenOption) {
     form.value.departemen_obj = [departemenOption]
@@ -1131,92 +1440,16 @@ const handleApprovedSelected = (option) => {
 }
 
 const buildPayload = () => {
-  const qtyTarget = Number(form.value.qty_target || form.value.qty || 0)
-  const statusPlanning = form.value.status_planning || form.value.status || 'Draft'
+  const statusPlanning = 'planned'
 
   return {
+    planning_number: form.value.no_planning,
     no_planning: form.value.no_planning,
     nomor_planning: form.value.no_planning,
-    approved_id: form.value.approved_id,
-    quotation_id: '',
     project_id: form.value.project_id,
-    project_name: form.value.project_name,
-    project_item_id: form.value.project_item_id,
-    project_monitoring_id: form.value.project_monitoring_id,
-    source: 'PROJECT_MANUFACTURING',
-    source_collection: form.value.approved_obj?.item?.source_collection || PROJECT_COLLECTION,
-    source_document_id: form.value.approved_obj?.item?.source_document_id || form.value.approved_id,
-    nomor_approved: form.value.nomor_approved,
-    nomor_spk: form.value.nomor_approved || form.value.nomor_spk,
-    spk_id: form.value.spk_id,
-    no_so: form.value.no_so,
-    customer_id: form.value.customer_id,
-    customer_nama: form.value.customer_nama,
-    customer: form.value.customer_nama,
-    produk_id: form.value.produk_id,
-    kode_produk: form.value.kode_produk,
-    nama_produk: form.value.nama_produk,
-    item_produksi: form.value.nama_produk,
-    qty_target: qtyTarget,
-    qty: qtyTarget,
-    satuan: form.value.satuan,
-    departemen_id: form.value.departemen_id,
-    departemen_nama: form.value.departemen_nama,
-    departemen_kode: form.value.departemen_kode,
-    all_departemen: form.value.all_departemen,
-    routing_mode: form.value.routing_mode,
-    route_departemen: form.value.route_departemen,
-    current_route_index: Number(form.value.current_route_index || 0),
-    current_departemen_id: form.value.current_departemen_id,
-    current_departemen_nama: form.value.current_departemen_nama,
-    tujuan_departemen: {
-      id: form.value.departemen_id,
-      nama_departemen: form.value.departemen_nama,
-      kode_departemen: form.value.departemen_kode,
-    },
-    deadline: form.value.deadline,
-    prioritas: form.value.prioritas,
-    status_planning: statusPlanning,
     status: statusPlanning,
-    progress: statusPlanning === 'Selesai' ? 100 : 0,
-    is_new: editingId.value ? form.value.is_new !== false : true,
-    catatan: form.value.catatan,
-  }
-}
-
-const buildPayloadForItem = (item, index, totalItems) => {
-  const produk = findMasterProduk(item)
-  const qtyTarget = Number(item.qty || 0)
-  const namaProduk = produk?.nama_produk || produk?.nama || item.nama_produk || item.deskripsi || ''
-
-  return {
-    ...buildPayload(),
-    item_id: item.item_id,
-    project_item_id: item.project_item_id || form.value.project_item_id,
-    project_monitoring_id: item.project_monitoring_id || form.value.project_monitoring_id,
-    item_index: index,
-    items: getApprovedItems(form.value.approved_obj?.item || form.value.approved_obj || {}),
-    no_planning:
-      totalItems > 1
-        ? `${form.value.no_planning}-${String(index + 1).padStart(2, '0')}`
-        : form.value.no_planning,
-    nomor_planning:
-      totalItems > 1
-        ? `${form.value.no_planning}-${String(index + 1).padStart(2, '0')}`
-        : form.value.no_planning,
-    produk_id: produk?.id || item.produk_id || '',
-    kode_produk: produk?.kode_produk || item.kode_produk || '',
-    nama_produk: namaProduk,
-    item_produksi: namaProduk,
-    qty_target: qtyTarget,
-    qty: qtyTarget,
-    satuan: produk?.satuan || item.satuan || 'Unit',
-    harga: Number(item.harga || 0),
-    subtotal: Number(item.subtotal || 0),
-    progress: 0,
-    total_progress: 0,
-    sisa_qty: qtyTarget,
-    progress_percent: 0,
+    assigned_departments: uniqueDepartments(form.value.route_departemen || []),
+    assigned_ic: form.value.assigned_ic || form.value.ic || '',
   }
 }
 
@@ -1227,78 +1460,27 @@ const openCreateDialog = () => {
   formDialog.value = true
 }
 
-const openEditDialog = (row) => {
-  editingId.value = row.id
-  const approvedOption = approvedRows.value.find(
-    (item) =>
-      item.id === row.approved_id ||
-      item.id === row.spk_id ||
-      getApprovedNumber(item) === (row.nomor_approved || row.nomor_spk),
-  )
-  const departemenOption = findDepartemenOption(
-    row.departemen_id || row.tujuan_departemen?.id,
-    row.departemen_nama || row.tujuan_departemen?.nama_departemen,
-  )
-  form.value = {
-    ...defaultForm(),
-    ...row,
-    no_planning: row.no_planning || row.nomor_planning || '',
-    nomor_planning: row.nomor_planning || row.no_planning || '',
-    approved_obj: approvedOption ? mapApprovedOption(approvedOption) : null,
-    approved_id: row.approved_id || row.spk_id || '',
-    nomor_approved: row.nomor_approved || row.nomor_spk || '',
-    departemen_obj: row.all_departemen
-      ? [departemenOptions.value.find((option) => option.value === '__ALL_DEPARTEMEN__')].filter(Boolean)
-      : row.route_departemen?.length
-        ? row.route_departemen
-            .map((routeItem) => findDepartemenOption(routeItem.id, routeItem.nama_departemen))
-            .filter(Boolean)
-        : departemenOption
-          ? [departemenOption]
-          : [],
-    all_departemen: !!row.all_departemen,
-    routing_mode: row.routing_mode || 'single',
-    route_departemen: Array.isArray(row.route_departemen) ? row.route_departemen : [],
-    current_route_index: Number(row.current_route_index || 0),
-    current_departemen_id: row.current_departemen_id || row.departemen_id || '',
-    current_departemen_nama: row.current_departemen_nama || row.departemen_nama || '',
-    customer_nama: row.customer_nama || row.customer || '',
-    nama_produk: row.nama_produk || row.item_produksi || '',
-    qty_target: Number(row.qty_target || row.qty || 0),
-    qty: Number(row.qty_target || row.qty || 0),
-    status_planning: row.status_planning || row.status || 'Draft',
-    progress: Number(row.progress || 0),
-  }
+const openGenerateDialog = (row) => {
+  editingId.value = null
+  form.value = defaultForm()
+  form.value.approved_obj = mapApprovedOption(row)
+  handleApprovedSelected(form.value.approved_obj)
   formDialog.value = true
-}
-
-const openDetailDialog = (row) => {
-  selectedRow.value = row
-  detailDialog.value = true
 }
 
 const savePlanning = async () => {
   submitting.value = true
   try {
     const payload = buildPayload()
+    const project = form.value._source_project || form.value.approved_obj?.item
 
-    if (editingId.value) {
-      await updatePlanningProduksi(editingId.value, payload)
-      $q.notify({ type: 'positive', message: 'Planning produksi berhasil diperbarui' })
-    } else {
-      const approved = form.value.approved_obj?.item || form.value.approved_obj
-      const approvedItems = getApprovedItems(approved || {})
-      if (approvedItems.length > 1) {
-        await Promise.all(
-          approvedItems.map((item, index) =>
-            createPlanningProduksi(buildPayloadForItem(item, index, approvedItems.length)),
-          ),
-        )
-      } else {
-        await createPlanningProduksi(payload)
-      }
-      $q.notify({ type: 'positive', message: 'Planning produksi berhasil ditambahkan' })
+    if (!project?.master_project_doc_id) {
+      $q.notify({ type: 'warning', message: 'Pilih master project yang valid.' })
+      return
     }
+
+    await createPlanningFromProject(project, payload)
+    $q.notify({ type: 'positive', message: 'Planning produksi berhasil digenerate' })
 
     formDialog.value = false
   } catch (error) {
@@ -1309,33 +1491,265 @@ const savePlanning = async () => {
   }
 }
 
-const confirmDelete = (row) => {
-  $q.dialog({
-    title: 'Hapus Planning',
-    message: `Hapus planning ${row.no_planning}?`,
-    cancel: true,
-    persistent: true,
-    color: 'negative',
-  }).onOk(async () => {
-    try {
-      await deletePlanningProduksi(row.id)
-      $q.notify({ type: 'positive', message: 'Planning produksi berhasil dihapus' })
-    } catch (error) {
-      console.error(error)
-      $q.notify({ type: 'negative', message: 'Gagal menghapus planning produksi' })
+const planningNumber = (row = {}) =>
+  row.planning_number || row.no_planning || row.nomor_planning || planningIdOf(row) || '-'
+
+const isApprovedPlanning = (row = {}) =>
+  normalizeStatus(row.planning_status || row.status_planning || row.status) === 'approved'
+
+const approvePlanning = async (row) => {
+  if (!row?.id || isApprovedPlanning(row)) return
+
+  try {
+    await updateDoc(doc(db, PLANNING_COLLECTION, row.id), {
+      status: 'approved',
+      approved_at: serverTimestamp(),
+      updated_at: serverTimestamp(),
+    })
+    $q.notify({ type: 'positive', message: 'Planning produksi berhasil diapprove' })
+  } catch (error) {
+    console.error(error)
+    $q.notify({ type: 'negative', message: 'Gagal approve planning produksi' })
+  }
+}
+
+const planningIdOf = (row = {}) => row.planning_id || row.id || row.source_document_id || ''
+
+const toDateInputValue = (value) => {
+  if (!value) return ''
+  const date = value?.toDate ? value.toDate() : new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const addDays = (date, days) => {
+  const nextDate = new Date(date)
+  nextDate.setDate(nextDate.getDate() + days)
+  return nextDate
+}
+
+const normalizeScheduleRows = (planning = {}) => {
+  if (!planning) return []
+  const planningId = planningIdOf(planning)
+  return (Array.isArray(planning.production_schedule) ? planning.production_schedule : [])
+    .map((row, index) => ({
+      key: row.key || `${planningId}_${row.date || index + 1}`,
+      planning_id: planningId,
+      day: Number(row.day || index + 1),
+      date: row.date || '',
+      customer: row.customer || planning.customer_name || planning.customer_nama || planning.customer || '',
+      product: row.product || formatProducts(planning.products),
+      target_qty: Number(row.target_qty ?? row.target_quantity ?? 0),
+      actual_qty: Number(row.actual_qty ?? row.actual_quantity ?? 0),
+      status: row.status || 'not_started',
+    }))
+    .sort((a, b) => Number(a.day || 0) - Number(b.day || 0))
+}
+
+const generateScheduleRows = (planning = {}) => {
+  const totalQuantity = Math.max(0, Number(planning.quantity || planning.qty_target || planning.qty || 0))
+  const deadlineValue = toDateInputValue(planning.deadline)
+  if (!totalQuantity || !deadlineValue) return []
+
+  const startDate = new Date()
+  startDate.setHours(0, 0, 0, 0)
+  const endDate = new Date(`${deadlineValue}T00:00:00`)
+  const totalDays = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / 86400000))
+  const dailyTarget = Math.ceil(totalQuantity / totalDays)
+  const customer = planning.customer_name || planning.customer_nama || planning.customer || ''
+  const product = formatProducts(planning.products)
+  const planningId = planningIdOf(planning)
+
+  return Array.from({ length: totalDays }, (_, index) => {
+    const date = toDateInputValue(addDays(startDate, index))
+    const remainingQuantity = Math.max(0, totalQuantity - dailyTarget * index)
+    return {
+      key: `${planningId}_${date}`,
+      planning_id: planningId,
+      day: index + 1,
+      date,
+      customer,
+      product,
+      target_qty: Math.min(dailyTarget, remainingQuantity),
+      actual_qty: 0,
+      status: 'not_started',
     }
+  }).filter((row) => row.target_qty > 0)
+}
+
+const generateScheduleForPlanning = async (planning) => {
+  if (!planning?.id) return
+  const scheduleRows = generateScheduleRows(planning)
+  if (!scheduleRows.length) {
+    $q.notify({ type: 'warning', message: 'Quantity dan deadline wajib tersedia untuk generate schedule.' })
+    return
+  }
+
+  scheduleSaving.value = true
+  try {
+    await updateDoc(doc(db, PLANNING_COLLECTION, planning.id), {
+      production_schedule: scheduleRows,
+      schedule_generated_at: serverTimestamp(),
+      updated_at: serverTimestamp(),
+    })
+    $q.notify({ type: 'positive', message: 'Schedule produksi berhasil digenerate' })
+  } catch (error) {
+    console.error(error)
+    $q.notify({ type: 'negative', message: 'Gagal generate schedule produksi' })
+  } finally {
+    scheduleSaving.value = false
+  }
+}
+
+const saveScheduleRow = async (row) => {
+  const planning = selectedScheduleRow.value
+  if (!planning?.id || !row?.key) return
+
+  const nextScheduleRows = normalizeScheduleRows(planning).map((item) =>
+    item.key === row.key
+      ? {
+          ...item,
+          target_qty: Number(row.target_qty || 0),
+          actual_qty: Number(row.actual_qty || 0),
+          status: row.status || 'not_started',
+        }
+      : item,
+  )
+
+  try {
+    await updateDoc(doc(db, PLANNING_COLLECTION, planning.id), {
+      production_schedule: nextScheduleRows,
+      updated_at: serverTimestamp(),
+    })
+  } catch (error) {
+    console.error(error)
+    $q.notify({ type: 'negative', message: 'Gagal menyimpan schedule produksi' })
+  }
+}
+
+const progressDepartmentId = (progress = {}) =>
+  String(progress.department_id || progress.departemen_id || progress.department_key || progress.id || '').trim()
+
+const normalizeProgressRow = (progress = {}, fallbackDepartment = {}) => {
+  const department = normalizeDepartment({
+    department_id: progressDepartmentId(progress) || fallbackDepartment.department_id,
+    department_name:
+      progress.department_name ||
+      progress.nama_departemen ||
+      progress.department_label ||
+      fallbackDepartment.department_name,
+  })
+  const targetQty = Number(progress.target_qty ?? progress.target_quantity ?? 0)
+  const actualQty = Number(progress.actual_qty ?? progress.actual_quantity ?? 0)
+  const computedProgress = targetQty > 0 ? Math.min(100, Math.round((actualQty / targetQty) * 100)) : 0
+  const progressPercent = Number(progress.progress_percent ?? computedProgress)
+
+  return {
+    id: progress.id || `${progress.project_id || ''}_${department.department_id}`,
+    project_id: progress.project_id || '',
+    planning_id: progress.planning_id || '',
+    department_id: department.department_id,
+    department_name: department.department_name,
+    target_qty: targetQty,
+    actual_qty: actualQty,
+    progress_percent: progressPercent,
+    status: normalizePlanningStatus(progress.status, progressPercent),
+  }
+}
+
+const progressRowsForProject = (row = {}) => {
+  const projectId = row.project_id || ''
+  const planningId = planningIdOf(row)
+  return departmentProgressRows.value.filter(
+    (item) =>
+      (projectId && item.project_id === projectId) ||
+      (planningId && item.planning_id === planningId),
+  )
+}
+
+const departmentProgressFor = (row = {}) => {
+  const assignedDepartments = assignedDepartmentsFor(row)
+  const progressRows = progressRowsForProject(row).map((progress) => normalizeProgressRow(progress))
+  const progressByDepartment = new Map(progressRows.map((item) => [item.department_id, item]))
+
+  if (!assignedDepartments.length) return progressRows
+
+  return assignedDepartments.map((department) => {
+    const progress = progressByDepartment.get(department.department_id)
+    if (progress) return progress
+
+    return normalizeProgressRow(
+      {
+        project_id: row.project_id || '',
+        planning_id: planningIdOf(row),
+        department_id: department.department_id,
+        department_name: department.department_name,
+        target_qty: 0,
+        actual_qty: 0,
+        progress_percent: 0,
+        status: 'not_started',
+      },
+      department,
+    )
   })
 }
 
+const projectProgress = (row = {}) => {
+  const progressRows = departmentProgressFor(row)
+  if (progressRows.some((item) => item.id)) {
+    const total = progressRows.reduce((sum, item) => sum + Number(item.progress_percent || 0), 0)
+    return Math.round(total / progressRows.length)
+  }
+
+  return Number(row.progress_percent ?? row.progress ?? 0)
+}
+
+const normalizePlanningStatus = (status, progress = 0) => {
+  const normalized = normalizeStatus(status)
+  if (progress >= 100) return 'done'
+  if (progress > 0) return 'in_progress'
+  if (['done', 'in_progress', 'approved', 'planned', 'not_started'].includes(normalized)) return normalized
+  if (['draft', 'scheduled', 'on progress', 'selesai'].includes(normalized)) {
+    if (normalized === 'selesai') return 'done'
+    if (normalized === 'on progress') return 'in_progress'
+    return 'planned'
+  }
+  return normalized || 'not_started'
+}
+
+const formatPlanningStatus = (status) => {
+  const labels = {
+    not_started: 'Not Started',
+    planned: 'Planned',
+    approved: 'Approved',
+    in_progress: 'In Progress',
+    done: 'Done',
+  }
+  return labels[normalizeStatus(status)] || status || '-'
+}
+
+const formatDepartmentProgress = (row = {}) => {
+  if (!row.is_generated) return 'Belum digenerate'
+
+  const progressRows = departmentProgressFor(row)
+  if (!progressRows.length) return 'Belum ada progress departemen'
+
+  return progressRows
+    .map((item) => `${item.department_name}: ${Number(item.progress_percent || 0)}%`)
+    .join(' | ')
+}
+
 const listenPlanning = () => {
-  loading.value = true
   errorMessage.value = ''
   if (unsubscribePlanning) unsubscribePlanning()
 
   unsubscribePlanning = listenPlanningProduksi(
-    (planningRows) => {
-      rows.value = planningRows
-      loading.value = false
+    (nextPlanningRows) => {
+      planningRows.value = nextPlanningRows
+      syncPlanningRows()
       errorMessage.value = ''
     },
     (error) => {
@@ -1343,6 +1757,21 @@ const listenPlanning = () => {
       loading.value = false
       errorMessage.value = 'Gagal memuat data planning produksi dari Firestore.'
       $q.notify({ type: 'negative', message: 'Gagal memuat planning produksi' })
+    },
+  )
+}
+
+const listenDepartmentProgressRows = () => {
+  if (unsubscribeDepartmentProgress) unsubscribeDepartmentProgress()
+
+  unsubscribeDepartmentProgress = listenDepartmentProgress(
+    (nextRows) => {
+      departmentProgressRows.value = nextRows
+      syncPlanningRows()
+    },
+    (error) => {
+      console.error(error)
+      $q.notify({ type: 'negative', message: 'Gagal memuat progress departemen' })
     },
   )
 }
@@ -1365,18 +1794,21 @@ const listenDepartemenOptions = () => {
 }
 
 const listenApprovedOptions = () => {
-  loadingApproved.value = true
-  if (unsubscribeApproved) unsubscribeApproved()
+  loading.value = true
+  loadingProjects.value = true
+  if (unsubscribeProjects) unsubscribeProjects()
 
-  unsubscribeApproved = listenApprovedQuotations(
+  unsubscribeProjects = listenMasterProjectSources(
     (nextRows) => {
-      approvedRows.value = nextRows
-      refreshApprovedOptions()
-      loadingApproved.value = false
+      masterProjectRows.value = nextRows
+      syncPlanningRows()
+      loading.value = false
+      loadingProjects.value = false
     },
     (error) => {
       console.error(error)
-      loadingApproved.value = false
+      loading.value = false
+      loadingProjects.value = false
       $q.notify({ type: 'negative', message: 'Gagal memuat project manufacturing' })
     },
   )
@@ -1405,13 +1837,13 @@ const resetFilter = () => {
 
 const statusColor = (status) => {
   const colors = {
-    Draft: 'grey-7',
-    Approved: 'blue-grey-7',
-    Scheduled: 'purple-7',
-    'On Progress': 'orange-9',
-    Selesai: 'green-10',
+    not_started: 'grey-7',
+    planned: 'blue-grey-7',
+    approved: 'teal-8',
+    in_progress: 'orange-9',
+    done: 'green-10',
   }
-  return colors[status] || 'grey-6'
+  return colors[normalizeStatus(status)] || 'grey-6'
 }
 
 const priorityColor = (priority) => {
@@ -1425,13 +1857,9 @@ const priorityColor = (priority) => {
 
 const formatNumber = (value) => Number(value || 0).toLocaleString('id-ID')
 
-const formatDepartemenRoute = (row) => {
-  if (!row) return '-'
-  if (row.all_departemen || row.routing_mode === 'all') return 'ALL DEPARTEMEN'
-  if (Array.isArray(row.route_departemen) && row.route_departemen.length) {
-    return row.route_departemen.map((item) => item.nama_departemen || item.label || item.id).join(' -> ')
-  }
-  return row.departemen_nama || row.tujuan_departemen?.nama_departemen || '-'
+const formatProducts = (products = []) => {
+  if (!Array.isArray(products) || !products.length) return '-'
+  return products.map((item) => item.product_name || item.name || item.nama_produk || '-').join(', ')
 }
 
 const formatDate = (value) => {
@@ -1448,6 +1876,7 @@ const formatDate = (value) => {
 
 onMounted(() => {
   listenPlanning()
+  listenDepartmentProgressRows()
   listenDepartemenOptions()
   listenProdukOptions()
   listenApprovedOptions()
@@ -1455,8 +1884,9 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (unsubscribePlanning) unsubscribePlanning()
+  if (unsubscribeDepartmentProgress) unsubscribeDepartmentProgress()
   if (unsubscribeDepartemen) unsubscribeDepartemen()
-  if (unsubscribeApproved) unsubscribeApproved()
+  if (unsubscribeProjects) unsubscribeProjects()
   if (unsubscribeProduk) unsubscribeProduk()
 })
 </script>
@@ -1521,9 +1951,8 @@ onUnmounted(() => {
   padding: 5px 8px;
 }
 
-.detail-dialog {
-  width: 760px;
-  max-width: 95vw;
+.detail-card {
+  border-color: #dfe8df;
   border-radius: 18px;
   overflow: hidden;
 }

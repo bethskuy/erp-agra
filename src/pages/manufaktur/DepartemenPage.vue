@@ -192,7 +192,7 @@ import { collection, collectionGroup, onSnapshot, orderBy, query } from 'firebas
 import { db } from 'src/boot/firebase'
 
 const MASTER_DEPARTEMEN_COLLECTION = 'manufactur_master_departemen'
-const PLANNING_COLLECTION = 'planning_produksi_manufaktur'
+const PLANNING_COLLECTION = 'mf_production_planning'
 const SPK_SUBCOLLECTION = 'spk'
 
 const $q = useQuasar()

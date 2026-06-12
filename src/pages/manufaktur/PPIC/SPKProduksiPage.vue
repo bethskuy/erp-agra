@@ -268,7 +268,7 @@ import { db } from 'src/boot/firebase'
 const $q = useQuasar()
 
 const MASTER_DEPARTEMEN_COLLECTION = 'manufactur_master_departemen'
-const PLANNING_COLLECTION = 'planning_produksi_manufaktur'
+const PLANNING_COLLECTION = 'mf_production_planning'
 const MANUFACTURING_DEPARTEMEN_COLLECTION = 'manufacturing_departemen'
 const SPK_SUBCOLLECTION = 'spk'
 
@@ -325,6 +325,8 @@ const listenMasterDepartemen = (callback, errorCallback) =>
 const getDocumentItems = (data) =>
   Array.isArray(data.items)
     ? data.items
+    : Array.isArray(data.products)
+      ? data.products
     : Array.isArray(data.list_item_barang)
       ? data.list_item_barang
       : Array.isArray(data.detail_barang)
@@ -338,6 +340,7 @@ const normalizeProductionItem = (item = {}, index = 0) => {
   const harga = Number(item.harga ?? item.price ?? item.harga_satuan ?? item.unit_price ?? 0)
   const namaProduk =
     item.nama_produk ||
+    item.product_name ||
     item.nama_barang ||
     item.deskripsi ||
     item.produk ||
@@ -354,7 +357,7 @@ const normalizeProductionItem = (item = {}, index = 0) => {
     harga,
     subtotal: Number(item.subtotal ?? item.total ?? qty * harga),
     produk_id: item.produk_id || item.product_id || item.id_produk || null,
-    kode_produk: item.kode_produk || item.kode_barang || '',
+    kode_produk: item.kode_produk || item.product_code || item.kode_barang || '',
   }
 }
 
@@ -400,6 +403,7 @@ const normalizePlanningDocument = (planningDoc) => {
         data.qty_po ||
         data.qty ||
         data.total_qty ||
+        data.quantity ||
         data.qty_target ||
         0,
     ),

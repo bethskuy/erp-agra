@@ -152,7 +152,7 @@ import { useQuasar } from 'quasar'
 import { collection, onSnapshot, orderBy, query } from 'firebase/firestore'
 import { db } from 'src/boot/firebase'
 
-const PLANNING_COLLECTION = 'planning_produksi_manufaktur'
+const PLANNING_COLLECTION = 'mf_production_planning'
 const MASTER_PRODUK_COLLECTION = 'manufactur_master_barang'
 const MASTER_PACKING_MATERIAL_COLLECTION = 'master_packing_material'
 const STANDARD_PACKING_COLLECTION = 'master_standard_packing_product'
