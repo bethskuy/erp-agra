@@ -114,7 +114,7 @@
                 </q-input>
               </div>
               <div
-                class="col-12 col-sm-auto flex items-center justify-center justify-sm-end q-gutter-x-md q-mt-sm q-mt-sm-none"
+                class="col-12 col-sm-auto flex items-center justify-center justify-sm-end q-gutter-md q-mt-sm q-mt-sm-none"
               >
                 <q-tabs
                   v-model="tabFilter"

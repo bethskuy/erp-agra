@@ -172,7 +172,7 @@
                   </q-input>
                 </div>
                 <div
-                  class="col-12 col-sm-auto flex items-center justify-center justify-sm-end q-gutter-x-md q-mt-sm q-mt-sm-none invoice-actions-container"
+                  class="col-12 col-sm-auto flex items-center justify-center justify-sm-end q-gutter-md q-mt-sm q-mt-sm-none invoice-actions-container"
                 >
                   <div class="text-caption text-grey-6 text-weight-medium">
                     Total Pengajuan:

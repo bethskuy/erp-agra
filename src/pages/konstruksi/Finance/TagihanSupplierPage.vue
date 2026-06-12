@@ -19,28 +19,49 @@
               </div>
             </div>
           </div>
-          <div class="col-12 col-md-auto text-right btn-buat-container">
-            <div class="row q-col-gutter-sm q-gutter-y-sm justify-end">
-              <q-btn
-                color="red-9"
-                icon="picture_as_pdf"
-                label="Export PDF"
+          <div class="col-12 col-md-auto text-center text-md-right btn-buat-container">
+            <div class="flex items-center justify-center justify-md-end q-gutter-sm q-mt-sm q-mt-md-none">
+              <!-- EXPORT DROPDOWN LIST -->
+              <q-btn-dropdown
                 unelevated
                 rounded
                 no-caps
-                class="q-px-md q-py-sm shadow-premium text-weight-bold col-12 col-md-auto"
-                @click="exportTablePDF"
-              />
-              <q-btn
-                color="green-9"
-                icon="table_view"
-                label="Print Excel"
-                unelevated
-                rounded
-                no-caps
-                class="q-px-md q-py-sm shadow-premium text-weight-bold col-12 col-md-auto"
-                @click="exportTableExcel"
-              />
+                color="indigo-9"
+                icon="grid_on"
+                label="Export Data"
+                class="text-weight-bold shadow-1 q-px-md"
+              >
+                <q-list class="bg-white rounded-borders">
+                  <q-item
+                    clickable
+                    v-close-popup
+                    @click="exportTablePDF"
+                    class="hover-teal-btn"
+                  >
+                    <q-item-section avatar>
+                      <q-avatar color="red-1" text-color="red-10" icon="picture_as_pdf" size="sm" />
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label class="text-weight-bold">Download PDF</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                  <q-separator />
+                  <q-item
+                    clickable
+                    v-close-popup
+                    @click="exportTableExcel"
+                    class="hover-teal-btn"
+                  >
+                    <q-item-section avatar>
+                      <q-avatar color="green-1" text-color="green-10" icon="table_view" size="sm" />
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label class="text-weight-bold">Export Excel</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                </q-list>
+              </q-btn-dropdown>
+
               <!-- Tombol Buat: hanya tampil jika canCreate -->
               <q-btn
                 v-if="canCreate"
@@ -50,7 +71,7 @@
                 unelevated
                 rounded
                 no-caps
-                class="q-px-lg q-py-sm shadow-premium btn-teal-main text-weight-bold col-12 col-md-auto"
+                class="q-px-lg q-py-sm shadow-premium btn-teal-main text-weight-bold"
                 @click="openAddDialog"
               />
             </div>
