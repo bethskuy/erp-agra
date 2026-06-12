@@ -423,6 +423,19 @@
                     >
                       <q-tooltip>Edit Tagihan</q-tooltip>
                     </q-btn>
+                    <!-- Tombol Update Pembayaran: hanya jika canUpdatePayment dan status !== 'Lunas' -->
+                    <q-btn
+                      v-if="canUpdatePayment && props.row.status !== 'Lunas'"
+                      flat
+                      round
+                      color="indigo-10"
+                      icon="payments"
+                      size="sm"
+                      @click.stop="openPaymentFromTable(props.row)"
+                      class="hover-blue-btn"
+                    >
+                      <q-tooltip>Update Pembayaran</q-tooltip>
+                    </q-btn>
                     <!-- Tombol Hapus: hanya jika canDelete -->
                     <q-btn
                       v-if="canDelete"
@@ -742,9 +755,9 @@
                     <div class="text-weight-bold text-indigo-10 uppercase tracking-widest font-11">
                       STATUS PEMBAYARAN
                     </div>
-                    <!-- Tombol Update Pembayaran: hanya jika canApprove -->
+                    <!-- Tombol Update Pembayaran: hanya jika canUpdatePayment -->
                     <q-btn
-                      v-if="canApprove && selectedTagihan.status !== 'Lunas'"
+                      v-if="canUpdatePayment && selectedTagihan.status !== 'Lunas'"
                       outline
                       rounded
                       size="sm"
@@ -1730,8 +1743,9 @@ const canCreate = computed(() => userPermission.value.buat)
 const canEdit = computed(() => userPermission.value.ubah)
 const canDelete = computed(() => userPermission.value.hapus)
 const canApprove = computed(() => userPermission.value.approve)
+const canUpdatePayment = computed(() => canApprove.value || canEdit.value || userPermission.value.ubah || userPermission.value.approve)
 
-const hasAnyAction = computed(() => canView.value || canEdit.value || canDelete.value)
+const hasAnyAction = computed(() => canView.value || canEdit.value || canDelete.value || canUpdatePayment.value)
 
 const computedColumns = computed(() => {
   const cols = [...columnsTagihan]
@@ -2332,7 +2346,7 @@ const deleteTagihan = (row) => {
 // PEMBAYARAN
 // ============================================================================
 const openPaymentDialog = () => {
-  if (!canApprove.value)
+  if (!canUpdatePayment.value)
     return $q.notify({
       type: 'negative',
       position: 'top',
@@ -2347,8 +2361,13 @@ const openPaymentDialog = () => {
   showPaymentDialog.value = true
 }
 
+const openPaymentFromTable = (row) => {
+  selectedTagihan.value = row
+  openPaymentDialog()
+}
+
 const savePayment = async () => {
-  if (!canApprove.value)
+  if (!canUpdatePayment.value)
     return $q.notify({
       type: 'negative',
       position: 'top',

@@ -899,7 +899,7 @@
                       <!-- Tombol Update Pembayaran -->
                       <q-btn
                         v-if="
-                          canApprove &&
+                          (canApprove || canEdit) &&
                           selectedTagihan.status !== 'Lunas' &&
                           selectedTagihan.status !== 'Draft'
                         "
@@ -1787,12 +1787,30 @@ const authStore = useAuthStore()
 // ============================================================================
 // HAK AKSES
 // ============================================================================
+const currentUserData = ref(null)
+
 const userPermission = ref({
   lihat: false,
   buat: false,
   ubah: false,
   hapus: false,
   approve: false,
+})
+
+const SUPER_ROLES = ['super admin', 'superadmin', 'direktur', 'owner']
+const isSuperAdmin = computed(() => {
+  // Lapis 1: Cek flag is_super_admin dari Firestore (paling reliable)
+  if (currentUserData.value?.is_super_admin === true) return true
+
+  // Lapis 2: Cek jabatan dari userData Firestore (realtime)
+  const jabatan = (currentUserData.value?.jabatan || '').toLowerCase().trim()
+  if (jabatan && SUPER_ROLES.includes(jabatan)) return true
+
+  // Lapis 3: Fallback ke authStore role (untuk kompatibilitas)
+  const roleFromAuth = (authStore.user?.role || '').toLowerCase().trim()
+  if (roleFromAuth && SUPER_ROLES.includes(roleFromAuth)) return true
+
+  return false
 })
 
 const resolvePermission = (karyawanData) => {
@@ -1815,7 +1833,10 @@ const resolvePermission = (karyawanData) => {
     return
   }
 
-  const menuTagihanSupplier = modulKonstruksi.menus?.find((menu) => {
+  // Cari menu dengan ID standar terlebih dahulu, fallback ke pencarian string label
+  const menuTagihanSupplier = modulKonstruksi.menus?.find(
+    (menu) => menu.id === '_konstruksi_finance_tagihan-supplier'
+  ) || modulKonstruksi.menus?.find((menu) => {
     const lbl = (menu.label || '').toLowerCase()
     return lbl.includes('tagihan') && lbl.includes('supplier')
   })
@@ -1834,11 +1855,11 @@ const resolvePermission = (karyawanData) => {
   }
 }
 
-const canView = computed(() => userPermission.value.lihat)
-const canCreate = computed(() => userPermission.value.buat)
-const canEdit = computed(() => userPermission.value.ubah)
-const canDelete = computed(() => userPermission.value.hapus)
-const canApprove = computed(() => userPermission.value.approve)
+const canView = computed(() => isSuperAdmin.value || userPermission.value.lihat)
+const canCreate = computed(() => isSuperAdmin.value || userPermission.value.buat)
+const canEdit = computed(() => isSuperAdmin.value || userPermission.value.ubah)
+const canDelete = computed(() => isSuperAdmin.value || userPermission.value.hapus)
+const canApprove = computed(() => isSuperAdmin.value || userPermission.value.approve)
 
 const hasAnyAction = computed(() => canView.value || canEdit.value || canDelete.value)
 
@@ -1852,6 +1873,7 @@ const loadUserPermission = () => {
   const auth = getAuth()
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
+      currentUserData.value = null
       userPermission.value = {
         lihat: false,
         buat: false,
@@ -1868,11 +1890,17 @@ const loadUserPermission = () => {
 
       if (!snap.empty) {
         const karyawanData = snap.docs[0].data()
+        currentUserData.value = karyawanData
         resolvePermission(karyawanData)
         onSnapshot(doc(db, 'karyawan', snap.docs[0].id), (docSnap) => {
-          if (docSnap.exists()) resolvePermission(docSnap.data())
+          if (docSnap.exists()) {
+            const data = docSnap.data()
+            currentUserData.value = data
+            resolvePermission(data)
+          }
         })
       } else {
+        currentUserData.value = null
         userPermission.value = {
           lihat: false,
           buat: false,
@@ -1883,6 +1911,7 @@ const loadUserPermission = () => {
       }
     } catch (err) {
       console.error('Gagal memuat izin pengguna:', err)
+      currentUserData.value = null
       userPermission.value = {
         lihat: false,
         buat: false,
@@ -2655,7 +2684,7 @@ const ajukanTagihan = async () => {
 // PEMBAYARAN
 // ============================================================================
 const openPaymentDialog = () => {
-  if (!canApprove.value)
+  if (!canApprove.value && !canEdit.value)
     return $q.notify({
       type: 'negative',
       position: 'top',
@@ -2671,7 +2700,7 @@ const openPaymentDialog = () => {
 }
 
 const savePayment = async () => {
-  if (!canApprove.value)
+  if (!canApprove.value && !canEdit.value)
     return $q.notify({
       type: 'negative',
       position: 'top',
