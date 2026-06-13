@@ -215,10 +215,11 @@
                 </div>
                 <q-badge
                   outline
-                  color="indigo-5"
-                  class="q-px-sm q-py-xs rounded-6 font-mono text-weight-bold bg-indigo-50"
-                  ><q-icon name="work_outline" size="12px" class="q-mr-xs" /> SHIFT:
-                  {{ userData.jam_masuk }} - {{ userData.jam_pulang }}</q-badge
+                  :color="isHariKerjaAktif ? 'indigo-5' : 'red-5'"
+                  class="q-px-sm q-py-xs rounded-6 font-mono text-weight-bold"
+                  :class="isHariKerjaAktif ? 'bg-indigo-50' : 'bg-red-50'"
+                  ><q-icon :name="isHariKerjaAktif ? 'work_outline' : 'power_settings_new'" size="12px" class="q-mr-xs" /> SHIFT:
+                  {{ todayShiftDisplay }}</q-badge
                 >
               </div>
 
@@ -332,7 +333,7 @@
               <div class="row q-col-gutter-md">
                 <div class="col-12 col-sm-6">
                   <button
-                    v-if="locationData.inRange && !locationData.securityRisk"
+                    v-if="locationData.inRange && !locationData.securityRisk && isHariKerjaAktif"
                     class="btn-premium btn-clock-in full-width"
                     @click="startAbsensi('in')"
                     :disabled="!isAiReady"
@@ -342,13 +343,13 @@
                   <button v-else class="btn-premium btn-locked full-width" :disabled="true">
                     <q-icon name="lock" size="24px" class="q-mb-xs text-blue-grey-4" /><span
                       class="text-blue-grey-5"
-                      >TERKUNCI</span
+                      >{{ !isHariKerjaAktif ? 'HARI LIBUR' : 'TERKUNCI' }}</span
                     >
                   </button>
                 </div>
                 <div class="col-12 col-sm-6">
                   <button
-                    v-if="locationData.inRange && !locationData.securityRisk && documentId"
+                    v-if="locationData.inRange && !locationData.securityRisk && documentId && isHariKerjaAktif"
                     class="btn-premium btn-clock-out full-width"
                     @click="startAbsensi('out')"
                     :disabled="!isAiReady"
@@ -358,7 +359,7 @@
                   <button v-else class="btn-premium btn-locked full-width" :disabled="true">
                     <q-icon name="lock" size="24px" class="q-mb-xs text-blue-grey-4" /><span
                       class="text-blue-grey-5"
-                      >OUT TERKUNCI</span
+                      >{{ !isHariKerjaAktif ? 'HARI LIBUR' : 'OUT TERKUNCI' }}</span
                     >
                   </button>
                 </div>
@@ -367,27 +368,33 @@
               <div
                 class="row items-center q-mt-md q-pa-sm rounded-8 border-grey"
                 :class="
-                  isAiReady
-                    ? userData.is_face_recognition_mandatory === false
-                      ? 'bg-orange-50 border-orange-200'
-                      : 'bg-teal-50 border-teal-200'
-                    : 'bg-orange-50 border-orange-200'
+                  !isHariKerjaAktif
+                    ? 'bg-red-50 border-red-200 text-red-9'
+                    : isAiReady
+                      ? userData.is_face_recognition_mandatory === false
+                        ? 'bg-orange-50 border-orange-200'
+                        : 'bg-teal-50 border-teal-200'
+                      : 'bg-orange-50 border-orange-200'
                 "
               >
                 <q-icon
                   :name="
-                    isAiReady
-                      ? userData.is_face_recognition_mandatory === false
-                        ? 'no_photography'
-                        : 'face'
-                      : 'psychology'
+                    !isHariKerjaAktif
+                      ? 'power_settings_new'
+                      : isAiReady
+                        ? userData.is_face_recognition_mandatory === false
+                          ? 'no_photography'
+                          : 'face'
+                        : 'psychology'
                   "
                   :color="
-                    isAiReady
-                      ? userData.is_face_recognition_mandatory === false
-                        ? 'orange-8'
-                        : 'teal-6'
-                      : 'orange-7'
+                    !isHariKerjaAktif
+                      ? 'red-8'
+                      : isAiReady
+                        ? userData.is_face_recognition_mandatory === false
+                          ? 'orange-8'
+                          : 'teal-6'
+                        : 'orange-7'
                   "
                   size="16px"
                   class="q-mr-sm"
@@ -395,15 +402,17 @@
                 <div
                   class="text-caption text-weight-bold"
                   :class="
-                    isAiReady
-                      ? userData.is_face_recognition_mandatory === false
-                        ? 'text-orange-9'
-                        : 'text-teal-8'
-                      : 'text-orange-9'
+                    !isHariKerjaAktif
+                      ? 'text-red-9'
+                      : isAiReady
+                        ? userData.is_face_recognition_mandatory === false
+                          ? 'text-orange-9'
+                          : 'text-teal-8'
+                        : 'text-orange-9'
                   "
                   style="font-size: 11px"
                 >
-                  {{ aiStatusText }}
+                  {{ isHariKerjaAktif ? aiStatusText : 'Aksi Presensi Ditutup: Hari Ini Bukan Hari Kerja Aktif Anda' }}
                 </div>
               </div>
               <q-btn
@@ -716,6 +725,7 @@ const userData = ref({
   jam_masuk: '08:00',
   jam_pulang: '17:00',
   lokasi_dinas: [],
+  jadwal_harian: [],
   is_face_recognition_mandatory: true,
 })
 
@@ -740,7 +750,65 @@ const locationData = ref({
   matchedLocationName: 'MENCARI LOKASI',
   securityRisk: false,
 })
-const lateLimit = computed(() => userData.value.jam_masuk || '08:00')
+const isHariKerjaAktif = computed(() => {
+  const daysIndo = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
+  const todayDayName = daysIndo[new Date().getDay()]
+  
+  if (todayDayName === 'Minggu') {
+    return false
+  }
+  
+  if (userData.value.jadwal_harian && Array.isArray(userData.value.jadwal_harian) && userData.value.jadwal_harian.length > 0) {
+    const todayJadwal = userData.value.jadwal_harian.find(j => j.hari === todayDayName)
+    return todayJadwal ? todayJadwal.aktif === true : true
+  }
+  
+  if (userData.value.nama === 'Memuat...') {
+    return true
+  }
+  
+  if (todayDayName === 'Sabtu') {
+    return false
+  }
+  return true
+})
+
+const todayShiftDisplay = computed(() => {
+  const daysIndo = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
+  const todayDayName = daysIndo[new Date().getDay()]
+  
+  if (todayDayName === 'Minggu') {
+    return 'LIBUR'
+  }
+  
+  if (userData.value.jadwal_harian && Array.isArray(userData.value.jadwal_harian) && userData.value.jadwal_harian.length > 0) {
+    const todayJadwal = userData.value.jadwal_harian.find(j => j.hari === todayDayName)
+    if (todayJadwal) {
+      return todayJadwal.aktif ? `${todayJadwal.jam_masuk} - ${todayJadwal.jam_pulang}` : 'LIBUR'
+    }
+  }
+  
+  if (todayDayName === 'Sabtu') {
+    return 'LIBUR'
+  }
+  return `${userData.value.jam_masuk || '08:00'} - ${userData.value.jam_pulang || '17:00'}`
+})
+
+const lateLimit = computed(() => {
+  const daysIndo = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
+  const todayDayName = daysIndo[new Date().getDay()]
+  if (userData.value.jadwal_harian && Array.isArray(userData.value.jadwal_harian) && userData.value.jadwal_harian.length > 0) {
+    const todayJadwal = userData.value.jadwal_harian.find(j => j.hari === todayDayName)
+    if (todayJadwal && todayJadwal.aktif) {
+      return todayJadwal.jam_masuk || '08:00'
+    }
+  }
+  return userData.value.jam_masuk || '08:00'
+})
+
+watch(isHariKerjaAktif, () => {
+  detectLocation()
+})
 
 const ulangiPindai = () => {
   capturedImage.value = null
@@ -980,6 +1048,7 @@ const takePhoto = async () => {
 
   if (userData.value.is_face_recognition_mandatory === false) {
     isMatched = true
+    isFaceMatched.value = true
     $q.notify({
       color: 'orange-8',
       icon: 'photo_camera',
@@ -1041,6 +1110,17 @@ const processCoordinates = (lat, lng, accuracy, mocked = false) => {
     locationData.value.lng = lng.toFixed(5)
     locationData.value.statusText = 'TERDETEKSI FAKE GPS / LOKASI PALSU'
     locationData.value.matchedLocationName = 'AKSES DITOLAK'
+    return
+  }
+
+  if (!isHariKerjaAktif.value) {
+    locationData.value.securityRisk = false
+    locationData.value.inRange = false
+    locationData.value.lat = lat.toFixed(5)
+    locationData.value.lng = lng.toFixed(5)
+    locationData.value.statusText = 'HARI INI LIBUR (JADWAL SHIFT NON-AKTIF)'
+    locationData.value.matchedLocationName = 'TIDAK ADA SHIFT'
+    getAddressName(lat, lng)
     return
   }
 
@@ -1148,7 +1228,7 @@ const uploadOrGetBase64 = async (base64Data, filename) => {
 }
 
 const saveAbsensi = async () => {
-  if (!locationData.value.inRange || locationData.value.securityRisk || !isFaceMatched.value) return
+  if (!isHariKerjaAktif.value || !locationData.value.inRange || locationData.value.securityRisk || !isFaceMatched.value) return
   $q.loading.show({ message: 'Menyimpan berkas presensi masuk...' })
   try {
     const formattedName = (userData.value.nama || 'USER').toUpperCase()
@@ -1183,6 +1263,7 @@ const saveAbsensi = async () => {
 
 const saveAbsensiOut = async () => {
   if (
+    !isHariKerjaAktif.value ||
     !documentId.value ||
     locationData.value.securityRisk ||
     !locationData.value.inRange ||
@@ -1237,6 +1318,7 @@ onMounted(() => {
           parsed.is_face_recognition_mandatory !== undefined
             ? parsed.is_face_recognition_mandatory
             : true,
+        jadwal_harian: parsed.jadwal_harian || [],
       }
 
       if (userData.value.is_face_recognition_mandatory === false) {
@@ -1262,6 +1344,7 @@ onMounted(() => {
                 jam_masuk: data.jam_masuk || '08:00',
                 jam_pulang: data.jam_pulang || '17:00',
                 lokasi_dinas: data.lokasi_dinas || [],
+                jadwal_harian: data.jadwal_harian || [],
                 is_face_recognition_mandatory:
                   data.is_face_recognition_mandatory !== undefined
                     ? data.is_face_recognition_mandatory

@@ -494,21 +494,15 @@ onMounted(() => {
 
   if (saved) {
     const user = JSON.parse(saved)
-    const email = user.email?.toLowerCase() || ''
-    const role = user.role?.toLowerCase() || ''
-    const jabatan = user.jabatan?.toLowerCase() || ''
-    const nama = user.nama?.toLowerCase() || ''
 
     const isAdminIdentity =
-      email === 'refqiobeth345@gmail.com' ||
-      email.includes('admin') ||
-      nama.includes('refqi') ||
-      nama.includes('obeth')
+      user?.email?.toLowerCase().trim() === 'refqiobeth345@gmail.com' ||
+      user?.email?.toLowerCase().trim().includes('admin') ||
+      user?.nama?.toLowerCase().trim().includes('refqi') ||
+      user?.nama?.toLowerCase().trim().includes('obeth')
     const isAdminRole =
-      role.includes('super admin') ||
-      role.includes('superadmin') ||
-      jabatan.includes('super admin') ||
-      jabatan.includes('superadmin')
+      user?.role?.toLowerCase().trim().includes('admin') ||
+      user?.jabatan?.toLowerCase().trim().includes('admin')
 
     // JIKA BUKAN ADMIN, TENDANG BALIK!
     if (!isAdminIdentity && !isAdminRole) {

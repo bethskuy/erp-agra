@@ -668,7 +668,17 @@ const loadDataRekap = async () => {
     const rekapData = listKaryawan.map((karyawan) => {
       const namaUpper = (karyawan.nama || '').toUpperCase()
       const absensiKaryawanIni = listAbsensi.filter((absen) => absen.nama_karyawan === namaUpper)
-      const totalHadir = absensiKaryawanIni.length
+
+      // Menghitung hari kehadiran unik untuk mencegah bug duplikasi data check-in di hari yang sama
+      const uniqueDays = new Set()
+      absensiKaryawanIni.forEach((absen) => {
+        if (absen.waktu_masuk) {
+          const dateObj = absen.waktu_masuk.toDate ? absen.waktu_masuk.toDate() : new Date(absen.waktu_masuk)
+          const dateStr = date.formatDate(dateObj, 'YYYY-MM-DD')
+          uniqueDays.add(dateStr)
+        }
+      })
+      const totalHadir = uniqueDays.size
 
       return {
         id: karyawan.id,
@@ -946,31 +956,487 @@ const exportToExcel = async () => {
   isExporting.value = true
 
   try {
+    // Bersihkan window.XLSX yang lama jika bukan versi styled agar kita bisa me-load xlsx-js-style
+    if (window.XLSX && !window.XLSX.style_version) {
+      window.XLSX = undefined
+      const oldScripts = document.querySelectorAll('script')
+      oldScripts.forEach((s) => {
+        if (s.src && s.src.includes('xlsx')) s.remove()
+      })
+    }
+
     if (!window.XLSX) {
       await new Promise((resolve, reject) => {
         const script = document.createElement('script')
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
-        script.onload = resolve
+        script.src = 'https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.min.js'
+        script.onload = () => {
+          window.XLSX.style_version = true
+          resolve()
+        }
         script.onerror = reject
         document.head.appendChild(script)
       })
     }
 
-    const excelData = rows.value.map((row, index) => ({
-      No: index + 1,
-      'NIK Karyawan': row.nik,
-      'Nama Lengkap Karyawan': row.nama,
-      'Email Terdaftar': row.email,
-      'Periode Laporan': row.bulan,
-      'Total Kehadiran (Hari)': row.totalHadir,
-    }))
+    const colIndexToLabel = (index) => {
+      let label = ''
+      let temp = index
+      while (temp >= 0) {
+        label = String.fromCharCode((temp % 26) + 65) + label
+        temp = Math.floor(temp / 26) - 1
+      }
+      return label
+    }
 
-    const worksheet = window.XLSX.utils.json_to_sheet(excelData)
+    const { year, monthIndex } = getMonthDetails()
+    const startDate = new Date(year, monthIndex, 1, 0, 0, 0)
+    const endDate = new Date(year, monthIndex + 1, 1, 0, 0, 0)
+
+    // Tarik data karyawan & absensi aktual secara real-time
+    const karyawanSnap = await getDocs(collection(db, 'karyawan'))
+    const listKaryawan = karyawanSnap.docs
+      .map((doc) => ({ id: doc.id, ...doc.data() }))
+      .sort((a, b) => (a.nama || '').localeCompare(b.nama || ''))
+
+    const qAbsen = query(
+      collection(db, 'absensi'),
+      where('waktu_masuk', '>=', Timestamp.fromDate(startDate)),
+      where('waktu_masuk', '<', Timestamp.fromDate(endDate)),
+    )
+    const absensiSnap = await getDocs(qAbsen)
+    const listAbsensi = absensiSnap.docs.map((doc) => doc.data())
+
+    // Tarik pengajuan Cuti / Izin / Sakit yang disetujui
+    const qPengajuan = query(
+      collection(db, 'pengajuan'),
+      where('status_approval', 'in', ['Approved', 'Selesai'])
+    )
+    const pengajuanSnap = await getDocs(qPengajuan)
+    const listPengajuan = pengajuanSnap.docs.map((doc) => doc.data())
+
+    const daysInMonth = new Date(year, monthIndex + 1, 0).getDate()
+    const daysIndoShort = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab']
+    const dayNames = []
+    for (let i = 1; i <= daysInMonth; i++) {
+      const dObj = new Date(year, monthIndex, i)
+      dayNames.push(daysIndoShort[dObj.getDay()])
+    }
+
+    const HOLIDAY_DATA = {
+      2025: [
+        { tanggal: '2025/01/01', nama: 'Tahun Baru 2025', type: 'holiday' },
+        { tanggal: '2025/01/27', nama: 'Isra Miraj', type: 'holiday' },
+        { tanggal: '2025/01/28', nama: 'Cuti Bersama Isra Miraj', type: 'cuti_bersama' },
+        { tanggal: '2025/01/29', nama: 'Tahun Baru Imlek', type: 'holiday' },
+        { tanggal: '2025/03/29', nama: 'Hari Raya Nyepi', type: 'holiday' },
+        { tanggal: '2025/03/28', nama: 'Cuti Bersama Nyepi', type: 'cuti_bersama' },
+        { tanggal: '2025/03/31', nama: 'Idul Fitri 1446 H', type: 'holiday' },
+        { tanggal: '2025/04/01', nama: 'Idul Fitri 1446 H', type: 'holiday' },
+        { tanggal: '2025/03/26', nama: 'Cuti Bersama Idul Fitri', type: 'cuti_bersama' },
+        { tanggal: '2025/03/27', nama: 'Cuti Bersama Idul Fitri', type: 'cuti_bersama' },
+        { tanggal: '2025/04/02', nama: 'Cuti Bersama Idul Fitri', type: 'cuti_bersama' },
+        { tanggal: '2025/04/03', nama: 'Cuti Bersama Idul Fitri', type: 'cuti_bersama' },
+        { tanggal: '2025/04/04', nama: 'Cuti Bersama Idul Fitri', type: 'cuti_bersama' },
+        { tanggal: '2025/04/07', nama: 'Cuti Bersama Idul Fitri', type: 'cuti_bersama' },
+        { tanggal: '2025/04/18', nama: 'Wafat Yesus Kristus', type: 'holiday' },
+        { tanggal: '2025/05/01', nama: 'Hari Buruh Internasional', type: 'holiday' },
+        { tanggal: '2025/05/12', nama: 'Hari Raya Waisak', type: 'holiday' },
+        { tanggal: '2025/05/13', nama: 'Cuti Bersama Waisak', type: 'cuti_bersama' },
+        { tanggal: '2025/05/29', nama: 'Kenaikan Yesus Kristus', type: 'holiday' },
+        { tanggal: '2025/05/28', nama: 'Cuti Bersama Kenaikan Yesus', type: 'cuti_bersama' },
+        { tanggal: '2025/06/01', nama: 'Hari Lahir Pancasila', type: 'holiday' },
+        { tanggal: '2025/06/06', nama: 'Idul Adha 1446 H', type: 'holiday' },
+        { tanggal: '2025/06/27', nama: 'Tahun Baru Islam 1447 H', type: 'holiday' },
+        { tanggal: '2025/08/17', nama: 'HUT Kemerdekaan RI', type: 'holiday' },
+        { tanggal: '2025/09/05', nama: 'Maulid Nabi Muhammad SAW', type: 'holiday' },
+        { tanggal: '2025/12/25', nama: 'Hari Raya Natal', type: 'holiday' },
+        { tanggal: '2025/12/26', nama: 'Cuti Bersama Natal', type: 'cuti_bersama' },
+      ],
+      2026: [
+        { tanggal: '2026/01/01', nama: 'Tahun Baru 2026', type: 'holiday' },
+        { tanggal: '2026/01/16', nama: 'Isra Miraj 1447 H', type: 'holiday' },
+        { tanggal: '2026/02/17', nama: 'Tahun Baru Imlek 2577', type: 'holiday' },
+        { tanggal: '2026/03/19', nama: 'Hari Raya Nyepi', type: 'holiday' },
+        { tanggal: '2026/03/20', nama: 'Wafat Yesus Kristus', type: 'holiday' },
+        { tanggal: '2026/03/21', nama: 'Idul Fitri 1447 H', type: 'holiday' },
+        { tanggal: '2026/03/22', nama: 'Idul Fitri 1447 H', type: 'holiday' },
+        { tanggal: '2026/03/18', nama: 'Cuti Bersama Idul Fitri', type: 'cuti_bersama' },
+        { tanggal: '2026/03/23', nama: 'Cuti Bersama Idul Fitri', type: 'cuti_bersama' },
+        { tanggal: '2026/03/24', nama: 'Cuti Bersama Idul Fitri', type: 'cuti_bersama' },
+        { tanggal: '2026/03/25', nama: 'Cuti Bersama Idul Fitri', type: 'cuti_bersama' },
+        { tanggal: '2026/03/26', nama: 'Cuti Bersama Idul Fitri', type: 'cuti_bersama' },
+        { tanggal: '2026/03/27', nama: 'Cuti Bersama Idul Fitri', type: 'cuti_bersama' },
+        { tanggal: '2026/05/01', nama: 'Hari Buruh Internasional', type: 'holiday' },
+        { tanggal: '2026/05/14', nama: 'Kenaikan Yesus Kristus', type: 'holiday' },
+        { tanggal: '2026/05/25', nama: 'Hari Raya Waisak', type: 'holiday' },
+        { tanggal: '2026/06/01', nama: 'Hari Lahir Pancasila', type: 'holiday' },
+        { tanggal: '2026/05/27', nama: 'Idul Adha 1447 H', type: 'holiday' },
+        { tanggal: '2026/05/28', nama: 'Cuti Bersama Idul Adha', type: 'cuti_bersama' },
+        { tanggal: '2026/06/17', nama: 'Tahun Baru Islam 1448 H', type: 'holiday' },
+        { tanggal: '2026/08/17', nama: 'HUT Kemerdekaan RI ke-81', type: 'holiday' },
+        { tanggal: '2026/08/25', nama: 'Maulid Nabi Muhammad SAW', type: 'holiday' },
+        { tanggal: '2026/12/25', nama: 'Hari Raya Natal', type: 'holiday' },
+        { tanggal: '2026/12/24', nama: 'Cuti Bersama Natal', type: 'cuti_bersama' },
+        { tanggal: '2026/12/26', nama: 'Cuti Bersama Natal', type: 'cuti_bersama' },
+        { tanggal: '2026/12/31', nama: 'Cuti Bersama Tahun Baru', type: 'cuti_bersama' },
+      ],
+    }
+
+    const yearHolidays = HOLIDAY_DATA[year] || []
+    const getHolidayName = (dayNum) => {
+      const dateStr = `${year}/${String(monthIndex + 1).padStart(2, '0')}/${String(dayNum).padStart(2, '0')}`
+      const h = yearHolidays.find(item => item.tanggal === dateStr)
+      return h ? h.nama : null
+    }
+
+    // Bangun header baris 3 & 4
+    const row3 = ["Nama Karyawan", "Jabatan", "Tanggal"]
+    for (let i = 1; i < daysInMonth; i++) {
+      row3.push("")
+    }
+    row3.push("Jumlah Hari Kerja")
+    row3.push("Keterangan")
+    row3.push("")
+    row3.push("")
+    row3.push("")
+    row3.push("")
+    row3.push("")
+
+    const row4 = ["", "", ...Array.from({ length: daysInMonth }, (_, idx) => idx + 1), "", "H", "T", "I", "C", "S", "A"]
+
+    // Inisialisasi AOA
+    const aoaData = [
+      ["ABSENSI KARYAWAN PT AGRA ABHINAYA PERKASA"],
+      ["PERIODE: " + filterBulan.value.toUpperCase()],
+      row3,
+      row4
+    ]
+
+    // Tambahkan data baris per karyawan
+    listKaryawan.forEach((karyawan, index) => {
+      const namaUpper = (karyawan.nama || '').toUpperCase()
+      const absensiKaryawanIni = listAbsensi.filter((absen) => absen.nama_karyawan === namaUpper)
+
+      // Peta status harian
+      const statusByDay = {}
+      absensiKaryawanIni.forEach((absen) => {
+        if (absen.waktu_masuk) {
+          const dateObj = absen.waktu_masuk.toDate ? absen.waktu_masuk.toDate() : new Date(absen.waktu_masuk)
+          const dNum = dateObj.getDate()
+          statusByDay[dNum] = absen.is_late ? 'T' : 'H' // T untuk Terlambat, H untuk Hadir
+        }
+      })
+
+      // Peta pengajuan cuti/izin/sakit
+      const pengajuanKaryawanIni = listPengajuan.filter((p) => (p.nama_karyawan || '').toUpperCase() === namaUpper)
+      pengajuanKaryawanIni.forEach((p) => {
+        const pStart = new Date(p.tanggal_mulai)
+        const pEnd = new Date(p.tanggal_selesai || p.tanggal_mulai)
+        const curr = new Date(pStart)
+        while (curr <= pEnd) {
+          if (curr.getMonth() === monthIndex && curr.getFullYear() === year) {
+            const dNum = curr.getDate()
+            let code = 'I'
+            if (p.jenis_pengajuan === 'Cuti Tahunan') code = 'C'
+            else if (p.jenis_pengajuan === 'Izin Sakit') code = 'S'
+            statusByDay[dNum] = code
+          }
+          curr.setDate(curr.getDate() + 1)
+        }
+      })
+
+      // Hitung rangkuman statistik kehadiran
+      let countH = 0
+      let countT = 0
+      let countI = 0
+      let countC = 0
+      let countS = 0
+      let countA = 0
+
+      for (let i = 1; i <= daysInMonth; i++) {
+        const dObj = new Date(year, monthIndex, i)
+        const isSun = dObj.getDay() === 0
+        const isHol = getHolidayName(i) !== null
+        if (isSun || isHol) continue
+
+        const code = statusByDay[i]
+        if (code === 'H') {
+          countH++
+        } else if (code === 'T') {
+          countH++
+          countT++
+        } else if (code === 'I') {
+          countI++
+        } else if (code === 'C') {
+          countC++
+        } else if (code === 'S') {
+          countS++
+        } else {
+          const checkDate = new Date(year, monthIndex, i)
+          if (checkDate <= new Date()) {
+            countA++
+          }
+        }
+      }
+
+      const rowData = [
+        namaUpper,
+        karyawan.jabatan || 'STAF'
+      ]
+
+      for (let i = 1; i <= daysInMonth; i++) {
+        const dObj = new Date(year, monthIndex, i)
+        const isSun = dObj.getDay() === 0
+        const holName = getHolidayName(i)
+
+        if (isSun || holName) {
+          // Vertically merged, data ditaruh di index pertama saja
+          if (index === 0) {
+            rowData.push(isSun ? "Minggu" : "Libur Nasional")
+          } else {
+            rowData.push("")
+          }
+        } else {
+          rowData.push(statusByDay[i] || '')
+        }
+      }
+
+      // Jumlah Hari Kerja (Hadir) & Breakdown Keterangan
+      rowData.push(countH)
+      rowData.push(countH)
+      rowData.push(countT)
+      rowData.push(countI)
+      rowData.push(countC)
+      rowData.push(countS)
+      rowData.push(countA)
+
+      aoaData.push(rowData)
+    })
+
+    // 3. Tambahkan Legend/Keterangan di bagian bawah sebelah kiri
+    aoaData.push([])
+    aoaData.push(["Keterangan:", ""])
+    aoaData.push(["H", "Hadir"])
+    aoaData.push(["T", "Terlambat"])
+    aoaData.push(["I", "Izin"])
+    aoaData.push(["C", "Cuti"])
+    aoaData.push(["S", "Sakit"])
+    aoaData.push(["A", "Alpha"])
+
+    // 4. Konversi ke worksheet
+    const worksheet = window.XLSX.utils.aoa_to_sheet(aoaData)
+
+    // Aktifkan gridlines secara eksplisit agar terlihat meskipun ada fill
+    worksheet['!views'] = [{ showGridLines: true }]
+
+    const thinBlackBorder = {
+      top: { style: "thin", color: { rgb: "000000" } },
+      bottom: { style: "thin", color: { rgb: "000000" } },
+      left: { style: "thin", color: { rgb: "000000" } },
+      right: { style: "thin", color: { rgb: "000000" } }
+    }
+
+    // 4b. Terapkan pewarnaan & styling premium (Kombinasi Maju Jaya & Agra)
+    for (let r = 0; r < aoaData.length; r++) {
+      for (let c = 0; c < aoaData[r].length; c++) {
+        const cellRef = colIndexToLabel(c) + (r + 1)
+        const cell = worksheet[cellRef]
+        if (!cell || typeof cell !== 'object') continue
+
+        // 1. Judul Laporan PT AGRA (Row 1)
+        if (r === 0) {
+          cell.s = {
+            fill: { fgColor: { rgb: "FFC000" } }, // Kuning/Gold cerah
+            font: { name: "Arial", sz: 14, bold: true, color: { rgb: "000000" } },
+            alignment: { horizontal: "center", vertical: "center" },
+            border: {}
+          }
+        }
+        // 2. Subtitle Laporan Periode (Row 2)
+        else if (r === 1) {
+          cell.s = {
+            fill: { fgColor: { rgb: "FFC000" } }, // Kuning/Gold cerah
+            font: { name: "Arial", sz: 11, bold: true, color: { rgb: "000000" } },
+            alignment: { horizontal: "center", vertical: "center" },
+            border: {}
+          }
+        }
+        // 3. Header Tabel Utama (Row 3 & 4)
+        else if (r === 2 || r === 3) {
+          cell.s = {
+            fill: { fgColor: { rgb: "D9D9D9" } }, // Abu-abu terang standard Excel
+            font: { name: "Arial", sz: 10, bold: true, color: { rgb: "000000" } },
+            alignment: { horizontal: "center", vertical: "center", wrapText: true },
+            border: thinBlackBorder
+          }
+
+          // Subheader Keterangan (H, T, I, C, S, A)
+          if (r === 3 && c >= 2 + daysInMonth + 1) {
+            const letter = cell.v
+            if (letter === 'H') cell.s.fill = { fgColor: { rgb: "00B050" } }
+            else if (letter === 'T') cell.s.fill = { fgColor: { rgb: "FF6F00" } }
+            else if (letter === 'I') cell.s.fill = { fgColor: { rgb: "FFFF00" } }
+            else if (letter === 'C') cell.s.fill = { fgColor: { rgb: "00B0F0" } }
+            else if (letter === 'S') cell.s.fill = { fgColor: { rgb: "FFC000" } }
+            else if (letter === 'A') cell.s.fill = { fgColor: { rgb: "FF0000" } }
+          }
+        }
+        // 4. Baris Data Utama Karyawan (Row 5 s.d. 5 + listKaryawan.length - 1)
+        else if (r >= 4 && r < 4 + listKaryawan.length) {
+          // Default style untuk baris data
+          cell.s = {
+            font: { name: "Arial", sz: 10, color: { rgb: "000000" } },
+            alignment: { vertical: "center", horizontal: "center" },
+            border: thinBlackBorder
+          }
+
+          // Nama & Jabatan
+          if (c === 0 || c === 1) {
+            cell.s.alignment.horizontal = c === 0 ? "left" : "center"
+            cell.s.font.bold = c === 0 ? true : false
+            cell.s.fill = { fgColor: { rgb: "FFFFFF" } }
+          }
+          // Hari/Tanggal Absensi
+          else if (c >= 2 && c < 2 + daysInMonth) {
+            const dNum = c - 1
+            const dObj = new Date(year, monthIndex, dNum)
+            const isSun = dObj.getDay() === 0
+            const holName = getHolidayName(dNum)
+
+            if (isSun || holName) {
+              cell.s.fill = { fgColor: { rgb: "FF0000" } } // Merah solid untuk Minggu/Hari Libur
+              cell.s.font = { name: "Arial", sz: 10, bold: true, color: { rgb: "000000" } }
+              // Rotasikan tulisan "Minggu" / "Libur Nasional" 90 derajat vertikal
+              cell.s.alignment = { textRotation: 90, vertical: "center", horizontal: "center" }
+            } else {
+              cell.s.fill = { fgColor: { rgb: "FFFFFF" } }
+
+              // Pewarnaan kode status per sel
+              const code = cell.v
+              if (code === 'H') {
+                cell.s.fill = { fgColor: { rgb: "00B050" } }
+                cell.s.font = { name: "Arial", sz: 10, bold: true, color: { rgb: "000000" } }
+              } else if (code === 'T') {
+                cell.s.fill = { fgColor: { rgb: "FF6F00" } }
+                cell.s.font = { name: "Arial", sz: 10, bold: true, color: { rgb: "000000" } }
+              } else if (code === 'I') {
+                cell.s.fill = { fgColor: { rgb: "FFFF00" } }
+                cell.s.font = { name: "Arial", sz: 10, bold: true, color: { rgb: "000000" } }
+              } else if (code === 'C') {
+                cell.s.fill = { fgColor: { rgb: "00B0F0" } }
+                cell.s.font = { name: "Arial", sz: 10, bold: true, color: { rgb: "000000" } }
+              } else if (code === 'S') {
+                cell.s.fill = { fgColor: { rgb: "FFC000" } }
+                cell.s.font = { name: "Arial", sz: 10, bold: true, color: { rgb: "000000" } }
+              } else if (code === 'A') {
+                cell.s.fill = { fgColor: { rgb: "FF0000" } }
+                cell.s.font = { name: "Arial", sz: 10, bold: true, color: { rgb: "000000" } }
+              }
+            }
+          }
+          // Kolom Jumlah & Keterangan Summary (sebelah kanan, warna putih bersih)
+          else {
+            cell.s.fill = { fgColor: { rgb: "FFFFFF" } }
+            cell.s.font.bold = true
+          }
+        }
+        // 5. Legenda Keterangan di bagian bawah (Footer)
+        else {
+          cell.s = {
+            font: { name: "Arial", sz: 10, color: { rgb: "000000" } },
+            alignment: { vertical: "center", horizontal: "center" },
+            border: {}
+          }
+          
+          if (r === 4 + listKaryawan.length + 1) {
+            if (c === 0) {
+              cell.s.font.bold = true
+              cell.s.alignment.horizontal = "left"
+            }
+          } else if (r >= 4 + listKaryawan.length + 2) {
+            if (c === 0 && ["H", "T", "I", "C", "S", "A"].includes(cell.v)) {
+              cell.s.font = { name: "Arial", sz: 9, bold: true, color: { rgb: "000000" } }
+              cell.s.border = thinBlackBorder
+
+              const letter = cell.v
+              if (letter === 'H') cell.s.fill = { fgColor: { rgb: "00B050" } }
+              else if (letter === 'T') cell.s.fill = { fgColor: { rgb: "FF6F00" } }
+              else if (letter === 'I') cell.s.fill = { fgColor: { rgb: "FFFF00" } }
+              else if (letter === 'C') cell.s.fill = { fgColor: { rgb: "00B0F0" } }
+              else if (letter === 'S') cell.s.fill = { fgColor: { rgb: "FFC000" } }
+              else if (letter === 'A') cell.s.fill = { fgColor: { rgb: "FF0000" } }
+            } else if (c === 1 && cell.v) {
+              cell.s.alignment.horizontal = "left"
+              cell.s.font.bold = true
+              cell.s.fill = { fgColor: { rgb: "FFFFFF" } }
+              cell.s.border = thinBlackBorder
+            }
+          }
+        }
+      }
+    }
+
+    // 5. Gabungkan sel (merge) sesuai dengan struktur form absensi
+    const merges = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 2 + daysInMonth + 6 } }, // Title (A1:AM1)
+      { s: { r: 1, c: 0 }, e: { r: 1, c: 2 + daysInMonth + 6 } }, // Subtitle (A2:AM2)
+      { s: { r: 2, c: 0 }, e: { r: 3, c: 0 } },                   // Nama (A3:A4)
+      { s: { r: 2, c: 1 }, e: { r: 3, c: 1 } },                   // Jabatan (B3:B4)
+      { s: { r: 2, c: 2 }, e: { r: 2, c: 2 + daysInMonth - 1 } }, // Tanggal (C3 s.d. Ujung Hari)
+      { s: { r: 2, c: 2 + daysInMonth }, e: { r: 3, c: 2 + daysInMonth } }, // Jumlah Hari Kerja
+      { s: { r: 2, c: 2 + daysInMonth + 1 }, e: { r: 2, c: 2 + daysInMonth + 6 } } // Keterangan (H, T, I, C, S, A)
+    ]
+
+    // Tambahkan merge vertikal untuk hari Minggu & libur nasional
+    if (listKaryawan.length > 0) {
+      for (let i = 1; i <= daysInMonth; i++) {
+        const isSun = new Date(year, monthIndex, i).getDay() === 0
+        const holName = getHolidayName(i)
+        
+        if (isSun || holName) {
+          merges.push({
+            s: { r: 4, c: 1 + i },
+            e: { r: 4 + listKaryawan.length - 1, c: 1 + i }
+          })
+        }
+      }
+    }
+    worksheet['!merges'] = merges
+
+    // 6. Atur lebar kolom (auto-fit columns)
+    const colWidths = [
+      { wch: 22 }, // Nama Karyawan
+      { wch: 16 }, // Jabatan
+      ...Array.from({ length: daysInMonth }, () => ({ wch: 4 })), // Hari (kotak kecil)
+      { wch: 16 }, // Jumlah Hari Kerja
+      { wch: 5 },  // H
+      { wch: 5 },  // T
+      { wch: 5 },  // I
+      { wch: 5 },  // C
+      { wch: 5 },  // S
+      { wch: 5 }   // A
+    ]
+    worksheet['!cols'] = colWidths
+
+    // Atur tinggi baris (row heights) agar proporsional dan muat untuk teks vertikal
+    const rowHeights = [
+      { hpt: 30 }, // Title
+      { hpt: 24 }, // Period
+      { hpt: 22 }, // Table Header 1
+      { hpt: 22 }  // Table Header 2
+    ]
+    listKaryawan.forEach(() => {
+      rowHeights.push({ hpt: 20 }) // Baris Karyawan
+    })
+    rowHeights.push({ hpt: 15 }) // Spacer row
+    rowHeights.push({ hpt: 20 }) // Legend Title
+    for (let l = 0; l < 6; l++) {
+      rowHeights.push({ hpt: 18 }) // H, T, I, C, S, A rows (6 baris!)
+    }
+    worksheet['!rows'] = rowHeights
+
     const workbook = window.XLSX.utils.book_new()
     window.XLSX.utils.book_append_sheet(workbook, worksheet, 'Rekap Absensi')
-
-    const colWidths = [{ wch: 6 }, { wch: 18 }, { wch: 35 }, { wch: 30 }, { wch: 20 }, { wch: 25 }]
-    worksheet['!cols'] = colWidths
 
     window.XLSX.writeFile(
       workbook,
