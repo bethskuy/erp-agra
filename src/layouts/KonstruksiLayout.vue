@@ -328,12 +328,25 @@
                   'marketing/ahsp',
                 ])
               "
-              icon="campaign"
-              label="MARKETING"
               class="menu-expansion-clean"
               header-class="menu-expansion-header"
               expand-icon-class="text-brand-teal-icon"
             >
+              <template v-slot:header>
+                <q-item-section avatar>
+                  <q-icon name="campaign" size="22px" />
+                </q-item-section>
+                <q-item-section class="menu-text">MARKETING</q-item-section>
+                <q-item-section side v-if="totalMarketingNotifications > 0">
+                  <q-badge
+                    color="orange-9"
+                    rounded
+                    class="q-px-sm font-bold shadow-1 animate-bounce"
+                  >
+                    {{ totalMarketingNotifications }}
+                  </q-badge>
+                </q-item-section>
+              </template>
               <q-list class="q-pb-sm">
                 <q-item
                   v-if="checkPermission('marketing/ahsp')"
@@ -532,12 +545,25 @@
             <!-- PEMBELIAN -->
             <q-expansion-item
               v-if="hasSectionAccess(['pembelian/pesanan', 'pembelian/approval-po'])"
-              icon="shopping_cart"
-              label="PEMBELIAN"
               class="menu-expansion-clean"
               header-class="menu-expansion-header"
               expand-icon-class="text-brand-teal-icon"
             >
+              <template v-slot:header>
+                <q-item-section avatar>
+                  <q-icon name="shopping_cart" size="22px" />
+                </q-item-section>
+                <q-item-section class="menu-text">PEMBELIAN</q-item-section>
+                <q-item-section side v-if="totalPembelianNotifications > 0">
+                  <q-badge
+                    color="orange-9"
+                    rounded
+                    class="q-px-sm font-bold shadow-1 animate-bounce"
+                  >
+                    {{ totalPembelianNotifications }}
+                  </q-badge>
+                </q-item-section>
+              </template>
               <q-list class="q-pb-sm">
                 <q-item
                   v-if="checkPermission('pembelian/pesanan')"
@@ -591,13 +617,26 @@
                   'finance/balansheet',
                 ])
               "
-              icon="account_balance_wallet"
-              label="FINANCE"
               class="menu-expansion-clean"
               header-class="menu-expansion-header"
               expand-icon-class="text-brand-teal-icon"
               default-opened
             >
+              <template v-slot:header>
+                <q-item-section avatar>
+                  <q-icon name="account_balance_wallet" size="22px" />
+                </q-item-section>
+                <q-item-section class="menu-text">FINANCE</q-item-section>
+                <q-item-section side v-if="totalFinanceNotifications > 0">
+                  <q-badge
+                    color="orange-9"
+                    rounded
+                    class="q-px-sm font-bold shadow-1 animate-bounce"
+                  >
+                    {{ totalFinanceNotifications }}
+                  </q-badge>
+                </q-item-section>
+              </template>
               <q-list class="q-pb-sm">
                 <q-item
                   v-if="checkPermission('finance/invoice')"
@@ -1316,6 +1355,57 @@ onUnmounted(() => {
   if (unsubMonitoringTagihan) unsubMonitoringTagihan()
   if (unsubPembayaranRequests) unsubPembayaranRequests()
   if (unsubTagihanSupplier) unsubTagihanSupplier()
+})
+
+const totalFinanceNotifications = computed(() => {
+  let total = 0
+  
+  if (checkPermission('finance/invoice')) {
+    total += approvedInvoiceCount.value + rejectedInvoiceCount.value
+  }
+  if (checkPermission('finance/approval-invoice')) {
+    total += pendingInvoiceApprovalCount.value
+  }
+  if (checkPermission('finance/tagihan')) {
+    total += overdueInvoiceCount.value
+  }
+  if (checkPermission('finance/tagihan-supplier')) {
+    total += rejectedTagihanSupplierCount.value
+  }
+  if (checkPermission('finance/pembayaran')) {
+    total += approvedPaymentRequestCount.value
+  }
+  if (checkPermission('finance/approval-pembayaran')) {
+    total += pendingPaymentApprovalCount.value + realizedPaymentApprovalCount.value
+  }
+  if (checkPermission('finance/realisasi-pembayaran')) {
+    total += approvedPaymentRealizationCount.value
+  }
+  
+  return total
+})
+
+const totalMarketingNotifications = computed(() => {
+  let total = 0
+  
+  if (checkPermission('marketing/penawaran')) {
+    total += rejectedPenawaranCount.value + approvedPenawaranCount.value
+  }
+  if (checkPermission('marketing/approval-penawaran')) {
+    total += pendingApprovalCount.value
+  }
+  
+  return total
+})
+
+const totalPembelianNotifications = computed(() => {
+  let total = 0
+  
+  if (checkPermission('pembelian/pesanan')) {
+    total += pendingPrCount.value
+  }
+  
+  return total
 })
 </script>
 
