@@ -1,29 +1,27 @@
 <template>
-  <q-page class="qc-page bg-grey-2 q-pa-md q-pa-lg-lg font-pro">
+  <q-page class="qc-page q-pa-md q-pa-lg-lg font-pro">
     <div class="row items-center justify-between q-mb-xl">
       <div class="col-12 col-md-8">
-        <div class="text-h4 text-weight-bolder text-green-10 leading-tight">
+        <div class="header-title">
           QC Produksi
-          <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs">
+          <span class="header-subtitle block q-mt-xs">
             Validasi Hasil Produksi
           </span>
         </div>
-        <div class="text-subtitle1 text-grey-7 q-mt-sm">
-          Pemeriksaan hasil produksi sebelum proses packing dan delivery, lengkap dengan status QC,
-          checker, quantity reject, dan catatan validasi.
+        <div class="header-desc q-mt-sm">
+          Pemeriksaan hasil produksi sebelum proses packing dan delivery, lengkap dengan status QC, checker, quantity reject, dan catatan validasi.
         </div>
       </div>
 
       <div class="col-12 col-md-auto q-mt-md q-mt-md-none">
         <q-btn
           flat
-          rounded
-          color="green-10"
+          color="cyan"
           icon="sync"
           label="Refresh Data"
           no-caps
           :loading="loading"
-          class="bg-white shadow-1 q-px-lg"
+          class="btn-refresh"
           @click="loadQcRows"
         />
       </div>
@@ -33,8 +31,7 @@
       <div v-for="card in summaryCards" :key="card.title" class="col-12 col-sm-6 col-lg-3">
         <q-card
           flat
-          bordered
-          class="summary-card bg-white cursor-pointer"
+          class="summary-card glass-card cursor-pointer"
           :class="{ 'summary-card--active': activeStatusTab === card.tab }"
           @click="activeStatusTab = card.tab"
         >
@@ -49,7 +46,7 @@
       </div>
     </div>
 
-    <q-card flat bordered class="filter-card bg-white q-mb-lg">
+    <q-card flat class="filter-card glass-card q-mb-lg">
       <q-card-section class="q-py-md">
         <div class="row q-col-gutter-md items-center">
           <div class="col-12 col-md-8">
@@ -57,19 +54,19 @@
               v-model="search"
               outlined
               dense
-              rounded
               debounce="250"
-              placeholder="Cari SPK, produk, departemen, operator, atau status QC..."
-              bg-color="white"
+              placeholder="Cari planning, produk, departemen, operator, atau status QC..."
+              class="search-input"
+              dark
             >
               <template #prepend>
-                <q-icon name="search" color="green-10" />
+                <q-icon name="search" color="cyan" />
               </template>
             </q-input>
           </div>
 
           <div class="col-12 col-md-auto">
-            <q-chip dense color="green-10" text-color="white" class="text-weight-bold q-px-md">
+            <q-chip dense color="cyan" text-color="dark" class="text-weight-bold q-px-md">
               {{ currentTabRows.length }} QC
             </q-chip>
           </div>
@@ -77,15 +74,15 @@
       </q-card-section>
     </q-card>
 
-    <q-card flat bordered class="table-card bg-white">
-      <div class="sticky-tabs bg-white">
+    <q-card flat class="table-card glass-card">
+      <div class="sticky-tabs bg-transparent">
         <q-tabs
           v-model="activeStatusTab"
           dense
-          active-color="green-10"
-          indicator-color="green-10"
+          active-color="cyan"
+          indicator-color="cyan"
           align="justify"
-          class="text-grey-7"
+          class="qc-tabs text-grey-7"
           mobile-arrows
         >
           <q-tab
@@ -106,7 +103,7 @@
         swipeable
         transition-prev="fade"
         transition-next="fade"
-        class="bg-white"
+        class="bg-transparent"
       >
         <q-tab-panel v-for="tab in statusTabs" :key="tab.name" :name="tab.name" class="q-pa-none">
           <q-table
@@ -120,12 +117,12 @@
             class="qc-table"
           >
             <template #header="props">
-              <q-tr :props="props" class="bg-green-10 text-white">
+              <q-tr :props="props" class="qc-thead-row">
                 <q-th
                   v-for="col in props.cols"
                   :key="col.name"
                   :props="props"
-                  class="text-weight-bold uppercase table-head"
+                  class="table-head"
                 >
                   {{ col.label }}
                 </q-th>
@@ -134,8 +131,8 @@
 
             <template #body="props">
               <q-tr :props="props" class="qc-row">
-                <q-td key="no_spk" :props="props" class="text-weight-bolder text-green-10">
-                  {{ props.row.no_spk || props.row.nomor_spk || '-' }}
+                <q-td key="no_spk" :props="props" class="text-weight-bolder text-cyan">
+                  {{ props.row.nomor_planning || props.row.no_planning || props.row.no_spk || props.row.nomor_spk || '-' }}
                 </q-td>
                 <q-td key="nomor_po" :props="props" class="text-weight-bold">
                   {{ props.row.nomor_po || '-' }}
@@ -143,7 +140,7 @@
                 <q-td key="customer" :props="props">
                   {{ props.row.customer || props.row.customer_nama || props.row.nama_customer || '-' }}
                 </q-td>
-                <q-td key="nama_produk" :props="props" class="text-weight-bold text-green-10">
+                <q-td key="nama_produk" :props="props" class="text-weight-bold text-cyan">
                   {{ props.row.nama_produk || '-' }}
                 </q-td>
                 <q-td key="departemen_asal" :props="props">{{ props.row.departemen_asal || '-' }}</q-td>
@@ -157,7 +154,7 @@
                   v-if="['approved', 're_qc'].includes(tab.name)"
                   key="qty_approved"
                   :props="props"
-                  class="text-weight-bold text-green-10"
+                  class="text-weight-bold text-cyan"
                 >
                   {{ formatNumber(qtyApprovedFrom(props.row)) }}
                 </q-td>
@@ -287,7 +284,7 @@
         <q-card-section class="dialog-header row items-center">
           <div>
             <div class="text-h6 text-weight-bold">{{ dialogTitle }}</div>
-            <div class="text-caption">{{ selectedRow?.no_spk || selectedRow?.nomor_spk || '-' }}</div>
+            <div class="text-caption">{{ selectedRow?.nomor_planning || selectedRow?.no_planning || selectedRow?.no_spk || selectedRow?.nomor_spk || '-' }}</div>
           </div>
           <q-space />
           <q-btn flat round dense icon="close" v-close-popup />
@@ -298,8 +295,8 @@
             <div class="q-pa-md q-pa-lg-lg">
               <div class="row q-col-gutter-md q-mb-md">
                 <div class="col-12 col-md-6">
-                  <div class="detail-label">No SPK</div>
-                  <div class="detail-value">{{ selectedRow?.no_spk || selectedRow?.nomor_spk || '-' }}</div>
+                  <div class="detail-label">Planning Ref</div>
+                  <div class="detail-value">{{ selectedRow?.nomor_planning || selectedRow?.no_planning || selectedRow?.no_spk || selectedRow?.nomor_spk || '-' }}</div>
                 </div>
                 <div class="col-12 col-md-6">
                   <div class="detail-label">Nomor PO</div>
@@ -333,7 +330,8 @@
                     dense
                     readonly
                     label="Qty Produksi Awal"
-                    bg-color="grey-2"
+                    class="readonly-input"
+                    dark
                   />
                 </div>
                 <div class="col-12 col-md-6">
@@ -344,6 +342,7 @@
                     type="number"
                     min="0"
                     label="Qty Approved"
+                    dark
                   />
                 </div>
                 <div class="col-12 col-md-6">
@@ -353,11 +352,12 @@
                     dense
                     readonly
                     label="Qty Rework"
-                    bg-color="purple-1"
+                    class="purple-input"
+                    dark
                   />
                 </div>
                 <div class="col-12 col-md-6">
-                  <q-input v-model.number="qtyReject" outlined dense type="number" min="0" label="Qty Reject" />
+                  <q-input v-model.number="qtyReject" outlined dense type="number" min="0" label="Qty Reject" dark />
                 </div>
                 <div class="col-12 col-md-6">
                   <q-input
@@ -366,32 +366,34 @@
                     dense
                     readonly
                     label="Qty Pending QC"
-                    bg-color="orange-1"
+                    class="orange-input"
+                    dark
                   />
                 </div>
               </div>
 
-              <q-card flat bordered class="q-mb-lg">
-                <q-card-section class="bg-green-1 text-green-10 text-weight-bold">
+              <q-card flat class="q-mb-lg glass-card">
+                <q-card-section class="qc-checklist-header text-weight-bold">
                   Checklist QC
                 </q-card-section>
                 <q-separator />
                 <q-card-section>
                   <q-inner-loading :showing="loadingMasterQc" />
-                  <q-list v-if="filteredChecklist.length" separator>
+                  <q-list v-if="filteredChecklist.length" separator dark>
                     <q-item v-for="item in filteredChecklist" :key="item.id">
                       <q-item-section avatar>
                         <q-checkbox
                           :model-value="!!checklistState[item.id]"
-                          color="green-10"
+                          color="cyan"
+                          dark
                           @update:model-value="(val) => setChecklistChecked(item.id, val)"
                         />
                       </q-item-section>
                       <q-item-section>
-                        <q-item-label class="text-weight-bold text-green-10">
+                        <q-item-label class="text-weight-bold text-cyan">
                           {{ item.nama_pengecekan }}
                         </q-item-label>
-                        <q-item-label caption>
+                        <q-item-label caption class="text-grey-5">
                           {{ item.parameter || '-' }} | Toleransi: {{ item.toleransi || '-' }}
                           <span v-if="item.tipe_pemeriksaan"> | Tipe: {{ item.tipe_pemeriksaan }}</span>
                           <span v-if="item.wajib_foto_reject"> | Wajib foto reject</span>
@@ -412,6 +414,7 @@
                 autogrow
                 label="Catatan QC"
                 :rules="[(val) => !!val || 'Catatan QC wajib diisi']"
+                dark
               />
 
               <q-file
@@ -422,20 +425,22 @@
                 label="Upload Foto Reject"
                 class="q-mt-md"
                 clearable
+                dark
               >
                 <template #prepend>
-                  <q-icon name="photo_camera" color="green-10" />
+                  <q-icon name="photo_camera" color="cyan" />
                 </template>
               </q-file>
             </div>
           </q-scroll-area>
 
-          <q-card-actions align="right" class="qc-dialog-footer bg-grey-1 q-pa-md">
+          <q-card-actions align="right" class="qc-dialog-footer q-pa-md">
             <q-btn flat color="grey-7" label="Batal" no-caps v-close-popup :class="{ 'full-width': $q.screen.lt.md }" />
             <q-btn
               unelevated
               rounded
-              color="green-10"
+              color="cyan"
+              text-color="dark"
               icon="fact_check"
               label="Simpan Hasil QC"
               no-caps
@@ -453,7 +458,7 @@
         <q-card-section class="dialog-header row items-center">
           <div>
             <div class="text-h6 text-weight-bold">Detail QC Produksi</div>
-            <div class="text-caption">{{ detailRow?.no_spk || detailRow?.nomor_spk || '-' }}</div>
+            <div class="text-caption">{{ detailRow?.nomor_planning || detailRow?.no_planning || detailRow?.no_spk || detailRow?.nomor_spk || '-' }}</div>
           </div>
           <q-space />
           <q-btn flat round dense icon="close" v-close-popup />
@@ -523,16 +528,13 @@ import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { Notify, useQuasar } from 'quasar'
 import {
   collection,
-  collectionGroup,
   doc,
   getDoc,
-  getDocs,
   increment,
   onSnapshot,
   orderBy,
   query,
   serverTimestamp,
-  where,
   writeBatch,
 } from 'firebase/firestore'
 import { db } from 'src/boot/firebase'
@@ -546,7 +548,6 @@ const PRODUCTION_REWORK_QUEUE_COLLECTION = 'produksi_rework_queue'
 const DEPARTEMENT_NOTIFICATION_COLLECTION = 'manufactur_departemen_notifications'
 const PACKING_COLLECTION = 'packing_queue'
 const PO_CUSTOMER_COLLECTION = 'manufacturing_po_customer'
-const SPK_SUBCOLLECTION = 'spk'
 const statusTabs = [
   { name: 'pending_qc', label: 'Pending QC', icon: 'pending_actions' },
   { name: 'approved', label: 'Approved', icon: 'verified' },
@@ -577,7 +578,7 @@ let unsubscribeQc = null
 let unsubscribeMasterQc = null
 
 const baseColumns = [
-  { name: 'no_spk', align: 'left', label: 'No SPK', field: 'no_spk', sortable: true },
+  { name: 'no_spk', align: 'left', label: 'Planning Ref', field: 'no_spk', sortable: true },
   { name: 'nomor_po', align: 'left', label: 'Nomor PO', field: 'nomor_po', sortable: true },
   { name: 'customer', align: 'left', label: 'Customer', field: 'customer', sortable: true },
   { name: 'nama_produk', align: 'left', label: 'Nama Produk', field: 'nama_produk', sortable: true },
@@ -821,32 +822,6 @@ const resolveProductionRelation = async (row = {}) => {
     po_id: row.po_id || row.po_customer_id || row.id_po_customer || null,
     po_source_collection: row.po_source_collection || PO_CUSTOMER_COLLECTION,
     po_source_document_id: row.po_source_document_id || row.po_id || row.po_customer_id || row.id_po_customer || null,
-  }
-
-  if ((!relation.nomor_po || !relation.customer) && relation.nomor_spk) {
-    try {
-      const spkSnap = await getDocs(
-        query(collectionGroup(db, SPK_SUBCOLLECTION), where('nomor_spk', '==', relation.nomor_spk)),
-      )
-      const spkData = spkSnap.docs[0]?.data() || {}
-      relation = {
-        ...relation,
-        nomor_po: relation.nomor_po || nomorPoFrom(spkData),
-        customer: relation.customer || customerNameFrom(spkData),
-        customer_id: relation.customer_id || spkData.customer_id || spkData.id_customer || spkData.customerId || null,
-        po_id: relation.po_id || spkData.po_id || spkData.po_customer_id || spkData.id_po_customer || null,
-        po_source_collection: spkData.po_source_collection || relation.po_source_collection,
-        po_source_document_id:
-          relation.po_source_document_id ||
-          spkData.po_source_document_id ||
-          spkData.po_id ||
-          spkData.po_customer_id ||
-          spkData.id_po_customer ||
-          null,
-      }
-    } catch (error) {
-      console.error('[QCProduksi] Gagal mengambil relasi SPK Produksi', { row, error })
-    }
   }
 
   return resolvePoRelation(relation)
@@ -1347,7 +1322,7 @@ const submitQcAction = async () => {
         qty_rework: nextQtyRework,
         qty_reject: nextQtyReject,
         satuan: selectedRow.value.satuan || 'Unit',
-        alasan_reject: qcNote.value || 'QC Reject: Produk/SPK perlu rework.',
+        alasan_reject: qcNote.value || 'QC Reject: Produk/planning perlu rework.',
         catatan_qc: `${qcNote.value || ''}${qcNote.value ? '\n' : ''}Perlu perbaikan ulang dari QC`,
         foto_reject_base64: rejectPhotoBase64 || selectedRow.value.foto_reject_base64 || '',
         tanggal_qc: serverTimestamp(),
@@ -1367,7 +1342,7 @@ const submitQcAction = async () => {
       batch.set(doc(collection(db, DEPARTEMENT_NOTIFICATION_COLLECTION)), {
         type: 'qc_reject',
         title: 'QC Reject',
-        message: 'QC Reject: Produk/SPK perlu rework.',
+        message: 'QC Reject: Produk/planning perlu rework.',
         no_spk: selectedRow.value.no_spk || selectedRow.value.nomor_spk || '',
         produk: selectedRow.value.nama_produk || '',
         departemen_id: selectedRow.value.departemen_id || '',
@@ -1472,42 +1447,135 @@ onUnmounted(() => {
 
 <style scoped>
 .font-pro {
-  font-family:
-    'Inter',
-    -apple-system,
-    sans-serif;
+  font-family: 'Inter', -apple-system, sans-serif;
 }
 
 .leading-tight {
   line-height: 1.15;
 }
 
+/* ═══════ BASE PAGE ═══════ */
+.qc-page {
+  background: #071826 !important;
+  min-height: 100vh;
+}
+
+/* ═══════ HEADER ═══════ */
+.header-title {
+  margin: 0;
+  font-size: clamp(24px, 2.5vw, 36px);
+  font-weight: 900;
+  color: #F4F7FA;
+  line-height: 1.1;
+  text-shadow: 0 0 12px rgba(124, 255, 79, 0.18);
+}
+.header-subtitle {
+  font-size: 14px;
+  color: #B8C7D9;
+  line-height: 1.5;
+}
+.header-desc {
+  font-size: 14px;
+  color: #8CA3B8;
+  line-height: 1.5;
+}
+
+.btn-refresh {
+  background: rgba(0, 209, 178, 0.1);
+  border: 1px solid rgba(0, 209, 178, 0.2);
+  color: #00D1B2;
+  font-weight: 700;
+  border-radius: 14px;
+  padding: 10px 20px;
+}
+.btn-refresh:hover {
+  background: rgba(0, 209, 178, 0.15);
+}
+
+/* ═══════ GLASS CARD ═══════ */
+.glass-card {
+  background: rgba(13, 34, 51, 0.7) !important;
+  border: 1px solid rgba(124, 255, 79, 0.08) !important;
+  border-radius: 18px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
 .summary-card,
-.filter-card,
-.table-card,
 .qc-dialog,
 .detail-dialog {
-  border-color: #dfe8df;
-  border-radius: 20px;
   overflow: hidden;
 }
 
+/* Table Spacing Alignment (Matching PlanningProduksiPage.vue) */
+.table-card {
+  margin-top: 20px !important;
+  padding: 20px !important;
+  border-radius: 18px !important;
+  background: rgba(13, 34, 51, 0.85) !important;
+  border: 1px solid rgba(124, 255, 79, 0.08) !important;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.table-card :deep(.q-table thead tr) {
+  height: 54px !important;
+}
+
+.table-card :deep(.q-table thead th) {
+  height: 54px !important;
+  font-size: 13px !important;
+  letter-spacing: 0.08em !important;
+  padding: 0 18px !important;
+  vertical-align: middle !important;
+}
+
+.table-card :deep(.q-table tbody tr) {
+  min-height: 64px !important;
+  height: 64px !important;
+}
+
+.table-card :deep(.q-table tbody td) {
+  padding: 14px 18px !important;
+  white-space: normal !important;
+  vertical-align: middle !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+}
+
+.table-card :deep(.q-table__bottom) {
+  padding: 16px 20px !important;
+}
+
+.filter-card {
+  padding: 16px 20px !important;
+  margin-bottom: 16px !important;
+  background: rgba(13, 34, 51, 0.7) !important;
+  border: 1px solid rgba(124, 255, 79, 0.08) !important;
+  border-radius: 16px !important;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.filter-card :deep(.q-card__section) {
+  padding: 0 !important;
+}
+
+
 .summary-card {
-  transition:
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .summary-card:hover,
 .summary-card--active {
-  border-color: #1b5e20;
-  box-shadow: 0 14px 30px rgba(27, 94, 32, 0.12);
+  border-color: rgba(0, 209, 178, 0.4) !important;
+  box-shadow: 0 14px 30px rgba(0, 209, 178, 0.15);
   transform: translateY(-2px);
 }
 
 .summary-label {
-  color: #667085;
+  color: #8CA3B8;
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.4px;
@@ -1515,19 +1583,14 @@ onUnmounted(() => {
 }
 
 .summary-value {
-  color: #1b5e20;
+  color: #FFFFFF;
   font-size: 30px;
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1;
   margin-top: 5px;
 }
 
-.qc-table :deep(thead tr th) {
-  font-size: 11px;
-  letter-spacing: 0.5px;
-  padding: 14px 16px;
-}
-
+/* ═══════ TABS ═══════ */
 .sticky-tabs {
   position: sticky;
   top: 0;
@@ -1538,18 +1601,54 @@ onUnmounted(() => {
   min-height: 48px;
 }
 
+.qc-tabs :deep(.q-tab--active) {
+  color: #00D1B2 !important;
+}
+
+/* ═══════ TABLE ═══════ */
+.qc-table {
+  background: transparent !important;
+}
+
+.qc-table :deep(.q-table__top),
+.qc-table :deep(.q-table__bottom) {
+  background: transparent;
+  color: #8CA3B8;
+}
+
+.qc-table :deep(.q-table__bottom) {
+  border-top: 1px solid rgba(124, 255, 79, 0.06);
+}
+
+.qc-thead-row {
+  background: rgba(0, 209, 178, 0.08) !important;
+}
+
+.qc-thead-row th {
+  color: #EAF2FF !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.4px;
+  border-bottom: 1px solid rgba(0, 209, 178, 0.15) !important;
+}
+
 .table-head {
   text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  padding: 14px 16px;
 }
 
 .qc-row {
-  transition:
-    background-color 0.18s ease,
-    transform 0.18s ease;
+  transition: background-color 0.18s ease, transform 0.18s ease;
+}
+
+.qc-row td {
+  color: #F4F7FA !important;
+  border-bottom: 1px solid rgba(124, 255, 79, 0.04) !important;
 }
 
 .qc-row:hover {
-  background: rgba(27, 94, 32, 0.04);
+  background: rgba(124, 255, 79, 0.04) !important;
 }
 
 .note-cell {
@@ -1559,11 +1658,66 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 
+/* ═══════ SEARCH / FILTER INPUTS ═══════ */
+.search-input :deep(.q-field__control) {
+  background: rgba(124, 255, 79, 0.04);
+  border: 1px solid rgba(124, 255, 79, 0.1);
+  border-radius: 14px;
+}
+
+/* ═══════ DIALOGS ═══════ */
+.qc-dialog,
+.detail-dialog {
+  background: #071826 !important;
+  color: #F4F7FA !important;
+  border: 1px solid rgba(124, 255, 79, 0.12) !important;
+  border-radius: 20px;
+}
+
+.dialog-header {
+  background: rgba(0, 209, 178, 0.08) !important;
+  border-bottom: 1px solid rgba(0, 209, 178, 0.15) !important;
+  color: #F4F7FA !important;
+  padding: 16px 20px;
+}
+
+.qc-dialog-scroll {
+  min-height: 0;
+}
+
+.qc-dialog-footer {
+  border-top: 1px solid rgba(124, 255, 79, 0.1) !important;
+  background: rgba(7, 24, 38, 0.95) !important;
+  box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;
+  position: sticky;
+  z-index: 2;
+}
+
+.qc-checklist-header {
+  background: rgba(0, 209, 178, 0.08) !important;
+  color: #00D1B2 !important;
+  padding: 12px 16px;
+}
+
+/* Readonly fields & custom overlays */
+.readonly-input :deep(.q-field__control) {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.purple-input :deep(.q-field__control) {
+  background: rgba(156, 39, 176, 0.08) !important;
+}
+
+.orange-input :deep(.q-field__control) {
+  background: rgba(255, 152, 0, 0.08) !important;
+}
+
 .note-box {
-  background: #f8fbf8;
-  border: 1px solid #dfe8df;
+  background: rgba(124, 255, 79, 0.04);
+  border: 1px solid rgba(124, 255, 79, 0.15);
   border-radius: 12px;
-  color: #344054;
+  color: #F4F7FA;
   margin-top: 6px;
   min-height: 44px;
   padding: 12px;
@@ -1571,15 +1725,15 @@ onUnmounted(() => {
 }
 
 .reject-thumb {
-  border: 1px solid #dfe8df;
+  border: 1px solid rgba(124, 255, 79, 0.1);
   border-radius: 8px;
   height: 48px;
   width: 64px;
 }
 
 .detail-photo {
-  background: #f8fbf8;
-  border: 1px solid #dfe8df;
+  background: rgba(7, 24, 38, 0.6);
+  border: 1px solid rgba(124, 255, 79, 0.1);
   border-radius: 12px;
   height: min(46vh, 360px);
 }
@@ -1597,39 +1751,8 @@ onUnmounted(() => {
   min-width: 92px;
 }
 
-.dialog-header {
-  background: #1b5e20;
-  color: #ffffff;
-  padding: 16px 20px;
-}
-
-.qc-dialog {
-  height: min(92vh, 760px);
-  max-height: min(92vh, 760px);
-  max-width: 95vw;
-  width: 760px;
-}
-
-.detail-dialog {
-  max-height: min(92vh, 760px);
-  max-width: 95vw;
-  width: 760px;
-}
-
-.qc-dialog-scroll {
-  min-height: 0;
-}
-
-.qc-dialog-footer {
-  bottom: 0;
-  box-shadow: 0 -8px 20px rgba(15, 60, 45, 0.08);
-  flex-shrink: 0;
-  position: sticky;
-  z-index: 2;
-}
-
 .detail-label {
-  color: #667085;
+  color: #8CA3B8;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.4px;
@@ -1637,9 +1760,9 @@ onUnmounted(() => {
 }
 
 .detail-value {
-  color: #1b5e20;
+  color: #FFFFFF;
   font-size: 14px;
-  font-weight: 900;
+  font-weight: 700;
   margin-top: 4px;
 }
 

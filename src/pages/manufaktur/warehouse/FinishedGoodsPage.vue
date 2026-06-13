@@ -1,26 +1,25 @@
 <template>
-  <q-page class="warehouse-page bg-grey-2 q-pa-md q-pa-lg-lg">
+  <q-page class="warehouse-page bg-dark-premium q-pa-md q-pa-lg-lg">
     <div class="row items-center justify-between q-mb-lg">
       <div>
-        <div class="text-h4 text-weight-bolder text-green-10">Finished Goods</div>
-        <div class="text-subtitle1 text-grey-7">
+        <div class="text-h4 text-weight-bolder incoming-title">Finished Goods</div>
+        <div class="text-subtitle1 incoming-subtitle">
           Monitoring barang jadi yang sudah tersedia di warehouse manufaktur.
         </div>
       </div>
       <q-btn
         flat
         rounded
-        color="green-10"
         icon="sync"
         label="Refresh Data"
         no-caps
         :loading="loading"
-        class="bg-white shadow-1 q-mt-md q-mt-md-none"
+        class="btn-glass shadow-1 q-mt-md q-mt-md-none"
         @click="loadRows"
       />
     </div>
 
-    <q-card flat bordered class="filter-card bg-white q-mb-md">
+    <q-card flat bordered class="filter-card glass-card q-mb-md">
       <q-card-section class="q-py-md">
         <div class="row q-col-gutter-md items-center">
           <div class="col-12 col-md-5">
@@ -29,12 +28,12 @@
               outlined
               dense
               rounded
+              dark
               debounce="250"
               placeholder="Cari kode, nama barang jadi, ukuran, atau satuan..."
-              bg-color="white"
             >
               <template #prepend>
-                <q-icon name="search" color="green-10" />
+                <q-icon name="search" color="cyan" />
               </template>
             </q-input>
           </div>
@@ -45,13 +44,14 @@
               outlined
               dense
               rounded
+              dark
               emit-value
               map-options
               label="Lokasi Rak"
             />
           </div>
           <div class="col-12 col-md-auto">
-            <q-chip dense color="green-10" text-color="white" class="text-weight-bold q-px-md">
+            <q-chip dense color="cyan-9" text-color="white" class="text-weight-bold q-px-md">
               {{ rows.length }} BAHAN JADI
             </q-chip>
           </div>
@@ -59,22 +59,22 @@
       </q-card-section>
     </q-card>
 
-    <q-card flat bordered class="table-card bg-white">
+    <q-card flat bordered class="table-card glass-card">
       <q-tabs
         v-model="activeTab"
         dense
         align="left"
-        active-color="green-10"
-        indicator-color="green-10"
-        class="text-grey-7"
+        active-color="cyan"
+        indicator-color="cyan"
+        class="text-grey-4"
       >
         <q-tab name="receiving" icon="qr_code_scanner" label="Receiving FG" />
         <q-tab name="stock" icon="inventory" label="Stok Finished Goods" />
         <q-tab name="movement" icon="history" label="Riwayat Pergerakan Stok" />
       </q-tabs>
-      <q-separator />
+      <q-separator dark />
 
-      <q-tab-panels v-model="activeTab" animated>
+      <q-tab-panels v-model="activeTab" animated dark class="bg-transparent">
         <q-tab-panel name="receiving" class="q-pa-none">
           <FinishedGoodsReceivingPage />
         </q-tab-panel>
@@ -85,13 +85,15 @@
             :columns="columns"
             row-key="id"
             flat
+            dark
+            class="fg-table-dark"
             :loading="loading"
             :pagination="{ rowsPerPage: 10 }"
           >
             <template #body-cell-nama_barang="props">
               <q-td :props="props">
-                <div class="text-weight-bold text-green-10">{{ props.row.nama_barang || '-' }}</div>
-                <div class="text-caption text-grey-6">{{ props.row.kode_barang || '-' }}</div>
+                <div class="text-weight-bold text-neon-cyan">{{ props.row.nama_barang || '-' }}</div>
+                <div class="text-caption text-secondary-premium">{{ props.row.kode_barang || '-' }}</div>
                 <q-badge v-if="isLowStock(props.row)" color="negative" class="q-mt-xs">
                   STOK MENIPIS
                 </q-badge>
@@ -101,10 +103,10 @@
             <template #body-cell-rack_location="props">
               <q-td :props="props">
                 <div class="row items-center no-wrap q-gutter-xs">
-                  <q-chip dense square color="green-1" text-color="green-10" class="text-weight-bold">
+                  <q-chip dense square color="cyan-10" text-color="white" class="text-weight-bold">
                     {{ props.row.rack_location || '-' }}
                   </q-chip>
-                  <q-btn flat round dense color="green-10" icon="edit_location_alt" @click="openRackDialog(props.row)">
+                  <q-btn flat round dense color="cyan" icon="edit_location_alt" @click="openRackDialog(props.row)">
                     <q-tooltip>Edit lokasi rak</q-tooltip>
                   </q-btn>
                 </div>
@@ -112,7 +114,7 @@
             </template>
 
             <template #no-data>
-              <div class="full-width row flex-center text-grey-7 q-pa-xl">
+              <div class="full-width row flex-center text-secondary-premium q-pa-xl">
                 <q-icon name="inventory" size="28px" class="q-mr-sm" />
                 Belum ada data finished goods.
               </div>
@@ -121,11 +123,11 @@
         </q-tab-panel>
 
         <q-tab-panel name="movement" class="q-pa-none">
-          <q-card flat bordered class="filter-card bg-white q-ma-md">
+          <q-card flat bordered class="filter-card glass-card q-ma-md">
             <q-card-section class="q-py-md">
               <div class="row q-col-gutter-md items-center">
                 <div class="col-12 col-sm-6 col-lg-3">
-                  <q-input v-model="movementDateFilter" outlined dense rounded type="date" label="Tanggal" />
+                  <q-input v-model="movementDateFilter" outlined dense rounded dark type="date" label="Tanggal" />
                 </div>
                 <div class="col-12 col-sm-6 col-lg-3">
                   <q-select
@@ -134,6 +136,7 @@
                     outlined
                     dense
                     rounded
+                    dark
                     emit-value
                     map-options
                     label="Tipe Movement"
@@ -146,6 +149,7 @@
                     outlined
                     dense
                     rounded
+                    dark
                     emit-value
                     map-options
                     label="Produk"
@@ -159,19 +163,21 @@
             :columns="movementColumns"
             row-key="id"
             flat
+            dark
+            class="fg-table-dark"
             :loading="movementLoading"
             :pagination="{ rowsPerPage: 10 }"
           >
             <template #body-cell-tipe_movement="props">
               <q-td :props="props">
-                <q-chip dense square color="blue-grey-8" text-color="white" class="text-weight-bold">
+                <q-chip dense square color="blue-grey-9" text-color="white" class="text-weight-bold">
                   {{ props.row.tipe_movement || '-' }}
                 </q-chip>
               </q-td>
             </template>
 
             <template #no-data>
-              <div class="full-width row flex-center text-grey-7 q-pa-xl">
+              <div class="full-width row flex-center text-secondary-premium q-pa-xl">
                 <q-icon name="history" size="28px" class="q-mr-sm" />
                 Belum ada riwayat pergerakan stok.
               </div>
@@ -182,29 +188,30 @@
     </q-card>
 
     <q-dialog v-model="rackDialog" persistent>
-      <q-card class="rack-dialog">
-        <q-card-section class="bg-green-10 text-white">
-          <div class="text-h6 text-weight-bold">Edit Lokasi Rak</div>
-          <div class="text-caption">{{ selectedStock?.nama_barang || '-' }}</div>
+      <q-card class="rack-dialog glass-card">
+        <q-card-section class="dialog-header text-white">
+          <div class="text-h6 text-weight-bold text-neon-green">Edit Lokasi Rak</div>
+          <div class="text-caption text-secondary-premium">{{ selectedStock?.nama_barang || '-' }}</div>
         </q-card-section>
-        <q-card-section>
+        <q-card-section class="q-pa-md">
           <q-input
             v-model="rackForm"
             outlined
             dense
+            dark
             autofocus
             label="Lokasi Rak"
             placeholder="RAK-A1 / FG-B2 / PALLET-C3"
           />
         </q-card-section>
-        <q-card-actions align="right">
-          <q-btn flat color="grey-7" label="Batal" no-caps v-close-popup />
+        <q-card-actions align="right" class="dialog-actions q-pa-md">
+          <q-btn flat color="grey-4" label="Batal" no-caps v-close-popup />
           <q-btn
             unelevated
-            color="green-10"
             icon="save"
             label="Simpan"
             no-caps
+            class="btn-neon-green"
             :loading="rackSaving"
             @click="saveRackLocation"
           />
@@ -476,15 +483,137 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.filter-card,
-.table-card {
-  border-color: #dfe8df;
-  border-radius: 20px;
+/* Finished Goods Page — Dark Premium Theme */
+.warehouse-page {
+  background-color: #071826;
+  min-height: 100vh;
+}
+
+.incoming-title {
+  color: #F4F7FA !important;
+  text-shadow: 0 0 12px rgba(124, 255, 79, 0.18);
+}
+
+.incoming-subtitle {
+  color: #B8C7D9 !important;
+}
+
+.text-neon-cyan {
+  color: #00D1B2 !important;
+}
+
+.text-neon-green {
+  color: #7CFF4F !important;
+}
+
+.text-secondary-premium {
+  color: #B8C7D9 !important;
+}
+
+.btn-glass {
+  background: rgba(13, 34, 51, 0.5) !important;
+  border: 1px solid rgba(0, 209, 178, 0.25) !important;
+  color: #00D1B2 !important;
+  font-weight: 700 !important;
+}
+.btn-glass:hover {
+  background: rgba(0, 209, 178, 0.1) !important;
+  box-shadow: 0 0 12px rgba(0, 209, 178, 0.2);
+}
+
+.btn-neon-green {
+  background: linear-gradient(135deg, #7CFF4F 0%, #66d93f 100%) !important;
+  color: #071826 !important;
+  font-weight: 700 !important;
+}
+
+.glass-card {
+  background: rgba(13, 34, 51, 0.7) !important;
+  border: 1px solid rgba(124, 255, 79, 0.08) !important;
+  border-radius: 18px !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+}
+
+.dialog-header {
+  background: rgba(13, 34, 51, 0.9) !important;
+  border-bottom: 1px solid rgba(0, 209, 178, 0.2) !important;
+}
+
+.dialog-actions {
+  background: rgba(13, 34, 51, 0.9) !important;
+  border-top: 1px solid rgba(0, 209, 178, 0.15) !important;
+}
+
+.filter-card {
+  padding: 16px 20px !important;
+  margin-bottom: 16px !important;
+  border-color: rgba(124, 255, 79, 0.08) !important;
+  border-radius: 16px;
   overflow: hidden;
+}
+
+.filter-card :deep(.q-card__section) {
+  padding: 0 !important;
+}
+
+/* Table Spacing Alignment (Matching PlanningProduksiPage.vue) */
+.table-card {
+  margin-top: 20px !important;
+  padding: 20px !important;
+  border-radius: 18px !important;
+  background: rgba(13, 34, 51, 0.85) !important;
+  border: 1px solid rgba(124, 255, 79, 0.08) !important;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.table-card :deep(.q-table thead tr) {
+  height: 54px !important;
+}
+
+.table-card :deep(.q-table thead th) {
+  height: 54px !important;
+  font-size: 13px !important;
+  letter-spacing: 0.08em !important;
+  padding: 0 18px !important;
+  vertical-align: middle !important;
+}
+
+.table-card :deep(.q-table tbody tr) {
+  min-height: 64px !important;
+  height: 64px !important;
+}
+
+.table-card :deep(.q-table tbody td) {
+  padding: 14px 18px !important;
+  white-space: normal !important;
+  vertical-align: middle !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+}
+
+.table-card :deep(.q-table__bottom) {
+  padding: 16px 20px !important;
+}
+
+
+.fg-table-dark :deep(thead tr th) {
+  background: rgba(13, 34, 51, 0.9) !important;
+  color: #EAF2FF !important;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+.fg-table-dark :deep(tbody td) {
+  color: #F4F7FA !important;
 }
 
 .rack-dialog {
   max-width: 92vw;
   width: 420px;
+  background: #071826 !important;
+  border: 1px solid rgba(124, 255, 79, 0.15) !important;
 }
 </style>

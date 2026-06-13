@@ -2779,16 +2779,14 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* Monitoring Project Page — Dark Premium Theme */
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
 
 .bg-page {
-  background-color: #f8fcfb;
+  background-color: #071826;
 }
 .font-pro {
-  font-family:
-    'Plus Jakarta Sans',
-    -apple-system,
-    sans-serif;
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
 }
 .rounded-20 {
   border-radius: 20px;
@@ -2800,48 +2798,56 @@ onUnmounted(() => {
   border-radius: 2px;
 }
 .shadow-premium {
-  box-shadow: 0 10px 30px rgba(54, 173, 163, 0.15);
+  box-shadow: 0 10px 30px rgba(0, 209, 178, 0.15);
 }
 .border-subtle {
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(124, 255, 79, 0.08);
 }
 .border-right-sep {
-  border-right: 1px solid rgba(0, 0, 0, 0.05);
+  border-right: 1px solid rgba(124, 255, 79, 0.08);
 }
 .border-bottom-subtle {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid rgba(124, 255, 79, 0.06);
 }
 
 .bg-brand-primary,
 :deep(.bg-brand-primary) {
-  background-color: #36ada3 !important;
+  background-color: #00D1B2 !important;
 }
 .text-brand-primary,
 :deep(.text-brand-primary) {
-  color: #36ada3 !important;
+  color: #00D1B2 !important;
 }
 .bg-brand-light {
-  background-color: #e6f5f4 !important;
+  background-color: rgba(0, 209, 178, 0.08) !important;
 }
 .border-brand-thin {
-  border: 2px solid #b2e5e2 !important;
+  border: 2px solid rgba(0, 209, 178, 0.25) !important;
 }
 
 .card-teal-gradient {
-  background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%) !important;
-  box-shadow: 0 8px 24px rgba(13, 148, 136, 0.35) !important;
+  background: linear-gradient(135deg, #00D1B2 0%, #0a8f7e 100%) !important;
+  box-shadow: 0 8px 24px rgba(0, 209, 178, 0.4) !important;
 }
 .card-blue-gradient {
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
-  box-shadow: 0 8px 24px rgba(3, 105, 161, 0.35) !important;
+  background: linear-gradient(135deg, #3BA7FF 0%, #0369a1 100%) !important;
+  box-shadow: 0 8px 24px rgba(59, 167, 255, 0.35) !important;
 }
 .card-green-gradient {
-  background: linear-gradient(135deg, #10b981 0%, #047857 100%) !important;
-  box-shadow: 0 8px 24px rgba(4, 120, 87, 0.35) !important;
+  background: linear-gradient(135deg, #7CFF4F 0%, #22c55e 100%) !important;
+  box-shadow: 0 8px 24px rgba(124, 255, 79, 0.4) !important;
+  color: #071826 !important;
+}
+.card-green-gradient div,
+.card-green-gradient .text-h4 {
+  color: #071826 !important;
+}
+.card-green-gradient .text-overline {
+  color: rgba(7, 24, 38, 0.75) !important;
 }
 .card-orange-gradient {
-  background: linear-gradient(135deg, #f59e0b 0%, #ff781e 100%) !important;
-  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.35) !important;
+  background: linear-gradient(135deg, #FFA940 0%, #d46b08 100%) !important;
+  box-shadow: 0 8px 24px rgba(255, 169, 64, 0.35) !important;
 }
 
 .monitoring-table :deep(thead tr th),
@@ -2849,12 +2855,18 @@ onUnmounted(() => {
   position: sticky;
   top: 0;
   z-index: 1;
-  font-weight: 800;
+  font-weight: 700 !important;
   font-size: 11px;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px !important;
+  text-transform: uppercase;
+  color: #EAF2FF !important;
+}
+.monitoring-table :deep(tbody tr td),
+.spk-table :deep(tbody tr td) {
+  color: #F4F7FA !important;
 }
 .hover-bg:hover {
-  background-color: #e6f5f4 !important;
+  background-color: rgba(0, 209, 178, 0.06) !important;
 }
 .hover-shadow:hover {
   transform: translateY(-4px);
@@ -2926,16 +2938,20 @@ onUnmounted(() => {
 
 .items-table :deep(thead th) {
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 700 !important;
+  color: #EAF2FF !important;
+  letter-spacing: 0.4px !important;
   padding: 12px;
 }
 .items-table :deep(td) {
-  border: 1px solid #f0f0f0;
+  border: 1px solid rgba(124, 255, 79, 0.08);
   padding: 10px;
+  color: #F4F7FA !important;
 }
 .items-table :deep(tfoot td) {
   font-size: 13px;
   padding: 14px;
+  color: #F4F7FA !important;
 }
 
 .daily-plan-table {
@@ -2944,16 +2960,17 @@ onUnmounted(() => {
 .daily-plan-table th {
   padding: 12px 10px;
   font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.5px;
+  font-weight: 700 !important;
+  letter-spacing: 0.4px !important;
   text-align: center;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: #36ada3;
-  color: white;
+  border: 1px solid rgba(0, 209, 178, 0.15);
+  background: linear-gradient(135deg, #00D1B2, #007C85);
+  color: #071826;
 }
 .daily-plan-table td {
-  border: 1px solid #f0f0f0;
+  border: 1px solid rgba(124, 255, 79, 0.08);
   padding: 4px 8px;
+  color: #F4F7FA !important;
 }
 
 .progress-input-table {
@@ -2962,22 +2979,23 @@ onUnmounted(() => {
 .progress-input-table th {
   padding: 10px 8px;
   font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-weight: 700 !important;
+  letter-spacing: 0.4px !important;
+  border: 1px solid rgba(124, 255, 79, 0.1);
   white-space: nowrap;
-  background: #37474f;
-  color: white;
+  background: rgba(10, 30, 46, 0.95);
+  color: #EAF2FF !important;
 }
 .progress-input-table td {
-  border: 1px solid #f0f0f0;
+  border: 1px solid rgba(124, 255, 79, 0.06);
   padding: 2px 4px;
+  color: #F4F7FA !important;
 }
 .progress-input-table tfoot td {
-  background: #37474f;
-  color: white;
+  background: rgba(10, 30, 46, 0.95);
+  color: #F4F7FA !important;
   padding: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(124, 255, 79, 0.1);
 }
 
 .sticky-col {
@@ -3001,7 +3019,8 @@ onUnmounted(() => {
 @media (max-width: 599px) {
   .border-right-sep {
     border-right: none;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    border-bottom: 1px solid rgba(124, 255, 79, 0.06);
   }
 }
 </style>
+

@@ -133,7 +133,7 @@
 
   <div v-else class="incoming-summary row q-col-gutter-md q-mb-lg">
     <div v-for="card in cards" :key="card.key" class="col-12 col-sm-6 col-lg">
-      <q-card flat bordered class="summary-card rounded-20 shadow-1 bg-white">
+      <q-card flat bordered class="summary-card glass-card rounded-20 shadow-1">
         <q-card-section class="summary-content">
           <div class="row items-start no-wrap">
             <div class="summary-icon" :class="`summary-icon--${card.tone}`">
@@ -149,8 +149,8 @@
               </div>
 
               <template v-if="loading">
-                <q-skeleton type="text" width="72px" height="34px" class="q-mt-sm" />
-                <q-skeleton type="text" width="120px" height="16px" />
+                <q-skeleton dark type="text" width="72px" height="34px" class="q-mt-sm" />
+                <q-skeleton dark type="text" width="120px" height="16px" />
               </template>
               <template v-else>
                 <div class="summary-value">{{ card.value }}</div>
@@ -441,7 +441,7 @@ const cards = computed(() => [
     caption: 'Dokumen material masuk',
     chip: 'ALL',
     icon: 'inventory_2',
-    color: 'green-10',
+    color: 'cyan-9',
     tone: 'green',
   },
   {
@@ -461,7 +461,7 @@ const cards = computed(() => [
     caption: 'Material tidak lolos incoming',
     chip: 'NG',
     icon: 'report_problem',
-    color: 'negative',
+    color: 'red-9',
     tone: 'red',
   },
   {
@@ -471,7 +471,7 @@ const cards = computed(() => [
     caption: 'Incoming tervalidasi',
     chip: 'OK',
     icon: 'verified',
-    color: 'positive',
+    color: 'green-9',
     tone: 'teal',
   },
   {
@@ -481,7 +481,7 @@ const cards = computed(() => [
     caption: 'Total quantity actual',
     chip: 'QTY',
     icon: 'bar_chart',
-    color: 'blue-grey-8',
+    color: 'blue-grey-9',
     tone: 'slate',
   },
 ])
@@ -905,16 +905,24 @@ const cards = computed(() => [
   width: min(180px, 100%);
 }
 
+.glass-card {
+  background: rgba(13, 34, 51, 0.7) !important;
+  border: 1px solid rgba(124, 255, 79, 0.08) !important;
+  border-radius: 18px !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+}
+
 .summary-card {
-  border-color: #dfe8df;
+  border-color: rgba(124, 255, 79, 0.08) !important;
   height: 100%;
   min-height: 112px;
   transition: all 0.2s ease;
 }
 
 .summary-card:hover {
-  box-shadow: 0 10px 28px rgba(27, 94, 32, 0.12);
-  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(0, 209, 178, 0.15) !important;
+  transform: translateY(-2px);
 }
 
 .summary-content {
@@ -933,32 +941,32 @@ const cards = computed(() => [
 }
 
 .summary-icon--green {
-  background: #e8f3eb;
-  color: #1b5e20;
+  background: rgba(124, 255, 79, 0.1) !important;
+  color: #7CFF4F !important;
 }
 
 .summary-icon--orange {
-  background: #fff4e5;
-  color: #e65100;
+  background: rgba(255, 169, 64, 0.1) !important;
+  color: #FFA940 !important;
 }
 
 .summary-icon--red {
-  background: #fdecec;
-  color: #c62828;
+  background: rgba(255, 77, 79, 0.1) !important;
+  color: #FF4D4F !important;
 }
 
 .summary-icon--teal {
-  background: #e5f4f1;
-  color: #00796b;
+  background: rgba(0, 209, 178, 0.1) !important;
+  color: #00D1B2 !important;
 }
 
 .summary-icon--slate {
-  background: #edf1f4;
-  color: #37474f;
+  background: rgba(140, 163, 184, 0.1) !important;
+  color: #8CA3B8 !important;
 }
 
 .summary-label {
-  color: #667085;
+  color: #8CA3B8 !important;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.5px;
@@ -976,7 +984,7 @@ const cards = computed(() => [
 }
 
 .summary-value {
-  color: #1b5e20;
+  color: #FFFFFF !important;
   font-size: 25px;
   font-weight: 950;
   line-height: 1.1;
@@ -984,7 +992,7 @@ const cards = computed(() => [
 }
 
 .summary-caption {
-  color: #667085;
+  color: #B8C7D9 !important;
   font-size: 12px;
   line-height: 1.3;
   margin-top: 4px;

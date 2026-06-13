@@ -1240,13 +1240,15 @@ onUnmounted(() => {
   position: sticky;
   top: 0;
   z-index: 1;
-  font-weight: 800;
+  font-weight: 700 !important;
   font-size: 11px;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px !important;
   padding: 14px 16px;
+  color: #EAF2FF !important;
 }
 .approval-po-table :deep(tbody tr td) {
   padding: 12px 16px;
+  color: #F4F7FA !important;
 }
 
 .hover-bg:hover {

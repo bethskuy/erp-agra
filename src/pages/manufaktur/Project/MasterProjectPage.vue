@@ -2197,16 +2197,14 @@ const spkColumns = [
 </script>
 
 <style scoped>
+/* Master Project Page — Dark Premium Theme */
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
 
 .bg-page {
-  background-color: #f8fcfb;
+  background-color: #071826;
 }
 .font-pro {
-  font-family:
-    'Plus Jakarta Sans',
-    -apple-system,
-    sans-serif;
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
 }
 .rounded-20 {
   border-radius: 20px;
@@ -2215,48 +2213,48 @@ const spkColumns = [
   border-radius: 12px;
 }
 .shadow-premium {
-  box-shadow: 0 10px 30px rgba(54, 173, 163, 0.15);
+  box-shadow: 0 10px 30px rgba(0, 209, 178, 0.15);
 }
 .border-dashed {
-  border: 2px dashed #e0e0e0;
+  border: 2px dashed rgba(124, 255, 79, 0.25);
 }
 
 .bg-brand-primary,
 :deep(.bg-brand-primary) {
-  background-color: #36ada3 !important;
+  background-color: #00D1B2 !important;
 }
 .text-brand-primary,
 :deep(.text-brand-primary) {
-  color: #36ada3 !important;
+  color: #00D1B2 !important;
 }
 .bg-brand-light {
-  background-color: #e6f5f4 !important;
+  background-color: rgba(0, 209, 178, 0.08) !important;
 }
 .text-brand-secondary {
-  color: #2a8b83 !important;
+  color: #7CFF4F !important;
 }
 .border-brand-thin {
-  border: 2px solid #b2e5e2 !important;
+  border: 2px solid rgba(0, 209, 178, 0.25) !important;
 }
 .border-brand-primary {
-  border: 1px solid #36ada3;
-  border-top: 5px solid #36ada3;
+  border: 1px solid #00D1B2;
+  border-top: 5px solid #00D1B2;
 }
 .border-orange {
-  border: 1px solid #e65100;
-  border-top: 5px solid #e65100;
+  border: 1px solid #FFA940;
+  border-top: 5px solid #FFA940;
 }
 .border-right-sep {
-  border-right: 1px solid rgba(0, 0, 0, 0.05);
+  border-right: 1px solid rgba(124, 255, 79, 0.08);
 }
 .border-white-2 {
-  border: 2px solid rgba(255, 255, 255, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.15);
 }
 .border-subtle {
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(124, 255, 79, 0.08);
 }
 .border-bottom {
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid rgba(124, 255, 79, 0.08);
 }
 
 @media (max-width: 599px) {
@@ -2268,7 +2266,7 @@ const spkColumns = [
   }
   .divider-container > div {
     border-right: none !important;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    border-bottom: 1px solid rgba(124, 255, 79, 0.08);
   }
 }
 @media (min-width: 600px) {
@@ -2282,17 +2280,23 @@ const spkColumns = [
   position: sticky;
   top: 0;
   z-index: 1;
-  font-weight: 800;
+  font-weight: 700 !important;
   font-size: 0.75rem;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px !important;
+  text-transform: uppercase;
+  color: #EAF2FF !important;
+}
+.proyek-table :deep(tbody tr td),
+.spk-table-premium :deep(tbody tr td) {
+  color: #F4F7FA !important;
 }
 .btn-hover:hover {
-  filter: brightness(1.1);
+  filter: brightness(1.2);
   transform: scale(1.02);
   transition: 0.3s;
 }
 .hover-bg:hover {
-  background-color: #e6f5f4 !important;
+  background-color: rgba(0, 209, 178, 0.06) !important;
 }
 .transition-all {
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -2320,29 +2324,32 @@ const spkColumns = [
   font-size: 0.7rem;
   font-weight: 800;
   padding: 12px;
-  background: #36ada3;
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, #00D1B2, #007C85);
+  color: #071826;
+  border: 1px solid rgba(0, 209, 178, 0.2);
 }
 .excel-grid-blue :deep(td) {
-  border: 1px solid #f0f0f0;
+  border: 1px solid rgba(124, 255, 79, 0.08);
+  color: #F4F7FA !important;
 }
 .excel-grid-orange :deep(thead th) {
   font-size: 0.65rem;
   font-weight: 800;
   padding: 10px;
-  background: #e65100;
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #FFA940;
+  color: #071826;
+  border: 1px solid rgba(255, 169, 64, 0.2);
 }
 .excel-grid-orange :deep(td) {
-  border: 1px solid #fff3e0;
+  border: 1px solid rgba(255, 169, 64, 0.1);
+  color: #F4F7FA !important;
 }
 
 /* ✅ TABEL PPN */
 .ppn-table :deep(td) {
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid rgba(124, 255, 79, 0.08);
   font-size: 0.9rem;
+  color: #F4F7FA !important;
 }
 .ppn-table :deep(tr:last-child td) {
   border-bottom: none;
@@ -2385,7 +2392,9 @@ const spkColumns = [
 }
 .balance-sheet-table :deep(thead th) {
   font-size: 0.75rem;
-  letter-spacing: 1px;
+  font-weight: 700 !important;
+  color: #EAF2FF !important;
+  letter-spacing: 0.4px !important;
   padding: 15px;
 }
 
@@ -2428,6 +2437,7 @@ const spkColumns = [
 
 /* Teal-1 bg untuk baris konfigurasi PPN */
 .bg-teal-1 {
-  background-color: #e0f2f1 !important;
+  background-color: rgba(0, 209, 178, 0.06) !important;
 }
 </style>
+

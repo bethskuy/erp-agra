@@ -1307,33 +1307,122 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.filter-card,
+/* Stock Forecast Page — Dark Premium Theme */
+.ppic-page {
+  background: #071826 !important;
+  min-height: 100vh;
+}
+
 .table-card {
-  border-color: #dfe8df;
-  border-radius: 20px;
+  margin-top: 20px !important;
+  padding: 20px !important;
+  border-radius: 18px !important;
+  background: rgba(13, 34, 51, 0.85) !important;
+  border: 1px solid rgba(124, 255, 79, 0.12) !important;
   overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.table-card :deep(.q-table thead tr) {
+  height: 54px !important;
+}
+
+.table-card :deep(.q-table thead th) {
+  height: 54px !important;
+  font-size: 13px !important;
+  letter-spacing: 0.08em !important;
+  padding: 0 18px !important;
+  vertical-align: middle !important;
+}
+
+.table-card :deep(.q-table tbody tr) {
+  min-height: 64px !important;
+  height: 64px !important;
+}
+
+.table-card :deep(.q-table tbody td) {
+  padding: 14px 18px !important;
+  white-space: normal !important;
+  vertical-align: middle !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+}
+
+.table-card :deep(.q-table__bottom) {
+  padding: 16px 20px !important;
+}
+
+.filter-card {
+  padding: 16px 20px !important;
+  margin-bottom: 16px !important;
+  background: rgba(13, 34, 51, 0.7) !important;
+  border-radius: 16px !important;
+  overflow: hidden;
+  border-color: rgba(124, 255, 79, 0.12) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.filter-card :deep(.q-card__section) {
+  padding: 0 !important;
+}
+
+
+.ppic-page :deep(.text-green-10) {
+  color: #00D1B2 !important;
+}
+.ppic-page :deep(.text-h4) {
+  color: #F4F7FA !important;
+  text-shadow: 0 0 12px rgba(124, 255, 79, 0.18);
+  font-weight: 900;
+}
+.ppic-page :deep(.text-subtitle1) {
+  color: #B8C7D9 !important;
+}
+.ppic-page :deep(.text-caption.text-grey-7),
+.ppic-page :deep(.text-caption.text-grey-6) {
+  color: #8CA3B8 !important;
+}
+.ppic-page :deep(.q-table) {
+  background: transparent !important;
+}
+.ppic-page :deep(.q-table thead tr th) {
+  color: #EAF2FF !important;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+.ppic-page :deep(.q-table tbody tr td) {
+  color: #F4F7FA !important;
+}
+.ppic-page :deep(.q-table__bottom) {
+  color: #8CA3B8 !important;
+  border-top: 1px solid rgba(124, 255, 79, 0.06);
 }
 
 .stock-link {
   min-height: 28px;
   padding: 0 8px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
 }
 
 .mutation-dialog {
   width: min(960px, 94vw);
   max-width: 94vw;
+  background: rgba(10, 28, 44, 0.98) !important;
 }
 
 .request-dialog {
-  background: #f4f7f6;
+  background: #071826;
 }
 
 .analytics-dialog {
-  background: #f4f7f6;
+  background: #071826;
 }
 
 .analytics-toolbar {
-  background: #14532d;
+  background: linear-gradient(135deg, rgba(124, 255, 79, 0.15), rgba(0, 209, 178, 0.1));
+  border-bottom: 1px solid rgba(0, 209, 178, 0.2);
 }
 
 .analytics-scroll {
@@ -1349,14 +1438,27 @@ onUnmounted(() => {
 .analytics-summary-card,
 .analytics-chart-card,
 .analytics-critical-card {
-  border-color: #dfe8df;
-  border-radius: 12px;
-  background: #ffffff;
+  border-color: rgba(124, 255, 79, 0.12) !important;
+  border-radius: 16px;
+  background: rgba(13, 34, 51, 0.9) !important;
+  color: #F4F7FA;
 }
 
 .analytics-chart-card {
   min-height: 100%;
   overflow: hidden;
+}
+
+/* ApexCharts dark overrides */
+.analytics-chart-card :deep(.apexcharts-text),
+.analytics-chart-card :deep(.apexcharts-legend-text) {
+  fill: #8CA3B8 !important;
+  color: #8CA3B8 !important;
+}
+.analytics-chart-card :deep(.apexcharts-tooltip) {
+  background: rgba(13, 34, 51, 0.95) !important;
+  border: 1px solid rgba(0, 209, 178, 0.3) !important;
+  color: #F4F7FA !important;
 }
 
 .request-shell {
@@ -1366,49 +1468,35 @@ onUnmounted(() => {
 
 .request-summary,
 .request-form-card {
-  border-color: #dfe8df;
-  border-radius: 12px;
+  border-radius: 16px;
+  border-color: rgba(124, 255, 79, 0.12) !important;
 }
 
 .detail-label {
-  color: #66736d;
-  font-size: 12px;
+  color: #8CA3B8;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-family: 'Inter', sans-serif;
 }
 
 .detail-value {
-  color: #12382d;
+  color: #FFFFFF;
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1.3;
   overflow-wrap: anywhere;
-}
-
-body.body--dark .analytics-dialog {
-  background: #0f172a;
-}
-
-body.body--dark .analytics-summary-card,
-body.body--dark .analytics-chart-card,
-body.body--dark .analytics-critical-card {
-  border-color: #334155;
-  background: #111827;
-}
-
-body.body--dark .analytics-summary-card :deep(.text-grey-7),
-body.body--dark .analytics-chart-card :deep(.text-grey-7),
-body.body--dark .analytics-critical-card :deep(.text-grey-7) {
-  color: #cbd5e1 !important;
+  font-family: 'Inter', sans-serif;
 }
 
 @media (max-width: 599px) {
   .analytics-shell {
     padding-bottom: 16px;
   }
-
   .analytics-chart-card :deep(.apexcharts-canvas) {
     max-width: 100%;
   }
 }
 </style>
+

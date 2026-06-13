@@ -112,7 +112,7 @@
               dense
               rounded
               debounce="250"
-              placeholder="Cari SPK, PO, produk, checker, box, atau status..."
+              placeholder="Cari planning, PO, produk, checker, box, atau status..."
               bg-color="white"
             >
               <template #prepend>
@@ -172,7 +172,7 @@
               rounded
               emit-value
               map-options
-              label="Filter SPK"
+              label="Filter Planning"
               bg-color="white"
             />
           </div>
@@ -221,7 +221,7 @@
         <template #body="props">
           <q-tr :props="props" class="packing-row">
             <q-td key="nomor_spk" :props="props" class="text-weight-bolder text-green-10">
-              {{ props.row.nomor_spk || '-' }}
+              {{ props.row.nomor_planning || props.row.no_planning || props.row.nomor_spk || '-' }}
             </q-td>
             <q-td key="nomor_po" :props="props">{{ props.row.nomor_po || '-' }}</q-td>
             <q-td key="customer" :props="props">{{ props.row.customer || '-' }}</q-td>
@@ -370,10 +370,10 @@
                         v-model="form.nomor_spk"
                         outlined
                         dense
-                        label="Nomor SPK"
+                        label="Nomor Planning"
                         readonly
                         bg-color="grey-2"
-                        :rules="[(val) => !!val || 'Nomor SPK wajib diisi']"
+                        :rules="[(val) => !!val || 'Nomor planning wajib diisi']"
                       />
                     </div>
                     <div class="col-12 col-md-4">
@@ -675,7 +675,7 @@
                 <q-img :src="qrSvg(box, labelRow)" class="label-qr" fit="contain" />
               </div>
               <div class="label-grid">
-                <span>SPK</span><strong>{{ labelRow.nomor_spk || '-' }}</strong>
+                <span>Planning</span><strong>{{ labelRow.nomor_spk || '-' }}</strong>
                 <span>Produk</span><strong>{{ labelRow.nama_produk || '-' }}</strong>
                 <span>Box</span><strong>{{ box.nomor_box }} / {{ labelRow.jumlah_koli || labelRow.boxes.length }}</strong>
                 <span>Qty</span><strong>{{ formatNumber(box.qty_isi) }}</strong>
@@ -694,7 +694,7 @@
       <table>
         <thead>
           <tr>
-            <th>SPK</th>
+            <th>Planning</th>
             <th>PO</th>
             <th>Produk</th>
             <th>Approved</th>
@@ -730,17 +730,14 @@ import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import {
   collection,
-  collectionGroup,
   doc,
   getDoc,
-  getDocs,
   onSnapshot,
   orderBy,
   query,
   runTransaction,
   serverTimestamp,
   setDoc,
-  where,
   writeBatch,
 } from 'firebase/firestore'
 import html2pdf from 'html2pdf.js'
@@ -757,7 +754,6 @@ const MASTER_MATERIAL_COLLECTION = 'master_packing_material'
 const DETAIL_BOX_COLLECTION = 'packing_detail_box'
 const MATERIAL_USAGE_COLLECTION = 'packing_material_usage'
 const PO_CUSTOMER_COLLECTION = 'manufacturing_po_customer'
-const SPK_SUBCOLLECTION = 'spk'
 
 const packingStatuses = [
   { label: 'Pending Packing', value: 'PENDING_PACKING', color: 'blue-grey-6', icon: 'pending_actions' },
@@ -846,7 +842,7 @@ const defaultForm = () => ({
 const form = ref(defaultForm())
 
 const columns = [
-  { name: 'nomor_spk', align: 'left', label: 'Nomor SPK', field: 'nomor_spk', sortable: true },
+  { name: 'nomor_spk', align: 'left', label: 'Nomor Planning', field: 'nomor_spk', sortable: true },
   { name: 'nomor_po', align: 'left', label: 'Nomor PO', field: 'nomor_po', sortable: true },
   { name: 'customer', align: 'left', label: 'Customer', field: 'customer', sortable: true },
   { name: 'nama_produk', align: 'left', label: 'Nama Produk', field: 'nama_produk', sortable: true },
@@ -899,7 +895,7 @@ const uniqueFilterOptions = (field, allLabel) => [
 
 const poFilterOptions = computed(() => uniqueFilterOptions('nomor_po', 'Semua PO'))
 const customerFilterOptions = computed(() => uniqueFilterOptions('customer', 'Semua Customer'))
-const spkFilterOptions = computed(() => uniqueFilterOptions('nomor_spk', 'Semua SPK'))
+const spkFilterOptions = computed(() => uniqueFilterOptions('nomor_spk', 'Semua Planning'))
 
 const summaryCards = computed(() =>
   packingStatuses.map((status) => ({
@@ -918,7 +914,7 @@ const autoPreviewStatus = computed(() => resolveNextStatus())
 
 const dialogKpis = computed(() => [
   { label: 'Nomor PO', value: form.value.nomor_po || '-' },
-  { label: 'Nomor SPK', value: form.value.nomor_spk || '-' },
+  { label: 'Nomor Planning', value: form.value.nomor_spk || '-' },
   { label: 'Nama Produk', value: form.value.nama_produk || '-' },
   { label: 'Customer', value: form.value.customer || '-' },
   { label: 'Qty Approved', value: formatNumber(form.value.qty_approved_qc) },
@@ -1042,32 +1038,6 @@ const resolveProductionRelation = async (row = {}, existingRow = {}) => {
       row.po_customer_id ||
       row.id_po_customer ||
       null,
-  }
-
-  if ((!relation.nomor_po || !relation.customer) && relation.nomor_spk) {
-    try {
-      const spkSnap = await getDocs(
-        query(collectionGroup(db, SPK_SUBCOLLECTION), where('nomor_spk', '==', relation.nomor_spk)),
-      )
-      const spkData = spkSnap.docs[0]?.data() || {}
-      relation = {
-        ...relation,
-        nomor_po: relation.nomor_po || nomorPoFrom(spkData),
-        customer: relation.customer || customerNameFrom(spkData),
-        customer_id: relation.customer_id || spkData.customer_id || spkData.id_customer || spkData.customerId || null,
-        po_id: relation.po_id || spkData.po_id || spkData.po_customer_id || spkData.id_po_customer || null,
-        po_source_collection: spkData.po_source_collection || relation.po_source_collection,
-        po_source_document_id:
-          relation.po_source_document_id ||
-          spkData.po_source_document_id ||
-          spkData.po_id ||
-          spkData.po_customer_id ||
-          spkData.id_po_customer ||
-          null,
-      }
-    } catch (error) {
-      console.error('[PackingProduksi] Gagal mengambil relasi SPK Produksi', { row, error })
-    }
   }
 
   return resolvePoRelation(relation)
@@ -1385,7 +1355,7 @@ const validatePacking = () => {
   }
   if (inputQty <= 0) return 'Qty packing harus lebih dari 0.'
   if (inputQty > maxInputQty.value) return `Qty packing melebihi sisa approved QC (${formatNumber(maxInputQty.value)}).`
-  if (!form.value.nomor_spk) return 'Nomor SPK dari QC wajib tersedia.'
+  if (!form.value.nomor_spk) return 'Nomor planning dari QC wajib tersedia.'
   if (!form.value.nomor_po) return 'Nomor PO dari QC wajib tersedia.'
   if (!form.value.customer) return 'Customer dari QC wajib tersedia.'
   if (!form.value.nama_produk) return 'Nama produk dari QC wajib tersedia.'
@@ -1732,7 +1702,7 @@ const printLabels = async () => {
 
 const exportRows = computed(() =>
   filteredRows.value.map((row) => ({
-    'Nomor SPK': row.nomor_spk || '',
+    'Nomor Planning': row.nomor_spk || '',
     'Nomor PO': row.nomor_po || '',
     Produk: row.nama_produk || '',
     'Qty Approved QC': Number(row.qty_approved_qc || 0),
@@ -1897,12 +1867,59 @@ onUnmounted(() => {
 
 .summary-card,
 .filter-card,
-.table-card,
 .section-card {
   border-color: #dfe8df;
   border-radius: 16px;
   overflow: hidden;
 }
+
+/* Table Spacing Alignment (Matching PlanningProduksiPage.vue) */
+.table-card {
+  border-color: #dfe8df;
+  margin-top: 20px !important;
+  padding: 20px !important;
+  border-radius: 18px !important;
+  background: #ffffff !important;
+  overflow: hidden;
+}
+
+.table-card :deep(.q-table thead tr) {
+  height: 54px !important;
+}
+
+.table-card :deep(.q-table thead th) {
+  height: 54px !important;
+  font-size: 13px !important;
+  letter-spacing: 0.08em !important;
+  padding: 0 18px !important;
+}
+
+.table-card :deep(.q-table tbody tr) {
+  min-height: 64px !important;
+  height: 64px !important;
+}
+
+.table-card :deep(.q-table tbody td) {
+  padding: 14px 18px !important;
+  white-space: normal !important;
+  vertical-align: middle !important;
+}
+
+.table-card :deep(.q-table__bottom) {
+  padding: 16px 20px !important;
+}
+
+.action-card,
+.filter-card {
+  padding: 16px 20px !important;
+  margin-bottom: 16px !important;
+}
+
+.action-card :deep(.q-card__section),
+.filter-card :deep(.q-card__section) {
+  padding: 0 !important;
+}
+
 
 .summary-card {
   transition:

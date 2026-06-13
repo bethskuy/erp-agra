@@ -1,38 +1,39 @@
 <template>
-  <q-page class="warehouse-page bg-grey-2 q-pa-md q-pa-lg-lg">
+  <q-page class="warehouse-page bg-dark-premium q-pa-md q-pa-lg-lg">
     <div class="row items-center justify-between q-mb-lg">
       <div>
-        <div class="text-h4 text-weight-bolder text-green-10">Bahan Mentah</div>
-        <div class="text-subtitle1 text-grey-7">
+        <div class="text-h4 text-weight-bolder incoming-title">Bahan Mentah</div>
+        <div class="text-subtitle1 incoming-subtitle">
           Monitoring stok bahan mentah warehouse manufaktur.
         </div>
       </div>
       <q-btn
         flat
         rounded
-        color="green-10"
         icon="sync"
         label="Refresh Data"
         no-caps
         :loading="loading"
-        class="bg-white shadow-1 q-mt-md q-mt-md-none"
+        class="btn-glass shadow-1 q-mt-md q-mt-md-none"
         @click="loadRows"
       />
     </div>
 
-    <q-card flat bordered class="table-card bg-white">
+    <q-card flat bordered class="table-card glass-card">
       <q-table
         :rows="rows"
         :columns="columns"
         row-key="id"
         flat
+        dark
+        class="fg-table-dark"
         :loading="loading"
         :pagination="{ rowsPerPage: 10 }"
       >
         <template #body-cell-nama_barang="props">
           <q-td :props="props">
-            <div class="text-weight-bold text-green-10">{{ props.row.nama_barang || '-' }}</div>
-            <div class="text-caption text-grey-6">{{ props.row.kode_barang || '-' }}</div>
+            <div class="text-weight-bold text-neon-cyan">{{ props.row.nama_barang || '-' }}</div>
+            <div class="text-caption text-secondary-premium">{{ props.row.kode_barang || '-' }}</div>
             <q-badge v-if="isLowStock(props.row)" color="negative" class="q-mt-xs">
               STOK MENIPIS
             </q-badge>
@@ -40,7 +41,7 @@
         </template>
 
         <template #no-data>
-          <div class="full-width row flex-center text-grey-7 q-pa-xl">
+          <div class="full-width row flex-center text-secondary-premium q-pa-xl">
             <q-icon name="category" size="28px" class="q-mr-sm" />
             Belum ada data bahan mentah.
           </div>
@@ -110,9 +111,90 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.table-card {
-  border-color: #dfe8df;
-  border-radius: 20px;
-  overflow: hidden;
+.warehouse-page {
+  background-color: #071826;
+  min-height: 100vh;
 }
+
+.incoming-title {
+  color: #F4F7FA !important;
+  text-shadow: 0 0 12px rgba(124, 255, 79, 0.18);
+}
+
+.incoming-subtitle {
+  color: #B8C7D9 !important;
+}
+
+.text-neon-cyan {
+  color: #00D1B2 !important;
+}
+
+.text-secondary-premium {
+  color: #B8C7D9 !important;
+}
+
+.btn-glass {
+  background: rgba(13, 34, 51, 0.5) !important;
+  border: 1px solid rgba(0, 209, 178, 0.25) !important;
+  color: #00D1B2 !important;
+  font-weight: 700 !important;
+}
+.btn-glass:hover {
+  background: rgba(0, 209, 178, 0.1) !important;
+  box-shadow: 0 0 12px rgba(0, 209, 178, 0.2);
+}
+
+.glass-card {
+  background: rgba(13, 34, 51, 0.7) !important;
+  border: 1px solid rgba(124, 255, 79, 0.08) !important;
+  border-radius: 18px !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+}
+
+/* Table Spacing Alignment (Matching PlanningProduksiPage.vue) */
+.table-card {
+  margin-top: 20px !important;
+  padding: 20px !important;
+  border-radius: 18px !important;
+  background: rgba(13, 34, 51, 0.85) !important;
+  border: 1px solid rgba(124, 255, 79, 0.08) !important;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.table-card :deep(.q-table thead tr) {
+  height: 54px !important;
+}
+
+.table-card :deep(.q-table thead th) {
+  height: 54px !important;
+  font-size: 13px !important;
+  letter-spacing: 0.08em !important;
+  padding: 0 18px !important;
+  vertical-align: middle !important;
+  background: rgba(13, 34, 51, 0.9) !important;
+}
+
+.table-card :deep(.q-table tbody tr) {
+  min-height: 64px !important;
+  height: 64px !important;
+}
+
+.table-card :deep(.q-table tbody td) {
+  padding: 14px 18px !important;
+  white-space: normal !important;
+  vertical-align: middle !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+}
+
+.table-card :deep(.q-table__bottom) {
+  padding: 16px 20px !important;
+}
+
+.fg-table-dark :deep(tbody td) {
+  color: #F4F7FA !important;
+}
+
 </style>

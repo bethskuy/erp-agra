@@ -1,9 +1,9 @@
 <template>
-  <q-page class="fg-page bg-grey-2 q-pa-md q-pa-lg-lg">
+  <q-page class="fg-page bg-dark-premium q-pa-md q-pa-lg-lg">
     <div class="row items-center justify-between q-mb-lg">
       <div class="col-12 col-md-8">
-        <div class="text-h4 text-weight-bolder text-green-10">Good Receipt Finished Goods</div>
-        <div class="text-subtitle1 text-grey-7 q-mt-sm">
+        <div class="text-h4 text-weight-bolder incoming-title">Good Receipt Finished Goods</div>
+        <div class="text-subtitle1 incoming-subtitle q-mt-sm">
           Penerimaan barang jadi dari Packing Produksi ke gudang Finished Goods.
         </div>
       </div>
@@ -12,21 +12,19 @@
           <q-btn
             unelevated
             rounded
-            color="green-10"
             icon="qr_code_scanner"
             label="Scan Barang Masuk"
             no-caps
-            class="q-px-lg touch-btn"
+            class="q-px-lg touch-btn btn-neon-green"
             @click="openInboundScanner"
           />
           <q-btn
             flat
             rounded
-            color="green-10"
             icon="sync"
             label="Refresh"
             no-caps
-            class="bg-white q-px-lg touch-btn"
+            class="q-px-lg touch-btn btn-glass"
             :loading="loading"
             @click="subscribeTransfers"
           />
@@ -36,7 +34,7 @@
 
     <div class="row q-col-gutter-md q-mb-lg">
       <div v-for="card in statCards" :key="card.key" class="col-12 col-sm-6 col-lg-3">
-        <q-card flat bordered class="stat-card bg-white">
+        <q-card flat bordered class="stat-card glass-card">
           <q-card-section class="row items-center no-wrap">
             <q-avatar :color="card.color" text-color="white" :icon="card.icon" size="48px" />
             <div class="q-ml-md col">
@@ -48,7 +46,7 @@
       </div>
     </div>
 
-    <q-card flat bordered class="filter-card bg-white q-mb-lg">
+    <q-card flat bordered class="filter-card glass-card q-mb-lg">
       <q-card-section>
         <div class="row q-col-gutter-md items-center">
           <div class="col-12 col-lg-4">
@@ -57,12 +55,12 @@
               outlined
               dense
               rounded
+              dark
               debounce="250"
               placeholder="Cari transfer, packing, SPK, PO, customer, produk..."
-              bg-color="white"
             >
               <template #prepend>
-                <q-icon name="search" color="green-10" />
+                <q-icon name="search" color="cyan" />
               </template>
             </q-input>
           </div>
@@ -73,6 +71,7 @@
               outlined
               dense
               rounded
+              dark
               emit-value
               map-options
               label="Status"
@@ -85,6 +84,7 @@
               outlined
               dense
               rounded
+              dark
               emit-value
               map-options
               label="PO"
@@ -97,16 +97,17 @@
               outlined
               dense
               rounded
+              dark
               emit-value
               map-options
               label="Customer"
             />
           </div>
           <div class="col-12 col-sm-6 col-lg-2">
-            <q-input v-model="dateFilter" outlined dense rounded type="date" label="Tanggal Kirim" />
+            <q-input v-model="dateFilter" outlined dense rounded dark type="date" label="Tanggal Kirim" />
           </div>
           <div class="col-12">
-            <q-chip dense color="green-10" text-color="white" class="text-weight-bold q-px-md">
+            <q-chip dense color="cyan-9" text-color="white" class="text-weight-bold q-px-md">
               {{ filteredTransfers.length }} TRANSFER FG
             </q-chip>
           </div>
@@ -114,19 +115,20 @@
       </q-card-section>
     </q-card>
 
-    <q-card flat bordered class="table-card bg-white">
+    <q-card flat bordered class="table-card glass-card">
       <q-table
         :rows="filteredTransfers"
         :columns="columns"
         row-key="id"
         flat
+        dark
         binary-state-sort
+        class="fg-table-dark fg-table"
         :loading="loading"
         :pagination="{ rowsPerPage: 10 }"
-        class="fg-table"
       >
         <template #header="props">
-          <q-tr :props="props" class="bg-green-10 text-white">
+          <q-tr :props="props" class="table-card-header text-white">
             <q-th v-for="col in props.cols" :key="col.name" :props="props" class="text-weight-bold">
               {{ col.label }}
             </q-th>
@@ -135,7 +137,7 @@
 
         <template #body="props">
           <q-tr :props="props">
-            <q-td key="transfer_no" :props="props" class="text-weight-bold text-green-10">
+            <q-td key="transfer_no" :props="props" class="text-weight-bold text-neon-cyan">
               {{ props.row.transfer_no || props.row.id }}
             </q-td>
             <q-td key="packing_id" :props="props">{{ props.row.packing_id || '-' }}</q-td>
@@ -143,8 +145,8 @@
             <q-td key="po_no" :props="props">{{ props.row.po_no || '-' }}</q-td>
             <q-td key="customer_name" :props="props">{{ props.row.customer_name || '-' }}</q-td>
             <q-td key="product_name" :props="props">
-              <div class="text-weight-bold">{{ props.row.product_name || '-' }}</div>
-              <div class="text-caption text-grey-6">{{ props.row.product_code || '-' }}</div>
+              <div class="text-weight-bold text-white">{{ props.row.product_name || '-' }}</div>
+              <div class="text-caption text-secondary-premium">{{ props.row.product_code || '-' }}</div>
             </q-td>
             <q-td key="qty_sent" :props="props" class="text-weight-bold">
               {{ formatNumber(props.row.qty_sent) }}
@@ -166,11 +168,10 @@
                 unelevated
                 rounded
                 dense
-                color="green-10"
                 icon="qr_code_scanner"
                 label="Terima Barang"
                 no-caps
-                class="q-px-sm"
+                class="q-px-sm btn-neon-green"
                 :disable="['RECEIVED', 'CANCELLED'].includes(props.row.status)"
                 @click="openVerifyDialog(props.row)"
               />
@@ -179,7 +180,7 @@
         </template>
 
         <template #no-data>
-          <div class="full-width row flex-center text-grey-7 q-pa-xl">
+          <div class="full-width row flex-center text-secondary-premium q-pa-xl">
             <q-icon name="inventory_2" size="28px" class="q-mr-sm" />
             Belum ada transfer FG dari Packing Produksi.
           </div>
@@ -194,14 +195,14 @@
       transition-show="slide-up"
       transition-hide="slide-down"
     >
-      <q-card class="verify-dialog column full-height full-width">
+      <q-card class="verify-dialog column full-height full-width bg-dark-premium">
         <q-card-section class="dialog-header row items-center no-wrap">
-          <q-icon name="warehouse" size="28px" class="q-mr-md" />
+          <q-icon name="warehouse" size="28px" class="q-mr-md text-neon-green" />
           <div class="col">
-            <div class="text-h6 text-weight-bold">
+            <div class="text-h6 text-weight-bold text-white">
               {{ activeTransfer?.transfer_no || activeTransfer?.id || '-' }}
             </div>
-            <div class="text-caption ellipsis">
+            <div class="text-caption text-secondary-premium ellipsis">
               {{ activeTransfer?.spk_no || '-' }} | {{ activeTransfer?.po_no || '-' }} |
               {{ activeTransfer?.customer_name || '-' }} | {{ activeTransfer?.product_name || '-' }}
             </div>
@@ -209,7 +210,7 @@
           <q-chip dense text-color="white" :color="statusMeta(activeTransfer?.status).color" class="q-mr-sm">
             {{ statusMeta(activeTransfer?.status).label }}
           </q-chip>
-          <q-btn flat round dense icon="close" v-close-popup />
+          <q-btn flat round dense icon="close" v-close-popup color="grey-4" />
         </q-card-section>
 
         <q-scroll-area class="col dialog-scroll">
@@ -221,17 +222,17 @@
               </div>
             </div>
 
-            <q-card flat bordered class="section-card q-mb-lg">
+            <q-card flat bordered class="section-card glass-card q-mb-lg">
               <q-card-section class="section-title row items-center justify-between">
                 <div class="row items-center">
-                  <q-icon name="qr_code_scanner" color="green-10" size="24px" class="q-mr-sm" />
-                  <span>Scan QR Box</span>
+                  <q-icon name="qr_code_scanner" color="cyan" size="24px" class="q-mr-sm" />
+                  <span class="text-neon-green">Scan QR Box</span>
                 </div>
-                <q-badge color="green-10" class="q-px-sm q-py-xs">
+                <q-badge color="cyan-9" class="q-px-sm q-py-xs">
                   {{ scannedBoxes.length }} / {{ selectedBoxes.length }} BOX
                 </q-badge>
               </q-card-section>
-              <q-separator />
+              <q-separator dark />
               <q-card-section>
                 <div class="row q-col-gutter-md items-end">
                   <div class="col-12 col-md-3">
@@ -239,6 +240,7 @@
                       v-model="receiverName"
                       outlined
                       dense
+                      dark
                       label="Receiver Gudang"
                       autocomplete="off"
                     />
@@ -248,25 +250,25 @@
                       ref="scanInputRef"
                       v-model="scanValue"
                       outlined
+                      dark
                       label="SCAN QR BOX"
-                      input-class="scan-input"
+                      input-class="scan-input text-white"
                       autocomplete="off"
                       :disable="scanLoading"
                       @keyup.enter="handleScan"
                     >
                       <template #prepend>
-                        <q-icon name="qr_code_2" color="green-10" />
+                        <q-icon name="qr_code_2" color="cyan" />
                       </template>
                     </q-input>
                   </div>
                   <div class="col-12 col-md-2">
                     <q-btn
                       unelevated
-                      color="green-10"
                       icon="done"
                       label="Scan"
                       no-caps
-                      class="full-width scan-btn"
+                      class="full-width scan-btn btn-neon-green"
                       :loading="scanLoading"
                       @click="handleScan"
                     />
@@ -275,12 +277,12 @@
               </q-card-section>
             </q-card>
 
-            <q-card flat bordered class="section-card">
+            <q-card flat bordered class="section-card glass-card">
               <q-card-section class="section-title row items-center">
-                <q-icon name="inventory_2" color="green-10" size="24px" class="q-mr-sm" />
-                <span>Detail Box</span>
+                <q-icon name="inventory_2" color="cyan" size="24px" class="q-mr-sm" />
+                <span class="text-neon-green">Detail Box</span>
               </q-card-section>
-              <q-separator />
+              <q-separator dark />
               <q-card-section>
                 <div v-if="loadingBoxes" class="q-pa-md">
                   <q-skeleton v-for="item in 4" :key="item" type="rect" height="64px" class="q-mb-sm" />
@@ -320,16 +322,17 @@
           </div>
         </q-scroll-area>
 
-        <q-card-section class="dialog-footer bg-white">
+        <q-card-section class="dialog-footer bg-glass-actions">
           <div class="row q-col-gutter-sm items-center">
             <div class="col-12 col-md">
-              <q-input v-model="receivingNote" outlined dense label="Catatan penerimaan" />
+              <q-input v-model="receivingNote" outlined dense dark label="Catatan penerimaan" />
             </div>
             <div class="col-12 col-md-3">
               <q-input
                 v-model="rackLocation"
                 outlined
                 dense
+                dark
                 label="Lokasi Rak"
                 placeholder="RAK-A1 / FG-B2 / PALLET-C3"
               />
@@ -350,11 +353,10 @@
             <div class="col-12 col-md-auto">
               <q-btn
                 unelevated
-                color="green-10"
                 icon="verified"
                 label="Simpan & Masukkan Stok"
                 no-caps
-                class="full-width footer-btn"
+                class="full-width footer-btn btn-neon-green"
                 :disable="!allBoxesScanned"
                 :loading="finishLoading"
                 @click="finishReceiving(false)"
@@ -617,6 +619,62 @@ onMounted(subscribeTransfers)
 </script>
 
 <style scoped>
+.bg-dark-premium {
+  background-color: #071826 !important;
+}
+
+.incoming-title {
+  color: #F4F7FA !important;
+  text-shadow: 0 0 12px rgba(124, 255, 79, 0.18);
+}
+
+.incoming-subtitle {
+  color: #B8C7D9 !important;
+}
+
+.text-neon-cyan {
+  color: #00D1B2 !important;
+}
+
+.text-neon-green {
+  color: #7CFF4F !important;
+}
+
+.text-secondary-premium {
+  color: #B8C7D9 !important;
+}
+
+.btn-glass {
+  background: rgba(13, 34, 51, 0.5) !important;
+  border: 1px solid rgba(0, 209, 178, 0.25) !important;
+  color: #00D1B2 !important;
+  font-weight: 700 !important;
+}
+.btn-glass:hover {
+  background: rgba(0, 209, 178, 0.1) !important;
+  box-shadow: 0 0 12px rgba(0, 209, 178, 0.2);
+}
+
+.btn-neon-green {
+  background: linear-gradient(135deg, #7CFF4F 0%, #66d93f 100%) !important;
+  color: #071826 !important;
+  font-weight: 700 !important;
+}
+
+.glass-card {
+  background: rgba(13, 34, 51, 0.7) !important;
+  border: 1px solid rgba(124, 255, 79, 0.08) !important;
+  border-radius: 18px !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+}
+
+.bg-glass-actions {
+  background: rgba(13, 34, 51, 0.95) !important;
+  border-top: 1px solid rgba(0, 209, 178, 0.15) !important;
+  box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.3) !important;
+}
+
 .touch-btn,
 .footer-btn {
   min-height: 44px;
@@ -627,18 +685,69 @@ onMounted(subscribeTransfers)
 }
 
 .stat-card,
-.filter-card,
-.table-card,
 .section-card {
-  border-color: #dfe8df;
+  border-color: rgba(124, 255, 79, 0.08) !important;
   border-radius: 16px;
   overflow: hidden;
 }
 
+/* Table Spacing Alignment (Matching PlanningProduksiPage.vue) */
+.table-card {
+  margin-top: 20px !important;
+  padding: 20px !important;
+  border-radius: 18px !important;
+  background: rgba(13, 34, 51, 0.85) !important;
+  border: 1px solid rgba(124, 255, 79, 0.08) !important;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.table-card :deep(.q-table thead tr) {
+  height: 54px !important;
+}
+
+.table-card :deep(.q-table thead th) {
+  height: 54px !important;
+  font-size: 13px !important;
+  letter-spacing: 0.08em !important;
+  padding: 0 18px !important;
+  vertical-align: middle !important;
+}
+
+.table-card :deep(.q-table tbody tr) {
+  min-height: 64px !important;
+  height: 64px !important;
+}
+
+.table-card :deep(.q-table tbody td) {
+  padding: 14px 18px !important;
+  white-space: normal !important;
+  vertical-align: middle !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+}
+
+.table-card :deep(.q-table__bottom) {
+  padding: 16px 20px !important;
+}
+
+.filter-card {
+  padding: 16px 20px !important;
+  margin-bottom: 16px !important;
+  border-color: rgba(124, 255, 79, 0.08) !important;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.filter-card :deep(.q-card__section) {
+  padding: 0 !important;
+}
+
+
 .stat-label,
 .detail-label,
 .mini-label {
-  color: #667085;
+  color: #8CA3B8 !important;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.4px;
@@ -646,7 +755,7 @@ onMounted(subscribeTransfers)
 }
 
 .stat-value {
-  color: #1b5e20;
+  color: #FFFFFF !important;
   font-size: 30px;
   font-weight: 900;
   line-height: 1;
@@ -682,8 +791,8 @@ onMounted(subscribeTransfers)
 }
 
 .dialog-header {
-  background: #1b5e20;
-  color: #ffffff;
+  background: rgba(13, 34, 51, 0.9) !important;
+  border-bottom: 1px solid rgba(0, 209, 178, 0.2) !important;
   padding: 14px 18px;
 }
 
@@ -693,7 +802,6 @@ onMounted(subscribeTransfers)
 
 .dialog-footer {
   bottom: 0;
-  box-shadow: 0 -8px 20px rgba(15, 60, 45, 0.08);
   flex-shrink: 0;
   position: sticky;
   z-index: 2;
@@ -706,14 +814,14 @@ onMounted(subscribeTransfers)
 }
 
 .detail-cell {
-  background: #ffffff;
-  border: 1px solid #dfe8df;
+  background: rgba(13, 34, 51, 0.5) !important;
+  border: 1px solid rgba(124, 255, 79, 0.08) !important;
   border-radius: 12px;
   padding: 12px;
 }
 
 .detail-value {
-  color: #1b5e20;
+  color: #00D1B2 !important;
   font-size: 17px;
   font-weight: 900;
   line-height: 1.2;
@@ -722,7 +830,7 @@ onMounted(subscribeTransfers)
 }
 
 .section-title {
-  color: #1b5e20;
+  color: #7CFF4F !important;
   font-size: 14px;
   font-weight: 900;
   padding: 12px 16px;
@@ -741,29 +849,46 @@ onMounted(subscribeTransfers)
 }
 
 .box-card {
-  background: #f7fbf8;
-  border: 1px solid #dfe8df;
+  background: rgba(13, 34, 51, 0.4) !important;
+  border: 1px solid rgba(0, 209, 178, 0.15) !important;
   border-radius: 12px;
   padding: 12px;
 }
 
 .box-title {
-  color: #1b5e20;
+  color: #00D1B2 !important;
   font-size: 15px;
   font-weight: 900;
 }
 
 .box-code {
-  color: #667085;
+  color: #8CA3B8 !important;
   font-size: 11px;
   font-weight: 700;
   word-break: break-word;
 }
 
 .mini-value {
-  color: #1f2a24;
+  color: #F4F7FA !important;
   font-size: 13px;
   font-weight: 800;
+}
+
+.table-card-header {
+  background: rgba(124, 255, 79, 0.06) !important;
+  border-bottom: 1px solid rgba(124, 255, 79, 0.15) !important;
+}
+
+.fg-table-dark :deep(thead tr th) {
+  background: rgba(13, 34, 51, 0.9) !important;
+  color: #EAF2FF !important;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+.fg-table-dark :deep(tbody td) {
+  color: #F4F7FA !important;
 }
 
 @media (max-width: 1023px) {

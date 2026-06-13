@@ -327,11 +327,6 @@ const routes = [
 
       // --- SECTION 2: PPIC ---
       {
-        path: 'ppic/work-order',
-        name: 'manufaktur-ppic-work-order',
-        component: () => import('pages/manufaktur/PPIC/SPKProduksiPage.vue'),
-      },
-      {
         path: 'ppic/planning-produksi',
         name: 'manufaktur-ppic-planning-produksi',
         component: () => import('pages/manufaktur/PPIC/PlanningProduksiPage.vue'),

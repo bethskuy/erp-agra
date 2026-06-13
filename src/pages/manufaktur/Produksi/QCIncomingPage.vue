@@ -475,13 +475,46 @@ onUnmounted(() => {
   line-height: 1.15;
 }
 
-.table-card,
 .detail-section-card {
   border-color: #dfe8df;
 }
 
-.shadow-sm {
-  box-shadow: 0 5px 16px rgba(27, 94, 32, 0.08);
+/* Table Spacing Alignment (Matching PlanningProduksiPage.vue) */
+.table-card {
+  border-color: #dfe8df;
+  margin-top: 20px !important;
+  padding: 20px !important;
+  border-radius: 18px !important;
+  background: #ffffff !important;
+  overflow: hidden;
+}
+
+.table-card :deep(.q-table thead tr) {
+  height: 54px !important;
+}
+
+.table-card :deep(.q-table thead th) {
+  height: 54px !important;
+  font-size: 13px !important;
+  letter-spacing: 0.08em !important;
+  padding: 0 18px !important;
+  vertical-align: middle !important;
+  background: #1b5e20 !important;
+}
+
+.table-card :deep(.q-table tbody tr) {
+  min-height: 64px !important;
+  height: 64px !important;
+}
+
+.table-card :deep(.q-table tbody td) {
+  padding: 14px 18px !important;
+  white-space: normal !important;
+  vertical-align: middle !important;
+}
+
+.table-card :deep(.q-table__bottom) {
+  padding: 16px 20px !important;
 }
 
 .qc-table {
@@ -493,24 +526,6 @@ onUnmounted(() => {
   overflow: auto;
 }
 
-.qc-table :deep(thead tr th) {
-  background: #1b5e20;
-  color: #ffffff;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.8px;
-  padding: 13px 10px;
-  position: sticky;
-  text-transform: uppercase;
-  top: 0;
-  z-index: 2;
-}
-
-.qc-table :deep(tbody td) {
-  font-size: 12.5px;
-  padding: 10px;
-  vertical-align: top;
-}
 
 .doc-number,
 .cell-main,

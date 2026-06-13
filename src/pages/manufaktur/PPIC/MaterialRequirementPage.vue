@@ -990,11 +990,14 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* Material Requirement Page — Dark Premium Theme */
+.mrp-page {
+  background: #071826 !important;
+  min-height: 100vh;
+}
+
 .font-pro {
-  font-family:
-    'Inter',
-    -apple-system,
-    sans-serif;
+  font-family: 'Inter', -apple-system, sans-serif;
 }
 
 .leading-tight {
@@ -1002,39 +1005,106 @@ onUnmounted(() => {
 }
 
 .shadow-premium {
-  box-shadow: 0 10px 30px rgba(27, 94, 32, 0.15);
+  box-shadow: 0 8px 32px rgba(124, 255, 79, 0.15);
 }
 
-.summary-card,
-.filter-card,
-.table-card,
+.summary-card {
+  background: rgba(13, 34, 51, 0.7) !important;
+  border-color: rgba(124, 255, 79, 0.12) !important;
+  border-radius: 16px;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* Table Spacing Alignment (Matching PlanningProduksiPage.vue) */
+.table-card {
+  margin-top: 20px !important;
+  padding: 20px !important;
+  border-radius: 18px !important;
+  background: rgba(13, 34, 51, 0.85) !important;
+  border: 1px solid rgba(124, 255, 79, 0.12) !important;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.table-card :deep(.q-table thead tr) {
+  height: 54px !important;
+}
+
+.table-card :deep(.q-table thead th) {
+  height: 54px !important;
+  font-size: 13px !important;
+  letter-spacing: 0.08em !important;
+  padding: 0 18px !important;
+  vertical-align: middle !important;
+}
+
+.table-card :deep(.q-table tbody tr) {
+  min-height: 64px !important;
+  height: 64px !important;
+}
+
+.table-card :deep(.q-table tbody td) {
+  padding: 14px 18px !important;
+  white-space: normal !important;
+  vertical-align: middle !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+}
+
+.table-card :deep(.q-table__bottom) {
+  padding: 16px 20px !important;
+}
+
+.filter-card {
+  padding: 16px 20px !important;
+  margin-bottom: 16px !important;
+  background: rgba(13, 34, 51, 0.7) !important;
+  border-color: rgba(124, 255, 79, 0.12) !important;
+  border-radius: 16px;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.filter-card :deep(.q-card__section) {
+  padding: 0 !important;
+}
+
+
 .mrp-dialog,
 .stock-dialog {
-  border-color: #dfe8df;
-  border-radius: 20px;
+  border-color: rgba(124, 255, 79, 0.12) !important;
+  border-radius: 16px;
   overflow: hidden;
+  background: #071826 !important;
 }
 
 .summary-label {
-  color: #667085;
+  color: #8CA3B8;
   font-size: 12px;
   font-weight: 800;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
+  font-family: 'Inter', sans-serif;
 }
 
 .summary-value {
-  color: #1b5e20;
+  color: #FFFFFF;
   font-size: 30px;
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1;
   margin-top: 5px;
+  font-family: 'Inter', sans-serif;
 }
 
 .mrp-table :deep(thead tr th) {
   font-size: 11px;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
   padding: 14px 16px;
+  color: #EAF2FF !important;
+  font-weight: 700;
 }
 
 .table-head {
@@ -1048,7 +1118,39 @@ onUnmounted(() => {
 }
 
 .mrp-row:hover {
-  background: rgba(27, 94, 32, 0.04);
+  background: rgba(124, 255, 79, 0.05);
+}
+
+.mrp-row td {
+  color: #F4F7FA !important;
+}
+
+.mrp-row td.text-green-10,
+.mrp-row :deep(.text-green-10) {
+  color: #00D1B2 !important;
+}
+
+.mrp-row :deep(.text-grey-6) {
+  color: #8CA3B8 !important;
+}
+
+/* Page title and headers contrast */
+.mrp-page :deep(.text-green-10) {
+  color: #00D1B2 !important;
+}
+
+.mrp-page :deep(.text-h4) {
+  color: #F4F7FA !important;
+  text-shadow: 0 0 12px rgba(124, 255, 79, 0.18);
+  font-weight: 900;
+}
+
+.mrp-page :deep(.text-grey-6) {
+  color: #B8C7D9 !important;
+}
+
+.mrp-page :deep(.text-grey-7) {
+  color: #8CA3B8 !important;
 }
 
 .status-chip {
@@ -1067,8 +1169,9 @@ onUnmounted(() => {
 }
 
 .dialog-header {
-  background: #1b5e20;
-  color: #ffffff;
+  background: linear-gradient(135deg, rgba(0, 209, 178, 0.12), rgba(124, 255, 79, 0.08));
+  border-bottom: 1px solid rgba(0, 209, 178, 0.2);
+  color: #F4F7FA;
   padding: 16px 20px;
 }
 
@@ -1089,35 +1192,37 @@ onUnmounted(() => {
 }
 
 .stock-metric {
-  background: #f8fbf8;
-  border: 1px solid #dfe8df;
+  background: rgba(124, 255, 79, 0.04);
+  border: 1px solid rgba(124, 255, 79, 0.12);
   border-radius: 14px;
   padding: 16px;
 }
 
 .stock-metric--warning {
-  background: #fff3f3;
-  border-color: #f3c4c4;
+  background: rgba(255, 77, 79, 0.06);
+  border-color: rgba(255, 77, 79, 0.25);
 }
 
 .metric-label {
-  color: #667085;
+  color: #8CA3B8;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.4px;
   text-transform: uppercase;
+  font-family: 'Inter', sans-serif;
 }
 
 .metric-value {
-  color: #1b5e20;
+  color: #FFFFFF;
   font-size: 26px;
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1;
   margin-top: 8px;
+  font-family: 'Inter', sans-serif;
 }
 
 .stock-metric--warning .metric-value {
-  color: #c10015;
+  color: #FF4D4F;
 }
 
 @media (max-width: 599px) {

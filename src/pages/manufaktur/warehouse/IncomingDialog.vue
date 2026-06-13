@@ -7,26 +7,25 @@
     transition-hide="slide-down"
     @update:model-value="emit('update:modelValue', $event)"
   >
-    <q-card class="incoming-dialog column bg-grey-2">
+    <q-card class="incoming-dialog column bg-dark-premium">
       <q-form ref="formRef" class="dialog-form column" @submit.prevent="submitForm">
         <q-toolbar class="dialog-header shrink">
-          <q-btn flat round dense icon="close" :disable="isSubmitting" v-close-popup color="grey-7">
+          <q-btn flat round dense icon="close" :disable="isSubmitting" v-close-popup color="grey-4">
             <q-tooltip>Tutup</q-tooltip>
           </q-btn>
-          <q-toolbar-title class="text-weight-black text-green-10 text-center uppercase tracking-widest">
+          <q-toolbar-title class="text-weight-black incoming-title text-center uppercase tracking-widest">
             {{ row ? 'Edit Incoming Material' : 'Entry Incoming Material' }}
-            <div class="text-caption text-grey-6 text-weight-medium text-capitalize">
+            <div class="text-caption incoming-subtitle text-weight-medium text-capitalize">
               Validasi surat jalan, penerimaan aktual, dan kondisi QC material.
             </div>
           </q-toolbar-title>
           <q-btn
             unelevated
             rounded
-            color="green-10"
             icon="save"
             label="Simpan"
             no-caps
-            class="text-weight-bold q-px-xl shadow-3"
+            class="text-weight-bold q-px-xl shadow-3 btn-neon-green"
             type="submit"
             :loading="isSubmitting"
           />
@@ -37,37 +36,37 @@
             <div class="col-12 col-xl-10">
           <div class="status-strip row items-center q-col-gutter-sm">
             <div class="col-12 col-md">
-              <div class="text-caption text-grey-7 text-weight-bold">STATUS VALIDASI SAAT INI</div>
+              <div class="text-caption text-muted-premium text-weight-bold">STATUS VALIDASI SAAT INI</div>
               <div class="row items-center q-gutter-sm">
                 <q-badge :color="statusMeta.color" class="status-badge">
                   <q-icon :name="statusMeta.icon" size="14px" class="q-mr-xs" />
                   {{ statusMeta.label }}
                 </q-badge>
-                <span class="text-caption text-grey-7">{{ statusMeta.note }}</span>
+                <span class="text-caption text-muted-premium">{{ statusMeta.note }}</span>
               </div>
             </div>
             <div class="col-6 col-sm-auto metric-cell">
-              <div class="text-caption text-grey-7">Selisih Qty</div>
+              <div class="text-caption text-muted-premium">Selisih Qty</div>
               <div
                 class="text-subtitle2 text-weight-bolder"
-                :class="totalSelisih === 0 ? 'text-positive' : 'text-orange-10'"
+                :class="totalSelisih === 0 ? 'text-positive' : 'text-orange-9'"
               >
                 {{ formatNumber(totalSelisih) }}
               </div>
             </div>
             <div class="col-6 col-sm-auto metric-cell">
-              <div class="text-caption text-grey-7">Timestamp</div>
-              <div class="text-subtitle2 text-weight-bolder text-green-10">{{ timestampLabel }}</div>
+              <div class="text-caption text-muted-premium">Timestamp</div>
+              <div class="text-subtitle2 text-weight-bolder text-neon-cyan">{{ timestampLabel }}</div>
             </div>
           </div>
 
           <div class="form-section-stack">
-            <q-card flat bordered class="form-section-card rounded-20 shadow-1 bg-white">
-              <q-card-section class="section-head bg-green-1 text-green-10">
+            <q-card flat bordered class="form-section-card glass-card rounded-20 shadow-1">
+              <q-card-section class="section-head bg-glass-header text-neon-green">
                 <q-icon name="description" size="xs" class="q-mr-xs" />
                 Informasi Dokumen
               </q-card-section>
-              <q-separator />
+              <q-separator dark />
               <q-card-section class="q-pa-md">
                 <div class="row q-col-gutter-md">
                   <div class="col-12 col-md-5">
@@ -75,6 +74,7 @@
                       v-model.trim="form.nomor_surat_jalan"
                       outlined
                       dense
+                      dark
                       label="Nomor Surat Jalan *"
                       class="important-field"
                       :rules="[requiredRule]"
@@ -86,6 +86,7 @@
                       v-model.trim="form.supplier"
                       outlined
                       dense
+                      dark
                       label="Supplier *"
                       :rules="[requiredRule]"
                       lazy-rules
@@ -97,6 +98,7 @@
                       outlined
                       dense
                       readonly
+                      dark
                       label="Tanggal Masuk *"
                       :rules="[requiredRule]"
                       lazy-rules
@@ -106,7 +108,7 @@
                           <q-popup-proxy cover transition-show="scale" transition-hide="scale">
                             <q-date v-model="form.tanggal_masuk" mask="YYYY-MM-DD" today-btn>
                               <div class="row items-center justify-end q-pa-sm">
-                                <q-btn v-close-popup label="Pilih" color="green-10" flat no-caps />
+                                <q-btn v-close-popup label="Pilih" color="cyan" flat no-caps />
                               </div>
                             </q-date>
                           </q-popup-proxy>
@@ -122,16 +124,17 @@
                       dense
                       clearable
                       counter
+                      dark
                       accept=".pdf,application/pdf"
                       :max-file-size="MAX_PDF_SIZE"
                       label="Upload Surat Jalan (PDF)"
                       hint="Format PDF, maksimal 5MB"
-                      color="green-10"
+                      color="cyan"
                       @rejected="onSuratJalanRejected"
                       @update:model-value="onSuratJalanSelected"
                     >
                       <template #prepend>
-                        <q-icon name="picture_as_pdf" color="green-10" />
+                        <q-icon name="picture_as_pdf" color="cyan" />
                       </template>
                     </q-file>
                   </div>
@@ -163,8 +166,8 @@
               </q-card-section>
             </q-card>
 
-            <q-card flat bordered class="form-section-card rounded-20 shadow-1 bg-white">
-              <q-card-section class="section-head bg-green-1 text-green-10">
+            <q-card flat bordered class="form-section-card glass-card rounded-20 shadow-1">
+              <q-card-section class="section-head bg-glass-header text-neon-green">
                 <div class="row items-center justify-between full-width no-wrap">
                   <div class="row items-center no-wrap">
                     <q-icon name="table_rows" size="xs" class="q-mr-xs" />
@@ -172,7 +175,7 @@
                   </div>
                   <q-btn
                     unelevated
-                    color="green-10"
+                    color="cyan-9"
                     icon="add"
                     label="Tambah Baris Item"
                     no-caps
@@ -182,7 +185,7 @@
                   />
                 </div>
               </q-card-section>
-              <q-separator />
+              <q-separator dark />
               <q-card-section class="q-pa-none">
                 <div class="incoming-items-table">
                   <table>
@@ -207,6 +210,7 @@
                             v-model.trim="item.nama_barang"
                             dense
                             outlined
+                            dark
                             placeholder="Nama barang"
                             :rules="[requiredRule]"
                             lazy-rules
@@ -217,6 +221,7 @@
                             v-model="item.kategori_material"
                             dense
                             outlined
+                            dark
                             emit-value
                             map-options
                             :options="kategoriOptions"
@@ -229,6 +234,7 @@
                             v-model="item.satuan"
                             dense
                             outlined
+                            dark
                             emit-value
                             map-options
                             :options="satuanOptions"
@@ -241,6 +247,7 @@
                             v-model.number="item.qty_surat_jalan"
                             dense
                             outlined
+                            dark
                             type="number"
                             min="0"
                             step="0.01"
@@ -253,6 +260,7 @@
                             v-model.number="item.qty_actual"
                             dense
                             outlined
+                            dark
                             type="number"
                             min="0"
                             step="0.01"
@@ -264,7 +272,7 @@
                         <td class="text-right">
                           <q-badge
                             outline
-                            :color="itemSelisih(item) === 0 ? 'positive' : 'orange-10'"
+                            :color="itemSelisih(item) === 0 ? 'positive' : 'orange-9'"
                             class="qty-badge"
                           >
                             {{ formatNumber(itemSelisih(item)) }}
@@ -275,6 +283,7 @@
                             v-model="item.kondisi_barang"
                             dense
                             outlined
+                            dark
                             emit-value
                             map-options
                             :options="kondisiOptions"
@@ -292,6 +301,7 @@
                             v-model.trim="item.catatan"
                             dense
                             outlined
+                            dark
                             placeholder="Catatan item"
                             :rules="[itemCatatanRule(item)]"
                             lazy-rules
@@ -315,7 +325,7 @@
                   </table>
                 </div>
 
-                <div class="row items-center justify-end q-pa-md bg-green-1">
+                <div class="row items-center justify-end q-pa-md bg-glass-summary">
                   <div class="row q-gutter-md items-center">
                     <div class="summary-pill">
                       <span>Total SJ</span>
@@ -334,12 +344,12 @@
               </q-card-section>
             </q-card>
 
-            <q-card flat bordered class="form-section-card rounded-20 shadow-1 bg-white">
-              <q-card-section class="section-head bg-green-1 text-green-10">
+            <q-card flat bordered class="form-section-card glass-card rounded-20 shadow-1">
+              <q-card-section class="section-head bg-glass-header text-neon-green">
                 <q-icon name="edit_note" size="xs" class="q-mr-xs" />
                 Summary Validasi & Audit
               </q-card-section>
-              <q-separator />
+              <q-separator dark />
               <q-card-section class="q-pa-md">
                 <div class="row q-col-gutter-md">
                   <div class="col-12 col-md-4">
@@ -347,22 +357,24 @@
                       v-model.trim="form.checker_qc"
                       outlined
                       dense
+                      dark
                       label="Checker QC *"
                       :rules="[requiredRule]"
                       lazy-rules
                     />
                   </div>
                   <div class="col-12 col-md-4">
-                    <q-input outlined dense readonly label="Status Validasi" class="result-field" :model-value="validationStatus" />
+                    <q-input outlined dense readonly dark label="Status Validasi" class="result-field" :model-value="validationStatus" />
                   </div>
                   <div class="col-12 col-md-4">
-                    <q-input outlined dense readonly label="Timestamp" :model-value="timestampLabel" />
+                    <q-input outlined dense readonly dark label="Timestamp" :model-value="timestampLabel" />
                   </div>
                   <div class="col-12">
                     <q-input
                       v-model.trim="form.catatan"
                       outlined
                       dense
+                      dark
                       type="textarea"
                       rows="3"
                       label="Catatan Dokumen"
@@ -381,7 +393,7 @@
         <q-card-actions align="right" class="sticky-actions">
           <q-btn
             flat
-            color="grey-7"
+            color="grey-4"
             icon="restart_alt"
             label="Reset"
             no-caps
@@ -389,14 +401,13 @@
             @click="resetForm"
           />
           <q-space />
-          <q-btn flat color="grey-7" label="Batal" no-caps :disable="isSubmitting" v-close-popup />
+          <q-btn flat color="grey-4" label="Batal" no-caps :disable="isSubmitting" v-close-popup />
           <q-btn
             unelevated
-            color="green-10"
             icon="save"
             label="Simpan"
             no-caps
-            class="text-weight-bold q-px-md"
+            class="text-weight-bold q-px-md btn-neon-green"
             type="submit"
             :loading="isSubmitting"
           />
@@ -778,13 +789,66 @@ watch(
 </script>
 
 <style scoped>
+.bg-dark-premium {
+  background-color: #071826 !important;
+}
+
+.incoming-title {
+  color: #F4F7FA !important;
+  text-shadow: 0 0 12px rgba(124, 255, 79, 0.18);
+}
+
+.incoming-subtitle {
+  color: #B8C7D9 !important;
+}
+
+.text-neon-green {
+  color: #7CFF4F !important;
+}
+
+.text-neon-cyan {
+  color: #00D1B2 !important;
+}
+
+.text-muted-premium {
+  color: #8CA3B8 !important;
+}
+
+.text-secondary-premium {
+  color: #B8C7D9 !important;
+}
+
+.btn-neon-green {
+  background: linear-gradient(135deg, #7CFF4F 0%, #66d93f 100%) !important;
+  color: #071826 !important;
+  font-weight: 700 !important;
+}
+
+.glass-card {
+  background: rgba(13, 34, 51, 0.7) !important;
+  border: 1px solid rgba(124, 255, 79, 0.08) !important;
+  border-radius: 18px !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+}
+
+.bg-glass-header {
+  background: rgba(124, 255, 79, 0.06) !important;
+  border-bottom: 1px solid rgba(124, 255, 79, 0.15) !important;
+}
+
+.bg-glass-summary {
+  background: rgba(0, 209, 178, 0.05) !important;
+  border-top: 1px solid rgba(0, 209, 178, 0.15) !important;
+}
+
 .incoming-dialog {
   overflow: hidden;
 }
 
 .dialog-header {
-  background: #ffffff;
-  box-shadow: 0 6px 18px rgba(27, 94, 32, 0.12);
+  background: rgba(13, 34, 51, 0.9) !important;
+  border-bottom: 1px solid rgba(0, 209, 178, 0.2) !important;
   padding: 14px 18px;
 }
 
@@ -795,14 +859,14 @@ watch(
 }
 
 .form-body {
-  background: #f1f5f2;
+  background: #071826 !important;
 }
 
 .status-strip {
-  background: #ffffff;
-  border: 1px solid #dfe8df;
+  background: rgba(13, 34, 51, 0.7) !important;
+  border: 1px solid rgba(124, 255, 79, 0.08) !important;
   border-radius: 20px;
-  box-shadow: 0 5px 16px rgba(27, 94, 32, 0.08);
+  box-shadow: 0 5px 16px rgba(0, 209, 178, 0.08);
   margin-bottom: 16px;
   padding: 14px 16px;
 }
@@ -818,21 +882,22 @@ watch(
 }
 
 .metric-cell {
-  border-left: 1px solid #e7ece7;
+  border-left: 1px solid rgba(0, 209, 178, 0.15) !important;
   min-width: 120px;
   padding-left: 14px;
 }
 
 .sticky-actions {
-  background: #ffffff;
+  background: rgba(13, 34, 51, 0.95) !important;
+  border-top: 1px solid rgba(0, 209, 178, 0.15) !important;
   bottom: 0;
-  box-shadow: 0 -6px 18px rgba(26, 54, 40, 0.12);
+  box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.3) !important;
   padding: 12px 18px;
   z-index: 2;
 }
 
 .form-section-card {
-  border-color: #dfe8df;
+  border-color: rgba(124, 255, 79, 0.08) !important;
   overflow: hidden;
 }
 
@@ -852,10 +917,10 @@ watch(
 }
 
 .incoming-items-table th {
-  background: #1b5e20;
-  color: #ffffff;
-  font-size: 10px;
-  font-weight: 900;
+  background: rgba(13, 34, 51, 0.9) !important;
+  color: #EAF2FF !important;
+  font-size: 11px;
+  font-weight: 700;
   letter-spacing: 0.5px;
   padding: 10px 8px;
   text-align: left;
@@ -863,7 +928,7 @@ watch(
 }
 
 .incoming-items-table td {
-  border-bottom: 1px solid #edf2ed;
+  border-bottom: 1px solid rgba(0, 209, 178, 0.12) !important;
   padding: 8px;
   vertical-align: top;
 }
@@ -883,8 +948,8 @@ watch(
 
 .summary-pill {
   align-items: center;
-  background: #ffffff;
-  border: 1px solid #dfe8df;
+  background: rgba(13, 34, 51, 0.6) !important;
+  border: 1px solid rgba(0, 209, 178, 0.15) !important;
   border-radius: 10px;
   display: flex;
   gap: 8px;
@@ -893,24 +958,24 @@ watch(
 }
 
 .summary-pill span {
-  color: #667085;
+  color: #8CA3B8 !important;
   font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
 }
 
 .summary-pill strong {
-  color: #1b5e20;
+  color: #FFFFFF !important;
   font-size: 14px;
 }
 
 .summary-pill.is-warning strong {
-  color: #e65100;
+  color: #FFA940 !important;
 }
 
 .file-preview-card {
-  background: #fbfffc;
-  border-color: #cfe3d4;
+  background: rgba(13, 34, 51, 0.5) !important;
+  border-color: rgba(0, 209, 178, 0.2) !important;
   border-radius: 12px;
 }
 
@@ -942,12 +1007,12 @@ watch(
 }
 
 :deep(.important-field .q-field__control) {
-  background: #fbfffc;
-  border-color: #1b5e20;
+  background: rgba(0, 209, 178, 0.04) !important;
+  border-color: rgba(0, 209, 178, 0.3) !important;
 }
 
 :deep(.result-field .q-field__control) {
-  background: #f5faf6;
+  background: rgba(13, 34, 51, 0.5) !important;
 }
 
 @media (max-width: 700px) {

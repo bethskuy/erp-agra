@@ -111,13 +111,6 @@
         <div class="col-12 col-md-auto">
           <q-btn-dropdown unelevated color="green-10" icon="account_tree" label="Departemen" no-caps>
             <q-list dense>
-              <q-item clickable v-close-popup @click="departmentViewTab = 'spk'">
-                <q-item-section avatar><q-icon name="assignment" color="green-10" /></q-item-section>
-                <q-item-section>SPK Masuk</q-item-section>
-                <q-item-section side>
-                  <q-badge color="orange-9">{{ spkBaruCount }}</q-badge>
-                </q-item-section>
-              </q-item>
               <q-item clickable v-close-popup @click="departmentViewTab = 'planning'">
                 <q-item-section avatar><q-icon name="event_note" color="primary" /></q-item-section>
                 <q-item-section>Planning Produksi</q-item-section>
@@ -144,7 +137,6 @@
             indicator-color="green-10"
             class="text-grey-7"
           >
-            <q-tab name="spk" icon="assignment" label="SPK Masuk" />
             <q-tab name="planning" icon="event_note" label="Planning Produksi" />
             <q-tab name="reject-qc" icon="report_problem" label="Barang Reject QC">
               <q-badge v-if="activeRejectQcRows.length" color="negative" floating>
@@ -156,132 +148,8 @@
       </q-card-section>
     </q-card>
 
-    <div v-show="departmentViewTab === 'spk'" class="row q-col-gutter-md q-mb-lg">
-      <div class="col-12 col-lg-4">
-        <q-card flat bordered class="spk-section-card bg-white">
-          <q-card-section class="row items-center q-pb-sm">
-            <q-icon name="fiber_new" color="orange-9" size="sm" class="q-mr-sm" />
-            <div class="text-subtitle1 text-weight-bolder text-green-10">SPK Masuk</div>
-            <q-space />
-            <q-badge color="orange-9" class="text-weight-bold">{{ spkBaruCount }}</q-badge>
-          </q-card-section>
-          <q-separator />
-          <q-card-section class="spk-card-list">
-            <q-inner-loading :showing="spkLoading" />
-            <div v-if="!spkBaruRows.length && !spkLoading" class="text-grey-6 text-center q-pa-md">
-              Belum ada SPK masuk.
-            </div>
-            <q-card v-for="spk in spkBaruRows" :key="spk.id" flat bordered class="spk-inbox-card q-mb-sm">
-              <q-card-section class="q-pa-sm">
-                <div class="row items-start no-wrap">
-                  <div class="col">
-                    <div class="text-weight-bolder text-green-10">{{ spk.nomor_spk }}</div>
-                    <div class="text-caption text-grey-7">PO: {{ spk.nomor_po || '-' }}</div>
-                    <div class="text-body2 text-weight-bold q-mt-xs">{{ spk.nama_produk || '-' }}</div>
-                    <div class="text-caption text-grey-7">
-                      {{ spk.customer_nama || '-' }} - Qty {{ formatNumber(spk.qty_target) }} {{ spk.satuan || '' }}
-                    </div>
-                  </div>
-                  <q-chip dense color="orange-9" text-color="white">{{ spk.prioritas || 'Normal' }}</q-chip>
-                </div>
-                <q-btn
-                  unelevated
-                  dense
-                  color="green-10"
-                  icon="play_arrow"
-                  label="Mulai Produksi"
-                  no-caps
-                  class="full-width q-mt-sm"
-                  @click="updateSpkStatus(spk, 'On Production')"
-                />
-              </q-card-section>
-            </q-card>
-          </q-card-section>
-        </q-card>
-      </div>
-
-      <div class="col-12 col-lg-4">
-        <q-card flat bordered class="spk-section-card bg-white">
-          <q-card-section class="row items-center q-pb-sm">
-            <q-icon name="precision_manufacturing" color="primary" size="sm" class="q-mr-sm" />
-            <div class="text-subtitle1 text-weight-bolder text-green-10">Sedang Diproduksi</div>
-            <q-space />
-            <q-badge color="primary" class="text-weight-bold">{{ spkProduksiRows.length }}</q-badge>
-          </q-card-section>
-          <q-separator />
-          <q-card-section class="spk-card-list">
-            <div v-if="!spkProduksiRows.length && !spkLoading" class="text-grey-6 text-center q-pa-md">
-              Belum ada SPK berjalan.
-            </div>
-            <q-card v-for="spk in spkProduksiRows" :key="spk.id" flat bordered class="spk-inbox-card q-mb-sm">
-              <q-card-section class="q-pa-sm">
-                <div class="text-weight-bolder text-green-10">{{ spk.nomor_spk }}</div>
-                <div class="text-body2 text-weight-bold">{{ spk.nama_produk || '-' }}</div>
-                <div class="text-caption text-grey-7 q-mb-sm">
-                  Status: {{ spk.status }} - Hasil {{ formatNumber(spk.qty_hasil_jadi) }}/{{ formatNumber(spk.qty_target) }}
-                </div>
-                <div class="row q-col-gutter-sm">
-                  <div class="col-6">
-                    <q-btn
-                      outline
-                      dense
-                      color="indigo-7"
-                      icon="fact_check"
-                      label="QC"
-                      no-caps
-                      class="full-width"
-                      :disable="spk.status === 'QC Process'"
-                      @click="updateSpkStatus(spk, 'QC Process')"
-                    />
-                  </div>
-                  <div class="col-6">
-                    <q-btn
-                      unelevated
-                      dense
-                      color="positive"
-                      icon="check_circle"
-                      label="Finished"
-                      no-caps
-                      class="full-width"
-                      @click="finishSpk(spk)"
-                    />
-                  </div>
-                </div>
-              </q-card-section>
-            </q-card>
-          </q-card-section>
-        </q-card>
-      </div>
-
-      <div class="col-12 col-lg-4">
-        <q-card flat bordered class="spk-section-card bg-white">
-          <q-card-section class="row items-center q-pb-sm">
-            <q-icon name="task_alt" color="positive" size="sm" class="q-mr-sm" />
-            <div class="text-subtitle1 text-weight-bolder text-green-10">Selesai</div>
-            <q-space />
-            <q-badge color="positive" class="text-weight-bold">{{ spkSelesaiRows.length }}</q-badge>
-          </q-card-section>
-          <q-separator />
-          <q-card-section class="spk-card-list">
-            <div v-if="!spkSelesaiRows.length && !spkLoading" class="text-grey-6 text-center q-pa-md">
-              Belum ada SPK selesai.
-            </div>
-            <q-card v-for="spk in spkSelesaiRows" :key="spk.id" flat bordered class="spk-inbox-card q-mb-sm">
-              <q-card-section class="q-pa-sm">
-                <div class="text-weight-bolder text-green-10">{{ spk.nomor_spk }}</div>
-                <div class="text-body2 text-weight-bold">{{ spk.nama_produk || '-' }}</div>
-                <div class="text-caption text-grey-7">
-                  Hasil {{ formatNumber(spk.qty_hasil_jadi) }}/{{ formatNumber(spk.qty_target) }} {{ spk.satuan || '' }}
-                </div>
-              </q-card-section>
-            </q-card>
-          </q-card-section>
-        </q-card>
-      </div>
-    </div>
-
     <div v-show="departmentViewTab === 'planning'" class="q-mb-lg">
-      <q-card flat bordered class="spk-section-card bg-white">
+      <q-card flat bordered class="planning-section-card bg-white">
         <q-card-section class="row items-center">
           <q-icon name="event_note" color="primary" size="sm" class="q-mr-sm" />
           <div class="text-subtitle1 text-weight-bolder text-green-10">Planning Produksi</div>
@@ -301,7 +169,7 @@
             <q-tr :props="props">
               <q-td key="nomor_planning" :props="props" class="text-weight-bolder text-green-10">
                 {{ props.row.nomor_planning || props.row.no_planning || '-' }}
-                <div class="text-caption text-grey-6">{{ props.row.nomor_spk || '-' }}</div>
+                <div class="text-caption text-grey-6">{{ props.row.project_id || props.row.project_name || '-' }}</div>
               </q-td>
               <q-td key="customer" :props="props">{{ props.row.customer_nama || props.row.customer || '-' }}</q-td>
               <q-td key="produk" :props="props">
@@ -313,8 +181,8 @@
               </q-td>
               <q-td key="deadline" :props="props">{{ formatDate(props.row.deadline) }}</q-td>
               <q-td key="prioritas" :props="props">
-                <q-badge :color="priorityColor(props.row.prioritas)" class="text-weight-bold">
-                  {{ props.row.prioritas || 'Medium' }}
+                <q-badge :color="priorityColor(props.row.priority || props.row.prioritas)" class="text-weight-bold">
+                  {{ normalizePriority(props.row.priority || props.row.prioritas) }}
                 </q-badge>
               </q-td>
               <q-td key="status_planning" :props="props">
@@ -358,7 +226,7 @@
     </div>
 
     <div v-show="departmentViewTab === 'reject-qc'" class="q-mb-lg">
-      <q-card flat bordered class="spk-section-card bg-white">
+      <q-card flat bordered class="planning-section-card bg-white">
         <q-card-section class="row items-center">
           <q-icon name="report_problem" color="negative" size="sm" class="q-mr-sm" />
           <div>
@@ -379,8 +247,8 @@
         >
           <template #body="props">
             <q-tr :props="props">
-              <q-td key="no_spk" :props="props" class="text-weight-bolder text-green-10">
-                {{ props.row.no_spk || props.row.nomor_spk || '-' }}
+              <q-td key="reference" :props="props" class="text-weight-bolder text-green-10">
+                {{ rejectReference(props.row) }}
               </q-td>
               <q-td key="nama_produk" :props="props">
                 <div class="text-weight-bold">{{ props.row.nama_produk || props.row.produk || '-' }}</div>
@@ -600,7 +468,7 @@
                         Form Hasil Produksi
                       </div>
                       <div class="text-caption text-grey-7">
-                        Data ditarik dari Planning Produksi, SPK Produksi, atau Approved PO manufacturing.
+                        Data ditarik dari Planning Produksi dan schedule.
                       </div>
                     </div>
                   </div>
@@ -628,8 +496,8 @@
                         outlined
                         use-input
                         input-debounce="250"
-                        label="Planning / SPK / Approved PO"
-                        :loading="planningLoading || spkLoading || poOptionsLoading"
+                        label="Planning Produksi / Schedule"
+                        :loading="planningLoading"
                         :rules="[required]"
                         @filter="filterProductionSource"
                         @update:model-value="handleProductionSourceSelected"
@@ -654,7 +522,7 @@
                     </div>
 
                     <div class="col-12 col-md-6">
-                      <q-input v-model="produksiForm.nomor_po" dense outlined label="Nomor PO" readonly>
+                      <q-input v-model="produksiForm.nomor_po" dense outlined label="Nomor Planning" readonly>
                         <template #prepend>
                           <q-icon name="receipt_long" color="green-10" />
                         </template>
@@ -1253,15 +1121,12 @@ const $q = useQuasar()
 const route = useRoute()
 
 const rows = ref([])
-const spkRows = ref([])
-const knownSpkIds = ref(new Set())
 const planningRows = ref([])
 const knownPlanningIds = ref(new Set())
 const notificationRows = ref([])
 const rejectQcRows = ref([])
-const departmentViewTab = ref('spk')
+const departmentViewTab = ref('planning')
 const loading = ref(true)
-const spkLoading = ref(true)
 const planningLoading = ref(true)
 const rejectQcLoading = ref(true)
 const search = ref('')
@@ -1296,7 +1161,6 @@ const barangOptionsLoading = ref(true)
 const kategoriBarangOptionsLoading = ref(true)
 const permintaanRowsLoading = ref(true)
 let unsubscribeProduksi = null
-let unsubscribeSpk = null
 let unsubscribePlanning = null
 let unsubscribeSatuanOptions = null
 let unsubscribeCustomerOptions = null
@@ -1320,8 +1184,6 @@ const KATEGORI_BARANG_COLLECTION = 'manufactur_master_kategori_barang'
 const MASTER_PRODUK_COLLECTION = 'master_produk'
 const PO_CUSTOMER_COLLECTION = 'manufacturing_po_customer'
 const RUNNING_NUMBER_COLLECTION = 'manufactur_running_number'
-const MANUFACTURING_DEPARTEMEN_COLLECTION = 'manufacturing_departemen'
-const SPK_SUBCOLLECTION = 'spk'
 const PLANNING_COLLECTION = 'mf_production_planning'
 const DEPARTEMENT_NOTIFICATION_COLLECTION = 'manufactur_departemen_notifications'
 const REWORK_QUEUE_COLLECTION = 'produksi_rework_queue'
@@ -1329,8 +1191,6 @@ const QC_COLLECTION = 'qc_produksi_manufaktur'
 
 const produksiCollection = collection(db, PRODUKSI_COLLECTION)
 const permintaanBarangCollection = collection(db, PERMINTAAN_BARANG_COLLECTION)
-const getSpkCollection = (departemenIdValue) =>
-  collection(db, MANUFACTURING_DEPARTEMEN_COLLECTION, departemenIdValue, SPK_SUBCOLLECTION)
 
 const unreadQcRejectNotifications = computed(() =>
   notificationRows.value.filter((item) => item.type === 'qc_reject' && item.is_read !== true),
@@ -1457,40 +1317,8 @@ const getManufacturingMasterDepartemen = async (id) => {
   return { id: snapshot.id, ...snapshot.data() }
 }
 
-const listenManufacturingDepartemenSpk = (departemenIdValue, callback, errorCallback) => {
-  if (!departemenIdValue) {
-    callback([])
-    return () => {}
-  }
-
-  return onSnapshot(
-    query(getSpkCollection(departemenIdValue), orderBy('created_at', 'desc')),
-    (snapshot) =>
-      callback(
-        snapshot.docs.map((spkDoc) => ({
-          id: spkDoc.id,
-          departemen_path_id: departemenIdValue,
-          ...spkDoc.data(),
-        })),
-      ),
-    errorCallback,
-  )
-}
-
-const updateManufacturingSpkProduksi = (departemenIdValue, spkId, payload) =>
-  updateDoc(doc(db, MANUFACTURING_DEPARTEMEN_COLLECTION, departemenIdValue, SPK_SUBCOLLECTION, spkId), cleanFirestorePayload({
-    ...payload,
-    updated_at: serverTimestamp(),
-  }))
-
 const updateManufacturingPlanningProduksi = (planningId, payload) =>
   updateDoc(doc(db, PLANNING_COLLECTION, planningId), cleanFirestorePayload({
-    ...payload,
-    updated_at: serverTimestamp(),
-  }))
-
-const updateManufacturingApprovedPo = (poId, payload) =>
-  updateDoc(doc(db, PO_CUSTOMER_COLLECTION, poId), cleanFirestorePayload({
     ...payload,
     updated_at: serverTimestamp(),
   }))
@@ -1713,7 +1541,6 @@ const emptyProduksiForm = () => ({
   source_type: '',
   source_id: '',
   planning_obj: null,
-  spk_obj: null,
   nomor_po_obj: null,
   customer_obj: null,
   produk_obj: null,
@@ -1764,9 +1591,9 @@ const departemenPayload = computed(() => ({
 const columns = [
   { name: 'tanggal', label: 'Tanggal', field: 'tanggal', align: 'left', sortable: true },
   { name: 'customer_nama', label: 'Customer', field: 'customer_nama', align: 'left', sortable: true },
-  { name: 'nomor_po', label: 'Nomor PO', field: 'nomor_po', align: 'left', sortable: true },
+  { name: 'nomor_po', label: 'Nomor Planning', field: 'nomor_po', align: 'left', sortable: true },
   { name: 'nama_produk', label: 'Master Produk', field: 'nama_produk', align: 'left', sortable: true },
-  { name: 'qty_po', label: 'Qty PO', field: 'qty_po', align: 'right', sortable: true },
+  { name: 'qty_po', label: 'Qty Target', field: 'qty_po', align: 'right', sortable: true },
   {
     name: 'qty_hasil_jadi',
     label: 'Qty Hasil Jadi',
@@ -1802,7 +1629,7 @@ const productionHistoryColumns = [
 ]
 
 const planningColumns = [
-  { name: 'nomor_planning', label: 'Nomor Planning / SPK', field: 'nomor_planning', align: 'left', sortable: true },
+  { name: 'nomor_planning', label: 'Nomor Planning', field: 'nomor_planning', align: 'left', sortable: true },
   { name: 'customer', label: 'Customer', field: 'customer_nama', align: 'left', sortable: true },
   { name: 'produk', label: 'Produk', field: 'nama_produk', align: 'left', sortable: true },
   { name: 'qty_target', label: 'Qty Target', field: 'qty_target', align: 'right', sortable: true },
@@ -1813,7 +1640,7 @@ const planningColumns = [
 ]
 
 const rejectQcColumns = [
-  { name: 'no_spk', label: 'No SPK', field: 'no_spk', align: 'left', sortable: true },
+  { name: 'reference', label: 'Reference', field: 'reference', align: 'left', sortable: true },
   { name: 'nama_produk', label: 'Produk', field: 'nama_produk', align: 'left', sortable: true },
   { name: 'qty_reject', label: 'Qty Reject', field: 'qty_reject', align: 'right', sortable: true },
   { name: 'qty_rework', label: 'Qty Rework', field: 'qty_rework', align: 'right', sortable: true },
@@ -1888,26 +1715,14 @@ const filteredRows = computed(() => {
   })
 })
 
-const spkBaruRows = computed(() =>
-  spkRows.value.filter((row) => row.status === 'Menunggu Produksi'),
-)
-
-const spkProduksiRows = computed(() =>
-  spkRows.value.filter((row) => ['On Production', 'QC Process'].includes(row.status)),
-)
-
-const spkSelesaiRows = computed(() => spkRows.value.filter((row) => row.status === 'Finished'))
-
-const spkBaruCount = computed(() => spkBaruRows.value.length)
-
 const currentPlanningRouteStep = (row) =>
   Array.isArray(row.route_departemen)
     ? row.route_departemen.find((item) => item.id === departemenId.value)
     : null
 
 const isPlanningActiveForCurrentDepartemen = (row) => {
-  const status = row.status_planning || row.status
-  if (['Selesai', 'Finished', 'Cancelled'].includes(status)) return false
+  const status = normalizeComparable(row.status_planning || row.planning_status || row.status)
+  if (['selesai', 'finished', 'done', 'cancelled', 'batal'].includes(status)) return false
 
   const routeStep = currentPlanningRouteStep(row)
   if (row.all_departemen || row.routing_mode === 'all') {
@@ -1921,8 +1736,43 @@ const isPlanningActiveForCurrentDepartemen = (row) => {
   return true
 }
 
+const normalizePriority = (priority) => {
+  const normalized = String(priority || '').trim().toLowerCase()
+  if (normalized === 'urgent') return 'Urgent'
+  if (normalized === 'high') return 'High'
+  if (normalized === 'low') return 'Low'
+  return 'Medium'
+}
+
+const priorityRank = (priority) => {
+  const normalized = normalizePriority(priority)
+  if (normalized === 'Urgent') return 0
+  if (normalized === 'High') return 1
+  if (normalized === 'Medium') return 2
+  return 3
+}
+
+const deadlineTime = (value) => {
+  if (!value) return Number.MAX_SAFE_INTEGER
+  const rawDate = typeof value.toDate === 'function' ? value.toDate() : new Date(value)
+  const time = rawDate.getTime()
+  return Number.isNaN(time) ? Number.MAX_SAFE_INTEGER : time
+}
+
+const comparePlanningWorkload = (a, b) => {
+  const priorityDiff = priorityRank(a.priority || a.prioritas) - priorityRank(b.priority || b.prioritas)
+  if (priorityDiff !== 0) return priorityDiff
+
+  const deadlineDiff = deadlineTime(a.deadline) - deadlineTime(b.deadline)
+  if (deadlineDiff !== 0) return deadlineDiff
+
+  return String(a.nomor_planning || a.no_planning || a.id || '').localeCompare(
+    String(b.nomor_planning || b.no_planning || b.id || ''),
+  )
+}
+
 const activePlanningRows = computed(() =>
-  planningRows.value.filter(isPlanningActiveForCurrentDepartemen),
+  planningRows.value.filter(isPlanningActiveForCurrentDepartemen).sort(comparePlanningWorkload),
 )
 
 const planningBaruCount = computed(
@@ -1937,9 +1787,10 @@ const planningBaruCount = computed(
 const productionSourceMatches = (row, source) => {
   if (!source) return false
   const matchesItem = !source.item_id || !row.item_id || row.item_id === source.item_id
-  if (source.type === 'planning') return row.planning_id === source.id && matchesItem
-  if (source.type === 'spk') return row.spk_id === source.id && matchesItem
-  if (source.type === 'po') return row.po_id === source.id && matchesItem
+  const matchesSchedule = !source.schedule_key || row.schedule_key === source.schedule_key
+  if (source.type === 'planning') {
+    return row.planning_id === source.id && matchesItem && matchesSchedule
+  }
   return false
 }
 
@@ -1979,16 +1830,6 @@ const syncProductionRowState = (row) => {
   rows.value = [{ ...row }, ...rows.value]
 }
 
-const availableSpkOptions = computed(() =>
-  spkRows.value
-    .filter((row) => row.status !== 'Finished')
-    .map((row) => ({
-      label: `${row.nomor_spk} - ${row.nama_produk || '-'} (${row.status})`,
-      value: row.id,
-      item: row,
-    })),
-)
-
 const normalizeProductionItem = (item = {}, index = 0) => {
   const qty = toFiniteNumber(item.qty ?? item.quantity ?? item.qty_target ?? item.qty_po)
   const harga = toFiniteNumber(item.harga ?? item.price ?? item.harga_satuan ?? item.unit_price)
@@ -2014,40 +1855,61 @@ const normalizeProductionItem = (item = {}, index = 0) => {
   }
 }
 
-const getProductionSourceItems = (row) =>
-  Array.isArray(row.items) && row.items.length ? row.items.map(normalizeProductionItem) : []
+const normalizeScheduleRow = (schedule = {}, index = 0, planningId = '') => ({
+  key: schedule.key || `${planningId}_${schedule.date || index + 1}`,
+  day: Number(schedule.day || index + 1),
+  date: schedule.date || '',
+  target_qty: toFiniteNumber(schedule.target_qty ?? schedule.target_quantity),
+  actual_qty: toFiniteNumber(schedule.actual_qty ?? schedule.actual_quantity),
+  status: schedule.status || 'not_started',
+  customer: schedule.customer || '',
+  product: schedule.product || '',
+})
 
-const normalizeProductionSource = (type, row, item = null, itemIndex = 0) => {
+const planningScheduleRows = (planning = {}) =>
+  (Array.isArray(planning.production_schedule) ? planning.production_schedule : [])
+    .map((schedule, index) => normalizeScheduleRow(schedule, index, planning.id))
+    .filter((schedule) => schedule.target_qty > 0)
+
+const normalizeProductionSource = (type, row, item = null, itemIndex = 0, schedule = null) => {
   const selectedItem = item ? normalizeProductionItem(item, itemIndex) : null
-  const typeLabel = type === 'planning' ? 'Planning Produksi' : type === 'spk' ? 'SPK Produksi' : 'Approved PO'
+  const typeLabel = schedule ? 'Planning Schedule' : 'Planning Produksi'
   const nomorPo =
+    row.nomor_planning ||
+    row.no_planning ||
+    row.planning_number ||
     row.nomor_po ||
     row.no_so ||
     row.nomor ||
     row.nomor_approved ||
-    row.nomor_spk ||
     row.label ||
     ''
   const nomorRef =
     row.nomor_planning ||
     row.no_planning ||
-    row.nomor_spk ||
+    row.planning_number ||
     row.nomor ||
     row.nomor_approved ||
     row.id
   const customerNama = row.customer_nama || row.customerName || row.nama_customer || row.customer?.nama || row.customer || ''
-  const namaProduk = selectedItem?.nama_produk || row.nama_produk || row.item_produksi || row.produk?.nama_produk || row.produk?.nama || ''
-  const qtyTarget = toFiniteNumber(selectedItem?.qty || row.qty_target || row.qty_po || row.qty || row.total_qty)
+  const namaProduk = schedule?.product || selectedItem?.nama_produk || row.nama_produk || row.item_produksi || row.produk?.nama_produk || row.produk?.nama || ''
+  const qtyTarget = schedule
+    ? toFiniteNumber(schedule.target_qty)
+    : toFiniteNumber(selectedItem?.qty || row.qty_target || row.qty_po || row.qty || row.total_qty)
   const satuan = selectedItem?.satuan || row.satuan || row.produk?.satuan || ''
+  const scheduleSuffix = schedule?.date ? ` - ${formatDate(schedule.date)}` : ''
 
   return {
     id: row.id,
-    value: `${type}:${row.id}${selectedItem?.item_id ? `:${selectedItem.item_id}` : ''}`,
+    value: `${type}:${row.id}${selectedItem?.item_id ? `:${selectedItem.item_id}` : ''}${schedule?.key ? `:${schedule.key}` : ''}`,
     type,
     typeLabel,
+    schedule_key: schedule?.key || '',
+    schedule_date: schedule?.date || '',
+    schedule_day: schedule?.day || null,
     item_id: selectedItem?.item_id || row.item_id || null,
     item_index: itemIndex,
-    label: `${typeLabel} - ${nomorRef}${namaProduk ? ` - ${namaProduk}` : ''}`,
+    label: `${typeLabel} - ${nomorRef}${scheduleSuffix}${namaProduk ? ` - ${namaProduk}` : ''}`,
     item: row,
     nomor_ref: nomorRef,
     nomor_po: nomorPo,
@@ -2065,12 +1927,12 @@ const normalizeProductionSource = (type, row, item = null, itemIndex = 0) => {
 }
 
 const allProductionSourceOptions = computed(() => [
-  ...activePlanningRows.value.map((row) => normalizeProductionSource('planning', row)),
-  ...availableSpkOptions.value.map((option) => normalizeProductionSource('spk', option.item)),
-  ...approvedPoRawOptions.value.flatMap((row) => {
-    const items = getProductionSourceItems(row)
-    if (!items.length) return [normalizeProductionSource('po', row)]
-    return items.map((item, index) => normalizeProductionSource('po', row, item, index))
+  ...activePlanningRows.value.flatMap((row) => {
+    const schedules = planningScheduleRows(row)
+    if (schedules.length) {
+      return schedules.map((schedule) => normalizeProductionSource('planning', row, null, 0, schedule))
+    }
+    return [normalizeProductionSource('planning', row)]
   }),
 ])
 
@@ -2123,6 +1985,9 @@ const rejectStatusColor = (status) => {
   return 'blue-grey-6'
 }
 
+const rejectReference = (row = {}) =>
+  row.nomor_planning || row.no_planning || row.planning_number || row.reference || '-'
+
 const canProcessRejectQc = (row) => normalizeRejectStatus(row.status_rework) === 'menunggu_rework'
 const canSendRejectQc = (row) => normalizeRejectStatus(row.status_rework) === 'diproses_ulang'
 
@@ -2164,8 +2029,8 @@ const buildQcUlangPayload = (row) => ({
   rework_queue_id: row.id,
   production_source_id: row.production_source_id || '',
   source_type: 'rework',
-  no_spk: row.no_spk || row.nomor_spk || '',
-  nomor_spk: row.nomor_spk || row.no_spk || '',
+  reference: rejectReference(row),
+  nomor_planning: row.nomor_planning || row.no_planning || row.planning_number || '',
   nama_produk: row.nama_produk || row.produk || '',
   produk: row.produk || row.nama_produk || '',
   kode_produk: row.kode_produk || '',
@@ -2324,9 +2189,11 @@ const statusColor = (status) => {
 }
 
 const priorityColor = (priority) => {
-  if (priority === 'High') return 'negative'
-  if (priority === 'Low') return 'green-8'
-  return 'orange-9'
+  const normalized = normalizePriority(priority)
+  if (normalized === 'Urgent') return 'negative'
+  if (normalized === 'High') return 'orange-9'
+  if (normalized === 'Medium') return 'blue-grey-7'
+  return 'green-8'
 }
 
 const planningStatusColor = (status) => {
@@ -2468,32 +2335,11 @@ const applyProductionSource = (source) => {
   const selected = sourceToOption(source)
   if (!selected) return
 
-  const poOption =
-    approvedPoRawOptions.value.find(
-      (po) => po.id === selected.item?.po_id || po.nomor === selected.nomor_po || po.id === selected.id,
-    ) ||
-    (selected.nomor_po
-      ? {
-          id: selected.item?.po_id || selected.id,
-          label: selected.nomor_po,
-          nomor: selected.nomor_po,
-          customerName: selected.customer_nama,
-          customer_id: selected.customer_id,
-          produk_id: selected.produk_id,
-          kode_produk: selected.kode_produk,
-          nama_produk: selected.nama_produk,
-          qty_po: selected.qty_target,
-          total_po: selected.total_po,
-          satuan: selected.satuan,
-        }
-      : null)
   const customerOption =
-    findCustomerFromPo(poOption) ||
     (selected.customer_nama
       ? { id: selected.customer_id || selected.customer_nama, label: selected.customer_nama, nama: selected.customer_nama }
       : null)
   const produkOption =
-    findProdukFromPo(poOption) ||
     (selected.nama_produk
       ? {
           id: selected.produk_id || selected.nama_produk,
@@ -2504,18 +2350,16 @@ const applyProductionSource = (source) => {
         }
       : null)
   const satuanOption = findSatuanFromValue(selected.satuan || produkOption?.satuan)
-  const spkOption = selected.type === 'spk' ? selected.item : null
-  const planningOption = selected.type === 'planning' ? selected.item : null
+  const planningOption = selected.item || null
 
   produksiForm.value.source_type = selected.type
   produksiForm.value.source_id = selected.id
   produksiForm.value.planning_obj = planningOption
-  produksiForm.value.spk_obj = spkOption
-  produksiForm.value.nomor_po_obj = poOption
+  produksiForm.value.nomor_po_obj = null
   produksiForm.value.customer_obj = customerOption
   produksiForm.value.produk_obj = produkOption
   produksiForm.value.satuan_obj = satuanOption
-  produksiForm.value.nomor_po = selected.nomor_po || poOption?.nomor || poOption?.label || ''
+  produksiForm.value.nomor_po = selected.nomor_ref || selected.nomor_po || ''
   produksiForm.value.customer_nama = selected.customer_nama || customerOption?.label || customerOption?.nama || ''
   produksiForm.value.produk_id = selected.produk_id || produkOption?.id || null
   produksiForm.value.kode_produk = selected.kode_produk || produkOption?.kode_produk || ''
@@ -2529,46 +2373,6 @@ const applyProductionSource = (source) => {
 
 const handleProductionSourceSelected = (source) => {
   applyProductionSource(source)
-}
-
-const updateSpkStatus = async (spk, status, extraPayload = {}) => {
-  const departemenPathId = spk.departemen_path_id || spk.departemen_id || departemenId.value
-  if (!departemenPathId || !spk?.id) {
-    notify('warning', 'Path SPK tidak valid, status SPK tidak diperbarui.')
-    return
-  }
-
-  try {
-    await updateManufacturingSpkProduksi(departemenPathId, spk.id, {
-      status,
-      status_pekerjaan: status,
-      is_new: false,
-      ...extraPayload,
-    })
-    notify('positive', `Status SPK ${spk.nomor_spk || ''} menjadi ${status}.`)
-  } catch (error) {
-    console.error(error)
-    notify('negative', 'Gagal memperbarui status SPK.')
-  }
-}
-
-const finishSpk = (spk) => {
-  $q.dialog({
-    title: 'Selesaikan SPK',
-    message: `Input qty hasil jadi untuk ${spk.nomor_spk || 'SPK'}:`,
-    prompt: {
-      model: Number(spk.qty_hasil_jadi || spk.qty_target || 0),
-      type: 'number',
-    },
-    cancel: true,
-    persistent: true,
-    ok: { label: 'Finished', color: 'positive', unelevated: true },
-  }).onOk((qty) => {
-    updateSpkStatus(spk, 'Finished', {
-      qty_hasil_jadi: Number(qty || 0),
-      finished_at: new Date().toISOString(),
-    })
-  })
 }
 
 const buildUpdatedRoute = (planning, status, extra = {}) =>
@@ -2756,12 +2560,10 @@ const saveProduction = async () => {
   try {
     const selectedSource = produksiForm.value.source_obj
     if (!selectedSource) {
-      notify('warning', 'Pilih Planning/SPK/Approved PO terlebih dahulu.')
+      notify('warning', 'Pilih Planning Produksi atau schedule terlebih dahulu.')
       return
     }
 
-    const selectedPo = produksiForm.value.nomor_po_obj
-    const selectedSpk = produksiForm.value.spk_obj?.item || produksiForm.value.spk_obj
     const selectedPlanning = produksiForm.value.planning_obj
     const selectedCustomer = produksiForm.value.customer_obj
     const selectedProduk = produksiForm.value.produk_obj
@@ -2801,12 +2603,13 @@ const saveProduction = async () => {
       source_label: selectedSource.label,
       item_id: selectedSource.item_id || null,
       item_index: selectedSource.item_index ?? null,
+      schedule_key: selectedSource.schedule_key || '',
+      schedule_date: selectedSource.schedule_date || '',
+      schedule_day: selectedSource.schedule_day || null,
       planning_id: selectedPlanning?.id || null,
       nomor_planning: selectedPlanning?.nomor_planning || selectedPlanning?.no_planning || '',
-      spk_id: selectedSpk?.id || null,
-      nomor_spk: selectedSpk?.nomor_spk || '',
-      nomor_po: produksiForm.value.nomor_po || selectedPo?.nomor || selectedPo?.label || '',
-      po_id: selectedPo?.id || null,
+      nomor_po: produksiForm.value.nomor_po || selectedSource.nomor_ref || '',
+      po_id: null,
       customer: {
         id: selectedCustomer?.id || null,
         nama: produksiForm.value.customer_nama || selectedCustomer?.label || selectedCustomer?.nama || '',
@@ -2879,30 +2682,26 @@ const saveProduction = async () => {
       sisa_qty: sisaQty,
       progress_percent: progressPercent,
     }
+    const scheduleProgressPayload = selectedSource.schedule_key
+      ? {
+          production_schedule: (Array.isArray(selectedPlanning?.production_schedule)
+            ? selectedPlanning.production_schedule
+            : []
+          ).map((schedule, index) => {
+            const normalizedSchedule = normalizeScheduleRow(schedule, index, selectedPlanning?.id)
+            if (normalizedSchedule.key !== selectedSource.schedule_key) return schedule
+            return {
+              ...schedule,
+              key: normalizedSchedule.key,
+              actual_qty: totalHasil,
+              status: isFinished ? 'done' : 'in_progress',
+              updated_at: new Date().toISOString(),
+            }
+          }),
+        }
+      : {}
 
     try {
-      if (selectedSpk?.id) {
-        const departemenPathId = selectedSpk.departemen_path_id || selectedSpk.departemen_id || departemenId.value
-        if (!departemenPathId) {
-          console.error('Histori produksi tersimpan, tetapi path SPK tidak valid:', selectedSpk)
-        } else {
-          await updateManufacturingSpkProduksi(
-            departemenPathId,
-            selectedSpk.id,
-            {
-              status: isFinished ? 'Finished' : 'On Production',
-              status_pekerjaan: isFinished ? 'Finished' : 'On Production',
-              ...progressPayload,
-              is_new: false,
-            },
-          )
-        }
-      }
-
-      if (selectedPo?.id) {
-        await updateManufacturingApprovedPo(selectedPo.id, progressPayload)
-      }
-
       if (selectedPlanning?.id) {
         if (isFinished) {
           await finishPlanningStep(
@@ -2910,6 +2709,7 @@ const saveProduction = async () => {
             {
               progress: progressPercent,
               ...progressPayload,
+              ...scheduleProgressPayload,
             },
             { silent: true },
           )
@@ -2919,12 +2719,13 @@ const saveProduction = async () => {
             status: 'On Progress',
             progress: progressPercent,
             ...progressPayload,
+            ...scheduleProgressPayload,
             is_new: false,
           })
         }
       }
     } catch (error) {
-      console.error('Histori produksi tersimpan, tetapi update progress planning/SPK gagal:', error)
+      console.error('Histori produksi tersimpan, tetapi update progress planning gagal:', error)
     }
 
     try {
@@ -2994,7 +2795,7 @@ const savePermintaanBarang = async () => {
 const confirmDelete = (row) => {
   $q.dialog({
     title: 'Hapus Data Produksi',
-    message: `Hapus data produksi PO ${row.nomor_po || '-'}?`,
+    message: `Hapus data produksi planning ${row.nomor_po || '-'}?`,
     cancel: true,
     persistent: true,
     ok: { label: 'Hapus', color: 'negative', unelevated: true },
@@ -3126,9 +2927,9 @@ const exportExcel = () => {
               <th>No</th>
               <th>Tanggal</th>
               <th>Customer</th>
-              <th>Nomor PO</th>
+              <th>Nomor Planning</th>
               <th>Master Produk</th>
-              <th>Qty PO</th>
+              <th>Qty Target</th>
               <th>Qty Hasil Jadi</th>
               <th>Satuan</th>
               <th>Status Produksi</th>
@@ -3203,9 +3004,9 @@ const exportPdf = () => {
               <th>No</th>
               <th>Tanggal</th>
               <th>Customer</th>
-              <th>Nomor PO</th>
+              <th>Nomor Planning</th>
               <th>Master Produk</th>
-              <th>Qty PO</th>
+              <th>Qty Target</th>
               <th>Qty Hasil Jadi</th>
               <th>Satuan</th>
               <th>Status Produksi</th>
@@ -3232,30 +3033,6 @@ onMounted(async () => {
     console.error(error)
     notify('warning', 'Master departemen tidak ditemukan, memakai data dari route.')
   }
-
-  unsubscribeSpk = listenManufacturingDepartemenSpk(
-    departemenId.value,
-    (nextRows) => {
-      const previousIds = knownSpkIds.value
-      const nextIds = new Set(nextRows.map((row) => row.id))
-      const hasNewIncoming = nextRows.some(
-        (row) => row.status === 'Menunggu Produksi' && !previousIds.has(row.id),
-      )
-
-      spkRows.value = nextRows
-      knownSpkIds.value = nextIds
-      spkLoading.value = false
-
-      if (previousIds.size > 0 && hasNewIncoming) {
-        notify('info', 'SPK Baru Diterima')
-      }
-    },
-    (error) => {
-      console.error(error)
-      spkLoading.value = false
-      notify('negative', 'Gagal memuat SPK departemen realtime.')
-    },
-  )
 
   unsubscribePlanning = listenManufacturingDepartemenPlanning(
     departemenId.value,
@@ -3433,7 +3210,6 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  if (unsubscribeSpk) unsubscribeSpk()
   if (unsubscribePlanning) unsubscribePlanning()
   if (unsubscribeProduksi) unsubscribeProduksi()
   if (unsubscribeSatuanOptions) unsubscribeSatuanOptions()
@@ -3470,19 +3246,19 @@ onUnmounted(() => {
   overflow: hidden;
 }
 
-.spk-section-card {
+.planning-section-card {
   border-color: rgba(15, 60, 45, 0.1);
   border-radius: 8px;
   min-height: 280px;
 }
 
-.spk-card-list {
+.planning-card-list {
   max-height: 360px;
   overflow-y: auto;
   position: relative;
 }
 
-.spk-inbox-card {
+.planning-inbox-card {
   border-color: rgba(15, 60, 45, 0.12);
   border-radius: 8px;
 }

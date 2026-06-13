@@ -1,13 +1,13 @@
 <template>
-  <q-page class="q-pa-md bg-grey-2">
+  <q-page class="q-pa-md warehouse-page bg-dark-premium">
     <!-- Header Page -->
     <div class="row items-center q-mb-md">
       <div>
-        <div class="text-h5 text-weight-bold text-deep-orange-9">Outgoing QC (OQC)</div>
-        <div class="text-subtitle2 text-grey-6">Pengecekan Akhir Barang Keluar</div>
+        <div class="text-h4 text-weight-bolder incoming-title">Outgoing QC (OQC)</div>
+        <div class="text-subtitle2 incoming-subtitle">Pengecekan Akhir Barang Keluar</div>
       </div>
       <q-space />
-      <q-btn color="deep-orange-9" icon="fact_check" label="Input QC" @click="showForm = true" />
+      <q-btn icon="fact_check" label="Input QC" class="btn-neon-green" @click="showForm = true" />
     </div>
 
     <!-- Data Table -->
@@ -16,36 +16,37 @@
       :columns="columns"
       row-key="id"
       flat
-      bordered
-      class="bg-white rounded-borders shadow-sm"
+      dark
+      class="table-card glass-card fg-table-dark"
     />
 
     <!-- Dialog Input -->
     <q-dialog v-model="showForm" persistent>
-      <q-card style="min-width: 400px">
-        <q-card-section class="row items-center">
-          <div class="text-h6">Input Hasil OQC</div>
+      <q-card class="glass-card rack-dialog" style="min-width: 400px">
+        <q-card-section class="dialog-header row items-center text-white">
+          <div class="text-h6 text-neon-green text-weight-bold">Input Hasil OQC</div>
           <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
+          <q-btn icon="close" flat round dense v-close-popup color="grey-4" />
         </q-card-section>
 
-        <q-card-section class="q-gutter-md">
-          <q-input v-model="form.noSJ" label="No. Surat Jalan" outlined dense />
-          <q-input v-model="form.customer" label="Customer" outlined dense />
-          <q-input v-model="form.produk" label="Nama Produk" outlined dense />
+        <q-card-section class="q-gutter-md q-pa-md">
+          <q-input v-model="form.noSJ" label="No. Surat Jalan" outlined dense dark />
+          <q-input v-model="form.customer" label="Customer" outlined dense dark />
+          <q-input v-model="form.produk" label="Nama Produk" outlined dense dark />
           <q-select
             v-model="form.status"
             :options="['Pass', 'Reject']"
             label="Hasil QC"
             outlined
             dense
+            dark
           />
-          <q-input v-model="form.checker" label="Nama Checker" outlined dense />
+          <q-input v-model="form.checker" label="Nama Checker" outlined dense dark />
         </q-card-section>
 
-        <q-card-actions align="right">
-          <q-btn flat label="Batal" v-close-popup />
-          <q-btn color="deep-orange-9" label="Simpan" @click="saveQC" />
+        <q-card-actions align="right" class="dialog-actions q-pa-md">
+          <q-btn flat label="Batal" color="grey-4" v-close-popup />
+          <q-btn label="Simpan" class="btn-neon-green" @click="saveQC" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -116,10 +117,98 @@ onMounted(loadQCData)
 </script>
 
 <style scoped>
-.rounded-borders {
-  border-radius: 8px;
+.warehouse-page {
+  background-color: #071826;
+  min-height: 100vh;
 }
-.shadow-sm {
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+
+.incoming-title {
+  color: #F4F7FA !important;
+  text-shadow: 0 0 12px rgba(124, 255, 79, 0.18);
+}
+
+.incoming-subtitle {
+  color: #B8C7D9 !important;
+}
+
+.text-neon-green {
+  color: #7CFF4F !important;
+}
+
+.btn-neon-green {
+  background: linear-gradient(135deg, #7CFF4F 0%, #66d93f 100%) !important;
+  color: #071826 !important;
+  font-weight: 700 !important;
+}
+
+.glass-card {
+  background: rgba(13, 34, 51, 0.7) !important;
+  border: 1px solid rgba(124, 255, 79, 0.08) !important;
+  border-radius: 18px !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+}
+
+.dialog-header {
+  background: rgba(13, 34, 51, 0.9) !important;
+  border-bottom: 1px solid rgba(0, 209, 178, 0.2) !important;
+}
+
+.dialog-actions {
+  background: rgba(13, 34, 51, 0.9) !important;
+  border-top: 1px solid rgba(0, 209, 178, 0.15) !important;
+}
+
+/* Table Spacing Alignment (Matching PlanningProduksiPage.vue) */
+.table-card {
+  margin-top: 20px !important;
+  padding: 20px !important;
+  border-radius: 18px !important;
+  background: rgba(13, 34, 51, 0.85) !important;
+  border: 1px solid rgba(124, 255, 79, 0.08) !important;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.table-card :deep(.q-table thead tr) {
+  height: 54px !important;
+}
+
+.table-card :deep(.q-table thead th) {
+  height: 54px !important;
+  font-size: 13px !important;
+  letter-spacing: 0.08em !important;
+  padding: 0 18px !important;
+  vertical-align: middle !important;
+  background: rgba(13, 34, 51, 0.9) !important;
+}
+
+.table-card :deep(.q-table tbody tr) {
+  min-height: 64px !important;
+  height: 64px !important;
+}
+
+.table-card :deep(.q-table tbody td) {
+  padding: 14px 18px !important;
+  white-space: normal !important;
+  vertical-align: middle !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+}
+
+.table-card :deep(.q-table__bottom) {
+  padding: 16px 20px !important;
+}
+
+.fg-table-dark :deep(tbody td) {
+  color: #F4F7FA !important;
+}
+
+
+.rack-dialog {
+  max-width: 92vw;
+  width: 420px;
+  background: #071826 !important;
+  border: 1px solid rgba(124, 255, 79, 0.15) !important;
 }
 </style>

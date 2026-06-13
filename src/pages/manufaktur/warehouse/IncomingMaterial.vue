@@ -2,19 +2,18 @@
   <q-page class="incoming-module q-pa-md q-pa-lg-md">
     <div class="module-header row items-center justify-between q-mb-md">
       <div class="col-12 col-md">
-        <div class="text-h4 text-weight-bolder text-green-10">Incoming Material</div>
-        <div class="text-subtitle2 text-grey-7">
+        <div class="text-h4 text-weight-bolder incoming-title">Incoming Material</div>
+        <div class="text-subtitle2 incoming-subtitle">
           Monitoring penerimaan material manufaktur, validasi QC, dan status incoming PT.
         </div>
       </div>
       <div class="col-12 col-md-auto q-mt-md q-mt-md-none">
         <q-btn
           unelevated
-          color="green-10"
           icon="add_circle"
           label="Input Incoming"
           no-caps
-          class="text-weight-bold q-px-lg"
+          class="text-weight-bold q-px-lg btn-neon-green"
           @click="openCreateDialog"
         />
       </div>
@@ -43,26 +42,26 @@
     />
 
     <q-dialog v-model="showDetailDialog">
-      <q-card class="detail-card">
+      <q-card class="detail-card glass-card">
         <q-card-section class="detail-header">
           <div class="row items-center no-wrap">
             <q-icon name="fact_check" size="24px" class="q-mr-sm" />
             <div class="col">
-              <div class="text-subtitle1 text-weight-bolder">Detail Incoming Material</div>
-              <div class="text-caption">{{ selectedRow?.nomor_surat_jalan || '-' }}</div>
+              <div class="text-subtitle1 text-weight-bolder incoming-title">Detail Incoming Material</div>
+              <div class="text-caption incoming-subtitle">{{ selectedRow?.nomor_surat_jalan || '-' }}</div>
             </div>
-            <q-btn flat round dense icon="close" v-close-popup />
+            <q-btn flat round dense icon="close" v-close-popup color="grey-4" />
           </div>
         </q-card-section>
 
         <q-card-section v-if="selectedRow" class="q-pa-md">
           <div class="row q-col-gutter-md">
             <div class="col-12">
-              <q-card flat bordered class="detail-status">
+              <q-card flat bordered class="detail-status glass-card">
                 <q-card-section class="row items-center q-pa-md">
                   <div class="col">
-                    <div class="text-caption text-grey-7 text-weight-bold">NOMOR SURAT JALAN</div>
-                    <div class="text-h6 text-weight-bolder text-green-10">
+                    <div class="text-caption text-muted-premium text-weight-bold">NOMOR SURAT JALAN</div>
+                    <div class="text-h6 text-weight-bolder text-neon-green">
                       {{ selectedRow.nomor_surat_jalan || '-' }}
                     </div>
                   </div>
@@ -74,34 +73,34 @@
             </div>
 
             <div v-for="item in detailFields" :key="item.label" class="col-12 col-sm-6 col-md-4">
-              <div class="field-label">{{ item.label }}</div>
-              <div class="field-value">{{ item.value }}</div>
+              <div class="field-label text-muted-premium">{{ item.label }}</div>
+              <div class="field-value text-primary-premium">{{ item.value }}</div>
             </div>
 
             <div class="col-12 col-sm-6 col-md-4">
-              <div class="field-label">Selisih</div>
+              <div class="field-label text-muted-premium">Selisih</div>
               <div
                 class="field-value"
-                :class="qtyDiff(selectedRow) === 0 ? 'text-positive' : 'text-orange-10'"
+                :class="qtyDiff(selectedRow) === 0 ? 'text-positive' : 'text-orange-9'"
               >
                 {{ formatNumber(qtyDiff(selectedRow)) }}
               </div>
             </div>
 
             <div class="col-12">
-              <div class="field-label">Catatan</div>
-              <div class="text-body2">
+              <div class="field-label text-muted-premium">Catatan</div>
+              <div class="text-body2 text-primary-premium">
                 {{ selectedRow.catatan || selectedRow.catatan_incoming || '-' }}
               </div>
             </div>
           </div>
         </q-card-section>
 
-        <q-card-actions align="right" class="bg-grey-1 q-pa-md">
-          <q-btn flat color="grey-7" label="Tutup" no-caps v-close-popup />
+        <q-card-actions align="right" class="dialog-actions q-pa-md">
+          <q-btn flat color="grey-4" label="Tutup" no-caps v-close-popup />
           <q-btn
             flat
-            color="green-10"
+            color="cyan"
             icon="edit_note"
             label="Edit"
             no-caps
@@ -109,16 +108,16 @@
           />
           <q-btn
             unelevated
-            color="positive"
             icon="fact_check"
             label="Validasi"
             no-caps
+            class="btn-neon-green"
             :disable="isFinalStatus(selectedRow)"
             @click="validasiIncoming(selectedRow)"
           />
           <q-btn
             flat
-            color="negative"
+            color="red-9"
             icon="block"
             label="Reject"
             no-caps
@@ -459,15 +458,54 @@ onUnmounted(() => {
 
 <style scoped>
 .incoming-module {
-  background: #f4f8f5;
-  min-height: 100%;
+  background: #071826 !important;
+  min-height: 100vh;
+}
+
+.incoming-title {
+  color: #F4F7FA !important;
+  text-shadow: 0 0 12px rgba(124, 255, 79, 0.18);
+}
+
+.incoming-subtitle {
+  color: #B8C7D9 !important;
+}
+
+.text-neon-green {
+  color: #7CFF4F !important;
+}
+
+.text-muted-premium {
+  color: #8CA3B8 !important;
+}
+
+.text-primary-premium {
+  color: #F4F7FA !important;
+}
+
+.btn-neon-green {
+  background: linear-gradient(135deg, #7CFF4F 0%, #66d93f 100%) !important;
+  color: #071826 !important;
+  font-weight: 700 !important;
+}
+
+.glass-card {
+  background: rgba(13, 34, 51, 0.7) !important;
+  border: 1px solid rgba(124, 255, 79, 0.08) !important;
+  border-radius: 18px !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+}
+
+.dialog-actions {
+  background: rgba(13, 34, 51, 0.9) !important;
+  border-top: 1px solid rgba(0, 209, 178, 0.15) !important;
 }
 
 .module-header {
-  background: #ffffff;
-  border: 1px solid #dfe8df;
-  border-radius: 8px;
-  padding: 16px;
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
 }
 
 .table-without-summary :deep(.incoming-summary) {
@@ -475,19 +513,22 @@ onUnmounted(() => {
 }
 
 .detail-card {
-  border-radius: 8px;
+  border-color: rgba(124, 255, 79, 0.08) !important;
+  border-radius: 18px !important;
   max-width: 95vw;
   width: 860px;
+  overflow: hidden;
 }
 
 .detail-header {
-  background: linear-gradient(135deg, #163c2d 0%, #1b5e20 100%);
+  background: linear-gradient(135deg, rgba(0, 209, 178, 0.12), rgba(124, 255, 79, 0.08));
+  border-bottom: 1px solid rgba(0, 209, 178, 0.2);
   color: #ffffff;
   padding: 14px 16px;
 }
 
 .detail-status {
-  background: #f7faf8;
+  background: rgba(13, 34, 51, 0.5) !important;
   border-radius: 8px;
 }
 
@@ -500,7 +541,6 @@ onUnmounted(() => {
 }
 
 .field-label {
-  color: #667085;
   font-size: 11px;
   font-weight: 800;
   margin-bottom: 4px;
@@ -508,7 +548,6 @@ onUnmounted(() => {
 }
 
 .field-value {
-  color: #1f2a24;
   font-size: 14px;
   font-weight: 800;
 }

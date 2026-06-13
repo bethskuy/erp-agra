@@ -1,14 +1,14 @@
 <template>
-  <q-page class="forecast-page bg-grey-2 q-pa-md q-pa-lg-lg font-pro">
+  <q-page class="forecast-page q-pa-md q-pa-lg-lg font-pro">
     <div class="row items-center justify-between q-mb-lg">
       <div class="col-12 col-md-8">
-        <div class="text-h4 text-weight-bolder text-green-10 leading-tight">
+        <div class="header-title">
           Forecast Packing Material
-          <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs">
+          <span class="header-subtitle block q-mt-xs">
             PPIC Material Kemasan
           </span>
         </div>
-        <div class="text-subtitle1 text-grey-7 q-mt-sm">
+        <div class="header-desc q-mt-sm">
           Proyeksi kebutuhan indirect material packing berdasarkan planning produksi dan standard packing product.
         </div>
       </div>
@@ -21,7 +21,7 @@
 
     <div class="row q-col-gutter-md q-mb-lg">
       <div v-for="card in summaryCards" :key="card.title" class="col-12 col-sm-6 col-lg-3">
-        <q-card flat bordered class="summary-card bg-white">
+        <q-card flat class="summary-card glass-card">
           <q-card-section class="row items-center no-wrap">
             <q-avatar :color="card.color" text-color="white" :icon="card.icon" size="46px" />
             <div class="q-ml-md">
@@ -33,7 +33,7 @@
       </div>
     </div>
 
-    <q-card flat bordered class="filter-card bg-white q-mb-lg">
+    <q-card flat class="filter-card glass-card q-mb-lg">
       <q-card-section class="q-py-md">
         <div class="row q-col-gutter-md items-center">
           <div class="col-12 col-md-7">
@@ -41,13 +41,13 @@
               v-model="search"
               outlined
               dense
-              rounded
               debounce="250"
               placeholder="Cari material, status, atau rekomendasi..."
-              bg-color="white"
+              class="search-input"
+              dark
             >
               <template #prepend>
-                <q-icon name="search" color="green-10" />
+                <q-icon name="search" color="cyan" />
               </template>
             </q-input>
           </div>
@@ -57,15 +57,15 @@
               :options="statusOptions"
               outlined
               dense
-              rounded
               emit-value
               map-options
               label="Status"
-              bg-color="white"
+              class="filter-input"
+              dark
             />
           </div>
           <div class="col-12 col-md-auto">
-            <q-chip dense color="green-10" text-color="white" class="text-weight-bold q-px-md">
+            <q-chip dense color="cyan" text-color="dark" class="text-weight-bold q-px-md">
               {{ filteredRows.length }} MATERIAL
             </q-chip>
           </div>
@@ -73,7 +73,7 @@
       </q-card-section>
     </q-card>
 
-    <q-card flat bordered class="table-card bg-white q-mb-lg">
+    <q-card flat class="table-card glass-card q-mb-lg">
       <q-table
         :rows="filteredRows"
         :columns="columns"
@@ -85,7 +85,7 @@
         class="forecast-table"
       >
         <template #header="props">
-          <q-tr :props="props" class="bg-green-10 text-white">
+          <q-tr :props="props" class="forecast-thead-row">
             <q-th v-for="col in props.cols" :key="col.name" :props="props" class="table-head">
               {{ col.label }}
             </q-th>
@@ -93,18 +93,18 @@
         </template>
 
         <template #body="props">
-          <q-tr :props="props">
+          <q-tr :props="props" class="forecast-row">
             <q-td key="material" :props="props">
-              <div class="text-weight-bold text-green-10">{{ props.row.material_name }}</div>
-              <div class="text-caption text-grey-6">{{ props.row.satuan || '-' }}</div>
+              <div class="cell-material-name">{{ props.row.material_name }}</div>
+              <div class="cell-sub">{{ props.row.satuan || '-' }}</div>
             </q-td>
-            <q-td key="current_stock" :props="props" class="text-right text-weight-bold">
+            <q-td key="current_stock" :props="props" class="text-right cell-qty">
               {{ formatNumber(props.row.current_stock) }}
             </q-td>
-            <q-td key="forecast_need" :props="props" class="text-right text-weight-bold">
+            <q-td key="forecast_need" :props="props" class="text-right cell-qty">
               {{ formatNumber(props.row.forecast_need) }}
             </q-td>
-            <q-td key="remaining_forecast" :props="props" class="text-right text-weight-bold">
+            <q-td key="remaining_forecast" :props="props" class="text-right cell-qty" :class="{ 'text-negative': props.row.remaining_forecast < 0 }">
               {{ formatNumber(props.row.remaining_forecast) }}
             </q-td>
             <q-td key="status" :props="props">
@@ -127,16 +127,16 @@
       </q-table>
     </q-card>
 
-    <q-card v-if="standardIssues.length" flat bordered class="issue-card bg-white">
+    <q-card v-if="standardIssues.length" flat class="issue-card glass-card">
       <q-card-section class="text-weight-bold text-orange-10">
         Produk Belum Memiliki Standard Packing
       </q-card-section>
-      <q-separator />
-      <q-list separator>
+      <q-separator dark />
+      <q-list separator dark>
         <q-item v-for="issue in standardIssues" :key="issue.key">
           <q-item-section>
-            <q-item-label class="text-weight-bold">{{ issue.product_name || '-' }}</q-item-label>
-            <q-item-label caption>
+            <q-item-label class="text-weight-bold text-white">{{ issue.product_name || '-' }}</q-item-label>
+            <q-item-label caption class="text-grey-5">
               {{ issue.source_no || '-' }} | Qty {{ formatNumber(issue.qty) }}
             </q-item-label>
           </q-item-section>
@@ -395,48 +395,139 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* Packing Forecast Page — Dark Premium Theme */
+.forecast-page {
+  background: #071826 !important;
+  min-height: 100vh;
+}
+
 .font-pro {
-  font-family:
-    'Inter',
-    -apple-system,
-    sans-serif;
+  font-family: 'Inter', -apple-system, sans-serif;
 }
 
 .leading-tight {
   line-height: 1.15;
 }
 
+/* ═══════ HEADER ═══════ */
+.header-title {
+  margin: 0;
+  font-size: clamp(24px, 2.5vw, 36px);
+  font-weight: 900;
+  color: #F4F7FA;
+  line-height: 1.1;
+  text-shadow: 0 0 12px rgba(124, 255, 79, 0.18);
+}
+.header-subtitle {
+  font-size: 14px;
+  color: #B8C7D9;
+  line-height: 1.5;
+}
+.header-desc {
+  font-size: 14px;
+  color: #8CA3B8;
+  line-height: 1.5;
+}
+
+/* ═══════ GLASS CARD ═══════ */
+.glass-card {
+  background: rgba(13, 34, 51, 0.7) !important;
+  border: 1px solid rgba(124, 255, 79, 0.08) !important;
+  border-radius: 18px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
 .summary-card,
 .filter-card,
 .table-card,
 .issue-card {
-  border-color: #dfe8df;
-  border-radius: 16px;
   overflow: hidden;
 }
 
 .summary-label {
-  color: #667085;
+  color: #8CA3B8;
   font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
 }
 
 .summary-value {
-  color: #1b5e20;
+  color: #FFFFFF;
   font-size: 28px;
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1;
   margin-top: 5px;
 }
 
-.forecast-table :deep(thead tr th) {
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: 0.5px;
-  padding: 14px 16px;
+/* ═══════ FILTER BAR ═══════ */
+.search-input :deep(.q-field__control),
+.filter-input :deep(.q-field__control) {
+  background: rgba(124, 255, 79, 0.04);
+  border: 1px solid rgba(124, 255, 79, 0.1);
+  border-radius: 14px;
+}
+
+/* ═══════ TABLE ═══════ */
+.forecast-table {
+  background: transparent !important;
+}
+
+.forecast-table :deep(.q-table__top),
+.forecast-table :deep(.q-table__bottom) {
+  background: transparent;
+  color: #8CA3B8;
+}
+
+.forecast-table :deep(.q-table__bottom) {
+  border-top: 1px solid rgba(124, 255, 79, 0.06);
+}
+
+.forecast-thead-row {
+  background: rgba(0, 209, 178, 0.08) !important;
+}
+
+.forecast-thead-row th {
+  color: #EAF2FF !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.4px;
+  border-bottom: 1px solid rgba(0, 209, 178, 0.15) !important;
+}
+
+.table-head {
   text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.8px;
+  padding: 14px 16px;
+}
+
+.forecast-row td {
+  color: #F4F7FA !important;
+  border-bottom: 1px solid rgba(124, 255, 79, 0.04) !important;
+}
+
+.forecast-row:hover {
+  background: rgba(124, 255, 79, 0.04) !important;
+}
+
+/* Cell Styles */
+.cell-material-name {
+  color: #00D1B2;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.cell-sub {
+  color: #8CA3B8;
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.cell-qty {
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 13px;
 }
 
 .status-chip {

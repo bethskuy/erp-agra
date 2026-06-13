@@ -1,120 +1,142 @@
 <template>
-  <q-page class="planning-page bg-grey-2 q-pa-md q-pa-lg-lg font-pro">
-    <div class="row items-center justify-between q-mb-xl">
-      <div class="col-12 col-md-8">
-        <div class="text-h4 text-weight-bolder text-green-10 leading-tight">
-          Planning Produksi
-            <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs">
-            Planning produksi dari project manufaktur ke departemen manufacturing
-          </span>
+  <q-page class="planning-page font-pro">
+    <!-- ═══════ HEADER ═══════ -->
+    <div class="planning-header">
+      <div class="header-content">
+        <div class="header-left">
+          <div class="header-badge">PPIC MODULE</div>
+          <h1 class="header-title">Planning Produksi</h1>
+          <p class="header-subtitle">Planning produksi dari project manufaktur ke departemen manufacturing</p>
+        </div>
+        <div class="header-right">
+          <q-btn
+            unelevated
+            no-caps
+            class="btn-generate"
+            icon="add_circle"
+            label="Generate Planning"
+            @click="openCreateDialog"
+          />
         </div>
       </div>
+    </div>
 
-      <div class="col-12 col-md-auto q-mt-md q-mt-md-none">
-        <q-btn
-          unelevated
-          rounded
-          color="green-10"
-          icon="add_circle"
-          label="Generate Planning"
-          class="q-px-lg shadow-premium"
-          @click="openCreateDialog"
-        />
+    <!-- ═══════ SUMMARY CARDS ═══════ -->
+    <div class="stats-grid">
+      <div v-for="card in summaryCards" :key="card.title" class="summary-card-wrap">
+        <div class="glass-card summary-card">
+          <div class="summary-icon-wrap">
+            <q-icon :name="card.icon" size="26px" color="white" />
+          </div>
+          <div class="summary-info">
+            <div class="summary-label">{{ card.title }}</div>
+            <div class="summary-value">{{ card.value }}</div>
+          </div>
+          <div class="summary-glow"></div>
+        </div>
       </div>
     </div>
 
-    <div class="row q-col-gutter-md q-mb-lg">
-      <div v-for="card in summaryCards" :key="card.title" class="col-12 col-sm-6 col-lg-3">
-        <q-card flat bordered class="summary-card bg-white">
-          <q-card-section class="row items-center no-wrap">
-            <q-avatar :color="card.color" text-color="white" :icon="card.icon" size="46px" />
-            <div class="q-ml-md col">
-              <div class="summary-label">{{ card.title }}</div>
-              <div class="summary-value">{{ card.value }}</div>
-            </div>
-          </q-card-section>
-        </q-card>
-      </div>
-    </div>
-
-    <q-card flat bordered class="tabs-card bg-white q-mb-lg">
+    <!-- ═══════ TABS ═══════ -->
+    <div class="glass-card tabs-card">
       <q-tabs
         v-model="activeSection"
         align="left"
-        class="text-green-10"
-        active-color="green-10"
-        indicator-color="green-10"
+        class="planning-tabs"
+        active-color="white"
+        indicator-color="cyan"
+        narrow-indicator
       >
-        <q-tab name="planning" icon="assignment" label="Planning" no-caps />
-        <q-tab name="schedule" icon="event_note" label="Schedule" no-caps />
+        <q-tab name="planning" no-caps>
+          <div class="tab-content">
+            <q-icon name="assignment" size="20px" />
+            <span>Planning</span>
+          </div>
+        </q-tab>
+        <q-tab name="schedule" no-caps>
+          <div class="tab-content">
+            <q-icon name="event_note" size="20px" />
+            <span>Schedule</span>
+          </div>
+        </q-tab>
       </q-tabs>
-    </q-card>
+    </div>
 
-    <q-tab-panels v-model="activeSection" animated keep-alive class="bg-transparent">
+    <!-- ═══════ TAB PANELS ═══════ -->
+    <q-tab-panels v-model="activeSection" animated keep-alive class="bg-transparent tab-panels-wrap">
+
+      <!-- ──── PLANNING PANEL ──── -->
       <q-tab-panel name="planning" class="q-pa-none">
-        <q-card flat bordered class="filter-card bg-white q-mb-lg">
-          <q-card-section class="q-py-md">
-            <div class="row q-col-gutter-md items-center">
-              <div class="col-12 col-md-5">
-                <q-input
-                  v-model="search"
-                  outlined
-                  dense
-                  rounded
-                  debounce="250"
-                  placeholder="Cari planning, project, customer, produk, atau departemen..."
-                  bg-color="white"
-                >
-                  <template #prepend>
-                    <q-icon name="search" color="green-10" />
-                  </template>
-                </q-input>
-              </div>
 
-              <div class="col-12 col-md-3">
-                <q-select
-                  v-model="statusFilter"
-                  :options="statusFilterOptions"
-                  outlined
-                  dense
-                  rounded
-                  emit-value
-                  map-options
-                  label="Filter Status"
-                  bg-color="white"
-                />
-              </div>
-
-              <div class="col-12 col-md-3">
-                <q-select
-                  v-model="priorityFilter"
-                  :options="priorityFilterOptions"
-                  outlined
-                  dense
-                  rounded
-                  emit-value
-                  map-options
-                  label="Filter Prioritas"
-                  bg-color="white"
-                />
-              </div>
-
-              <div class="col-12 col-md-1">
-                <q-btn
-                  outline
-                  rounded
-                  color="green-10"
-                  icon="refresh"
-                  class="full-width"
-                  @click="resetFilter"
-                />
-              </div>
+        <!-- Search / Filter Bar -->
+        <div class="glass-card filter-card">
+          <div class="filter-bar">
+            <div class="filter-search">
+              <q-input
+                v-model="search"
+                dense
+                rounded
+                standout="bg-transparent"
+                debounce="250"
+                placeholder="Cari planning, project, customer, produk, atau departemen..."
+                class="search-input"
+                input-class="text-white"
+              >
+                <template #prepend>
+                  <q-icon name="search" color="cyan" />
+                </template>
+              </q-input>
             </div>
-          </q-card-section>
-        </q-card>
+            <div class="filter-select">
+              <q-select
+                v-model="statusFilter"
+                :options="statusFilterOptions"
+                dense
+                rounded
+                standout="bg-transparent"
+                emit-value
+                map-options
+                label="Filter Status"
+                class="filter-input"
+                label-color="grey-6"
+                input-class="text-white"
+                popup-content-class="dark-dropdown"
+              />
+            </div>
+            <div class="filter-select">
+              <q-select
+                v-model="priorityFilter"
+                :options="priorityFilterOptions"
+                dense
+                rounded
+                standout="bg-transparent"
+                emit-value
+                map-options
+                label="Filter Prioritas"
+                class="filter-input"
+                label-color="grey-6"
+                input-class="text-white"
+                popup-content-class="dark-dropdown"
+              />
+            </div>
+            <div class="filter-reset">
+              <q-btn
+                flat
+                round
+                icon="refresh"
+                class="btn-reset"
+                @click="resetFilter"
+              >
+                <q-tooltip>Reset filter</q-tooltip>
+              </q-btn>
+            </div>
+          </div>
+        </div>
 
-        <q-card flat bordered class="table-card bg-white">
-          <q-table
+        <!-- Main Planning Table -->
+        <div class="glass-card table-card">
+          <div class="planning-table-wrapper">
+            <q-table
             :rows="filteredRows"
             :columns="columns"
             row-key="id"
@@ -123,18 +145,20 @@
             :loading="loading"
             :pagination="{ rowsPerPage: 10 }"
             class="planning-table"
+            color="cyan"
+            table-header-class="planning-thead"
           >
             <template #top v-if="errorMessage">
-              <q-banner rounded class="full-width bg-red-1 text-negative">
+              <q-banner rounded class="full-width error-banner">
                 <template #avatar>
-                  <q-icon name="error" />
+                  <q-icon name="error" color="red-4" />
                 </template>
                 {{ errorMessage }}
               </q-banner>
             </template>
 
             <template #header="props">
-              <q-tr :props="props" class="bg-green-10 text-white">
+              <q-tr :props="props" class="planning-thead-row">
                 <q-th v-for="col in props.cols" :key="col.name" :props="props" class="table-head">
                   {{ col.label }}
                 </q-th>
@@ -143,53 +167,132 @@
 
             <template #body="props">
               <q-tr :props="props" class="planning-row">
-                <q-td key="project_id" :props="props" class="text-weight-bolder text-green-10">
-                  {{ props.row.planning_number || props.row.no_planning || props.row.nomor_planning || props.row.project_id || props.row.id }}
-                  <div class="text-caption text-grey-6">
+                <!-- Planning Number -->
+                <q-td key="project_id" :props="props">
+                  <div class="cell-planning-number">
+                    {{ props.row.planning_number || props.row.no_planning || props.row.nomor_planning || props.row.project_id || props.row.id }}
+                  </div>
+                  <div class="cell-sub">
                     {{ props.row.project_id || props.row.project_number || '-' }}
                   </div>
                 </q-td>
 
+                <!-- Customer -->
                 <q-td key="customer" :props="props">
-                  <div class="text-weight-bold text-green-10">{{ props.row.customer_name || props.row.customer_nama || props.row.customer || '-' }}</div>
+                  <div class="cell-customer">{{ props.row.customer_name || props.row.customer_nama || props.row.customer || '-' }}</div>
                 </q-td>
 
+                <!-- Products (expandable chips) -->
                 <q-td key="products" :props="props">
-                  <div>{{ formatProducts(props.row.products) }}</div>
-                  <div class="text-caption text-grey-6">{{ props.row.products?.length || 0 }} item</div>
+                  <div
+                    class="product-summary"
+                    role="button"
+                    tabindex="0"
+                    @click="toggleProductDetails(props.row)"
+                    @keyup.enter="toggleProductDetails(props.row)"
+                    @keyup.space.prevent="toggleProductDetails(props.row)"
+                  >
+                    <div class="product-chips">
+                      <div
+                        v-for="product in visibleProductSummaryRows(props.row)"
+                        :key="product.key"
+                        class="product-chip"
+                      >
+                        <q-icon name="inventory_2" size="14px" class="chip-icon" />
+                        <span class="chip-name">{{ product.product_name }}</span>
+                        <span class="chip-qty">{{ formatNumber(product.quantity) }} pcs</span>
+                      </div>
+                      <div v-if="hiddenProductCount(props.row)" class="product-chip product-chip-more">
+                        +{{ hiddenProductCount(props.row) }} more
+                      </div>
+                    </div>
+                    <div class="product-toggle">
+                      <q-icon
+                        :name="isProductExpanded(props.row) ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
+                        size="18px"
+                        color="cyan"
+                      />
+                      <span class="product-count">{{ productDetailRows(props.row).length }} item</span>
+                    </div>
+                  </div>
                 </q-td>
 
-                <q-td key="quantity" :props="props" class="text-right text-weight-bold">
-                  {{ formatNumber(props.row.quantity) }} {{ props.row.satuan }}
+                <!-- Department Progress -->
+                <q-td key="department_progress" :props="props">
+                  <div class="dept-progress-wrap">
+                    <template v-if="departmentProgressSummaryRows(props.row).length">
+                      <div
+                        v-for="department in departmentProgressSummaryRows(props.row)"
+                        :key="department.department_id"
+                        class="dept-progress-item"
+                      >
+                        <div class="dept-row">
+                          <span class="dept-name">{{ department.department_name }}</span>
+                          <span class="dept-pct">{{ formatPercent(department.progress_percent) }}%</span>
+                        </div>
+                        <div class="dept-bar-wrap">
+                          <q-linear-progress
+                            rounded
+                            size="6px"
+                            :value="department.progress_percent / 100"
+                            :color="progressColor(department.progress_percent)"
+                            track-color="grey-10"
+                            class="dept-bar"
+                          />
+                        </div>
+                        <div class="dept-qty">
+                          {{ formatNumber(department.actual_qty) }} / {{ formatNumber(department.target_qty) }}
+                        </div>
+                      </div>
+                    </template>
+                    <div v-else class="dept-empty">
+                      <q-icon name="pending" size="16px" color="grey-7" />
+                      <span>Belum ada progress</span>
+                    </div>
+                  </div>
                 </q-td>
 
+                <!-- Quantity -->
+                <q-td key="quantity" :props="props">
+                  <div class="cell-qty">
+                    {{ formatNumber(props.row.quantity) }}
+                    <span class="cell-unit">{{ props.row.satuan }}</span>
+                  </div>
+                </q-td>
+
+                <!-- Deadline -->
                 <q-td key="deadline" :props="props">
-                  {{ formatDate(props.row.deadline) }}
+                  <div class="cell-deadline">
+                    <q-icon name="schedule" size="14px" class="q-mr-xs" />
+                    {{ formatDate(props.row.deadline) }}
+                  </div>
                 </q-td>
 
+                <!-- Priority -->
                 <q-td key="prioritas" :props="props">
-                  <q-badge :color="priorityColor(props.row.priority)" class="status-badge">
-                    {{ props.row.priority }}
-                  </q-badge>
+                  <div :class="['priority-badge', `priority-${(normalizePlanningPriority(props.row.priority || props.row.prioritas)).toLowerCase()}`]">
+                    {{ normalizePlanningPriority(props.row.priority || props.row.prioritas) }}
+                  </div>
                 </q-td>
 
+                <!-- Status -->
                 <q-td key="status" :props="props">
-                  <q-badge :color="statusColor(props.row.planning_status || props.row.status)" class="status-badge">
+                  <div :class="['status-pill', `status-${(props.row.planning_status || props.row.status || '').replace(/\s/g, '_')}`]">
                     {{ formatPlanningStatus(props.row.planning_status || props.row.status) }}
-                  </q-badge>
+                  </div>
                 </q-td>
 
+                <!-- Action -->
                 <q-td key="action" :props="props" class="text-center">
-                  <div class="row justify-center q-gutter-xs no-wrap">
+                  <div class="action-wrap">
                     <q-btn
                       v-if="!props.row.is_generated"
                       unelevated
-                      rounded
                       dense
-                      color="green-10"
-                      icon="playlist_add_check"
-                      label="Generate Planning"
                       no-caps
+                      class="btn-action-generate"
+                      icon="playlist_add_check"
+                      label="Generate"
                       @click="openGenerateDialog(props.row)"
                     >
                       <q-tooltip>Buat draft planning dari master project</q-tooltip>
@@ -199,7 +302,7 @@
                       flat
                       round
                       dense
-                      color="green-10"
+                      class="btn-action-approve"
                       icon="task_alt"
                       :disable="isApprovedPlanning(props.row)"
                       @click="approvePlanning(props.row)"
@@ -209,58 +312,89 @@
                   </div>
                 </q-td>
               </q-tr>
+
+              <!-- Expanded Product Detail -->
+              <q-tr v-if="isProductExpanded(props.row)" :props="props" class="product-detail-row">
+                <q-td colspan="100%">
+                  <div class="product-detail-panel">
+                    <div class="detail-grid">
+                      <div
+                        v-for="product in productDetailRows(props.row)"
+                        :key="product.key"
+                        class="detail-product-card"
+                      >
+                        <div class="detail-product-icon">
+                          <q-icon name="inventory_2" size="20px" color="cyan" />
+                        </div>
+                        <div class="detail-product-info">
+                          <div class="detail-product-name">{{ product.product_name }}</div>
+                          <div class="detail-product-qty">{{ formatNumber(product.quantity) }} {{ product.unit }}</div>
+                        </div>
+                      </div>
+                      <div v-if="!productDetailRows(props.row).length" class="detail-empty">
+                        Detail produk belum tersedia dari master project.
+                      </div>
+                    </div>
+                  </div>
+                </q-td>
+              </q-tr>
             </template>
 
             <template #no-data>
-              <div class="full-width row flex-center text-grey-7 q-pa-xl">
-                <q-icon name="event_note" size="28px" class="q-mr-sm" />
-                Belum ada project atau planning produksi.
+              <div class="no-data-wrap">
+                <q-icon name="event_note" size="48px" color="grey-8" />
+                <div class="no-data-text">Belum ada project atau planning produksi</div>
+                <div class="no-data-hint">Klik "Generate Planning" untuk memulai</div>
               </div>
             </template>
-          </q-table>
-        </q-card>
+            </q-table>
+          </div>
+        </div>
       </q-tab-panel>
 
+      <!-- ──── SCHEDULE PANEL ──── -->
       <q-tab-panel name="schedule" class="q-pa-none">
-        <q-card flat bordered class="filter-card bg-white q-mb-lg">
-          <q-card-section class="q-py-md">
-            <div class="row q-col-gutter-md items-center">
-              <div class="col-12 col-md-6">
-                <q-select
-                  v-model="selectedSchedulePlanning"
-                  :options="schedulePlanningOptions"
-                  outlined
-                  dense
-                  use-input
-                  input-debounce="200"
-                  label="Pilih planning untuk schedule"
-                  @filter="filterSchedulePlanning"
-                />
-              </div>
-              <div class="col-12 col-md-auto">
-                <q-btn
-                  unelevated
-                  rounded
-                  color="green-10"
-                  icon="event_repeat"
-                  label="Generate Schedule"
-                  no-caps
-                  :disable="!selectedScheduleRow"
-                  :loading="scheduleSaving"
-                  @click="generateScheduleForPlanning(selectedScheduleRow)"
-                />
-              </div>
-              <div class="col-12 col-md-auto">
-                <q-chip dense color="blue-grey-7" text-color="white" class="text-weight-bold q-px-md">
-                  Total workload: {{ formatNumber(selectedScheduleWorkload) }}
-                </q-chip>
+        <div class="glass-card filter-card">
+          <div class="filter-bar schedule-filter">
+            <div class="filter-search" style="flex: 2;">
+              <q-select
+                v-model="selectedSchedulePlanning"
+                :options="schedulePlanningOptions"
+                dense
+                rounded
+                standout="bg-transparent"
+                use-input
+                input-debounce="200"
+                label="Pilih planning untuk schedule"
+                class="filter-input"
+                label-color="grey-6"
+                input-class="text-white"
+                popup-content-class="dark-dropdown"
+                @filter="filterSchedulePlanning"
+              />
+            </div>
+            <div class="filter-actions">
+              <q-btn
+                unelevated
+                no-caps
+                class="btn-generate btn-schedule"
+                icon="event_repeat"
+                label="Generate Schedule"
+                :disable="!selectedScheduleRow"
+                :loading="scheduleSaving"
+                @click="generateScheduleForPlanning(selectedScheduleRow)"
+              />
+              <div class="workload-chip">
+                <q-icon name="speed" size="16px" />
+                <span>Workload: <strong>{{ formatNumber(selectedScheduleWorkload) }}</strong></span>
               </div>
             </div>
-          </q-card-section>
-        </q-card>
+          </div>
+        </div>
 
-        <q-card flat bordered class="table-card bg-white q-mb-lg">
-          <q-table
+        <div class="glass-card table-card">
+          <div class="planning-table-wrapper">
+            <q-table
             :rows="selectedScheduleRows"
             :columns="scheduleColumns"
             row-key="key"
@@ -269,9 +403,10 @@
             :pagination="{ rowsPerPage: 0 }"
             hide-pagination
             class="planning-table"
+            color="cyan"
           >
             <template #header="props">
-              <q-tr :props="props" class="bg-green-10 text-white">
+              <q-tr :props="props" class="planning-thead-row">
                 <q-th v-for="col in props.cols" :key="col.name" :props="props" class="table-head">
                   {{ col.label }}
                 </q-th>
@@ -283,9 +418,12 @@
                 <q-input
                   v-model.number="props.row.target_qty"
                   dense
-                  outlined
+                  rounded
+                  standout="bg-transparent"
                   type="number"
                   min="0"
+                  class="schedule-input"
+                  input-class="text-white text-center"
                   @blur="saveScheduleRow(props.row)"
                 />
               </q-td>
@@ -296,9 +434,12 @@
                 <q-input
                   v-model.number="props.row.actual_qty"
                   dense
-                  outlined
+                  rounded
+                  standout="bg-transparent"
                   type="number"
                   min="0"
+                  class="schedule-input"
+                  input-class="text-white text-center"
                   @blur="saveScheduleRow(props.row)"
                 />
               </q-td>
@@ -309,32 +450,42 @@
                 <q-select
                   v-model="props.row.status"
                   dense
-                  outlined
+                  rounded
+                  standout="bg-transparent"
                   emit-value
                   map-options
                   :options="scheduleStatusOptions"
+                  class="schedule-input"
+                  input-class="text-white"
+                  popup-content-class="dark-dropdown"
                   @update:model-value="saveScheduleRow(props.row)"
                 />
               </q-td>
             </template>
 
             <template #no-data>
-              <div class="full-width row flex-center text-grey-7 q-pa-xl">
-                <q-icon name="event_busy" size="28px" class="q-mr-sm" />
-                Pilih planning, lalu generate schedule.
+              <div class="no-data-wrap">
+                <q-icon name="event_busy" size="48px" color="grey-8" />
+                <div class="no-data-text">Pilih planning, lalu generate schedule</div>
               </div>
             </template>
-          </q-table>
-        </q-card>
+            </q-table>
+          </div>
+        </div>
 
-        <q-card flat bordered class="table-card bg-white">
-          <q-card-section class="row items-center justify-between q-pb-sm">
-            <div class="text-subtitle1 text-weight-bolder text-green-10">Daily Workload</div>
-            <q-chip dense color="green-10" text-color="white" class="text-weight-bold">
+        <!-- Daily Workload -->
+        <div class="glass-card table-card" style="margin-top: 20px;">
+          <div class="workload-header">
+            <div class="workload-title">
+              <q-icon name="insights" size="22px" color="cyan" />
+              <span>Daily Workload</span>
+            </div>
+            <div class="workload-chip workload-chip-sm">
               {{ dailyWorkloadRows.length }} hari
-            </q-chip>
-          </q-card-section>
-          <q-table
+            </div>
+          </div>
+          <div class="planning-table-wrapper">
+            <q-table
             :rows="dailyWorkloadRows"
             :columns="dailyWorkloadColumns"
             row-key="date"
@@ -342,27 +493,31 @@
             dense
             binary-state-sort
             :pagination="{ rowsPerPage: 10 }"
+            class="planning-table"
+            color="cyan"
           >
             <template #header="props">
-              <q-tr :props="props" class="bg-grey-2 text-grey-9">
+              <q-tr :props="props" class="planning-thead-row workload-thead">
                 <q-th v-for="col in props.cols" :key="col.name" :props="props" class="table-head">
                   {{ col.label }}
                 </q-th>
               </q-tr>
             </template>
-          </q-table>
-        </q-card>
+            </q-table>
+          </div>
+        </div>
       </q-tab-panel>
     </q-tab-panels>
 
+    <!-- ═══════ DIALOG ═══════ -->
     <q-dialog v-model="formDialog" persistent maximized transition-show="fade" transition-hide="fade">
       <q-card class="planning-dialog">
-        <q-card-section class="dialog-header row items-center justify-between bg-green-10 text-white">
+        <q-card-section class="dialog-header row items-center justify-between">
           <div>
-            <div class="text-h6 text-weight-bold">{{ formTitle }}</div>
-            <div class="text-caption">Data planning tersinkron realtime ke departemen tujuan.</div>
+            <div class="dialog-title">{{ formTitle }}</div>
+            <div class="dialog-subtitle">Data planning tersinkron realtime ke departemen tujuan.</div>
           </div>
-          <q-btn flat round dense icon="close" v-close-popup />
+          <q-btn flat round dense icon="close" class="text-grey-4" v-close-popup />
         </q-card-section>
 
         <q-form class="planning-dialog-form" @submit.prevent="savePlanning">
@@ -375,6 +530,9 @@
                   dense
                   readonly
                   label="Nomor Planning"
+                  class="dialog-input"
+                  label-color="grey-5"
+                  input-class="text-white"
                   :rules="[(val) => !!val || 'No planning wajib diisi']"
                 />
               </div>
@@ -387,8 +545,12 @@
                   use-input
                   input-debounce="200"
                   label="Project / Item Project"
+                  class="dialog-input"
+                  label-color="grey-5"
+                  input-class="text-white"
                   :loading="loadingProjects"
                   :rules="[(val) => !!val || 'Project wajib dipilih']"
+                  popup-content-class="dark-dropdown"
                   @filter="filterApproved"
                   @update:model-value="handleApprovedSelected"
                 />
@@ -400,6 +562,10 @@
                   outlined
                   dense
                   label="Status Planning"
+                  class="dialog-input"
+                  label-color="grey-5"
+                  input-class="text-white"
+                  popup-content-class="dark-dropdown"
                   :rules="[(val) => !!val || 'Status wajib dipilih']"
                 />
               </div>
@@ -409,6 +575,9 @@
                   outlined
                   dense
                   label="IC / PIC Planning"
+                  class="dialog-input"
+                  label-color="grey-5"
+                  input-class="text-white"
                 />
               </div>
 
@@ -419,6 +588,9 @@
                   dense
                   readonly
                   label="Customer"
+                  class="dialog-input"
+                  label-color="grey-5"
+                  input-class="text-white"
                 />
               </div>
               <div class="col-12 col-md-6">
@@ -430,8 +602,12 @@
                   multiple
                   use-chips
                   label="Departemen Tujuan / Routing Produksi"
+                  class="dialog-input"
+                  label-color="grey-5"
+                  input-class="text-white"
                   :loading="loadingDepartemen"
                   :rules="[(val) => (Array.isArray(val) ? val.length > 0 : !!val) || 'Departemen tujuan wajib dipilih']"
+                  popup-content-class="dark-dropdown"
                   @update:model-value="handleDepartemenSelected"
                 />
               </div>
@@ -443,6 +619,9 @@
                   dense
                   readonly
                   label="Produk"
+                  class="dialog-input"
+                  label-color="grey-5"
+                  input-class="text-white"
                 />
               </div>
               <div class="col-12 col-md-3">
@@ -454,15 +633,22 @@
                   min="0"
                   readonly
                   label="Qty Target"
+                  class="dialog-input"
+                  label-color="grey-5"
+                  input-class="text-white"
                   :rules="[(val) => Number(val) > 0 || 'Qty wajib lebih dari 0']"
                 />
               </div>
               <div class="col-12 col-md-3">
-                <q-input v-model="form.satuan" outlined dense readonly label="Satuan" />
+                <q-input v-model="form.satuan" outlined dense readonly label="Satuan"
+                  class="dialog-input" label-color="grey-5" input-class="text-white"
+                />
               </div>
 
               <div class="col-12 col-md-6">
-                <q-input v-model="form.deadline" outlined dense type="date" label="Deadline" />
+                <q-input v-model="form.deadline" outlined dense type="date" label="Deadline"
+                  class="dialog-input" label-color="grey-5" input-class="text-white"
+                />
               </div>
               <div class="col-12 col-md-6">
                 <q-select
@@ -470,8 +656,11 @@
                   :options="priorityOptions"
                   outlined
                   dense
-                  readonly
                   label="Prioritas"
+                  class="dialog-input"
+                  label-color="grey-5"
+                  input-class="text-white"
+                  popup-content-class="dark-dropdown"
                 />
               </div>
               <div class="col-12">
@@ -482,20 +671,22 @@
                   type="textarea"
                   label="Catatan"
                   autogrow
+                  class="dialog-input"
+                  label-color="grey-5"
+                  input-class="text-white"
                 />
               </div>
             </div>
           </q-card-section>
 
-          <q-card-actions align="right" class="dialog-footer bg-grey-1 q-pa-md">
-            <q-btn flat color="grey-7" label="Batal" no-caps v-close-popup />
+          <q-card-actions align="right" class="dialog-footer q-pa-md">
+            <q-btn flat no-caps label="Batal" class="text-grey-4" v-close-popup />
             <q-btn
               unelevated
-              rounded
-              color="green-10"
+              no-caps
+              class="btn-generate"
               icon="playlist_add_check"
               label="Generate Planning"
-              no-caps
               type="submit"
               :loading="submitting"
             />
@@ -511,6 +702,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import {
+  addDoc,
   collection,
   doc,
   onSnapshot,
@@ -527,9 +719,10 @@ const PLANNING_COLLECTION = 'mf_production_planning'
 const MASTER_PROJECT_COLLECTION = 'mf_projects'
 const PROJECT_ITEMS_COLLECTION = 'mf_project_items'
 const PROJECT_MONITORING_COLLECTION = 'mf_project_monitoring'
-const DEPARTMENT_PROGRESS_COLLECTION = 'mf_department_progress'
+const DEPARTMENT_PRODUCTION_COLLECTION = 'manufactur_departemen_produksi'
 const MASTER_PRODUK_COLLECTION = 'master_produk'
 const MASTER_DEPARTEMEN_COLLECTION = 'manufactur_master_departemen'
+const DEPARTEMENT_NOTIFICATION_COLLECTION = 'manufactur_departemen_notifications'
 
 const search = ref('')
 const statusFilter = ref('all')
@@ -541,6 +734,7 @@ const editingId = ref(null)
 const rows = ref([])
 const planningRows = ref([])
 const departmentProgressRows = ref([])
+const expandedProductRowIds = ref(new Set())
 const departemenRows = ref([])
 const masterProjectRows = ref([])
 const produkRows = ref([])
@@ -558,7 +752,7 @@ let unsubscribeProjects = null
 let unsubscribeProduk = null
 
 const statusOptions = ['not_started', 'planned', 'approved', 'in_progress', 'done']
-const priorityOptions = ['High', 'Medium', 'Low']
+const priorityOptions = ['Urgent', 'High', 'Medium', 'Low']
 const scheduleStatusOptions = [
   { label: 'Not Started', value: 'not_started' },
   { label: 'In Progress', value: 'in_progress' },
@@ -577,9 +771,8 @@ const listenPlanningProduksi = (callback, errorCallback) =>
 
 const listenDepartmentProgress = (callback, errorCallback) =>
   onSnapshot(
-    collection(db, DEPARTMENT_PROGRESS_COLLECTION),
-    (snapshot) =>
-      callback(snapshot.docs.map((progressDoc) => ({ id: progressDoc.id, ...progressDoc.data() }))),
+    collection(db, DEPARTMENT_PRODUCTION_COLLECTION),
+    (snapshot) => callback(aggregateDepartmentProductionRows(snapshot.docs.map((progressDoc) => ({ id: progressDoc.id, ...progressDoc.data() })))),
     errorCallback,
   )
 
@@ -686,6 +879,55 @@ const listenMasterProduk = (callback, errorCallback) =>
     errorCallback,
   )
 
+const aggregateDepartmentProductionRows = (productionRows = []) => {
+  const grouped = new Map()
+
+  productionRows.forEach((row) => {
+    const planningId = planningIdOf(row)
+    if (!planningId) return
+
+    const department = normalizeDepartment({
+      department_id: row.department_id || row.departemen_id || row.current_departemen_id,
+      department_name:
+        row.department_name ||
+        row.departemen_nama ||
+        row.nama_departemen ||
+        row.current_departemen_nama ||
+        row.departemen?.nama_departemen,
+    })
+    if (!department.department_id) return
+
+    const productName = row.product_name || row.nama_produk || row.produk?.nama_produk || row.produk || ''
+    const key = [planningId, department.department_id, normalizeLookupKey(productName)].join('__')
+    const previous = grouped.get(key) || {
+      id: key,
+      project_id: row.project_id || '',
+      planning_id: planningId,
+      product_name: productName,
+      department_id: department.department_id,
+      department_name: department.department_name,
+      target_qty: 0,
+      actual_qty: 0,
+    }
+
+    grouped.set(key, {
+      ...previous,
+      project_id: previous.project_id || row.project_id || '',
+      product_name: previous.product_name || productName,
+      target_qty: Math.max(
+        Number(previous.target_qty || 0),
+        Number(row.target_qty ?? row.qty_target ?? row.qty_po ?? row.total_qty ?? 0),
+      ),
+      actual_qty: Math.max(
+        Number(previous.actual_qty || 0),
+        Number(row.actual_qty ?? row.actual_quantity ?? row.total_hasil_produksi ?? row.total_progress ?? row.qty_hasil_jadi ?? 0),
+      ),
+    })
+  })
+
+  return Array.from(grouped.values())
+}
+
 const statusFilterOptions = [
   { label: 'Semua Status', value: 'all' },
   { label: 'Not Started', value: 'not_started' },
@@ -701,10 +943,10 @@ const priorityFilterOptions = [
 ]
 
 const scheduleColumns = [
-  { name: 'day', align: 'right', label: 'Day', field: 'day', sortable: true },
-  { name: 'date', align: 'left', label: 'Date', field: 'date', sortable: true },
+  { name: 'day', align: 'right', label: 'Hari', field: 'day', sortable: true },
+  { name: 'date', align: 'left', label: 'Tanggal', field: 'date', sortable: true },
   { name: 'customer', align: 'left', label: 'Customer', field: 'customer', sortable: true },
-  { name: 'product', align: 'left', label: 'Product', field: 'product', sortable: true },
+  { name: 'product', align: 'left', label: 'Produk', field: 'product', sortable: true },
   { name: 'target_qty', align: 'right', label: 'Target Qty', field: 'target_qty', sortable: true },
   { name: 'actual_qty', align: 'right', label: 'Actual Qty', field: 'actual_qty', sortable: true },
   { name: 'status', align: 'left', label: 'Status', field: 'status', sortable: true },
@@ -736,8 +978,6 @@ const defaultForm = () => ({
   project_name: '',
   project_item_id: '',
   project_monitoring_id: '',
-  spk_id: '',
-  nomor_spk: '',
   no_so: '',
   project: '',
   customer: '',
@@ -785,6 +1025,7 @@ const columns = [
   },
   { name: 'customer', align: 'left', label: 'Customer', field: 'customer_name', sortable: true },
   { name: 'products', align: 'left', label: 'Products', field: 'products' },
+  { name: 'department_progress', align: 'left', label: 'Department Progress', field: 'department_progress' },
   { name: 'quantity', align: 'right', label: 'Quantity', field: 'quantity', sortable: true },
   { name: 'deadline', align: 'left', label: 'Deadline', field: 'deadline', sortable: true },
   { name: 'prioritas', align: 'center', label: 'Priority', field: 'priority', sortable: true },
@@ -798,7 +1039,9 @@ const filteredRows = computed(() => {
   return rows.value.filter((row) => {
     const rowStatus = row.planning_status || row.status_planning || row.status
     const matchesStatus = statusFilter.value === 'all' || rowStatus === statusFilter.value
-    const matchesPriority = priorityFilter.value === 'all' || row.priority === priorityFilter.value
+    const matchesPriority =
+      priorityFilter.value === 'all' ||
+      normalizePlanningPriority(row.priority || row.prioritas) === priorityFilter.value
     const matchesSearch =
       !keyword ||
       [
@@ -913,6 +1156,66 @@ const dailyWorkloadRows = computed(() => {
     .sort((a, b) => String(a.date).localeCompare(String(b.date)))
 })
 
+const productQuantityMap = (planning = {}) => {
+  const quantities = new Map()
+  productDetailRows(planning).forEach((product) => {
+    const key = normalizeLookupKey(product.product_name)
+    if (!key) return
+    quantities.set(key, Number(product.quantity || 0))
+  })
+  return quantities
+}
+
+const validateScheduleTargets = (planning = {}, scheduleRows = []) => {
+  const originalQuantities = productQuantityMap(planning)
+  const totalsByProduct = new Map()
+
+  scheduleRows.forEach((row) => {
+    const key = row.product_key || normalizeLookupKey(row.product_name || row.product)
+    if (!key) return
+    totalsByProduct.set(key, Number(totalsByProduct.get(key) || 0) + Number(row.target_qty || 0))
+  })
+
+  for (const [key, originalQty] of originalQuantities.entries()) {
+    const scheduledQty = Number(totalsByProduct.get(key) || 0)
+    if (scheduledQty !== Number(originalQty || 0)) {
+      const productName = productDetailRows(planning).find((product) => normalizeLookupKey(product.product_name) === key)?.product_name || key
+      return `Total target schedule ${productName} harus sama dengan qty master project (${formatNumber(originalQty)}). Saat ini ${formatNumber(scheduledQty)}.`
+    }
+  }
+
+  return ''
+}
+
+const rebalanceScheduleRows = (planning = {}, scheduleRows = [], editedRow = {}) => {
+  const productKey = editedRow.product_key || normalizeLookupKey(editedRow.product_name || editedRow.product)
+  if (!productKey) return scheduleRows
+
+  const originalQty = Number(productQuantityMap(planning).get(productKey) || 0)
+  const currentTotal = scheduleRows
+    .filter((row) => (row.product_key || normalizeLookupKey(row.product_name || row.product)) === productKey)
+    .reduce((sum, row) => sum + Number(row.target_qty || 0), 0)
+  const diff = currentTotal - originalQty
+  if (diff === 0) return scheduleRows
+
+  const adjustmentIndex = scheduleRows.findIndex(
+    (row) =>
+      row.key !== editedRow.key &&
+      (row.product_key || normalizeLookupKey(row.product_name || row.product)) === productKey &&
+      Number(row.target_qty || 0) - diff >= 0,
+  )
+  if (adjustmentIndex < 0) return scheduleRows
+
+  return scheduleRows.map((row, index) =>
+    index === adjustmentIndex
+      ? {
+          ...row,
+          target_qty: Number(row.target_qty || 0) - diff,
+        }
+      : row,
+  )
+}
+
 const summaryCards = computed(() => [
   {
     title: 'Total Planning',
@@ -991,7 +1294,6 @@ const getProjectName = (row = {}, fallback = '') =>
 const getProjectNumber = (row) =>
   row.nomor_project ||
   row.nomor_monitoring ||
-  row.nomor_spk ||
   row.nomor ||
   row.reference_no ||
   row.project_name ||
@@ -1003,8 +1305,9 @@ const getProjectItems = (row) =>
     : [
         {
           deskripsi: row.nama_produk || row.produk?.nama_produk || row.produk,
-          nama_produk: row.nama_produk || row.produk?.nama_produk || row.produk,
-          qty: row.qty_target || row.qty_po || row.qty,
+          name: row.name || row.nama_produk || row.produk?.nama_produk || row.produk,
+          nama_produk: row.nama_produk || row.name || row.produk?.nama_produk || row.produk,
+          qty: row.qty_target || row.qty_po || row.qty || row.quantity || row.total_quantity,
           satuan: row.satuan || row.produk?.satuan,
           kode_produk: row.kode_produk || row.produk?.kode_produk,
           produk_id: row.produk_id || row.produk?.id,
@@ -1015,6 +1318,7 @@ const getProjectItems = (row) =>
     const harga = Number(item.harga ?? item.price ?? item.harga_satuan ?? item.unit_price ?? 0)
     const namaProduk =
       item.nama_produk ||
+      item.name ||
       item.nama_barang ||
       item.deskripsi ||
       item.produk ||
@@ -1024,6 +1328,7 @@ const getProjectItems = (row) =>
     return {
       ...item,
       item_id: item.item_id || item.id || `item-${index + 1}`,
+      product_name: item.product_name || namaProduk,
       nama_produk: namaProduk,
       deskripsi: item.deskripsi || namaProduk,
       qty,
@@ -1071,8 +1376,17 @@ const isPlanningGenerated = (project, generatedProjectIds) =>
 
 const normalizePlanningRow = (planning, sourceProject = {}) => {
   const projectId = planning.project_id || getProjectRefId(sourceProject) || planning.source_document_id || planning.id
-  const sourceProducts = Array.isArray(sourceProject.products) ? sourceProject.products : []
-  const sourceItems = Array.isArray(sourceProject.items) ? sourceProject.items : []
+  const sourceProducts = Array.isArray(sourceProject.products) && sourceProject.products.length
+    ? sourceProject.products
+    : Array.isArray(planning.products)
+      ? planning.products
+      : []
+  const sourceItems = Array.isArray(sourceProject.items) && sourceProject.items.length
+    ? sourceProject.items
+    : Array.isArray(planning.items)
+      ? planning.items
+      : []
+  const products = sourceProducts.length ? buildProducts(sourceProducts) : buildProducts(sourceItems)
   const mergedPlanning = {
     ...planning,
     ...sourceProject,
@@ -1099,12 +1413,12 @@ const normalizePlanningRow = (planning, sourceProject = {}) => {
       planning.customer_nama ||
       planning.customer ||
       '',
-    products: sourceProducts.length ? sourceProducts : buildProducts(sourceItems),
+    products,
     items: sourceItems,
-    quantity: Number(sourceProject.quantity || 0),
+    quantity: products.reduce((sum, product) => sum + Number(product.quantity || 0), 0),
     satuan: sourceProject.satuan || planning.satuan || 'Unit',
-    deadline: sourceProject.deadline || planning.deadline || '',
-    priority: sourceProject.priority || planning.priority || planning.prioritas || 'Medium',
+    deadline: planning.deadline || sourceProject.deadline || '',
+    priority: normalizePlanningPriority(planning.priority || planning.prioritas || sourceProject.priority),
     planning_status: planningStatus,
     status: planningStatus,
     production_schedule: Array.isArray(planning.production_schedule) ? planning.production_schedule : [],
@@ -1115,6 +1429,8 @@ const normalizePlanningRow = (planning, sourceProject = {}) => {
 const buildProducts = (items) =>
   items.map((item, index) => {
     const productName =
+      item.product_name ||
+      item.name ||
       item.nama_produk ||
       item.nama_barang ||
       item.nama_item ||
@@ -1127,7 +1443,7 @@ const buildProducts = (items) =>
       product_code: item.kode_produk || item.kode_barang || '',
       product_name: productName,
       name: productName,
-      quantity: Number(item.qty ?? item.quantity ?? item.qty_target ?? item.volume ?? item.target ?? 0),
+      quantity: Number(item.qty ?? item.quantity ?? item.total_quantity ?? item.qty_target ?? item.volume ?? item.target ?? 0),
       unit: item.satuan || item.unit || 'Unit',
     }
   })
@@ -1187,7 +1503,7 @@ const buildMasterProjectPlanningSources = ({ projects, items, monitoring }) => {
         planning_status: 'not_started',
         project_id: projectId,
         project_name: projectName,
-        project_number: project.nomor_project || project.nomor || readyMonitoring.nomor_spk || projectId,
+        project_number: project.nomor_project || project.nomor || readyMonitoring.nomor_monitoring || projectId,
         customer_id: project.customer_id || project.customer?.id || readyMonitoring.customer_id || '',
         customer_name:
           project.customer_name ||
@@ -1201,7 +1517,7 @@ const buildMasterProjectPlanningSources = ({ projects, items, monitoring }) => {
         quantity,
         satuan: products[0]?.unit || project.satuan || 'Unit',
         deadline: project.deadline || project.tgl_akhir || readyMonitoring.deadline || readyMonitoring.tgl_akhir || '',
-        priority: project.priority || project.prioritas || readyMonitoring.priority || readyMonitoring.prioritas || 'Medium',
+        priority: normalizePlanningPriority(project.priority || project.prioritas || readyMonitoring.priority || readyMonitoring.prioritas),
         progress: 0,
         project_monitoring_id: readyMonitoring.id || '',
         source_collection: MASTER_PROJECT_COLLECTION,
@@ -1406,7 +1722,6 @@ const handleApprovedSelected = (option) => {
   form.value.project_name = project.project_name || getProjectName(project, form.value.project_id)
   form.value.project_item_id = selectedItem.project_item_id || project.project_item_id || selectedItem.item_id || ''
   form.value.project_monitoring_id = project.project_monitoring_id || selectedItem.project_monitoring_id || ''
-  form.value.nomor_spk = project.project_number || getProjectNumber(project)
   form.value.no_so = project.project_number || getProjectNumber(project)
   form.value.project = form.value.project_name
   form.value.customer_id = project.customer_id || ''
@@ -1425,7 +1740,7 @@ const handleApprovedSelected = (option) => {
   form.value.qty_target = Number(project.quantity || selectedItem.qty || 0)
   form.value.qty = form.value.qty_target
   form.value.satuan = produk?.satuan || selectedItem.satuan || project.satuan || 'Unit'
-  form.value.prioritas = project.priority || 'Medium'
+  form.value.prioritas = normalizePlanningPriority(project.priority || project.prioritas)
   form.value.priority = form.value.prioritas
   form.value._source_project = project
 
@@ -1441,16 +1756,64 @@ const handleApprovedSelected = (option) => {
 
 const buildPayload = () => {
   const statusPlanning = 'planned'
+  const sourceProject = form.value._source_project || form.value.approved_obj?.item || {}
+  const products = productDetailRows(sourceProject)
+  const quantity = products.reduce((sum, product) => sum + Number(product.quantity || 0), 0)
 
   return {
     planning_number: form.value.no_planning,
     no_planning: form.value.no_planning,
     nomor_planning: form.value.no_planning,
     project_id: form.value.project_id,
+    project_name: form.value.project_name || sourceProject.project_name || '',
+    customer_id: form.value.customer_id || sourceProject.customer_id || '',
+    customer_nama: form.value.customer_nama || sourceProject.customer_name || '',
+    customer_name: form.value.customer_nama || sourceProject.customer_name || '',
+    products,
+    items: Array.isArray(sourceProject.items) ? sourceProject.items : [],
+    quantity,
+    qty_target: quantity,
+    satuan: products[0]?.unit || form.value.satuan || 'Unit',
+    deadline: form.value.deadline || sourceProject.deadline || '',
+    priority: normalizePlanningPriority(form.value.prioritas || form.value.priority),
+    prioritas: normalizePlanningPriority(form.value.prioritas || form.value.priority),
     status: statusPlanning,
+    status_planning: statusPlanning,
+    planning_status: statusPlanning,
     assigned_departments: uniqueDepartments(form.value.route_departemen || []),
     assigned_ic: form.value.assigned_ic || form.value.ic || '',
+    all_departemen: form.value.all_departemen,
+    routing_mode: form.value.routing_mode,
+    route_departemen: form.value.route_departemen || [],
+    current_route_index: form.value.current_route_index || 0,
+    current_departemen_id: form.value.current_departemen_id || '',
+    current_departemen_nama: form.value.current_departemen_nama || '',
+    departemen_id: form.value.departemen_id || '',
+    departemen_nama: form.value.departemen_nama || '',
+    departemen_kode: form.value.departemen_kode || '',
   }
+}
+
+const notifyUrgentDepartments = async (planningRef, payload) => {
+  if (normalizePlanningPriority(payload.priority) !== 'Urgent') return
+
+  const departments = uniqueDepartments(payload.route_departemen || payload.assigned_departments || [])
+  await Promise.all(
+    departments.map((department) =>
+      addDoc(collection(db, DEPARTEMENT_NOTIFICATION_COLLECTION), {
+        type: 'planning_urgent',
+        priority: 'Urgent',
+        planning_id: planningRef.id,
+        planning_number: payload.nomor_planning || payload.no_planning || planningRef.id,
+        departemen_id: department.department_id,
+        departemen_nama: department.department_name,
+        message: `Planning urgent ${payload.nomor_planning || payload.no_planning || planningRef.id} perlu diprioritaskan.`,
+        is_read: false,
+        created_at: serverTimestamp(),
+        updated_at: serverTimestamp(),
+      }),
+    ),
+  )
 }
 
 const openCreateDialog = () => {
@@ -1479,7 +1842,8 @@ const savePlanning = async () => {
       return
     }
 
-    await createPlanningFromProject(project, payload)
+    const planningRef = await createPlanningFromProject(project, payload)
+    await notifyUrgentDepartments(planningRef, payload)
     $q.notify({ type: 'positive', message: 'Planning produksi berhasil digenerate' })
 
     formDialog.value = false
@@ -1536,48 +1900,63 @@ const normalizeScheduleRows = (planning = {}) => {
   const planningId = planningIdOf(planning)
   return (Array.isArray(planning.production_schedule) ? planning.production_schedule : [])
     .map((row, index) => ({
-      key: row.key || `${planningId}_${row.date || index + 1}`,
+      key: row.key || `${planningId}_${row.product_key || normalizeLookupKey(row.product_name || row.product)}_${row.date || index + 1}`,
       planning_id: planningId,
-      day: Number(row.day || index + 1),
+      day: Number(row.day || row.day_number || index + 1),
+      day_number: Number(row.day_number || row.day || index + 1),
       date: row.date || '',
       customer: row.customer || planning.customer_name || planning.customer_nama || planning.customer || '',
-      product: row.product || formatProducts(planning.products),
+      product_key: row.product_key || normalizeLookupKey(row.product_name || row.product),
+      product_name: row.product_name || row.product || '',
+      product: row.product || row.product_name || '',
       target_qty: Number(row.target_qty ?? row.target_quantity ?? 0),
       actual_qty: Number(row.actual_qty ?? row.actual_quantity ?? 0),
       status: row.status || 'not_started',
     }))
-    .sort((a, b) => Number(a.day || 0) - Number(b.day || 0))
+    .sort((a, b) => {
+      const productDiff = String(a.product_name || a.product).localeCompare(String(b.product_name || b.product))
+      if (productDiff !== 0) return productDiff
+      return Number(a.day || 0) - Number(b.day || 0)
+    })
 }
 
 const generateScheduleRows = (planning = {}) => {
-  const totalQuantity = Math.max(0, Number(planning.quantity || planning.qty_target || planning.qty || 0))
   const deadlineValue = toDateInputValue(planning.deadline)
-  if (!totalQuantity || !deadlineValue) return []
+  const products = productDetailRows(planning).filter((product) => Number(product.quantity || 0) > 0)
+  if (!products.length || !deadlineValue) return []
 
   const startDate = new Date()
   startDate.setHours(0, 0, 0, 0)
   const endDate = new Date(`${deadlineValue}T00:00:00`)
   const totalDays = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / 86400000))
-  const dailyTarget = Math.ceil(totalQuantity / totalDays)
   const customer = planning.customer_name || planning.customer_nama || planning.customer || ''
-  const product = formatProducts(planning.products)
   const planningId = planningIdOf(planning)
 
-  return Array.from({ length: totalDays }, (_, index) => {
-    const date = toDateInputValue(addDays(startDate, index))
-    const remainingQuantity = Math.max(0, totalQuantity - dailyTarget * index)
-    return {
-      key: `${planningId}_${date}`,
-      planning_id: planningId,
-      day: index + 1,
-      date,
-      customer,
-      product,
-      target_qty: Math.min(dailyTarget, remainingQuantity),
-      actual_qty: 0,
-      status: 'not_started',
-    }
-  }).filter((row) => row.target_qty > 0)
+  return products.flatMap((product) => {
+    const productQty = Math.max(0, Number(product.quantity || 0))
+    const dailyTarget = Math.ceil(productQty / totalDays)
+    const productKey = normalizeLookupKey(product.product_name || product.key)
+
+    return Array.from({ length: totalDays }, (_, index) => {
+      const date = toDateInputValue(addDays(startDate, index))
+      const remainingQuantity = Math.max(0, productQty - dailyTarget * index)
+      const targetQty = Math.min(dailyTarget, remainingQuantity)
+      return {
+        key: `${planningId}_${productKey}_${date}`,
+        planning_id: planningId,
+        day: index + 1,
+        day_number: index + 1,
+        date,
+        customer,
+        product_key: productKey,
+        product_name: product.product_name,
+        product: product.product_name,
+        target_qty: targetQty,
+        actual_qty: 0,
+        status: 'not_started',
+      }
+    }).filter((row) => row.target_qty > 0)
+  })
 }
 
 const generateScheduleForPlanning = async (planning) => {
@@ -1608,7 +1987,7 @@ const saveScheduleRow = async (row) => {
   const planning = selectedScheduleRow.value
   if (!planning?.id || !row?.key) return
 
-  const nextScheduleRows = normalizeScheduleRows(planning).map((item) =>
+  const editedScheduleRows = normalizeScheduleRows(planning).map((item) =>
     item.key === row.key
       ? {
           ...item,
@@ -1618,6 +1997,13 @@ const saveScheduleRow = async (row) => {
         }
       : item,
   )
+  const nextScheduleRows = rebalanceScheduleRows(planning, editedScheduleRows, row)
+
+  const validationError = validateScheduleTargets(planning, nextScheduleRows)
+  if (validationError) {
+    $q.notify({ type: 'warning', message: validationError })
+    return
+  }
 
   try {
     await updateDoc(doc(db, PLANNING_COLLECTION, planning.id), {
@@ -1644,13 +2030,13 @@ const normalizeProgressRow = (progress = {}, fallbackDepartment = {}) => {
   })
   const targetQty = Number(progress.target_qty ?? progress.target_quantity ?? 0)
   const actualQty = Number(progress.actual_qty ?? progress.actual_quantity ?? 0)
-  const computedProgress = targetQty > 0 ? Math.min(100, Math.round((actualQty / targetQty) * 100)) : 0
-  const progressPercent = Number(progress.progress_percent ?? computedProgress)
+  const progressPercent = targetQty > 0 ? Math.min(100, (actualQty / targetQty) * 100) : 0
 
   return {
-    id: progress.id || `${progress.project_id || ''}_${department.department_id}`,
+    id: progress.id || `${progress.project_id || progress.planning_id || ''}_${progress.product_name || ''}_${department.department_id}`,
     project_id: progress.project_id || '',
     planning_id: progress.planning_id || '',
+    product_name: progress.product_name || progress.nama_produk || progress.product || '',
     department_id: department.department_id,
     department_name: department.department_name,
     target_qty: targetQty,
@@ -1670,36 +2056,9 @@ const progressRowsForProject = (row = {}) => {
   )
 }
 
-const departmentProgressFor = (row = {}) => {
-  const assignedDepartments = assignedDepartmentsFor(row)
-  const progressRows = progressRowsForProject(row).map((progress) => normalizeProgressRow(progress))
-  const progressByDepartment = new Map(progressRows.map((item) => [item.department_id, item]))
-
-  if (!assignedDepartments.length) return progressRows
-
-  return assignedDepartments.map((department) => {
-    const progress = progressByDepartment.get(department.department_id)
-    if (progress) return progress
-
-    return normalizeProgressRow(
-      {
-        project_id: row.project_id || '',
-        planning_id: planningIdOf(row),
-        department_id: department.department_id,
-        department_name: department.department_name,
-        target_qty: 0,
-        actual_qty: 0,
-        progress_percent: 0,
-        status: 'not_started',
-      },
-      department,
-    )
-  })
-}
-
 const projectProgress = (row = {}) => {
-  const progressRows = departmentProgressFor(row)
-  if (progressRows.some((item) => item.id)) {
+  const progressRows = departmentProgressSummaryRows(row)
+  if (progressRows.length) {
     const total = progressRows.reduce((sum, item) => sum + Number(item.progress_percent || 0), 0)
     return Math.round(total / progressRows.length)
   }
@@ -1734,7 +2093,7 @@ const formatPlanningStatus = (status) => {
 const formatDepartmentProgress = (row = {}) => {
   if (!row.is_generated) return 'Belum digenerate'
 
-  const progressRows = departmentProgressFor(row)
+  const progressRows = departmentProgressSummaryRows(row)
   if (!progressRows.length) return 'Belum ada progress departemen'
 
   return progressRows
@@ -1835,31 +2194,133 @@ const resetFilter = () => {
   priorityFilter.value = 'all'
 }
 
-const statusColor = (status) => {
-  const colors = {
-    not_started: 'grey-7',
-    planned: 'blue-grey-7',
-    approved: 'teal-8',
-    in_progress: 'orange-9',
-    done: 'green-10',
-  }
-  return colors[normalizeStatus(status)] || 'grey-6'
+const normalizePlanningPriority = (priority) => {
+  const normalized = String(priority || '').trim().toLowerCase()
+  if (normalized === 'urgent') return 'Urgent'
+  if (normalized === 'high') return 'High'
+  if (normalized === 'low') return 'Low'
+  return 'Medium'
 }
 
-const priorityColor = (priority) => {
-  const colors = {
-    High: 'negative',
-    Medium: 'orange-9',
-    Low: 'green-8',
-  }
-  return colors[priority] || 'grey-6'
-}
 
 const formatNumber = (value) => Number(value || 0).toLocaleString('id-ID')
 
+const productRowId = (row = {}) => planningIdOf(row) || row.project_id || row.id || ''
+
+const isProductExpanded = (row = {}) => expandedProductRowIds.value.has(productRowId(row))
+
+const toggleProductDetails = (row = {}) => {
+  const id = productRowId(row)
+  if (!id) return
+
+  const nextExpandedRows = new Set(expandedProductRowIds.value)
+  if (nextExpandedRows.has(id)) {
+    nextExpandedRows.delete(id)
+  } else {
+    nextExpandedRows.add(id)
+  }
+  expandedProductRowIds.value = nextExpandedRows
+}
+
+const productDetailRows = (row = {}) => {
+  const sourceProducts = Array.isArray(row.products) && row.products.length
+    ? row.products
+    : buildProducts(getProjectItems(row))
+
+  return sourceProducts
+    .map((product, index) => {
+      const productName =
+        product.product_name ||
+        product.nama_produk ||
+        product.name ||
+        product.deskripsi ||
+        `Product ${index + 1}`
+      return {
+        key: product.product_id || product.id || product.item_id || `${productName}-${index}`,
+        product_name: productName,
+        quantity: Number(product.quantity ?? product.qty ?? product.total_quantity ?? product.qty_target ?? 0),
+        unit: product.unit || product.satuan || row.satuan || 'Unit',
+      }
+    })
+    .filter((product) => product.product_name)
+}
+
+const visibleProductSummaryRows = (row = {}) => productDetailRows(row).slice(0, 2)
+
+const hiddenProductCount = (row = {}) => Math.max(productDetailRows(row).length - 2, 0)
+
+const TRACKED_DEPARTMENTS = [
+  { key: 'cutting', label: 'Cutting' },
+  { key: 'welding', label: 'Welding' },
+  { key: 'assembly', label: 'Assembly' },
+  { key: 'packing', label: 'Packing' },
+]
+
+const normalizeLookupKey = (value) =>
+  String(value || '')
+    .trim()
+    .toLowerCase()
+
+const departmentKey = (value) => {
+  const normalized = normalizeLookupKey(value)
+  return TRACKED_DEPARTMENTS.find((department) => normalized.includes(department.key))?.key || normalized
+}
+
+const fallbackDepartmentRows = () =>
+  departemenRows.value.length
+    ? departemenRows.value.map((department) => normalizeDepartment(department))
+    : TRACKED_DEPARTMENTS.map((department) => ({
+        department_id: department.key,
+        department_name: department.label,
+      }))
+
+const departmentProgressSummaryRows = (row = {}) => {
+  const progressRows = progressRowsForProject(row).map((progress) => normalizeProgressRow(progress))
+  const departments = assignedDepartmentsFor(row).length ? assignedDepartmentsFor(row) : fallbackDepartmentRows()
+
+  return departments
+    .map((department) => {
+      const departmentRows = progressRows.filter(
+        (progress) =>
+          progress.department_id === department.department_id ||
+          departmentKey(progress.department_name || progress.department_id) === departmentKey(department.department_name || department.department_id),
+      )
+      const targetQty = departmentRows.reduce((sum, progress) => sum + Number(progress.target_qty || 0), 0)
+      const actualQty = departmentRows.reduce((sum, progress) => sum + Number(progress.actual_qty || 0), 0)
+      const progressPercent = targetQty > 0 ? Math.min(100, (actualQty / targetQty) * 100) : 0
+
+      return {
+        department_id: department.department_id,
+        department_name: department.department_name,
+        target_qty: targetQty,
+        actual_qty: actualQty,
+        progress_percent: progressPercent,
+      }
+    })
+    .filter((department) => department.target_qty > 0 || department.actual_qty > 0)
+}
+
+const progressColor = (progress) => {
+  if (progress >= 100) return 'green-10'
+  if (progress >= 75) return 'teal-8'
+  if (progress >= 40) return 'orange-9'
+  return 'negative'
+}
+
+const formatPercent = (value) => {
+  const numericValue = Number(value || 0)
+  return Number.isInteger(numericValue) ? numericValue : numericValue.toFixed(1)
+}
+
 const formatProducts = (products = []) => {
   if (!Array.isArray(products) || !products.length) return '-'
-  return products.map((item) => item.product_name || item.name || item.nama_produk || '-').join(', ')
+  return products
+    .map((item) => {
+      const productName = item.product_name || item.name || item.nama_produk || '-'
+      const quantity = Number(item.quantity ?? item.qty ?? item.total_quantity ?? item.qty_target ?? 0)
+      return quantity ? `${productName} (${formatNumber(quantity)})` : productName
+    })
+    .join(', ')
 }
 
 const formatDate = (value) => {
@@ -1892,11 +2353,9 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* Planning Produksi Page — Dark Premium Theme */
 .font-pro {
-  font-family:
-    'Inter',
-    -apple-system,
-    sans-serif;
+  font-family: 'Inter', -apple-system, sans-serif;
 }
 
 .leading-tight {
@@ -1906,31 +2365,34 @@ onUnmounted(() => {
 .summary-card,
 .filter-card,
 .table-card {
-  border-color: #dfe8df;
-  border-radius: 20px;
+  border-color: rgba(124, 255, 79, 0.12) !important;
+  border-radius: 16px;
   overflow: hidden;
 }
 
 .summary-label {
-  color: #667085;
+  color: #8CA3B8;
   font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.6px;
   text-transform: uppercase;
+  font-family: 'Inter', sans-serif;
 }
 
 .summary-value {
-  color: #1b5e20;
+  color: #FFFFFF;
   font-size: 28px;
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1;
   margin-top: 5px;
+  font-family: 'Inter', sans-serif;
 }
 
 .planning-table :deep(thead tr th) {
   font-size: 11px;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.8px;
   padding: 14px 16px;
+  text-transform: uppercase;
 }
 
 .table-head {
@@ -1939,7 +2401,94 @@ onUnmounted(() => {
 }
 
 .planning-row:hover {
-  background: rgba(27, 94, 32, 0.04);
+  background: rgba(124, 255, 79, 0.04);
+}
+
+.product-summary {
+  border-radius: 10px;
+  cursor: pointer;
+  min-width: 180px;
+  outline: none;
+  transition: box-shadow 0.15s ease;
+}
+
+.product-summary:focus-visible {
+  box-shadow: 0 0 0 2px rgba(124, 255, 79, 0.35);
+}
+
+.department-progress-list {
+  min-width: 280px;
+  max-width: 380px;
+}
+
+.product-progress-block {
+  border-bottom: 1px solid rgba(124, 255, 79, 0.08);
+  padding: 6px 0;
+}
+
+.product-progress-block:last-child {
+  border-bottom: 0;
+}
+
+.progress-product-name {
+  color: #7CFF4F;
+  font-size: 12px;
+  font-weight: 800;
+  max-width: 150px;
+  font-family: 'Inter', sans-serif;
+}
+
+.bottleneck-badge {
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.department-progress-row {
+  margin-top: 5px;
+}
+
+.department-label {
+  color: #8CA3B8;
+  font-size: 11px;
+  font-weight: 700;
+  width: 62px;
+}
+
+.department-percent {
+  color: #F4F7FA;
+  font-size: 11px;
+  font-weight: 800;
+  text-align: right;
+  width: 42px;
+}
+
+.progress-qty {
+  padding-left: 62px;
+}
+
+.missing-progress-line {
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(124, 255, 79, 0.2),
+    rgba(124, 255, 79, 0.2) 6px,
+    transparent 6px,
+    transparent 10px
+  );
+  border-radius: 999px;
+  height: 8px;
+}
+
+.product-detail-row {
+  background: rgba(124, 255, 79, 0.03);
+}
+
+.product-detail-panel {
+  padding: 12px 16px 16px 128px;
+}
+
+.product-detail-table {
+  max-width: 520px;
 }
 
 .status-badge {
@@ -1952,7 +2501,7 @@ onUnmounted(() => {
 }
 
 .detail-card {
-  border-color: #dfe8df;
+  border-color: rgba(124, 255, 79, 0.12) !important;
   border-radius: 18px;
   overflow: hidden;
 }
@@ -1966,6 +2515,7 @@ onUnmounted(() => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  background: #071826 !important;
 }
 
 .planning-dialog-form {
@@ -1981,6 +2531,8 @@ onUnmounted(() => {
   top: 0;
   z-index: 2;
   padding: 16px 24px;
+  background: rgba(0, 209, 178, 0.08) !important;
+  border-bottom: 1px solid rgba(0, 209, 178, 0.15);
 }
 
 .planning-dialog-body {
@@ -1995,7 +2547,8 @@ onUnmounted(() => {
   position: sticky;
   bottom: 0;
   z-index: 2;
-  border-top: 1px solid #dfe8df;
+  border-top: 1px solid rgba(124, 255, 79, 0.1);
+  background: rgba(7, 24, 38, 0.95);
 }
 
 @media (max-width: 599px) {
@@ -2018,25 +2571,353 @@ onUnmounted(() => {
 }
 
 .detail-label {
-  color: #667085;
+  color: #8CA3B8;
   font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
   margin-bottom: 4px;
+  font-family: 'Inter', sans-serif;
 }
 
 .detail-value {
-  color: #1b5e20;
+  color: #FFFFFF;
   font-size: 15px;
   font-weight: 700;
+  font-family: 'Inter', sans-serif;
 }
 
 .note-box {
-  background: #f5f7f5;
-  border: 1px solid #dfe8df;
+  background: rgba(124, 255, 79, 0.04);
+  border: 1px solid rgba(124, 255, 79, 0.15);
   border-radius: 14px;
-  color: #344054;
+  color: #F4F7FA;
   padding: 14px;
+}
+
+.planning-page {
+  background: #071826;
+  min-height: 100vh;
+  padding: 28px 32px;
+}
+@media (max-width: 599px) {
+  .planning-page {
+    padding: 16px;
+  }
+}
+
+/* ═══════ HEADER ═══════ */
+.planning-header {
+  margin-bottom: 28px;
+}
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.header-left {
+  flex: 1;
+  min-width: 280px;
+}
+.header-badge {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 20px;
+  background: rgba(0, 209, 178, 0.12);
+  border: 1px solid rgba(0, 209, 178, 0.25);
+  color: #00D1B2;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  margin-bottom: 10px;
+}
+.header-title {
+  margin: 0;
+  font-size: clamp(28px, 3vw, 42px);
+  font-weight: 900;
+  color: #F4F7FA;
+  line-height: 1.1;
+  text-shadow: 0 0 12px rgba(124, 255, 79, 0.18);
+}
+.header-subtitle {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: #B8C7D9;
+  line-height: 1.5;
+  max-width: 520px;
+}
+.btn-generate {
+  background: linear-gradient(135deg, #00D1B2 0%, #00b89c 100%);
+  color: #071826;
+  font-weight: 700;
+  border-radius: 14px;
+  padding: 10px 24px;
+  font-size: 13px;
+  letter-spacing: 0.3px;
+  transition: all 0.3s ease;
+}
+.btn-generate:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 209, 178, 0.3);
+}
+
+/* ═══════ GLASS CARD ═══════ */
+.glass-card {
+  background: rgba(13, 34, 51, 0.7);
+  border: 1px solid rgba(124, 255, 79, 0.08);
+  border-radius: 18px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* ═══════ STATS GRID ═══════ */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.summary-card-wrap {
+  width: 100%;
+}
+.summary-card {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: relative;
+  overflow: hidden;
+}
+.summary-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: rgba(0, 209, 178, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.summary-info {
+  flex: 1;
+  min-width: 0;
+}
+.summary-glow {
+  position: absolute;
+  top: -30px;
+  right: -30px;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(124, 255, 79, 0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ═══════ TABS CARD ═══════ */
+.tabs-card {
+  margin-bottom: 20px;
+  padding: 4px;
+}
+.planning-tabs {
+  background: transparent;
+}
+.tab-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #8CA3B8;
+  font-weight: 700;
+}
+.planning-tabs :deep(.q-tab--active) .tab-content {
+  color: #00D1B2;
+}
+
+/* ═══════ FILTER BAR ═══════ */
+.filter-card {
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+.filter-bar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.filter-search {
+  flex: 2;
+  min-width: 200px;
+}
+.filter-select {
+  flex: 1;
+  min-width: 160px;
+}
+.search-input :deep(.q-field__control),
+.filter-input :deep(.q-field__control) {
+  background: rgba(124, 255, 79, 0.04);
+  border: 1px solid rgba(124, 255, 79, 0.1);
+  border-radius: 14px;
+}
+.filter-reset {
+  display: flex;
+  align-items: center;
+}
+.btn-reset {
+  color: #8CA3B8;
+}
+.btn-reset:hover {
+  color: #00D1B2;
+}
+
+/* ═══════ TABLE WRAPPER ═══════ */
+.table-card {
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+.planning-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+.planning-table {
+  background: transparent !important;
+  width: 100%;
+}
+.planning-table :deep(.q-table__top),
+.planning-table :deep(.q-table__bottom) {
+  background: transparent;
+  color: #8CA3B8;
+}
+.planning-table :deep(.q-table__bottom) {
+  border-top: 1px solid rgba(124, 255, 79, 0.06);
+}
+.planning-thead-row {
+  background: rgba(0, 209, 178, 0.08) !important;
+}
+.planning-thead-row th {
+  color: #EAF2FF !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.4px;
+  border-bottom: 1px solid rgba(0, 209, 178, 0.15) !important;
+}
+.planning-row td {
+  color: #F4F7FA;
+  border-bottom: 1px solid rgba(124, 255, 79, 0.04) !important;
+}
+
+/* Cell styles */
+.cell-planning-number {
+  color: #00D1B2;
+  font-weight: 700;
+  font-size: 13px;
+}
+.cell-sub {
+  color: #8CA3B8;
+  font-size: 11px;
+  margin-top: 2px;
+}
+.cell-customer {
+  color: #F4F7FA;
+  font-weight: 600;
+}
+.cell-qty {
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 13px;
+}
+.cell-unit {
+  color: #8CA3B8;
+  font-size: 12px;
+}
+.cell-deadline {
+  color: #8CA3B8;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+}
+
+/* Priority & Status pills */
+.priority-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 800;
+  min-width: 72px;
+}
+.priority-urgent {
+  background: rgba(244, 67, 54, 0.15);
+  color: #EF5350;
+  border: 1px solid rgba(244, 67, 54, 0.25);
+}
+.priority-high {
+  background: rgba(255, 152, 0, 0.15);
+  color: #FFA726;
+  border: 1px solid rgba(255, 152, 0, 0.25);
+}
+.priority-medium {
+  background: rgba(120, 144, 156, 0.15);
+  color: #90A4AE;
+  border: 1px solid rgba(120, 144, 156, 0.25);
+}
+.priority-low {
+  background: rgba(76, 175, 80, 0.15);
+  color: #66BB6A;
+  border: 1px solid rgba(76, 175, 80, 0.25);
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  min-width: 90px;
+}
+.status-not_started {
+  background: rgba(120, 144, 156, 0.15);
+  color: #90A4AE;
+  border: 1px solid rgba(120, 144, 156, 0.25);
+}
+.status-planned {
+  background: rgba(33, 150, 243, 0.15);
+  color: #42A5F5;
+  border: 1px solid rgba(33, 150, 243, 0.25);
+}
+.status-approved {
+  background: rgba(0, 209, 178, 0.15);
+  color: #00D1B2;
+  border: 1px solid rgba(0, 209, 178, 0.25);
+}
+.status-in_progress {
+  background: rgba(255, 152, 0, 0.15);
+  color: #FFA726;
+  border: 1px solid rgba(255, 152, 0, 0.25);
+}
+.status-done {
+  background: rgba(76, 175, 80, 0.15);
+  color: #66BB6A;
+  border: 1px solid rgba(76, 175, 80, 0.25);
+}
+
+/* Responsive stats */
+@media (max-width: 1200px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 599px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 </style>

@@ -1,14 +1,14 @@
 <template>
-  <q-page class="incoming-page bg-grey-2 q-pa-md q-pa-md-lg font-pro">
+  <q-page class="incoming-page bg-dark-premium q-pa-md q-pa-md-lg font-pro">
     <div class="row items-center justify-between q-mb-xl animate-fade no-print">
       <div class="col-12 col-md-8">
-        <div class="text-h4 text-weight-bolder text-green-10 leading-tight">
+        <div class="text-h4 text-weight-bolder incoming-title leading-tight">
           Incoming Material
-          <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs">
+          <span class="text-h5 text-weight-light incoming-subtitle block q-mt-xs">
             Dashboard Penerimaan Warehouse
           </span>
         </div>
-        <div class="text-subtitle1 text-grey-7 q-mt-sm">
+        <div class="text-subtitle1 incoming-desc q-mt-sm">
           Monitoring barang datang, cek surat jalan, validasi quantity actual, dan pengecekan awal
           incoming.
         </div>
@@ -18,12 +18,11 @@
         <q-btn
           flat
           rounded
-          color="green-10"
           icon="sync"
           label="Refresh Data"
           no-caps
           :loading="loading"
-          class="bg-white shadow-1"
+          class="btn-glass shadow-1"
           @click="loadIncoming"
         />
       </div>
@@ -32,38 +31,33 @@
     <div class="row q-gutter-md q-mb-lg items-center no-print">
       <q-btn
         unelevated
-        color="green-10"
         icon="add_circle"
         label="Incoming Baru"
         no-caps
         rounded
-        class="q-px-lg shadow-premium btn-hover"
+        class="q-px-lg shadow-premium btn-hover btn-neon-green"
         @click="openAddDialog"
       />
       <q-btn
         unelevated
-        color="white"
-        text-color="green-10"
         icon="fact_check"
         label="Monitor QC"
         no-caps
         rounded
-        class="q-px-lg shadow-1"
+        class="q-px-lg btn-glass"
         @click="openQcPage"
       />
       <q-btn
         unelevated
-        color="green-1"
-        text-color="green-10"
         icon="send"
         label="Distribusi Material"
         no-caps
         rounded
-        class="q-px-lg shadow-1"
+        class="q-px-lg btn-glass"
         @click="scrollToMonitoring"
       />
       <q-space />
-      <q-chip dense color="green-10" text-color="white" class="text-weight-bold q-px-md">
+      <q-chip dense color="cyan-9" text-color="white" class="text-weight-bold q-px-md">
         {{ incomingRows.length }} RECORD
       </q-chip>
     </div>
@@ -71,8 +65,8 @@
     <div class="animate-fade-up">
       <div id="incoming-monitoring" class="section-title-row q-mb-sm">
         <div>
-          <div class="text-overline text-green-10 text-weight-black">Summary Incoming</div>
-          <div class="text-caption text-grey-7">
+          <div class="text-overline text-neon-green text-weight-black">Summary Incoming</div>
+          <div class="text-caption text-muted-premium">
             Ringkasan dokumen, barang datang, status QC, dan quantity actual.
           </div>
         </div>
@@ -83,9 +77,9 @@
       <q-card
         flat
         bordered
-        class="workflow-card-main q-mb-lg shadow-1 rounded-20 bg-white no-print"
+        class="workflow-card-main glass-card q-mb-lg shadow-1 rounded-20 no-print"
       >
-        <q-card-section class="bg-green-10 text-white q-py-sm">
+        <q-card-section class="workflow-card-header q-py-sm">
           <div class="text-caption text-weight-bold uppercase tracking-widest">
             Workflow Status Produksi
           </div>
@@ -96,10 +90,10 @@
               <div class="workflow-step">
                 <q-avatar
                   size="34px"
-                  color="green-1"
-                  text-color="green-10"
+                  color="transparent"
+                  text-color="cyan"
                   :icon="step.icon"
-                  class="q-mr-sm"
+                  class="q-mr-sm border-cyan-avatar"
                 />
                 <div class="col min-width-0">
                   <div class="workflow-label">{{ step.label }}</div>
@@ -114,8 +108,8 @@
 
       <div class="section-title-row q-mb-sm">
         <div>
-          <div class="text-overline text-green-10 text-weight-black">Monitoring Incoming</div>
-          <div class="text-caption text-grey-7">
+          <div class="text-overline text-neon-green text-weight-black">Monitoring Incoming</div>
+          <div class="text-caption text-muted-premium">
             Search, filter, validasi awal, dan riwayat incoming material.
           </div>
         </div>
@@ -150,7 +144,7 @@
       transition-show="slide-up"
       transition-hide="slide-down"
     >
-      <q-card class="detail-card column bg-grey-2">
+      <q-card class="detail-card column bg-dark-premium">
         <q-toolbar class="detail-header shrink">
           <div class="row items-center no-wrap">
             <q-icon name="inventory_2" size="24px" class="q-mr-sm" />
@@ -2000,6 +1994,65 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.bg-dark-premium {
+  background-color: #071826 !important;
+}
+.incoming-title {
+  color: #F4F7FA !important;
+  text-shadow: 0 0 12px rgba(124, 255, 79, 0.18);
+}
+.incoming-subtitle {
+  color: #B8C7D9 !important;
+}
+.incoming-desc {
+  color: #8CA3B8 !important;
+}
+.text-neon-green {
+  color: #7CFF4F !important;
+}
+.text-neon-cyan {
+  color: #00D1B2 !important;
+}
+.text-muted-premium {
+  color: #8CA3B8 !important;
+}
+.text-secondary-premium {
+  color: #B8C7D9 !important;
+}
+.text-primary-premium {
+  color: #F4F7FA !important;
+}
+.border-cyan-avatar {
+  border: 1px solid rgba(0, 209, 178, 0.25) !important;
+}
+.btn-neon-green {
+  background: linear-gradient(135deg, #7CFF4F 0%, #66d93f 100%) !important;
+  color: #071826 !important;
+  font-weight: 700 !important;
+}
+.btn-glass {
+  background: rgba(13, 34, 51, 0.5) !important;
+  border: 1px solid rgba(0, 209, 178, 0.25) !important;
+  color: #00D1B2 !important;
+  font-weight: 700 !important;
+}
+.btn-glass:hover {
+  background: rgba(0, 209, 178, 0.1) !important;
+  box-shadow: 0 0 12px rgba(0, 209, 178, 0.2);
+}
+.workflow-card-header {
+  background: rgba(124, 255, 79, 0.06) !important;
+  border-bottom: 1px solid rgba(124, 255, 79, 0.15) !important;
+  color: #7CFF4F !important;
+}
+.glass-card {
+  background: rgba(13, 34, 51, 0.7) !important;
+  border: 1px solid rgba(124, 255, 79, 0.08) !important;
+  border-radius: 18px !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+}
+
 .font-pro {
   font-family:
     'Inter',
@@ -2012,7 +2065,7 @@ onUnmounted(() => {
 }
 
 .shadow-premium {
-  box-shadow: 0 10px 30px rgba(27, 94, 32, 0.15);
+  box-shadow: 0 8px 32px rgba(124, 255, 79, 0.12);
 }
 
 .tracking-widest {
@@ -2024,14 +2077,14 @@ onUnmounted(() => {
 }
 
 .workflow-card-main {
-  border-color: #dfe8df;
+  border-color: rgba(124, 255, 79, 0.12);
   overflow: hidden;
 }
 
 .workflow-step {
   align-items: center;
-  background: #f7fbf8;
-  border: 1px solid #dfe8df;
+  background: rgba(0, 209, 178, 0.04);
+  border: 1px solid rgba(0, 209, 178, 0.12);
   border-radius: 14px;
   display: flex;
   min-height: 72px;
@@ -2040,19 +2093,21 @@ onUnmounted(() => {
 }
 
 .workflow-step:hover {
-  background: #edf7f3;
+  background: rgba(0, 209, 178, 0.08);
+  border-color: rgba(0, 209, 178, 0.3);
   transform: translateY(-1px);
 }
 
 .workflow-label {
-  color: #1f2a24;
+  color: #F4F7FA;
   font-size: 12px;
   font-weight: 900;
   line-height: 1.2;
+  font-family: 'Inter', sans-serif;
 }
 
 .workflow-caption {
-  color: #667085;
+  color: #8CA3B8;
   font-size: 11px;
   line-height: 1.2;
   margin-top: 2px;
@@ -2081,19 +2136,20 @@ onUnmounted(() => {
 }
 
 .detail-header {
-  background: #1b5e20;
-  color: #ffffff;
+  background: linear-gradient(135deg, rgba(0, 209, 178, 0.12), rgba(124, 255, 79, 0.08));
+  border-bottom: 1px solid rgba(0, 209, 178, 0.2);
+  color: #F4F7FA;
   padding: 14px 18px;
 }
 
 .status-panel,
 .workflow-card {
-  background: #f7faf8;
+  background: rgba(124, 255, 79, 0.03);
   border-radius: 8px;
 }
 
 .detail-section-card {
-  border-color: #dfe8df;
+  border-color: rgba(124, 255, 79, 0.12);
   border-radius: 10px;
   height: 100%;
   overflow: hidden;
@@ -2101,27 +2157,29 @@ onUnmounted(() => {
 
 .detail-section-head {
   align-items: center;
-  background: #e8f5e9;
-  color: #1b5e20;
+  background: rgba(0, 209, 178, 0.08);
+  color: #00D1B2;
   display: flex;
   font-size: 12px;
   font-weight: 900;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.5px;
   padding: 10px 14px;
   text-transform: uppercase;
+  border-bottom: 1px solid rgba(0, 209, 178, 0.12);
 }
 
 .label-meta {
-  color: #667085;
+  color: #8CA3B8;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0;
   margin-bottom: 4px;
   text-transform: uppercase;
+  font-family: 'Inter', sans-serif;
 }
 
 .field-value {
-  color: #1f2a24;
+  color: #F4F7FA;
   font-size: 14px;
   font-weight: 800;
 }

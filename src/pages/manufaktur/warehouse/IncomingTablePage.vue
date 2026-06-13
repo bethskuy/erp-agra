@@ -2,7 +2,7 @@
   <div class="incoming-table-page">
     <incoming-summary :rows="rows" />
 
-    <q-card flat bordered class="filter-card q-mb-lg shadow-1 rounded-20 bg-white">
+    <q-card flat bordered class="filter-card glass-card q-mb-lg shadow-1 rounded-20">
       <q-card-section class="toolbar-section">
         <div class="row q-col-gutter-md items-center">
           <div class="col-12 col-md-4">
@@ -12,13 +12,13 @@
               dense
               rounded
               clearable
+              dark
               debounce="250"
               placeholder="Cari nomor SJ, supplier, material, checker incoming..."
-              bg-color="white"
               class="search-input"
             >
               <template #prepend>
-                <q-icon name="search" color="green-10" />
+                <q-icon name="search" color="cyan" />
               </template>
             </q-input>
           </div>
@@ -31,8 +31,8 @@
               rounded
               emit-value
               map-options
+              dark
               label="Status"
-              bg-color="white"
               :options="statusOptions"
             />
           </div>
@@ -44,9 +44,9 @@
               dense
               rounded
               type="date"
+              dark
               label="Tanggal Masuk"
               clearable
-              bg-color="white"
             />
           </div>
 
@@ -54,25 +54,25 @@
 
           <div class="col-12 col-md-auto">
             <div class="row justify-end q-gutter-xs no-wrap">
-              <q-badge color="green-10" class="q-px-md q-py-xs text-weight-bold shadow-1">
+              <q-badge color="cyan-9" class="q-px-md q-py-xs text-weight-bold shadow-1">
                 {{ filteredRows.length }} RECORD
               </q-badge>
               <q-btn
                 flat
                 dense
-                color="grey-7"
+                color="grey-4"
                 icon="filter_alt_off"
                 label="Reset"
                 no-caps
                 @click="resetFilter"
               />
-              <q-btn flat round color="blue-grey-8" icon="file_download" @click="exportExcel">
+              <q-btn flat round color="cyan-4" icon="file_download" @click="exportExcel">
                 <q-tooltip>Export Excel</q-tooltip>
               </q-btn>
               <q-btn
                 flat
                 round
-                color="green-10"
+                color="cyan"
                 icon="refresh"
                 :loading="loading"
                 @click="emit('refresh')"
@@ -85,13 +85,13 @@
       </q-card-section>
     </q-card>
 
-    <q-card flat bordered class="table-card rounded-20 shadow-sm overflow-hidden bg-white">
-      <q-card-section class="bg-green-10 text-white q-py-sm">
+    <q-card flat bordered class="table-card glass-card rounded-20 shadow-sm overflow-hidden">
+      <q-card-section class="table-card-header q-py-sm">
         <div class="row items-center justify-between">
-          <div class="text-caption text-weight-bold uppercase tracking-widest">
+          <div class="text-caption text-weight-bold uppercase tracking-widest text-neon-green">
             Monitoring Incoming
           </div>
-          <div class="text-caption">Validasi Awal & Riwayat Incoming</div>
+          <div class="text-caption text-muted-premium">Validasi Awal & Riwayat Incoming</div>
         </div>
       </q-card-section>
       <q-table
@@ -101,15 +101,16 @@
         :loading="loading"
         row-key="id"
         flat
+        dark
         binary-state-sort
         class="incoming-table"
         :rows-per-page-options="[15, 25, 50, 100]"
       >
         <template #loading>
-          <q-inner-loading showing color="green-10">
+          <q-inner-loading showing color="cyan">
             <div class="column items-center q-gutter-sm">
-              <q-spinner-gears size="34px" color="green-10" />
-              <div class="text-caption text-grey-7 text-weight-bold">
+              <q-spinner-gears size="34px" color="cyan" />
+              <div class="text-caption text-secondary-premium text-weight-bold">
                 Memuat incoming material...
               </div>
             </div>
@@ -121,10 +122,10 @@
             <div class="empty-icon">
               <q-icon name="inventory_2" size="42px" />
             </div>
-            <div class="text-subtitle1 text-weight-bolder text-green-10">
+            <div class="text-subtitle1 text-weight-bolder text-neon-green">
               Belum ada incoming material
             </div>
-            <div class="text-caption text-grey-7">
+            <div class="text-caption text-muted-premium">
               Data penerimaan dari surat jalan akan tampil setelah form incoming disimpan.
             </div>
           </div>
@@ -173,7 +174,7 @@
             </q-td>
 
             <q-td key="tanggal_masuk" :props="slotProps">
-              <div class="cell-main text-green-10">
+              <div class="cell-main text-neon-green">
                 {{ formatDate(slotProps.row.tanggal_masuk) }}
               </div>
               <div class="text-caption text-grey-6">
@@ -559,6 +560,32 @@ const exportExcel = () => {
 </script>
 
 <style scoped>
+.glass-card {
+  background: rgba(13, 34, 51, 0.7) !important;
+  border: 1px solid rgba(124, 255, 79, 0.08) !important;
+  border-radius: 18px !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+}
+
+.table-card-header {
+  background: rgba(124, 255, 79, 0.06) !important;
+  border-bottom: 1px solid rgba(124, 255, 79, 0.15) !important;
+  color: #7CFF4F !important;
+}
+
+.text-neon-green {
+  color: #7CFF4F !important;
+}
+
+.text-muted-premium {
+  color: #8CA3B8 !important;
+}
+
+.text-secondary-premium {
+  color: #B8C7D9 !important;
+}
+
 .incoming-table-page {
   display: flex;
   flex-direction: column;
@@ -568,17 +595,59 @@ const exportExcel = () => {
   border-radius: 20px;
 }
 
-.filter-card,
-.table-card {
-  border-color: #dfe8df;
+.filter-card {
+  padding: 16px 20px !important;
+  margin-bottom: 16px !important;
+  border-color: rgba(124, 255, 79, 0.08);
 }
 
-.table-card {
-  overflow: hidden;
+.filter-card :deep(.q-card__section) {
+  padding: 0 !important;
 }
+
+/* Table Spacing Alignment (Matching PlanningProduksiPage.vue) */
+.table-card {
+  margin-top: 20px !important;
+  padding: 20px !important;
+  border-radius: 18px !important;
+  background: rgba(13, 34, 51, 0.85) !important;
+  border: 1px solid rgba(124, 255, 79, 0.08) !important;
+  overflow: hidden;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.table-card :deep(.q-table thead tr) {
+  height: 54px !important;
+}
+
+.table-card :deep(.q-table thead th) {
+  height: 54px !important;
+  font-size: 13px !important;
+  letter-spacing: 0.08em !important;
+  padding: 0 18px !important;
+  vertical-align: middle !important;
+}
+
+.table-card :deep(.q-table tbody tr) {
+  min-height: 64px !important;
+  height: 64px !important;
+}
+
+.table-card :deep(.q-table tbody td) {
+  padding: 14px 18px !important;
+  white-space: normal !important;
+  vertical-align: middle !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+}
+
+.table-card :deep(.q-table__bottom) {
+  padding: 16px 20px !important;
+}
+
 
 .toolbar-section {
-  background: #ffffff;
+  background: transparent !important;
   padding: 14px;
 }
 
@@ -592,11 +661,11 @@ const exportExcel = () => {
 }
 
 .incoming-table :deep(thead tr th) {
-  background: #1b5e20;
-  color: #ffffff;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.8px;
+  background: rgba(13, 34, 51, 0.9) !important;
+  color: #EAF2FF !important;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
   padding: 13px 10px;
   position: sticky;
   text-transform: uppercase;
@@ -605,25 +674,30 @@ const exportExcel = () => {
 }
 
 .incoming-table :deep(tbody td) {
+  color: #F4F7FA !important;
   font-size: 12.5px;
   padding: 10px;
   vertical-align: top;
 }
 
 .incoming-table :deep(tbody tr:hover) {
-  background: rgba(27, 94, 32, 0.04);
+  background: rgba(0, 209, 178, 0.06) !important;
 }
 
 .doc-number,
 .cell-main,
 .qty-value {
-  color: #1f2a24;
-  font-weight: 850;
+  color: #F4F7FA;
+  font-weight: 700;
   line-height: 1.25;
 }
 
 .doc-number {
-  color: #1b5e20;
+  color: #00D1B2 !important;
+}
+
+.qty-value {
+  color: #FFFFFF !important;
 }
 
 .diff-badge {
@@ -635,17 +709,17 @@ const exportExcel = () => {
 }
 
 .empty-state {
-  background: #fbfdfb;
+  background: transparent !important;
   min-height: 320px;
   padding: 54px 16px;
 }
 
 .empty-icon {
   align-items: center;
-  background: #e8f3eb;
-  border: 1px solid #cfe3d4;
+  background: rgba(0, 209, 178, 0.1);
+  border: 1px solid rgba(0, 209, 178, 0.2);
   border-radius: 8px;
-  color: #1b5e20;
+  color: #00D1B2;
   display: flex;
   height: 72px;
   justify-content: center;
@@ -658,7 +732,7 @@ const exportExcel = () => {
 }
 
 .shadow-sm {
-  box-shadow: 0 5px 16px rgba(27, 94, 32, 0.08);
+  box-shadow: 0 5px 16px rgba(0, 209, 178, 0.08);
 }
 
 @media (max-width: 900px) {
