@@ -131,11 +131,13 @@
             <div class="text-h6 text-weight-bold text-blue-grey-10">Laporan Kehadiran Harian</div>
             <div class="text-caption text-blue-grey-6 q-mt-xs text-weight-medium">
               Telah Absen:
-              <span class="text-teal-7 text-weight-bolder">{{ stats.hadirHariIni }}</span> | Belum
-              Absen:
-              <span class="text-red-5 text-weight-bolder">{{
-                stats.totalKaryawan - stats.hadirHariIni
-              }}</span>
+            <span class="text-teal-7 text-weight-bolder">{{ stats.hadirHariIni }}</span> | 
+            Belum Absen:
+            <span class="text-red-5 text-weight-bolder">{{ stats.belumAbsen }}</span>
+            <span v-if="stats.cutiIzinSakit > 0">
+              | Cuti/Izin/Sakit:
+              <span class="text-indigo-7 text-weight-bolder">{{ stats.cutiIzinSakit }}</span>
+            </span>
             </div>
           </div>
 
@@ -214,11 +216,12 @@
               <div class="row items-center no-wrap">
                 <q-avatar
                   size="36px"
-                  :color="getRandomColor(props.row.nama_karyawan)"
+                  :color="props.row.fotoUrl ? undefined : getRandomColor(props.row.nama_karyawan)"
                   text-color="white"
                   class="text-weight-bold shadow-1 q-mr-md"
                 >
-                  {{ getInitial(props.row.nama_karyawan) }}
+                  <img v-if="props.row.fotoUrl" :src="props.row.fotoUrl" style="object-fit: cover;" />
+                  <span v-else>{{ getInitial(props.row.nama_karyawan) }}</span>
                 </q-avatar>
                 <div>
                   <div class="text-weight-bold text-blue-grey-9 text-subtitle2">
@@ -256,12 +259,68 @@
             <!-- Kolom Status -->
             <q-td key="status" class="text-center">
               <q-badge
-                v-if="props.row.waktu_masuk"
+                v-if="props.row.status === 'Hadir'"
                 rounded
                 color="teal-6"
                 class="q-px-sm q-py-xs text-weight-bold shadow-1"
+                :class="props.row.dokumen_url ? 'cursor-pointer' : ''"
+                @click="props.row.dokumen_url ? bukaLampiran(props.row.dokumen_url) : null"
               >
                 <q-icon name="check_circle" size="xs" class="q-mr-xs" /> HADIR
+                <q-icon v-if="props.row.dokumen_url" name="attachment" size="xs" class="q-ml-xs" />
+                <q-tooltip v-if="props.row.dokumen_url" class="bg-teal-8 text-weight-bold">
+                  Klik untuk Lihat Lampiran Absen Manual
+                </q-tooltip>
+              </q-badge>
+              <q-badge
+                v-else-if="props.row.status === 'Terlambat'"
+                rounded
+                color="orange-8"
+                class="q-px-sm q-py-xs text-weight-bold shadow-1"
+              >
+                <q-icon name="warning" size="xs" class="q-mr-xs" /> TERLAMBAT
+              </q-badge>
+              <q-badge
+                v-else-if="props.row.status === 'Cuti'"
+                rounded
+                color="blue-6"
+                class="q-px-sm q-py-xs text-weight-bold shadow-1"
+                :class="props.row.dokumen_url ? 'cursor-pointer' : ''"
+                @click="props.row.dokumen_url ? bukaLampiran(props.row.dokumen_url) : null"
+              >
+                <q-icon name="beach_access" size="xs" class="q-mr-xs" /> CUTI
+                <q-icon v-if="props.row.dokumen_url" name="attachment" size="xs" class="q-ml-xs" />
+                <q-tooltip v-if="props.row.dokumen_url" class="bg-blue-8 text-weight-bold">
+                  Klik untuk Lihat Lampiran Cuti
+                </q-tooltip>
+              </q-badge>
+              <q-badge
+                v-else-if="props.row.status === 'Sakit'"
+                rounded
+                color="amber-7"
+                class="q-px-sm q-py-xs text-weight-bold shadow-1"
+                :class="props.row.dokumen_url ? 'cursor-pointer' : ''"
+                @click="props.row.dokumen_url ? bukaLampiran(props.row.dokumen_url) : null"
+              >
+                <q-icon name="healing" size="xs" class="q-mr-xs" /> SAKIT
+                <q-icon v-if="props.row.dokumen_url" name="attachment" size="xs" class="q-ml-xs" />
+                <q-tooltip v-if="props.row.dokumen_url" class="bg-amber-8 text-weight-bold">
+                  Klik untuk Lihat Lampiran Sakit
+                </q-tooltip>
+              </q-badge>
+              <q-badge
+                v-else-if="props.row.status === 'Izin'"
+                rounded
+                color="indigo-6"
+                class="q-px-sm q-py-xs text-weight-bold shadow-1"
+                :class="props.row.dokumen_url ? 'cursor-pointer' : ''"
+                @click="props.row.dokumen_url ? bukaLampiran(props.row.dokumen_url) : null"
+              >
+                <q-icon name="description" size="xs" class="q-mr-xs" /> IZIN
+                <q-icon v-if="props.row.dokumen_url" name="attachment" size="xs" class="q-ml-xs" />
+                <q-tooltip v-if="props.row.dokumen_url" class="bg-indigo-8 text-weight-bold">
+                  Klik untuk Lihat Lampiran Izin
+                </q-tooltip>
               </q-badge>
               <q-badge
                 v-else
@@ -291,7 +350,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { db } from 'src/boot/firebase'
 import { collection, query, where, getDocs, onSnapshot } from 'firebase/firestore'
 import { date, useQuasar } from 'quasar'
@@ -310,8 +369,11 @@ const selectedDate = ref(date.formatDate(today, 'YYYY-MM-DD'))
 const stats = ref({
   totalKaryawan: 0,
   hadirHariIni: 0,
+  belumAbsen: 0,
+  cutiIzinSakit: 0,
   cutiMenunggu: 0,
 })
+const karyawanList = ref([])
 const rows = ref([])
 
 const columns = [
@@ -351,6 +413,7 @@ const displayDate = computed(() => {
 
 const formatJam = (ts) => {
   if (!ts) return '-'
+  if (typeof ts === 'string' && ts.includes(':')) return ts
   const d = ts.toDate ? ts.toDate() : new Date(ts)
   return date.formatDate(d, 'HH:mm')
 }
@@ -376,14 +439,84 @@ const getRandomColor = (name) => {
   return colors[index]
 }
 
+// UI HELPER: Normalisasi format tanggal menjadi YYYY-MM-DD secara konsisten
+const normalizeDateStr = (dateStr) => {
+  if (!dateStr) return ''
+  let normalized = dateStr.replace(/\//g, '-')
+  const parts = normalized.split('-')
+  if (parts.length === 3) {
+    const y = parts[0]
+    const m = parts[1].padStart(2, '0')
+    const d = parts[2].padStart(2, '0')
+    return `${y}-${m}-${d}`
+  }
+  return normalized
+}
+
+// UI HELPER: Buka lampiran bukti izin/absen di tab baru
+const bukaLampiran = (url) => {
+  if (!url) return
+  window.open(url, '_blank')
+}
+
+// helper untuk memuat library ExcelJS secara dinamis dari CDN
+const loadExcelJS = () => {
+  return new Promise((resolve, reject) => {
+    if (window.ExcelJS) {
+      resolve(window.ExcelJS)
+      return
+    }
+    const script = document.createElement('script')
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js'
+    script.onload = () => resolve(window.ExcelJS)
+    script.onerror = () => reject(new Error('Gagal memuat ExcelJS'))
+    document.head.appendChild(script)
+  })
+}
+
+// helper untuk mengubah gambar URL ke format Base64 secara asinkron
+const getBase64Image = async (url) => {
+  try {
+    const res = await fetch(url)
+    const blob = await res.blob()
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onloadend = () => resolve(reader.result)
+      reader.onerror = reject
+      reader.readAsDataURL(blob)
+    })
+  } catch (e) {
+    console.error('Failed to load image as base64', e)
+    return null
+  }
+}
+
+const unsubscribePending = ref(null)
+
+const listenPendingCuti = () => {
+  const qPending = query(
+    collection(db, 'pengajuan'),
+    where('status_approval', '==', 'Pending')
+  )
+  unsubscribePending.value = onSnapshot(qPending, (snap) => {
+    stats.value.cutiMenunggu = snap.docs.filter(
+      (d) => d.data().jenis_pengajuan === 'Cuti Tahunan'
+    ).length
+  }, (err) => {
+    console.warn('Gagal memuat pending cuti:', err.message)
+  })
+}
+
 // AMBIL DATA REAL-TIME KARYAWAN
 const fetchTotalKaryawan = () => {
   onSnapshot(collection(db, 'karyawan'), (snap) => {
     stats.value.totalKaryawan = snap.size
+    karyawanList.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+    fetchDataHarian()
   })
 }
 
-// AMBIL DATA ABSENSI BERDASARKAN TANGGAL
+// AMBIL DATA ABSENSI BERDASARKAN TANGGAL DAN PETAKAN SELURUH KARYAWAN & CUTI/IZIN/SAKIT
 const fetchDataHarian = async () => {
   loading.value = true
   try {
@@ -405,11 +538,100 @@ const fetchDataHarian = async () => {
       ],
     })
 
+    // 1. Tarik data absensi hari ini
     const q = query(collection(db, 'absensi'), where('tanggal', '==', targetDate))
     const snap = await getDocs(q)
+    const absensiList = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
 
-    rows.value = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-    stats.value.hadirHariIni = rows.value.length
+    // 2. Tarik pengajuan Cuti/Izin/Sakit yang disetujui
+    const qPengajuan = query(
+      collection(db, 'pengajuan'),
+      where('status_approval', 'in', ['Approved', 'Selesai'])
+    )
+    const pengajuanSnap = await getDocs(qPengajuan)
+    const pengajuanList = pengajuanSnap.docs.map((doc) => doc.data())
+
+    const targetDateStr = normalizeDateStr(selectedDate.value)
+
+    // 3. Petakan seluruh karyawan
+    const mappedRows = karyawanList.value.map((karyawan) => {
+      const namaUpper = (karyawan.nama || '').toUpperCase()
+      
+      // Cari data check-in
+      const checkInRow = absensiList.find((absen) => (absen.nama_karyawan || '').toUpperCase() === namaUpper)
+
+      // Cari pengajuan cuti/izin/sakit yang aktif di tanggal ini
+      const leaveRow = pengajuanList.find((p) => {
+        const nameMatch = (p.nama_karyawan || '').toUpperCase() === namaUpper
+        if (!nameMatch) return false
+        
+        const pStart = normalizeDateStr(p.tanggal_mulai)
+        const pEnd = normalizeDateStr(p.tanggal_selesai || p.tanggal_mulai)
+        
+        return targetDateStr >= pStart && targetDateStr <= pEnd
+      })
+
+      let jamIn = null
+      let jamOut = null
+      let statusStr = 'Belum Absen'
+      let lokasiStr = '-'
+      let docUrl = null
+
+      if (checkInRow) {
+        jamIn = checkInRow.waktu_masuk || null
+        jamOut = checkInRow.waktu_pulang || null
+        statusStr = checkInRow.is_late ? 'Terlambat' : 'Hadir'
+        lokasiStr = checkInRow.nama_tempat || 'Tidak ada lokasi'
+        // Jika checkInRow tidak memiliki dokumen lampiran tetapi leaveRow memilikinya (misal absen manual)
+        if (leaveRow && leaveRow.dokumen_url) {
+          docUrl = leaveRow.dokumen_url
+        }
+      } else if (leaveRow) {
+        docUrl = leaveRow.dokumen_url || null
+        const jenis = leaveRow.jenis_pengajuan || ''
+        
+        if (jenis === 'Absensi Manual' || jenis.toLowerCase().includes('manual')) {
+          statusStr = 'Hadir'
+          lokasiStr = 'Absen Manual (Disetujui)'
+          
+          // Ekstrak jam masuk & pulang dari alasan
+          const alasanText = leaveRow.alasan || ''
+          const masukMatch = alasanText.match(/Jam Masuk:\s*([0-9]{2}:[0-9]{2})/)
+          const pulangMatch = alasanText.match(/Jam Pulang:\s*([0-9]{2}:[0-9]{2})/)
+          
+          jamIn = masukMatch ? masukMatch[1] : null
+          jamOut = pulangMatch && pulangMatch[1] !== 'Belum Pulang' ? pulangMatch[1] : null
+        } else {
+          statusStr = jenis === 'Cuti Tahunan' || jenis.toLowerCase().includes('cuti')
+            ? 'Cuti'
+            : jenis === 'Izin Sakit' || jenis.toLowerCase().includes('sakit')
+              ? 'Sakit'
+              : 'Izin'
+          lokasiStr = 'Cuti/Izin Disetujui'
+        }
+      }
+
+      return {
+        id: karyawan.id,
+        nik: karyawan.nik || '-',
+        nama_karyawan: karyawan.nama || 'Tanpa Nama',
+        jabatan: karyawan.jabatan || 'STAF',
+        waktu_masuk: jamIn,
+        waktu_pulang: jamOut,
+        status: statusStr,
+        nama_tempat: lokasiStr,
+        dokumen_url: docUrl,
+        fotoUrl: karyawan.fotoUrl || karyawan.foto_profil || null
+      }
+    })
+
+    rows.value = mappedRows
+    
+    // Hitung statistik
+    stats.value.hadirHariIni = mappedRows.filter(r => r.status === 'Hadir' || r.status === 'Terlambat').length
+    stats.value.belumAbsen = mappedRows.filter(r => r.status === 'Belum Absen').length
+    stats.value.cutiIzinSakit = mappedRows.filter(r => ['Cuti', 'Izin', 'Sakit'].includes(r.status)).length
+
   } catch (error) {
     console.error('Gagal memuat absensi', error)
   } finally {
@@ -417,7 +639,8 @@ const fetchDataHarian = async () => {
   }
 }
 
-// EXPORT KE EXCEL DENGAN SHEETJS (SAMA SEPERTI CATATAN ABSENSI)
+
+// EXPORT KE EXCEL DENGAN EXCELJS
 const downloadExcel = async () => {
   if (rows.value.length === 0) {
     $q.notify({
@@ -430,46 +653,208 @@ const downloadExcel = async () => {
   isExporting.value = true
 
   try {
-    // Inject library secara dinamis
-    if (!window.XLSX) {
-      await new Promise((resolve, reject) => {
-        const script = document.createElement('script')
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
-        script.onload = resolve
-        script.onerror = reject
-        document.head.appendChild(script)
+    const ExcelJS = await loadExcelJS()
+    const workbook = new ExcelJS.Workbook()
+    const worksheet = workbook.addWorksheet('Laporan Harian')
+    worksheet.views = [{ showGridLines: true }]
+
+    // Set merged headers
+    worksheet.mergeCells('A1:B2')
+    worksheet.mergeCells('C1:H1')
+    worksheet.mergeCells('C2:H2')
+
+    worksheet.getRow(1).height = 30
+    worksheet.getRow(2).height = 24
+    worksheet.getRow(3).height = 22
+
+    worksheet.getCell('C1').value = 'LAPORAN HARIAN KEHADIRAN KARYAWAN PT AGRA ABHINAYA PERKASA'
+    worksheet.getCell('C2').value = 'TANGGAL: ' + displayDate.value.toUpperCase()
+
+    const headerFill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF1F4E78' } // Navy Blue
+    }
+
+    // Apply header background to rows 1 and 2
+    for (let r = 1; r <= 2; r++) {
+      const row = worksheet.getRow(r)
+      for (let c = 1; c <= 8; c++) {
+        row.getCell(c).fill = headerFill
+      }
+    }
+
+    const titleCell = worksheet.getCell('C1')
+    titleCell.font = { name: 'Segoe UI', size: 14, bold: true, color: { argb: 'FFFFFFFF' } }
+    titleCell.alignment = { horizontal: 'center', vertical: 'middle' }
+
+    const subtitleCell = worksheet.getCell('C2')
+    subtitleCell.font = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FFFFFFFF' } }
+    subtitleCell.alignment = { horizontal: 'center', vertical: 'middle' }
+
+    // Embed logo
+    const logoBase64 = await getBase64Image('/icons/logo-agra.png')
+    if (logoBase64) {
+      const imageId = workbook.addImage({
+        base64: logoBase64,
+        extension: 'png',
+      })
+      worksheet.addImage(imageId, {
+        tl: { col: 0.1, row: 0.1 },
+        br: { col: 1.9, row: 1.9 },
+        editAs: 'oneCell'
       })
     }
 
-    // Mapping Data agar format rapi
-    const excelData = rows.value.map((row, index) => ({
-      No: index + 1,
-      'Nama Karyawan': row.nama_karyawan,
-      Tanggal: row.tanggal,
-      'Jam Check In': row.waktu_masuk ? formatJam(row.waktu_masuk) : '-',
-      'Jam Check Out': row.waktu_pulang ? formatJam(row.waktu_pulang) : '-',
-      Status: row.waktu_masuk ? 'Hadir' : 'Belum Absen',
-      Lokasi: row.nama_tempat || 'Tidak ada lokasi',
-    }))
+    // Table Header Row 3
+    const tableHeaderRow = worksheet.getRow(3)
+    const headerColumns = ["No", "NIK", "Nama Karyawan", "Jabatan", "Jam Check In", "Jam Check Out", "Status Kehadiran", "Lokasi"]
+    tableHeaderRow.values = headerColumns
 
-    const worksheet = window.XLSX.utils.json_to_sheet(excelData)
-    const workbook = window.XLSX.utils.book_new()
-    window.XLSX.utils.book_append_sheet(workbook, worksheet, 'Laporan Harian')
+    const subHeaderFill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FFE9EEF4' } // Clean soft blue grey header
+    }
+    const thinBorder = {
+      top: { style: 'thin', color: { argb: 'FF000000' } },
+      bottom: { style: 'thin', color: { argb: 'FF000000' } },
+      left: { style: 'thin', color: { argb: 'FF000000' } },
+      right: { style: 'thin', color: { argb: 'FF000000' } }
+    }
 
-    // Set lebar kolom Excel (Auto-fit Columns)
-    const colWidths = [
-      { wch: 6 }, // No
-      { wch: 35 }, // Nama
-      { wch: 25 }, // Tanggal
-      { wch: 15 }, // Check In
-      { wch: 15 }, // Check Out
-      { wch: 15 }, // Status
-      { wch: 35 }, // Lokasi
+    for (let col = 1; col <= 8; col++) {
+      const cell = tableHeaderRow.getCell(col)
+      cell.fill = subHeaderFill
+      cell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FF000000' } }
+      cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true }
+      cell.border = thinBorder
+    }
+
+    // Populate data
+    let currentRowNum = 4
+    rows.value.forEach((row, index) => {
+      const dataRow = worksheet.getRow(currentRowNum)
+      dataRow.height = 20
+
+      const vals = [
+        index + 1,
+        row.nik || '-',
+        (row.nama_karyawan || '').toUpperCase(),
+        row.jabatan || 'STAF',
+        row.waktu_masuk ? formatJam(row.waktu_masuk) : '-',
+        row.waktu_pulang ? formatJam(row.waktu_pulang) : '-',
+        row.status,
+        row.nama_tempat || '-'
+      ]
+      dataRow.values = vals
+
+      for (let col = 1; col <= 8; col++) {
+        const cell = dataRow.getCell(col)
+        cell.font = { name: 'Segoe UI', size: 10, color: { argb: 'FF000000' } }
+        cell.border = thinBorder
+        cell.alignment = { vertical: 'middle', horizontal: 'center' }
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } }
+
+        if (col === 1) {
+          cell.font.bold = true
+        }
+        if (col === 3) {
+          cell.font.bold = true
+          cell.alignment.horizontal = 'left'
+        }
+        if (col === 8) {
+          cell.alignment.horizontal = 'left'
+        }
+
+        if (col === 7) {
+          const status = cell.value
+          cell.font.bold = true
+          let bg = 'FFFFFFFF'
+          let textCol = 'FF000000'
+          if (status === 'Hadir') {
+            bg = 'FF00B050'
+            textCol = 'FFFFFFFF'
+          } else if (status === 'Terlambat') {
+            bg = 'FFFF6F00'
+            textCol = 'FFFFFFFF'
+          } else if (status === 'Cuti') {
+            bg = 'FF00B0F0'
+            textCol = 'FFFFFFFF'
+          } else if (status === 'Sakit') {
+            bg = 'FFFFC000'
+            textCol = 'FF000000'
+          } else if (status === 'Izin') {
+            bg = 'FF3F51B5'
+            textCol = 'FFFFFFFF'
+          } else if (status === 'Belum Absen') {
+            bg = 'FFFF0000'
+            textCol = 'FFFFFFFF'
+          }
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bg } }
+          cell.font.color = { argb: textCol }
+        }
+      }
+      currentRowNum++
+    })
+
+    // Legend
+    worksheet.getRow(currentRowNum).height = 15
+    currentRowNum++
+
+    const legendTitleRow = worksheet.getRow(currentRowNum)
+    legendTitleRow.height = 20
+    legendTitleRow.getCell(1).value = 'Keterangan:'
+    legendTitleRow.getCell(1).font = { name: 'Segoe UI', size: 10, bold: true }
+    currentRowNum++
+
+    const legends = [
+      { code: 'Hadir', desc: 'Hadir Tepat Waktu', bg: 'FF00B050', text: 'FFFFFFFF' },
+      { code: 'Terlambat', desc: 'Hadir Terlambat', bg: 'FFFF6F00', text: 'FFFFFFFF' },
+      { code: 'Cuti', desc: 'Sedang Cuti', bg: 'FF00B0F0', text: 'FFFFFFFF' },
+      { code: 'Sakit', desc: 'Sakit Dengan Surat', bg: 'FFFFC000', text: 'FF000000' },
+      { code: 'Izin', desc: 'Izin Keperluan Lain', bg: 'FF3F51B5', text: 'FFFFFFFF' },
+      { code: 'Belum Absen', desc: 'Mangkir / Belum Clock-in', bg: 'FFFF0000', text: 'FFFFFFFF' }
     ]
-    worksheet['!cols'] = colWidths
 
-    // Eksekusi download file .xlsx
-    window.XLSX.writeFile(workbook, `Laporan_Harian_AGRA_${selectedDate.value}.xlsx`)
+    legends.forEach(l => {
+      const rowObj = worksheet.getRow(currentRowNum)
+      rowObj.height = 18
+
+      const cellCode = rowObj.getCell(1)
+      cellCode.value = l.code
+      cellCode.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: l.text } }
+      cellCode.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: l.bg } }
+      cellCode.alignment = { horizontal: 'center', vertical: 'middle' }
+      cellCode.border = thinBorder
+
+      const cellDesc = rowObj.getCell(2)
+      cellDesc.value = l.desc
+      cellDesc.font = { name: 'Segoe UI', size: 10, bold: true }
+      cellDesc.alignment = { horizontal: 'left', vertical: 'middle' }
+      cellDesc.border = thinBorder
+
+      currentRowNum++
+    })
+
+    // Set widths explicitly
+    worksheet.getColumn(1).width = 6
+    worksheet.getColumn(2).width = 15
+    worksheet.getColumn(3).width = 30
+    worksheet.getColumn(4).width = 18
+    worksheet.getColumn(5).width = 16
+    worksheet.getColumn(6).width = 16
+    worksheet.getColumn(7).width = 18
+    worksheet.getColumn(8).width = 35
+
+    const buffer = await workbook.xlsx.writeBuffer()
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+    const filename = `Laporan_Harian_AGRA_${selectedDate.value}.xlsx`
+    const link = document.createElement('a')
+    link.href = window.URL.createObjectURL(blob)
+    link.download = filename
+    link.click()
+    window.URL.revokeObjectURL(link.href)
 
     $q.notify({
       message: 'Berhasil mengunduh Laporan Harian!',
@@ -523,6 +908,11 @@ onMounted(() => {
   // JIKA AMAN (ADMIN), BARU EKSEKUSI DATA
   fetchTotalKaryawan()
   fetchDataHarian()
+  listenPendingCuti()
+})
+
+onUnmounted(() => {
+  if (unsubscribePending.value) unsubscribePending.value()
 })
 </script>
 

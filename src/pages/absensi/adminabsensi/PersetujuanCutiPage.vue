@@ -1671,13 +1671,47 @@ const loadKaryawan = async () => {
   }
 }
 
+const hitungHariKerja = (startStr, endStr) => {
+  if (!startStr) return 0
+  const start = new Date(startStr.replace(/-/g, '/'))
+  const end = endStr ? new Date(endStr.replace(/-/g, '/')) : new Date(startStr.replace(/-/g, '/'))
+  if (end < start) return 0
+
+  let count = 0
+  const current = new Date(start)
+  const activeYear = start.getFullYear()
+  const yearHolidays = HOLIDAY_DATA[activeYear] || []
+  const holidayStrings = yearHolidays.map((h) => h.tanggal)
+
+  while (current <= end) {
+    const dayOfWeek = current.getDay()
+    const checkDateStr = date.formatDate(current, 'YYYY/MM/DD')
+
+    const isSunday = dayOfWeek === 0
+    const isHoliday = holidayStrings.includes(checkDateStr)
+
+    if (!isSunday && !isHoliday) {
+      count++
+    }
+    current.setDate(current.getDate() + 1)
+  }
+  return count
+}
+
 // Load Data Pengajuan Realtime
 const loadDataRealtime = () => {
   const qData = query(collection(db, 'pengajuan'), orderBy('created_at', 'desc'))
   unsubscribeData = onSnapshot(
     qData,
     (snap) => {
-      allData.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+      allData.value = snap.docs.map((d) => {
+        const data = d.data()
+        let totalHari = data.total_hari
+        if (totalHari === undefined || totalHari === null || totalHari === '') {
+          totalHari = hitungHariKerja(data.tanggal_mulai, data.tanggal_selesai)
+        }
+        return { id: d.id, ...data, total_hari: totalHari }
+      })
       loading.value = false
     },
     (err) => {

@@ -672,7 +672,7 @@
                 <div class="row items-center q-mb-lg border-bottom-subtle q-pb-md">
                   <q-avatar
                     size="36px"
-                    color="blue-50"
+                    color="blue-1"
                     text-color="indigo-10"
                     icon="person"
                     class="q-mr-sm rounded-8 shadow-sm"
@@ -893,7 +893,7 @@
                 <div class="row items-center q-mb-lg border-bottom-subtle q-pb-md">
                   <q-avatar
                     size="36px"
-                    color="blue-50"
+                    color="blue-1"
                     text-color="indigo-10"
                     icon="vpn_key"
                     class="q-mr-sm rounded-8 shadow-sm"

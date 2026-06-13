@@ -42,7 +42,7 @@
             <div class="row items-center q-mb-lg border-bottom-subtle q-pb-md">
               <q-avatar
                 size="36px"
-                color="blue-50"
+                color="blue-1"
                 text-color="primary"
                 icon="rate_review"
                 class="q-mr-sm rounded-8 shadow-sm"
@@ -806,7 +806,7 @@ const optionsJenis = [
   { label: 'Izin Mendadak', value: 'Izin' },
 ]
 
-const optionsKaryawan = ref(['Ilham Fahyono', 'Ihmawan Wira', 'Budi Santoso', 'Agung Nugroho'])
+const optionsKaryawan = ref([])
 
 const columns = [
   { name: 'no', label: 'NO', align: 'center' },
@@ -820,15 +820,38 @@ const columns = [
   { name: 'catatan', label: 'CATATAN ADMIN', align: 'left' },
 ]
 
+const hitungHariKerja = (startStr, endStr) => {
+  if (!startStr) return 0
+  const start = new Date(startStr.replace(/-/g, '/'))
+  const end = endStr ? new Date(endStr.replace(/-/g, '/')) : new Date(startStr.replace(/-/g, '/'))
+  if (end < start) return 0
+
+  let count = 0
+  const current = new Date(start)
+  while (current <= end) {
+    const dayOfWeek = current.getDay()
+    const checkDateStr = date.formatDate(current, 'YYYY/MM/DD')
+    const isSunday = dayOfWeek === 0
+    const isHoliday = holidays.value.some((h) => h.tanggal === checkDateStr)
+    if (!isSunday && !isHoliday) {
+      count++
+    }
+    current.setDate(current.getDate() + 1)
+  }
+  return count
+}
+
 const usedDays = computed(() => {
   let total = 0
+  const currentYearVal = new Date().getFullYear()
   rows.value.forEach((row) => {
     const approved = row.status_approval === 'Approved' || row.status_approval === 'Selesai'
     const isAnnualLeave = row.jenis_pengajuan === 'Cuti Tahunan'
-    if (approved && isAnnualLeave) {
-      const start = new Date(row.tanggal_mulai)
-      const end = new Date(row.tanggal_selesai)
-      total += Math.ceil(Math.abs(end - start) / (1000 * 60 * 60 * 24)) + 1
+    if (approved && isAnnualLeave && row.tanggal_mulai) {
+      const startYear = parseInt(row.tanggal_mulai.substring(0, 4))
+      if (startYear === currentYearVal) {
+        total += hitungHariKerja(row.tanggal_mulai, row.tanggal_selesai)
+      }
     }
   })
   return total
