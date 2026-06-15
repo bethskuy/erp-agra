@@ -306,60 +306,61 @@ const menuListFiltered = computed(() => {
       label: 'Dashboard Admin',
       icon: 'admin_panel_settings',
       path: '/absensi/admin/dashboard',
-      dbKey: 'DASHBOARD',
-      isAdminRow: true,
     },
     {
       label: 'Pengaturan Absensi',
       icon: 'settings_suggest',
       path: '/absensi/admin/pengaturan',
-      dbKey: 'PENGATURAN',
     },
     {
       label: 'Catatan Absensi',
       icon: 'fact_check',
       path: '/absensi/admin/catatan',
-      dbKey: 'CATATAN',
     },
     {
       label: 'Persetujuan Cuti',
       icon: 'event_available',
       path: '/absensi/admin/persetujuan',
-      dbKey: 'PERSETUJUAN',
     },
     {
       label: 'Persetujuan Izin',
       icon: 'rule_folder',
       path: '/absensi/admin/persetujuan-izin',
-      dbKey: 'PERSETUJUAN IZIN',
     },
     {
       label: 'Pemberitahuan Umum',
       icon: 'campaign',
       path: '/absensi/admin/pemberitahuan',
-      dbKey: 'PEMBERITAHUAN',
     },
-    { label: 'Profil', icon: 'account_circle', path: '/absensi/profil', dbKey: 'PROFIL' },
+    {
+      label: 'Profil',
+      icon: 'account_circle',
+      path: '/absensi/profil',
+    },
     {
       label: 'Dashboard Karyawan',
       icon: 'dashboard',
       path: '/absensi/dashboard',
-      dbKey: 'DASHBOARD',
-      isAdminRow: false,
     },
-    { label: 'Riwayat Absensi', icon: 'history', path: '/absensi/riwayat', dbKey: 'RIWAYAT' },
+    {
+      label: 'Riwayat Absensi',
+      icon: 'history',
+      path: '/absensi/riwayat',
+    },
     {
       label: 'Pengajuan Cuti/Izin',
       icon: 'event_note',
       path: '/absensi/pengajuan-izin',
-      dbKey: 'PENGAJUAN IZIN',
-    }, // FIX: dbKey disesuaikan dengan Firestore "PENGAJUAN IZIN"
-    { label: 'Absensi Manual', icon: 'history_edu', path: '/absensi/manual', dbKey: 'MANUAL' },
+    },
+    {
+      label: 'Absensi Manual',
+      icon: 'history_edu',
+      path: '/absensi/manual',
+    },
     // BARU: Menambahkan item menu Absensi Harian Lepas dengan struktur sub-menu
     {
       label: 'Absensi Harian Lepas',
       icon: 'engineering',
-      dbKey: 'HARIAN LEPAS',
       children: [
         {
           label: 'Kelola Pekerja & Mandor',
@@ -389,31 +390,37 @@ const menuListFiltered = computed(() => {
   const absensiModule = userPermissions.value.find((p) => p.id === 'absensi')
   if (!absensiModule || !absensiModule.menus || !absensiModule.isActive) return []
 
-  return masterMenus.filter((menuItem) => {
-    // Cari semua item di Firestore yang cocok dengan dbKey ini
-    const matchedDbMenus = absensiModule.menus.filter((m) => {
-      const idUpper = m.id?.toUpperCase() || ''
-      const labelUpper = m.label?.toUpperCase() || ''
-      return idUpper === menuItem.dbKey || labelUpper === menuItem.dbKey
-    })
-
-    if (matchedDbMenus.length === 0) return false
-
-    // Kasus khusus untuk kunci ganda seperti 'DASHBOARD'
-    if (menuItem.dbKey === 'DASHBOARD') {
-      // DASHBOARD ADMIN (isAdminRow: true) mengambil index ke-0
-      // DASHBOARD KARYAWAN (isAdminRow: false) mengambil index ke-1 (atau ke-0 jika cuma ada 1 di DB)
-      const dbMenu = menuItem.isAdminRow
-        ? matchedDbMenus[0]
-        : matchedDbMenus[1] || matchedDbMenus[0]
-      return dbMenu ? dbMenu.lihat === true : false
-    }
-
-    // Untuk menu biasa lainnya (PENGATURAN, PROFIL, PENGAJUAN IZIN, MANUAL, dll.)
-    // Ambil item pertama yang cocok
-    const dbMenu = matchedDbMenus[0]
+  const checkPermission = (path) => {
+    if (!path) return false
+    // Format path ke ID menu Firestore (misal: /absensi/admin/dashboard -> _absensi_admin_dashboard)
+    const dbId = path.replace(/\//g, '_')
+    const dbMenu = absensiModule.menus.find(
+      (m) => (m.id || '').toLowerCase() === dbId.toLowerCase()
+    )
     return dbMenu ? dbMenu.lihat === true : false
+  }
+
+  const result = []
+
+  masterMenus.forEach((menuItem) => {
+    if (menuItem.children && menuItem.children.length > 0) {
+      // Filter sub-menu secara dinamis berdasarkan izin centang "lihat"
+      const activeChildren = menuItem.children.filter((child) => checkPermission(child.path))
+      if (activeChildren.length > 0) {
+        result.push({
+          ...menuItem,
+          children: activeChildren,
+        })
+      }
+    } else {
+      // Menu standar tanpa children
+      if (checkPermission(menuItem.path)) {
+        result.push(menuItem)
+      }
+    }
   })
+
+  return result
 })
 
 const loadPendingCount = () => {

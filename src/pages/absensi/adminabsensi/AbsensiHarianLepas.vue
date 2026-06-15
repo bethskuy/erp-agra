@@ -899,7 +899,7 @@ const checkAkses = async (uid) => {
     const modulAbsensi = permissions.find((m) => m.id === 'absensi')
     if (modulAbsensi && modulAbsensi.isActive) {
       const menuHarianLepas = modulAbsensi.menus?.find(
-        (menu) => menu.id === '_absensi_harian_lepas',
+        (menu) => menu.id === '_absensi_harian_lepas' || menu.id === '_absensi_admin_absensi-harian-lepas',
       )
       if (menuHarianLepas && menuHarianLepas.lihat === true) {
         aksesGranted.value = true
@@ -939,7 +939,9 @@ const loadDetailPermission = async (uid) => {
     const permissions = karyawan.permissions_detail || []
     const modulAbsensi = permissions.find((m) => m.id === 'absensi')
     if (modulAbsensi) {
-      const menu = modulAbsensi.menus?.find((m) => m.id === '_absensi_harian_lepas')
+      const menu = modulAbsensi.menus?.find(
+        (m) => m.id === '_absensi_harian_lepas' || m.id === '_absensi_admin_absensi-harian-lepas'
+      )
       if (menu) {
         bisa.value = {
           lihat: menu.lihat || false,
