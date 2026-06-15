@@ -641,7 +641,14 @@
                     outlined
                     dense
                     bg-color="white"
-                    :options="jabatanOptions"
+                    use-input
+                    fill-input
+                    hide-selected
+                    new-value-mode="add-unique"
+                    :options="currentOptions"
+                    @filter="(val, update) => filterJabatan(val, update, m.id)"
+                    @blur="onJabatanBlur(m.id)"
+                    @update:model-value="(val) => onJabatanSelected(val, m.id)"
                     label="Jabatan"
                     class="col-12 col-sm-2 rounded-input"
                   />
@@ -1111,6 +1118,38 @@ const jabatanOptions = [
   'Helper',
   'Mandor Lapangan',
 ]
+const currentOptions = ref([...jabatanOptions])
+
+const filterJabatan = (val, update, mandorId) => {
+  update(() => {
+    const f = pekerjaForms.value[mandorId]
+    if (f) {
+      f.typedJabatan = val
+    }
+    if (val === '') {
+      currentOptions.value = jabatanOptions
+    } else {
+      const needle = val.toLowerCase()
+      currentOptions.value = jabatanOptions.filter(v => v.toLowerCase().indexOf(needle) > -1)
+    }
+  })
+}
+
+const onJabatanBlur = (mandorId) => {
+  setTimeout(() => {
+    const f = pekerjaForms.value[mandorId]
+    if (f && f.typedJabatan) {
+      f.jabatan = f.typedJabatan
+    }
+  }, 100)
+}
+
+const onJabatanSelected = (val, mandorId) => {
+  const f = pekerjaForms.value[mandorId]
+  if (f) {
+    f.typedJabatan = ''
+  }
+}
 const MANDOR_COLORS = [
   '#1565c0', // brand-primary
   '#0d9488', // teal
@@ -1339,6 +1378,7 @@ const syncPekerjaFormsStructure = () => {
       pekerjaForms.value[m.id] = {
         nama: '',
         jabatan: 'Tukang',
+        typedJabatan: '',
         upahHari: 150000,
         koef: 1.0,
         upahLembur: projectSetup.value.lembur || 25000
@@ -1450,6 +1490,7 @@ const addPekerja = async (mandorId) => {
   try {
     await updateDoc(doc(db, 'harian_lepas_mandor', mandorId), { pekerja: pekerjaBaru })
     f.nama = ''
+    f.typedJabatan = ''
     $q.notify({
       type: 'positive',
       message: 'Pekerja harian lepas berhasil dimasukkan ke dalam grup!',
