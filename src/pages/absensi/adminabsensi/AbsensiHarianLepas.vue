@@ -783,7 +783,7 @@
                           text-color="orange-9"
                           class="text-weight-bold q-px-sm q-py-xs rounded-6 text-11"
                         >
-                          Lembur: Rp {{ formatUang((p.upahLembur || 25000) * (p.koefLembur || 1.0)) }}/Jam ({{ (p.koefLembur || 1.0).toFixed(2) }}x)
+                          Lembur: Rp {{ formatUang((p.upahLembur || 0) * (p.koefLembur || 1.0)) }}/Jam ({{ (p.koefLembur || 1.0).toFixed(2) }}x)
                         </q-badge>
                       </div>
                       <div
@@ -849,8 +849,8 @@
                             Rp {{ formatUang((p.upahHari || 0) * (p.koef || 1.0)) }}
                           </td>
                           <td class="text-right text-weight-bold text-amber-9 font-mono">
-                            Rp {{ formatUang((p.upahLembur || 25000) * (p.koefLembur || 1.0)) }}
-                            <div class="text-caption text-grey-5">Base: Rp {{ formatUang(p.upahLembur || 25000) }} ({{ (p.koefLembur || 1.0).toFixed(2) }}x)</div>
+                            Rp {{ formatUang((p.upahLembur || 0) * (p.koefLembur || 1.0)) }}
+                            <div class="text-caption text-grey-5">Base: Rp {{ formatUang(p.upahLembur || 0) }} ({{ (p.koefLembur || 1.0).toFixed(2) }}x)</div>
                           </td>
                           <td class="text-center no-print">
                             <q-btn
@@ -1418,7 +1418,7 @@ const syncPekerjaFormsStructure = () => {
         typedJabatan: '',
         upahHari: 150000,
         koef: 1.0,
-        upahLembur: projectSetup.value.lembur || 25000,
+        upahLembur: projectSetup.value.lembur || 0,
         koefLembur: 1.0
       }
     }
@@ -1590,7 +1590,7 @@ const calculateRowDailyWage = (pekerja, state) => {
   else if (state.status === 'setengah') upahDinas = base * k * 0.5
 
   const rateLembur =
-    pekerja.upahLembur !== undefined ? pekerja.upahLembur : projectSetup.value.lembur || 25000
+    pekerja.upahLembur !== undefined ? pekerja.upahLembur : projectSetup.value.lembur || 0
   const kl = pekerja.koefLembur || 1.0
   const totalLembur = (parseFloat(state.lembur) || 0) * rateLembur * kl
 

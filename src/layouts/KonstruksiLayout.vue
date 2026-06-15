@@ -598,6 +598,14 @@
                     ><q-icon name="fact_check" size="20px" class="icon-sub"
                   /></q-item-section>
                   <q-item-section class="menu-text">Approval PO</q-item-section>
+                  <q-item-section side v-if="pendingPoCount > 0">
+                    <q-badge
+                      color="orange-9"
+                      rounded
+                      class="q-px-sm font-bold shadow-1 animate-bounce"
+                      >{{ pendingPoCount }}</q-badge
+                    >
+                  </q-item-section>
                 </q-item>
               </q-list>
             </q-expansion-item>
@@ -1024,6 +1032,7 @@ const pendingApprovalCount = ref(0)
 const rejectedPenawaranCount = ref(0)
 const approvedPenawaranCount = ref(0)
 const pendingPrCount = ref(0)
+const pendingPoCount = ref(0)
 const approvedPrCount = ref(0)
 const rejectedPrCount = ref(0)
 const pendingMutasiCount = ref(0)
@@ -1049,6 +1058,7 @@ let unsubRejectedPenawaran = null
 let unsubApprovedPenawaran = null
 let unsubApps = null
 let unsubPermintaanAll = null
+let unsubPoAll = null
 let unsubInvoiceAll = null
 let unsubMonitoringTagihan = null
 let unsubPembayaranRequests = null
@@ -1355,6 +1365,11 @@ onMounted(() => {
     })
     rejectedTagihanSupplierCount.value = rejectedTagihanCount
   })
+
+  // Purchase Order
+  unsubPoAll = onSnapshot(query(collection(db, 'purchase_order'), where('status', '==', 'Submitted')), (snap) => {
+    pendingPoCount.value = snap.size
+  })
 })
 
 onUnmounted(() => {
@@ -1368,6 +1383,7 @@ onUnmounted(() => {
   if (unsubMonitoringTagihan) unsubMonitoringTagihan()
   if (unsubPembayaranRequests) unsubPembayaranRequests()
   if (unsubTagihanSupplier) unsubTagihanSupplier()
+  if (unsubPoAll) unsubPoAll()
 })
 
 const totalFinanceNotifications = computed(() => {
@@ -1416,6 +1432,9 @@ const totalPembelianNotifications = computed(() => {
   
   if (checkPermission('pembelian/pesanan')) {
     total += pendingPrCount.value
+  }
+  if (checkPermission('pembelian/approval-po')) {
+    total += pendingPoCount.value
   }
   
   return total

@@ -652,7 +652,7 @@
                   <div
                     class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs"
                   >
-                    Requestor
+                    {{ selectedPo.prepared_by_jabatan || 'Requestor' }}
                   </div>
                 </div>
 
@@ -671,7 +671,7 @@
                   <div
                     class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs"
                   >
-                    Project Manager
+                    {{ selectedPo.checked_by_jabatan || 'Project Manager' }}
                   </div>
                 </div>
 
@@ -681,13 +681,6 @@
                   </div>
                   <div class="final-sign-space flex flex-center" style="height: 60px">
                     <!-- Spacer for signature or checkmark -->
-                    <div
-                      v-if="selectedPo.status === 'Approved' && selectedPo.approved_by_nama"
-                      class="text-positive text-weight-bold"
-                      style="font-size: 11px"
-                    >
-                      ✓ {{ selectedPo.approved_by_nama }}
-                    </div>
                   </div>
                   <div class="signer-name-wrapper">
                     <div class="text-signer-final text-weight-bold uppercase text-indigo-10">
@@ -697,7 +690,7 @@
                   <div
                     class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs"
                   >
-                    Direktur
+                    {{ selectedPo.approved_by_jabatan || 'Direktur' }}
                   </div>
                 </div>
 
@@ -913,8 +906,6 @@ const handleApproval = (row, status, alasan = null) => {
       const payload = {
         status,
         updatedAt: serverTimestamp(),
-        approved_by_nama: userData.value?.nama || authStore.user?.email || 'Admin',
-        approved_by_jabatan: userData.value?.jabatan || '',
       }
 
       if (isApprove) {

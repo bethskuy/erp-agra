@@ -406,37 +406,7 @@
                           <q-tooltip>Ajukan PO ke Approval</q-tooltip>
                         </q-btn>
 
-                        <!-- Badge sudah diajukan / approved -->
-                        <q-chip
-                          v-if="props.row.status === 'Submitted'"
-                          size="sm"
-                          color="orange-9"
-                          text-color="white"
-                          icon="hourglass_empty"
-                          class="text-weight-bold"
-                        >
-                          Menunggu
-                        </q-chip>
-                        <q-chip
-                          v-if="props.row.status === 'Approved'"
-                          size="sm"
-                          color="positive"
-                          text-color="white"
-                          icon="check_circle"
-                          class="text-weight-bold"
-                        >
-                          Disetujui
-                        </q-chip>
-                        <q-chip
-                          v-if="props.row.status === 'Rejected'"
-                          size="sm"
-                          color="negative"
-                          text-color="white"
-                          icon="cancel"
-                          class="text-weight-bold"
-                        >
-                          Ditolak
-                        </q-chip>
+                        <!-- Badge dihapus karena sudah ada di kolom status -->
 
                         <!-- Hapus -->
                         <q-btn
@@ -903,6 +873,15 @@
                     bg-color="white"
                     placeholder="Nama pembuat PO..."
                     color="brand-primary"
+                    class="q-mb-sm"
+                  />
+                  <q-input
+                    outlined
+                    dense
+                    v-model="poForm.prepared_by_jabatan"
+                    bg-color="white"
+                    placeholder="Jabatan (Requestor)"
+                    color="brand-primary"
                   />
                 </div>
                 <div class="col-4">
@@ -914,6 +893,15 @@
                     bg-color="white"
                     placeholder="Nama..."
                     color="brand-primary"
+                    class="q-mb-sm"
+                  />
+                  <q-input
+                    outlined
+                    dense
+                    v-model="poForm.checked_by_jabatan"
+                    bg-color="white"
+                    placeholder="Jabatan (Project Manager)"
+                    color="brand-primary"
                   />
                 </div>
                 <div class="col-4">
@@ -924,6 +912,15 @@
                     v-model="poForm.approved_by"
                     bg-color="white"
                     placeholder="Nama..."
+                    color="brand-primary"
+                    class="q-mb-sm"
+                  />
+                  <q-input
+                    outlined
+                    dense
+                    v-model="poForm.approved_by_jabatan"
+                    bg-color="white"
+                    placeholder="Jabatan (Direktur)"
                     color="brand-primary"
                   />
                 </div>
@@ -1413,7 +1410,7 @@
                     <div
                       class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs"
                     >
-                      Requestor
+                      {{ selectedPo.prepared_by_jabatan || 'Requestor' }}
                     </div>
                   </div>
 
@@ -1432,7 +1429,7 @@
                     <div
                       class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs"
                     >
-                      Project Manager
+                      {{ selectedPo.checked_by_jabatan || 'Project Manager' }}
                     </div>
                   </div>
 
@@ -1442,13 +1439,6 @@
                     </div>
                     <div class="final-sign-space flex flex-center" style="height: 60px">
                       <!-- Spacer for signature or checkmark -->
-                      <div
-                        v-if="selectedPo.status === 'Approved' && selectedPo.approved_by_nama"
-                        class="text-positive text-weight-bold"
-                        style="font-size: 11px"
-                      >
-                        ✓ {{ selectedPo.approved_by_nama }}
-                      </div>
                     </div>
                     <div class="signer-name-wrapper">
                       <div class="text-signer-final text-weight-bold uppercase text-indigo-10">
@@ -1458,7 +1448,7 @@
                     <div
                       class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs"
                     >
-                      Direktur
+                      {{ selectedPo.approved_by_jabatan || 'Direktur' }}
                     </div>
                   </div>
 
@@ -1561,9 +1551,12 @@ const poFormDefault = {
   closing:
     'Kami berharap Purchase Order ini dapat memenuhi kebutuhan Kami. Jika ada pertanyaan atau klarifikasi lebih lanjut, jangan ragu untuk menghubungi kami.\nTerima kasih atas perhatiannya.',
   prepared_by: '',
+  prepared_by_jabatan: '',
   requested_by: '',
   checked_by: '',
+  checked_by_jabatan: '',
   approved_by: '',
+  approved_by_jabatan: '',
   approved_supplier: '',
 }
 
