@@ -255,6 +255,12 @@
                   <div class="text-weight-bolder text-brand-primary text-subtitle2">
                     Rp {{ (props.row.nominal || 0).toLocaleString('id-ID') }}
                   </div>
+                  <div class="text-caption text-grey-6 font-10" v-if="props.row.nominal_eksekusi > 0">
+                    Telah dibayar: <span class="text-weight-bold text-primary">Rp {{ props.row.nominal_eksekusi.toLocaleString('id-ID') }}</span>
+                  </div>
+                  <div class="text-caption text-negative font-10 text-weight-bold" v-if="props.row.status === 'Dibayar Sebagian'">
+                    Sisa: Rp {{ (props.row.nominal - props.row.nominal_eksekusi).toLocaleString('id-ID') }}
+                  </div>
                   <div class="text-caption text-grey-6 font-10">
                     Via {{ props.row.tipe_pengajuan }}
                   </div>
@@ -393,7 +399,17 @@
               </q-list>
             </q-btn-dropdown>
 
-            <template v-if="selectedData.status === 'Approved'">
+            <template v-if="selectedData.status === 'Approved' || selectedData.status === 'Dibayar Sebagian'">
+              <q-chip
+                v-if="selectedData.status === 'Dibayar Sebagian'"
+                :color="getStatusColor(selectedData.status).bg"
+                :text-color="getStatusColor(selectedData.status).text.replace('text-', '')"
+                class="text-weight-bolder font-11 uppercase shadow-sm q-px-md q-py-md q-ma-none q-mr-sm"
+                size="14px"
+              >
+                <q-icon :name="getStatusColor(selectedData.status).icon" class="q-mr-xs" />
+                DIBAYAR SEBAGIAN
+              </q-chip>
               <q-btn
                 unelevated
                 color="positive"
@@ -413,11 +429,9 @@
                 <q-icon :name="getStatusColor(selectedData.status).icon" class="q-mr-sm" />
                 TELAH DI
                 {{
-                  selectedData.status === 'Approved'
-                    ? 'SETUJUI'
-                    : selectedData.status === 'Cair'
-                      ? 'CAIRKAN'
-                      : 'TOLAK'
+                  selectedData.status === 'Cair'
+                    ? 'CAIRKAN'
+                    : 'TOLAK'
                 }}
               </q-chip>
             </template>
@@ -687,63 +701,105 @@
                 <div
                   class="row q-mt-xl"
                   v-if="
-                    selectedData.status === 'Cair' &&
-                    (selectedData.bukti_transfer || selectedData.nominal_eksekusi)
+                    (selectedData.status === 'Cair' || selectedData.status === 'Dibayar Sebagian') &&
+                    (selectedData.bukti_transfer || selectedData.nominal_eksekusi || (selectedData.riwayat_realisasi && selectedData.riwayat_realisasi.length > 0))
                   "
                 >
                   <div class="col-12">
                     <div
                       class="text-weight-bold text-brand-primary q-mb-md uppercase tracking-widest font-11 border-bottom-subtle q-pb-sm"
                     >
-                      BUKTI TRANSFER / REALISASI
+                      BUKTI TRANSFER & DETAIL REALISASI
                     </div>
-                    <div
-                      class="bg-blue-50 text-blue-9 border-blue-thin q-pa-md rounded-12 text-weight-bold q-mb-md"
-                      v-if="selectedData.nominal_eksekusi || selectedData.catatan_realisasi"
-                    >
-                      <div class="q-mb-xs">
-                        <q-icon name="payments" size="sm" class="q-mr-sm" /> Nominal Realisasi: Rp
-                        {{
-                          (selectedData.nominal_eksekusi || selectedData.nominal).toLocaleString(
-                            'id-ID',
-                          )
-                        }}
-                      </div>
-                      <div>
-                        <q-icon name="notes" size="sm" class="q-mr-sm" /> Catatan Eksekusi:
-                        {{ selectedData.catatan_realisasi || 'Telah dicairkan' }}
-                      </div>
+
+                    <!-- RIWAYAT REALISASI MULTIPLE -->
+                    <div v-if="selectedData.riwayat_realisasi && selectedData.riwayat_realisasi.length > 0" class="q-mb-md">
+                      <q-list separator class="rounded-12 border-subtle bg-grey-1">
+                        <q-item
+                          v-for="(item, idx) in selectedData.riwayat_realisasi"
+                          :key="idx"
+                          class="q-py-md"
+                        >
+                          <q-item-section avatar>
+                            <q-avatar color="brand-light" text-color="brand-primary" icon="payments" />
+                          </q-item-section>
+                          <q-item-section>
+                            <q-item-label class="text-weight-bold text-subtitle1">
+                              Rp {{ (item.nominal || 0).toLocaleString('id-ID') }}
+                            </q-item-label>
+                            <q-item-label caption v-if="item.catatan">
+                              Catatan: {{ item.catatan }}
+                            </q-item-label>
+                            <q-item-label caption>
+                              Oleh: {{ item.realizedBy || 'Admin' }} pada {{ formatDateIndo(item.tanggal) }}
+                            </q-item-label>
+                          </q-item-section>
+                          <q-item-section side v-if="item.bukti_transfer">
+                            <q-btn
+                              flat
+                              round
+                              dense
+                              icon="open_in_new"
+                              color="primary"
+                              @click="openLink(item.bukti_transfer)"
+                            >
+                              <q-tooltip>Lihat Bukti Transfer</q-tooltip>
+                            </q-btn>
+                          </q-item-section>
+                        </q-item>
+                      </q-list>
                     </div>
-                    <q-list
-                      separator
-                      class="rounded-12 border-subtle"
-                      v-if="selectedData.bukti_transfer"
-                    >
-                      <q-item
-                        clickable
-                        v-ripple
-                        @click="openLink(selectedData.bukti_transfer)"
-                        class="q-py-md hover-bg"
+
+                    <!-- FALLBACK SINGLE REALISASI (FOR OLD DATA) -->
+                    <div v-else>
+                      <div
+                        class="bg-blue-50 text-blue-9 border-blue-thin q-pa-md rounded-12 text-weight-bold q-mb-md"
+                        v-if="selectedData.nominal_eksekusi || selectedData.catatan_realisasi"
                       >
-                        <q-item-section avatar
-                          ><q-avatar
-                            color="brand-light"
-                            text-color="brand-primary"
-                            icon="receipt_long"
-                        /></q-item-section>
-                        <q-item-section>
-                          <q-item-label class="text-weight-bold text-subtitle1"
-                            >Bukti Transfer (Realisasi)</q-item-label
-                          >
-                          <q-item-label caption
-                            >Klik untuk mengunduh / melihat file bukti pembayaran</q-item-label
-                          >
-                        </q-item-section>
-                        <q-item-section side
-                          ><q-icon name="open_in_new" color="primary" size="sm"
-                        /></q-item-section>
-                      </q-item>
-                    </q-list>
+                        <div class="q-mb-xs">
+                          <q-icon name="payments" size="sm" class="q-mr-sm" /> Nominal Realisasi: Rp
+                          {{
+                            (selectedData.nominal_eksekusi || selectedData.nominal).toLocaleString(
+                              'id-ID',
+                            )
+                          }}
+                        </div>
+                        <div>
+                          <q-icon name="notes" size="sm" class="q-mr-sm" /> Catatan Eksekusi:
+                          {{ selectedData.catatan_realisasi || 'Telah dicairkan' }}
+                        </div>
+                      </div>
+                      <q-list
+                        separator
+                        class="rounded-12 border-subtle"
+                        v-if="selectedData.bukti_transfer"
+                      >
+                        <q-item
+                          clickable
+                          v-ripple
+                          @click="openLink(selectedData.bukti_transfer)"
+                          class="q-py-md hover-bg"
+                        >
+                          <q-item-section avatar
+                            ><q-avatar
+                              color="brand-light"
+                              text-color="brand-primary"
+                              icon="receipt_long"
+                          /></q-item-section>
+                          <q-item-section>
+                            <q-item-label class="text-weight-bold text-subtitle1"
+                              >Bukti Transfer (Realisasi)</q-item-label
+                            >
+                            <q-item-label caption
+                              >Klik untuk mengunduh / melihat file bukti pembayaran</q-item-label
+                            >
+                          </q-item-section>
+                          <q-item-section side
+                            ><q-icon name="open_in_new" color="primary" size="sm"
+                          /></q-item-section>
+                        </q-item>
+                      </q-list>
+                    </div>
                   </div>
                 </div>
 
@@ -1068,6 +1124,7 @@ import {
   getDoc,
   serverTimestamp,
   getDocs,
+  arrayUnion,
 } from 'firebase/firestore'
 import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { useQuasar } from 'quasar'
@@ -1169,7 +1226,7 @@ const fetchData = () => {
   loading.value = true
   const qPengajuan = query(
     collection(db, 'finance_pengajuan_pembayaran'),
-    where('status', 'in', ['Approved', 'Cair']),
+    where('status', 'in', ['Approved', 'Cair', 'Dibayar Sebagian']),
   )
   unsubData = onSnapshot(
     qPengajuan,
@@ -1191,16 +1248,21 @@ const fetchData = () => {
   })
 }
 
-const pendingCount = computed(() => rows.value.filter((r) => r.status === 'Approved').length)
+const pendingCount = computed(() => rows.value.filter((r) => r.status === 'Approved' || r.status === 'Dibayar Sebagian').length)
 const pendingAmount = computed(() =>
-  rows.value.filter((r) => r.status === 'Approved').reduce((sum, r) => sum + (r.nominal || 0), 0),
+  rows.value.filter((r) => r.status === 'Approved' || r.status === 'Dibayar Sebagian').reduce((sum, r) => sum + ((r.nominal || 0) - (r.nominal_eksekusi || 0)), 0),
 )
 const realizedAmount = computed(() =>
-  rows.value.filter((r) => r.status === 'Cair').reduce((sum, r) => sum + (r.nominal || 0), 0),
+  rows.value.reduce((sum, r) => sum + (Number(r.nominal_eksekusi) || 0), 0),
 )
 
 const filteredRows = computed(() => {
-  let res = rows.value.filter((r) => r.status === tabFilter.value)
+  let res = rows.value
+  if (tabFilter.value === 'Approved') {
+    res = res.filter((r) => r.status === 'Approved' || r.status === 'Dibayar Sebagian')
+  } else {
+    res = res.filter((r) => r.status === 'Cair')
+  }
   if (searchQuery.value) {
     const lower = searchQuery.value.toLowerCase()
     res = res.filter(
@@ -1238,9 +1300,10 @@ const openDetail = async (row) => {
 
 const triggerRealisasi = async (row) => {
   selectedData.value = row
+  const remaining = (row.nominal || 0) - (row.nominal_eksekusi || 0)
   realisasiForm.value = {
     tanggal: new Date().toISOString().substr(0, 10),
-    nominal: row.nominal || 0,
+    nominal: remaining > 0 ? remaining : 0,
     catatan: '',
     bukti_file: null,
   }
@@ -1284,14 +1347,37 @@ const processRealisasi = async () => {
     await uploadBytes(fRef, file)
     const url = await getDownloadURL(fRef)
 
+    const currentTotalRealisasi = Number(selectedData.value.nominal_eksekusi || 0)
+    const newNominal = Number(realisasiForm.value.nominal) || 0
+    const newTotalRealisasi = currentTotalRealisasi + newNominal
+    const targetNominal = Number(selectedData.value.nominal || 0)
+
+    let reqStatus = 'Cair'
+    if (newTotalRealisasi >= targetNominal) {
+      reqStatus = 'Cair'
+    } else if (newTotalRealisasi > 0) {
+      reqStatus = 'Dibayar Sebagian'
+    }
+
+    const realisasiRecord = {
+      id: Date.now().toString(),
+      tanggal: realisasiForm.value.tanggal,
+      nominal: newNominal,
+      catatan: realisasiForm.value.catatan || 'Realisasi Pembayaran',
+      bukti_transfer: url,
+      realizedAt: new Date().toISOString(),
+      realizedBy: authStore.user?.nama || 'Finance Admin',
+    }
+
     const updateData = {
-      status: 'Cair',
+      status: reqStatus,
       bukti_transfer: url,
       realizedAt: serverTimestamp(),
       realizedBy: authStore.user?.nama || 'Finance Admin',
       tanggal_eksekusi: realisasiForm.value.tanggal,
-      nominal_eksekusi: realisasiForm.value.nominal,
+      nominal_eksekusi: newTotalRealisasi,
       catatan_realisasi: realisasiForm.value.catatan,
+      riwayat_realisasi: arrayUnion(realisasiRecord),
       realizer_read: true,
       creator_read: false,
       realized_approved_read: false,
@@ -1355,7 +1441,7 @@ const processRealisasi = async () => {
     if (tagihanDocRef && tagihanData) {
       const currentTotalDibayar = Number(tagihanData.total_dibayar || 0)
       const grandTotal = Number(tagihanData.grand_total || 0)
-      const newTotalDibayar = currentTotalDibayar + realisasiForm.value.nominal
+      const newTotalDibayar = currentTotalDibayar + newNominal
 
       let newStatus = 'Lunas'
       if (newTotalDibayar >= grandTotal) {
@@ -1366,25 +1452,37 @@ const processRealisasi = async () => {
         newStatus = 'Menunggu Pembayaran'
       }
 
+      const paymentRecord = {
+        id: Date.now().toString(),
+        tanggal: realisasiForm.value.tanggal,
+        nominal: newNominal,
+        catatan: realisasiForm.value.catatan || 'Realisasi Pembayaran',
+        bukti_url: url,
+        createdAt: new Date().toISOString(),
+      }
+
       await updateDoc(tagihanDocRef, {
         status: newStatus,
         total_dibayar: newTotalDibayar,
+        riwayat_pembayaran: arrayUnion(paymentRecord),
         updatedAt: serverTimestamp(),
       })
     }
 
     if (selectedData.value) {
-      selectedData.value.status = 'Cair'
+      selectedData.value.status = reqStatus
       selectedData.value.bukti_transfer = url
       selectedData.value.tanggal_eksekusi = realisasiForm.value.tanggal
-      selectedData.value.nominal_eksekusi = realisasiForm.value.nominal
+      selectedData.value.nominal_eksekusi = newTotalRealisasi
       selectedData.value.catatan_realisasi = realisasiForm.value.catatan
+      if (!selectedData.value.riwayat_realisasi) selectedData.value.riwayat_realisasi = []
+      selectedData.value.riwayat_realisasi.push(realisasiRecord)
       selectedData.value.realizer_read = true
     }
 
     $q.notify({
       message: '💸 Dana berhasil direalisasikan!',
-      caption: `${selectedData.value?.no_request} — Rp ${realisasiForm.value.nominal.toLocaleString('id-ID')} telah dicairkan`,
+      caption: `${selectedData.value?.no_request} — Rp ${newNominal.toLocaleString('id-ID')} telah dicairkan`,
       icon: 'task_alt',
       color: 'positive',
       position: 'top-right',
@@ -1436,6 +1534,8 @@ const getStatusColor = (status) => {
       return { bg: 'orange-1', text: 'text-orange-9', icon: 'hourglass_empty' }
     case 'Cair':
       return { bg: 'blue-1', text: 'text-primary', icon: 'task_alt' }
+    case 'Dibayar Sebagian':
+      return { bg: 'indigo-1', text: 'text-indigo-9', icon: 'hourglass_bottom' }
     default:
       return { bg: 'grey-2', text: 'text-grey-8', icon: 'info' }
   }

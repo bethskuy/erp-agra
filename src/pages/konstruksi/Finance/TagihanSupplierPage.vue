@@ -562,12 +562,12 @@
           </div>
         </div>
 
-        <!-- KERTAS INVOICE (TIDAK DIUBAH WARNANYA AGAR SESUAI UNTUK CETAK DOKUMEN) -->
-        <div id="invoice-pdf-target" class="bg-transparent">
-          <div class="row items-center justify-between q-mb-lg">
+        <!-- KERTAS INVOICE (DESAIN PREMIUM DENGAN TEMA TEAL DAN LEBIH INFORMATIF) -->
+        <div id="invoice-pdf-target" class="bg-transparent font-pro">
+          <div class="row items-center justify-between q-mb-lg no-print">
             <div>
               <div
-                class="text-h4 text-weight-bolder text-indigo-10 uppercase tracking-widest letter-spacing-1"
+                class="text-h4 text-weight-bolder text-teal-10 uppercase tracking-widest letter-spacing-1"
               >
                 RINCIAN TAGIHAN
               </div>
@@ -587,67 +587,77 @@
 
           <div class="row q-col-gutter-lg">
             <div class="col-12 col-md-7">
-              <!-- CARD: REFERENSI DOKUMEN -->
+              <!-- CARD: REFERENSI DOKUMEN & SUPPLIER -->
               <q-card
                 flat
                 bordered
-                class="rounded-20 shadow-sm q-mb-lg bg-white border-indigo-thin"
+                class="rounded-20 shadow-sm q-mb-lg bg-white border-teal-thin"
               >
-                <q-card-section class="bg-indigo-50 text-indigo-10 q-py-sm border-bottom-subtle">
+                <q-card-section class="bg-teal-section text-teal-10 q-py-sm border-bottom-subtle">
                   <div class="text-weight-bold uppercase tracking-widest font-11 flex items-center">
                     <q-icon name="dataset" size="sm" class="q-mr-sm" /> REFERENSI DOKUMEN & SUPPLIER
                   </div>
                 </q-card-section>
                 <q-card-section class="q-pa-lg">
-                  <div class="row q-col-gutter-y-lg q-col-gutter-x-md">
+                  <div class="row q-col-gutter-md">
+                    <!-- SUPPLIER -->
                     <div class="col-12 col-sm-6">
-                      <div
-                        class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
-                      >
-                        SUPPLIER / VENDOR
-                      </div>
-                      <div class="text-subtitle1 text-weight-bold text-indigo-10 uppercase">
-                        {{ selectedTagihan.supplier_nama || '-' }}
+                      <div class="q-pa-md rounded-12 bg-grey-1 border-subtle row items-center no-wrap h-full">
+                        <q-avatar color="teal-1" text-color="teal-9" icon="store" class="q-mr-md" />
+                        <div>
+                          <div class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10">SUPPLIER / VENDOR</div>
+                          <div class="text-subtitle1 text-weight-bolder text-teal-10 uppercase leading-tight q-mt-xs">
+                            {{ selectedTagihan.supplier_nama || '-' }}
+                          </div>
+                        </div>
                       </div>
                     </div>
+                    <!-- PROYEK -->
                     <div class="col-12 col-sm-6">
-                      <div
-                        class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
-                      >
-                        DIALOKASIKAN KE PROYEK
-                      </div>
-                      <div class="text-subtitle1 text-weight-bold uppercase">
-                        {{ selectedTagihan.proyek_nama || '-' }}
-                      </div>
-                    </div>
-                    <div class="col-12 col-sm-4">
-                      <div
-                        class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
-                      >
-                        NOMOR PO
-                      </div>
-                      <div class="text-subtitle1 text-weight-bold uppercase">
-                        {{ selectedTagihan.po_nomor || '-' }}
+                      <div class="q-pa-md rounded-12 bg-grey-1 border-subtle row items-center no-wrap h-full">
+                        <q-avatar color="teal-1" text-color="teal-9" icon="apartment" class="q-mr-md" />
+                        <div>
+                          <div class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10">DIALOKASIKAN KE PROYEK</div>
+                          <div class="text-subtitle1 text-weight-bolder text-grey-8 uppercase leading-tight q-mt-xs">
+                            {{ selectedTagihan.proyek_nama || '-' }}
+                          </div>
+                        </div>
                       </div>
                     </div>
+                    <!-- NOMOR PO -->
                     <div class="col-12 col-sm-4">
-                      <div
-                        class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
-                      >
-                        NOMOR SPK
-                      </div>
-                      <div class="text-subtitle1 text-weight-bold uppercase">
-                        {{ selectedTagihan.spk_nomor || '-' }}
+                      <div class="q-pa-md rounded-12 bg-grey-1 border-subtle row items-center no-wrap h-full">
+                        <q-avatar color="teal-1" text-color="teal-9" icon="shopping_bag" class="q-mr-md" size="32px" />
+                        <div>
+                          <div class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10">NOMOR PO</div>
+                          <div class="text-subtitle2 text-weight-bolder text-grey-8 uppercase leading-tight q-mt-xs">
+                            {{ selectedTagihan.po_nomor || '-' }}
+                          </div>
+                        </div>
                       </div>
                     </div>
+                    <!-- NOMOR SPK -->
                     <div class="col-12 col-sm-4">
-                      <div
-                        class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
-                      >
-                        NOMINAL PO
+                      <div class="q-pa-md rounded-12 bg-grey-1 border-subtle row items-center no-wrap h-full">
+                        <q-avatar color="teal-1" text-color="teal-9" icon="assignment" class="q-mr-md" size="32px" />
+                        <div>
+                          <div class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10">NOMOR SPK</div>
+                          <div class="text-subtitle2 text-weight-bolder text-grey-8 uppercase leading-tight q-mt-xs">
+                            {{ selectedTagihan.spk_nomor || '-' }}
+                          </div>
+                        </div>
                       </div>
-                      <div class="text-subtitle1 text-weight-bold text-primary uppercase">
-                        Rp {{ (selectedTagihan.nominal_po || 0).toLocaleString('id-ID') }}
+                    </div>
+                    <!-- NOMINAL PO -->
+                    <div class="col-12 col-sm-4">
+                      <div class="q-pa-md rounded-12 bg-grey-1 border-subtle row items-center no-wrap h-full">
+                        <q-avatar color="teal-1" text-color="teal-9" icon="payments" class="q-mr-md" size="32px" />
+                        <div>
+                          <div class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10">NOMINAL PO</div>
+                          <div class="text-subtitle2 text-weight-bolder text-teal-8 leading-tight q-mt-xs">
+                            Rp {{ (selectedTagihan.nominal_po || 0).toLocaleString('id-ID') }}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -659,68 +669,70 @@
                 v-if="selectedTagihan.selected_spk && selectedTagihan.selected_spk.length > 0"
                 flat
                 bordered
-                class="rounded-20 shadow-sm q-mb-lg bg-white border-indigo-thin"
+                class="rounded-20 shadow-sm q-mb-lg bg-white border-teal-thin"
               >
-                <q-card-section class="bg-indigo-50 text-indigo-10 q-py-sm border-bottom-subtle">
+                <q-card-section class="bg-teal-section text-teal-10 q-py-sm border-bottom-subtle">
                   <div class="text-weight-bold uppercase tracking-widest font-11 flex items-center">
                     <q-icon name="description" size="sm" class="q-mr-sm" /> DETAIL SPK & BOQ
                   </div>
                 </q-card-section>
-                <q-card-section class="q-pa-lg">
-                  <div class="q-gutter-y-md">
+                <q-card-section class="q-pa-lg q-gutter-y-md">
+                  <div
+                    v-for="(spkId, idx) in selectedTagihan.selected_spk"
+                    :key="idx"
+                    class="q-pa-md rounded-12 bg-grey-1 border-subtle border-left-teal"
+                  >
+                    <div class="text-weight-black text-teal-10 q-mb-sm row items-center font-13">
+                      <q-icon name="assignment" size="18px" color="teal-8" class="q-mr-xs" />
+                      {{ getSpkById(spkId)?.nomor_spk || 'SPK' }}
+                      <span class="text-weight-medium text-grey-7 q-ml-xs">— {{ getSpkById(spkId)?.nama_kontrak || '' }}</span>
+                    </div>
+                    
                     <div
-                      v-for="(spkId, idx) in selectedTagihan.selected_spk"
-                      :key="idx"
-                      class="bg-grey-1 q-pa-md rounded-12"
+                      v-if="
+                        selectedTagihan.spk_boq_selection &&
+                        selectedTagihan.spk_boq_selection[spkId]
+                      "
+                      class="q-pl-md q-mt-sm border-left-dashed"
                     >
-                      <div class="text-weight-bold text-indigo-10 q-mb-sm">
-                        {{ getSpkById(spkId)?.nomor_spk || 'SPK' }} -
-                        {{ getSpkById(spkId)?.nama_kontrak || '' }}
-                      </div>
                       <div
                         v-if="
-                          selectedTagihan.spk_boq_selection &&
-                          selectedTagihan.spk_boq_selection[spkId]
+                          selectedTagihan.spk_boq_selection[spkId].selected_groups &&
+                          selectedTagihan.spk_boq_selection[spkId].selected_groups.length
                         "
+                        class="q-gutter-y-sm"
                       >
                         <div
-                          v-if="
-                            selectedTagihan.spk_boq_selection[spkId].selected_groups &&
-                            selectedTagihan.spk_boq_selection[spkId].selected_groups.length
-                          "
-                          class="q-gutter-y-sm"
+                          v-for="(groupTitle, gIdx) in selectedTagihan.spk_boq_selection[spkId]
+                            .selected_groups"
+                          :key="gIdx"
+                          class="bg-white q-pa-md rounded-8 border-subtle"
                         >
+                          <div class="text-weight-black text-caption text-teal-9 q-mb-xs uppercase tracking-wider font-10">
+                            Kategori: {{ groupTitle }}
+                          </div>
                           <div
-                            v-for="(groupTitle, gIdx) in selectedTagihan.spk_boq_selection[spkId]
-                              .selected_groups"
-                            :key="gIdx"
-                            class="bg-white q-pa-sm rounded-8"
+                            v-if="
+                              selectedTagihan.spk_boq_selection[spkId].selected_items_by_group &&
+                              selectedTagihan.spk_boq_selection[spkId].selected_items_by_group[
+                                groupTitle
+                              ] &&
+                              selectedTagihan.spk_boq_selection[spkId].selected_items_by_group[
+                                groupTitle
+                              ].length
+                            "
                           >
-                            <div class="text-weight-bold text-caption text-indigo-8 q-mb-xs">
-                              {{ groupTitle }}
-                            </div>
-                            <div
-                              v-if="
-                                selectedTagihan.spk_boq_selection[spkId].selected_items_by_group &&
-                                selectedTagihan.spk_boq_selection[spkId].selected_items_by_group[
-                                  groupTitle
-                                ] &&
-                                selectedTagihan.spk_boq_selection[spkId].selected_items_by_group[
-                                  groupTitle
-                                ].length
-                              "
-                            >
-                              <q-list dense>
-                                <q-item
-                                  v-for="(item, iIdx) in selectedTagihan.spk_boq_selection[spkId]
-                                    .selected_items_by_group[groupTitle]"
-                                  :key="iIdx"
-                                >
-                                  <q-item-section>
-                                    <q-item-label>{{ item }}</q-item-label>
-                                  </q-item-section>
-                                </q-item>
-                              </q-list>
+                            <div class="row q-col-gutter-xs q-mt-xs">
+                              <div
+                                v-for="(item, iIdx) in selectedTagihan.spk_boq_selection[spkId]
+                                  .selected_items_by_group[groupTitle]"
+                                :key="iIdx"
+                                class="col-12 flex items-center q-py-xs"
+                                style="font-size: 11.5px; color: #444;"
+                              >
+                                <q-icon name="subdirectory_arrow_right" size="14px" color="teal-6" class="q-mr-xs" />
+                                <span class="text-weight-bold text-grey-9">{{ item }}</span>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -734,54 +746,64 @@
               <q-card
                 flat
                 bordered
-                class="rounded-20 shadow-sm q-mb-lg bg-white border-indigo-thin"
+                class="rounded-20 shadow-sm q-mb-lg bg-white border-teal-thin"
               >
-                <q-card-section class="bg-indigo-50 text-indigo-10 q-py-sm border-bottom-subtle">
+                <q-card-section class="bg-teal-section text-teal-10 q-py-sm border-bottom-subtle">
                   <div class="text-weight-bold uppercase tracking-widest font-11 flex items-center">
                     <q-icon name="timeline" size="sm" class="q-mr-sm" /> INVOICE SUPPLIER & TIMELINE
                   </div>
                 </q-card-section>
                 <q-card-section class="q-pa-lg">
-                  <div class="row q-col-gutter-y-lg q-col-gutter-x-md">
+                  <div class="row q-col-gutter-md">
+                    <!-- INVOICE -->
                     <div class="col-12 col-sm-4">
-                      <div
-                        class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
-                      >
-                        NO. INVOICE
-                      </div>
-                      <div class="text-subtitle1 text-weight-bold text-indigo-10">
-                        {{ selectedTagihan.nomor_invoice || '-' }}
+                      <div class="q-pa-md rounded-12 bg-grey-1 border-subtle row items-center no-wrap h-full">
+                        <q-avatar color="teal-1" text-color="teal-9" icon="receipt" class="q-mr-md" size="32px" />
+                        <div>
+                          <div class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10">NO. INVOICE</div>
+                          <div class="text-subtitle2 text-weight-bold text-teal-10 leading-tight q-mt-xs">
+                            {{ selectedTagihan.nomor_invoice || '-' }}
+                          </div>
+                        </div>
                       </div>
                     </div>
+                    <!-- TGL INVOICE -->
                     <div class="col-12 col-sm-4">
-                      <div
-                        class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
-                      >
-                        TGL INVOICE
-                      </div>
-                      <div class="text-subtitle1 text-weight-bold">
-                        {{ formatDateIndo(selectedTagihan.tanggal_invoice) }}
+                      <div class="q-pa-md rounded-12 bg-grey-1 border-subtle row items-center no-wrap h-full">
+                        <q-avatar color="teal-1" text-color="teal-9" icon="calendar_month" class="q-mr-md" size="32px" />
+                        <div>
+                          <div class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10">TGL INVOICE</div>
+                          <div class="text-subtitle2 text-weight-bold text-grey-8 leading-tight q-mt-xs">
+                            {{ formatDateIndo(selectedTagihan.tanggal_invoice) }}
+                          </div>
+                        </div>
                       </div>
                     </div>
+                    <!-- JATUH TEMPO -->
                     <div class="col-12 col-sm-4">
-                      <div
-                        class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
-                      >
-                        JATUH TEMPO
-                      </div>
-                      <div class="text-subtitle1 text-weight-bold text-orange-9">
-                        {{ formatDateIndo(selectedTagihan.jatuh_tempo) }}
+                      <div class="q-pa-md rounded-12 bg-grey-1 border-subtle row items-center no-wrap h-full">
+                        <q-avatar color="red-1" text-color="negative" icon="event_busy" class="q-mr-md" size="32px" />
+                        <div>
+                          <div class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10">JATUH TEMPO</div>
+                          <div class="text-subtitle2 text-weight-bold text-negative leading-tight q-mt-xs">
+                            {{ formatDateIndo(selectedTagihan.jatuh_tempo) }}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div class="col-12"><q-separator class="border-subtle" /></div>
+                    
+                    <div class="col-12"><q-separator class="border-subtle q-my-xs" /></div>
+                    
+                    <!-- KETERANGAN -->
                     <div class="col-12">
-                      <div
-                        class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
-                      >
-                        DESKRIPSI / KETERANGAN TAGIHAN
-                      </div>
-                      <div class="text-body2 text-grey-9">
-                        {{ selectedTagihan.keterangan || '-' }}
+                      <div class="q-pa-md rounded-12 bg-grey-1 border-subtle">
+                        <div class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10 row items-center">
+                          <q-icon name="notes" size="sm" color="teal-8" class="q-mr-xs" />
+                          DESKRIPSI / KETERANGAN TAGIHAN
+                        </div>
+                        <div class="text-body2 text-grey-9 q-mt-sm font-13" style="line-height: 1.6">
+                          {{ selectedTagihan.keterangan || '-' }}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -793,33 +815,34 @@
                 v-if="selectedTagihan?.lampiran && selectedTagihan.lampiran.length > 0"
                 flat
                 bordered
-                class="rounded-20 shadow-sm bg-white border-indigo-thin q-mt-lg no-print"
+                class="rounded-20 shadow-sm bg-white border-teal-thin q-mt-lg no-print"
               >
-                <q-card-section class="bg-indigo-50 text-indigo-10 q-py-sm border-bottom-subtle">
+                <q-card-section class="bg-teal-section text-teal-10 q-py-sm border-bottom-subtle">
                   <div class="text-weight-bold uppercase tracking-widest font-11 flex items-center">
                     <q-icon name="attachment" size="sm" class="q-mr-sm" /> LAMPIRAN DOKUMEN
                   </div>
                 </q-card-section>
                 <q-card-section class="q-pa-md">
-                  <q-list separator class="rounded-12">
+                  <q-list separator class="rounded-12 overflow-hidden border-subtle bg-grey-1">
                     <q-item
                       v-for="(doc, dIdx) in selectedTagihan.lampiran"
                       :key="dIdx"
                       clickable
                       v-ripple
                       @click="openLink(doc.url || doc.base64)"
+                      class="q-py-md hover-bg"
                     >
                       <q-item-section avatar>
-                        <q-icon name="open_in_new" color="grey-6" />
-                      </q-item-section>
-                      <q-item-section avatar>
-                        <q-avatar color="indigo-1" text-color="indigo-10" icon="description" />
+                        <q-avatar color="teal-1" text-color="teal-10" icon="description" />
                       </q-item-section>
                       <q-item-section>
-                        <q-item-label class="text-weight-bold">{{
+                        <q-item-label class="text-weight-bold text-grey-9">{{
                           doc.label || 'Dokumen ' + (dIdx + 1)
                         }}</q-item-label>
                         <q-item-label caption>Klik untuk melihat berkas lampiran</q-item-label>
+                      </q-item-section>
+                      <q-item-section side>
+                        <q-icon name="open_in_new" color="teal" size="xs" />
                       </q-item-section>
                     </q-item>
                   </q-list>
@@ -832,10 +855,10 @@
               <q-card
                 flat
                 bordered
-                class="rounded-20 shadow-sm bg-white border-indigo-thin overflow-hidden"
+                class="rounded-20 shadow-sm bg-white border-teal-thin overflow-hidden"
               >
-                <div class="bg-indigo-10 text-white q-pa-lg text-center">
-                  <div class="text-overline text-indigo-2 text-bold tracking-widest uppercase">
+                <div class="bg-teal-gradient text-white q-pa-lg text-center">
+                  <div class="text-overline text-teal-1 text-bold tracking-widest uppercase opacity-90">
                     GRAND TOTAL TAGIHAN
                   </div>
                   <div class="text-h3 text-weight-black q-mt-sm">
@@ -845,44 +868,46 @@
 
                 <q-card-section class="q-pa-lg">
                   <div
-                    class="text-weight-bold text-indigo-10 q-mb-md uppercase tracking-widest font-11"
+                    class="text-weight-bold text-teal-10 q-mb-md uppercase tracking-widest font-11 row items-center"
                   >
-                    RINCIAN KALKULASI PAJAK
+                    <q-icon name="calculate" size="16px" class="q-mr-xs" /> RINCIAN KALKULASI PAJAK
                   </div>
 
-                  <div class="row justify-between items-center q-mb-sm">
-                    <div class="text-grey-7 font-bold">Nominal Invoice</div>
-                    <div class="text-weight-bold text-subtitle1">
+                  <div class="row justify-between items-center q-mb-sm font-13">
+                    <div class="text-grey-7 text-weight-medium">Nominal Invoice</div>
+                    <div class="text-weight-bold text-grey-9">
                       Rp {{ (selectedTagihan.nominal_invoice || 0).toLocaleString('id-ID') }}
                     </div>
                   </div>
                   <q-separator class="q-my-sm border-subtle" />
-                  <div class="row justify-between items-center q-mb-sm">
-                    <div class="text-grey-7 font-bold">DPP</div>
-                    <div class="text-weight-bold text-subtitle1">
+                  <div class="row justify-between items-center q-mb-sm font-13">
+                    <div class="text-grey-7 text-weight-medium">DPP</div>
+                    <div class="text-weight-bold text-grey-9">
                       Rp {{ (selectedTagihan.nilai_dpp || 0).toLocaleString('id-ID') }}
                     </div>
                   </div>
-                  <div class="row justify-between items-center q-mb-sm">
-                    <div class="text-grey-7 font-bold">
+                  <div class="row justify-between items-center q-mb-sm font-13">
+                    <div class="text-grey-7 text-weight-medium">
                       PPN ({{ selectedTagihan.ppn_persen || 0 }}%)
                     </div>
-                    <div class="text-weight-bold text-subtitle1 text-positive">
+                    <div class="text-weight-bold text-positive">
                       + Rp {{ (selectedTagihan.ppn_nominal || 0).toLocaleString('id-ID') }}
                     </div>
                   </div>
-                  <div class="row justify-between items-center q-mb-md">
-                    <div class="text-grey-7 font-bold">
+                  <div class="row justify-between items-center q-mb-md font-13">
+                    <div class="text-grey-7 text-weight-medium">
                       PPh Potongan ({{ selectedTagihan.pph_persen || 0 }}%)
                     </div>
-                    <div class="text-weight-bold text-subtitle1 text-negative">
+                    <div class="text-weight-bold text-negative">
                       - Rp {{ (selectedTagihan.pph_nominal || 0).toLocaleString('id-ID') }}
                     </div>
                   </div>
 
-                  <div class="row justify-between items-center q-mt-xl q-mb-sm no-print">
-                    <div class="text-weight-bold text-indigo-10 uppercase tracking-widest font-11">
-                      STATUS PEMBAYARAN
+                  <q-separator class="q-my-lg border-subtle" />
+
+                  <div class="row justify-between items-center q-mb-sm no-print">
+                    <div class="text-weight-bold text-teal-10 uppercase tracking-widest font-11 row items-center">
+                      <q-icon name="account_balance_wallet" size="16px" class="q-mr-xs" /> STATUS PEMBAYARAN
                     </div>
                     <div class="row q-gutter-sm">
                       <!-- Tombol Ajukan Tagihan -->
@@ -890,10 +915,11 @@
                         v-if="canEdit && selectedTagihan.status === 'Draft'"
                         unelevated
                         rounded
-                        size="sm"
+                        size="xs"
                         color="teal-10"
                         icon="send"
-                        label="Ajukan Tagihan"
+                        label="Ajukan"
+                        class="q-px-sm"
                         @click="ajukanTagihan"
                       />
                       <!-- Tombol Update Pembayaran -->
@@ -905,24 +931,43 @@
                         "
                         outline
                         rounded
-                        size="sm"
-                        color="indigo-10"
+                        size="xs"
+                        color="teal-10"
                         icon="add"
-                        label="Update Pembayaran"
+                        label="Update Bayar"
+                        class="q-px-sm"
                         @click="openPaymentDialog"
                       />
                     </div>
                   </div>
-                  <div class="row justify-between items-center q-mb-sm">
-                    <div class="text-grey-7 font-bold">Telah Dibayar</div>
-                    <div class="text-weight-bold text-subtitle1 text-primary">
+
+                  <!-- PROGRESS BAR PEMBAYARAN -->
+                  <div class="q-mb-md">
+                    <div class="row justify-between text-caption text-grey-6 q-mb-xs font-10">
+                      <span>Progres Pelunasan</span>
+                      <span class="text-weight-bold text-teal-10">
+                        {{ ((selectedTagihan.total_dibayar || 0) / (selectedTagihan.grand_total || 1) * 100).toFixed(0) }}%
+                      </span>
+                    </div>
+                    <q-linear-progress
+                      :value="(selectedTagihan.total_dibayar || 0) / (selectedTagihan.grand_total || 1)"
+                      color="teal"
+                      track-color="teal-1"
+                      rounded
+                      size="8px"
+                    />
+                  </div>
+
+                  <div class="row justify-between items-center q-mb-xs font-13">
+                    <div class="text-grey-7 text-weight-medium">Telah Dibayar</div>
+                    <div class="text-weight-bolder text-teal-8">
                       Rp {{ selectedTagihan.total_dibayar.toLocaleString('id-ID') }}
                     </div>
                   </div>
-                  <div class="row justify-between items-center">
-                    <div class="text-grey-7 font-bold">Sisa Tagihan</div>
+                  <div class="row justify-between items-center font-13">
+                    <div class="text-grey-7 text-weight-medium">Sisa Tagihan</div>
                     <div
-                      class="text-weight-bold text-subtitle1"
+                      class="text-weight-bolder"
                       :class="selectedTagihan.sisa_tagihan > 0 ? 'text-negative' : 'text-positive'"
                     >
                       Rp {{ selectedTagihan.sisa_tagihan.toLocaleString('id-ID') }}
@@ -935,9 +980,9 @@
               <q-card
                 flat
                 bordered
-                class="rounded-20 shadow-sm bg-white border-indigo-thin q-mt-lg no-print"
+                class="rounded-20 shadow-sm bg-white border-teal-thin q-mt-lg no-print"
               >
-                <q-card-section class="bg-indigo-50 text-indigo-10 q-py-sm border-bottom-subtle">
+                <q-card-section class="bg-teal-section text-teal-10 q-py-sm border-bottom-subtle">
                   <div class="text-weight-bold uppercase tracking-widest font-11 flex items-center">
                     <q-icon name="history" size="sm" class="q-mr-sm" /> RIWAYAT PEMBAYARAN
                   </div>
@@ -949,13 +994,14 @@
                       selectedTagihan.riwayat_pembayaran &&
                       selectedTagihan.riwayat_pembayaran.length > 0
                     "
+                    class="rounded-12 overflow-hidden border-subtle bg-grey-1"
                   >
-                    <q-item v-for="(hist, idx) in selectedTagihan.riwayat_pembayaran" :key="idx">
+                    <q-item v-for="(hist, idx) in selectedTagihan.riwayat_pembayaran" :key="idx" class="q-py-md">
                       <q-item-section avatar>
-                        <q-avatar color="green-1" text-color="positive" icon="payments" />
+                        <q-avatar color="teal-1" text-color="teal-9" icon="payments" />
                       </q-item-section>
                       <q-item-section>
-                        <q-item-label class="text-weight-bold text-indigo-10"
+                        <q-item-label class="text-weight-bolder text-teal-10"
                           >Rp {{ (hist.nominal || 0).toLocaleString('id-ID') }}</q-item-label
                         >
                         <q-item-label caption>{{
@@ -972,8 +1018,8 @@
                             flat
                             round
                             dense
-                            icon="receipt"
-                            color="primary"
+                            icon="open_in_new"
+                            color="teal"
                             size="sm"
                             @click.stop="openLink(hist.bukti_url)"
                           >
@@ -1631,18 +1677,18 @@
     </q-dialog>
 
     <!-- Hidden PDF Export Table -->
-    <div style="position: absolute; top: -9999px; left: -9999px; width: 1122px; z-index: -1">
+    <div style="position: absolute; top: -9999px; left: -9999px; width: 794px; z-index: -1">
       <div id="table-pdf-export" class="bg-white q-pa-lg">
         <div class="row items-center q-mb-lg border-bottom-subtle q-pb-md">
           <q-avatar
-            color="indigo-10"
+            color="teal-10"
             text-color="white"
             icon="receipt_long"
             size="48px"
             class="q-mr-md shadow-sm"
           />
           <div>
-            <div class="text-h4 text-weight-black text-indigo-10 uppercase tracking-widest">
+            <div class="text-h4 text-weight-black text-teal-10 uppercase tracking-widest">
               Laporan Tagihan Supplier (A/P)
             </div>
             <div class="text-subtitle1 text-grey-8 font-weight-medium q-mt-xs">
@@ -1650,6 +1696,37 @@
             </div>
           </div>
         </div>
+
+        <!-- 3-COLUMN SUMMARY TABLE (PDF) -->
+        <div style="margin-bottom: 25px; display: flex;">
+          <table style="width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 10px; border: 1.5px solid #004d40; table-layout: fixed;">
+            <thead>
+              <tr style="background-color: #00796b; color: white;">
+                <th width="40%" style="padding: 8px; text-align: left; font-weight: bold; border: 1px solid #004d40; text-transform: uppercase;">STATUS TAGIHAN</th>
+                <th width="20%" style="padding: 8px; text-align: center; font-weight: bold; border: 1px solid #004d40; text-transform: uppercase;">JUMLAH DOKUMEN</th>
+                <th width="40%" style="padding: 8px; text-align: right; font-weight: bold; border: 1px solid #004d40; text-transform: uppercase;">TOTAL NOMINAL</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background-color: #fff8e1;">
+                <td style="padding: 8px; border: 1px solid #ffb300; font-weight: bold; color: #b78103;">Sedang Diajukan</td>
+                <td style="padding: 8px; border: 1px solid #ffb300; text-align: center; font-weight: bold; color: #b78103;">{{ summaryDiajukan.count }}</td>
+                <td style="padding: 8px; border: 1px solid #ffb300; text-align: right; font-weight: bold; color: #b78103;">Rp {{ summaryDiajukan.total.toLocaleString('id-ID') }}</td>
+              </tr>
+              <tr style="background-color: #ffebee;">
+                <td style="padding: 8px; border: 1px solid #ef5350; font-weight: bold; color: #c62828;">Ditolak</td>
+                <td style="padding: 8px; border: 1px solid #ef5350; text-align: center; font-weight: bold; color: #c62828;">{{ summaryDitolak.count }}</td>
+                <td style="padding: 8px; border: 1px solid #ef5350; text-align: right; font-weight: bold; color: #c62828;">Rp {{ summaryDitolak.total.toLocaleString('id-ID') }}</td>
+              </tr>
+              <tr style="background-color: #e8f5e9;">
+                <td style="padding: 8px; border: 1px solid #66bb6a; font-weight: bold; color: #2e7d32;">Sudah Cair (Lunas / Sebagian)</td>
+                <td style="padding: 8px; border: 1px solid #66bb6a; text-align: center; font-weight: bold; color: #2e7d32;">{{ summarySudahCair.count }}</td>
+                <td style="padding: 8px; border: 1px solid #66bb6a; text-align: right; font-weight: bold; color: #2e7d32;">Rp {{ summarySudahCair.total.toLocaleString('id-ID') }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
         <table class="pdf-export-table">
           <thead>
             <tr>
@@ -1680,7 +1757,7 @@
               <td>
                 <div v-if="row.selected_spk && row.selected_spk.length > 0">
                   <div v-for="(spkId, sIdx) in row.selected_spk" :key="sIdx" class="q-mb-sm">
-                    <div class="text-weight-bold font-10 text-primary">
+                    <div class="text-weight-bold font-10 text-teal-10">
                       SPK: {{ getSpkById(spkId)?.nomor_spk || spkId }}
                     </div>
                     <div v-if="row.spk_boq_selection && row.spk_boq_selection[spkId]">
@@ -1733,9 +1810,9 @@
                 Tidak ada data tagihan.
               </td>
             </tr>
-            <tr v-if="filteredRows.length > 0" style="background-color: #e8eaf6">
+            <tr v-if="filteredRows.length > 0" style="background-color: #e0f2f1">
               <td colspan="6" class="text-right">
-                <div class="text-weight-bold uppercase" style="color: #1a237e">
+                <div class="text-weight-bold uppercase" style="color: #004d40">
                   Total Nilai Tagihan
                 </div>
                 <div class="text-weight-bold text-negative uppercase q-mt-xs">
@@ -1743,7 +1820,7 @@
                 </div>
               </td>
               <td class="text-right">
-                <div class="text-weight-bold text-indigo-10">
+                <div class="text-weight-bold text-teal-10">
                   Rp {{ totalFilteredNominal.toLocaleString('id-ID') }}
                 </div>
                 <div class="text-weight-bold text-negative q-mt-xs">
@@ -1754,6 +1831,7 @@
             </tr>
           </tbody>
         </table>
+
       </div>
     </div>
   </q-page>
@@ -1980,7 +2058,7 @@ const formDefault = {
   spk_boq_selection: {},
   ppn_persen: 0,
   pph_persen: 0,
-  status: 'Draft',
+  status: 'Sedang Diajukan',
   lampiran: [],
 }
 const form = ref({ ...formDefault })
@@ -2242,6 +2320,31 @@ const totalFilteredOutstanding = computed(() =>
   filteredRows.value.filter((r) => r.sisa_tagihan > 0).reduce((sum, r) => sum + r.sisa_tagihan, 0),
 )
 
+const summaryDiajukan = computed(() => {
+  const items = filteredRows.value.filter((r) => r.status === 'Sedang Diajukan')
+  return {
+    count: items.length,
+    total: items.reduce((sum, r) => sum + (Number(r.grand_total) || 0), 0),
+  }
+})
+
+const summaryDitolak = computed(() => {
+  const items = filteredRows.value.filter((r) => r.status === 'Ditolak')
+  return {
+    count: items.length,
+    total: items.reduce((sum, r) => sum + (Number(r.grand_total) || 0), 0),
+  }
+})
+
+const summarySudahCair = computed(() => {
+  const items = filteredRows.value.filter((r) => r.status === 'Lunas' || r.status === 'Dibayar Sebagian')
+  return {
+    count: items.length,
+    total: items.reduce((sum, r) => sum + (Number(r.total_dibayar) || 0), 0),
+  }
+})
+
+
 // ✅ SPK Options: Dibangun secara kokoh dan toleran terhadap format ID string maupun objek
 const currentSpkOptions = computed(() => {
   if (!form.value.proyek_id) return []
@@ -2424,7 +2527,7 @@ const exportTablePDF = () => {
     filename: `Laporan_Tagihan_Supplier_${Date.now()}.pdf`,
     image: { type: 'jpeg', quality: 1 },
     html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
   }
   $q.loading.show({ message: 'Menyiapkan Laporan PDF...' })
   html2pdf()
@@ -2436,8 +2539,21 @@ const exportTablePDF = () => {
 
 const exportTableExcel = () => {
   try {
+    // Calculate statistics based on current filtered items
+    const diajukanList = filteredRows.value.filter(r => r.status === 'Sedang Diajukan')
+    const diajukanCount = diajukanList.length
+    const diajukanSum = diajukanList.reduce((sum, r) => sum + (Number(r.grand_total) || 0), 0)
+
+    const ditolakList = filteredRows.value.filter(r => r.status === 'Ditolak')
+    const ditolakCount = ditolakList.length
+    const ditolakSum = ditolakList.reduce((sum, r) => sum + (Number(r.grand_total) || 0), 0)
+
+    const sudahCairList = filteredRows.value.filter(r => r.status === 'Lunas' || r.status === 'Dibayar Sebagian')
+    const sudahCairCount = sudahCairList.length
+    const sudahCairSum = sudahCairList.reduce((sum, r) => sum + (Number(r.total_dibayar) || 0), 0)
+
     const thStyle =
-      'background-color: #1a237e; color: #ffffff; font-weight: bold; border: 1px solid #dddddd; padding: 10px; text-align: center; text-transform: uppercase;'
+      'background-color: #00796b; color: #ffffff; font-weight: bold; border: 1px solid #004d40; padding: 10px; text-align: center; text-transform: uppercase;'
     const tdStyle =
       'border: 1px solid #dddddd; padding: 8px; vertical-align: top; white-space: pre-wrap;'
     const tdNumStyle =
@@ -2449,11 +2565,42 @@ const exportTableExcel = () => {
       '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">'
     tableHtml += '<head><meta charset="utf-8"></head><body>'
     tableHtml +=
-      '<h2 style="color: #1a237e; margin-bottom: 5px; font-family: sans-serif;">Laporan Tagihan Supplier (Account Payable)</h2>'
+      '<h2 style="color: #00796b; margin-bottom: 5px; font-family: sans-serif;">Laporan Tagihan Supplier (Account Payable)</h2>'
     tableHtml +=
-      '<p style="margin-top: 0; font-family: sans-serif;">Diekspor pada: ' +
+      '<p style="margin-top: 0; font-family: sans-serif; color: #555555;">Diekspor pada: ' +
       new Date().toLocaleString('id-ID') +
       '</p><br>'
+
+    // 3-COLUMN SUMMARY TABLE IN EXCEL
+    tableHtml += '<table style="border-collapse: collapse; width: 45%; font-family: sans-serif; margin-bottom: 20px;">'
+    tableHtml += `
+      <thead>
+        <tr style="background-color: #004d40; color: #ffffff; font-weight: bold; border: 1.5px solid #00332c;">
+          <th style="padding: 10px; border: 1px solid #00332c; text-align: left;">STATUS TAGIHAN</th>
+          <th style="padding: 10px; border: 1px solid #00332c; text-align: center;">JUMLAH DOKUMEN</th>
+          <th style="padding: 10px; border: 1px solid #00332c; text-align: right;">TOTAL NOMINAL</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="background-color: #fff8e1;">
+          <td style="padding: 8px; border: 1px solid #ffb300; font-weight: bold; color: #b78103;">Sedang Diajukan</td>
+          <td style="padding: 8px; border: 1px solid #ffb300; text-align: center; font-weight: bold; color: #b78103;">${diajukanCount}</td>
+          <td style="padding: 8px; border: 1px solid #ffb300; text-align: right; font-weight: bold; color: #b78103;">Rp ${diajukanSum.toLocaleString('id-ID')}</td>
+        </tr>
+        <tr style="background-color: #ffebee;">
+          <td style="padding: 8px; border: 1px solid #ef5350; font-weight: bold; color: #c62828;">Ditolak</td>
+          <td style="padding: 8px; border: 1px solid #ef5350; text-align: center; font-weight: bold; color: #c62828;">${ditolakCount}</td>
+          <td style="padding: 8px; border: 1px solid #ef5350; text-align: right; font-weight: bold; color: #c62828;">Rp ${ditolakSum.toLocaleString('id-ID')}</td>
+        </tr>
+        <tr style="background-color: #e8f5e9;">
+          <td style="padding: 8px; border: 1px solid #66bb6a; font-weight: bold; color: #2e7d32;">Sudah Cair (Lunas / Sebagian)</td>
+          <td style="padding: 8px; border: 1px solid #66bb6a; text-align: center; font-weight: bold; color: #2e7d32;">${sudahCairCount}</td>
+          <td style="padding: 8px; border: 1px solid #66bb6a; text-align: right; font-weight: bold; color: #2e7d32;">Rp ${sudahCairSum.toLocaleString('id-ID')}</td>
+        </tr>
+      </tbody>
+    </table><br>
+    `
+
     tableHtml +=
       '<table style="border-collapse: collapse; width: 100%; font-family: sans-serif;"><thead><tr>'
     tableHtml += `<th style="${thStyle}">No</th><th style="${thStyle}">Kode Tagihan</th><th style="${thStyle}">No Invoice</th><th style="${thStyle}">Vendor / Supplier</th><th style="${thStyle}">Proyek</th><th style="${thStyle}">Referensi PO</th><th style="${thStyle}">Detail BOQ & SPK</th><th style="${thStyle}">Tgl Invoice</th><th style="${thStyle}">Jatuh Tempo</th><th style="${thStyle}">Grand Total (Rp)</th><th style="${thStyle}">Status</th>`
@@ -2461,11 +2608,36 @@ const exportTableExcel = () => {
 
     filteredRows.value.forEach((r, index) => {
       const boqDetailsText = formatSpkBoqText(r)
-      tableHtml += `<tr><td style="${tdCenterStyle}">${index + 1}</td><td style="${tdStyle}">${r.kode_tagihan || '-'}</td><td style="${tdStyle}">${r.nomor_invoice || '-'}</td><td style="${tdStyle}">${r.supplier_nama || '-'}</td><td style="${tdStyle}">${r.proyek_nama || '-'}</td><td style="${tdStyle}">${r.po_nomor || '-'}</td><td style="${tdStyle}">${boqDetailsText}</td><td style="${tdCenterStyle}">${formatDateIndo(r.tanggal_invoice)}</td><td style="${tdCenterStyle}">${formatDateIndo(r.jatuh_tempo)}</td><td style="${tdNumStyle}">${r.grand_total || 0}</td><td style="${tdCenterStyle}">${r.status || '-'}</td></tr>`
+      const rowBg = index % 2 === 0 ? 'background-color: #ffffff;' : 'background-color: #f2faf9;'
+      const dynamicTdStyle = `${tdStyle} ${rowBg}`
+      const dynamicTdNumStyle = `${tdNumStyle} ${rowBg}`
+      const dynamicTdCenterStyle = `${tdCenterStyle} ${rowBg}`
+
+      let statusBgColor = '#eeeeee'
+      let statusTextColor = '#616161'
+      if (r.status === 'Ditolak') {
+        statusBgColor = '#ffebee'
+        statusTextColor = '#c62828'
+      } else if (r.status === 'Sedang Diajukan') {
+        statusBgColor = '#fff8e1'
+        statusTextColor = '#b78103'
+      } else if (r.status === 'Menunggu Pembayaran') {
+        statusBgColor = '#fff3e0'
+        statusTextColor = '#ef6c00'
+      } else if (r.status === 'Dibayar Sebagian') {
+        statusBgColor = '#e3f2fd'
+        statusTextColor = '#1565c0'
+      } else if (r.status === 'Lunas') {
+        statusBgColor = '#e8f5e9'
+        statusTextColor = '#2e7d32'
+      }
+      const dynamicStatusStyle = `${tdCenterStyle} background-color: ${statusBgColor}; color: ${statusTextColor}; font-weight: bold;`
+
+      tableHtml += `<tr><td style="${dynamicTdCenterStyle}">${index + 1}</td><td style="${dynamicTdStyle}">${r.kode_tagihan || '-'}</td><td style="${dynamicTdStyle}">${r.nomor_invoice || '-'}</td><td style="${dynamicTdStyle}">${r.supplier_nama || '-'}</td><td style="${dynamicTdStyle}">${r.proyek_nama || '-'}</td><td style="${dynamicTdStyle}">${r.po_nomor || '-'}</td><td style="${dynamicTdStyle}">${boqDetailsText}</td><td style="${dynamicTdCenterStyle}">${formatDateIndo(r.tanggal_invoice)}</td><td style="${dynamicTdCenterStyle}">${formatDateIndo(r.jatuh_tempo)}</td><td style="${dynamicTdNumStyle}">${r.grand_total || 0}</td><td style="${dynamicStatusStyle}">${r.status || '-'}</td></tr>`
     })
 
-    tableHtml += `<tr style="background-color: #f5f5f5;"><td colspan="9" style="${tdStyle} text-align: right; font-weight: bold;">TOTAL NILAI TAGIHAN (SESUAI FILTER)</td><td style="${tdNumStyle} font-weight: bold;">${totalFilteredNominal.value}</td><td style="${tdStyle}"></td></tr>`
-    tableHtml += `<tr style="background-color: #ffebee;"><td colspan="9" style="${tdStyle} text-align: right; font-weight: bold; color: #c62828;">TOTAL SISA HUTANG (SESUAI FILTER)</td><td style="${tdNumStyle} font-weight: bold; color: #c62828;">${totalFilteredOutstanding.value}</td><td style="${tdStyle}"></td></tr>`
+    tableHtml += `<tr style="background-color: #e0f2f1;"><td colspan="9" style="${tdStyle} text-align: right; font-weight: bold; color: #004d40;">TOTAL NILAI TAGIHAN (SESUAI FILTER)</td><td style="${tdNumStyle} font-weight: bold; color: #004d40;">Rp ${totalFilteredNominal.value.toLocaleString('id-ID')}</td><td style="${tdStyle}"></td></tr>`
+    tableHtml += `<tr style="background-color: #ffebee;"><td colspan="9" style="${tdStyle} text-align: right; font-weight: bold; color: #c62828;">TOTAL SISA HUTANG (SESUAI FILTER)</td><td style="${tdNumStyle} font-weight: bold; color: #c62828;">Rp ${totalFilteredOutstanding.value.toLocaleString('id-ID')}</td><td style="${tdStyle}"></td></tr>`
     tableHtml += '</tbody></table></body></html>'
 
     const blob = new Blob([tableHtml], { type: 'application/vnd.ms-excel' })
@@ -2594,6 +2766,16 @@ const simpanTagihan = async () => {
       }
     }
 
+    let targetStatus = 'Sedang Diajukan'
+    if (isEditMode.value) {
+      const currentStatus = form.value.status
+      if (currentStatus === 'Draft' || currentStatus === 'Ditolak' || !currentStatus) {
+        targetStatus = 'Sedang Diajukan'
+      } else {
+        targetStatus = currentStatus
+      }
+    }
+
     const payload = {
       kode_tagihan: form.value.kode_tagihan,
       nomor_invoice: form.value.nomor_invoice,
@@ -2616,19 +2798,89 @@ const simpanTagihan = async () => {
       grand_total: calculatedGrandTotal.value,
       total_dibayar: isEditMode.value ? Number(form.value.total_dibayar) || 0 : 0,
       keterangan: form.value.keterangan,
-      status: isEditMode.value ? form.value.status : 'Draft',
+      status: targetStatus,
       lampiran: form.value.lampiran,
       selected_spk: form.value.selected_spk || [],
       spk_boq_selection: form.value.spk_boq_selection || {},
       updatedAt: serverTimestamp(),
     }
 
+    let tagihanId = form.value.id
     if (isEditMode.value) {
-      await updateDoc(doc(db, 'finance_tagihan', form.value.id), payload)
+      await updateDoc(doc(db, 'finance_tagihan', tagihanId), payload)
     } else {
       payload.createdAt = serverTimestamp()
       payload.pembuat = authStore.user?.nama || 'Admin'
-      await addDoc(collection(db, 'finance_tagihan'), payload)
+      const docRef = await addDoc(collection(db, 'finance_tagihan'), payload)
+      tagihanId = docRef.id
+    }
+
+    // Synchronize to finance_pengajuan_pembayaran
+    const selectedSupplierId = form.value.supplier?.id || null
+    const matchedSupp = allSupplier.value.find((s) => s.id === selectedSupplierId)
+    const reqBank = matchedSupp?.rek_bank || ''
+    const reqNomor = matchedSupp?.rek_nomor || ''
+    const reqNama = matchedSupp?.rek_nama || ''
+
+    let reqStatus = 'Pending'
+    if (targetStatus === 'Menunggu Pembayaran' || targetStatus === 'Dibayar Sebagian') {
+      reqStatus = 'Approved'
+    } else if (targetStatus === 'Lunas') {
+      reqStatus = 'Cair'
+    } else if (targetStatus === 'Ditolak') {
+      reqStatus = 'Rejected'
+    } else if (targetStatus === 'Sedang Diajukan') {
+      reqStatus = 'Pending'
+    }
+
+    const reqPayload = {
+      tipe_pengajuan: 'Tagihan Supplier',
+      tagihan_id: tagihanId,
+      tagihan_nomor_invoice: form.value.nomor_invoice,
+      tagihan_kode: form.value.kode_tagihan,
+      proyek_id: form.value.proyek_id || null,
+      proyek_nama: form.value.proyek_nama || '',
+      selected_spk: form.value.selected_spk || [],
+      spk_boq_selection: form.value.spk_boq_selection || {},
+      vendor_nama: form.value.supplier?.nama || '',
+      rek_bank: reqBank,
+      rek_nomor: reqNomor,
+      rek_nama: reqNama,
+      nominal: calculatedGrandTotal.value,
+      tanggal_pengajuan: form.value.tanggal_invoice || new Date().toISOString().substr(0, 10),
+      tanggal_dibutuhkan: form.value.jatuh_tempo || new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().substr(0, 10),
+      keterangan: form.value.keterangan || '',
+      lampiran: form.value.lampiran || [],
+      status: reqStatus,
+      updatedAt: serverTimestamp(),
+      approver_read: false,
+      creator_read: true,
+      realizer_read: false,
+      realized_approved_read: true,
+    }
+
+    const qReq = query(
+      collection(db, 'finance_pengajuan_pembayaran'),
+      where('tagihan_id', '==', tagihanId)
+    )
+    const snapReq = await getDocs(qReq)
+    if (!snapReq.empty) {
+      await updateDoc(doc(db, 'finance_pengajuan_pembayaran', snapReq.docs[0].id), reqPayload)
+    } else {
+      const generateNoRequestHelper = async () => {
+        const snap = await getDocs(collection(db, 'finance_pengajuan_pembayaran'))
+        const count = snap.size + 1
+        const padded = count.toString().padStart(3, '0')
+        const year = new Date().getFullYear()
+        const month = ('0' + (new Date().getMonth() + 1)).slice(-2)
+        return `REQ/${year}${month}/${padded}`
+      }
+      reqPayload.no_request = await generateNoRequestHelper()
+      reqPayload.createdAt = serverTimestamp()
+      reqPayload.pembuat_id = authStore.user?.uid || ''
+      reqPayload.pembuat_email = authStore.user?.email || ''
+      reqPayload.pembuat_nama = authStore.user?.nama || 'User'
+      await addDoc(collection(db, 'finance_pengajuan_pembayaran'), reqPayload)
     }
 
     viewMode.value = 'list'
@@ -2655,8 +2907,21 @@ const confirmHapus = (row) => {
     cancel: true,
     ok: { color: 'negative', label: 'Hapus', unelevated: true },
   }).onOk(async () => {
-    await deleteDoc(doc(db, 'finance_tagihan', row.id))
-    $q.notify({ type: 'positive', position: 'top', message: 'Tagihan terhapus' })
+    try {
+      await deleteDoc(doc(db, 'finance_tagihan', row.id))
+      const q = query(
+        collection(db, 'finance_pengajuan_pembayaran'),
+        where('tagihan_id', '==', row.id)
+      )
+      const snap = await getDocs(q)
+      for (const d of snap.docs) {
+        await deleteDoc(doc(db, 'finance_pengajuan_pembayaran', d.id))
+      }
+      $q.notify({ type: 'positive', position: 'top', message: 'Tagihan terhapus' })
+    } catch (e) {
+      console.error(e)
+      $q.notify({ type: 'negative', position: 'top', message: 'Gagal menghapus tagihan.' })
+    }
   })
 }
 
@@ -2672,6 +2937,18 @@ const ajukanTagihan = async () => {
       status: 'Menunggu Pembayaran',
       updatedAt: serverTimestamp(),
     })
+    // Sync payment request status to Approved
+    const q = query(
+      collection(db, 'finance_pengajuan_pembayaran'),
+      where('tagihan_id', '==', selectedTagihan.value.id)
+    )
+    const snap = await getDocs(q)
+    for (const d of snap.docs) {
+      await updateDoc(doc(db, 'finance_pengajuan_pembayaran', d.id), {
+        status: 'Approved',
+        updatedAt: serverTimestamp(),
+      })
+    }
     selectedTagihan.value.status = 'Menunggu Pembayaran'
     $q.notify({ type: 'positive', position: 'top', message: 'Tagihan berhasil diajukan!' })
   } catch (err) {
@@ -2751,6 +3028,20 @@ const savePayment = async () => {
       riwayat_pembayaran: arrayUnion(paymentRecord),
       updatedAt: serverTimestamp(),
     })
+
+    if (newStatus === 'Lunas') {
+      const q = query(
+        collection(db, 'finance_pengajuan_pembayaran'),
+        where('tagihan_id', '==', selectedTagihan.value.id)
+      )
+      const snap = await getDocs(q)
+      for (const d of snap.docs) {
+        await updateDoc(doc(db, 'finance_pengajuan_pembayaran', d.id), {
+          status: 'Cair',
+          updatedAt: serverTimestamp(),
+        })
+      }
+    }
 
     if (!selectedTagihan.value.riwayat_pembayaran) selectedTagihan.value.riwayat_pembayaran = []
     selectedTagihan.value.total_dibayar = newTotal
@@ -2917,12 +3208,23 @@ onUnmounted(() => {
 }
 .dashed-btn-teal {
   border: 2px dashed #009688;
-}
-.border-teal-thin {
+}.border-teal-thin {
   border: 1px solid rgba(0, 150, 136, 0.18) !important;
 }
 .border-bottom-subtle {
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+.bg-teal-gradient {
+  background: linear-gradient(135deg, #00796b 0%, #009688 100%) !important;
+}
+.border-left-teal {
+  border-left: 4px solid #009688 !important;
+}
+.border-left-dashed {
+  border-left: 2px dashed rgba(0, 150, 136, 0.3) !important;
+}
+.font-13 {
+  font-size: 13px;
 }
 
 .btn-teal-main {
@@ -2995,6 +3297,32 @@ onUnmounted(() => {
 .list-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2) !important;
+}
+
+.finance-table :deep(.q-table__middle) {
+  max-height: 65vh;
+  overflow: auto;
+}
+
+/* Custom scrollbar for table container to make it easy to drag and see at any page height */
+.finance-table :deep(.q-table__middle)::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+}
+
+.finance-table :deep(.q-table__middle)::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 6px;
+}
+
+.finance-table :deep(.q-table__middle)::-webkit-scrollbar-thumb {
+  background: #009688;
+  border-radius: 6px;
+  border: 2px solid #f1f1f1;
+}
+
+.finance-table :deep(.q-table__middle)::-webkit-scrollbar-thumb:hover {
+  background: #00796b;
 }
 
 .finance-table :deep(thead tr th) {
@@ -3162,19 +3490,27 @@ onUnmounted(() => {
   }
 
   /* Paksa background color muncul di print */
-  #invoice-pdf-target .bg-indigo-50 {
-    background-color: #f0f3ff !important;
-    color: #1a237e !important;
+  #invoice-pdf-target .bg-teal-section {
+    background-color: #f2faf9 !important;
+    color: #00796b !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
 
-  #invoice-pdf-target .bg-indigo-10 {
-    background-color: #1a237e !important;
+  #invoice-pdf-target .bg-teal-10 {
+    background-color: #00796b !important;
     color: #ffffff !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
+
+  #invoice-pdf-target .bg-teal-gradient {
+    background-color: #00796b !important;
+    color: #ffffff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
 
   #invoice-pdf-target .bg-blue-grey-10 {
     background-color: #263238 !important;
@@ -3252,20 +3588,23 @@ onUnmounted(() => {
   border-collapse: collapse;
   font-family: 'Plus Jakarta Sans', sans-serif;
   margin-top: 20px;
+  table-layout: fixed;
+  word-wrap: break-word;
 }
 .pdf-export-table th {
-  background-color: #1a237e !important;
+  background-color: #00796b !important;
   color: white !important;
-  padding: 12px 8px;
-  font-size: 11px;
+  padding: 8px 4px;
+  font-size: 9px;
   text-transform: uppercase;
-  border: 1px solid #1a237e;
+  border: 1px solid #004d40;
 }
 .pdf-export-table td {
-  padding: 10px 8px;
-  font-size: 11px;
+  padding: 8px 4px;
+  font-size: 8px;
   border: 1px solid #e0e0e0;
   color: #111;
   vertical-align: top;
+  word-break: break-word;
 }
 </style>

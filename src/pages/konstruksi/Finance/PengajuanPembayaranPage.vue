@@ -353,6 +353,12 @@
                     <div class="text-weight-bolder text-brand-primary text-subtitle2">
                       Rp {{ (props.row.nominal || 0).toLocaleString('id-ID') }}
                     </div>
+                    <div class="text-caption text-grey-6 font-10" v-if="props.row.nominal_eksekusi > 0">
+                      Telah dibayar: <span class="text-weight-bold text-primary">Rp {{ props.row.nominal_eksekusi.toLocaleString('id-ID') }}</span>
+                    </div>
+                    <div class="text-caption text-negative font-10 text-weight-bold" v-if="props.row.status === 'Dibayar Sebagian'">
+                      Sisa: Rp {{ (props.row.nominal - props.row.nominal_eksekusi).toLocaleString('id-ID') }}
+                    </div>
                   </q-td>
 
                   <q-td key="timeline" class="text-center">
@@ -394,9 +400,22 @@
                         <q-tooltip>Detail</q-tooltip>
                       </q-btn>
 
-                      <!-- TOMBOL EDIT: hanya jika punya izin 'ubah' dan status Pending -->
+                      <!-- TOMBOL AJUKAN: tampil hanya jika status Draft dan bukan Tagihan Supplier -->
                       <q-btn
-                        v-if="canUbah && props.row.status === 'Pending'"
+                        v-if="props.row.status === 'Draft' && props.row.tipe_pengajuan !== 'Tagihan Supplier'"
+                        flat
+                        round
+                        color="teal-7"
+                        icon="send"
+                        size="sm"
+                        @click="ajukanPengajuan(props.row)"
+                      >
+                        <q-tooltip>Ajukan</q-tooltip>
+                      </q-btn>
+
+                      <!-- TOMBOL EDIT: hanya jika punya izin 'ubah', status Draft/Pending, dan bukan Tagihan Supplier -->
+                      <q-btn
+                        v-if="canUbah && (props.row.status === 'Draft' || props.row.status === 'Pending') && props.row.tipe_pengajuan !== 'Tagihan Supplier'"
                         flat
                         round
                         color="blue-8"
@@ -407,9 +426,9 @@
                         <q-tooltip>Edit</q-tooltip>
                       </q-btn>
 
-                      <!-- TOMBOL HAPUS: hanya jika punya izin 'hapus' -->
+                      <!-- TOMBOL HAPUS: hanya jika punya izin 'hapus' dan bukan Tagihan Supplier -->
                       <q-btn
-                        v-if="canHapus"
+                        v-if="canHapus && props.row.tipe_pengajuan !== 'Tagihan Supplier'"
                         flat
                         round
                         color="negative"
@@ -487,67 +506,6 @@
                     REFERENSI
                   </q-card-section>
                   <q-card-section class="q-pa-lg q-gutter-y-md">
-                    <div>
-                      <div class="label-req q-mb-xs">Metode Pengajuan Data</div>
-                      <q-btn-toggle
-                        v-model="form.tipe_pengajuan"
-                        spread
-                        class="custom-toggle"
-                        no-caps
-                        unelevated
-                        toggle-color="brand-primary"
-                        color="white"
-                        text-color="grey-7"
-                        :options="tipePengajuanOptions"
-                        @update:model-value="onTipeChange"
-                      />
-                    </div>
-
-                    <div v-if="form.tipe_pengajuan === 'Tagihan Supplier'">
-                      <div class="label-req q-mb-xs text-primary">
-                        Pilih Tagihan Supplier (Outstanding) *
-                      </div>
-                      <q-select
-                        outlined
-                        dense
-                        v-model="form.tagihan_obj"
-                        :options="optTagihanFiltered"
-                        option-label="nomor_invoice"
-                        placeholder="Cari Tagihan..."
-                        bg-color="blue-50"
-                        clearable
-                        @update:model-value="onTagihanSelect"
-                        use-input
-                        @filter="filterTagihan"
-                      >
-                        <template v-slot:option="scope">
-                          <q-item v-bind="scope.itemProps">
-                            <q-item-section>
-                              <q-item-label class="text-weight-bold">{{
-                                scope.opt.nomor_invoice
-                              }}</q-item-label>
-                              <q-item-label caption class="text-negative text-bold"
-                                >Sisa: Rp
-                                {{
-                                  (scope.opt.sisa_tagihan || 0).toLocaleString('id-ID')
-                                }}</q-item-label
-                              >
-                              <q-item-label caption
-                                >Vendor: {{ scope.opt.supplier_nama }}</q-item-label
-                              >
-                            </q-item-section>
-                          </q-item>
-                        </template>
-                        <template v-slot:no-option>
-                          <q-item
-                            ><q-item-section class="text-grey italic"
-                              >Tidak ada tagihan outstanding</q-item-section
-                            ></q-item
-                          >
-                        </template>
-                      </q-select>
-                    </div>
-
                     <div class="row q-col-gutter-md">
                       <div class="col-12 col-md-6">
                         <div class="label-req q-mb-xs">No. Request (Auto)</div>
@@ -560,22 +518,9 @@
                           class="text-weight-bold text-brand-primary"
                         />
                       </div>
-                      <div
-                        class="col-12 col-md-6"
-                        v-if="form.tipe_pengajuan === 'Tagihan Supplier'"
-                      >
-                        <div class="label-req q-mb-xs">No. Referensi (Tagihan)</div>
-                        <q-input
-                          outlined
-                          dense
-                          v-model="form.tagihan_nomor_invoice"
-                          readonly
-                          bg-color="grey-2"
-                        />
-                      </div>
                     </div>
 
-                    <!-- PROYEK, SPK & BOQ INTERACTIVE SELECTORS (Identical to TagihanSupplierPage) -->
+                    <!-- PROYEK, SPK & BOQ INTERACTIVE SELECTORS -->
                     <div class="q-gutter-y-md q-mt-sm">
                       <div>
                         <div class="label-req q-mb-xs text-brand-primary">Referensi Proyek</div>
@@ -756,7 +701,6 @@
                         v-model="form.vendor_nama"
                         bg-color="white"
                         class="text-weight-bold uppercase"
-                        :readonly="form.tipe_pengajuan === 'Tagihan Supplier'"
                       />
                     </div>
                     <div class="row q-col-gutter-md">
@@ -819,13 +763,6 @@
                         class="text-weight-bold text-h5 text-brand-primary"
                         prefix="Rp"
                       />
-                      <div
-                        class="text-caption text-negative q-mt-xs font-bold"
-                        v-if="form.tipe_pengajuan === 'Tagihan Supplier' && form.tagihan_obj"
-                      >
-                        Sisa Hutang Max: Rp
-                        {{ (form.tagihan_obj.sisa_tagihan || 0).toLocaleString('id-ID') }}
-                      </div>
                     </div>
 
                     <div class="row q-col-gutter-md">
@@ -1674,30 +1611,6 @@ const formDefault = {
 }
 const form = ref({ ...formDefault })
 
-const hasAccessTagihanSupplier = computed(() => {
-  const user = authStore.user
-  if (!user) return false
-  if (['Super Admin', 'Direktur', 'Finance'].includes(user.role)) return true
-
-  if (!userData.value?.permissions_detail) return false
-  const modulePerm = userData.value.permissions_detail.find((m) => m.id === MODULE_ID)
-  if (!modulePerm || !modulePerm.isActive) return false
-
-  const menu = modulePerm.menus.find(
-    (m) => m.id && (m.id.includes('tagihan-supplier') || m.id.includes('tagihan_supplier')),
-  )
-  return menu ? menu.lihat || menu.buat || menu.edit || menu.approve : false
-})
-
-const tipePengajuanOptions = computed(() => {
-  const options = []
-  if (hasAccessTagihanSupplier.value) {
-    options.push({ label: 'Tarik Tagihan Supplier (Auto)', value: 'Tagihan Supplier' })
-  }
-  options.push({ label: 'Input Manual', value: 'Manual' })
-  return options
-})
-
 const columns = [
   {
     name: 'request',
@@ -1959,61 +1872,6 @@ const totalDanaPending = computed(() =>
   rows.value.filter((r) => r.status === 'Pending').reduce((sum, r) => sum + (r.nominal || 0), 0),
 )
 
-const onTipeChange = (val) => {
-  if (val === 'Manual') {
-    form.value.tagihan_obj = null
-    form.value.tagihan_id = null
-    form.value.tagihan_nomor_invoice = ''
-    form.value.vendor_nama = ''
-    form.value.nominal = 0
-    form.value.keterangan = ''
-  }
-}
-
-const onTagihanSelect = (val) => {
-  if (val) {
-    form.value.tagihan_id = val.id
-    form.value.tagihan_nomor_invoice = val.nomor_invoice
-    form.value.tagihan_kode = val.kode_tagihan || ''
-    form.value.vendor_nama = val.supplier_nama || ''
-    form.value.nominal = val.sisa_tagihan || 0
-    form.value.keterangan = `Pembayaran untuk Tagihan Supplier: ${val.nomor_invoice}. Sisa hutang: Rp ${val.sisa_tagihan.toLocaleString('id-ID')}`
-
-    // Auto-fill bank info from supplier master if available
-    const matchedSupp = allSupplier.value.find(
-      (s) => s.id === val.supplier_id || s.nama === val.supplier_nama,
-    )
-    if (matchedSupp) {
-      form.value.rek_bank = matchedSupp.rek_bank || ''
-      form.value.rek_nomor = matchedSupp.rek_nomor || ''
-      form.value.rek_nama = matchedSupp.rek_nama || ''
-    } else {
-      form.value.rek_bank = val.rek_bank || ''
-      form.value.rek_nomor = val.rek_nomor || ''
-      form.value.rek_nama = val.rek_nama || ''
-    }
-
-    // Auto-fill project and SPK/BOQ details
-    form.value.proyek_id = val.proyek_id || null
-    form.value.proyek_nama = val.proyek_nama || ''
-    form.value.selected_spk = val.selected_spk || []
-    form.value.spk_boq_selection = val.spk_boq_selection || {}
-  } else {
-    onTipeChange('Manual')
-  }
-}
-
-const filterTagihan = (val, update) => {
-  update(() => {
-    const needle = val.toLowerCase()
-    optTagihanFiltered.value = optTagihan.value.filter(
-      (v) =>
-        v.nomor_invoice?.toLowerCase().includes(needle) ||
-        v.supplier_nama?.toLowerCase().includes(needle),
-    )
-  })
-}
-
 const openAddDialog = () => {
   if (!canBuat.value) {
     $q.notify({
@@ -2030,7 +1888,6 @@ const openAddDialog = () => {
   isEditMode.value = false
   form.value = JSON.parse(JSON.stringify(formDefault))
   form.value.no_request = generateNoRequest()
-  form.value.tipe_pengajuan = hasAccessTagihanSupplier.value ? 'Tagihan Supplier' : 'Manual'
   viewMode.value = 'form'
 }
 
@@ -2286,28 +2143,20 @@ const simpanPengajuan = async () => {
       }
     } else {
       payload.createdAt = serverTimestamp()
+      payload.status = 'Draft'
       payload.pembuat_id = authStore.user?.uid || ''
       payload.pembuat_email = authStore.user?.email || ''
       payload.pembuat_nama = authStore.user?.nama || 'User'
       await addDoc(collection(db, 'finance_pengajuan_pembayaran'), payload)
-
-      if (form.value.tagihan_id || form.value.tagihan_nomor_invoice || form.value.tagihan_kode) {
-        await updateTagihanStatus(
-          form.value.tagihan_id,
-          form.value.tagihan_nomor_invoice,
-          form.value.tagihan_kode,
-          'Sedang Diajukan',
-        )
-      }
     }
 
     $q.notify({
       type: 'positive',
       position: 'top',
-      icon: 'check_circle',
-      message: 'Pengajuan berhasil dikirim!',
-      caption: 'Menunggu proses approval dari atasan.',
-      timeout: 3500,
+      icon: 'save',
+      message: 'Pengajuan berhasil disimpan sebagai Draft!',
+      caption: 'Klik tombol Ajukan pada list untuk mengajukan ke atasan.',
+      timeout: 4000,
     })
     viewMode.value = 'list'
   } catch (error) {
@@ -2379,6 +2228,8 @@ const formatCompact = (num) => {
 }
 const getStatusColor = (status) => {
   switch (status) {
+    case 'Draft':
+      return { bg: 'grey-3', text: 'text-grey-8', icon: 'edit_note' }
     case 'Pending':
       return { bg: 'orange-1', text: 'text-orange-9', icon: 'hourglass_empty' }
     case 'Approved':
@@ -2387,9 +2238,44 @@ const getStatusColor = (status) => {
       return { bg: 'red-1', text: 'text-negative', icon: 'cancel' }
     case 'Cair':
       return { bg: 'blue-1', text: 'text-primary', icon: 'payments' }
+    case 'Dibayar Sebagian':
+      return { bg: 'indigo-1', text: 'text-indigo-9', icon: 'hourglass_bottom' }
     default:
       return { bg: 'grey-2', text: 'text-grey-8', icon: 'info' }
   }
+}
+
+const ajukanPengajuan = (row) => {
+  $q.dialog({
+    title: 'Ajukan Pengajuan',
+    message: `Ajukan request <b>${row.no_request}</b> ke atasan untuk disetujui?`,
+    html: true,
+    cancel: { flat: true, label: 'Batal' },
+    ok: { unelevated: true, color: 'teal-7', label: 'Ya, Ajukan Sekarang', icon: 'send' },
+  }).onOk(async () => {
+    try {
+      await updateDoc(doc(db, 'finance_pengajuan_pembayaran', row.id), {
+        status: 'Pending',
+        approver_read: false,
+        updatedAt: serverTimestamp(),
+      })
+      $q.notify({
+        type: 'positive',
+        position: 'top',
+        icon: 'send',
+        message: 'Pengajuan berhasil diajukan!',
+        caption: 'Menunggu proses approval dari atasan.',
+        timeout: 3500,
+      })
+    } catch (e) {
+      console.error(e)
+      $q.notify({
+        type: 'negative',
+        position: 'top',
+        message: 'Gagal mengajukan. Coba lagi.',
+      })
+    }
+  })
 }
 
 const openLink = (url) => {

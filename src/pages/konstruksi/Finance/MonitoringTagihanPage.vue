@@ -498,11 +498,11 @@
           </div>
         </div>
 
-        <div id="invoice-pdf-target" class="bg-transparent">
-          <div class="row items-center justify-between q-mb-lg">
+        <div id="invoice-pdf-target" class="bg-transparent font-pro">
+          <div class="row items-center justify-between q-mb-lg no-print">
             <div>
               <div
-                class="text-h4 text-weight-bolder text-indigo-10 uppercase tracking-widest letter-spacing-1 detail-title-responsive"
+                class="text-h4 text-weight-bolder text-teal-10 uppercase tracking-widest letter-spacing-1 detail-title-responsive"
               >
                 RINCIAN TAGIHAN
               </div>
@@ -528,57 +528,65 @@
               <q-card
                 flat
                 bordered
-                class="rounded-20 shadow-sm q-mb-lg card-premium-gradient-indigo border-indigo-thin"
+                class="rounded-20 shadow-sm q-mb-lg bg-white border-teal-thin card-premium-gradient-teal"
               >
-                <q-card-section class="detail-card-header q-py-sm">
+                <q-card-section class="bg-teal-section text-teal-10 q-py-sm border-bottom-subtle">
                   <div class="text-weight-bold uppercase tracking-widest font-11 flex items-center">
                     <q-icon name="dataset" size="sm" class="q-mr-sm" /> REFERENSI DOKUMEN & PROYEK
                   </div>
                 </q-card-section>
                 <q-card-section class="q-pa-lg">
-                  <div class="row q-col-gutter-y-lg q-col-gutter-x-md">
+                  <div class="row q-col-gutter-md">
+                    <!-- PROYEK TERKAIT -->
                     <div class="col-12 col-sm-6">
-                      <div
-                        class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
-                      >
-                        PROYEK TERKAIT
-                      </div>
-                      <div class="text-subtitle1 text-weight-bold text-indigo-10 uppercase">
-                        {{ selectedTagihan.proyek_nama || '-' }}
+                      <div class="q-pa-md rounded-12 bg-grey-1 border-subtle row items-center no-wrap h-full">
+                        <q-avatar color="teal-1" text-color="teal-9" icon="apartment" class="q-mr-md" />
+                        <div>
+                          <div class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10">PROYEK TERKAIT</div>
+                          <div class="text-subtitle1 text-weight-bolder text-teal-10 uppercase leading-tight q-mt-xs">
+                            {{ selectedTagihan.proyek_nama || '-' }}
+                          </div>
+                        </div>
                       </div>
                     </div>
+                    <!-- NOMOR SPK -->
                     <div class="col-12 col-sm-6">
-                      <div
-                        class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
-                      >
-                        NOMOR SPK
-                      </div>
-                      <div class="text-subtitle1 text-weight-bold">
-                        {{ selectedTagihan.nomor_spk || '-' }}
+                      <div class="q-pa-md rounded-12 bg-grey-1 border-subtle row items-center no-wrap h-full">
+                        <q-avatar color="teal-1" text-color="teal-9" icon="assignment" class="q-mr-md" />
+                        <div>
+                          <div class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10">NOMOR SPK</div>
+                          <div class="text-subtitle1 text-weight-bolder text-grey-8 uppercase leading-tight q-mt-xs">
+                            {{ selectedTagihan.nomor_spk || '-' }}
+                          </div>
+                        </div>
                       </div>
                     </div>
+                    <!-- NO. BAP -->
                     <div class="col-12 col-sm-6">
-                      <div
-                        class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
-                      >
-                        NO. BAP
-                      </div>
-                      <div class="text-subtitle1 text-weight-bold">
-                        {{ selectedTagihan.bap_number || '-' }}
+                      <div class="q-pa-md rounded-12 bg-grey-1 border-subtle row items-center no-wrap h-full">
+                        <q-avatar color="teal-1" text-color="teal-9" icon="description" class="q-mr-md" />
+                        <div>
+                          <div class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10">NO. BAP</div>
+                          <div class="text-subtitle1 text-weight-bolder text-grey-8 uppercase leading-tight q-mt-xs">
+                            {{ selectedTagihan.bap_number || '-' }}
+                          </div>
+                        </div>
                       </div>
                     </div>
+                    <!-- REF. INVOICE CUSTOMER -->
                     <div class="col-12 col-sm-6">
-                      <div
-                        class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
-                      >
-                        REF. INVOICE CUSTOMER
-                      </div>
-                      <div class="text-subtitle1 text-weight-bold text-primary uppercase">
-                        {{
-                          typeof selectedTagihan.nomor_invoice_customer === 'object'
-                            ? selectedTagihan.nomor_invoice_customer?.nomor_invoice
-                            : selectedTagihan.nomor_invoice_customer || '-'
-                        }}
+                      <div class="q-pa-md rounded-12 bg-grey-1 border-subtle row items-center no-wrap h-full">
+                        <q-avatar color="teal-1" text-color="teal-9" icon="receipt" class="q-mr-md" />
+                        <div>
+                          <div class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10">REF. INVOICE CUSTOMER (AR)</div>
+                          <div class="text-subtitle1 text-weight-bolder text-teal-10 uppercase leading-tight q-mt-xs">
+                            {{
+                              typeof selectedTagihan.nomor_invoice_customer === 'object'
+                                ? selectedTagihan.nomor_invoice_customer?.nomor_invoice
+                                : selectedTagihan.nomor_invoice_customer || '-'
+                            }}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -589,98 +597,100 @@
               <q-card
                 flat
                 bordered
-                class="rounded-20 shadow-sm q-mb-lg card-premium-gradient-indigo border-indigo-thin"
+                class="rounded-20 shadow-sm q-mb-lg bg-white border-teal-thin card-premium-gradient-teal"
               >
-                <q-card-section class="detail-card-header q-py-sm">
+                <q-card-section class="bg-teal-section text-teal-10 q-py-sm border-bottom-subtle">
                   <div class="text-weight-bold uppercase tracking-widest font-11 flex items-center">
-                    <q-icon name="timeline" size="sm" class="q-mr-sm" /> DESKRIPSI PEKERJAAN &
-                    TIMELINE
+                    <q-icon name="timeline" size="sm" class="q-mr-sm" /> DESKRIPSI PEKERJAAN & TIMELINE
                   </div>
                 </q-card-section>
                 <q-card-section class="q-pa-lg">
-                  <div class="row q-col-gutter-y-lg q-col-gutter-x-md">
+                  <div class="row q-col-gutter-md">
+                    <!-- TGL INVOICE -->
                     <div class="col-12 col-sm-3">
-                      <div
-                        class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
-                      >
-                        TGL INVOICE
-                      </div>
-                      <div class="text-subtitle1 text-weight-bold">
-                        {{ formatDateIndo(selectedTagihan.tanggal_invoice) }}
+                      <div class="q-pa-sm q-px-md rounded-12 bg-grey-1 border-subtle h-full">
+                        <div class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10">TGL INVOICE</div>
+                        <div class="text-subtitle2 text-weight-bold text-grey-8 q-mt-xs">
+                          {{ formatDateIndo(selectedTagihan.tanggal_invoice) }}
+                        </div>
                       </div>
                     </div>
+                    <!-- JATUH TEMPO -->
                     <div class="col-12 col-sm-3">
-                      <div
-                        class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
-                      >
-                        JATUH TEMPO
-                      </div>
-                      <div class="text-subtitle1 text-weight-bold text-orange-9">
-                        {{ formatDateIndo(selectedTagihan.jatuh_tempo) }}
+                      <div class="q-pa-sm q-px-md rounded-12 bg-grey-1 border-subtle h-full">
+                        <div class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10">JATUH TEMPO</div>
+                        <div class="text-subtitle2 text-weight-bold text-orange-9 q-mt-xs">
+                          {{ formatDateIndo(selectedTagihan.jatuh_tempo) }}
+                        </div>
                       </div>
                     </div>
+                    <!-- TGL FAKTUR -->
                     <div class="col-12 col-sm-3">
-                      <div
-                        class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
-                      >
-                        TGL FAKTUR
-                      </div>
-                      <div class="text-subtitle1 text-weight-bold">
-                        {{ formatDateIndo(selectedTagihan.tanggal_faktur) }}
+                      <div class="q-pa-sm q-px-md rounded-12 bg-grey-1 border-subtle h-full">
+                        <div class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10">TGL FAKTUR</div>
+                        <div class="text-subtitle2 text-weight-bold text-grey-8 q-mt-xs">
+                          {{ formatDateIndo(selectedTagihan.tanggal_faktur) }}
+                        </div>
                       </div>
                     </div>
+                    <!-- TGL SUBMIT -->
                     <div class="col-12 col-sm-3">
-                      <div
-                        class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
-                      >
-                        TGL SUBMIT
-                      </div>
-                      <div class="text-subtitle1 text-weight-bold text-negative">
-                        {{ formatDateIndo(selectedTagihan.tanggal_submit) }}
+                      <div class="q-pa-sm q-px-md rounded-12 bg-grey-1 border-subtle h-full">
+                        <div class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10">TGL SUBMIT</div>
+                        <div class="text-subtitle2 text-weight-bold text-negative q-mt-xs">
+                          {{ formatDateIndo(selectedTagihan.tanggal_submit) }}
+                        </div>
                       </div>
                     </div>
 
-                    <div class="col-12"><q-separator class="border-subtle" /></div>
+                    <div class="col-12 q-my-xs"><q-separator class="border-subtle" /></div>
 
+                    <!-- JENIS PEKERJAAN -->
                     <div class="col-12 col-sm-4">
-                      <div
-                        class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
-                      >
-                        JENIS PEKERJAAN
-                      </div>
-                      <div class="text-subtitle1 text-weight-bold">
-                        {{ selectedTagihan.jenis_pekerjaan || '-' }}
+                      <div class="q-pa-md rounded-12 bg-grey-1 border-subtle row items-center no-wrap h-full">
+                        <q-avatar color="teal-1" text-color="teal-9" icon="work" class="q-mr-md" size="36px" />
+                        <div>
+                          <div class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10">JENIS PEKERJAAN</div>
+                          <div class="text-subtitle2 text-weight-bold text-grey-8 uppercase q-mt-xs">
+                            {{ selectedTagihan.jenis_pekerjaan || '-' }}
+                          </div>
+                        </div>
                       </div>
                     </div>
+                    <!-- TAHAP / TERMIN -->
                     <div class="col-12 col-sm-4">
-                      <div
-                        class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
-                      >
-                        TAHAP / TERMIN
-                      </div>
-                      <div class="text-subtitle1 text-weight-bold">
-                        {{ selectedTagihan.tahap_ke || selectedTagihan.termin || '-' }}
+                      <div class="q-pa-md rounded-12 bg-grey-1 border-subtle row items-center no-wrap h-full">
+                        <q-avatar color="teal-1" text-color="teal-9" icon="tag" class="q-mr-md" size="36px" />
+                        <div>
+                          <div class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10">TAHAP / TERMIN</div>
+                          <div class="text-subtitle2 text-weight-bold text-grey-8 uppercase q-mt-xs">
+                            {{ selectedTagihan.tahap_ke || selectedTagihan.termin || '-' }}
+                          </div>
+                        </div>
                       </div>
                     </div>
+                    <!-- PROGRESS AKTUAL -->
                     <div class="col-12 col-sm-4">
-                      <div
-                        class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
-                      >
-                        PROGRESS AKTUAL
-                      </div>
-                      <div class="text-subtitle1 text-weight-bold text-indigo-10">
-                        {{ selectedTagihan.progress_persen || 0 }}%
+                      <div class="q-pa-md rounded-12 bg-grey-1 border-subtle row items-center no-wrap h-full">
+                        <q-avatar color="teal-1" text-color="teal-9" icon="donut_large" class="q-mr-md" size="36px" />
+                        <div>
+                          <div class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10">PROGRESS AKTUAL</div>
+                          <div class="text-subtitle2 text-weight-bolder text-teal-10 q-mt-xs">
+                            {{ selectedTagihan.progress_percent || selectedTagihan.progress_persen || 0 }}%
+                          </div>
+                        </div>
                       </div>
                     </div>
 
+                    <div class="col-12 q-my-xs"><q-separator class="border-subtle" /></div>
+
+                    <!-- DESKRIPSI PROYEK -->
                     <div class="col-12">
-                      <div
-                        class="text-caption text-grey-6 text-bold uppercase tracking-widest q-mb-xs"
-                      >
-                        DESKRIPSI PROYEK
-                      </div>
-                      <div class="text-body2 text-grey-9">
-                        {{ selectedTagihan.deskripsi_proyek || '-' }}
+                      <div class="q-pa-md rounded-12 bg-grey-1 border-subtle h-full">
+                        <div class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10">DESKRIPSI PROYEK / PEKERJAAN</div>
+                        <div class="text-body2 text-grey-9 q-mt-sm" style="line-height: 1.6;">
+                          {{ selectedTagihan.deskripsi_proyek || '-' }}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -693,10 +703,10 @@
               <q-card
                 flat
                 bordered
-                class="rounded-20 shadow-sm card-premium-gradient-indigo border-indigo-thin overflow-hidden"
+                class="rounded-20 shadow-sm bg-white border-teal-thin card-premium-gradient-teal overflow-hidden"
               >
-                <div class="keuangan-header-indigo text-white q-pa-lg text-center">
-                  <div class="text-overline text-indigo-2 text-bold tracking-widest uppercase">
+                <div class="keuangan-header-teal text-white q-pa-lg text-center">
+                  <div class="text-overline text-teal-2 text-bold tracking-widest uppercase">
                     NET AMOUNT TAGIHAN
                   </div>
                   <div class="text-h3 text-weight-black q-mt-sm">
@@ -706,21 +716,21 @@
 
                 <q-card-section class="q-pa-lg">
                   <div
-                    class="text-weight-bold text-indigo-10 q-mb-md uppercase tracking-widest font-11"
+                    class="text-weight-bold text-teal-10 q-mb-md uppercase tracking-widest font-11"
                   >
                     RINCIAN KALKULASI PAJAK
                   </div>
 
                   <div class="row justify-between items-center q-mb-sm">
                     <div class="text-grey-7 font-bold">Nominal (Kotor)</div>
-                    <div class="text-weight-bold text-subtitle1">
+                    <div class="text-weight-bold text-subtitle1 text-grey-9">
                       Rp {{ (selectedTagihan.nominal_invoice || 0).toLocaleString('id-ID') }}
                     </div>
                   </div>
                   <q-separator class="q-my-sm border-subtle" />
                   <div class="row justify-between items-center q-mb-sm">
                     <div class="text-grey-7 font-bold">DPP</div>
-                    <div class="text-weight-bold text-subtitle1">
+                    <div class="text-weight-bold text-subtitle1 text-grey-9">
                       Rp {{ (selectedTagihan.dpp || 0).toLocaleString('id-ID') }}
                     </div>
                   </div>
@@ -752,7 +762,7 @@
                   </div>
 
                   <div class="row justify-between items-center q-mt-xl q-mb-sm no-print">
-                    <div class="text-weight-bold text-indigo-10 uppercase tracking-widest font-11">
+                    <div class="text-weight-bold text-teal-10 uppercase tracking-widest font-11">
                       STATUS PEMBAYARAN
                     </div>
                     <!-- Tombol Update Pembayaran: hanya jika canUpdatePayment -->
@@ -761,10 +771,11 @@
                       outline
                       rounded
                       size="sm"
-                      color="indigo-10"
+                      color="teal-10"
                       icon="add"
                       label="Update Pembayaran"
                       @click="openPaymentDialog"
+                      class="hover-teal-btn"
                     />
                   </div>
                   <div class="row justify-between items-center q-mb-sm">
@@ -801,9 +812,9 @@
                 "
                 flat
                 bordered
-                class="rounded-20 shadow-sm card-premium-gradient-indigo border-indigo-thin q-mt-lg no-print"
+                class="rounded-20 shadow-sm card-premium-gradient-teal border-teal-thin q-mt-lg no-print bg-white"
               >
-                <q-card-section class="detail-card-header q-py-sm">
+                <q-card-section class="bg-teal-section text-teal-10 q-py-sm border-bottom-subtle">
                   <div class="text-weight-bold uppercase tracking-widest font-11 flex items-center">
                     <q-icon name="attachment" size="sm" class="q-mr-sm" /> LAMPIRAN DOKUMEN
                   </div>
@@ -818,7 +829,7 @@
                       @click="openLink(doc.url)"
                     >
                       <q-item-section avatar>
-                        <q-avatar color="indigo-1" text-color="indigo-10" icon="description" />
+                        <q-avatar color="teal-1" text-color="teal-10" icon="description" />
                       </q-item-section>
                       <q-item-section>
                         <q-item-label class="text-weight-bold">{{
@@ -838,9 +849,9 @@
               <q-card
                 flat
                 bordered
-                class="rounded-20 shadow-sm card-premium-gradient-indigo border-indigo-thin q-mt-lg no-print"
+                class="rounded-20 shadow-sm card-premium-gradient-teal border-teal-thin q-mt-lg no-print bg-white"
               >
-                <q-card-section class="detail-card-header q-py-sm">
+                <q-card-section class="bg-teal-section text-teal-10 q-py-sm border-bottom-subtle">
                   <div class="text-weight-bold uppercase tracking-widest font-11 flex items-center">
                     <q-icon name="history" size="sm" class="q-mr-sm" /> RIWAYAT PEMBAYARAN
                   </div>
@@ -858,7 +869,7 @@
                         <q-avatar color="green-1" text-color="positive" icon="payments" />
                       </q-item-section>
                       <q-item-section>
-                        <q-item-label class="text-weight-bold text-indigo-10"
+                        <q-item-label class="text-weight-bold text-teal-10"
                           >Rp {{ (hist.nominal || 0).toLocaleString('id-ID') }}</q-item-label
                         >
                         <q-item-label caption>{{
@@ -876,9 +887,10 @@
                             round
                             dense
                             icon="receipt"
-                            color="primary"
+                            color="teal-10"
                             size="sm"
                             @click.stop="openLink(hist.bukti_url)"
+                            class="hover-teal-btn"
                           >
                             <q-tooltip>Lihat Bukti Pembayaran</q-tooltip>
                           </q-btn>
@@ -2628,6 +2640,32 @@ onUnmounted(() => {
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2) !important;
 }
 
+.finance-table :deep(.q-table__middle) {
+  max-height: 65vh;
+  overflow: auto;
+}
+
+/* Custom scrollbar for table container to make it easy to drag and see at any page height */
+.finance-table :deep(.q-table__middle)::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+}
+
+.finance-table :deep(.q-table__middle)::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 6px;
+}
+
+.finance-table :deep(.q-table__middle)::-webkit-scrollbar-thumb {
+  background: #009688;
+  border-radius: 6px;
+  border: 2px solid #f1f1f1;
+}
+
+.finance-table :deep(.q-table__middle)::-webkit-scrollbar-thumb:hover {
+  background: #00796b;
+}
+
 .finance-table :deep(thead tr th) {
   position: sticky;
   top: 0;
@@ -2740,8 +2778,15 @@ onUnmounted(() => {
   color: #3f51b5 !important;
   border-bottom: 1px solid rgba(63, 81, 181, 0.12) !important;
 }
+.bg-teal-section {
+  background-color: #f2faf9 !important;
+}
 .keuangan-header-indigo {
   background: linear-gradient(135deg, #1a237e 0%, #3f51b5 100%) !important;
+  color: white !important;
+}
+.keuangan-header-teal {
+  background: linear-gradient(135deg, #004d40 0%, #009688 100%) !important;
   color: white !important;
 }
 .finance-table {

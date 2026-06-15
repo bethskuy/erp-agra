@@ -139,6 +139,10 @@ const routes = [
         component: () => import('pages/konstruksi/Finance/PengajuanPembayaranPage.vue'),
       },
       {
+        path: 'finance/form-pengajuan',
+        component: () => import('pages/konstruksi/Finance/FormPengajuanPage.vue'),
+      },
+      {
         path: 'finance/approval-pembayaran',
         component: () => import('pages/konstruksi/Finance/ApprovalPembayaranPage.vue'),
       },

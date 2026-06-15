@@ -746,6 +746,19 @@
                   </q-item-section>
                 </q-item>
                 <q-item
+                  v-if="checkPermission('finance/form-pengajuan') || checkPermission('finance/pembayaran')"
+                  clickable
+                  v-ripple
+                  to="/konstruksi/finance/form-pengajuan"
+                  class="level-2-item-clean"
+                  active-class="sub-item-active"
+                >
+                  <q-item-section avatar
+                    ><q-icon name="note_add" size="20px" class="icon-sub"
+                  /></q-item-section>
+                  <q-item-section class="menu-text">Form Pengajuan</q-item-section>
+                </q-item>
+                <q-item
                   v-if="checkPermission('finance/pembayaran')"
                   clickable
                   v-ripple

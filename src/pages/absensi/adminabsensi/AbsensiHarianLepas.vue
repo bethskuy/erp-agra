@@ -52,7 +52,9 @@
         <div class="row items-center justify-between q-mb-lg">
           <div class="col-12 col-md-8">
             <div class="row items-center no-wrap q-mb-xs">
-              <div class="ios-icon-box bg-gradient-primary text-white q-mr-sm shadow-md flex-shrink-0">
+              <div
+                class="ios-icon-box bg-gradient-primary text-white q-mr-sm shadow-md flex-shrink-0"
+              >
                 <q-icon name="business" size="26px" />
               </div>
               <h4
@@ -211,7 +213,12 @@
                       >
                         <q-icon name="tag" size="10px" class="q-mr-xs" /> PROYEK {{ pi + 1 }}
                       </q-badge>
-                      <q-badge color="brand-light" text-color="brand-primary" class="text-weight-bold font-pro text-11">AKTIF</q-badge>
+                      <q-badge
+                        color="brand-light"
+                        text-color="brand-primary"
+                        class="text-weight-bold font-pro text-11"
+                        >AKTIF</q-badge
+                      >
                     </div>
 
                     <div
@@ -231,7 +238,12 @@
                         <span class="ellipsis col">{{ p.konsumen || 'INTERNAL PROJECT' }}</span>
                       </div>
                       <div class="row items-start no-wrap q-mt-xs">
-                        <q-icon name="place" color="brand-primary" class="q-mr-xs q-mt-xs" size="16px" />
+                        <q-icon
+                          name="place"
+                          color="brand-primary"
+                          class="q-mr-xs q-mt-xs"
+                          size="16px"
+                        />
                         <span class="text-weight-bold text-blue-grey-8 uppercase q-mr-xs"
                           >Lokasi:</span
                         >
@@ -370,7 +382,7 @@
                   </div>
                 </div>
 
-                <div v-else style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                <div v-else style="overflow-x: auto; -webkit-overflow-scrolling: touch">
                   <table class="abs-tbl">
                     <thead>
                       <tr class="bg-slate-50">
@@ -456,7 +468,9 @@
               />
               <div>
                 <div class="row items-center no-wrap q-gutter-x-sm">
-                  <span class="text-h5 text-md-h4 text-weight-bolder text-brand-primary leading-tight uppercase font-pro">
+                  <span
+                    class="text-h5 text-md-h4 text-weight-bolder text-brand-primary leading-tight uppercase font-pro"
+                  >
                     Kelola Pekerja &amp; Mandor
                   </span>
                 </div>
@@ -559,7 +573,7 @@
                     icon="person_add"
                     label="Tambah Kelompok Mandor"
                     class="rounded-12 text-weight-bold shadow-premium"
-                    style="min-height: 40px;"
+                    style="min-height: 40px"
                     @click="addMandor"
                     :disable="!bisa.buat"
                   />
@@ -584,7 +598,9 @@
               class="mandor-container bg-white q-mb-lg rounded-24 border border-subtle shadow-soft overflow-hidden animate-fade-in"
             >
               <!-- Header Mandor Group -->
-              <div class="bg-brand-light q-pa-md row items-center justify-between border-bottom mandor-header-row">
+              <div
+                class="bg-brand-light q-pa-md row items-center justify-between border-bottom mandor-header-row"
+              >
                 <div class="row items-center no-wrap">
                   <q-avatar
                     size="40px"
@@ -599,12 +615,18 @@
                       {{ m.nama }}
                     </div>
                     <div class="text-caption text-grey-7 font-medium">
-                      BIDANG: <span class="text-weight-bold text-blue-grey-8">{{ (m.bidang || 'Umum').toUpperCase() }}</span>
+                      BIDANG:
+                      <span class="text-weight-bold text-blue-grey-8">{{
+                        (m.bidang || 'Umum').toUpperCase()
+                      }}</span>
                       <span class="q-mx-xs">•</span> TELP: {{ m.hp || '-' }}
-                      <span class="q-mx-xs">•</span> TOTAL: {{ m.pekerja ? m.pekerja.length : 0 }} Pekerja
+                      <span class="q-mx-xs">•</span> TOTAL:
+                      {{ m.pekerja ? m.pekerja.length : 0 }} Pekerja
                       <template v-if="m.spk_nama_kontrak">
                         <span class="q-mx-xs">•</span>
-                        <span class="text-brand-primary text-weight-bold">{{ m.spk_nama_kontrak }}</span>
+                        <span class="text-brand-primary text-weight-bold">{{
+                          m.spk_nama_kontrak
+                        }}</span>
                       </template>
                     </div>
                   </div>
@@ -633,7 +655,7 @@
                     dense
                     bg-color="white"
                     label="Nama Pekerja"
-                    class="col-12 col-sm-3 rounded-input"
+                    class="col-12 col-sm-2 rounded-input"
                     placeholder="Nama lengkap pekerja"
                   />
                   <q-select
@@ -681,6 +703,16 @@
                     prefix="Rp"
                     label="Lembur / Jam"
                     class="col-12 col-sm-2 rounded-input"
+                  />
+                  <q-input
+                    v-model.number="pekerjaForms[m.id].koefLembur"
+                    outlined
+                    dense
+                    bg-color="white"
+                    type="number"
+                    step="0.05"
+                    label="Koef Lembur"
+                    class="col-12 col-sm-1 rounded-input"
                   />
                   <div class="col-12 col-sm-2">
                     <q-btn
@@ -751,7 +783,7 @@
                           text-color="orange-9"
                           class="text-weight-bold q-px-sm q-py-xs rounded-6 text-11"
                         >
-                          Lembur: Rp {{ formatUang(p.upahLembur || 25000) }}/Jam
+                          Lembur: Rp {{ formatUang((p.upahLembur || 25000) * (p.koefLembur || 1.0)) }}/Jam ({{ (p.koefLembur || 1.0).toFixed(2) }}x)
                         </q-badge>
                       </div>
                       <div
@@ -778,7 +810,7 @@
                   </div>
 
                   <!-- Table View for Desktop -->
-                  <div v-else style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                  <div v-else style="overflow-x: auto; -webkit-overflow-scrolling: touch">
                     <table class="abs-tbl">
                       <thead>
                         <tr class="bg-slate-50">
@@ -817,7 +849,8 @@
                             Rp {{ formatUang((p.upahHari || 0) * (p.koef || 1.0)) }}
                           </td>
                           <td class="text-right text-weight-bold text-amber-9 font-mono">
-                            Rp {{ formatUang(p.upahLembur || 25000) }}
+                            Rp {{ formatUang((p.upahLembur || 25000) * (p.koefLembur || 1.0)) }}
+                            <div class="text-caption text-grey-5">Base: Rp {{ formatUang(p.upahLembur || 25000) }} ({{ (p.koefLembur || 1.0).toFixed(2) }}x)</div>
                           </td>
                           <td class="text-center no-print">
                             <q-btn
@@ -906,7 +939,8 @@ const checkAkses = async (uid) => {
     const modulAbsensi = permissions.find((m) => m.id === 'absensi')
     if (modulAbsensi && modulAbsensi.isActive) {
       const menuHarianLepas = modulAbsensi.menus?.find(
-        (menu) => menu.id === '_absensi_harian_lepas' || menu.id === '_absensi_admin_absensi-harian-lepas',
+        (menu) =>
+          menu.id === '_absensi_harian_lepas' || menu.id === '_absensi_admin_absensi-harian-lepas',
       )
       if (menuHarianLepas && menuHarianLepas.lihat === true) {
         aksesGranted.value = true
@@ -947,7 +981,7 @@ const loadDetailPermission = async (uid) => {
     const modulAbsensi = permissions.find((m) => m.id === 'absensi')
     if (modulAbsensi) {
       const menu = modulAbsensi.menus?.find(
-        (m) => m.id === '_absensi_harian_lepas' || m.id === '_absensi_admin_absensi-harian-lepas'
+        (m) => m.id === '_absensi_harian_lepas' || m.id === '_absensi_admin_absensi-harian-lepas',
       )
       if (menu) {
         bisa.value = {
@@ -1130,7 +1164,7 @@ const filterJabatan = (val, update, mandorId) => {
       currentOptions.value = jabatanOptions
     } else {
       const needle = val.toLowerCase()
-      currentOptions.value = jabatanOptions.filter(v => v.toLowerCase().indexOf(needle) > -1)
+      currentOptions.value = jabatanOptions.filter((v) => v.toLowerCase().indexOf(needle) > -1)
     }
   })
 }
@@ -1184,8 +1218,8 @@ const bidangOptions = computed(() => {
   const selectedSpk = spkOptions.value.find((s) => s.id === mandorForm.value.spk)
   if (selectedSpk && selectedSpk.groups && selectedSpk.groups.length > 0) {
     const list = []
-    const mainGroups = selectedSpk.groups.filter((g) =>
-      g.title && g.title.toLowerCase().includes('pekerjaan utama')
+    const mainGroups = selectedSpk.groups.filter(
+      (g) => g.title && g.title.toLowerCase().includes('pekerjaan utama'),
     )
     const targetGroups = mainGroups.length > 0 ? mainGroups : selectedSpk.groups
 
@@ -1205,35 +1239,38 @@ const bidangOptions = computed(() => {
   return []
 })
 
-watch(() => mandorForm.value.spk, (newSpkId) => {
-  if (newSpkId) {
-    const selectedSpk = spkOptions.value.find((s) => s.id === newSpkId)
-    if (selectedSpk && selectedSpk.groups && selectedSpk.groups.length > 0) {
-      const list = []
-      const mainGroups = selectedSpk.groups.filter((g) =>
-        g.title && g.title.toLowerCase().includes('pekerjaan utama')
-      )
-      const targetGroups = mainGroups.length > 0 ? mainGroups : selectedSpk.groups
+watch(
+  () => mandorForm.value.spk,
+  (newSpkId) => {
+    if (newSpkId) {
+      const selectedSpk = spkOptions.value.find((s) => s.id === newSpkId)
+      if (selectedSpk && selectedSpk.groups && selectedSpk.groups.length > 0) {
+        const list = []
+        const mainGroups = selectedSpk.groups.filter(
+          (g) => g.title && g.title.toLowerCase().includes('pekerjaan utama'),
+        )
+        const targetGroups = mainGroups.length > 0 ? mainGroups : selectedSpk.groups
 
-      targetGroups.forEach((g) => {
-        if (g.items) {
-          g.items.forEach((item) => {
-            if (item.deskripsi && !item.is_header) {
-              list.push(item.deskripsi.trim())
-            }
-          })
+        targetGroups.forEach((g) => {
+          if (g.items) {
+            g.items.forEach((item) => {
+              if (item.deskripsi && !item.is_header) {
+                list.push(item.deskripsi.trim())
+              }
+            })
+          }
+        })
+        if (list.length > 0) {
+          if (!list.includes(mandorForm.value.bidang)) {
+            mandorForm.value.bidang = list[0]
+          }
+          return
         }
-      })
-      if (list.length > 0) {
-        if (!list.includes(mandorForm.value.bidang)) {
-          mandorForm.value.bidang = list[0]
-        }
-        return
       }
     }
-  }
-  mandorForm.value.bidang = ''
-})
+    mandorForm.value.bidang = ''
+  },
+)
 
 // =====================================================================================
 // DATA & STATE KHUSUS MODUL HARIAN LEPAS MANUFAKTUR
@@ -1381,7 +1418,8 @@ const syncPekerjaFormsStructure = () => {
         typedJabatan: '',
         upahHari: 150000,
         koef: 1.0,
-        upahLembur: projectSetup.value.lembur || 25000
+        upahLembur: projectSetup.value.lembur || 25000,
+        koefLembur: 1.0
       }
     }
   })
@@ -1483,6 +1521,7 @@ const addPekerja = async (mandorId) => {
       upahHari: parseInt(f.upahHari) || 0,
       koef: parseFloat(f.koef) || 1.0,
       upahLembur: parseInt(f.upahLembur) || 0,
+      koefLembur: parseFloat(f.koefLembur) || 1.0,
     },
   ]
 
@@ -1550,8 +1589,10 @@ const calculateRowDailyWage = (pekerja, state) => {
   if (state.status === 'hadir') upahDinas = base * k
   else if (state.status === 'setengah') upahDinas = base * k * 0.5
 
-  const rateLembur = pekerja.upahLembur !== undefined ? pekerja.upahLembur : (projectSetup.value.lembur || 25000)
-  const totalLembur = (parseFloat(state.lembur) || 0) * rateLembur
+  const rateLembur =
+    pekerja.upahLembur !== undefined ? pekerja.upahLembur : projectSetup.value.lembur || 25000
+  const kl = pekerja.koefLembur || 1.0
+  const totalLembur = (parseFloat(state.lembur) || 0) * rateLembur * kl
 
   return Math.round(upahDinas + totalLembur)
 }

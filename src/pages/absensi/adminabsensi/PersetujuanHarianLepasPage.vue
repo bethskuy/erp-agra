@@ -12,7 +12,9 @@
               <div class="ios-icon-box small bg-blue-50 text-brand-primary q-mr-sm flex-shrink-0">
                 <q-icon name="verified_user" size="20px" />
               </div>
-              <h4 class="responsive-title text-weight-bolder text-blue-grey-10 q-ma-none letter-spacing-tight">
+              <h4
+                class="responsive-title text-weight-bolder text-blue-grey-10 q-ma-none letter-spacing-tight"
+              >
                 Persetujuan Harian Lepas
               </h4>
             </div>
@@ -28,7 +30,10 @@
           <span class="text-h6 text-weight-bold text-blue-grey-9 tracking-wide col">
             Antrean Absensi Menunggu Verifikasi
           </span>
-          <q-badge color="orange-8" class="q-ml-sm rounded-6 text-weight-bold shadow-1 flex-shrink-0">
+          <q-badge
+            color="orange-8"
+            class="q-ml-sm rounded-6 text-weight-bold shadow-1 flex-shrink-0"
+          >
             {{ pendingRows.length }}
           </q-badge>
         </div>
@@ -66,7 +71,12 @@
                 <!-- Nama Proyek -->
                 <q-td key="proyek" class="text-left text-weight-bold text-blue-grey-9">
                   <div class="row items-center no-wrap">
-                    <q-avatar size="36px" color="brand-light" text-color="brand-primary" class="q-mr-sm text-weight-bold">
+                    <q-avatar
+                      size="36px"
+                      color="brand-light"
+                      text-color="brand-primary"
+                      class="q-mr-sm text-weight-bold"
+                    >
                       {{ (props.row.projectName || 'P').substring(0, 1).toUpperCase() }}
                     </q-avatar>
                     <span>{{ props.row.projectName || 'PROYEK UNKNOWN' }}</span>
@@ -80,7 +90,8 @@
 
                 <!-- Jumlah Mandor/Pekerja -->
                 <q-td key="jumlah" class="text-center font-mono">
-                  {{ countMandors(props.row.absen) }} Mandor / {{ countPekerja(props.row.absen) }} Pekerja
+                  {{ countMandors(props.row.absen) }} Mandor /
+                  {{ countPekerja(props.row.absen) }} Pekerja
                 </q-td>
 
                 <!-- Tanggal Pengajuan -->
@@ -126,7 +137,9 @@
             <template v-slot:loading>
               <q-inner-loading showing color="brand-primary">
                 <q-spinner-dots size="50px" color="brand-primary" />
-                <div class="text-brand-primary q-mt-md text-weight-medium">Mengambil antrean absensi...</div>
+                <div class="text-brand-primary q-mt-md text-weight-medium">
+                  Mengambil antrean absensi...
+                </div>
               </q-inner-loading>
             </template>
 
@@ -175,16 +188,30 @@
             </template>
 
             <template v-slot:body="props">
-              <q-tr :props="props" class="hover-effect cursor-pointer" @click="viewDetail(props.row)">
+              <q-tr
+                :props="props"
+                class="hover-effect cursor-pointer"
+                @click="viewDetail(props.row)"
+              >
                 <!-- Nama Proyek -->
                 <q-td key="proyek" class="text-left text-weight-bold text-blue-grey-8">
                   <div class="row items-center no-wrap">
-                    <q-avatar size="32px" color="grey-2" text-color="blue-grey-8" class="q-mr-sm text-weight-bold opacity-80 flex-shrink-0">
+                    <q-avatar
+                      size="32px"
+                      color="grey-2"
+                      text-color="blue-grey-8"
+                      class="q-mr-sm text-weight-bold opacity-80 flex-shrink-0"
+                    >
                       {{ (props.row.projectName || 'P').substring(0, 1).toUpperCase() }}
                     </q-avatar>
                     <div>
-                      <div class="text-weight-bold text-blue-grey-9 text-subtitle2">{{ props.row.projectName || 'PROYEK UNKNOWN' }}</div>
-                      <div class="text-caption text-grey-6 text-weight-regular text-italic q-mt-xs" v-if="props.row.catatan">
+                      <div class="text-weight-bold text-blue-grey-9 text-subtitle2">
+                        {{ props.row.projectName || 'PROYEK UNKNOWN' }}
+                      </div>
+                      <div
+                        class="text-caption text-grey-6 text-weight-regular text-italic q-mt-xs"
+                        v-if="props.row.catatan"
+                      >
                         Catatan: {{ props.row.catatan }}
                       </div>
                     </div>
@@ -237,7 +264,9 @@
             <template v-slot:no-data>
               <div class="full-width row items-center q-pa-xl justify-center text-blue-grey-4">
                 <q-icon size="2em" name="history" class="q-mr-sm" />
-                <div class="text-weight-medium">Belum ada riwayat persetujuan absensi harian lepas.</div>
+                <div class="text-weight-medium">
+                  Belum ada riwayat persetujuan absensi harian lepas.
+                </div>
               </div>
             </template>
           </q-table>
@@ -257,20 +286,42 @@
                 round
                 color="brand-primary"
                 icon="arrow_back"
-                @click="viewMode = 'list'; selectedRecord = null; mandors = [];"
+                @click="
+                  viewMode = 'list';
+                  selectedRecord = null;
+                  mandors = [];
+                "
                 class="q-mr-md bg-white shadow-1"
               />
               <div class="col">
                 <div class="row items-center q-gutter-x-sm flex-wrap">
-                  <span class="responsive-title text-weight-bolder text-brand-primary leading-tight uppercase">
+                  <span
+                    class="responsive-title text-weight-bolder text-brand-primary leading-tight uppercase"
+                  >
                     Verifikasi Laporan Absensi
                   </span>
                   <q-badge
-                    :color="selectedRecord.status === 'disetujui' ? 'positive' : selectedRecord.status === 'diajukan' ? 'warning' : selectedRecord.status === 'ditolak' ? 'negative' : 'grey-7'"
+                    :color="
+                      selectedRecord.status === 'disetujui'
+                        ? 'positive'
+                        : selectedRecord.status === 'diajukan'
+                          ? 'warning'
+                          : selectedRecord.status === 'ditolak'
+                            ? 'negative'
+                            : 'grey-7'
+                    "
                     class="text-weight-bold q-px-sm"
-                    style="font-size: 11px; height: 20px;"
+                    style="font-size: 11px; height: 20px"
                   >
-                    {{ selectedRecord.status === 'diajukan' ? 'MENUNGGU' : selectedRecord.status === 'disetujui' ? 'DISETUJUI' : selectedRecord.status === 'ditolak' ? 'DITOLAK' : 'DRAFT' }}
+                    {{
+                      selectedRecord.status === 'diajukan'
+                        ? 'MENUNGGU'
+                        : selectedRecord.status === 'disetujui'
+                          ? 'DISETUJUI'
+                          : selectedRecord.status === 'ditolak'
+                            ? 'DITOLAK'
+                            : 'DRAFT'
+                    }}
                   </q-badge>
                 </div>
                 <div class="text-body2 text-md-subtitle1 text-grey-7 q-mt-sm text-weight-medium">
@@ -289,7 +340,7 @@
                   label="Tolak"
                   icon="close"
                   no-caps
-                  style="min-width: 120px; height: 40px;"
+                  style="min-width: 120px; height: 40px"
                   class="full-width text-weight-bold rounded-12 shadow-premium"
                   @click="updateStatus(selectedRecord.id, 'ditolak')"
                 />
@@ -301,7 +352,7 @@
                   label="Setujui"
                   icon="check"
                   no-caps
-                  style="min-width: 120px; height: 40px;"
+                  style="min-width: 120px; height: 40px"
                   class="full-width text-weight-bold rounded-12 shadow-soft-positive"
                   @click="updateStatus(selectedRecord.id, 'disetujui')"
                 />
@@ -317,7 +368,9 @@
               <div class="col-12 col-md-6 flex items-center q-gutter-x-md">
                 <q-icon name="calendar_month" color="brand-primary" size="lg" />
                 <div>
-                  <div class="text-caption text-grey-6 font-weight-bold uppercase">TANGGAL KEHADIRAN</div>
+                  <div class="text-caption text-grey-6 font-weight-bold uppercase">
+                    TANGGAL KEHADIRAN
+                  </div>
                   <div class="text-h6 text-blue-grey-9 text-weight-bolder font-mono">
                     {{ formatTanggal(selectedRecord.tanggal) }}
                   </div>
@@ -325,12 +378,24 @@
               </div>
               <div class="col-12 col-md-6 row justify-end q-col-gutter-md text-right-md">
                 <div class="col-6 col-md-auto">
-                  <div class="text-caption text-grey-5 uppercase font-weight-bold">Total Mandor</div>
-                  <div class="text-h5 text-brand-primary text-weight-bold text-center text-md-right">{{ countMandors(selectedRecord.absen) }}</div>
+                  <div class="text-caption text-grey-5 uppercase font-weight-bold">
+                    Total Mandor
+                  </div>
+                  <div
+                    class="text-h5 text-brand-primary text-weight-bold text-center text-md-right"
+                  >
+                    {{ countMandors(selectedRecord.absen) }}
+                  </div>
                 </div>
                 <div class="col-6 col-md-auto">
-                  <div class="text-caption text-grey-5 uppercase font-weight-bold">Total Pekerja</div>
-                  <div class="text-h5 text-brand-primary text-weight-bold text-center text-md-right">{{ countPekerja(selectedRecord.absen) }}</div>
+                  <div class="text-caption text-grey-5 uppercase font-weight-bold">
+                    Total Pekerja
+                  </div>
+                  <div
+                    class="text-h5 text-brand-primary text-weight-bold text-center text-md-right"
+                  >
+                    {{ countPekerja(selectedRecord.absen) }}
+                  </div>
                 </div>
               </div>
             </div>
@@ -338,12 +403,18 @@
         </q-card>
 
         <!-- MANDORS AND WORKERS LIST (READ ONLY) -->
-        <div v-if="loadingDetails" class="flex flex-center q-pa-xl bg-white rounded-20 border border-subtle">
+        <div
+          v-if="loadingDetails"
+          class="flex flex-center q-pa-xl bg-white rounded-20 border border-subtle"
+        >
           <q-spinner-orbit color="brand-primary" size="48px" />
           <div class="text-subtitle2 text-grey-6 q-ml-md">Memuat detail kelompok...</div>
         </div>
 
-        <div v-else-if="mandors.length === 0" class="text-center q-pa-xl bg-white rounded-20 border border-subtle shadow-soft">
+        <div
+          v-else-if="mandors.length === 0"
+          class="text-center q-pa-xl bg-white rounded-20 border border-subtle shadow-soft"
+        >
           <q-icon name="group_off" size="4em" color="grey-4" />
           <div class="text-grey-6 text-subtitle1 q-mt-md">
             Tidak ada data kelompok pekerja mandor terdaftar untuk proyek ini.
@@ -352,11 +423,22 @@
 
         <div v-else class="mandor-list-container">
           <div v-for="(m, mi) in mandors" :key="m.id" class="mandor-card-wrapper">
-            <q-card flat bordered class="rounded-20 shadow-1 bg-white border-subtle overflow-hidden">
+            <q-card
+              flat
+              bordered
+              class="rounded-20 shadow-1 bg-white border-subtle overflow-hidden"
+            >
               <!-- Header Mandor -->
-              <div class="bg-brand-light q-pa-md q-pa-sm-lg row items-center justify-between border-bottom mandor-header-row">
+              <div
+                class="bg-brand-light q-pa-md q-pa-sm-lg row items-center justify-between border-bottom mandor-header-row"
+              >
                 <div class="row items-center no-wrap">
-                  <q-avatar size="40px" color="brand-primary" text-color="white" class="q-mr-md text-weight-bold shadow-sm flex-shrink-0">
+                  <q-avatar
+                    size="40px"
+                    color="brand-primary"
+                    text-color="white"
+                    class="q-mr-md text-weight-bold shadow-sm flex-shrink-0"
+                  >
                     {{ mi + 1 }}
                   </q-avatar>
                   <div>
@@ -364,10 +446,15 @@
                       {{ m.nama }}
                     </div>
                     <div class="text-caption text-grey-7">
-                      BIDANG: <span class="text-weight-bold text-blue-grey-8">{{ (m.bidang || 'Umum').toUpperCase() }}</span>
+                      BIDANG:
+                      <span class="text-weight-bold text-blue-grey-8">{{
+                        (m.bidang || 'Umum').toUpperCase()
+                      }}</span>
                       <template v-if="m.spk_nama_kontrak">
                         <span class="q-mx-xs">•</span>
-                        <span class="text-brand-primary text-weight-bold">{{ m.spk_nama_kontrak }}</span>
+                        <span class="text-brand-primary text-weight-bold">{{
+                          m.spk_nama_kontrak
+                        }}</span>
                       </template>
                     </div>
                   </div>
@@ -384,10 +471,17 @@
                     class="rounded-8 text-weight-bold q-px-sm bg-white"
                     icon="groups"
                     label="Lihat Foto Bersama"
-                    @click="openPhotoPreview(getMandorFotoBersama(m.id), `Foto Bersama - Mandor ${m.nama}`)"
+                    @click="
+                      openPhotoPreview(
+                        getMandorFotoBersama(m.id),
+                        `Foto Bersama - Mandor ${m.nama}`,
+                      )
+                    "
                   />
-                  
-                  <div class="row items-center no-wrap q-gutter-x-sm bg-white q-py-xs q-px-md rounded-12 border border-subtle">
+
+                  <div
+                    class="row items-center no-wrap q-gutter-x-sm bg-white q-py-xs q-px-md rounded-12 border border-subtle"
+                  >
                     <span class="text-caption text-weight-bold text-grey-6">STATUS MANDOR:</span>
                     <q-badge
                       :color="getMandorStatus(m.id) === 'hadir' ? 'brand-primary' : 'brand-danger'"
@@ -401,22 +495,56 @@
 
               <!-- Workers Table -->
               <q-card-section class="q-pa-none">
-                <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+                <div style="overflow-x: auto; -webkit-overflow-scrolling: touch">
                   <table class="abs-tbl">
                     <thead>
                       <tr class="bg-slate-50">
-                        <th style="width: 40px" class="text-center text-weight-bold font-11 tracking-widest">#</th>
-                        <th class="text-left text-weight-bold font-11 tracking-widest">NAMA PEKERJA</th>
-                        <th class="text-center text-weight-bold font-11 tracking-widest">JABATAN</th>
-                        <th class="text-center text-weight-bold font-11 tracking-widest" style="width: 90px;">JAM MASUK</th>
-                        <th class="text-center text-weight-bold font-11 tracking-widest" style="width: 90px;">JAM PULANG</th>
-                        <th class="text-right text-weight-bold font-11 tracking-widest">UPAH BASE</th>
+                        <th
+                          style="width: 40px"
+                          class="text-center text-weight-bold font-11 tracking-widest"
+                        >
+                          #
+                        </th>
+                        <th class="text-left text-weight-bold font-11 tracking-widest">
+                          NAMA PEKERJA
+                        </th>
+                        <th class="text-center text-weight-bold font-11 tracking-widest">
+                          JABATAN
+                        </th>
+                        <th
+                          class="text-center text-weight-bold font-11 tracking-widest"
+                          style="width: 90px"
+                        >
+                          JAM MASUK
+                        </th>
+                        <th
+                          class="text-center text-weight-bold font-11 tracking-widest"
+                          style="width: 90px"
+                        >
+                          JAM PULANG
+                        </th>
+                        <th class="text-right text-weight-bold font-11 tracking-widest">
+                          UPAH BASE
+                        </th>
                         <th class="text-center text-weight-bold font-11 tracking-widest">KOEF.</th>
-                        <th class="text-right text-weight-bold font-11 tracking-widest">UPAH EFEKTIF</th>
+                        <th class="text-right text-weight-bold font-11 tracking-widest">
+                          UPAH EFEKTIF
+                        </th>
                         <th class="text-center text-weight-bold font-11 tracking-widest">LEMBUR</th>
-                        <th class="text-right text-weight-bold font-11 tracking-widest">UPAH LEMBUR</th>
-                        <th class="text-right text-weight-bold font-11 tracking-widest text-teal-10">TOTAL UPAH</th>
-                        <th class="text-center text-weight-bold font-11 tracking-widest" style="width: 70px;">BUKTI</th>
+                        <th class="text-right text-weight-bold font-11 tracking-widest">
+                          UPAH LEMBUR
+                        </th>
+                        <th
+                          class="text-right text-weight-bold font-11 tracking-widest text-teal-10"
+                        >
+                          TOTAL UPAH
+                        </th>
+                        <th
+                          class="text-center text-weight-bold font-11 tracking-widest"
+                          style="width: 70px"
+                        >
+                          BUKTI
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
@@ -426,24 +554,47 @@
                         </td>
                         <td class="text-weight-bold text-blue-grey-9 uppercase">
                           <div class="row items-center no-wrap">
-                            <q-avatar size="28px" color="brand-light" text-color="brand-primary" class="q-mr-sm text-weight-bold font-10">
+                            <q-avatar
+                              size="28px"
+                              color="brand-light"
+                              text-color="brand-primary"
+                              class="q-mr-sm text-weight-bold font-10"
+                            >
                               {{ p.nama.substring(0, 2).toUpperCase() }}
                             </q-avatar>
                             <span>{{ p.nama }}</span>
                           </div>
                         </td>
                         <td class="text-center">
-                          <q-badge color="brand-light" text-color="brand-primary" class="text-weight-bold q-px-sm q-py-xs rounded-6">
+                          <q-badge
+                            color="brand-light"
+                            text-color="brand-primary"
+                            class="text-weight-bold q-px-sm q-py-xs rounded-6"
+                          >
                             {{ p.jabatan || 'Tukang' }}
                           </q-badge>
                         </td>
                         <td class="text-center font-mono text-weight-bold text-blue-grey-8">
-                          <span v-if="getWorkerJamMasuk(m.id, p.id)">{{ getWorkerJamMasuk(m.id, p.id) }}</span>
-                          <q-badge v-else color="brand-danger" class="text-weight-bold q-px-sm rounded-6 uppercase">Absen</q-badge>
+                          <span v-if="getWorkerJamMasuk(m.id, p.id)">{{
+                            getWorkerJamMasuk(m.id, p.id)
+                          }}</span>
+                          <q-badge
+                            v-else
+                            color="brand-danger"
+                            class="text-weight-bold q-px-sm rounded-6 uppercase"
+                            >Absen</q-badge
+                          >
                         </td>
                         <td class="text-center font-mono text-weight-bold text-blue-grey-8">
-                          <span v-if="getWorkerJamPulang(m.id, p.id)">{{ getWorkerJamPulang(m.id, p.id) }}</span>
-                          <q-badge v-else color="brand-danger" class="text-weight-bold q-px-sm rounded-6 uppercase">Absen</q-badge>
+                          <span v-if="getWorkerJamPulang(m.id, p.id)">{{
+                            getWorkerJamPulang(m.id, p.id)
+                          }}</span>
+                          <q-badge
+                            v-else
+                            color="brand-danger"
+                            class="text-weight-bold q-px-sm rounded-6 uppercase"
+                            >Absen</q-badge
+                          >
                         </td>
                         <td class="text-right font-mono font-medium text-grey-7">
                           Rp {{ formatUang(p.upahHari) }}
@@ -458,7 +609,10 @@
                           {{ getWorkerLembur(m.id, p.id) }} Jam
                         </td>
                         <td class="text-right font-mono font-medium text-blue-grey-9">
-                          Rp {{ formatUang(calculateWorkerLemburWage(p, m.id)) }}
+                          <div>Rp {{ formatUang(calculateWorkerLemburWage(p, m.id)) }}</div>
+                          <div class="text-caption text-grey-5 font-10">
+                            Base: Rp {{ formatUang(p.upahLembur !== undefined ? p.upahLembur : rateLembur) }}/Jam ({{ (p.koefLembur || 1.0).toFixed(2) }}x)
+                          </div>
                         </td>
                         <td class="text-right font-mono text-weight-bold text-brand-primary">
                           Rp {{ formatUang(calculateWorkerTotalWage(p, m.id)) }}
@@ -487,24 +641,76 @@
         </div>
 
         <!-- DECISION CARD AT BOTTOM -->
-        <div class="decision-card-spacing" v-if="selectedRecord.status === 'diajukan' || selectedRecord.status === 'disetujui' || selectedRecord.status === 'ditolak'">
+        <div
+          class="decision-card-spacing"
+          v-if="
+            selectedRecord.status === 'diajukan' ||
+            selectedRecord.status === 'disetujui' ||
+            selectedRecord.status === 'ditolak'
+          "
+        >
           <q-card flat bordered class="rounded-24 shadow-soft bg-white overflow-hidden">
-            <q-card-section :class="selectedRecord.status === 'disetujui' ? 'bg-teal-6' : selectedRecord.status === 'ditolak' ? 'bg-red-8' : 'bg-brand-primary'" class="text-white text-weight-bold uppercase q-py-md">
-              <q-icon :name="selectedRecord.status === 'disetujui' ? 'check_circle' : selectedRecord.status === 'ditolak' ? 'cancel' : 'gavel'" class="q-mr-sm" />
-              {{ selectedRecord.status === 'diajukan' ? 'Keputusan Verifikasi Absensi' : 'Hasil Verifikasi Absensi oleh HRD' }}
+            <q-card-section
+              :class="
+                selectedRecord.status === 'disetujui'
+                  ? 'bg-teal-6'
+                  : selectedRecord.status === 'ditolak'
+                    ? 'bg-red-8'
+                    : 'bg-brand-primary'
+              "
+              class="text-white text-weight-bold uppercase q-py-md"
+            >
+              <q-icon
+                :name="
+                  selectedRecord.status === 'disetujui'
+                    ? 'check_circle'
+                    : selectedRecord.status === 'ditolak'
+                      ? 'cancel'
+                      : 'gavel'
+                "
+                class="q-mr-sm"
+              />
+              {{
+                selectedRecord.status === 'diajukan'
+                  ? 'Keputusan Verifikasi Absensi'
+                  : 'Hasil Verifikasi Absensi oleh HRD'
+              }}
             </q-card-section>
             <q-card-section class="q-pa-lg">
               <div class="row q-col-gutter-lg items-center">
-                <div class="col-12" :class="selectedRecord.status === 'diajukan' ? 'col-md-7' : 'col-md-12'">
-                  <div class="rounded-16 q-pa-md" :class="selectedRecord.status === 'disetujui' ? 'bg-teal-1 text-teal-9' : selectedRecord.status === 'ditolak' ? 'bg-red-1 text-red-9' : 'bg-blue-grey-1 text-blue-grey-8'">
+                <div
+                  class="col-12"
+                  :class="selectedRecord.status === 'diajukan' ? 'col-md-7' : 'col-md-12'"
+                >
+                  <div
+                    class="rounded-16 q-pa-md"
+                    :class="
+                      selectedRecord.status === 'disetujui'
+                        ? 'bg-teal-1 text-teal-9'
+                        : selectedRecord.status === 'ditolak'
+                          ? 'bg-red-1 text-red-9'
+                          : 'bg-blue-grey-1 text-blue-grey-8'
+                    "
+                  >
                     <div class="text-subtitle2 text-weight-bold q-mb-xs">
-                      <q-icon :name="selectedRecord.status === 'diajukan' ? 'info_outline' : 'rate_review'" class="q-mr-xs" />
-                      {{ selectedRecord.status === 'diajukan' ? 'Catatan Verifikasi' : 'Keterangan Keputusan' }}
+                      <q-icon
+                        :name="
+                          selectedRecord.status === 'diajukan' ? 'info_outline' : 'rate_review'
+                        "
+                        class="q-mr-xs"
+                      />
+                      {{
+                        selectedRecord.status === 'diajukan'
+                          ? 'Catatan Verifikasi'
+                          : 'Keterangan Keputusan'
+                      }}
                     </div>
                     <div class="text-body2" style="line-height: 1.6">
-                      {{ selectedRecord.status === 'diajukan'
-                        ? 'Persetujuan laporan ini akan mengesahkan absensi mandor dan pekerja untuk proyek ini pada tanggal tersebut, serta mencatat upah harian ke dalam log pengeluaran proyek. Proses ini tidak dapat dibatalkan.'
-                        : (selectedRecord.catatan || 'Tidak ada catatan verifikasi dari HRD.') }}
+                      {{
+                        selectedRecord.status === 'diajukan'
+                          ? 'Persetujuan laporan ini akan mengesahkan absensi mandor dan pekerja untuk proyek ini pada tanggal tersebut, serta mencatat upah harian ke dalam log pengeluaran proyek. Proses ini tidak dapat dibatalkan.'
+                          : selectedRecord.catatan || 'Tidak ada catatan verifikasi dari HRD.'
+                      }}
                     </div>
                   </div>
                 </div>
@@ -518,7 +724,7 @@
                         label="Tolak Laporan"
                         no-caps
                         class="text-weight-bold full-width rounded-12 shadow-premium"
-                        style="min-height: 44px;"
+                        style="min-height: 44px"
                         @click="updateStatus(selectedRecord.id, 'ditolak')"
                       />
                     </div>
@@ -530,7 +736,7 @@
                         label="Setujui Laporan"
                         no-caps
                         class="text-weight-bold full-width rounded-12 shadow-soft-positive"
-                        style="min-height: 44px;"
+                        style="min-height: 44px"
                         @click="updateStatus(selectedRecord.id, 'disetujui')"
                       />
                     </div>
@@ -547,9 +753,14 @@
     <!-- DIALOG: PREVIEW FOTO BUKTI ABSENSI                                      -->
     <!-- ======================================================================= -->
     <q-dialog v-model="showPreviewDialog" transition-show="scale" transition-hide="scale">
-      <q-card class="rounded-24 shadow-premium overflow-hidden bg-slate-900 border-subtle" style="width: 550px; max-width: 95vw;">
+      <q-card
+        class="rounded-24 shadow-premium overflow-hidden bg-slate-900 border-subtle"
+        style="width: 550px; max-width: 95vw"
+      >
         <!-- Header -->
-        <q-card-section class="bg-brand-primary text-white row items-center justify-between q-py-md">
+        <q-card-section
+          class="bg-brand-primary text-white row items-center justify-between q-py-md"
+        >
           <div class="row items-center">
             <q-icon name="image" size="20px" class="q-mr-sm" />
             <div class="text-subtitle1 text-weight-bolder uppercase tracking-wide">
@@ -560,10 +771,10 @@
         </q-card-section>
 
         <!-- Image Preview Card -->
-        <q-card-section class="q-pa-none bg-slate-950 flex flex-center" style="min-height: 350px;">
+        <q-card-section class="q-pa-none bg-slate-950 flex flex-center" style="min-height: 350px">
           <q-img
             :src="previewPhotoUrl"
-            style="width: 100%; height: auto; max-height: 480px;"
+            style="width: 100%; height: auto; max-height: 480px"
             fit="contain"
           />
         </q-card-section>
@@ -593,7 +804,7 @@ import {
   updateDoc,
   deleteDoc,
   serverTimestamp,
-  orderBy
+  orderBy,
 } from 'firebase/firestore'
 
 const $q = useQuasar()
@@ -616,7 +827,7 @@ const columns = [
   { name: 'tanggal', label: 'TANGGAL KEHADIRAN', align: 'center', field: 'tanggal' },
   { name: 'jumlah', label: 'JUMLAH KEHADIRAN', align: 'center', field: 'id' },
   { name: 'tanggal_pengajuan', label: 'TANGGAL PENGAJUAN', align: 'center', field: 'updatedAt' },
-  { name: 'aksi', label: 'VERIFIKASI / AKSI', align: 'center', field: 'id' }
+  { name: 'aksi', label: 'VERIFIKASI / AKSI', align: 'center', field: 'id' },
 ]
 
 // Table headers for decisions history
@@ -625,17 +836,14 @@ const columnsHistory = [
   { name: 'tanggal', label: 'TANGGAL KEHADIRAN', align: 'center', field: 'tanggal' },
   { name: 'tanggal_keputusan', label: 'WAKTU KEPUTUSAN', align: 'center', field: 'updatedAt' },
   { name: 'status', label: 'KEPUTUSAN HRD', align: 'center', field: 'status' },
-  { name: 'aksi', label: 'AKSI', align: 'center', field: 'id' }
+  { name: 'aksi', label: 'AKSI', align: 'center', field: 'id' },
 ]
 
 // Real-time records listener
 const fetchAttendanceRecords = () => {
   loading.value = true
-  const q = query(
-    collection(db, 'harian_lepas_absen'),
-    orderBy('updatedAt', 'desc')
-  )
-  
+  const q = query(collection(db, 'harian_lepas_absen'), orderBy('updatedAt', 'desc'))
+
   unsubRecords = onSnapshot(
     q,
     (snap) => {
@@ -645,7 +853,7 @@ const fetchAttendanceRecords = () => {
     (err) => {
       console.error('Error load harian lepas absen:', err)
       loading.value = false
-    }
+    },
   )
 }
 
@@ -682,7 +890,20 @@ const formatTanggal = (dateStr) => {
   const d = new Date(dateStr)
   if (isNaN(d.getTime())) return dateStr
   return date.formatDate(d, 'DD MMMM YYYY', {
-    months: ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember']
+    months: [
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
+    ],
   })
 }
 
@@ -714,16 +935,13 @@ const fetchProjectSetup = async (projectId) => {
 const viewDetail = (record) => {
   selectedRecord.value = record
   viewMode.value = 'detail-full'
-  
+
   loadingDetails.value = true
   fetchProjectSetup(record.projectId)
-  
+
   // Realtime listener for mandors in that project to reconstruct table names
-  const q = query(
-    collection(db, 'harian_lepas_mandor'),
-    where('projectId', '==', record.projectId)
-  )
-  
+  const q = query(collection(db, 'harian_lepas_mandor'), where('projectId', '==', record.projectId))
+
   unsubMandors = onSnapshot(
     q,
     (snap) => {
@@ -733,7 +951,7 @@ const viewDetail = (record) => {
     (err) => {
       console.error('Error load mandors detail:', err)
       loadingDetails.value = false
-    }
+    },
   )
 }
 
@@ -781,11 +999,14 @@ const calculateWorkerEffectiveWage = (pekerja, mandorId) => {
 const calculateWorkerLemburWage = (pekerja, mandorId) => {
   const hours = Number(getWorkerLembur(mandorId, pekerja.id)) || 0
   const rate = pekerja.upahLembur !== undefined ? pekerja.upahLembur : rateLembur.value
-  return hours * rate
+  const kl = pekerja.koefLembur || 1.0
+  return hours * rate * kl
 }
 
 const calculateWorkerTotalWage = (pekerja, mandorId) => {
-  return calculateWorkerEffectiveWage(pekerja, mandorId) + calculateWorkerLemburWage(pekerja, mandorId)
+  return (
+    calculateWorkerEffectiveWage(pekerja, mandorId) + calculateWorkerLemburWage(pekerja, mandorId)
+  )
 }
 
 // Otorisasi Keputusan Admin / HRD
@@ -801,24 +1022,26 @@ const updateStatus = async (id, newStatus) => {
       type: 'text',
       outlined: true,
       dense: true,
-      placeholder: isSetuju ? 'Contoh: Laporan absensi lengkap dan sesuai.' : 'Contoh: Absensi tidak sesuai dengan log lapangan.'
+      placeholder: isSetuju
+        ? 'Contoh: Laporan absensi lengkap dan sesuai.'
+        : 'Contoh: Absensi tidak sesuai dengan log lapangan.',
     },
     cancel: {
       label: 'Batal',
       color: 'grey-7',
-      flat: true
+      flat: true,
     },
     ok: {
       label: isSetuju ? 'Setujui' : 'Tolak',
       color: isSetuju ? 'green-6' : 'red-8',
-      unelevated: true
+      unelevated: true,
     },
-    persistent: true
+    persistent: true,
   }).onOk(async (catatanInput) => {
     if (!isSetuju && (!catatanInput || !catatanInput.trim())) {
       $q.notify({
         type: 'warning',
-        message: 'Alasan penolakan wajib diisi!'
+        message: 'Alasan penolakan wajib diisi!',
       })
       return
     }
@@ -828,11 +1051,11 @@ const updateStatus = async (id, newStatus) => {
       await updateDoc(doc(db, 'harian_lepas_absen', id), {
         status: newStatus,
         catatan: catatanInput ? catatanInput.trim() : '',
-        updatedAt: serverTimestamp()
+        updatedAt: serverTimestamp(),
       })
       $q.notify({
         type: 'positive',
-        message: `Laporan absensi proyek berhasil diperbarui ke status: ${newStatus.toUpperCase()}`
+        message: `Laporan absensi proyek berhasil diperbarui ke status: ${newStatus.toUpperCase()}`,
       })
       if (viewMode.value === 'detail-full') {
         viewMode.value = 'list'
@@ -843,7 +1066,7 @@ const updateStatus = async (id, newStatus) => {
       console.error('Error updating status:', err)
       $q.notify({
         type: 'negative',
-        message: 'Gagal memperbarui status absensi: ' + err.message
+        message: 'Gagal memperbarui status absensi: ' + err.message,
       })
     } finally {
       loading.value = false
@@ -855,22 +1078,23 @@ const updateStatus = async (id, newStatus) => {
 const deleteRecord = (id) => {
   $q.dialog({
     title: 'Hapus Riwayat',
-    message: 'Apakah Anda yakin ingin menghapus catatan riwayat persetujuan absensi ini dari database?',
+    message:
+      'Apakah Anda yakin ingin menghapus catatan riwayat persetujuan absensi ini dari database?',
     cancel: true,
-    persistent: true
+    persistent: true,
   }).onOk(async () => {
     loading.value = true
     try {
       await deleteDoc(doc(db, 'harian_lepas_absen', id))
       $q.notify({
         type: 'positive',
-        message: 'Catatan riwayat absensi berhasil dihapus!'
+        message: 'Catatan riwayat absensi berhasil dihapus!',
       })
     } catch (err) {
       console.error('Error delete document:', err)
       $q.notify({
         type: 'negative',
-        message: 'Gagal menghapus riwayat: ' + err.message
+        message: 'Gagal menghapus riwayat: ' + err.message,
       })
     } finally {
       loading.value = false
@@ -921,7 +1145,10 @@ onUnmounted(() => {
 }
 
 .font-inter {
-  font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+  font-family:
+    'Plus Jakarta Sans',
+    -apple-system,
+    sans-serif;
 }
 
 /* Responsive Padding & Centering Container */

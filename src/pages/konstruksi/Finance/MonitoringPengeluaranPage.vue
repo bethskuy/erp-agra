@@ -1,7 +1,8 @@
 <template>
   <q-page class="bg-page q-pa-md font-pro">
     <div class="page-content-wrapper">
-      <div class="row items-center justify-between q-mb-lg no-print">
+      <div v-if="viewMode === 'list'">
+        <div class="row items-center justify-between q-mb-lg no-print">
         <div class="col-12">
           <div class="row items-center no-wrap">
             <div>
@@ -300,28 +301,6 @@
             <div
               class="col-12 col-md-auto flex items-center justify-center justify-sm-end q-gutter-x-md q-mt-sm q-mt-sm-none"
             >
-              <q-tabs
-                v-model="statusRealisasiFilter"
-                dense
-                class="text-grey-7 bg-grey-1 rounded-12 p-1"
-                active-color="white"
-                active-bg-color="brand-primary"
-                indicator-color="transparent"
-                align="left"
-                narrow-indicator
-              >
-                <q-tab
-                  name="ALL"
-                  label="Semua Status"
-                  class="text-weight-bold rounded-12 q-px-md"
-                />
-                <q-tab name="Cair" label="Sudah Cair" class="text-weight-bold rounded-12 q-px-md" />
-                <q-tab
-                  name="Approved"
-                  label="Belum Cair"
-                  class="text-weight-bold rounded-12 q-px-md"
-                />
-              </q-tabs>
 
               <q-btn-dropdown
                 unelevated
@@ -395,7 +374,7 @@
             <q-tr
               :props="props"
               class="hover-bg transition-all cursor-pointer"
-              @click="openVoucher(props.row)"
+              @click="openDetail(props.row)"
             >
               <q-td key="waktu">
                 <div class="text-weight-bold text-blue-grey-10 text-subtitle2 leading-none q-mb-xs">
@@ -411,7 +390,7 @@
 
               <q-td key="penerima">
                 <div class="text-weight-bold text-teal-10 uppercase font-11">
-                  {{ props.row.vendor_nama || props.row.supplier_nama || '-' }}
+                  {{ props.row.ttd_received_name || props.row.ttd_received_by || props.row.vendor_nama || props.row.supplier_nama || '-' }}
                 </div>
                 <div class="text-caption text-grey-7 font-10">
                   Inv Ref: {{ props.row.tagihan_nomor_invoice || props.row.nomor_invoice || '-' }}
@@ -477,9 +456,9 @@
                   color="brand-primary"
                   icon="receipt_long"
                   size="sm"
-                  @click="openVoucher(props.row)"
+                  @click="openDetail(props.row)"
                 >
-                  <q-tooltip>Lihat Voucher BKK</q-tooltip>
+                  <q-tooltip>Lihat Detail Transaksi</q-tooltip>
                 </q-btn>
               </q-td>
             </q-tr>
@@ -493,6 +472,252 @@
           </template>
         </q-table>
       </q-card>
+      </div> <!-- End v-if="viewMode === 'list'" -->
+
+      <!-- ======================================================================= -->
+      <!-- VIEW 2: DETAIL TRANSAKSI (VIEW SWITCHER STYLE)                          -->
+      <!-- ======================================================================= -->
+      <div v-else-if="viewMode === 'detail' && selectedExpenseData" class="animate-fade">
+        <!-- HEADER BAR -->
+        <div class="row items-center justify-between q-mb-lg no-print">
+          <div class="row items-center col-12 col-md-8">
+            <q-btn
+              flat
+              round
+              color="brand-primary"
+              icon="arrow_back"
+              @click="
+                viewMode = 'list';
+                selectedExpense = null;
+              "
+              class="q-mr-md bg-white shadow-1"
+            />
+            <div>
+              <div class="row items-center q-gutter-x-sm flex-wrap no-wrap-sm">
+                <span class="text-h5 text-md-h4 text-weight-bolder text-brand-primary leading-tight uppercase">
+                  Detail Pengeluaran Kas
+                </span>
+                <q-badge
+                  :color="selectedExpenseData.status === 'Cair' ? 'positive' : 'warning'"
+                  class="text-weight-bold q-px-sm"
+                  style="font-size: 11px; height: 20px"
+                >
+                  {{ selectedExpenseData.status === 'Cair' ? 'SUDAH CAIR' : 'BELUM CAIR' }}
+                </q-badge>
+              </div>
+              <div class="text-subtitle1 text-grey-7 q-mt-xs font-weight-medium">
+                {{ generateNomorBKK(selectedExpenseData) }} &bull; REQ: {{ selectedExpenseData.no_request || selectedExpenseData.nomor_req || '-' }}
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-12 col-md-4 text-right-md q-mt-md q-mt-md-none row q-col-gutter-sm justify-end">
+            <div class="col-12 col-sm-auto">
+              <q-btn
+                unelevated
+                color="brand-primary"
+                icon="receipt"
+                label="Preview Voucher BKK"
+                @click="previewVoucherFromDetail"
+                class="full-width rounded-12 text-weight-bold shadow-premium"
+                style="height: 44px; padding-left: 24px; padding-right: 24px;"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- TWO COLUMN LAYOUT -->
+        <div class="row q-col-gutter-lg">
+          <!-- LEFT COLUMN: Main details -->
+          <div class="col-12 col-md-7 column q-gutter-y-lg">
+            <!-- URAIAN / KEPERLUAN -->
+            <q-card flat bordered class="rounded-20 card-detail-fresh-teal">
+              <q-card-section class="q-pa-lg">
+                <div class="text-subtitle2 text-teal-10 text-weight-bold uppercase tracking-wider q-mb-md">
+                  Uraian / Keperluan Pembayaran
+                </div>
+                <div class="text-body1 leading-relaxed italic text-blue-grey-9 q-pa-md bg-white rounded-12 border-teal-thin">
+                  "{{ selectedExpenseData.keterangan || selectedExpenseData.keperluan || '-' }}"
+                </div>
+              </q-card-section>
+            </q-card>
+
+            <!-- PENERIMA & REKENING -->
+            <q-card flat bordered class="rounded-20 card-detail-fresh-teal">
+              <q-card-section class="q-pa-lg">
+                <div class="text-subtitle2 text-teal-10 text-weight-bold uppercase tracking-wider q-mb-lg border-bottom q-pb-xs">
+                  Penerima & Rekening Tujuan
+                </div>
+                <div class="row q-col-gutter-y-md">
+                  <div class="col-12 row items-center">
+                    <div class="col-4 text-grey-6 text-weight-medium">Nama Penerima</div>
+                    <div class="col-8 text-weight-black text-teal-10 uppercase text-subtitle1">
+                      {{ selectedExpenseData.ttd_received_name || selectedExpenseData.ttd_received_by || selectedExpenseData.vendor_nama || selectedExpenseData.supplier_nama || '-' }}
+                    </div>
+                  </div>
+                  <div class="col-12 row items-center">
+                    <div class="col-4 text-grey-6 text-weight-medium">Bank / Cash</div>
+                    <div class="col-8 text-weight-bold uppercase text-blue-grey-8">
+                      {{ selectedExpenseData.rek_bank || '-' }}
+                    </div>
+                  </div>
+                  <div class="col-12 row items-center">
+                    <div class="col-4 text-grey-6 text-weight-medium">Nomor Rekening</div>
+                    <div class="col-8 text-weight-black text-primary font-mono text-subtitle2">
+                      {{ selectedExpenseData.rek_nomor || '-' }}
+                    </div>
+                  </div>
+                  <div class="col-12 row items-center" v-if="selectedExpenseData.rek_nama && selectedExpenseData.rek_nama !== '-'">
+                    <div class="col-4 text-grey-6 text-weight-medium">Atas Nama</div>
+                    <div class="col-8 text-weight-bold text-blue-grey-8 uppercase">
+                      {{ selectedExpenseData.rek_nama }}
+                    </div>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+
+            <!-- ALOKASI PROYEK & SPK/BOQ -->
+            <q-card flat bordered class="rounded-20 card-detail-fresh-teal" v-if="selectedExpenseData.proyek_nama">
+              <q-card-section class="q-pa-lg">
+                <div class="text-subtitle2 text-teal-10 text-weight-bold uppercase tracking-wider q-mb-lg border-bottom q-pb-xs">
+                  Alokasi Proyek & Anggaran
+                </div>
+                <div class="row q-col-gutter-y-md">
+                  <div class="col-12 row items-start">
+                    <div class="col-4 text-grey-6 text-weight-medium">Proyek</div>
+                    <div class="col-8 text-weight-bold text-blue-grey-9 text-subtitle2">
+                      {{ selectedExpenseData.proyek_nama }}
+                    </div>
+                  </div>
+                  
+                  <!-- SPK -->
+                  <div class="col-12 row items-start" v-if="selectedExpenseData.selected_spk && selectedExpenseData.selected_spk.length">
+                    <div class="col-4 text-grey-6 text-weight-medium">SPK Terkait</div>
+                    <div class="col-8">
+                      <div class="q-gutter-xs">
+                        <q-chip
+                          v-for="spkId in selectedExpenseData.selected_spk"
+                          :key="spkId"
+                          dense
+                          color="white"
+                          text-color="teal-9"
+                          class="text-weight-bold font-10 shadow-sm"
+                        >
+                          {{ getSpkById(spkId)?.nomor_spk || getSpkById(spkId)?.nama_kontrak || spkId }}
+                        </q-chip>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- BOQ Items -->
+                  <div class="col-12 row items-start" v-if="selectedExpenseData.spk_boq_selection && Object.keys(selectedExpenseData.spk_boq_selection).length">
+                    <div class="col-4 text-grey-6 text-weight-medium">Kategori BOQ</div>
+                    <div class="col-8">
+                      <div v-for="(sel, spkId) in selectedExpenseData.spk_boq_selection" :key="spkId" class="q-mb-sm">
+                        <div class="text-weight-bold font-10 text-teal-10">
+                          SPK: {{ getSpkById(spkId)?.nomor_spk || spkId }}
+                        </div>
+                        <div v-if="sel.selected_groups && sel.selected_groups.length" class="q-pl-sm font-10 text-grey-7">
+                          Kategori: {{ sel.selected_groups.join(', ') }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+
+          <!-- RIGHT COLUMN: Sidebar details -->
+          <div class="col-12 col-md-5 column q-gutter-y-lg">
+            <!-- RINGKASAN KAS -->
+            <q-card flat bordered class="rounded-20 card-detail-fresh-red">
+              <q-card-section class="q-pa-lg">
+                <div class="text-subtitle2 text-negative text-weight-bold uppercase tracking-wider q-mb-md">
+                  Jumlah Dana Keluar
+                </div>
+                <div class="q-pa-md bg-white text-red-9 rounded-16 border-subtle text-center shadow-sm">
+                  <div class="text-h4 text-weight-black">
+                    - Rp {{ (selectedExpenseData.nominal_eksekusi || selectedExpenseData.nominal || 0).toLocaleString('id-ID') }}
+                  </div>
+                  <div class="text-caption text-grey-7 text-weight-bold q-mt-xs uppercase">
+                    Terbilang: {{ convertToTerbilang(selectedExpenseData.nominal_eksekusi || selectedExpenseData.nominal || 0) }} Rupiah
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+
+            <!-- RINCIAN DOKUMEN -->
+            <q-card flat bordered class="rounded-20 card-detail-fresh-teal">
+              <q-card-section class="q-pa-lg">
+                <div class="text-subtitle2 text-teal-10 text-weight-bold uppercase tracking-wider q-mb-lg border-bottom q-pb-xs">
+                  Detail Transaksi
+                </div>
+                <div class="row q-col-gutter-y-md">
+                  <div class="col-12 row items-center">
+                    <div class="col-5 text-grey-6 text-weight-medium">Metode Bayar</div>
+                    <div class="col-7 text-weight-bold uppercase text-primary font-10">
+                      {{ selectedExpenseData.tipe_pengajuan || selectedExpenseData.metode_bayar || '-' }}
+                    </div>
+                  </div>
+                  <div class="col-12 row items-center">
+                    <div class="col-5 text-grey-6 text-weight-medium">Tanggal Realisasi</div>
+                    <div class="col-7 text-weight-bold">
+                      {{ formatDateIndo(selectedExpenseData.approvedAt || selectedExpenseData.createdAt) }}
+                    </div>
+                  </div>
+                  <div class="col-12 row items-center" v-if="selectedExpenseData.tagihan_nomor_invoice || selectedExpenseData.nomor_invoice">
+                    <div class="col-5 text-grey-6 text-weight-medium">No. Invoice Ref</div>
+                    <div class="col-7 text-weight-bold text-orange-9 font-mono">
+                      {{ selectedExpenseData.tagihan_nomor_invoice || selectedExpenseData.nomor_invoice }}
+                    </div>
+                  </div>
+                  <div class="col-12 row items-center">
+                    <div class="col-5 text-grey-6 text-weight-medium">Diajukan Oleh</div>
+                    <div class="col-7 text-weight-bold text-blue-grey-8">
+                      {{ selectedExpenseData.pembuat_nama || selectedExpenseData.pemohon || 'System' }}
+                    </div>
+                  </div>
+                  <div class="col-12 row items-center">
+                    <div class="col-5 text-grey-6 text-weight-medium">Disetujui Oleh</div>
+                    <div class="col-7 text-weight-bold text-blue-grey-8">
+                      {{ selectedExpenseData.ttd_approved_name || selectedExpenseData.approvedBy || 'System' }}
+                    </div>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+
+            <!-- LAMPIRAN -->
+            <q-card
+              flat
+              bordered
+              class="rounded-20 card-detail-fresh-teal q-pa-sm"
+              v-if="selectedExpenseData.lampiran?.length || selectedExpenseData.bukti_transfer"
+            >
+              <q-card-section class="row items-center justify-between no-wrap">
+                <div class="row items-center no-wrap">
+                  <q-icon name="attachment" color="brand-primary" size="md" class="q-mr-sm" />
+                  <div>
+                    <div class="text-caption text-weight-bold text-blue-grey-10">Berkas Lampiran</div>
+                    <div class="text-caption text-grey-6 font-10">Bukti transfer / Tagihan invoice</div>
+                  </div>
+                </div>
+                <q-btn
+                  unelevated
+                  no-caps
+                  color="brand-primary"
+                  label="Buka Lampiran"
+                  class="rounded-12 text-weight-bold font-11 q-px-md"
+                  icon="open_in_new"
+                  @click="openLink(selectedExpenseData.bukti_transfer || selectedExpenseData.lampiran?.[0]?.url)"
+                />
+              </q-card-section>
+            </q-card>
+          </div>
+        </div>
+      </div>
 
       <!-- DIALOG VOUCHER BKK -->
       <q-dialog
@@ -513,291 +738,243 @@
             </q-toolbar-title>
             <q-btn
               unelevated
+              color="amber-9"
+              text-color="white"
+              icon="edit"
+              label="EDIT TTD"
+              class="q-mr-md text-weight-black rounded-12 shadow-2"
+              @click="openEditTtdDialog"
+            />
+            <q-btn
+              unelevated
               color="white"
               text-color="teal-10"
-              icon="print"
-              label="CETAK / PDF BUKTI"
+              icon="picture_as_pdf"
+              label="DOWNLOAD PDF BKK"
               class="q-mr-md text-weight-black rounded-12 shadow-2"
-              @click="exportVoucherToPDF"
+              @click="exportVoucherToPDF('voucher-pdf-target')"
             />
           </q-toolbar>
 
           <q-scroll-area class="col q-pa-md q-pa-lg-xl flex flex-center">
             <div class="row justify-center">
               <div class="col-12 col-md-11 col-xl-8">
-                <div id="voucher-pdf-target" class="voucher-paper shadow-24" v-if="selectedVoucher">
-                  <div class="row items-start justify-between q-mb-md border-bottom-thick q-pb-md">
-                    <div class="row items-center no-wrap">
-                      <img
-                        :src="compConfig.kopUrl || '/icons/logo-agra.png'"
-                        class="voucher-logo q-mr-md"
-                        @error="$event.target.style.display = 'none'"
-                      />
-                      <div class="column">
-                        <div
-                          class="text-h6 text-weight-black text-teal-10 tracking-tighter leading-none"
-                        >
-                          {{ compConfig.nama_perusahaan || 'PT AGRA ABHINAYA PERKASA' }}
-                        </div>
-                        <div class="text-caption text-grey-8 font-bold uppercase tracking-widest">
-                          {{
-                            compConfig.slogan_perusahaan ||
-                            'General Construction & General Supplier'
-                          }}
-                        </div>
-                        <div class="text-caption text-grey-6 q-mt-xs">
-                          {{ compConfig.alamat || '-' }}
-                        </div>
-                      </div>
+                <div id="voucher-pdf-target" class="voucher-paper shadow-24" v-if="selectedVoucherData">
+                  <!-- Kop Surat -->
+                  <div class="row no-wrap items-center">
+                    <div v-if="compConfig.kopUrl" class="col-auto q-mr-sm">
+                      <img :src="compConfig.kopUrl" class="final-kop-img" />
                     </div>
-                    <div class="text-right">
-                      <div
-                        class="text-h5 text-weight-black text-teal-10 uppercase tracking-widest leading-none"
-                      >
-                        BUKTI KAS KELUAR
+                    <div class="col text-left">
+                      <div class="final-pt-name uppercase">{{ compConfig.nama_perusahaan || 'PT AGRA ABHINAYA PERKASA' }}</div>
+                      <div class="final-pt-tagline italic text-grey-8">
+                        {{ compConfig.slogan_perusahaan || 'General Construction & General Supplier' }}
                       </div>
-                      <div class="text-subtitle2 text-weight-bold text-grey-8 font-mono q-mt-xs">
-                        No: {{ generateNomorBKK(selectedVoucher) }}
+                      <div class="text-caption text-grey-6 q-mt-xs" v-if="compConfig.alamat && compConfig.alamat !== '-'">
+                        {{ compConfig.alamat }}
                       </div>
                     </div>
                   </div>
+                  <div class="final-divider q-mb-lg"></div>
 
-                  <div class="row q-col-gutter-lg q-mb-md">
+                  <!-- Meta Dokumen -->
+                  <div class="row justify-between items-start q-mt-lg q-mb-md text-left">
                     <div class="col-7">
-                      <table class="voucher-info-table full-width">
+                      <div class="label-grey-pro uppercase">DIBAYARKAN KEPADA :</div>
+                      <div class="client-name-pro uppercase">
+                        {{ selectedVoucherData.ttd_received_name || selectedVoucherData.ttd_received_by || selectedVoucherData.vendor_nama || selectedVoucherData.supplier_nama || '-' }}
+                      </div>
+                      <table class="voucher-info-table full-width q-mt-md">
                         <tr>
-                          <td width="145" class="text-grey-7 font-bold">Dibayarkan Kepada</td>
+                          <td width="130" class="text-grey-7 font-bold">Ref Invoice</td>
                           <td width="12">:</td>
-                          <td class="text-weight-bolder text-uppercase text-subtitle2">
-                            {{ selectedVoucher.vendor_nama || selectedVoucher.supplier_nama }}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td class="text-grey-7 font-bold">Referensi Invoice</td>
-                          <td>:</td>
                           <td class="text-weight-bold">
-                            {{
-                              selectedVoucher.tagihan_nomor_invoice ||
-                              selectedVoucher.nomor_invoice ||
-                              '-'
-                            }}
+                            {{ selectedVoucherData.tagihan_nomor_invoice || selectedVoucherData.nomor_invoice || '-' }}
                           </td>
                         </tr>
                         <tr>
                           <td class="text-grey-7 font-bold">Metode Pembayaran</td>
                           <td>:</td>
-                          <td class="text-weight-bold text-primary">
-                            {{
-                              selectedVoucher.tipe_pengajuan ||
-                              selectedVoucher.metode_bayar ||
-                              'Transfer Bank'
-                            }}
+                          <td class="text-weight-bold text-indigo-10 uppercase font-10">
+                            {{ selectedVoucherData.tipe_pengajuan || selectedVoucherData.metode_bayar || '-' }}
                           </td>
                         </tr>
                         <tr>
                           <td class="text-grey-7 font-bold">Rekening Tujuan</td>
                           <td>:</td>
                           <td class="text-weight-bold">
-                            {{ selectedVoucher.rek_bank }} - {{ selectedVoucher.rek_nomor }}<br />
-                            <span class="text-caption italic">
-                              A/N: {{ selectedVoucher.rek_nama || '-' }}
-                            </span>
+                            {{ selectedVoucherData.rek_bank }} - {{ selectedVoucherData.rek_nomor }}
+                            <div class="text-caption text-grey-7 italic text-weight-normal" v-if="selectedVoucherData.rek_nama && selectedVoucherData.rek_nama !== '-'">
+                              A/N: {{ selectedVoucherData.rek_nama }}
+                            </div>
                           </td>
                         </tr>
                       </table>
                     </div>
-                    <div class="col-5">
-                      <table class="voucher-info-table full-width">
-                        <tr>
-                          <td width="120" class="text-grey-7 font-bold">Tgl Pembayaran</td>
-                          <td width="12">:</td>
-                          <td class="text-weight-bold">
-                            {{
-                              formatDateIndo(
-                                selectedVoucher.approvedAt || selectedVoucher.updatedAt,
-                              )
-                            }}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td class="text-grey-7 font-bold">Tgl Pengajuan</td>
-                          <td>:</td>
-                          <td class="text-weight-bold">
-                            {{ formatDateIndo(selectedVoucher.tanggal_pengajuan) }}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td class="text-grey-7 font-bold">Target Cair</td>
-                          <td>:</td>
-                          <td class="text-weight-bold text-negative">
-                            {{ formatDateIndo(selectedVoucher.tanggal_dibutuhkan) }}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td class="text-grey-7 font-bold">Pemohon (Req)</td>
-                          <td>:</td>
-                          <td class="text-weight-bold">
-                            {{ selectedVoucher.pembuat_nama || selectedVoucher.pemohon || '-' }}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td class="text-grey-7 font-bold">Otorisator</td>
-                          <td>:</td>
-                          <td class="text-weight-bold">
-                            {{ selectedVoucher.approvedBy || '-' }}
-                          </td>
-                        </tr>
-                      </table>
-                    </div>
-                  </div>
-
-                  <div class="voucher-box q-mb-md">
-                    <div class="voucher-box-header">URAIAN / KEPERLUAN PEMBAYARAN</div>
-                    <div
-                      class="voucher-box-content text-body2 leading-relaxed italic text-blue-grey-9"
-                    >
-                      "{{ selectedVoucher.keterangan || selectedVoucher.keperluan || '-' }}"
-                    </div>
-                  </div>
-
-                  <div class="q-mb-md">
-                    <table
-                      style="
-                        width: 100%;
-                        border-collapse: collapse;
-                        border: 2px solid #00695c;
-                        border-radius: 8px;
-                        overflow: hidden;
-                      "
-                    >
-                      <tr>
-                        <td
-                          style="
-                            background: #eceff1;
-                            padding: 10px 16px;
-                            font-weight: 800;
-                            text-transform: uppercase;
-                            color: #37474f;
-                            font-size: 11px;
-                            letter-spacing: 1px;
-                            width: 40%;
-                          "
-                        >
-                          TOTAL DIBAYARKAN
-                        </td>
-                        <td
-                          style="
-                            background: #00695c;
-                            color: white;
-                            font-size: 20px;
-                            font-weight: 900;
-                            padding: 10px 16px;
-                            text-align: right;
-                          "
-                        >
-                          Rp
-                          {{
-                            (
-                              selectedVoucher.nominal_eksekusi ||
-                              selectedVoucher.nominal ||
-                              0
-                            ).toLocaleString('id-ID')
-                          }}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td
-                          colspan="2"
-                          style="
-                            border-top: 1px solid #c5cae9;
-                            padding: 8px 16px;
-                            font-size: 11px;
-                            font-style: italic;
-                            color: #37474f;
-                          "
-                        >
-                          Terbilang:
-                          <strong
-                            >{{
-                              convertToTerbilang(
-                                selectedVoucher.nominal_eksekusi || selectedVoucher.nominal || 0,
-                              )
-                            }}
-                            Rupiah</strong
-                          >
-                        </td>
-                      </tr>
-                    </table>
-                    <div class="text-right q-mt-xs text-caption text-grey-6 italic">
-                      Telah diverifikasi dan disetujui sesuai dengan bukti invoice yang sah.
-                    </div>
-                  </div>
-
-                  <div class="ttd-grid">
-                    <div class="ttd-col">
-                      <div class="ttd-role">Disetujui Oleh,</div>
-                      <div class="ttd-jabatan text-caption text-grey-6">(Direktur / Pimpinan)</div>
-                      <div class="ttd-area"></div>
-                      <div class="ttd-name">
-                        {{ selectedVoucher.approvedBy || '.......................' }}
+                    <div class="col-5 text-right">
+                      <div class="quotation-title-pro uppercase" style="font-size: 20px; letter-spacing: 2px;">
+                        BUKTI KAS KELUAR
                       </div>
-                      <div class="ttd-role-label">Finance / Direksi</div>
+                      <div class="text-indigo-10 text-weight-bolder font-mono q-mt-xs">
+                        No: {{ generateNomorBKK(selectedVoucherData) }}
+                      </div>
+                      <div class="text-date-pro q-mt-sm">
+                        Tanggal: {{ formatDateIndo(selectedVoucherData.approvedAt || selectedVoucherData.createdAt) }}
+                      </div>
+                      <div class="text-caption text-grey-7 q-mt-xs">
+                        Pemohon (Req): <span class="text-weight-bold text-grey-9 uppercase">{{ selectedVoucherData.pembuat_nama || selectedVoucherData.pemohon || '-' }}</span>
+                      </div>
+                      <div class="text-caption text-grey-7">
+                        Otorisator: <span class="text-weight-bold text-grey-9 uppercase">
+                          {{ selectedVoucherData.ttd_approved_name || selectedVoucherData.approvedBy || '-' }}
+                        </span>
+                      </div>
                     </div>
-                    <div class="ttd-col">
-                      <div class="ttd-role">Diperiksa Oleh,</div>
-                      <div class="ttd-jabatan text-caption text-grey-6">(Accounting / Audit)</div>
-                      <div class="ttd-area"></div>
-                      <div class="ttd-name">.......................</div>
-                      <div class="ttd-role-label">Accounting Staff</div>
+                  </div>
+
+                  <!-- Introduction -->
+                  <div class="text-body2 q-mb-md text-left leading-relaxed">
+                    Bersama surat ini kami melampirkan bukti pengeluaran kas / realisasi pembayaran dengan rincian sebagai berikut:
+                  </div>
+
+                  <!-- Table Rincian -->
+                  <table class="final-pro-table q-mb-md">
+                    <thead>
+                      <tr>
+                        <th width="40">NO</th>
+                        <th class="text-left">DESKRIPSI PEKERJAAN / URAIAN TRANSAKSI</th>
+                        <th width="60">QTY</th>
+                        <th width="80">SATUAN</th>
+                        <th width="140">HARGA SATUAN</th>
+                        <th width="160">TOTAL AMOUNT</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td class="text-center font-bold text-grey-7">1</td>
+                        <td class="text-left uppercase text-weight-medium" style="white-space: pre-line;">
+                          {{ selectedVoucherData.keterangan || selectedVoucherData.keperluan || '-' }}
+                        </td>
+                        <td class="text-center">1</td>
+                        <td class="text-center uppercase text-caption">LS</td>
+                        <td class="text-right">
+                          Rp {{ (selectedVoucherData.nominal_eksekusi || selectedVoucherData.nominal || 0).toLocaleString('id-ID') }}
+                        </td>
+                        <td class="text-right text-weight-bolder text-indigo-10 bg-indigo-0">
+                          Rp {{ (selectedVoucherData.nominal_eksekusi || selectedVoucherData.nominal || 0).toLocaleString('id-ID') }}
+                        </td>
+                      </tr>
+                    </tbody>
+                    <tfoot class="final-table-footer">
+                      <tr class="row-calculation">
+                        <td colspan="5" class="text-right text-bold uppercase">Subtotal Amount</td>
+                        <td class="text-right text-bold text-indigo-10">
+                          Rp {{ (selectedVoucherData.nominal_eksekusi || selectedVoucherData.nominal || 0).toLocaleString('id-ID') }}
+                        </td>
+                      </tr>
+                      <tr class="row-grand-total">
+                        <td
+                          colspan="5"
+                          class="text-right text-bold uppercase tracking-extra-wide text-white border-none-pro bg-indigo-left"
+                        >
+                          Grand Total Amount
+                        </td>
+                        <td class="text-right text-white text-bold border-none-pro bg-indigo-right">
+                          Rp {{ (selectedVoucherData.nominal_eksekusi || selectedVoucherData.nominal || 0).toLocaleString('id-ID') }}
+                        </td>
+                      </tr>
+                    </tfoot>
+                  </table>
+
+                  <!-- Terbilang Box -->
+                  <div class="terms-container text-left q-mt-lg">
+                    <div class="terms-header uppercase">TERBILANG / NOMINAL WORDS :</div>
+                    <div class="terms-content-box leading-relaxed font-11">
+                      <ul class="q-pl-md q-my-none">
+                        <li>Terbilang: <strong>{{ convertToTerbilang(selectedVoucherData.nominal_eksekusi || selectedVoucherData.nominal || 0) }} Rupiah</strong></li>
+                        <li class="text-grey-7 italic">Catatan: Telah diverifikasi dan disetujui sesuai dengan bukti invoice yang sah.</li>
+                      </ul>
                     </div>
-                    <div class="ttd-col">
-                      <div class="ttd-role">Dibayarkan Oleh,</div>
-                      <div class="ttd-jabatan text-caption text-grey-6">(Kasir / Finance)</div>
-                      <div class="ttd-area"></div>
-                      <div class="ttd-name">.......................</div>
-                      <div class="ttd-role-label">Finance / Kasir</div>
+                  </div>
+
+                  <!-- Closing -->
+                  <div class="text-closing-final text-left q-mt-md font-11 leading-relaxed text-grey-9">
+                    Demikian rincian bukti kas keluar ini kami sampaikan untuk dipergunakan sebagaimana mestinya. Terima kasih.
+                  </div>
+
+                  <!-- Signature Grid Clean -->
+                  <div class="ttd-grid-clean">
+                    <div class="ttd-col-clean">
+                      <div class="ttd-role-clean">
+                        {{ selectedVoucherData.ttd_approved_role || 'Disetujui Oleh,' }}
+                      </div>
+                      <div class="ttd-jabatan-clean">
+                        {{ selectedVoucherData.ttd_approved_jabatan || '(Direktur / Pimpinan)' }}
+                      </div>
+                      <div class="ttd-space-clean"></div>
+                      <div class="ttd-line-clean"></div>
+                      <div class="ttd-name-clean">
+                        {{ selectedVoucherData.ttd_approved_name || selectedVoucherData.approvedBy || '.......................' }}
+                      </div>
+                      <div class="ttd-role-label-clean">
+                        {{ selectedVoucherData.ttd_approved_title || 'Finance / Direksi' }}
+                      </div>
                     </div>
-                    <div class="ttd-col">
-                      <div class="ttd-role">Diterima Oleh,</div>
-                      <div class="ttd-jabatan text-caption text-grey-6">(Penerima Dana)</div>
-                      <div class="ttd-area"></div>
-                      <div class="ttd-name">
+                    <div class="ttd-col-clean">
+                      <div class="ttd-role-clean">
+                        {{ selectedVoucherData.ttd_checked_role || 'Diperiksa Oleh,' }}
+                      </div>
+                      <div class="ttd-jabatan-clean">
+                        {{ selectedVoucherData.ttd_checked_jabatan || '(Accounting / Audit)' }}
+                      </div>
+                      <div class="ttd-space-clean"></div>
+                      <div class="ttd-line-clean"></div>
+                      <div class="ttd-name-clean">
+                        {{ selectedVoucherData.ttd_checked_name || selectedVoucherData.ttd_checked_by || '.......................' }}
+                      </div>
+                      <div class="ttd-role-label-clean">
+                        {{ selectedVoucherData.ttd_checked_title || 'Accounting Staff' }}
+                      </div>
+                    </div>
+                    <div class="ttd-col-clean">
+                      <div class="ttd-role-clean">
+                        {{ selectedVoucherData.ttd_paid_role || 'Dibayarkan Oleh,' }}
+                      </div>
+                      <div class="ttd-jabatan-clean">
+                        {{ selectedVoucherData.ttd_paid_jabatan || '(Kasir / Finance)' }}
+                      </div>
+                      <div class="ttd-space-clean"></div>
+                      <div class="ttd-line-clean"></div>
+                      <div class="ttd-name-clean">
+                        {{ selectedVoucherData.ttd_paid_name || selectedVoucherData.ttd_paid_by || '.......................' }}
+                      </div>
+                      <div class="ttd-role-label-clean">
+                        {{ selectedVoucherData.ttd_paid_title || 'Finance / Kasir' }}
+                      </div>
+                    </div>
+                    <div class="ttd-col-clean">
+                      <div class="ttd-role-clean">
+                        {{ selectedVoucherData.ttd_received_role || 'Diterima Oleh,' }}
+                      </div>
+                      <div class="ttd-jabatan-clean">
+                        {{ selectedVoucherData.ttd_received_jabatan || '(Penerima Dana)' }}
+                      </div>
+                      <div class="ttd-space-clean"></div>
+                      <div class="ttd-line-clean"></div>
+                      <div class="ttd-name-clean">
                         {{
-                          selectedVoucher.vendor_nama ||
-                          selectedVoucher.supplier_nama ||
+                          selectedVoucherData.ttd_received_name ||
+                          selectedVoucherData.ttd_received_by ||
+                          selectedVoucherData.vendor_nama ||
+                          selectedVoucherData.supplier_nama ||
                           '.......................'
                         }}
                       </div>
-                      <div class="ttd-role-label">Vendor / TTD & Cap</div>
+                      <div class="ttd-role-label-clean">
+                        {{ selectedVoucherData.ttd_received_title || 'Vendor / TTD & Cap' }}
+                      </div>
                     </div>
                   </div>
-
-                  <div
-                    class="q-mt-md text-center text-grey-4 text-caption font-bold tracking-widest uppercase"
-                    style="font-size: 9px; border-top: 1px dashed #ccc; padding-top: 8px"
-                  >
-                    Sistem Informasi Keuangan Agra ERP • Dokumen Resmi • Dicetak
-                    {{ new Date().toLocaleDateString('id-ID') }}
-                  </div>
-                </div>
-
-                <div
-                  class="q-mt-lg text-center no-print"
-                  v-if="
-                    selectedVoucher &&
-                    (selectedVoucher.lampiran?.length > 0 || selectedVoucher.bukti_transfer)
-                  "
-                >
-                  <q-btn
-                    outline
-                    color="teal-10"
-                    icon="attachment"
-                    label="Buka Lampiran / Bukti Transfer"
-                    class="bg-white rounded-12 text-weight-bold shadow-1"
-                    @click="
-                      openLink(selectedVoucher.bukti_transfer || selectedVoucher.lampiran?.[0]?.url)
-                    "
-                  />
                 </div>
               </div>
             </div>
@@ -1066,6 +1243,110 @@
         </q-card>
       </q-dialog>
 
+      <!-- DIALOG EDIT TTD VOUCHER BKK -->
+      <q-dialog v-model="showEditTtdDialog" persistent backdrop-filter="blur(8px)">
+        <q-card style="width: 800px; max-width: 95vw;" class="rounded-20 font-pro">
+          <q-card-section class="bg-amber-9 text-white q-py-md">
+            <div class="row items-center justify-between">
+              <div class="row items-center q-gutter-x-sm">
+                <q-icon name="edit" size="sm" class="q-mr-xs" />
+                <div class="text-h6 text-weight-bold">Edit Format 4 Kolom Tanda Tangan</div>
+              </div>
+              <q-btn flat round dense icon="close" v-close-popup />
+            </div>
+          </q-card-section>
+
+          <q-card-section class="q-pa-lg scroll" style="max-height: 70vh">
+            <div class="text-subtitle2 text-grey-8 q-mb-md">
+              Sesuaikan teks peran, jabatan, nama, dan label untuk masing-masing kolom tanda tangan di dokumen Bukti Kas Keluar.
+            </div>
+
+            <div class="row q-col-gutter-md">
+              <!-- Kolom 1 -->
+              <div class="col-12 col-sm-6">
+                <q-card flat bordered class="rounded-12 q-pa-md bg-grey-1 border-subtle">
+                  <div class="text-weight-black text-amber-10 uppercase font-10 tracking-widest q-mb-md">
+                    KOLOM 1 (DISETUJUI)
+                  </div>
+                  <div class="q-gutter-y-sm">
+                    <q-input outlined dense v-model="ttdForm.ttd_approved_role" label="Peran (Atas)" placeholder="Disetujui Oleh," />
+                    <q-input outlined dense v-model="ttdForm.ttd_approved_jabatan" label="Jabatan (Sub-Atas)" placeholder="(Direktur / Pimpinan)" />
+                    <q-input outlined dense v-model="ttdForm.ttd_approved_name" label="Nama Lengkap" placeholder="Nama Direktur" />
+                    <q-input outlined dense v-model="ttdForm.ttd_approved_title" label="Label / Teks Bawah" placeholder="Finance / Direksi" />
+                  </div>
+                </q-card>
+              </div>
+
+              <!-- Kolom 2 -->
+              <div class="col-12 col-sm-6">
+                <q-card flat bordered class="rounded-12 q-pa-md bg-grey-1 border-subtle">
+                  <div class="text-weight-black text-amber-10 uppercase font-10 tracking-widest q-mb-md">
+                    KOLOM 2 (DIPERIKSA)
+                  </div>
+                  <div class="q-gutter-y-sm">
+                    <q-input outlined dense v-model="ttdForm.ttd_checked_role" label="Peran (Atas)" placeholder="Diperiksa Oleh," />
+                    <q-input outlined dense v-model="ttdForm.ttd_checked_jabatan" label="Jabatan (Sub-Atas)" placeholder="(Accounting / Audit)" />
+                    <q-input outlined dense v-model="ttdForm.ttd_checked_name" label="Nama Lengkap" placeholder="Nama Pemeriksa" />
+                    <q-input outlined dense v-model="ttdForm.ttd_checked_title" label="Label / Teks Bawah" placeholder="Accounting Staff" />
+                  </div>
+                </q-card>
+              </div>
+
+              <!-- Kolom 3 -->
+              <div class="col-12 col-sm-6">
+                <q-card flat bordered class="rounded-12 q-pa-md bg-grey-1 border-subtle">
+                  <div class="text-weight-black text-amber-10 uppercase font-10 tracking-widest q-mb-md">
+                    KOLOM 3 (DIBAYARKAN)
+                  </div>
+                  <div class="q-gutter-y-sm">
+                    <q-input outlined dense v-model="ttdForm.ttd_paid_role" label="Peran (Atas)" placeholder="Dibayarkan Oleh," />
+                    <q-input outlined dense v-model="ttdForm.ttd_paid_jabatan" label="Jabatan (Sub-Atas)" placeholder="(Kasir / Finance)" />
+                    <q-input outlined dense v-model="ttdForm.ttd_paid_name" label="Nama Lengkap" placeholder="Nama Kasir" />
+                    <q-input outlined dense v-model="ttdForm.ttd_paid_title" label="Label / Teks Bawah" placeholder="Finance / Kasir" />
+                  </div>
+                </q-card>
+              </div>
+
+              <!-- Kolom 4 -->
+              <div class="col-12 col-sm-6">
+                <q-card flat bordered class="rounded-12 q-pa-md bg-grey-1 border-subtle">
+                  <div class="text-weight-black text-amber-10 uppercase font-10 tracking-widest q-mb-md">
+                    KOLOM 4 (DITERIMA)
+                  </div>
+                  <div class="q-gutter-y-sm">
+                    <q-input outlined dense v-model="ttdForm.ttd_received_role" label="Peran (Atas)" placeholder="Diterima Oleh," />
+                    <q-input outlined dense v-model="ttdForm.ttd_received_jabatan" label="Jabatan (Sub-Atas)" placeholder="(Penerima Dana)" />
+                    <q-input outlined dense v-model="ttdForm.ttd_received_name" label="Nama Lengkap" placeholder="Nama Penerima" />
+                    <q-input outlined dense v-model="ttdForm.ttd_received_title" label="Label / Teks Bawah" placeholder="Vendor / TTD & Cap" />
+                  </div>
+                </q-card>
+              </div>
+            </div>
+          </q-card-section>
+
+          <q-separator />
+
+          <q-card-actions align="right" class="q-pa-md bg-grey-1">
+            <q-btn
+              flat
+              label="Batal"
+              color="grey-7"
+              v-close-popup
+              class="rounded-12 text-weight-bold"
+            />
+            <q-btn
+              unelevated
+              label="Simpan Format TTD"
+              color="amber-9"
+              text-color="white"
+              @click="saveTtdEdits"
+              class="rounded-12 text-weight-bold q-px-lg"
+            />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
+
+
       <!-- HIDDEN AREA PDF EXPORT TABLE -->
       <div style="position: absolute; top: -9999px; left: -9999px; width: 297mm; z-index: -1">
         <div id="table-pdf-export" class="landscape-paper">
@@ -1214,6 +1495,7 @@ import {
   addDoc,
   getDocs,
   serverTimestamp,
+  updateDoc,
 } from 'firebase/firestore'
 import { useQuasar } from 'quasar'
 import { useAuthStore } from 'src/stores/auth'
@@ -1434,9 +1716,152 @@ const expenses = ref([])
 const loading = ref(true)
 const searchQuery = ref('')
 const metodeFilter = ref('ALL')
-const statusRealisasiFilter = ref('ALL')
 const showVoucher = ref(false)
 const selectedVoucher = ref(null)
+const viewMode = ref('list') // 'list' | 'detail'
+const selectedExpense = ref(null)
+
+const selectedVoucherData = computed(() => selectedVoucher.value)
+const selectedExpenseData = computed(() => selectedExpense.value)
+
+// Keep local selected refs synchronized with Firestore updates in realtime
+watch(
+  () => expenses.value,
+  (newExpenses) => {
+    if (selectedVoucher.value) {
+      const updated = newExpenses.find((e) => e.id === selectedVoucher.value.id)
+      if (updated) {
+        selectedVoucher.value = {
+          ...selectedVoucher.value,
+          ...updated,
+        }
+      }
+    }
+    if (selectedExpense.value) {
+      const updated = newExpenses.find((e) => e.id === selectedExpense.value.id)
+      if (updated) {
+        selectedExpense.value = {
+          ...selectedExpense.value,
+          ...updated,
+        }
+      }
+    }
+  },
+  { deep: true }
+)
+
+const openDetail = (row) => {
+  selectedExpense.value = row
+  viewMode.value = 'detail'
+}
+
+const previewVoucherFromDetail = () => {
+  openVoucher(selectedExpenseData.value)
+}
+
+// State for editing signatures (ttd)
+const showEditTtdDialog = ref(false)
+const ttdForm = ref({
+  ttd_approved_role: '',
+  ttd_approved_jabatan: '',
+  ttd_approved_name: '',
+  ttd_approved_title: '',
+  
+  ttd_checked_role: '',
+  ttd_checked_jabatan: '',
+  ttd_checked_name: '',
+  ttd_checked_title: '',
+  
+  ttd_paid_role: '',
+  ttd_paid_jabatan: '',
+  ttd_paid_name: '',
+  ttd_paid_title: '',
+  
+  ttd_received_role: '',
+  ttd_received_jabatan: '',
+  ttd_received_name: '',
+  ttd_received_title: '',
+})
+
+const openEditTtdDialog = () => {
+  if (!selectedVoucherData.value) return
+  
+  const v = selectedVoucherData.value
+  ttdForm.value = {
+    ttd_approved_role: v.ttd_approved_role || 'Disetujui Oleh,',
+    ttd_approved_jabatan: v.ttd_approved_jabatan || '(Direktur / Pimpinan)',
+    ttd_approved_name: v.ttd_approved_name || v.approvedBy || '',
+    ttd_approved_title: v.ttd_approved_title || 'Finance / Direksi',
+    
+    ttd_checked_role: v.ttd_checked_role || 'Diperiksa Oleh,',
+    ttd_checked_jabatan: v.ttd_checked_jabatan || '(Accounting / Audit)',
+    ttd_checked_name: v.ttd_checked_name || v.ttd_checked_by || '',
+    ttd_checked_title: v.ttd_checked_title || 'Accounting Staff',
+    
+    ttd_paid_role: v.ttd_paid_role || 'Dibayarkan Oleh,',
+    ttd_paid_jabatan: v.ttd_paid_jabatan || '(Kasir / Finance)',
+    ttd_paid_name: v.ttd_paid_name || v.ttd_paid_by || '',
+    ttd_paid_title: v.ttd_paid_title || 'Finance / Kasir',
+    
+    ttd_received_role: v.ttd_received_role || 'Diterima Oleh,',
+    ttd_received_jabatan: v.ttd_received_jabatan || '(Penerima Dana)',
+    ttd_received_name: v.ttd_received_name || v.ttd_received_by || v.vendor_nama || v.supplier_nama || '',
+    ttd_received_title: v.ttd_received_title || 'Vendor / TTD & Cap',
+  }
+  showEditTtdDialog.value = true
+}
+
+const saveTtdEdits = async () => {
+  if (!selectedVoucherData.value) return
+  
+  $q.loading.show({ message: 'Menyimpan perubahan tanda tangan...' })
+  try {
+    const docId = selectedVoucherData.value.id
+    const docRef = doc(db, 'finance_pengajuan_pembayaran', docId)
+    const payload = {
+      ...ttdForm.value,
+      // Backup fields for standard queries
+      approvedBy: ttdForm.value.ttd_approved_name,
+      ttd_checked_by: ttdForm.value.ttd_checked_name,
+      ttd_paid_by: ttdForm.value.ttd_paid_name,
+      ttd_received_by: ttdForm.value.ttd_received_name,
+    }
+    
+    await updateDoc(docRef, payload)
+    
+    // Update local state directly so it updates instantly in the UI
+    const updatedData = {
+      ...selectedVoucherData.value,
+      ...payload,
+    }
+    selectedVoucher.value = updatedData
+    if (selectedExpense.value && selectedExpense.value.id === docId) {
+      selectedExpense.value = updatedData
+    }
+    
+    $q.notify({
+      type: 'positive',
+      position: 'top',
+      icon: 'check_circle',
+      message: 'Format tanda tangan berhasil diperbarui!',
+      timeout: 2500,
+    })
+    showEditTtdDialog.value = false
+  } catch (error) {
+    console.error('Error saveTtdEdits:', error)
+    $q.notify({
+      type: 'negative',
+      position: 'top',
+      icon: 'error',
+      message: 'Gagal memperbarui tanda tangan.',
+      timeout: 3000,
+    })
+  } finally {
+    $q.loading.hide()
+  }
+}
+
+
 const compConfig = ref({
   kopUrl: '',
   nama_perusahaan: '',
@@ -1598,9 +2023,8 @@ const distribusiDivisi = computed(() => {
 })
 
 const filteredExpenses = computed(() => {
-  let res = expenses.value
-  if (statusRealisasiFilter.value !== 'ALL')
-    res = res.filter((r) => r.status === statusRealisasiFilter.value)
+  // Hanya tampilkan transaksi yang statusnya 'Cair' (Sudah Cair)
+  let res = expenses.value.filter((r) => r.status === 'Cair')
   if (metodeFilter.value !== 'ALL')
     res = res.filter((r) => (r.tipe_pengajuan || r.metode_bayar || '').includes(metodeFilter.value))
   if (searchQuery.value) {
@@ -1747,10 +2171,11 @@ const convertToTerbilang = (angka) => {
   return (negatif ? 'Minus ' : '') + hasil.trim()
 }
 
-const exportVoucherToPDF = () => {
-  const element = document.getElementById('voucher-pdf-target')
+const exportVoucherToPDF = (elementId = 'voucher-pdf-target') => {
+  const targetId = typeof elementId === 'string' ? elementId : 'voucher-pdf-target'
+  const element = document.getElementById(targetId)
   if (!element) return
-  const reqNo = generateNomorBKK(selectedVoucher.value).replace(/\//g, '-')
+  const reqNo = generateNomorBKK(selectedVoucherData.value).replace(/\//g, '-')
   const opt = {
     margin: 10,
     filename: `${reqNo}.pdf`,
@@ -1888,6 +2313,19 @@ onUnmounted(() => {
 .font-pro {
   font-family: 'Plus Jakarta Sans', sans-serif;
 }
+.card-detail-fresh-teal {
+  background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%) !important;
+  border: 1px solid rgba(13, 148, 136, 0.12) !important;
+  box-shadow: 0 4px 20px rgba(13, 148, 136, 0.04) !important;
+}
+.card-detail-fresh-teal :deep(.border-bottom) {
+  border-bottom: 1px solid rgba(13, 148, 136, 0.15) !important;
+}
+.card-detail-fresh-red {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%) !important;
+  border: 1px solid rgba(239, 68, 68, 0.12) !important;
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.04) !important;
+}
 .rounded-20 {
   border-radius: 20px;
 }
@@ -1904,7 +2342,7 @@ onUnmounted(() => {
   border-bottom: 1px solid #eee;
 }
 .border-bottom-thick {
-  border-bottom: 3px solid #00695c;
+  border-bottom: 3px solid #1a237e;
 }
 .shadow-premium {
   box-shadow: 0 10px 30px rgba(0, 105, 92, 0.15);
@@ -2145,14 +2583,14 @@ onUnmounted(() => {
 /* ─── VOUCHER BKK ────────────────────────────────────────── */
 .voucher-paper {
   background: white;
-  width: 100%;
-  max-width: 148mm;
-  min-height: 200mm;
-  padding: 12mm;
+  width: min(210mm, 100%);
+  min-height: 297mm;
+  padding: 20mm;
   margin: 0 auto;
-  color: black;
+  color: #1a1a1a;
   box-sizing: border-box;
   font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+  line-height: 1.4;
 }
 .voucher-logo {
   height: 48px;
@@ -2165,68 +2603,240 @@ onUnmounted(() => {
 .voucher-info-table td {
   padding: 4px 0;
   vertical-align: top;
-  font-size: 12px;
+  font-size: 11.5px;
+  color: #222;
 }
 .voucher-box {
-  border: 1.5px solid #cfd8dc;
-  border-radius: 6px;
+  border: 1.5px solid #1a237e;
+  border-radius: 4px;
   overflow: hidden;
 }
 .voucher-box-header {
-  background: #eceff1;
+  background: #1a237e;
   padding: 6px 12px;
-  font-weight: 800;
-  color: #37474f;
-  font-size: 10px;
-  letter-spacing: 1px;
+  font-weight: 900;
+  color: white;
+  font-size: 10.5px;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
 }
 .voucher-box-content {
   padding: 10px 12px;
-  font-size: 12px;
+  font-size: 11.5px;
+  color: #333;
 }
 .ttd-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
   margin-top: 16px;
-  border-top: 1px solid #e0e0e0;
+  border-top: 1px solid #1a237e;
   padding-top: 12px;
 }
 .ttd-col {
   text-align: center;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
   padding: 8px 4px 6px;
-  background: #fafafa;
+  background: #f8f9fa;
 }
 .ttd-role {
-  font-weight: 700;
-  font-size: 11px;
-  color: #37474f;
+  font-weight: 800;
+  font-size: 10.5px;
+  color: #1a237e;
 }
 .ttd-jabatan {
   font-size: 9px;
-  color: #9e9e9e;
+  color: #757575;
   margin-top: 2px;
   min-height: 14px;
 }
 .ttd-area {
   height: 52px;
-  border-bottom: 1.5px solid #00695c;
+  border-bottom: 1.5px solid #1a237e;
   margin: 8px 10px 6px;
 }
 .ttd-name {
   font-weight: 800;
   font-size: 10px;
   text-transform: uppercase;
-  color: #00695c;
+  color: #1a237e;
   min-height: 16px;
   word-break: break-word;
 }
 .ttd-role-label {
   font-size: 9px;
+  color: #888;
+  margin-top: 2px;
+  font-style: italic;
+}
+
+/* Classes copied from PenawaranPage for formatting alignment */
+.final-kop-img {
+  height: 70px;
+  width: auto;
+  object-fit: contain;
+}
+.final-pt-name {
+  font-size: 24px;
+  font-weight: 900;
+  color: #1a237e;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+}
+.final-pt-tagline {
+  font-size: 11px;
+  color: #666;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.final-divider {
+  height: 3px;
+  background: #1a237e;
+  margin-top: 15px;
+  border-bottom: 1px solid #1a237e;
+}
+.label-grey-pro {
+  color: #888;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+.client-name-pro {
+  font-size: 18px;
+  font-weight: 900;
+  color: #1a237e;
+  margin: 2px 0;
+}
+.quotation-title-pro {
+  font-size: 26px;
+  font-weight: 900;
+  color: #1a237e;
+  letter-spacing: 6px;
+  border-bottom: 1.5px solid #eee;
+  margin-bottom: 5px;
+  display: inline-block;
+}
+.text-date-pro {
+  font-size: 12px;
+  color: #444;
+  font-weight: 600;
+}
+.final-pro-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 5px;
+  border: 1px solid #1a237e;
+}
+.final-pro-table th {
+  background: #1a237e !important;
+  color: white !important;
+  padding: 8px 7px;
+  font-size: 10px;
+  font-weight: 900;
+  border: 1px solid white;
+  text-align: center;
+}
+.final-pro-table td {
+  padding: 7px;
+  border: 1px solid #ddd;
+  font-size: 11.5px;
+  color: #222;
+}
+.row-calculation {
+  background: #f8f9fa !important;
+}
+.row-calculation td {
+  padding: 6px 12px !important;
+  border: 1px solid #ddd !important;
+  font-size: 10.5px;
+}
+.row-grand-total {
+  background-color: #1a237e !important;
+}
+.bg-indigo-left {
+  background-color: #1a237e !important;
+  padding: 16px 20px !important;
+  font-size: 14px !important;
+  letter-spacing: 0.1em;
+}
+.bg-indigo-right {
+  background-color: #151b68 !important;
+  padding: 16px 20px !important;
+  font-size: 14px !important;
+  min-width: 180px;
+}
+.border-none-pro {
+  border: none !important;
+}
+.terms-container {
+  border: 1.5px solid #1a237e;
+  margin-top: 15px;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.terms-header {
+  background: #1a237e;
+  padding: 6px 10px;
+  font-weight: 900;
+  color: white;
+  font-size: 10.5px;
+  letter-spacing: 0.5px;
+}
+.terms-content-box {
+  padding: 8px 12px;
+  color: #333;
+}
+.bg-indigo-0 {
+  background-color: rgba(26, 35, 126, 0.03);
+}
+
+/* Signature clean styles */
+.ttd-grid-clean {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-top: 40px;
+  border-top: 1.5px solid #1a237e;
+  padding-top: 16px;
+}
+.ttd-col-clean {
+  text-align: center;
+  position: relative;
+}
+.ttd-role-clean {
+  font-weight: 800;
+  font-size: 10.5px;
+  color: #1a237e;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.ttd-jabatan-clean {
+  font-size: 9px;
   color: #757575;
+  margin-top: 2px;
+  min-height: 14px;
+}
+.ttd-space-clean {
+  height: 60px;
+  position: relative;
+}
+.ttd-line-clean {
+  border-bottom: 1.5px solid #1a237e;
+  margin: 8px 10px 6px;
+}
+.ttd-name-clean {
+  font-weight: 800;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  color: #1a237e;
+  min-height: 16px;
+  word-break: break-word;
+}
+.ttd-role-label-clean {
+  font-size: 9px;
+  color: #888;
   margin-top: 2px;
   font-style: italic;
 }
@@ -2274,8 +2884,12 @@ onUnmounted(() => {
   .voucher-paper {
     box-shadow: none !important;
     margin: 0 !important;
-    max-width: 148mm !important;
+    width: 210mm !important;
+    max-width: 210mm !important;
     padding: 12mm !important;
+    page-break-after: auto;
+    overflow: visible !important;
+    position: relative !important;
   }
 }
 </style>
