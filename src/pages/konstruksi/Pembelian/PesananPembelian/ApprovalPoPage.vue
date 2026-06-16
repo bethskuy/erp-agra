@@ -637,8 +637,37 @@
                   <div class="q-mb-xs text-caption uppercase tracking-widest text-weight-bold text-grey-8" style="font-size: 11px;">
                     Dibuat,
                   </div>
-                  <div class="final-sign-space flex flex-center" style="height: 60px">
-                    <!-- Spacer for signature -->
+                  <div class="final-sign-space flex flex-center relative-position" style="height: 80px">
+                    <img
+                      v-if="selectedPo.prepared_by_signature"
+                      :src="selectedPo.prepared_by_signature"
+                      class="img-signature-clean"
+                    />
+                    <q-btn
+                      v-if="selectedPo.prepared_by_signature"
+                      flat
+                      round
+                      dense
+                      icon="close"
+                      color="negative"
+                      size="xs"
+                      class="absolute-top-right q-ma-xs no-print"
+                      style="z-index: 10;"
+                      @click.stop="clearSignature('prepared_by_signature')"
+                    />
+                    <q-btn
+                      v-if="!selectedPo.prepared_by_signature"
+                      outline
+                      rounded
+                      dense
+                      no-caps
+                      color="brand-primary"
+                      icon="draw"
+                      label="Ttd"
+                      class="no-print q-px-sm"
+                      style="font-size: 11px;"
+                      @click="openSignaturePad('prepared_by_signature')"
+                    />
                   </div>
                   <div class="signer-name-wrapper">
                     <div class="text-signer-final text-weight-bold uppercase text-indigo-10">
@@ -660,8 +689,37 @@
                   <div class="q-mb-xs text-caption uppercase tracking-widest text-weight-bold text-grey-8" style="font-size: 11px;">
                     Mengetahui,
                   </div>
-                  <div class="final-sign-space flex flex-center" style="height: 60px">
-                    <!-- Spacer for signature -->
+                  <div class="final-sign-space flex flex-center relative-position" style="height: 80px">
+                    <img
+                      v-if="selectedPo.checked_by_signature"
+                      :src="selectedPo.checked_by_signature"
+                      class="img-signature-clean"
+                    />
+                    <q-btn
+                      v-if="selectedPo.checked_by_signature"
+                      flat
+                      round
+                      dense
+                      icon="close"
+                      color="negative"
+                      size="xs"
+                      class="absolute-top-right q-ma-xs no-print"
+                      style="z-index: 10;"
+                      @click.stop="clearSignature('checked_by_signature')"
+                    />
+                    <q-btn
+                      v-if="!selectedPo.checked_by_signature"
+                      outline
+                      rounded
+                      dense
+                      no-caps
+                      color="brand-primary"
+                      icon="draw"
+                      label="Ttd"
+                      class="no-print q-px-sm"
+                      style="font-size: 11px;"
+                      @click="openSignaturePad('checked_by_signature')"
+                    />
                   </div>
                   <div class="signer-name-wrapper">
                     <div class="text-signer-final text-weight-bold uppercase text-indigo-10">
@@ -679,8 +737,37 @@
                   <div class="q-mb-xs text-caption uppercase tracking-widest text-weight-bold text-grey-8" style="font-size: 11px;">
                     Disetujui,
                   </div>
-                  <div class="final-sign-space flex flex-center" style="height: 60px">
-                    <!-- Spacer for signature or checkmark -->
+                  <div class="final-sign-space flex flex-center relative-position" style="height: 80px">
+                    <img
+                      v-if="selectedPo.approved_by_signature"
+                      :src="selectedPo.approved_by_signature"
+                      class="img-signature-clean"
+                    />
+                    <q-btn
+                      v-if="selectedPo.approved_by_signature"
+                      flat
+                      round
+                      dense
+                      icon="close"
+                      color="negative"
+                      size="xs"
+                      class="absolute-top-right q-ma-xs no-print"
+                      style="z-index: 10;"
+                      @click.stop="clearSignature('approved_by_signature')"
+                    />
+                    <q-btn
+                      v-if="!selectedPo.approved_by_signature"
+                      outline
+                      rounded
+                      dense
+                      no-caps
+                      color="brand-primary"
+                      icon="draw"
+                      label="Ttd"
+                      class="no-print q-px-sm"
+                      style="font-size: 11px;"
+                      @click="openSignaturePad('approved_by_signature')"
+                    />
                   </div>
                   <div class="signer-name-wrapper">
                     <div class="text-signer-final text-weight-bold uppercase text-indigo-10">
@@ -698,8 +785,37 @@
                   <div class="q-mb-xs text-caption uppercase tracking-widest text-weight-bold text-grey-8" style="font-size: 11px;">
                     Approved Supplier,
                   </div>
-                  <div class="final-sign-space flex flex-center" style="height: 60px">
-                    <!-- Spacer for signature supplier -->
+                  <div class="final-sign-space flex flex-center relative-position" style="height: 80px">
+                    <img
+                      v-if="selectedPo.approved_supplier_signature"
+                      :src="selectedPo.approved_supplier_signature"
+                      class="img-signature-clean"
+                    />
+                    <q-btn
+                      v-if="selectedPo.approved_supplier_signature"
+                      flat
+                      round
+                      dense
+                      icon="close"
+                      color="negative"
+                      size="xs"
+                      class="absolute-top-right q-ma-xs no-print"
+                      style="z-index: 10;"
+                      @click.stop="clearSignature('approved_supplier_signature')"
+                    />
+                    <q-btn
+                      v-if="!selectedPo.approved_supplier_signature"
+                      outline
+                      rounded
+                      dense
+                      no-caps
+                      color="brand-primary"
+                      icon="draw"
+                      label="Ttd"
+                      class="no-print q-px-sm"
+                      style="font-size: 11px;"
+                      @click="openSignaturePad('approved_supplier_signature')"
+                    />
                   </div>
                   <div class="signer-name-wrapper">
                     <div class="text-signer-final text-weight-bold uppercase text-indigo-10">
@@ -722,11 +838,59 @@
         </q-card-section>
       </q-card>
     </q-dialog>
+
+    <!-- SIGNATURE PAD DIALOG -->
+    <q-dialog v-model="showPad" persistent backdrop-filter="blur(4px)">
+      <q-card style="width: 500px; max-width: 95vw" class="rounded-20 shadow-24">
+        <q-card-section class="row items-center q-pb-none bg-brand-primary text-white q-pa-md">
+          <div class="text-h6 text-weight-bold uppercase font-10">Tanda Tangan Otorisasi PO</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+        <q-card-section class="q-pa-lg">
+          <div class="signature-pad-wrapper shadow-inner bg-white border-dashed" style="border: 2px dashed #ccc; border-radius: 8px;">
+            <canvas ref="signatureCanvas" class="signature-canvas"></canvas>
+          </div>
+        </q-card-section>
+        <q-card-actions class="q-px-md q-py-sm bg-grey-1 row items-center justify-between">
+          <div class="row items-center q-gutter-sm">
+            <q-btn
+              outline
+              rounded
+              color="indigo-10"
+              icon="upload_file"
+              label="Upload File"
+              no-caps
+              class="text-weight-bold"
+              @click="triggerFileInput"
+            />
+            <input
+              type="file"
+              ref="fileInput"
+              style="display: none"
+              accept="image/*"
+              @change="handleFileUpload"
+            />
+          </div>
+          <div class="row items-center q-gutter-sm">
+            <q-btn flat label="Reset" color="grey-7" @click="clearPad" rounded />
+            <q-btn
+              unelevated
+              label="Simpan & Pasang"
+              color="brand-primary"
+              @click="saveManualSignature"
+              rounded
+              class="text-weight-bold"
+            />
+          </div>
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { db } from 'src/boot/firebase'
 import {
   collection,
@@ -740,6 +904,7 @@ import {
 import { useQuasar } from 'quasar'
 import { useAuthStore } from 'src/stores/auth'
 import html2pdf from 'html2pdf.js'
+import SignaturePad from 'signature_pad'
 
 // ── Init ──────────────────────────────────────────────────────────────────
 const $q = useQuasar()
@@ -752,6 +917,13 @@ const filterStatus = ref('all')
 const showPreview = ref(false)
 const selectedPo = ref(null)
 const userData = ref(null)
+
+// Signature Pad States
+const showPad = ref(false)
+const signatureCanvas = ref(null)
+const fileInput = ref(null)
+const activeSignatureField = ref('')
+let signaturePad = null
 
 let unsubRows = null
 let unsubUser = null
@@ -872,6 +1044,10 @@ const fetchData = () => {
     rows.value = snap.docs
       .map((d) => ({ id: d.id, ...d.data() }))
       .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
+    if (selectedPo.value?.id) {
+      const latest = rows.value.find((r) => r.id === selectedPo.value.id)
+      if (latest) selectedPo.value = latest
+    }
     loading.value = false
   })
 }
@@ -968,6 +1144,158 @@ const promptReject = (row) => {
   })
 }
 
+// ── Signature Pad Actions ──────────────────────────────────────────────────
+watch(showPad, async (val) => {
+  if (val) {
+    await nextTick()
+    const canvas = signatureCanvas.value
+    if (!canvas) return
+    const ratio = Math.max(window.devicePixelRatio || 1, 1)
+    canvas.width = canvas.offsetWidth * ratio
+    canvas.height = canvas.offsetHeight * ratio
+    canvas.getContext('2d')?.scale(ratio, ratio)
+    signaturePad = new SignaturePad(canvas, { penColor: '#000000', minWidth: 2.0, maxWidth: 5.0 })
+  } else {
+    signaturePad = null
+  }
+})
+
+const openSignaturePad = (field) => {
+  activeSignatureField.value = field
+  showPad.value = true
+}
+
+const clearPad = () => signaturePad?.clear()
+
+const saveManualSignature = async () => {
+  if (!signaturePad || signaturePad.isEmpty()) {
+    $q.notify({ type: 'warning', message: 'Tanda tangan masih kosong!', position: 'top' })
+    return
+  }
+  if (!selectedPo.value || !selectedPo.value.id) return
+
+  const base64 = signaturePad.toDataURL('image/png')
+  const field = activeSignatureField.value
+
+  $q.loading.show({ message: 'Menyimpan tanda tangan...' })
+  try {
+    const payload = {
+      [field]: base64,
+      updatedAt: serverTimestamp(),
+    }
+
+    await updateDoc(doc(db, 'purchase_order', selectedPo.value.id), payload)
+    selectedPo.value = { ...selectedPo.value, ...payload }
+    showPad.value = false
+
+    $q.notify({
+      type: 'positive',
+      message: 'Tanda tangan berhasil dipasang!',
+      position: 'top',
+    })
+  } catch (e) {
+    console.error(e)
+    $q.notify({ type: 'negative', message: 'Gagal menyimpan tanda tangan: ' + e.message, position: 'top' })
+  } finally {
+    $q.loading.hide()
+  }
+}
+
+const clearSignature = (field) => {
+  if (!selectedPo.value || !selectedPo.value.id) return
+
+  $q.dialog({
+    title: 'Hapus Tanda Tangan',
+    message: 'Apakah Anda yakin ingin menghapus tanda tangan ini?',
+    cancel: { flat: true, label: 'Batal', color: 'grey-7' },
+    ok: {
+      unelevated: true,
+      rounded: true,
+      label: 'Ya, Hapus',
+      color: 'negative',
+      class: 'text-weight-bold',
+    },
+  }).onOk(async () => {
+    $q.loading.show({ message: 'Menghapus tanda tangan...' })
+    try {
+      const payload = {
+        [field]: '',
+        updatedAt: serverTimestamp(),
+      }
+
+      await updateDoc(doc(db, 'purchase_order', selectedPo.value.id), payload)
+      selectedPo.value = { ...selectedPo.value, ...payload }
+
+      $q.notify({
+        type: 'positive',
+        message: 'Tanda tangan berhasil dihapus!',
+        position: 'top',
+      })
+    } catch (e) {
+      console.error(e)
+      $q.notify({ type: 'negative', message: 'Gagal menghapus tanda tangan: ' + e.message, position: 'top' })
+    } finally {
+      $q.loading.hide()
+    }
+  })
+}
+
+const triggerFileInput = () => {
+  fileInput.value?.click()
+}
+
+const handleFileUpload = (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+
+  const reader = new FileReader()
+  reader.readAsDataURL(file)
+  reader.onload = (e) => {
+    const img = new Image()
+    img.src = e.target.result
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      const maxWidth = 400
+      const scale = maxWidth / img.width
+      canvas.width = maxWidth
+      canvas.height = img.height * scale
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+      const base64 = canvas.toDataURL('image/png', 0.8)
+      
+      saveUploadedSignature(base64)
+    }
+  }
+}
+
+const saveUploadedSignature = async (base64) => {
+  if (!selectedPo.value || !selectedPo.value.id) return
+  const field = activeSignatureField.value
+
+  $q.loading.show({ message: 'Mengunggah tanda tangan...' })
+  try {
+    const payload = {
+      [field]: base64,
+      updatedAt: serverTimestamp(),
+    }
+
+    await updateDoc(doc(db, 'purchase_order', selectedPo.value.id), payload)
+    selectedPo.value = { ...selectedPo.value, ...payload }
+    showPad.value = false
+
+    $q.notify({
+      type: 'positive',
+      message: 'Tanda tangan berhasil diunggah & dipasang!',
+      position: 'top',
+    })
+  } catch (e) {
+    console.error(e)
+    $q.notify({ type: 'negative', message: 'Gagal mengunggah tanda tangan: ' + e.message, position: 'top' })
+  } finally {
+    $q.loading.hide()
+  }
+}
+
 // ── Print & PDF ───────────────────────────────────────────────────────────
 // eslint-disable-next-line no-unused-vars
 const printPage = () => window.print()
@@ -982,6 +1310,7 @@ const exportToPDF = () => {
       return
     }
 
+    e.classList.add('html2pdf-mode')
     const hadShadow = e.classList.contains('shadow-24')
     if (hadShadow) e.classList.remove('shadow-24')
 
@@ -1027,6 +1356,7 @@ const exportToPDF = () => {
           wrapper.parentNode.removeChild(wrapper)
           e.setAttribute('style', originalStyle)
           if (hadShadow) e.classList.add('shadow-24')
+          e.classList.remove('html2pdf-mode')
           $q.loading.hide()
           $q.notify({ type: 'positive', message: 'PDF berhasil diunduh!', position: 'top' })
         })
@@ -1035,6 +1365,7 @@ const exportToPDF = () => {
           wrapper.parentNode.removeChild(wrapper)
           e.setAttribute('style', originalStyle)
           if (hadShadow) e.classList.add('shadow-24')
+          e.classList.remove('html2pdf-mode')
           $q.loading.hide()
         })
     } else {
@@ -1053,12 +1384,14 @@ const exportToPDF = () => {
         .then(() => {
           e.setAttribute('style', originalStyle)
           if (hadShadow) e.classList.add('shadow-24')
+          e.classList.remove('html2pdf-mode')
           $q.loading.hide()
           $q.notify({ type: 'positive', message: 'PDF berhasil diunduh!', position: 'top' })
         })
         .catch(() => {
           e.setAttribute('style', originalStyle)
           if (hadShadow) e.classList.add('shadow-24')
+          e.classList.remove('html2pdf-mode')
           $q.loading.hide()
         })
     }
@@ -1426,10 +1759,10 @@ onUnmounted(() => {
 }
 .img-signature-clean {
   position: absolute;
-  max-height: 100px;
+  max-height: 75px;
   max-width: 180px;
   left: 50%;
-  bottom: 5px;
+  bottom: 0px;
   transform: translateX(-50%);
   z-index: 1;
   mix-blend-mode: multiply;
@@ -1519,5 +1852,18 @@ onUnmounted(() => {
     page-break-inside: avoid;
     break-inside: avoid;
   }
+}
+
+.signature-pad-wrapper {
+  height: 250px;
+  background: #fcfdff;
+  border-radius: 8px;
+}
+.signature-canvas {
+  width: 100%;
+  height: 100%;
+}
+.html2pdf-mode .no-print {
+  display: none !important;
 }
 </style>
