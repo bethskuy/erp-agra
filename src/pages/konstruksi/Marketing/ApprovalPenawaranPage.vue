@@ -242,7 +242,7 @@
               </div>
               <div class="col-5 text-right">
                 <div class="quotation-title-pro uppercase">Quotation</div>
-                <div class="quotation-no-pro text-indigo-10">{{ selectedData.nomor }}</div>
+                <div class="quotation-no-pro text-indigo-10 font-bold">{{ selectedData.nomor }}</div>
                 <div class="text-date-pro">
                   {{ selectedData.kota }}, {{ formatDateIndo(selectedData.tanggal) }}
                 </div>
@@ -283,7 +283,7 @@
               <tfoot class="final-table-footer">
                 <tr class="row-calculation">
                   <td colspan="5" class="text-right text-bold uppercase">Subtotal Pekerjaan</td>
-                  <td class="text-right text-bold text-indigo-10">
+                  <td class="text-right text-bold text-indigo-10 font-11">
                     IDR
                     {{
                       Math.round(
@@ -296,7 +296,7 @@
                   <td colspan="5" class="text-right text-bold uppercase italic text-grey-7">
                     Tax ({{ selectedData.tax_rate }}%)
                   </td>
-                  <td class="text-right text-weight-bold text-indigo-10">
+                  <td class="text-right text-weight-bold font-11 text-indigo-10">
                     IDR
                     {{
                       Math.round(
@@ -311,7 +311,7 @@
                   <td colspan="5" class="text-right text-bold uppercase text-grey-7">
                     {{ selectedData.biaya_lain_label || 'BIAYA LAIN' }}
                   </td>
-                  <td class="text-right text-weight-bold text-indigo-10">
+                  <td class="text-right text-weight-bold font-11 text-indigo-10">
                     IDR {{ Math.round(selectedData.biaya_lain || 0).toLocaleString('id-ID') }}
                   </td>
                 </tr>
@@ -333,12 +333,12 @@
             <!-- Terms -->
             <div class="terms-container text-left q-mt-lg">
               <div class="terms-header uppercase">Syarat & Kondisi Pembayaran :</div>
-              <div class="terms-content-box leading-relaxed" v-html="selectedData.terms"></div>
+              <div class="terms-content-box leading-relaxed text-body2" v-html="selectedData.terms"></div>
             </div>
 
             <!-- CLOSING MESSAGE (DIPINDAHKAN DI BAWAH SYARAT DAN KONDISI - SESUAI GAMBAR 3) -->
             <div
-              class="text-closing-final text-left q-mt-lg font-11 leading-relaxed text-grey-9"
+              class="text-closing-final text-left q-mt-lg text-body2 leading-relaxed text-grey-9"
               v-html="selectedData.closing"
             ></div>
 
@@ -817,6 +817,7 @@ body.is-exporting .letter-paper .text-closing-final {
 }
 body.is-exporting .letter-paper .signature-container {
   margin-top: 30px !important;
+  margin-bottom: 0px !important;
 }
 body.is-exporting .letter-paper .signature-container .q-mt-md {
   margin-top: 0px !important;
@@ -853,6 +854,15 @@ body.is-exporting .letter-paper .row.justify-between {
 }
 .uppercase {
   text-transform: uppercase;
+}
+.font-11 {
+  font-size: 11px;
+}
+.font-10 {
+  font-size: 10px;
+}
+.font-8 {
+  font-size: 9px;
 }
 
 /* OVERRIDE WARNA LAMA (INDIGO) MENJADI BRAND COLOR BARU (TEAL) */
@@ -929,6 +939,8 @@ body.is-exporting .letter-paper .row.justify-between {
 
 /* Document Preview Paper - optimized for A4 */
 .letter-paper {
+  font-family: 'Plus Jakarta Sans', -apple-system, sans-serif !important;
+  font-size: 14px; /* Base font size untuk selaras */
   background: white;
   width: min(210mm, 100%);
   min-height: 297mm;
@@ -1095,21 +1107,24 @@ body.is-exporting .letter-paper .row.justify-between {
 
 /* Signature Area Styles - MATCH WITH PenawaranPage for Safe PDF Export */
 .signature-container {
-  margin-top: auto;
+  margin-top: 40px; /* Diubah dari auto agar naik ke atas mendekati teks closing */
   padding-top: 5px;
+  margin-bottom: 40px;
 }
 .final-sign-space {
   position: relative;
   height: 120px;
-  width: 250px;
+  width: 200px; /* Dipersempit agar pas dengan lebar nama di bawahnya */
   margin-left: auto;
+  margin-right: 0;
   margin-bottom: 10px;
 }
 .img-stempel {
   position: absolute;
   width: 110px;
   height: auto;
-  right: 70px;
+  left: 38%; /* Diposisikan sedikit ke kiri agar bertumpuk dengan tanda tangan secara natural */
+  transform: translateX(-50%);
   bottom: 5px;
   z-index: 2;
 }
@@ -1117,7 +1132,8 @@ body.is-exporting .letter-paper .row.justify-between {
   position: absolute;
   width: 160px;
   height: auto;
-  right: 0;
+  left: 62%; /* Mengimbangi ekor tanda tangan agar lingkarannya pas di tengah nama */
+  transform: translateX(-50%);
   bottom: 0;
   z-index: 1;
 }
