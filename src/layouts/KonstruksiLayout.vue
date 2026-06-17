@@ -12,7 +12,7 @@
         />
 
         <q-toolbar-title class="text-weight-bolder">
-          <div class="row items-center no-wrap q-ml-xs" style="margin-left: -8px;">
+          <div class="row items-center no-wrap q-ml-xs" style="margin-left: -8px">
             <div class="row items-center no-wrap text-subtitle1 text-md-h6">
               <span class="q-mr-xs tracking-tighter text-weight-bolder">AGRA</span>
               <span class="text-weight-bolder text-brand-light-text">ERP</span>
@@ -21,8 +21,6 @@
         </q-toolbar-title>
 
         <q-space />
-
-
 
         <!-- QUICK APP SWITCHER -->
         <q-btn flat round icon="apps" size="md" class="q-mr-md">
@@ -754,7 +752,10 @@
                   </q-item-section>
                 </q-item>
                 <q-item
-                  v-if="checkPermission('finance/form-pengajuan') || checkPermission('finance/pembayaran')"
+                  v-if="
+                    checkPermission('finance/form-pengajuan') ||
+                    checkPermission('finance/pembayaran')
+                  "
                   clickable
                   v-ripple
                   to="/konstruksi/finance/form-pengajuan"
@@ -778,7 +779,14 @@
                     ><q-icon name="payments" size="20px" class="icon-sub"
                   /></q-item-section>
                   <q-item-section class="menu-text">Pengajuan Pembayaran</q-item-section>
-                  <q-item-section side v-if="approvedPaymentRequestCount > 0 || rejectedPaymentRequestCount > 0 || draftPaymentRequestCount > 0">
+                  <q-item-section
+                    side
+                    v-if="
+                      approvedPaymentRequestCount > 0 ||
+                      rejectedPaymentRequestCount > 0 ||
+                      draftPaymentRequestCount > 0
+                    "
+                  >
                     <div class="row items-center q-gutter-x-xs">
                       <q-badge
                         v-if="draftPaymentRequestCount > 0"
@@ -1065,28 +1073,30 @@ const pendingApprovalCount = computed(() => {
 })
 
 const rejectedPenawaranCount = computed(() => {
-  return penawaranDocs.value.filter((d) => d.status === 'Rejected' && d.marketing_read === false).length
+  return penawaranDocs.value.filter((d) => d.status === 'Rejected' && d.marketing_read === false)
+    .length
 })
 
 const approvedPenawaranCount = computed(() => {
-  return penawaranDocs.value.filter((d) => d.status === 'Approved' && d.marketing_read === false).length
+  return penawaranDocs.value.filter((d) => d.status === 'Approved' && d.marketing_read === false)
+    .length
 })
 
 const pendingMutasiCount = computed(() => {
   return permintaanBarangDocs.value.filter(
-    (d) => d.tipe === 'ANTAR_GUDANG' && d.status === 'Pending'
+    (d) => d.tipe === 'ANTAR_GUDANG' && d.status === 'Pending',
   ).length
 })
 
 const approvedMutasiCount = computed(() => {
   return permintaanBarangDocs.value.filter(
-    (d) => d.tipe === 'ANTAR_GUDANG' && d.status === 'Approved' && d.requester_read === false
+    (d) => d.tipe === 'ANTAR_GUDANG' && d.status === 'Approved' && d.requester_read === false,
   ).length
 })
 
 const pendingPrCount = computed(() => {
   return permintaanBarangDocs.value.filter(
-    (d) => d.tipe === 'PURCHASE_REQUEST' && d.status === 'Pending'
+    (d) => d.tipe === 'PURCHASE_REQUEST' && d.status === 'Pending',
   ).length
 })
 
@@ -1094,7 +1104,7 @@ const approvedPrCount = computed(() => {
   const email = authStore.user?.email
   const uid = authStore.user?.uid || authStore.user?.id
   const isAdmin = isSuperAdmin.value || authStore.user?.role === 'Admin'
-  
+
   return permintaanBarangDocs.value.filter((d) => {
     if (d.tipe === 'PURCHASE_REQUEST' && d.status === 'Approved' && d.requester_read === false) {
       const isMilikku = d.pemohon?.id === uid || d.pemohon?.email === email || isAdmin
@@ -1108,7 +1118,7 @@ const rejectedPrCount = computed(() => {
   const email = authStore.user?.email
   const uid = authStore.user?.uid || authStore.user?.id
   const isAdmin = isSuperAdmin.value || authStore.user?.role === 'Admin'
-  
+
   return permintaanBarangDocs.value.filter((d) => {
     if (d.tipe === 'PURCHASE_REQUEST' && d.status === 'Rejected' && d.requester_read === false) {
       const isMilikku = d.pemohon?.id === uid || d.pemohon?.email === email || isAdmin
@@ -1125,7 +1135,7 @@ const pendingInvoiceApprovalCount = computed(() => {
 const approvedInvoiceCount = computed(() => {
   const uid = authStore.user?.uid || authStore.user?.id
   const isAdmin = isSuperAdmin.value || authStore.user?.role === 'Admin'
-  
+
   return invoiceDocs.value.filter((d) => {
     const isMyInvoice = d.creator_id === uid || d.pemohon?.id === uid || isAdmin
     return d.creator_read === false && d.approval_status === 'Approved' && isMyInvoice
@@ -1135,7 +1145,7 @@ const approvedInvoiceCount = computed(() => {
 const rejectedInvoiceCount = computed(() => {
   const uid = authStore.user?.uid || authStore.user?.id
   const isAdmin = isSuperAdmin.value || authStore.user?.role === 'Admin'
-  
+
   return invoiceDocs.value.filter((d) => {
     const isMyInvoice = d.creator_id === uid || d.pemohon?.id === uid || isAdmin
     return d.creator_read === false && d.approval_status === 'Rejected' && isMyInvoice
@@ -1151,7 +1161,7 @@ const overdueInvoiceCount = computed(() => {
 
 const pendingPaymentApprovalCount = computed(() => {
   return pembayaranRequestsDocs.value.filter(
-    (d) => d.status === 'Pending' && d.approver_read !== true
+    (d) => d.status === 'Pending' && d.approver_read !== true,
   ).length
 })
 
@@ -1159,7 +1169,7 @@ const approvedPaymentRequestCount = computed(() => {
   const email = authStore.user?.email
   const uid = authStore.user?.uid || authStore.user?.id
   const isAdmin = isSuperAdmin.value || authStore.user?.role === 'Admin'
-  
+
   return pembayaranRequestsDocs.value.filter((d) => {
     if (d.status === 'Cair' || d.status === 'Approved') {
       const isMyRequest =
@@ -1180,7 +1190,7 @@ const rejectedPaymentRequestCount = computed(() => {
   const email = authStore.user?.email
   const uid = authStore.user?.uid || authStore.user?.id
   const isAdmin = isSuperAdmin.value || authStore.user?.role === 'Admin'
-  
+
   return pembayaranRequestsDocs.value.filter((d) => {
     if (d.status === 'Rejected') {
       const isMyRequest =
@@ -1230,17 +1240,15 @@ const approvedPaymentRealizationCount = computed(() => {
 const realizedPaymentApprovalCount = computed(() => {
   return pembayaranRequestsDocs.value.filter((d) => {
     return (
-      d.status === 'Realisasi' ||
-      d.status === 'Selesai' ||
-      d.status === 'Cair_Selesai'
-    ) && d.realized_approved_read !== true
+      (d.status === 'Realisasi' || d.status === 'Selesai' || d.status === 'Cair_Selesai') &&
+      d.realized_approved_read !== true
+    )
   }).length
 })
 
 const rejectedTagihanSupplierCount = computed(() => {
-  return tagihanSupplierDocs.value.filter(
-    (d) => d.status === 'Ditolak' && d.creator_read === false
-  ).length
+  return tagihanSupplierDocs.value.filter((d) => d.status === 'Ditolak' && d.creator_read === false)
+    .length
 })
 
 const pendingPoCount = computed(() => poDocsSize.value)
@@ -1307,8 +1315,6 @@ const isSuperAdmin = computed(() => {
 
   return false
 })
-
-
 
 const thumbStyle = {
   right: '2px',
@@ -1431,7 +1437,7 @@ const playNotificationBeep = () => {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext
     if (!AudioContextClass) return
     const ctx = new AudioContextClass()
-    
+
     // Bunyi pertama (Frekuensi tinggi, durasi singkat)
     const osc1 = ctx.createOscillator()
     const gain1 = ctx.createGain()
@@ -1439,12 +1445,12 @@ const playNotificationBeep = () => {
     osc1.frequency.setValueAtTime(880, ctx.currentTime) // A5 note
     gain1.gain.setValueAtTime(0.1, ctx.currentTime)
     gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1)
-    
+
     osc1.connect(gain1)
     gain1.connect(ctx.destination)
     osc1.start(ctx.currentTime)
     osc1.stop(ctx.currentTime + 0.1)
-    
+
     // Bunyi kedua (Sedikit jeda, frekuensi lebih tinggi)
     const osc2 = ctx.createOscillator()
     const gain2 = ctx.createGain()
@@ -1452,7 +1458,7 @@ const playNotificationBeep = () => {
     osc2.frequency.setValueAtTime(1046.5, ctx.currentTime + 0.12) // C6 note
     gain2.gain.setValueAtTime(0.1, ctx.currentTime + 0.12)
     gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25)
-    
+
     osc2.connect(gain2)
     gain2.connect(ctx.destination)
     osc2.start(ctx.currentTime + 0.12)
@@ -1468,7 +1474,7 @@ const speakNotification = (message) => {
       window.speechSynthesis.cancel() // Hentikan ucapan sebelumnya agar tidak bertumpuk
       const utterance = new SpeechSynthesisUtterance(message)
       utterance.lang = 'id-ID' // Bahasa Indonesia
-      utterance.rate = 1.0     // Kecepatan normal
+      utterance.rate = 1.0 // Kecepatan normal
       window.speechSynthesis.speak(utterance)
     } catch (e) {
       console.warn('Gagal memutar Speech Synthesis:', e)
@@ -1493,7 +1499,7 @@ const showToastNotification = (title, caption, color, icon) => {
     timeout: 7000,
     progress: true,
     classes: 'shadow-10 rounded-12 q-py-sm border-white-2',
-    actions: [{ icon: 'close', color: 'white', round: true, size: 'sm', dense: true }]
+    actions: [{ icon: 'close', color: 'white', round: true, size: 'sm', dense: true }],
   })
 }
 
@@ -1506,7 +1512,7 @@ onMounted(() => {
   let initialPenawaran = true
   unsubApproval = onSnapshot(collection(db, 'penawaran'), (snap) => {
     penawaranDocs.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
-    
+
     if (!initialPenawaran) {
       const myName = userData.value?.nama || authStore.user?.nama || ''
       const canApprovePenawaran = checkPermission('marketing/approval-penawaran')
@@ -1514,40 +1520,50 @@ onMounted(() => {
       snap.docChanges().forEach((change) => {
         if (change.type === 'added' || change.type === 'modified') {
           const d = change.doc.data()
-          
+
           // Cek kepemilikan
-          const isMyPenawaran = d.ttd_nama && myName && d.ttd_nama.toLowerCase().trim() === myName.toLowerCase().trim()
+          const isMyPenawaran =
+            d.ttd_nama && myName && d.ttd_nama.toLowerCase().trim() === myName.toLowerCase().trim()
 
           // 1. Jika Status berubah menjadi Pending (Untuk Approver)
           if (d.status === 'Pending') {
-            const isNotMe = d.ttd_nama && myName && d.ttd_nama.toLowerCase().trim() !== myName.toLowerCase().trim()
+            const isNotMe =
+              d.ttd_nama &&
+              myName &&
+              d.ttd_nama.toLowerCase().trim() !== myName.toLowerCase().trim()
             if (canApprovePenawaran && isNotMe) {
-              triggerNotificationEffects(`Ada penawaran baru untuk klien ${d.nama_customer || ''} yang memerlukan persetujuan Anda.`)
+              triggerNotificationEffects(
+                `Ada penawaran baru untuk klien ${d.nama_customer || ''} yang memerlukan persetujuan Anda.`,
+              )
               showToastNotification(
                 'Approval Penawaran',
                 `Dokumen No. ${d.nomor} untuk klien ${d.nama_customer || ''} menunggu persetujuan.`,
                 'orange-9',
-                'gavel'
+                'gavel',
               )
             }
           }
           // 2. Jika Status berubah menjadi Approved atau Rejected (Untuk Pembuat)
           else if (isMyPenawaran && change.type === 'modified' && d.marketing_read === false) {
             if (d.status === 'Approved') {
-              triggerNotificationEffects(`Penawaran Anda dengan nomor referensi ${d.nomor} telah disetujui.`)
+              triggerNotificationEffects(
+                `Penawaran Anda dengan nomor referensi ${d.nomor} telah disetujui.`,
+              )
               showToastNotification(
                 'Penawaran Disetujui',
                 `Quotation ${d.nomor} untuk klien ${d.nama_customer || ''} telah disetujui.`,
                 'positive',
-                'check_circle'
+                'check_circle',
               )
             } else if (d.status === 'Rejected') {
-              triggerNotificationEffects(`Penawaran Anda dengan nomor referensi ${d.nomor} ditolak.`)
+              triggerNotificationEffects(
+                `Penawaran Anda dengan nomor referensi ${d.nomor} ditolak.`,
+              )
               showToastNotification(
                 'Penawaran Ditolak',
                 `Quotation ${d.nomor} ditolak. Alasan: ${d.alasan_reject || 'Revisi diperlukan.'}`,
                 'negative',
-                'cancel'
+                'cancel',
               )
             }
           }
@@ -1561,7 +1577,7 @@ onMounted(() => {
   let initialPermintaan = true
   unsubPermintaanAll = onSnapshot(collection(db, 'permintaan_barang'), (snap) => {
     permintaanBarangDocs.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
-    
+
     if (!initialPermintaan) {
       const email = authStore.user?.email
       const uid = authStore.user?.uid || authStore.user?.id
@@ -1579,24 +1595,28 @@ onMounted(() => {
             if (d.status === 'Pending') {
               const isNotMe = d.pemohon?.email !== email && d.pemohon?.id !== uid
               if (canApprovePr && isNotMe) {
-                triggerNotificationEffects(`Ada purchase request baru dari ${d.pemohon?.nama || 'karyawan'} yang memerlukan pemrosesan.`)
+                triggerNotificationEffects(
+                  `Ada purchase request baru dari ${d.pemohon?.nama || 'karyawan'} yang memerlukan pemrosesan.`,
+                )
                 showToastNotification(
                   'Purchase Request Baru',
                   `PR No. ${d.nomor || ''} dari ${d.pemohon?.nama || ''} masuk.`,
                   'orange-9',
-                  'shopping_cart'
+                  'shopping_cart',
                 )
               }
             }
             // 2. Approved / Rejected (Untuk Pembuat/Pemohon)
             else if (isMyRequest && change.type === 'modified' && d.requester_read === false) {
               if (d.status === 'Approved') {
-                triggerNotificationEffects(`Purchase request Anda nomor ${d.nomor || ''} telah disetujui.`)
+                triggerNotificationEffects(
+                  `Purchase request Anda nomor ${d.nomor || ''} telah disetujui.`,
+                )
                 showToastNotification(
                   'PR Disetujui',
                   `Purchase Request ${d.nomor || ''} disetujui.`,
                   'positive',
-                  'done_all'
+                  'done_all',
                 )
               } else if (d.status === 'Rejected') {
                 triggerNotificationEffects(`Purchase request Anda nomor ${d.nomor || ''} ditolak.`)
@@ -1604,7 +1624,7 @@ onMounted(() => {
                   'PR Ditolak',
                   `Purchase Request ${d.nomor || ''} ditolak.`,
                   'negative',
-                  'cancel'
+                  'cancel',
                 )
               }
             }
@@ -1620,18 +1640,23 @@ onMounted(() => {
                   'Permintaan Mutasi',
                   `Mutasi No. ${d.nomor || ''} memerlukan pemrosesan.`,
                   'orange-9',
-                  'move_to_inbox'
+                  'move_to_inbox',
                 )
               }
             }
             // 2. Approved (Untuk Pembuat)
-            else if (isMyRequest && change.type === 'modified' && d.status === 'Approved' && d.requester_read === false) {
+            else if (
+              isMyRequest &&
+              change.type === 'modified' &&
+              d.status === 'Approved' &&
+              d.requester_read === false
+            ) {
               triggerNotificationEffects(`Permintaan mutasi barang Anda telah disetujui.`)
               showToastNotification(
                 'Mutasi Disetujui',
                 `Mutasi ${d.nomor || ''} disetujui dan siap dikirim.`,
                 'positive',
-                'local_shipping'
+                'local_shipping',
               )
             }
           }
@@ -1655,16 +1680,17 @@ onMounted(() => {
   let initialPembayaran = true
   unsubPembayaranRequests = onSnapshot(collection(db, 'finance_pengajuan_pembayaran'), (snap) => {
     pembayaranRequestsDocs.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
-    
+
     if (!initialPembayaran) {
       const uid = authStore.user?.uid || authStore.user?.id
       const email = authStore.user?.email
+      const myName = (userData.value?.nama || authStore.user?.nama || '').toLowerCase().trim()
       const canApprovePembayaran = checkPermission('finance/approval-pembayaran')
 
       snap.docChanges().forEach((change) => {
         if (change.type === 'added' || change.type === 'modified') {
           const d = change.doc.data()
-          
+
           // Cek kepemilikan
           const isMyRequest =
             d.creator_id === uid ||
@@ -1674,45 +1700,124 @@ onMounted(() => {
             d.pemohon?.id === uid ||
             d.pemohon?.email === email
 
-          // 1. Jika Status berubah menjadi Pending (Untuk Approver)
-          if (d.status === 'Pending') {
-            const isNotMe = d.pembuat_email !== email && d.creator_id !== uid
-            if (canApprovePembayaran && isNotMe) {
-              triggerNotificationEffects(`Ada pengajuan pembayaran baru dari ${d.pembuat_nama || 'karyawan'} senilai ${d.nominal ? d.nominal.toLocaleString('id-ID') : ''} rupiah yang memerlukan persetujuan Anda.`)
+          const isMe =
+            (d.pembuat_id && d.pembuat_id === uid) ||
+            (d.pembuat_email && d.pembuat_email.toLowerCase().trim() === (email || '').toLowerCase().trim()) ||
+            (d.creator_id && d.creator_id === uid) ||
+            (d.pembuat_nama && d.pembuat_nama.toLowerCase().trim() === myName)
+
+          const isNotMe = !isMe
+
+          // 1. Jika Draft Baru dibuat (Untuk Staff Finance / Super Admin)
+          if (change.type === 'added' && d.status === 'Draft') {
+            const hasPembayaranAccess =
+              isSuperAdmin.value ||
+              ['Super Admin', 'Direktur', 'Finance'].includes(authStore.user?.role) ||
+              checkPermission('finance/pembayaran')
+
+            if (hasPembayaranAccess && isNotMe) {
+              triggerNotificationEffects(
+                `Ada draf pengajuan pembayaran baru dari ${d.pembuat_nama || 'karyawan'} senilai ${d.nominal ? d.nominal.toLocaleString('id-ID') : ''} rupiah.`,
+              )
               showToastNotification(
-                'Approval Pembayaran',
-                `Request ${d.no_request} dari ${d.pembuat_nama || ''} menunggu persetujuan.`,
-                'orange-9',
-                'gavel'
+                'Draft Pengajuan Baru',
+                `Draf dari ${d.pembuat_nama || ''} dibuat.`,
+                'grey-7',
+                'edit_note',
               )
             }
           }
-          // 2. Jika Status berubah menjadi Approved, Rejected, atau Cair (Untuk Pembuat/Pemohon)
-          else if (isMyRequest && change.type === 'modified') {
-            if (d.status === 'Approved') {
-              triggerNotificationEffects(`Pengajuan pembayaran Anda dengan nomor ${d.no_request} telah disetujui.`)
-              showToastNotification(
-                'Pengajuan Disetujui',
-                `Request ${d.no_request} disetujui oleh atasan.`,
-                'positive',
-                'check_circle'
-              )
-            } else if (d.status === 'Rejected') {
-              triggerNotificationEffects(`Pengajuan pembayaran Anda dengan nomor ${d.no_request} ditolak.`)
-              showToastNotification(
-                'Pengajuan Ditolak',
-                `Request ${d.no_request} ditolak. Alasan: ${d.alasan_reject || '-'}`,
-                'negative',
-                'cancel'
-              )
-            } else if (d.status === 'Cair') {
-              triggerNotificationEffects(`Pengajuan pembayaran Anda dengan nomor ${d.no_request} telah dicairkan.`)
-              showToastNotification(
-                'Dana Dicairkan',
-                `Request ${d.no_request} telah direalisasikan (Cair).`,
-                'info',
-                'payments'
-              )
+          // 2. Jika Status berubah menjadi Pending (Untuk Approver & Pembuat Request)
+          else if (d.status === 'Pending' && d.approver_read !== true) {
+            const submittedByMe =
+              (d.submitted_email && d.submitted_email.toLowerCase().trim() === (email || '').toLowerCase().trim()) ||
+              (d.submitted_by && d.submitted_by.toLowerCase().trim() === myName)
+
+            if (!submittedByMe) {
+              // A. Untuk Approver (Atasan/Super Admin)
+              if (canApprovePembayaran && isNotMe) {
+                triggerNotificationEffects(
+                  `Ada pengajuan pembayaran baru dari ${d.pembuat_nama || 'karyawan'} senilai ${d.nominal ? d.nominal.toLocaleString('id-ID') : ''} rupiah yang memerlukan persetujuan Anda.`,
+                )
+                showToastNotification(
+                  'Approval Pembayaran',
+                  `Request ${d.no_request} dari ${d.pembuat_nama || ''} menunggu persetujuan.`,
+                  'orange-9',
+                  'gavel',
+                )
+              }
+              // B. Untuk Pembuat/Pekerja (Agar tahu pengajuannya sudah diajukan oleh Finance)
+              else if (isMyRequest) {
+                triggerNotificationEffects(
+                  `Pengajuan pembayaran Anda dengan nomor ${d.no_request} telah diajukan ke atasan.`,
+                )
+                showToastNotification(
+                  'Pengajuan Diajukan',
+                  `Request ${d.no_request} telah diajukan oleh Finance ke atasan.`,
+                  'info',
+                  'send',
+                )
+              }
+            }
+          }
+          // 3. Jika Status berubah menjadi Approved, Rejected, atau Cair (Untuk Pembuat & Staff Finance terkait)
+          else if (change.type === 'modified') {
+            const hasPembayaranAccess =
+              isSuperAdmin.value ||
+              ['Super Admin', 'Direktur', 'Finance'].includes(authStore.user?.role) ||
+              checkPermission('finance/pembayaran') ||
+              isMyRequest
+
+            if (hasPembayaranAccess) {
+              const approvedByMe = d.approvedBy && d.approvedBy.toLowerCase().trim() === myName
+              const rejectedByMe = d.rejectedBy && d.rejectedBy.toLowerCase().trim() === myName
+              const realizedByMe = d.realizedBy && d.realizedBy.toLowerCase().trim() === myName
+              const actionByMe = approvedByMe || rejectedByMe || realizedByMe
+
+              if (!actionByMe) {
+                const isUnread =
+                  (isMyRequest && d.creator_read === false) ||
+                  (checkPermission('finance/realisasi-pembayaran') && d.realizer_read === false) ||
+                  (isSuperAdmin.value && (d.creator_read === false || d.realizer_read === false)) ||
+                  (checkPermission('finance/pembayaran') && d.creator_read === false)
+
+                if (isUnread) {
+                  if (d.status === 'Approved') {
+                    const speechText = isMyRequest
+                      ? `Pengajuan pembayaran Anda dengan nomor ${d.no_request} telah disetujui.`
+                      : `Pengajuan pembayaran nomor ${d.no_request} dari ${d.pembuat_nama || ''} telah disetujui.`
+                    triggerNotificationEffects(speechText)
+                    showToastNotification(
+                      'Pengajuan Disetujui',
+                      `Request ${d.no_request} disetujui oleh atasan.`,
+                      'positive',
+                      'check_circle',
+                    )
+                  } else if (d.status === 'Rejected') {
+                    const speechText = isMyRequest
+                      ? `Pengajuan pembayaran Anda dengan nomor ${d.no_request} ditolak.`
+                      : `Pengajuan pembayaran nomor ${d.no_request} dari ${d.pembuat_nama || ''} ditolak.`
+                    triggerNotificationEffects(speechText)
+                    showToastNotification(
+                      'Pengajuan Ditolak',
+                      `Request ${d.no_request} ditolak. Alasan: ${d.alasan_reject || '-'}`,
+                      'negative',
+                      'cancel',
+                    )
+                  } else if (d.status === 'Cair') {
+                    const speechText = isMyRequest
+                      ? `Pengajuan pembayaran Anda dengan nomor ${d.no_request} telah dicairkan.`
+                      : `Pengajuan pembayaran nomor ${d.no_request} dari ${d.pembuat_nama || ''} telah dicairkan.`
+                    triggerNotificationEffects(speechText)
+                    showToastNotification(
+                      'Dana Dicairkan',
+                      `Request ${d.no_request} telah direalisasikan (Cair).`,
+                      'info',
+                      'payments',
+                    )
+                  }
+                }
+              }
             }
           }
         }
@@ -1728,29 +1833,34 @@ onMounted(() => {
 
   // Purchase Order
   let initialPo = true
-  unsubPoAll = onSnapshot(query(collection(db, 'purchase_order'), where('status', '==', 'Submitted')), (snap) => {
-    poDocsSize.value = snap.size
-    
-    if (!initialPo) {
-      const canApprovePo = checkPermission('pembelian/approval-po')
-      
-      snap.docChanges().forEach((change) => {
-        if (change.type === 'added') {
-          const d = change.doc.data()
-          if (canApprovePo) {
-            triggerNotificationEffects(`Ada purchase order baru nomor ${d.nomor || ''} yang memerlukan persetujuan Anda.`)
-            showToastNotification(
-              'Approval PO',
-              `PO No. ${d.nomor || ''} membutuhkan persetujuan.`,
-              'orange-9',
-              'fact_check'
-            )
+  unsubPoAll = onSnapshot(
+    query(collection(db, 'purchase_order'), where('status', '==', 'Submitted')),
+    (snap) => {
+      poDocsSize.value = snap.size
+
+      if (!initialPo) {
+        const canApprovePo = checkPermission('pembelian/approval-po')
+
+        snap.docChanges().forEach((change) => {
+          if (change.type === 'added') {
+            const d = change.doc.data()
+            if (canApprovePo) {
+              triggerNotificationEffects(
+                `Ada purchase order baru nomor ${d.nomor || ''} yang memerlukan persetujuan Anda.`,
+              )
+              showToastNotification(
+                'Approval PO',
+                `PO No. ${d.nomor || ''} membutuhkan persetujuan.`,
+                'orange-9',
+                'fact_check',
+              )
+            }
           }
-        }
-      })
-    }
-    initialPo = false
-  })
+        })
+      }
+      initialPo = false
+    },
+  )
 })
 
 onUnmounted(() => {
@@ -1767,7 +1877,7 @@ onUnmounted(() => {
 
 const totalFinanceNotifications = computed(() => {
   let total = 0
-  
+
   if (checkPermission('finance/invoice')) {
     total += approvedInvoiceCount.value + rejectedInvoiceCount.value
   }
@@ -1781,7 +1891,10 @@ const totalFinanceNotifications = computed(() => {
     total += rejectedTagihanSupplierCount.value
   }
   if (checkPermission('finance/pembayaran')) {
-    total += approvedPaymentRequestCount.value + rejectedPaymentRequestCount.value + draftPaymentRequestCount.value
+    total +=
+      approvedPaymentRequestCount.value +
+      rejectedPaymentRequestCount.value +
+      draftPaymentRequestCount.value
   }
   if (checkPermission('finance/approval-pembayaran')) {
     total += pendingPaymentApprovalCount.value + realizedPaymentApprovalCount.value
@@ -1789,33 +1902,33 @@ const totalFinanceNotifications = computed(() => {
   if (checkPermission('finance/realisasi-pembayaran')) {
     total += approvedPaymentRealizationCount.value
   }
-  
+
   return total
 })
 
 const totalMarketingNotifications = computed(() => {
   let total = 0
-  
+
   if (checkPermission('marketing/penawaran')) {
     total += rejectedPenawaranCount.value + approvedPenawaranCount.value
   }
   if (checkPermission('marketing/approval-penawaran')) {
     total += pendingApprovalCount.value
   }
-  
+
   return total
 })
 
 const totalPembelianNotifications = computed(() => {
   let total = 0
-  
+
   if (checkPermission('pembelian/pesanan')) {
     total += pendingPrCount.value
   }
   if (checkPermission('pembelian/approval-po')) {
     total += pendingPoCount.value
   }
-  
+
   return total
 })
 </script>

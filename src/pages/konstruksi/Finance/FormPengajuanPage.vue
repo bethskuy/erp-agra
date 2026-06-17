@@ -1075,7 +1075,13 @@ const form = ref({ ...formDefault })
 // ============================================================================
 
 const columns = [
-  { name: 'request', align: 'left', label: 'NO. REQUEST & REF', field: 'no_request', sortable: true },
+  {
+    name: 'request',
+    align: 'left',
+    label: 'NO. REQUEST & REF',
+    field: 'no_request',
+    sortable: true,
+  },
   {
     name: 'vendor',
     align: 'left',

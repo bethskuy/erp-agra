@@ -1,395 +1,403 @@
 <template>
   <q-page class="bg-page q-pa-md font-pro relative-position">
     <div class="page-content-wrapper animate-fade">
-    <!-- HEADER SECTION -->
-    <div class="row items-center justify-between q-mb-md no-print content-relative">
-      <div class="col-12 col-md-8 q-mb-md q-mb-md-none">
-        <div class="text-h4 text-weight-bolder text-brand-primary leading-tight">
-          Approval Penawaran
-          <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
-            >Otorisasi & Histori Quotation</span
-          >
-        </div>
-        <div class="text-subtitle1 text-grey-7 q-mt-sm">
-          Tinjau rincian biaya dan berikan otorisasi digital untuk penawaran harga klien.
-        </div>
-      </div>
-      <div class="col-12 col-md-auto text-left text-md-right">
-        <div class="text-caption text-grey-6 q-mb-xs">Menunggu Persetujuan</div>
-        <q-badge color="orange-9" class="q-px-md q-py-xs text-weight-bold shadow-1">
-          {{ rows.filter((r) => r.status === 'Pending').length }} Dokumen
-        </q-badge>
-      </div>
-    </div>
-
-    <!-- SEARCH & SUMMARY CARD -->
-    <q-card
-      flat
-      bordered
-      class="q-mb-lg shadow-1 rounded-20 bg-white no-print content-relative border-subtle"
-    >
-      <q-card-section class="q-py-md">
-        <div class="row items-center justify-between q-col-gutter-md">
-          <div class="col-12 col-md-4">
-            <q-input
-              v-model="filter"
-              outlined
-              dense
-              rounded
-              placeholder="Cari No. Quotation atau Nama Klien..."
-              bg-color="white"
-              class="search-input"
+      <!-- HEADER SECTION -->
+      <div class="row items-center justify-between q-mb-md no-print content-relative">
+        <div class="col-12 col-md-8 q-mb-md q-mb-md-none">
+          <div class="text-h4 text-weight-bolder text-brand-primary leading-tight">
+            Approval Penawaran
+            <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
+              >Otorisasi & Histori Quotation</span
             >
-              <template v-slot:prepend>
-                <q-icon name="search" color="brand-primary" />
-              </template>
-              <template v-slot:append v-if="filter">
-                <q-icon name="close" @click="filter = ''" class="cursor-pointer" />
-              </template>
-            </q-input>
           </div>
-          <div class="col-12 col-md-auto row items-center justify-end">
-            <q-btn flat round icon="refresh" color="brand-primary" @click="fetchApprovalData" />
+          <div class="text-subtitle1 text-grey-7 q-mt-sm">
+            Tinjau rincian biaya dan berikan otorisasi digital untuk penawaran harga klien.
           </div>
         </div>
-      </q-card-section>
-    </q-card>
+        <div class="col-12 col-md-auto text-left text-md-right">
+          <div class="text-caption text-grey-6 q-mb-xs">Menunggu Persetujuan</div>
+          <q-badge color="orange-9" class="q-px-md q-py-xs text-weight-bold shadow-1">
+            {{ rows.filter((r) => r.status === 'Pending').length }} Dokumen
+          </q-badge>
+        </div>
+      </div>
 
-    <!-- TABLE LIST SECTION -->
-    <q-card
-      flat
-      bordered
-      class="rounded-20 shadow-sm overflow-hidden bg-white no-print content-relative border-subtle"
-    >
-      <q-table
-        :rows="rows"
-        :columns="columns"
-        row-key="id"
+      <!-- SEARCH & SUMMARY CARD -->
+      <q-card
         flat
-        :loading="loading"
-        :filter="filter"
-        binary-state-sort
-        class="approval-table"
+        bordered
+        class="q-mb-lg shadow-1 rounded-20 bg-white no-print content-relative border-subtle"
       >
-        <!-- Custom Header -->
-        <template v-slot:header="props">
-          <q-tr :props="props" class="bg-brand-primary text-white">
-            <q-th v-for="col in props.cols" :key="col.name" :props="props" class="text-weight-bold">
-              {{ col.label }}
-            </q-th>
-          </q-tr>
-        </template>
-
-        <!-- Custom Body -->
-        <template v-slot:body="props">
-          <q-tr
-            :props="props"
-            class="hover-bg transition-all cursor-pointer"
-            @click="openPreview(props.row)"
-          >
-            <q-td key="nomor" class="text-weight-bolder text-brand-primary">
-              {{ props.row.nomor }}
-            </q-td>
-            <q-td key="nama_customer" class="text-weight-bold text-blue-grey-9 uppercase">
-              {{ props.row.nama_customer }}
-            </q-td>
-            <q-td key="total_harga" class="text-right text-weight-bolder text-brand-primary">
-              <span class="text-caption text-grey-6 q-mr-xs">IDR</span>
-              {{ Math.round(props.row.total_harga || 0).toLocaleString() }}
-            </q-td>
-            <q-td key="status" class="text-center">
-              <q-chip
-                text-color="white"
-                size="sm"
-                class="text-weight-bold shadow-sm"
-                :color="getStatusColor(props.row.status)"
+        <q-card-section class="q-py-md">
+          <div class="row items-center justify-between q-col-gutter-md">
+            <div class="col-12 col-md-4">
+              <q-input
+                v-model="filter"
+                outlined
+                dense
+                rounded
+                placeholder="Cari No. Quotation atau Nama Klien..."
+                bg-color="white"
+                class="search-input"
               >
-                {{ props.row.status }}
-              </q-chip>
-            </q-td>
-            <q-td key="aksi" class="text-center" @click.stop>
-              <div class="row justify-center q-gutter-xs">
-                <template v-if="props.row.status === 'Pending'">
-                  <q-btn
-                    v-if="canAction('approve')"
-                    unelevated
-                    rounded
-                    color="positive"
-                    icon="check"
-                    :label="$q.screen.gt.xs ? 'Approve' : ''"
-                    size="sm"
-                    class="q-px-sm"
-                    @click="handleApproval(props.row, 'Approved')"
-                  />
-                  <q-btn
-                    v-if="canAction('approve') || canAction('ubah')"
-                    outline
-                    rounded
-                    color="negative"
-                    icon="close"
-                    :label="$q.screen.gt.xs ? 'Reject' : ''"
-                    size="sm"
-                    class="q-px-sm"
-                    @click="promptReject(props.row)"
-                  />
+                <template v-slot:prepend>
+                  <q-icon name="search" color="brand-primary" />
                 </template>
-                <q-btn
-                  flat
-                  round
-                  color="grey-6"
-                  icon="visibility"
-                  size="sm"
-                  @click="openPreview(props.row)"
-                />
-              </div>
-            </q-td>
-          </q-tr>
-        </template>
-      </q-table>
-    </q-card>
-
-    <!-- PREVIEW & APPROVAL DIALOG -->
-    <q-dialog v-model="showPreview" maximized transition-show="fade" transition-hide="fade">
-      <q-card class="column no-wrap bg-grey-4 relative-position">
-        <!-- TOOLBAR: RESPONSIVE DESIGN -->
-        <q-toolbar
-          class="bg-white text-brand-primary q-py-sm no-print shadow-2 shrink content-relative"
-        >
-          <q-btn flat round dense icon="arrow_back" v-close-popup color="grey-7" />
-          <q-toolbar-title class="text-weight-bold gt-xs">OTORISASI DOKUMEN</q-toolbar-title>
-
-          <q-space class="lt-sm" />
-
-          <!-- TOMBOL LIHAT DOKUMEN ANALISA (BISA PDF, WORD, EXCEL) -->
-          <q-btn
-            v-if="selectedData?.analisa_harga_url"
-            color="brand-primary"
-            icon="description"
-            :label="$q.screen.gt.xs ? 'Lihat Dokumen Analisa' : ''"
-            unelevated
-            rounded
-            class="q-mr-md shadow-2 text-white"
-            @click="openAnalisaFile(selectedData.analisa_harga_url)"
-          >
-            <q-tooltip>Unduh/Buka Berkas Analisa Pendukung (PDF/Word/Excel)</q-tooltip>
-          </q-btn>
-
-          <!-- GROUP TOMBOL PDF -->
-          <q-btn-group unelevated rounded class="q-mr-xs q-mr-md-md shadow-1">
-            <q-btn
-              color="red-9"
-              icon="picture_as_pdf"
-              :label="$q.screen.gt.sm ? 'PDF' : ''"
-              @click="exportToPDF"
-              class="text-white"
-            >
-              <q-tooltip v-if="!$q.screen.gt.sm">Export PDF</q-tooltip>
-            </q-btn>
-          </q-btn-group>
-
-          <!-- Action Approve -->
-          <template v-if="selectedData?.status === 'Pending'">
-            <q-btn
-              v-if="canAction('approve')"
-              unelevated
-              color="positive"
-              icon="check"
-              :label="$q.screen.gt.sm ? 'APPROVE SEKARANG' : $q.screen.gt.xs ? 'APPROVE' : ''"
-              @click="handleApproval(selectedData, 'Approved')"
-              rounded
-              class="text-weight-bold text-white"
-            >
-              <q-tooltip v-if="!$q.screen.gt.xs">Approve Penawaran</q-tooltip>
-            </q-btn>
-          </template>
-        </q-toolbar>
-
-        <!-- CONTAINER SURAT (WARNA TULISAN INDIGO TIDAK DIGANGGU GUGAT SESUAI REQUEST) -->
-        <q-card-section
-          class="col scroll q-pa-md preview-container content-relative bg-grey-3"
-        >
-          <div id="quotation-print" class="letter-paper shadow-24" v-if="selectedData">
-            <div id="quotation-header" class="quotation-header">
-              <!-- Kop Surat -->
-              <div class="row no-wrap items-center">
-                <div v-if="config.kopUrl" class="col-auto q-mr-md q-mr-md-xl">
-                  <img :src="config.kopUrl" class="final-kop-img" />
-                </div>
-                <div class="col text-left">
-                  <div class="final-pt-name uppercase">{{ selectedData.nama_pt }}</div>
-                  <div class="final-pt-tagline italic text-grey-8">
-                    {{ selectedData.tagline_pt }}
-                  </div>
-                </div>
-              </div>
-              <div class="final-divider"></div>
+                <template v-slot:append v-if="filter">
+                  <q-icon name="close" @click="filter = ''" class="cursor-pointer" />
+                </template>
+              </q-input>
             </div>
-
-            <!-- Meta Dokumen -->
-            <div class="row justify-between items-start q-mt-lg q-mb-md text-left">
-              <div class="col-7">
-                <div class="label-grey-pro uppercase">KEPADA YTH :</div>
-                <div class="client-name-pro uppercase">{{ selectedData.nama_customer }}</div>
-                <div class="text-body2 text-weight-medium">Di Tempat</div>
-
-                <!-- ATTN PLACEMENT: EXACTLY BELOW "DI TEMPAT" -->
-                <div
-                  v-if="selectedData.attn"
-                  class="text-body2 text-weight-medium q-mt-xs text-grey-9"
-                >
-                  Attn: {{ selectedData.attn }}
-                </div>
-              </div>
-              <div class="col-5 text-right">
-                <div class="quotation-title-pro uppercase">Quotation</div>
-                <div class="quotation-no-pro text-indigo-10 font-bold">{{ selectedData.nomor }}</div>
-                <div class="text-date-pro">
-                  {{ selectedData.kota }}, {{ formatDateIndo(selectedData.tanggal) }}
-                </div>
-              </div>
-            </div>
-
-            <!-- Content -->
-            <div
-              class="text-body2 q-mb-md text-left leading-relaxed"
-              v-html="selectedData.introduction"
-            ></div>
-
-            <table class="final-pro-table">
-              <thead>
-                <tr>
-                  <th width="40">NO</th>
-                  <th class="text-left">DESCRIPTION OF WORKS</th>
-                  <th width="60">QTY</th>
-                  <th width="60">UNIT</th>
-                  <th width="120">UNIT PRICE</th>
-                  <th width="140">TOTAL AMOUNT</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="(it, i) in selectedData.items" :key="i">
-                  <td class="text-center font-bold text-grey-7">{{ i + 1 }}</td>
-                  <td class="text-left uppercase text-weight-medium">{{ it.deskripsi }}</td>
-                  <td class="text-center">{{ it.qty }}</td>
-                  <td class="text-center uppercase text-caption">{{ it.satuan }}</td>
-                  <td class="text-right">
-                    {{ Math.round(it.harga || 0).toLocaleString('id-ID') }}
-                  </td>
-                  <td class="text-right text-weight-bolder text-indigo-10 bg-indigo-0">
-                    {{ Math.round(it.total || 0).toLocaleString('id-ID') }}
-                  </td>
-                </tr>
-              </tbody>
-              <tfoot class="final-table-footer">
-                <tr class="row-calculation">
-                  <td colspan="5" class="text-right text-bold uppercase">Subtotal Pekerjaan</td>
-                  <td class="text-right text-bold text-indigo-10 font-11">
-                    IDR
-                    {{
-                      Math.round(
-                        selectedData.items.reduce((a, b) => a + (b.total || 0), 0),
-                      ).toLocaleString('id-ID')
-                    }}
-                  </td>
-                </tr>
-                <tr class="row-calculation" v-if="selectedData.tax_rate > 0">
-                  <td colspan="5" class="text-right text-bold uppercase italic text-grey-7">
-                    Tax ({{ selectedData.tax_rate }}%)
-                  </td>
-                  <td class="text-right text-weight-bold font-11 text-indigo-10">
-                    IDR
-                    {{
-                      Math.round(
-                        (selectedData.items.reduce((a, b) => a + (b.total || 0), 0) *
-                          selectedData.tax_rate) /
-                          100,
-                      ).toLocaleString('id-ID')
-                    }}
-                  </td>
-                </tr>
-                <tr class="row-calculation" v-if="selectedData.biaya_lain > 0">
-                  <td colspan="5" class="text-right text-bold uppercase text-grey-7">
-                    {{ selectedData.biaya_lain_label || 'BIAYA LAIN' }}
-                  </td>
-                  <td class="text-right text-weight-bold font-11 text-indigo-10">
-                    IDR {{ Math.round(selectedData.biaya_lain || 0).toLocaleString('id-ID') }}
-                  </td>
-                </tr>
-                <!-- SINKRONISASI BANNER GRAND TOTAL DUA NADA WARNA ELEGAN -->
-                <tr class="row-grand-total">
-                  <td
-                    colspan="5"
-                    class="text-right text-bold uppercase tracking-extra-wide text-white border-none-pro bg-indigo-left"
-                  >
-                    Grand Total Amount
-                  </td>
-                  <td class="text-right text-white text-bold border-none-pro bg-indigo-right">
-                    IDR {{ Math.round(selectedData.total_harga || 0).toLocaleString('id-ID') }}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
-
-            <!-- Terms -->
-            <div class="terms-container text-left q-mt-lg">
-              <div class="terms-header uppercase">Syarat & Kondisi Pembayaran :</div>
-              <div class="terms-content-box leading-relaxed text-body2" v-html="selectedData.terms"></div>
-            </div>
-
-            <!-- CLOSING MESSAGE (DIPINDAHKAN DI BAWAH SYARAT DAN KONDISI - SESUAI GAMBAR 3) -->
-            <div
-              class="text-closing-final text-left q-mt-lg text-body2 leading-relaxed text-grey-9"
-              v-html="selectedData.closing"
-            ></div>
-
-            <!-- Signature Area -->
-            <div class="signature-container text-left q-mt-xl">
-              <div class="row q-mt-md justify-end">
-                <div class="col-6 text-right">
-                  <div class="q-mb-xs text-body2 uppercase">Hormat Kami,</div>
-                  <div class="text-weight-bold text-indigo-10 uppercase q-mb-xs">
-                    {{ selectedData.nama_pt }}
-                  </div>
-
-                  <!-- Area Signature menggunakan absolute positioning fix bug HTML2CANVAS -->
-                  <div class="final-sign-space">
-                    <img
-                      v-if="selectedData.stempelUrl"
-                      :src="selectedData.stempelUrl"
-                      class="img-stempel"
-                    />
-                    <img
-                      v-if="selectedData.signatureUrl"
-                      :src="selectedData.signatureUrl"
-                      class="img-signature"
-                    />
-                    <div
-                      v-if="!selectedData.signatureUrl"
-                      class="text-caption text-grey-4 italic w-full text-center"
-                      style="padding-top: 40px"
-                    >
-                      Belum ditandatangani
-                    </div>
-                  </div>
-
-                  <div
-                    class="text-signer-final text-weight-bolder underline uppercase text-indigo-10"
-                  >
-                    {{ selectedData.ttd_nama }}
-                  </div>
-                  <div class="text-role-final uppercase text-grey-8 text-caption font-bold block">
-                    {{ selectedData.ttd_jabatan }}
-                  </div>
-                </div>
-              </div>
+            <div class="col-12 col-md-auto row items-center justify-end">
+              <q-btn flat round icon="refresh" color="brand-primary" @click="fetchApprovalData" />
             </div>
           </div>
-          <div class="q-py-xl no-print"></div>
         </q-card-section>
       </q-card>
-    </q-dialog>
 
-    <div class="q-py-xl"></div>
+      <!-- TABLE LIST SECTION -->
+      <q-card
+        flat
+        bordered
+        class="rounded-20 shadow-sm overflow-hidden bg-white no-print content-relative border-subtle"
+      >
+        <q-table
+          :rows="rows"
+          :columns="columns"
+          row-key="id"
+          flat
+          :loading="loading"
+          :filter="filter"
+          binary-state-sort
+          class="approval-table"
+        >
+          <!-- Custom Header -->
+          <template v-slot:header="props">
+            <q-tr :props="props" class="bg-brand-primary text-white">
+              <q-th
+                v-for="col in props.cols"
+                :key="col.name"
+                :props="props"
+                class="text-weight-bold"
+              >
+                {{ col.label }}
+              </q-th>
+            </q-tr>
+          </template>
+
+          <!-- Custom Body -->
+          <template v-slot:body="props">
+            <q-tr
+              :props="props"
+              class="hover-bg transition-all cursor-pointer"
+              @click="openPreview(props.row)"
+            >
+              <q-td key="nomor" class="text-weight-bolder text-brand-primary">
+                {{ props.row.nomor }}
+              </q-td>
+              <q-td key="nama_customer" class="text-weight-bold text-blue-grey-9 uppercase">
+                {{ props.row.nama_customer }}
+              </q-td>
+              <q-td key="total_harga" class="text-right text-weight-bolder text-brand-primary">
+                <span class="text-caption text-grey-6 q-mr-xs">IDR</span>
+                {{ Math.round(props.row.total_harga || 0).toLocaleString() }}
+              </q-td>
+              <q-td key="status" class="text-center">
+                <q-chip
+                  text-color="white"
+                  size="sm"
+                  class="text-weight-bold shadow-sm"
+                  :color="getStatusColor(props.row.status)"
+                >
+                  {{ props.row.status }}
+                </q-chip>
+              </q-td>
+              <q-td key="aksi" class="text-center" @click.stop>
+                <div class="row justify-center q-gutter-xs">
+                  <template v-if="props.row.status === 'Pending'">
+                    <q-btn
+                      v-if="canAction('approve')"
+                      unelevated
+                      rounded
+                      color="positive"
+                      icon="check"
+                      :label="$q.screen.gt.xs ? 'Approve' : ''"
+                      size="sm"
+                      class="q-px-sm"
+                      @click="handleApproval(props.row, 'Approved')"
+                    />
+                    <q-btn
+                      v-if="canAction('approve') || canAction('ubah')"
+                      outline
+                      rounded
+                      color="negative"
+                      icon="close"
+                      :label="$q.screen.gt.xs ? 'Reject' : ''"
+                      size="sm"
+                      class="q-px-sm"
+                      @click="promptReject(props.row)"
+                    />
+                  </template>
+                  <q-btn
+                    flat
+                    round
+                    color="grey-6"
+                    icon="visibility"
+                    size="sm"
+                    @click="openPreview(props.row)"
+                  />
+                </div>
+              </q-td>
+            </q-tr>
+          </template>
+        </q-table>
+      </q-card>
+
+      <!-- PREVIEW & APPROVAL DIALOG -->
+      <q-dialog v-model="showPreview" maximized transition-show="fade" transition-hide="fade">
+        <q-card class="column no-wrap bg-grey-4 relative-position">
+          <!-- TOOLBAR: RESPONSIVE DESIGN -->
+          <q-toolbar
+            class="bg-white text-brand-primary q-py-sm no-print shadow-2 shrink content-relative"
+          >
+            <q-btn flat round dense icon="arrow_back" v-close-popup color="grey-7" />
+            <q-toolbar-title class="text-weight-bold gt-xs">OTORISASI DOKUMEN</q-toolbar-title>
+
+            <q-space class="lt-sm" />
+
+            <!-- TOMBOL LIHAT DOKUMEN ANALISA (BISA PDF, WORD, EXCEL) -->
+            <q-btn
+              v-if="selectedData?.analisa_harga_url"
+              color="brand-primary"
+              icon="description"
+              :label="$q.screen.gt.xs ? 'Lihat Dokumen Analisa' : ''"
+              unelevated
+              rounded
+              class="q-mr-md shadow-2 text-white"
+              @click="openAnalisaFile(selectedData.analisa_harga_url)"
+            >
+              <q-tooltip>Unduh/Buka Berkas Analisa Pendukung (PDF/Word/Excel)</q-tooltip>
+            </q-btn>
+
+            <!-- GROUP TOMBOL PDF -->
+            <q-btn-group unelevated rounded class="q-mr-xs q-mr-md-md shadow-1">
+              <q-btn
+                color="red-9"
+                icon="picture_as_pdf"
+                :label="$q.screen.gt.sm ? 'PDF' : ''"
+                @click="exportToPDF"
+                class="text-white"
+              >
+                <q-tooltip v-if="!$q.screen.gt.sm">Export PDF</q-tooltip>
+              </q-btn>
+            </q-btn-group>
+
+            <!-- Action Approve -->
+            <template v-if="selectedData?.status === 'Pending'">
+              <q-btn
+                v-if="canAction('approve')"
+                unelevated
+                color="positive"
+                icon="check"
+                :label="$q.screen.gt.sm ? 'APPROVE SEKARANG' : $q.screen.gt.xs ? 'APPROVE' : ''"
+                @click="handleApproval(selectedData, 'Approved')"
+                rounded
+                class="text-weight-bold text-white"
+              >
+                <q-tooltip v-if="!$q.screen.gt.xs">Approve Penawaran</q-tooltip>
+              </q-btn>
+            </template>
+          </q-toolbar>
+
+          <!-- CONTAINER SURAT (WARNA TULISAN INDIGO TIDAK DIGANGGU GUGAT SESUAI REQUEST) -->
+          <q-card-section class="col scroll q-pa-md preview-container content-relative bg-grey-3">
+            <div id="quotation-print" class="letter-paper shadow-24" v-if="selectedData">
+              <div id="quotation-header" class="quotation-header">
+                <!-- Kop Surat -->
+                <div class="row no-wrap items-center">
+                  <div v-if="config.kopUrl" class="col-auto q-mr-md q-mr-md-xl">
+                    <img :src="config.kopUrl" class="final-kop-img" />
+                  </div>
+                  <div class="col text-left">
+                    <div class="final-pt-name uppercase">{{ selectedData.nama_pt }}</div>
+                    <div class="final-pt-tagline italic text-grey-8">
+                      {{ selectedData.tagline_pt }}
+                    </div>
+                  </div>
+                </div>
+                <div class="final-divider"></div>
+              </div>
+
+              <!-- Meta Dokumen -->
+              <div class="row justify-between items-start q-mt-lg q-mb-md text-left">
+                <div class="col-7">
+                  <div class="label-grey-pro uppercase">KEPADA YTH :</div>
+                  <div class="client-name-pro uppercase">{{ selectedData.nama_customer }}</div>
+                  <div class="text-body2 text-weight-medium">Di Tempat</div>
+
+                  <!-- ATTN PLACEMENT: EXACTLY BELOW "DI TEMPAT" -->
+                  <div
+                    v-if="selectedData.attn"
+                    class="text-body2 text-weight-medium q-mt-xs text-grey-9"
+                  >
+                    Attn: {{ selectedData.attn }}
+                  </div>
+                </div>
+                <div class="col-5 text-right">
+                  <div class="quotation-title-pro uppercase">Quotation</div>
+                  <div class="quotation-no-pro text-indigo-10 font-bold">
+                    {{ selectedData.nomor }}
+                  </div>
+                  <div class="text-date-pro">
+                    {{ selectedData.kota }}, {{ formatDateIndo(selectedData.tanggal) }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Content -->
+              <div
+                class="text-body2 q-mb-md text-left leading-relaxed"
+                v-html="selectedData.introduction"
+              ></div>
+
+              <table class="final-pro-table">
+                <thead>
+                  <tr>
+                    <th width="40">NO</th>
+                    <th class="text-left">DESCRIPTION OF WORKS</th>
+                    <th width="60">QTY</th>
+                    <th width="60">UNIT</th>
+                    <th width="120">UNIT PRICE</th>
+                    <th width="140">TOTAL AMOUNT</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(it, i) in selectedData.items" :key="i">
+                    <td class="text-center font-bold text-grey-7">{{ i + 1 }}</td>
+                    <td class="text-left uppercase text-weight-medium">{{ it.deskripsi }}</td>
+                    <td class="text-center">{{ it.qty }}</td>
+                    <td class="text-center uppercase text-caption">{{ it.satuan }}</td>
+                    <td class="text-right">
+                      {{ Math.round(it.harga || 0).toLocaleString('id-ID') }}
+                    </td>
+                    <td class="text-right text-weight-bolder text-indigo-10 bg-indigo-0">
+                      {{ Math.round(it.total || 0).toLocaleString('id-ID') }}
+                    </td>
+                  </tr>
+                </tbody>
+                <tfoot class="final-table-footer">
+                  <tr class="row-calculation">
+                    <td colspan="5" class="text-right text-bold uppercase">Subtotal Pekerjaan</td>
+                    <td class="text-right text-bold text-indigo-10 font-11">
+                      IDR
+                      {{
+                        Math.round(
+                          selectedData.items.reduce((a, b) => a + (b.total || 0), 0),
+                        ).toLocaleString('id-ID')
+                      }}
+                    </td>
+                  </tr>
+                  <tr class="row-calculation" v-if="selectedData.tax_rate > 0">
+                    <td colspan="5" class="text-right text-bold uppercase italic text-grey-7">
+                      Tax ({{ selectedData.tax_rate }}%)
+                    </td>
+                    <td class="text-right text-weight-bold font-11 text-indigo-10">
+                      IDR
+                      {{
+                        Math.round(
+                          (selectedData.items.reduce((a, b) => a + (b.total || 0), 0) *
+                            selectedData.tax_rate) /
+                            100,
+                        ).toLocaleString('id-ID')
+                      }}
+                    </td>
+                  </tr>
+                  <tr class="row-calculation" v-if="selectedData.biaya_lain > 0">
+                    <td colspan="5" class="text-right text-bold uppercase text-grey-7">
+                      {{ selectedData.biaya_lain_label || 'BIAYA LAIN' }}
+                    </td>
+                    <td class="text-right text-weight-bold font-11 text-indigo-10">
+                      IDR {{ Math.round(selectedData.biaya_lain || 0).toLocaleString('id-ID') }}
+                    </td>
+                  </tr>
+                  <!-- SINKRONISASI BANNER GRAND TOTAL DUA NADA WARNA ELEGAN -->
+                  <tr class="row-grand-total">
+                    <td
+                      colspan="5"
+                      class="text-right text-bold uppercase tracking-extra-wide text-white border-none-pro bg-indigo-left"
+                    >
+                      Grand Total Amount
+                    </td>
+                    <td class="text-right text-white text-bold border-none-pro bg-indigo-right">
+                      IDR {{ Math.round(selectedData.total_harga || 0).toLocaleString('id-ID') }}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+
+              <!-- Terms -->
+              <div class="terms-container text-left q-mt-lg">
+                <div class="terms-header uppercase">Syarat & Kondisi Pembayaran :</div>
+                <div
+                  class="terms-content-box leading-relaxed text-body2"
+                  v-html="selectedData.terms"
+                ></div>
+              </div>
+
+              <!-- CLOSING MESSAGE (DIPINDAHKAN DI BAWAH SYARAT DAN KONDISI - SESUAI GAMBAR 3) -->
+              <div
+                class="text-closing-final text-left q-mt-lg text-body2 leading-relaxed text-grey-9"
+                v-html="selectedData.closing"
+              ></div>
+
+              <!-- Signature Area -->
+              <div class="signature-container text-left q-mt-xl">
+                <div class="row q-mt-md justify-end">
+                  <div class="col-6 text-right">
+                    <div class="q-mb-xs text-body2 uppercase">Hormat Kami,</div>
+                    <div class="text-weight-bold text-indigo-10 uppercase q-mb-xs">
+                      {{ selectedData.nama_pt }}
+                    </div>
+
+                    <!-- Area Signature menggunakan absolute positioning fix bug HTML2CANVAS -->
+                    <div class="final-sign-space">
+                      <img
+                        v-if="selectedData.stempelUrl"
+                        :src="selectedData.stempelUrl"
+                        class="img-stempel"
+                      />
+                      <img
+                        v-if="selectedData.signatureUrl"
+                        :src="selectedData.signatureUrl"
+                        class="img-signature"
+                      />
+                      <div
+                        v-if="!selectedData.signatureUrl"
+                        class="text-caption text-grey-4 italic w-full text-center"
+                        style="padding-top: 40px"
+                      >
+                        Belum ditandatangani
+                      </div>
+                    </div>
+
+                    <div
+                      class="text-signer-final text-weight-bolder underline uppercase text-indigo-10"
+                    >
+                      {{ selectedData.ttd_nama }}
+                    </div>
+                    <div class="text-role-final uppercase text-grey-8 text-caption font-bold block">
+                      {{ selectedData.ttd_jabatan }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="q-py-xl no-print"></div>
+          </q-card-section>
+        </q-card>
+      </q-dialog>
+
+      <div class="q-py-xl"></div>
     </div>
   </q-page>
 </template>
@@ -424,7 +432,6 @@ const userData = ref(null)
 
 let unsubUser = null
 let unsubApproval = null
-
 
 const columns = [
   { name: 'nomor', align: 'left', label: 'REFERENCE NO', field: 'nomor', sortable: true },
@@ -939,7 +946,10 @@ body.is-exporting .letter-paper .row.justify-between {
 
 /* Document Preview Paper - optimized for A4 */
 .letter-paper {
-  font-family: 'Plus Jakarta Sans', -apple-system, sans-serif !important;
+  font-family:
+    'Plus Jakarta Sans',
+    -apple-system,
+    sans-serif !important;
   font-size: 14px; /* Base font size untuk selaras */
   background: white;
   width: min(210mm, 100%);
