@@ -1075,7 +1075,7 @@ const form = ref({ ...formDefault })
 // ============================================================================
 
 const columns = [
-  { name: 'request', align: 'left', label: 'NO. REQUEST', field: 'no_request', sortable: true },
+  { name: 'request', align: 'left', label: 'NO. REQUEST & REF', field: 'no_request', sortable: true },
   {
     name: 'vendor',
     align: 'left',
@@ -1088,7 +1088,7 @@ const columns = [
   {
     name: 'timeline',
     align: 'center',
-    label: 'TANGGAL PENGAJUAN',
+    label: 'TGL PENGAJUAN',
     field: 'tanggal_pengajuan',
     sortable: true,
   },
@@ -1697,6 +1697,8 @@ const openLink = (url) => {
   font-size: 11px;
   letter-spacing: 0.5px;
   padding: 16px;
+  background-color: #36ada3 !important;
+  color: #ffffff !important;
 }
 .hover-bg:hover {
   background-color: rgba(54, 173, 163, 0.03) !important;
