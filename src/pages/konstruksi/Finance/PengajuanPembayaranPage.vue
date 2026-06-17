@@ -353,11 +353,21 @@
                     <div class="text-weight-bolder text-brand-primary text-subtitle2">
                       Rp {{ (props.row.nominal || 0).toLocaleString('id-ID') }}
                     </div>
-                    <div class="text-caption text-grey-6 font-10" v-if="props.row.nominal_eksekusi > 0">
-                      Telah dibayar: <span class="text-weight-bold text-primary">Rp {{ props.row.nominal_eksekusi.toLocaleString('id-ID') }}</span>
+                    <div
+                      class="text-caption text-grey-6 font-10"
+                      v-if="props.row.nominal_eksekusi > 0"
+                    >
+                      Telah dibayar:
+                      <span class="text-weight-bold text-primary"
+                        >Rp {{ props.row.nominal_eksekusi.toLocaleString('id-ID') }}</span
+                      >
                     </div>
-                    <div class="text-caption text-negative font-10 text-weight-bold" v-if="props.row.status === 'Dibayar Sebagian'">
-                      Sisa: Rp {{ (props.row.nominal - props.row.nominal_eksekusi).toLocaleString('id-ID') }}
+                    <div
+                      class="text-caption text-negative font-10 text-weight-bold"
+                      v-if="props.row.status === 'Dibayar Sebagian'"
+                    >
+                      Sisa: Rp
+                      {{ (props.row.nominal - props.row.nominal_eksekusi).toLocaleString('id-ID') }}
                     </div>
                   </q-td>
 
@@ -402,7 +412,10 @@
 
                       <!-- TOMBOL AJUKAN: tampil hanya jika status Draft dan bukan Tagihan Supplier -->
                       <q-btn
-                        v-if="props.row.status === 'Draft' && props.row.tipe_pengajuan !== 'Tagihan Supplier'"
+                        v-if="
+                          props.row.status === 'Draft' &&
+                          props.row.tipe_pengajuan !== 'Tagihan Supplier'
+                        "
                         flat
                         round
                         color="teal-7"
@@ -415,7 +428,11 @@
 
                       <!-- TOMBOL EDIT: hanya jika punya izin 'ubah', status Draft/Pending, dan bukan Tagihan Supplier -->
                       <q-btn
-                        v-if="canUbah && (props.row.status === 'Draft' || props.row.status === 'Pending') && props.row.tipe_pengajuan !== 'Tagihan Supplier'"
+                        v-if="
+                          canUbah &&
+                          (props.row.status === 'Draft' || props.row.status === 'Pending') &&
+                          props.row.tipe_pengajuan !== 'Tagihan Supplier'
+                        "
                         flat
                         round
                         color="blue-8"
@@ -1783,36 +1800,29 @@ const generateNoRequest = () => {
   return `REQ/${year}${month}/${padded}`
 }
 
-const fetchData = async () => {
-  loading.value = true
+const setupPengajuanListener = () => {
+  if (unsubData) {
+    unsubData()
+    unsubData = null
+  }
+
   const user = authStore.user
+  if (!user) return
 
-  try {
-    const snapProj = await getDocs(collection(db, 'proyek'))
-    allProyek.value = snapProj.docs.map((d) => ({ id: d.id, nama: d.data().nama, ...d.data() }))
-  } catch (error) {
-    console.error('Error fetching proyek:', error)
-  }
-
-  try {
-    const snapSupp = await getDocs(collection(db, 'suppliers'))
-    allSupplier.value = snapSupp.docs.map((d) => ({ id: d.id, ...d.data() }))
-  } catch (error) {
-    console.error('Error fetching suppliers:', error)
-  }
+  const isSuperAdmin = user.role === 'Super Admin'
+  const isDirektur = user.role === 'Direktur'
+  const isFinance = user.role === 'Finance'
+  const hasAccess = canLihat.value
 
   let qPengajuan
-  // Hanya Super Admin yang bisa melihat SEMUA pengajuan
-  const isSuperAdmin = user && user.role === 'Super Admin'
-
-  if (isSuperAdmin) {
-    // Show ALL pengajuan for Super Admin
+  if (isSuperAdmin || isDirektur || isFinance || hasAccess) {
+    // Tampilkan semua pengajuan jika admin, direktur, finance, atau diberi hak akses
     qPengajuan = query(collection(db, 'finance_pengajuan_pembayaran'))
   } else {
-    // For everyone else: only show their own pengajuan
+    // Default: hanya tampilkan pengajuan milik sendiri
     qPengajuan = query(
       collection(db, 'finance_pengajuan_pembayaran'),
-      where('pembuat_email', '==', user?.email || 'anonymous'),
+      where('pembuat_email', '==', user.email || 'anonymous'),
     )
   }
 
@@ -1829,6 +1839,30 @@ const fetchData = async () => {
       loading.value = false
     },
   )
+}
+
+watch(canLihat, () => {
+  setupPengajuanListener()
+})
+
+const fetchData = async () => {
+  loading.value = true
+
+  try {
+    const snapProj = await getDocs(collection(db, 'proyek'))
+    allProyek.value = snapProj.docs.map((d) => ({ id: d.id, nama: d.data().nama, ...d.data() }))
+  } catch (error) {
+    console.error('Error fetching proyek:', error)
+  }
+
+  try {
+    const snapSupp = await getDocs(collection(db, 'suppliers'))
+    allSupplier.value = snapSupp.docs.map((d) => ({ id: d.id, ...d.data() }))
+  } catch (error) {
+    console.error('Error fetching suppliers:', error)
+  }
+
+  setupPengajuanListener()
 
   if (unsubAllSpk) unsubAllSpk()
   unsubAllSpk = onSnapshot(collection(db, 'spk_customer'), (snap) => {
