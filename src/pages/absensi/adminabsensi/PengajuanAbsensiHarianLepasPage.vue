@@ -45,7 +45,7 @@
             <div class="col-12 col-md-auto row items-center justify-end q-col-gutter-md q-mt-sm q-mt-md-none">
               <div class="col-12 col-md-auto text-caption text-grey-6 text-weight-medium text-center text-md-right">
                 Total Proyek Aktif:
-                <span class="text-weight-bold text-brand-primary">{{ proyekList.length }} Entitas</span>
+                <span class="text-weight-bold text-brand-primary">{{ proyekList.length + 1 }} Entitas</span>
               </div>
             </div>
           </div>
@@ -1502,9 +1502,18 @@ const submitAttendance = async () => {
 // COMPUTED / WATCHERS
 // ============================================================================
 const filteredProyekList = computed(() => {
+  const list = [...proyekList.value]
+  list.push({
+    id: 'proyek-kantor-pusat',
+    nama: 'KHUSUS KANTOR',
+    konsumen_nama: 'INTERNAL KANTOR',
+    alamat: 'Kantor Pusat AGRA',
+    isVirtual: true,
+  })
+
   const f = filterProyek.value.toLowerCase().trim()
-  if (!f) return proyekList.value
-  return proyekList.value.filter(
+  if (!f) return list
+  return list.filter(
     (p) =>
       (p.nama && p.nama.toLowerCase().includes(f)) ||
       (p.alamat && p.alamat.toLowerCase().includes(f)) ||

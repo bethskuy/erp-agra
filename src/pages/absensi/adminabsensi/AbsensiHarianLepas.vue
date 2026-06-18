@@ -211,7 +211,12 @@
                         text-color="brand-primary"
                         class="text-weight-bold q-px-sm q-py-xs rounded-6 font-pro text-11"
                       >
-                        <q-icon name="tag" size="10px" class="q-mr-xs" /> PROYEK {{ pi + 1 }}
+                        <template v-if="p.isVirtual">
+                          <q-icon name="apartment" size="10px" class="q-mr-xs" /> KANTOR
+                        </template>
+                        <template v-else>
+                          <q-icon name="tag" size="10px" class="q-mr-xs" /> PROYEK {{ pi + 1 }}
+                        </template>
                       </q-badge>
                       <q-badge
                         color="brand-light"
@@ -1021,9 +1026,18 @@ const fetchProyekList = () => {
 }
 
 const filteredProyekList = computed(() => {
-  if (!filterProyek.value) return proyekKonstruksiList.value
+  const list = [...proyekKonstruksiList.value]
+  list.push({
+    id: 'proyek-kantor-pusat',
+    nama: 'KHUSUS KANTOR',
+    konsumen: 'INTERNAL KANTOR',
+    alamat: 'Kantor Pusat AGRA',
+    isVirtual: true,
+  })
+
+  if (!filterProyek.value) return list
   const f = filterProyek.value.toLowerCase().trim()
-  return proyekKonstruksiList.value.filter(
+  return list.filter(
     (p) =>
       (p.nama && p.nama.toLowerCase().includes(f)) ||
       (p.konsumen && p.konsumen.toLowerCase().includes(f)) ||
@@ -1282,6 +1296,7 @@ const stasiunOptions = [
   'Quality Control',
   'Packing',
   'Logistics',
+  'Khusus Kantor',
 ]
 const manufakturForm = ref({
   nama: '',
