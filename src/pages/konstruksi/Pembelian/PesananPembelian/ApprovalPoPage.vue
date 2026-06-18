@@ -242,9 +242,17 @@
               class="hover-bg transition-all cursor-pointer"
               @click="openPreview(props.row)"
             >
-              <!-- No PO -->
               <q-td key="nomor" class="text-weight-bolder text-brand-primary">
-                {{ props.row.nomor }}
+                <div class="row items-center q-gutter-x-sm">
+                  <span>{{ props.row.nomor }}</span>
+                  <q-badge
+                    v-if="props.row.approver_read === false && props.row.status === 'Submitted'"
+                    color="red"
+                    label="baru"
+                    class="text-weight-bold"
+                    style="font-size: 10px; padding: 2px 6px; border-radius: 4px;"
+                  />
+                </div>
                 <div class="text-caption text-grey-5">
                   {{ formatDateIndo(props.row.submitted_at || props.row.createdAt) }}
                 </div>
@@ -1053,9 +1061,20 @@ const fetchData = () => {
 }
 
 // ── Open Preview ──────────────────────────────────────────────────────────
-const openPreview = (row) => {
+const openPreview = async (row) => {
   selectedPo.value = row
   showPreview.value = true
+
+  if (row.approver_read === false && row.status === 'Submitted') {
+    try {
+      await updateDoc(doc(db, 'purchase_order', row.id), {
+        approver_read: true,
+      })
+      row.approver_read = true
+    } catch (e) {
+      console.error('Gagal mengupdate status baca approver:', e)
+    }
+  }
 }
 
 // ── Approval Handler ──────────────────────────────────────────────────────
@@ -1081,13 +1100,16 @@ const handleApproval = (row, status, alasan = null) => {
     try {
       const payload = {
         status,
+        po_read: false,
         updatedAt: serverTimestamp(),
       }
 
       if (isApprove) {
         payload.approved_at = serverTimestamp()
+        payload.approved_by_name = userData.value?.nama || authStore.user?.nama || 'Direktur'
       } else {
         payload.rejected_at = serverTimestamp()
+        payload.rejected_by_name = userData.value?.nama || authStore.user?.nama || 'Direktur'
         if (alasan) payload.alasan_reject = alasan
       }
 

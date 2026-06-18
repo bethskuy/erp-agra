@@ -327,8 +327,17 @@
                     class="hover-bg transition-all cursor-pointer"
                     @click="openPoPreview(props.row)"
                   >
-                    <q-td key="nomor" class="text-weight-bolder text-brand-primary">
-                      {{ props.row.nomor }}
+                    <q-td key="nomor" class="text-weight-bolder text-brand-primary relative-position">
+                      <div class="row items-center q-gutter-x-sm">
+                        <span>{{ props.row.nomor }}</span>
+                        <q-badge
+                          v-if="props.row.po_read === false && (props.row.status === 'Approved' || props.row.status === 'Rejected')"
+                          color="red"
+                          label="baru"
+                          class="text-weight-bold"
+                          style="font-size: 10px; padding: 2px 6px; border-radius: 4px;"
+                        />
+                      </div>
                     </q-td>
                     <q-td key="supplier">
                       <div class="text-weight-bold text-blue-grey-9 uppercase">
@@ -1871,6 +1880,7 @@ const ajukanPo = (row) => {
     try {
       await updateDoc(doc(db, 'purchase_order', row.id), {
         status: 'Submitted',
+        approver_read: false,
         submitted_at: serverTimestamp(),
         submitted_by: userData.value?.nama || authStore.user?.email || 'Admin',
         updatedAt: serverTimestamp(),
@@ -1933,9 +1943,20 @@ const confirmHapusPr = (row) => {
 }
 
 // ── Preview PO ────────────────────────────────────────────────────────────
-const openPoPreview = (row) => {
+const openPoPreview = async (row) => {
   selectedPo.value = row
   showPoPreview.value = true
+
+  if (row.po_read === false) {
+    try {
+      await updateDoc(doc(db, 'purchase_order', row.id), {
+        po_read: true,
+      })
+      row.po_read = true
+    } catch (e) {
+      console.error('Gagal mengupdate status baca PO:', e)
+    }
+  }
 }
 
 const exportPoToPDF = () => {

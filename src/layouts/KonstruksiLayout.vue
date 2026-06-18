@@ -1065,7 +1065,7 @@ const invoiceDocs = ref([])
 const monitoringTagihanDocs = ref([])
 const pembayaranRequestsDocs = ref([])
 const tagihanSupplierDocs = ref([])
-const poDocsSize = ref(0)
+const poDocs = ref([])
 
 // NOTIFIKASI COMPUTED COUNTS
 const pendingApprovalCount = computed(() => {
@@ -1251,7 +1251,9 @@ const rejectedTagihanSupplierCount = computed(() => {
     .length
 })
 
-const pendingPoCount = computed(() => poDocsSize.value)
+const pendingPoCount = computed(() => {
+  return poDocs.value.filter((d) => d.status === 'Submitted').length
+})
 
 const userData = ref(null)
 const apps = ref([])
@@ -1833,34 +1835,80 @@ onMounted(() => {
 
   // Purchase Order
   let initialPo = true
-  unsubPoAll = onSnapshot(
-    query(collection(db, 'purchase_order'), where('status', '==', 'Submitted')),
-    (snap) => {
-      poDocsSize.value = snap.size
+  unsubPoAll = onSnapshot(collection(db, 'purchase_order'), (snap) => {
+    poDocs.value = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
 
-      if (!initialPo) {
-        const canApprovePo = checkPermission('pembelian/approval-po')
+    if (!initialPo) {
+      const myName = userData.value?.nama || authStore.user?.nama || ''
+      const canApprovePo = checkPermission('pembelian/approval-po')
 
-        snap.docChanges().forEach((change) => {
-          if (change.type === 'added') {
-            const d = change.doc.data()
-            if (canApprovePo) {
+      snap.docChanges().forEach((change) => {
+        if (change.type === 'added' || change.type === 'modified') {
+          const d = change.doc.data()
+          const isMyPo =
+            (d.prepared_by && myName && d.prepared_by.toLowerCase().trim() === myName.toLowerCase().trim()) ||
+            (d.submitted_by && myName && d.submitted_by.toLowerCase().trim() === myName.toLowerCase().trim()) ||
+            (d.requested_by && myName && d.requested_by.toLowerCase().trim() === myName.toLowerCase().trim())
+
+          // 1. Jika Status berubah menjadi Submitted (Untuk Approver)
+          if (d.status === 'Submitted') {
+            const isNotMe =
+              d.submitted_by &&
+              myName &&
+              d.submitted_by.toLowerCase().trim() !== myName.toLowerCase().trim()
+
+            if (canApprovePo && isNotMe) {
+              const requestorName = d.submitted_by || d.prepared_by || d.requested_by || 'karyawan'
               triggerNotificationEffects(
-                `Ada purchase order baru nomor ${d.nomor || ''} yang memerlukan persetujuan Anda.`,
+                `Ada purchase order baru diajukan oleh ${requestorName} nomor ${d.nomor || ''} yang memerlukan persetujuan Anda.`,
               )
               showToastNotification(
                 'Approval PO',
-                `PO No. ${d.nomor || ''} membutuhkan persetujuan.`,
+                `PO No. ${d.nomor || ''} diajukan oleh ${requestorName} membutuhkan persetujuan.`,
                 'orange-9',
                 'fact_check',
               )
             }
           }
-        })
-      }
-      initialPo = false
-    },
-  )
+          // 2. Jika Status berubah menjadi Approved atau Rejected (Untuk Pembuat/Pemohon)
+          else if (change.type === 'modified' && d.po_read === false) {
+            const hasPoAccess =
+              isSuperAdmin.value ||
+              checkPermission('pembelian/pesanan') ||
+              isMyPo
+
+            if (hasPoAccess) {
+              const requestorName = d.submitted_by || d.prepared_by || d.requested_by || 'karyawan'
+              if (d.status === 'Approved') {
+                const speechText = isMyPo
+                  ? `Purchase order Anda nomor ${d.nomor || ''} telah disetujui.`
+                  : `Purchase order nomor ${d.nomor || ''} dari ${requestorName} telah disetujui.`
+                triggerNotificationEffects(speechText)
+                showToastNotification(
+                  'PO Disetujui',
+                  `PO No. ${d.nomor || ''} telah disetujui.`,
+                  'positive',
+                  'check_circle',
+                )
+              } else if (d.status === 'Rejected') {
+                const speechText = isMyPo
+                  ? `Purchase order Anda nomor ${d.nomor || ''} ditolak.`
+                  : `Purchase order nomor ${d.nomor || ''} dari ${requestorName} ditolak.`
+                triggerNotificationEffects(speechText)
+                showToastNotification(
+                  'PO Ditolak',
+                  `PO No. ${d.nomor || ''} ditolak. Alasan: ${d.alasan_reject || '-'}`,
+                  'negative',
+                  'cancel',
+                )
+              }
+            }
+          }
+        }
+      })
+    }
+    initialPo = false
+  })
 })
 
 onUnmounted(() => {
