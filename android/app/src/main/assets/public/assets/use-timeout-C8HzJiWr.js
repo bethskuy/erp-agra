@@ -1,0 +1,1 @@
+import{B as e,H as t,j as n}from"./QIcon-B3TcYE98.js";import{i as r}from"./vm-BhksHjN_.js";function i(){let i=null,a=n();function o(){i!==null&&(clearTimeout(i),i=null)}return t(o),e(o),{removeTimeout:o,registerTimeout(e,t){o(),r(a)===!1&&(i=setTimeout(()=>{i=null,e()},t))}}}export{i as t};

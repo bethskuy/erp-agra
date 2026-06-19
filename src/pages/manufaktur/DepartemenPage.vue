@@ -33,12 +33,12 @@
         <div class="urgent-content">
           <div class="urgent-title">URGENT PRODUCTION</div>
           <div class="urgent-items">
-            <div v-for="(item, idx) in urgentPlanningList.slice(0, 3)" :key="idx" class="urgent-item">
-              <span class="urgent-customer">{{ item.customer_name || item.customer_nama || item.customer || '-' }}</span>
+            <div v-for="(item, idx) in urgentPlanningList" :key="idx" class="urgent-item">
+              <span class="urgent-planning">{{ planningNumber(item) }}</span>
               <span class="urgent-sep">·</span>
-              <span class="urgent-product">{{ formatProducts(item.products) || item.nama_produk || '-' }}</span>
+              <span class="urgent-product">{{ planningProduct(item) }}</span>
               <span class="urgent-sep">·</span>
-              <span class="urgent-deadline">Deadline: {{ formatDeadline(item.deadline) }}</span>
+              <span class="urgent-department">{{ targetDepartment(item) }}</span>
             </div>
           </div>
         </div>
@@ -348,6 +348,8 @@ const isActivePlanning = (planning) =>
     normalizeStatus(planning.planning_status || planning.status_planning || planning.status),
   )
 
+const isUrgentPlanning = (planning) => planning.isUrgent === true
+
 const planningRowsForDepartment = (departemenId) =>
   planningRows.value.filter(
     (planning) => isActivePlanning(planning) && planningMatchesDepartment(planning, departemenId),
@@ -360,9 +362,7 @@ const planningBaruCount = (departemenId) =>
   }).length
 
 const urgentPlanningCount = (departemenId) =>
-  planningRowsForDepartment(departemenId).filter(
-    (planning) => normalizePriority(planning.priority || planning.prioritas) === 'Urgent',
-  ).length
+  planningRowsForDepartment(departemenId).filter(isUrgentPlanning).length
 
 const nearestDeadlineForDepartment = (departemenId) =>
   planningRowsForDepartment(departemenId).reduce(
@@ -371,13 +371,23 @@ const nearestDeadlineForDepartment = (departemenId) =>
   )
 
 function compareDepartmentsByPlanningWorkload(a, b) {
-  const priorityDiff =
-    Math.min(...planningRowsForDepartment(a.id).map((row) => priorityRank(row.priority || row.prioritas)), 3) -
-    Math.min(...planningRowsForDepartment(b.id).map((row) => priorityRank(row.priority || row.prioritas)), 3)
-  if (priorityDiff !== 0) return priorityDiff
-
   const urgentDiff = urgentPlanningCount(b.id) - urgentPlanningCount(a.id)
   if (urgentDiff !== 0) return urgentDiff
+
+  const priorityDiff =
+    Math.min(
+      ...planningRowsForDepartment(a.id).map((row) =>
+        isUrgentPlanning(row) ? 0 : priorityRank(row.priority || row.prioritas),
+      ),
+      3,
+    ) -
+    Math.min(
+      ...planningRowsForDepartment(b.id).map((row) =>
+        isUrgentPlanning(row) ? 0 : priorityRank(row.priority || row.prioritas),
+      ),
+      3,
+    )
+  if (priorityDiff !== 0) return priorityDiff
 
   const nearestDiff = nearestDeadlineForDepartment(a.id) - nearestDeadlineForDepartment(b.id)
   if (nearestDiff !== 0) return nearestDiff
@@ -398,11 +408,9 @@ const enterDepartment = (departemen) => {
 
 // ─── Additional computed/helpers for the new UI ───
 const urgentPlanningList = computed(() =>
-  planningRows.value.filter(
-    (planning) =>
-      isActivePlanning(planning) &&
-      normalizePriority(planning.priority || planning.prioritas) === 'Urgent',
-  ),
+  planningRows.value
+    .filter((planning) => isActivePlanning(planning) && isUrgentPlanning(planning))
+    .sort((a, b) => timestampOf(a.deadline) - timestampOf(b.deadline)),
 )
 
 const departmentProgress = (departemenId) => {
@@ -429,17 +437,42 @@ const formatProducts = (products) => {
     .join(', ')
 }
 
-const formatDeadline = (value) => {
-  if (!value) return '-'
-  const date = value?.toDate ? value.toDate() : new Date(value)
-  if (Number.isNaN(date.getTime())) return '-'
-  const now = new Date()
-  const diffDays = Math.ceil((date.getTime() - now.getTime()) / 86400000)
-  if (diffDays <= 0) return 'Overdue!'
-  if (diffDays === 1) return 'Tomorrow'
-  if (diffDays <= 3) return `${diffDays} days`
-  return date.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+const planningNumber = (planning) =>
+  planning.nomor_planning ||
+  planning.no_planning ||
+  planning.planning_number ||
+  planning.nomor_spk ||
+  planning.id ||
+  '-'
+
+const planningProduct = (planning) =>
+  formatProducts(planning.products) ||
+  planning.nama_produk ||
+  planning.product_name ||
+  planning.product ||
+  '-'
+
+const firstDepartmentName = (departments) => {
+  if (!Array.isArray(departments) || !departments.length) return ''
+  const department = departments[0]
+  return (
+    department.department_name ||
+    department.departemen_nama ||
+    department.nama_departemen ||
+    department.name ||
+    department.label ||
+    ''
+  )
 }
+
+const targetDepartment = (planning) =>
+  planning.current_departemen_nama ||
+  planning.departemen_nama ||
+  planning.tujuan_departemen?.nama_departemen ||
+  planning.tujuan_departemen?.name ||
+  firstDepartmentName(planning.route_departemen) ||
+  firstDepartmentName(planning.assigned_departments) ||
+  '-'
 
 onMounted(() => {
   loading.value = true
@@ -611,7 +644,7 @@ onUnmounted(() => {
   align-items: center;
 }
 
-.urgent-customer {
+.urgent-planning {
   font-weight: 700;
   color: #FF8A80;
 }
@@ -624,7 +657,7 @@ onUnmounted(() => {
   color: #B0BEC5;
 }
 
-.urgent-deadline {
+.urgent-department {
   color: #FF5252;
   font-weight: 700;
   font-size: 12px;

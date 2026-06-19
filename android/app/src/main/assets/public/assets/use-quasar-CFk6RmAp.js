@@ -1,1 +1,0 @@
-import{I as e}from"./QIcon-BvEGt9S_.js";function t(){return e(`_q_`)}export{t};
