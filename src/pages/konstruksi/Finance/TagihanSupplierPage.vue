@@ -467,6 +467,19 @@
                     >
                       <q-tooltip>Lihat Detail Tagihan</q-tooltip>
                     </q-btn>
+                    <!-- Ajukan: hanya jika canEdit dan statusnya 'Draft' -->
+                    <q-btn
+                      v-if="canEdit && props.row.status === 'Draft'"
+                      flat
+                      round
+                      color="teal-10"
+                      icon="send"
+                      size="sm"
+                      @click.stop="ajukanTagihanFromRow(props.row)"
+                      class="hover-teal-btn"
+                    >
+                      <q-tooltip>Ajukan Tagihan</q-tooltip>
+                    </q-btn>
                     <!-- Edit: hanya jika canEdit -->
                     <q-btn
                       v-if="canEdit"
@@ -2058,7 +2071,7 @@ const formDefault = {
   spk_boq_selection: {},
   ppn_persen: 0,
   pph_persen: 0,
-  status: 'Sedang Diajukan',
+  status: 'Draft',
   lampiran: [],
 }
 const form = ref({ ...formDefault })
@@ -2766,14 +2779,9 @@ const simpanTagihan = async () => {
       }
     }
 
-    let targetStatus = 'Sedang Diajukan'
+    let targetStatus = 'Draft'
     if (isEditMode.value) {
-      const currentStatus = form.value.status
-      if (currentStatus === 'Draft' || currentStatus === 'Ditolak' || !currentStatus) {
-        targetStatus = 'Sedang Diajukan'
-      } else {
-        targetStatus = currentStatus
-      }
+      targetStatus = form.value.status || 'Draft'
     }
 
     const payload = {
@@ -2831,6 +2839,8 @@ const simpanTagihan = async () => {
       reqStatus = 'Rejected'
     } else if (targetStatus === 'Sedang Diajukan') {
       reqStatus = 'Pending'
+    } else if (targetStatus === 'Draft') {
+      reqStatus = 'Draft'
     }
 
     const reqPayload = {
@@ -2934,10 +2944,10 @@ const ajukanTagihan = async () => {
     })
   try {
     await updateDoc(doc(db, 'finance_tagihan', selectedTagihan.value.id), {
-      status: 'Menunggu Pembayaran',
+      status: 'Sedang Diajukan',
       updatedAt: serverTimestamp(),
     })
-    // Sync payment request status to Approved
+    // Sync payment request status to Pending
     const q = query(
       collection(db, 'finance_pengajuan_pembayaran'),
       where('tagihan_id', '==', selectedTagihan.value.id)
@@ -2945,15 +2955,51 @@ const ajukanTagihan = async () => {
     const snap = await getDocs(q)
     for (const d of snap.docs) {
       await updateDoc(doc(db, 'finance_pengajuan_pembayaran', d.id), {
-        status: 'Approved',
+        status: 'Pending',
+        approver_read: false,
         updatedAt: serverTimestamp(),
       })
     }
-    selectedTagihan.value.status = 'Menunggu Pembayaran'
+    selectedTagihan.value.status = 'Sedang Diajukan'
     $q.notify({ type: 'positive', position: 'top', message: 'Tagihan berhasil diajukan!' })
   } catch (err) {
     console.error(err)
     $q.notify({ type: 'negative', position: 'top', message: 'Gagal mengajukan tagihan.' })
+  }
+}
+
+const ajukanTagihanFromRow = async (row) => {
+  if (!canEdit.value)
+    return $q.notify({
+      type: 'negative',
+      position: 'top',
+      message: 'Anda tidak memiliki izin untuk mengajukan tagihan.',
+    })
+  try {
+    $q.loading.show({ message: 'Mengajukan tagihan...' })
+    await updateDoc(doc(db, 'finance_tagihan', row.id), {
+      status: 'Sedang Diajukan',
+      updatedAt: serverTimestamp(),
+    })
+    // Sync payment request status to Pending
+    const q = query(
+      collection(db, 'finance_pengajuan_pembayaran'),
+      where('tagihan_id', '==', row.id)
+    )
+    const snap = await getDocs(q)
+    for (const d of snap.docs) {
+      await updateDoc(doc(db, 'finance_pengajuan_pembayaran', d.id), {
+        status: 'Pending',
+        approver_read: false,
+        updatedAt: serverTimestamp(),
+      })
+    }
+    $q.notify({ type: 'positive', position: 'top', message: 'Tagihan berhasil diajukan!' })
+  } catch (err) {
+    console.error(err)
+    $q.notify({ type: 'negative', position: 'top', message: 'Gagal mengajukan tagihan.' })
+  } finally {
+    $q.loading.hide()
   }
 }
 

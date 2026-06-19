@@ -37,7 +37,7 @@
                   <div class="text-overline text-white kpi-label tracking-widest q-mb-xs">
                     TOTAL PENGAJUAN
                   </div>
-                  <div class="text-h3 text-weight-black">{{ rows.length }}</div>
+                  <div class="text-h3 text-weight-black">{{ filteredRows.length }}</div>
                 </div>
                 <div class="kpi-icon-wrap bg-white-10 q-pa-md rounded-borders flex flex-center">
                   <q-icon name="description" color="white" size="32px" />
@@ -1050,7 +1050,7 @@ const pendingAmount = computed(() =>
 )
 
 const filteredRows = computed(() => {
-  let res = rows.value
+  let res = rows.value.filter((r) => r.status !== 'Draft')
   if (statusFilter.value !== 'Semua Status')
     res = res.filter((r) => r.status === statusFilter.value)
   if (searchQuery.value) {
@@ -1103,7 +1103,70 @@ const triggerApprove = (row) => {
         catatan_approval: notes || 'Disetujui',
         approvedAt: serverTimestamp(),
         approvedBy: authStore.user?.nama || 'Otorisator',
+        creator_read: false,
       })
+      
+      let updatedTagihan = false
+      if (row.tagihan_id) {
+        try {
+          await updateDoc(doc(db, 'finance_tagihan', row.tagihan_id), {
+            status: 'Menunggu Pembayaran',
+            creator_read: false,
+            updatedAt: serverTimestamp(),
+          })
+          updatedTagihan = true
+        } catch (e) {
+          console.error('Failed to update tagihan status on approve by ID:', e)
+        }
+      }
+
+      const identifiers = [row.tagihan_nomor_invoice, row.tagihan_kode, row.tagihan_id].filter(
+        Boolean,
+      )
+      if (!updatedTagihan && identifiers.length > 0) {
+        for (const ident of identifiers) {
+          try {
+            const qTag = query(
+              collection(db, 'finance_tagihan'),
+              where('nomor_invoice', '==', ident),
+            )
+            const snapTag = await getDocs(qTag)
+            for (const docRef of snapTag.docs) {
+              await updateDoc(doc(db, 'finance_tagihan', docRef.id), {
+                status: 'Menunggu Pembayaran',
+                creator_read: false,
+                updatedAt: serverTimestamp(),
+              })
+              updatedTagihan = true
+            }
+          } catch (e) {
+            console.error('Failed to update tagihan status on approve by nomor_invoice:', e)
+          }
+        }
+
+        if (!updatedTagihan) {
+          for (const ident of identifiers) {
+            try {
+              const qTag = query(
+                collection(db, 'finance_tagihan'),
+                where('kode_tagihan', '==', ident),
+              )
+              const snapTag = await getDocs(qTag)
+              for (const docRef of snapTag.docs) {
+                await updateDoc(doc(db, 'finance_tagihan', docRef.id), {
+                  status: 'Menunggu Pembayaran',
+                  creator_read: false,
+                  updatedAt: serverTimestamp(),
+                })
+                updatedTagihan = true
+              }
+            } catch (e) {
+              console.error('Failed to update tagihan status on approve by kode_tagihan:', e)
+            }
+          }
+        }
+      }
+
       if (selectedData.value && selectedData.value.id === row.id) {
         selectedData.value.status = 'Approved'
         selectedData.value.catatan_approval = notes

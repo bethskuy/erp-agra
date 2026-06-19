@@ -1,6 +1,17 @@
 <template>
   <q-page class="bg-grey-2 q-pa-md q-pa-lg-lg font-pro">
-    <div class="page-content-wrapper">
+    <!-- AKSES DITOLAK: tampil jika tidak punya izin lihat -->
+    <div v-if="!loading && !getMenuPermission.lihat" class="full-width row flex-center q-pa-xl text-grey-5" style="min-height: 60vh;">
+      <div class="text-center">
+        <q-icon name="lock" size="64px" color="grey-4" class="q-mb-md" />
+        <div class="text-h6 text-grey-6">Anda tidak memiliki akses ke halaman ini.</div>
+        <div class="text-caption text-grey-5 q-mt-xs">
+          Hubungi administrator untuk meminta akses.
+        </div>
+      </div>
+    </div>
+
+    <div v-else class="page-content-wrapper">
       <!-- =====================================================================================
          VIEW 1: LIST PENGAJUAN (DASHBOARD)
          ===================================================================================== -->

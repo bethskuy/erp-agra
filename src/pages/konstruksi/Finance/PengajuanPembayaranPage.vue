@@ -410,12 +410,9 @@
                         <q-tooltip>Detail</q-tooltip>
                       </q-btn>
 
-                      <!-- TOMBOL AJUKAN: tampil hanya jika status Draft dan bukan Tagihan Supplier -->
+                      <!-- TOMBOL AJUKAN: tampil jika status Draft -->
                       <q-btn
-                        v-if="
-                          props.row.status === 'Draft' &&
-                          props.row.tipe_pengajuan !== 'Tagihan Supplier'
-                        "
+                        v-if="props.row.status === 'Draft'"
                         flat
                         round
                         color="teal-7"
@@ -2293,6 +2290,14 @@ const ajukanPengajuan = (row) => {
         approver_read: false,
         updatedAt: serverTimestamp(),
       })
+      if (row.tipe_pengajuan === 'Tagihan Supplier') {
+        await updateTagihanStatus(
+          row.tagihan_id,
+          row.tagihan_nomor_invoice,
+          row.tagihan_kode,
+          'Sedang Diajukan',
+        )
+      }
       $q.notify({
         type: 'positive',
         position: 'top',

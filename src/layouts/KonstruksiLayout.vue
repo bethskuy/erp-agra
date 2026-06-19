@@ -618,6 +618,7 @@
                   'finance/tagihan-supplier',
                   'finance/pengeluaran',
                   'finance/pembayaran',
+                  'finance/form-pengajuan',
                   'finance/approval-pembayaran',
                   'finance/realisasi-pembayaran',
                   'finance/balansheet',
@@ -1738,9 +1739,11 @@ onMounted(() => {
             if (!submittedByMe) {
               // A. Untuk Approver (Atasan/Super Admin)
               if (canApprovePembayaran && isNotMe) {
-                triggerNotificationEffects(
-                  `Ada pengajuan pembayaran baru dari ${d.pembuat_nama || 'karyawan'} senilai ${d.nominal ? d.nominal.toLocaleString('id-ID') : ''} rupiah yang memerlukan persetujuan Anda.`,
-                )
+                let speechText = `Ada pengajuan pembayaran baru dari ${d.pembuat_nama || 'karyawan'} senilai ${d.nominal ? d.nominal.toLocaleString('id-ID') : ''} rupiah yang memerlukan persetujuan Anda.`
+                if (d.tipe_pengajuan === 'Tagihan Supplier') {
+                  speechText = `Ada tagihan supplier baru dari ${d.vendor_nama || ''} yang diajukan oleh ${d.pembuat_nama || ''} senilai ${d.nominal ? d.nominal.toLocaleString('id-ID') : ''} rupiah yang memerlukan persetujuan Anda.`
+                }
+                triggerNotificationEffects(speechText)
                 showToastNotification(
                   'Approval Pembayaran',
                   `Request ${d.no_request} dari ${d.pembuat_nama || ''} menunggu persetujuan.`,
@@ -1750,9 +1753,11 @@ onMounted(() => {
               }
               // B. Untuk Pembuat/Pekerja (Agar tahu pengajuannya sudah diajukan oleh Finance)
               else if (isMyRequest) {
-                triggerNotificationEffects(
-                  `Pengajuan pembayaran Anda dengan nomor ${d.no_request} telah diajukan ke atasan.`,
-                )
+                let speechText = `Pengajuan pembayaran Anda dengan nomor ${d.no_request} telah diajukan ke atasan.`
+                if (d.tipe_pengajuan === 'Tagihan Supplier') {
+                  speechText = `Tagihan supplier Anda nomor invoice ${d.tagihan_nomor_invoice || ''} telah diajukan ke atasan.`
+                }
+                triggerNotificationEffects(speechText)
                 showToastNotification(
                   'Pengajuan Diajukan',
                   `Request ${d.no_request} telah diajukan oleh Finance ke atasan.`,
@@ -1776,7 +1781,7 @@ onMounted(() => {
               const realizedByMe = d.realizedBy && d.realizedBy.toLowerCase().trim() === myName
               const actionByMe = approvedByMe || rejectedByMe || realizedByMe
 
-              if (!actionByMe) {
+              if (!actionByMe || d.tipe_pengajuan === 'Tagihan Supplier') {
                 const isUnread =
                   (isMyRequest && d.creator_read === false) ||
                   (checkPermission('finance/realisasi-pembayaran') && d.realizer_read === false) ||
@@ -1785,9 +1790,12 @@ onMounted(() => {
 
                 if (isUnread) {
                   if (d.status === 'Approved') {
-                    const speechText = isMyRequest
+                    let speechText = isMyRequest
                       ? `Pengajuan pembayaran Anda dengan nomor ${d.no_request} telah disetujui.`
                       : `Pengajuan pembayaran nomor ${d.no_request} dari ${d.pembuat_nama || ''} telah disetujui.`
+                    if (d.tipe_pengajuan === 'Tagihan Supplier') {
+                      speechText = `Tagihan supplier nomor invoice ${d.tagihan_nomor_invoice || ''} dari ${d.vendor_nama || ''} telah disetujui.`
+                    }
                     triggerNotificationEffects(speechText)
                     showToastNotification(
                       'Pengajuan Disetujui',
@@ -1796,9 +1804,12 @@ onMounted(() => {
                       'check_circle',
                     )
                   } else if (d.status === 'Rejected') {
-                    const speechText = isMyRequest
+                    let speechText = isMyRequest
                       ? `Pengajuan pembayaran Anda dengan nomor ${d.no_request} ditolak.`
                       : `Pengajuan pembayaran nomor ${d.no_request} dari ${d.pembuat_nama || ''} ditolak.`
+                    if (d.tipe_pengajuan === 'Tagihan Supplier') {
+                      speechText = `Tagihan supplier nomor invoice ${d.tagihan_nomor_invoice || ''} dari ${d.vendor_nama || ''} ditolak.`
+                    }
                     triggerNotificationEffects(speechText)
                     showToastNotification(
                       'Pengajuan Ditolak',
