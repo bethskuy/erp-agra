@@ -1,4 +1,4 @@
-<template>
+ <template>
   <q-page
     class="work-order-page bg-grey-2 q-pa-md q-pa-lg-lg font-pro"
     :class="{ 'form-workspace-page': showFormDialog }"

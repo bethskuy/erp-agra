@@ -270,9 +270,24 @@
 
                 <!-- Priority -->
                 <q-td key="prioritas" :props="props">
-                  <div :class="['priority-badge', `priority-${(normalizePlanningPriority(props.row.priority || props.row.prioritas)).toLowerCase()}`]">
-                    {{ normalizePlanningPriority(props.row.priority || props.row.prioritas) }}
-                  </div>
+                  <q-select
+                    :model-value="normalizePlanningPriority(props.row.priority || props.row.prioritas)"
+                    :options="priorityOptions"
+                    dense
+                    borderless
+                    emit-value
+                    map-options
+                    options-dense
+                    hide-bottom-space
+                    dropdown-icon="expand_more"
+                    :loading="prioritySavingId === props.row.id"
+                    :class="[
+                      'priority-badge',
+                      'priority-select-inline',
+                      `priority-${normalizePlanningPriority(props.row.priority || props.row.prioritas).toLowerCase()}`,
+                    ]"
+                    @update:model-value="(priority) => updatePlanningPriority(props.row, priority)"
+                  />
                 </q-td>
 
                 <!-- Status -->
@@ -744,6 +759,7 @@ const loadingDepartemen = ref(true)
 const loadingProjects = ref(true)
 const submitting = ref(false)
 const scheduleSaving = ref(false)
+const prioritySavingId = ref('')
 const errorMessage = ref('')
 let unsubscribePlanning = null
 let unsubscribeDepartmentProgress = null
@@ -752,7 +768,7 @@ let unsubscribeProjects = null
 let unsubscribeProduk = null
 
 const statusOptions = ['not_started', 'planned', 'approved', 'in_progress', 'done']
-const priorityOptions = ['Urgent', 'High', 'Medium', 'Low']
+const priorityOptions = ['Low', 'Medium', 'High', 'Urgent']
 const scheduleStatusOptions = [
   { label: 'Not Started', value: 'not_started' },
   { label: 'In Progress', value: 'in_progress' },
@@ -800,6 +816,7 @@ const createPlanningFromProject = async (project, payload) => {
 
 const mapDepartemen = (departemenDoc) => {
   const data = departemenDoc.data()
+
   return {
     id: departemenDoc.id,
     value: departemenDoc.id,
@@ -1759,6 +1776,7 @@ const buildPayload = () => {
   const sourceProject = form.value._source_project || form.value.approved_obj?.item || {}
   const products = productDetailRows(sourceProject)
   const quantity = products.reduce((sum, product) => sum + Number(product.quantity || 0), 0)
+  const priority = normalizePlanningPriority(form.value.prioritas || form.value.priority)
 
   return {
     planning_number: form.value.no_planning,
@@ -1775,8 +1793,9 @@ const buildPayload = () => {
     qty_target: quantity,
     satuan: products[0]?.unit || form.value.satuan || 'Unit',
     deadline: form.value.deadline || sourceProject.deadline || '',
-    priority: normalizePlanningPriority(form.value.prioritas || form.value.priority),
-    prioritas: normalizePlanningPriority(form.value.prioritas || form.value.priority),
+    priority,
+    prioritas: priority,
+    isUrgent: priority === 'Urgent',
     status: statusPlanning,
     status_planning: statusPlanning,
     planning_status: statusPlanning,
@@ -1814,6 +1833,33 @@ const notifyUrgentDepartments = async (planningRef, payload) => {
       }),
     ),
   )
+}
+
+const updatePlanningPriority = async (row, selectedPriority) => {
+  const priority = normalizePlanningPriority(selectedPriority)
+  const isUrgent = priority === 'Urgent'
+  const wasUrgent = row.isUrgent === true
+
+  prioritySavingId.value = row.id
+  try {
+    await updateDoc(doc(db, PLANNING_COLLECTION, row.id), {
+      priority,
+      prioritas: priority,
+      isUrgent,
+      updated_at: serverTimestamp(),
+    })
+
+    if (isUrgent && !wasUrgent) {
+      await notifyUrgentDepartments({ id: row.id }, { ...row, priority, prioritas: priority, isUrgent })
+    }
+
+    $q.notify({ type: 'positive', message: 'Priority planning berhasil diperbarui' })
+  } catch (error) {
+    console.error(error)
+    $q.notify({ type: 'negative', message: 'Gagal memperbarui priority planning' })
+  } finally {
+    prioritySavingId.value = ''
+  }
 }
 
 const openCreateDialog = () => {
@@ -2846,6 +2892,28 @@ onUnmounted(() => {
   font-size: 11px;
   font-weight: 800;
   min-width: 72px;
+}
+.priority-select-inline {
+  padding: 0;
+  cursor: pointer;
+}
+.priority-select-inline :deep(.q-field__control) {
+  min-height: 24px;
+  height: 24px;
+  padding: 0 6px 0 10px;
+}
+.priority-select-inline :deep(.q-field__native),
+.priority-select-inline :deep(.q-field__append) {
+  color: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  min-height: 24px;
+}
+.priority-select-inline :deep(.q-field__marginal) {
+  height: 24px;
+}
+.priority-select-inline :deep(.q-field__native) {
+  padding: 0;
 }
 .priority-urgent {
   background: rgba(244, 67, 54, 0.15);

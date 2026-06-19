@@ -126,9 +126,48 @@
             <q-td key="qty_target" :props="props" class="text-weight-bold">
               {{ formatNumber(props.row.qty_target) }}
             </q-td>
+            <q-td key="progress" :props="props">
+              <div class="progress-cell">
+                <div class="row items-center justify-between q-mb-xs">
+                  <span class="progress-label">Progress</span>
+                  <span class="progress-value">{{ progressPercent(props.row) }}%</span>
+                </div>
+                <q-linear-progress
+                  rounded
+                  size="8px"
+                  :value="progressPercent(props.row) / 100"
+                  :color="progressColor(props.row)"
+                  track-color="grey-3"
+                />
+                <div class="text-caption text-grey-6 q-mt-xs">
+                  {{ formatNumber(finishedQuantity(props.row)) }} /
+                  {{ formatNumber(customerOrderQuantity(props.row)) }}
+                </div>
+              </div>
+            </q-td>
             <q-td key="line_produksi" :props="props">{{ props.row.line_produksi }}</q-td>
             <q-td key="deadline" :props="props">{{ formatDate(props.row.deadline) }}</q-td>
             <q-td key="pic_produksi" :props="props">{{ props.row.pic_produksi }}</q-td>
+            <q-td key="priority" :props="props">
+              <q-select
+                :model-value="normalizePriority(props.row.priority || props.row.prioritas)"
+                :options="priorityOptions"
+                dense
+                outlined
+                emit-value
+                options-dense
+                dropdown-icon="expand_more"
+                behavior="menu"
+                popup-content-class="priority-popup"
+                :class="[
+                  'priority-select',
+                  `priority-select--${normalizePriority(props.row.priority || props.row.prioritas).toLowerCase()}`,
+                ]"
+                :color="priorityColor(props.row.priority || props.row.prioritas)"
+                :loading="prioritySavingId === props.row.id"
+                @update:model-value="(priority) => updatePriority(props.row, priority)"
+              />
+            </q-td>
             <q-td key="status" :props="props">
               <q-chip
                 dense
@@ -206,6 +245,16 @@
               </div>
               <div class="col-12 col-md-6">
                 <q-select
+                  v-model="form.priority"
+                  :options="priorityOptions"
+                  outlined
+                  dense
+                  label="Priority"
+                  :rules="[(val) => !!val || 'Priority wajib dipilih']"
+                />
+              </div>
+              <div class="col-12 col-md-6">
+                <q-select
                   v-model="form.line_produksi"
                   :options="lineOptions"
                   outlined
@@ -268,11 +317,21 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useQuasar } from 'quasar'
-import { addDoc, collection, onSnapshot, orderBy, query, serverTimestamp } from 'firebase/firestore'
+import {
+  addDoc,
+  collection,
+  doc,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  updateDoc,
+} from 'firebase/firestore'
 import { db } from 'src/boot/firebase'
 
 const COLLECTION_NAME = 'mf_production_planning'
 const statusOptions = ['Draft', 'Planning', 'On Progress', 'Finished']
+const priorityOptions = ['Low', 'Medium', 'High', 'Urgent']
 const statusFilterOptions = [
   { label: 'Semua Status', value: 'all' },
   ...statusOptions.map((status) => ({ label: status, value: status })),
@@ -286,6 +345,7 @@ const submitting = ref(false)
 const search = ref('')
 const statusFilter = ref('all')
 const showDialog = ref(false)
+const prioritySavingId = ref('')
 let unsubscribePlanning = null
 
 const defaultForm = () => ({
@@ -297,6 +357,7 @@ const defaultForm = () => ({
   deadline: '',
   pic_produksi: '',
   status: 'Draft',
+  priority: 'Medium',
 })
 
 const form = ref(defaultForm())
@@ -312,9 +373,11 @@ const columns = [
   },
   { name: 'customer', align: 'left', label: 'Customer', field: 'customer', sortable: true },
   { name: 'qty_target', align: 'right', label: 'Qty Target', field: 'qty_target', sortable: true },
+  { name: 'progress', align: 'left', label: 'Progress', field: 'progress' },
   { name: 'line_produksi', align: 'left', label: 'Line Produksi', field: 'line_produksi' },
   { name: 'deadline', align: 'left', label: 'Deadline', field: 'deadline', sortable: true },
   { name: 'pic_produksi', align: 'left', label: 'PIC Produksi', field: 'pic_produksi' },
+  { name: 'priority', align: 'center', label: 'Priority', field: 'priority', sortable: true },
   { name: 'status', align: 'center', label: 'Status', field: 'status', sortable: true },
 ]
 
@@ -330,6 +393,8 @@ const filteredRows = computed(() => {
         row.customer,
         row.line_produksi,
         row.pic_produksi,
+        row.priority,
+        row.prioritas,
         row.status,
       ]
         .filter(Boolean)
@@ -370,6 +435,72 @@ const statusColor = (status) => {
   return colors[status] || 'grey-6'
 }
 
+const normalizePriority = (priority) => {
+  const normalized = String(priority || '')
+    .trim()
+    .toLowerCase()
+  if (normalized === 'urgent') return 'Urgent'
+  if (normalized === 'high') return 'High'
+  if (normalized === 'low') return 'Low'
+  return 'Medium'
+}
+
+const priorityColor = (priority) => {
+  const colors = {
+    Low: 'green-7',
+    Medium: 'blue-grey-7',
+    High: 'orange-9',
+    Urgent: 'negative',
+  }
+  return colors[normalizePriority(priority)] || 'blue-grey-7'
+}
+
+const firstPositiveNumber = (...values) => {
+  const found = values.find((value) => Number(value) > 0)
+  return Number(found || 0)
+}
+
+const customerOrderQuantity = (row) =>
+  firstPositiveNumber(
+    row.qty_pesanan_customer,
+    row.qty_customer_order,
+    row.customer_order_qty,
+    row.qty_order_customer,
+    row.qty_pesanan,
+    row.qty_order,
+    row.order_qty,
+    row.quantity,
+    row.qty_po,
+    row.qty_target,
+  )
+
+const finishedQuantity = (row) =>
+  firstPositiveNumber(
+    row.total_produksi_selesai,
+    row.produksi_selesai,
+    row.total_finished_qty,
+    row.finished_qty,
+    row.qty_selesai,
+    row.qty_hasil_jadi,
+    row.total_hasil_produksi,
+    row.actual_qty,
+    row.actual_quantity,
+  )
+
+const progressPercent = (row) => {
+  const orderQty = customerOrderQuantity(row)
+  if (orderQty <= 0) return 0
+  return Math.min(100, Math.round((finishedQuantity(row) / orderQty) * 100))
+}
+
+const progressColor = (row) => {
+  const progress = progressPercent(row)
+  if (progress >= 100) return 'green-10'
+  if (progress >= 75) return 'teal-8'
+  if (progress >= 40) return 'orange-9'
+  return 'negative'
+}
+
 const formatNumber = (value) => Number(value || 0).toLocaleString('id-ID')
 
 const formatDate = (value) => {
@@ -386,12 +517,40 @@ const openAddDialog = () => {
   showDialog.value = true
 }
 
+const updatePriority = async (row, nextPriority) => {
+  const priority = normalizePriority(nextPriority)
+  const isUrgent = priority === 'Urgent'
+  prioritySavingId.value = row.id
+  try {
+    await updateDoc(doc(db, COLLECTION_NAME, row.id), {
+      priority,
+      prioritas: priority,
+      isUrgent,
+      updated_at: serverTimestamp(),
+    })
+    $q.notify({ type: 'positive', message: 'Priority planning berhasil diperbarui' })
+  } catch (error) {
+    console.error(error)
+    $q.notify({ type: 'negative', message: 'Gagal memperbarui priority planning' })
+  } finally {
+    prioritySavingId.value = ''
+  }
+}
+
 const savePlanning = async () => {
   submitting.value = true
   try {
+    const priority = normalizePriority(form.value.priority)
+    const isUrgent = priority === 'Urgent'
+    const qtyTarget = Number(form.value.qty_target || 0)
     await addDoc(collection(db, COLLECTION_NAME), {
       ...form.value,
-      qty_target: Number(form.value.qty_target || 0),
+      qty_target: qtyTarget,
+      qty_pesanan_customer: qtyTarget,
+      qty_customer_order: qtyTarget,
+      priority,
+      prioritas: priority,
+      isUrgent,
       created_at: serverTimestamp(),
       updated_at: serverTimestamp(),
     })
@@ -493,6 +652,65 @@ onUnmounted(() => {
 
 .planning-row:hover {
   background: rgba(27, 94, 32, 0.04);
+}
+
+.progress-cell {
+  min-width: 150px;
+}
+
+.progress-label {
+  color: #667085;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.progress-value {
+  color: #1b5e20;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.priority-select {
+  border-radius: 999px;
+  min-width: 104px;
+}
+
+.priority-select :deep(.q-field__control) {
+  border-radius: 999px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0 8px 0 12px;
+}
+
+.priority-select :deep(.q-field__native),
+.priority-select :deep(.q-field__append) {
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  min-height: 28px;
+}
+
+.priority-select :deep(.q-field__marginal) {
+  height: 28px;
+}
+
+.priority-select--low :deep(.q-field__control) {
+  background: #2e7d32;
+}
+
+.priority-select--medium :deep(.q-field__control) {
+  background: #546e7a;
+}
+
+.priority-select--high :deep(.q-field__control) {
+  background: #ef6c00;
+}
+
+.priority-select--urgent :deep(.q-field__control) {
+  background: #c62828;
 }
 
 .status-chip {
