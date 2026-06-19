@@ -20,7 +20,9 @@
             </div>
           </div>
           <div class="col-12 col-md-auto text-center text-md-right btn-buat-container">
-            <div class="flex items-center justify-center justify-md-end q-gutter-sm q-mt-sm q-mt-md-none">
+            <div
+              class="flex items-center justify-center justify-md-end q-gutter-sm q-mt-sm q-mt-md-none"
+            >
               <!-- EXPORT DROPDOWN LIST -->
               <q-btn-dropdown
                 unelevated
@@ -32,12 +34,7 @@
                 class="text-weight-bold shadow-1 q-px-md"
               >
                 <q-list class="bg-white rounded-borders">
-                  <q-item
-                    clickable
-                    v-close-popup
-                    @click="exportTablePDF"
-                    class="hover-teal-btn"
-                  >
+                  <q-item clickable v-close-popup @click="exportTablePDF" class="hover-teal-btn">
                     <q-item-section avatar>
                       <q-avatar color="red-1" text-color="red-10" icon="picture_as_pdf" size="sm" />
                     </q-item-section>
@@ -46,12 +43,7 @@
                     </q-item-section>
                   </q-item>
                   <q-separator />
-                  <q-item
-                    clickable
-                    v-close-popup
-                    @click="exportTableExcel"
-                    class="hover-teal-btn"
-                  >
+                  <q-item clickable v-close-popup @click="exportTableExcel" class="hover-teal-btn">
                     <q-item-section avatar>
                       <q-avatar color="green-1" text-color="green-10" icon="table_view" size="sm" />
                     </q-item-section>
@@ -467,19 +459,7 @@
                     >
                       <q-tooltip>Lihat Detail Tagihan</q-tooltip>
                     </q-btn>
-                    <!-- Ajukan: hanya jika canEdit dan statusnya 'Draft' -->
-                    <q-btn
-                      v-if="canEdit && props.row.status === 'Draft'"
-                      flat
-                      round
-                      color="teal-10"
-                      icon="send"
-                      size="sm"
-                      @click.stop="ajukanTagihanFromRow(props.row)"
-                      class="hover-teal-btn"
-                    >
-                      <q-tooltip>Ajukan Tagihan</q-tooltip>
-                    </q-btn>
+
                     <!-- Edit: hanya jika canEdit -->
                     <q-btn
                       v-if="canEdit"
@@ -601,11 +581,7 @@
           <div class="row q-col-gutter-lg">
             <div class="col-12 col-md-7">
               <!-- CARD: REFERENSI DOKUMEN & SUPPLIER -->
-              <q-card
-                flat
-                bordered
-                class="rounded-20 shadow-sm q-mb-lg bg-white border-teal-thin"
-              >
+              <q-card flat bordered class="rounded-20 shadow-sm q-mb-lg bg-white border-teal-thin">
                 <q-card-section class="bg-teal-section text-teal-10 q-py-sm border-bottom-subtle">
                   <div class="text-weight-bold uppercase tracking-widest font-11 flex items-center">
                     <q-icon name="dataset" size="sm" class="q-mr-sm" /> REFERENSI DOKUMEN & SUPPLIER
@@ -615,11 +591,19 @@
                   <div class="row q-col-gutter-md">
                     <!-- SUPPLIER -->
                     <div class="col-12 col-sm-6">
-                      <div class="q-pa-md rounded-12 bg-grey-1 border-subtle row items-center no-wrap h-full">
+                      <div
+                        class="q-pa-md rounded-12 bg-grey-1 border-subtle row items-center no-wrap h-full"
+                      >
                         <q-avatar color="teal-1" text-color="teal-9" icon="store" class="q-mr-md" />
                         <div>
-                          <div class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10">SUPPLIER / VENDOR</div>
-                          <div class="text-subtitle1 text-weight-bolder text-teal-10 uppercase leading-tight q-mt-xs">
+                          <div
+                            class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10"
+                          >
+                            SUPPLIER / VENDOR
+                          </div>
+                          <div
+                            class="text-subtitle1 text-weight-bolder text-teal-10 uppercase leading-tight q-mt-xs"
+                          >
                             {{ selectedTagihan.supplier_nama || '-' }}
                           </div>
                         </div>
@@ -627,11 +611,24 @@
                     </div>
                     <!-- PROYEK -->
                     <div class="col-12 col-sm-6">
-                      <div class="q-pa-md rounded-12 bg-grey-1 border-subtle row items-center no-wrap h-full">
-                        <q-avatar color="teal-1" text-color="teal-9" icon="apartment" class="q-mr-md" />
+                      <div
+                        class="q-pa-md rounded-12 bg-grey-1 border-subtle row items-center no-wrap h-full"
+                      >
+                        <q-avatar
+                          color="teal-1"
+                          text-color="teal-9"
+                          icon="apartment"
+                          class="q-mr-md"
+                        />
                         <div>
-                          <div class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10">DIALOKASIKAN KE PROYEK</div>
-                          <div class="text-subtitle1 text-weight-bolder text-grey-8 uppercase leading-tight q-mt-xs">
+                          <div
+                            class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10"
+                          >
+                            DIALOKASIKAN KE PROYEK
+                          </div>
+                          <div
+                            class="text-subtitle1 text-weight-bolder text-grey-8 uppercase leading-tight q-mt-xs"
+                          >
                             {{ selectedTagihan.proyek_nama || '-' }}
                           </div>
                         </div>
@@ -639,11 +636,25 @@
                     </div>
                     <!-- NOMOR PO -->
                     <div class="col-12 col-sm-4">
-                      <div class="q-pa-md rounded-12 bg-grey-1 border-subtle row items-center no-wrap h-full">
-                        <q-avatar color="teal-1" text-color="teal-9" icon="shopping_bag" class="q-mr-md" size="32px" />
+                      <div
+                        class="q-pa-md rounded-12 bg-grey-1 border-subtle row items-center no-wrap h-full"
+                      >
+                        <q-avatar
+                          color="teal-1"
+                          text-color="teal-9"
+                          icon="shopping_bag"
+                          class="q-mr-md"
+                          size="32px"
+                        />
                         <div>
-                          <div class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10">NOMOR PO</div>
-                          <div class="text-subtitle2 text-weight-bolder text-grey-8 uppercase leading-tight q-mt-xs">
+                          <div
+                            class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10"
+                          >
+                            NOMOR PO
+                          </div>
+                          <div
+                            class="text-subtitle2 text-weight-bolder text-grey-8 uppercase leading-tight q-mt-xs"
+                          >
                             {{ selectedTagihan.po_nomor || '-' }}
                           </div>
                         </div>
@@ -651,11 +662,25 @@
                     </div>
                     <!-- NOMOR SPK -->
                     <div class="col-12 col-sm-4">
-                      <div class="q-pa-md rounded-12 bg-grey-1 border-subtle row items-center no-wrap h-full">
-                        <q-avatar color="teal-1" text-color="teal-9" icon="assignment" class="q-mr-md" size="32px" />
+                      <div
+                        class="q-pa-md rounded-12 bg-grey-1 border-subtle row items-center no-wrap h-full"
+                      >
+                        <q-avatar
+                          color="teal-1"
+                          text-color="teal-9"
+                          icon="assignment"
+                          class="q-mr-md"
+                          size="32px"
+                        />
                         <div>
-                          <div class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10">NOMOR SPK</div>
-                          <div class="text-subtitle2 text-weight-bolder text-grey-8 uppercase leading-tight q-mt-xs">
+                          <div
+                            class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10"
+                          >
+                            NOMOR SPK
+                          </div>
+                          <div
+                            class="text-subtitle2 text-weight-bolder text-grey-8 uppercase leading-tight q-mt-xs"
+                          >
                             {{ selectedTagihan.spk_nomor || '-' }}
                           </div>
                         </div>
@@ -663,11 +688,25 @@
                     </div>
                     <!-- NOMINAL PO -->
                     <div class="col-12 col-sm-4">
-                      <div class="q-pa-md rounded-12 bg-grey-1 border-subtle row items-center no-wrap h-full">
-                        <q-avatar color="teal-1" text-color="teal-9" icon="payments" class="q-mr-md" size="32px" />
+                      <div
+                        class="q-pa-md rounded-12 bg-grey-1 border-subtle row items-center no-wrap h-full"
+                      >
+                        <q-avatar
+                          color="teal-1"
+                          text-color="teal-9"
+                          icon="payments"
+                          class="q-mr-md"
+                          size="32px"
+                        />
                         <div>
-                          <div class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10">NOMINAL PO</div>
-                          <div class="text-subtitle2 text-weight-bolder text-teal-8 leading-tight q-mt-xs">
+                          <div
+                            class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10"
+                          >
+                            NOMINAL PO
+                          </div>
+                          <div
+                            class="text-subtitle2 text-weight-bolder text-teal-8 leading-tight q-mt-xs"
+                          >
                             Rp {{ (selectedTagihan.nominal_po || 0).toLocaleString('id-ID') }}
                           </div>
                         </div>
@@ -698,9 +737,11 @@
                     <div class="text-weight-black text-teal-10 q-mb-sm row items-center font-13">
                       <q-icon name="assignment" size="18px" color="teal-8" class="q-mr-xs" />
                       {{ getSpkById(spkId)?.nomor_spk || 'SPK' }}
-                      <span class="text-weight-medium text-grey-7 q-ml-xs">— {{ getSpkById(spkId)?.nama_kontrak || '' }}</span>
+                      <span class="text-weight-medium text-grey-7 q-ml-xs"
+                        >— {{ getSpkById(spkId)?.nama_kontrak || '' }}</span
+                      >
                     </div>
-                    
+
                     <div
                       v-if="
                         selectedTagihan.spk_boq_selection &&
@@ -721,7 +762,9 @@
                           :key="gIdx"
                           class="bg-white q-pa-md rounded-8 border-subtle"
                         >
-                          <div class="text-weight-black text-caption text-teal-9 q-mb-xs uppercase tracking-wider font-10">
+                          <div
+                            class="text-weight-black text-caption text-teal-9 q-mb-xs uppercase tracking-wider font-10"
+                          >
                             Kategori: {{ groupTitle }}
                           </div>
                           <div
@@ -741,9 +784,14 @@
                                   .selected_items_by_group[groupTitle]"
                                 :key="iIdx"
                                 class="col-12 flex items-center q-py-xs"
-                                style="font-size: 11.5px; color: #444;"
+                                style="font-size: 11.5px; color: #444"
                               >
-                                <q-icon name="subdirectory_arrow_right" size="14px" color="teal-6" class="q-mr-xs" />
+                                <q-icon
+                                  name="subdirectory_arrow_right"
+                                  size="14px"
+                                  color="teal-6"
+                                  class="q-mr-xs"
+                                />
                                 <span class="text-weight-bold text-grey-9">{{ item }}</span>
                               </div>
                             </div>
@@ -756,11 +804,7 @@
               </q-card>
 
               <!-- CARD: TIMELINE -->
-              <q-card
-                flat
-                bordered
-                class="rounded-20 shadow-sm q-mb-lg bg-white border-teal-thin"
-              >
+              <q-card flat bordered class="rounded-20 shadow-sm q-mb-lg bg-white border-teal-thin">
                 <q-card-section class="bg-teal-section text-teal-10 q-py-sm border-bottom-subtle">
                   <div class="text-weight-bold uppercase tracking-widest font-11 flex items-center">
                     <q-icon name="timeline" size="sm" class="q-mr-sm" /> INVOICE SUPPLIER & TIMELINE
@@ -770,11 +814,25 @@
                   <div class="row q-col-gutter-md">
                     <!-- INVOICE -->
                     <div class="col-12 col-sm-4">
-                      <div class="q-pa-md rounded-12 bg-grey-1 border-subtle row items-center no-wrap h-full">
-                        <q-avatar color="teal-1" text-color="teal-9" icon="receipt" class="q-mr-md" size="32px" />
+                      <div
+                        class="q-pa-md rounded-12 bg-grey-1 border-subtle row items-center no-wrap h-full"
+                      >
+                        <q-avatar
+                          color="teal-1"
+                          text-color="teal-9"
+                          icon="receipt"
+                          class="q-mr-md"
+                          size="32px"
+                        />
                         <div>
-                          <div class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10">NO. INVOICE</div>
-                          <div class="text-subtitle2 text-weight-bold text-teal-10 leading-tight q-mt-xs">
+                          <div
+                            class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10"
+                          >
+                            NO. INVOICE
+                          </div>
+                          <div
+                            class="text-subtitle2 text-weight-bold text-teal-10 leading-tight q-mt-xs"
+                          >
                             {{ selectedTagihan.nomor_invoice || '-' }}
                           </div>
                         </div>
@@ -782,11 +840,25 @@
                     </div>
                     <!-- TGL INVOICE -->
                     <div class="col-12 col-sm-4">
-                      <div class="q-pa-md rounded-12 bg-grey-1 border-subtle row items-center no-wrap h-full">
-                        <q-avatar color="teal-1" text-color="teal-9" icon="calendar_month" class="q-mr-md" size="32px" />
+                      <div
+                        class="q-pa-md rounded-12 bg-grey-1 border-subtle row items-center no-wrap h-full"
+                      >
+                        <q-avatar
+                          color="teal-1"
+                          text-color="teal-9"
+                          icon="calendar_month"
+                          class="q-mr-md"
+                          size="32px"
+                        />
                         <div>
-                          <div class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10">TGL INVOICE</div>
-                          <div class="text-subtitle2 text-weight-bold text-grey-8 leading-tight q-mt-xs">
+                          <div
+                            class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10"
+                          >
+                            TGL INVOICE
+                          </div>
+                          <div
+                            class="text-subtitle2 text-weight-bold text-grey-8 leading-tight q-mt-xs"
+                          >
                             {{ formatDateIndo(selectedTagihan.tanggal_invoice) }}
                           </div>
                         </div>
@@ -794,27 +866,46 @@
                     </div>
                     <!-- JATUH TEMPO -->
                     <div class="col-12 col-sm-4">
-                      <div class="q-pa-md rounded-12 bg-grey-1 border-subtle row items-center no-wrap h-full">
-                        <q-avatar color="red-1" text-color="negative" icon="event_busy" class="q-mr-md" size="32px" />
+                      <div
+                        class="q-pa-md rounded-12 bg-grey-1 border-subtle row items-center no-wrap h-full"
+                      >
+                        <q-avatar
+                          color="red-1"
+                          text-color="negative"
+                          icon="event_busy"
+                          class="q-mr-md"
+                          size="32px"
+                        />
                         <div>
-                          <div class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10">JATUH TEMPO</div>
-                          <div class="text-subtitle2 text-weight-bold text-negative leading-tight q-mt-xs">
+                          <div
+                            class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10"
+                          >
+                            JATUH TEMPO
+                          </div>
+                          <div
+                            class="text-subtitle2 text-weight-bold text-negative leading-tight q-mt-xs"
+                          >
                             {{ formatDateIndo(selectedTagihan.jatuh_tempo) }}
                           </div>
                         </div>
                       </div>
                     </div>
-                    
+
                     <div class="col-12"><q-separator class="border-subtle q-my-xs" /></div>
-                    
+
                     <!-- KETERANGAN -->
                     <div class="col-12">
                       <div class="q-pa-md rounded-12 bg-grey-1 border-subtle">
-                        <div class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10 row items-center">
+                        <div
+                          class="text-caption text-grey-6 text-bold uppercase tracking-widest font-10 row items-center"
+                        >
                           <q-icon name="notes" size="sm" color="teal-8" class="q-mr-xs" />
                           DESKRIPSI / KETERANGAN TAGIHAN
                         </div>
-                        <div class="text-body2 text-grey-9 q-mt-sm font-13" style="line-height: 1.6">
+                        <div
+                          class="text-body2 text-grey-9 q-mt-sm font-13"
+                          style="line-height: 1.6"
+                        >
                           {{ selectedTagihan.keterangan || '-' }}
                         </div>
                       </div>
@@ -871,7 +962,9 @@
                 class="rounded-20 shadow-sm bg-white border-teal-thin overflow-hidden"
               >
                 <div class="bg-teal-gradient text-white q-pa-lg text-center">
-                  <div class="text-overline text-teal-1 text-bold tracking-widest uppercase opacity-90">
+                  <div
+                    class="text-overline text-teal-1 text-bold tracking-widest uppercase opacity-90"
+                  >
                     GRAND TOTAL TAGIHAN
                   </div>
                   <div class="text-h3 text-weight-black q-mt-sm">
@@ -919,22 +1012,14 @@
                   <q-separator class="q-my-lg border-subtle" />
 
                   <div class="row justify-between items-center q-mb-sm no-print">
-                    <div class="text-weight-bold text-teal-10 uppercase tracking-widest font-11 row items-center">
-                      <q-icon name="account_balance_wallet" size="16px" class="q-mr-xs" /> STATUS PEMBAYARAN
+                    <div
+                      class="text-weight-bold text-teal-10 uppercase tracking-widest font-11 row items-center"
+                    >
+                      <q-icon name="account_balance_wallet" size="16px" class="q-mr-xs" /> STATUS
+                      PEMBAYARAN
                     </div>
                     <div class="row q-gutter-sm">
-                      <!-- Tombol Ajukan Tagihan -->
-                      <q-btn
-                        v-if="canEdit && selectedTagihan.status === 'Draft'"
-                        unelevated
-                        rounded
-                        size="xs"
-                        color="teal-10"
-                        icon="send"
-                        label="Ajukan"
-                        class="q-px-sm"
-                        @click="ajukanTagihan"
-                      />
+
                       <!-- Tombol Update Pembayaran -->
                       <q-btn
                         v-if="
@@ -959,11 +1044,19 @@
                     <div class="row justify-between text-caption text-grey-6 q-mb-xs font-10">
                       <span>Progres Pelunasan</span>
                       <span class="text-weight-bold text-teal-10">
-                        {{ ((selectedTagihan.total_dibayar || 0) / (selectedTagihan.grand_total || 1) * 100).toFixed(0) }}%
+                        {{
+                          (
+                            ((selectedTagihan.total_dibayar || 0) /
+                              (selectedTagihan.grand_total || 1)) *
+                            100
+                          ).toFixed(0)
+                        }}%
                       </span>
                     </div>
                     <q-linear-progress
-                      :value="(selectedTagihan.total_dibayar || 0) / (selectedTagihan.grand_total || 1)"
+                      :value="
+                        (selectedTagihan.total_dibayar || 0) / (selectedTagihan.grand_total || 1)
+                      "
                       color="teal"
                       track-color="teal-1"
                       rounded
@@ -1009,7 +1102,11 @@
                     "
                     class="rounded-12 overflow-hidden border-subtle bg-grey-1"
                   >
-                    <q-item v-for="(hist, idx) in selectedTagihan.riwayat_pembayaran" :key="idx" class="q-py-md">
+                    <q-item
+                      v-for="(hist, idx) in selectedTagihan.riwayat_pembayaran"
+                      :key="idx"
+                      class="q-py-md"
+                    >
                       <q-item-section avatar>
                         <q-avatar color="teal-1" text-color="teal-9" icon="payments" />
                       </q-item-section>
@@ -1346,6 +1443,65 @@
                           </template>
                         </div>
                       </div>
+                    </div>
+                  </q-card-section>
+                </q-card>
+
+                <!-- CARD: REKENING PENERIMA -->
+                <q-card flat bordered class="rounded-20 q-mb-lg bg-white shadow-1 border-teal-thin">
+                  <q-card-section
+                    class="bg-teal-section q-py-sm text-teal-10 text-weight-bold flex items-center border-bottom-subtle"
+                  >
+                    <div class="text-weight-bold uppercase tracking-widest font-11 flex items-center">
+                      <q-icon name="account_balance" size="sm" class="q-mr-sm" /> 2. REKENING PENERIMA
+                    </div>
+                  </q-card-section>
+                  <q-card-section class="q-pa-lg q-gutter-y-md">
+                    <div>
+                      <div class="label-req q-mb-xs">Nama Penerima / Vendor *</div>
+                      <q-input
+                        outlined
+                        dense
+                        v-model="form.vendor_nama"
+                        bg-color="white"
+                        color="teal-10"
+                        placeholder="Nama Vendor..."
+                      />
+                    </div>
+                    <div class="row q-col-gutter-sm">
+                      <div class="col-6">
+                        <div class="label-req q-mb-xs">Bank *</div>
+                        <q-input
+                          outlined
+                          dense
+                          v-model="form.rek_bank"
+                          bg-color="white"
+                          color="teal-10"
+                          placeholder="Contoh: BCA"
+                        />
+                      </div>
+                      <div class="col-6">
+                        <div class="label-req q-mb-xs">Nomor Rekening *</div>
+                        <q-input
+                          outlined
+                          dense
+                          v-model="form.rek_nomor"
+                          bg-color="white"
+                          color="teal-10"
+                          placeholder="12345..."
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <div class="label-req q-mb-xs">Atas Nama Rekening *</div>
+                      <q-input
+                        outlined
+                        dense
+                        v-model="form.rek_nama"
+                        bg-color="white"
+                        color="teal-10"
+                        placeholder="Sesuai buku tabungan..."
+                      />
                     </div>
                   </q-card-section>
                 </q-card>
@@ -1711,30 +1867,144 @@
         </div>
 
         <!-- 3-COLUMN SUMMARY TABLE (PDF) -->
-        <div style="margin-bottom: 25px; display: flex;">
-          <table style="width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 10px; border: 1.5px solid #004d40; table-layout: fixed;">
+        <div style="margin-bottom: 25px; display: flex">
+          <table
+            style="
+              width: 100%;
+              border-collapse: collapse;
+              font-family: sans-serif;
+              font-size: 10px;
+              border: 1.5px solid #004d40;
+              table-layout: fixed;
+            "
+          >
             <thead>
-              <tr style="background-color: #00796b; color: white;">
-                <th width="40%" style="padding: 8px; text-align: left; font-weight: bold; border: 1px solid #004d40; text-transform: uppercase;">STATUS TAGIHAN</th>
-                <th width="20%" style="padding: 8px; text-align: center; font-weight: bold; border: 1px solid #004d40; text-transform: uppercase;">JUMLAH DOKUMEN</th>
-                <th width="40%" style="padding: 8px; text-align: right; font-weight: bold; border: 1px solid #004d40; text-transform: uppercase;">TOTAL NOMINAL</th>
+              <tr style="background-color: #00796b; color: white">
+                <th
+                  width="40%"
+                  style="
+                    padding: 8px;
+                    text-align: left;
+                    font-weight: bold;
+                    border: 1px solid #004d40;
+                    text-transform: uppercase;
+                  "
+                >
+                  STATUS TAGIHAN
+                </th>
+                <th
+                  width="20%"
+                  style="
+                    padding: 8px;
+                    text-align: center;
+                    font-weight: bold;
+                    border: 1px solid #004d40;
+                    text-transform: uppercase;
+                  "
+                >
+                  JUMLAH DOKUMEN
+                </th>
+                <th
+                  width="40%"
+                  style="
+                    padding: 8px;
+                    text-align: right;
+                    font-weight: bold;
+                    border: 1px solid #004d40;
+                    text-transform: uppercase;
+                  "
+                >
+                  TOTAL NOMINAL
+                </th>
               </tr>
             </thead>
             <tbody>
-              <tr style="background-color: #fff8e1;">
-                <td style="padding: 8px; border: 1px solid #ffb300; font-weight: bold; color: #b78103;">Sedang Diajukan</td>
-                <td style="padding: 8px; border: 1px solid #ffb300; text-align: center; font-weight: bold; color: #b78103;">{{ summaryDiajukan.count }}</td>
-                <td style="padding: 8px; border: 1px solid #ffb300; text-align: right; font-weight: bold; color: #b78103;">Rp {{ summaryDiajukan.total.toLocaleString('id-ID') }}</td>
+              <tr style="background-color: #fff8e1">
+                <td
+                  style="padding: 8px; border: 1px solid #ffb300; font-weight: bold; color: #b78103"
+                >
+                  Sedang Diajukan
+                </td>
+                <td
+                  style="
+                    padding: 8px;
+                    border: 1px solid #ffb300;
+                    text-align: center;
+                    font-weight: bold;
+                    color: #b78103;
+                  "
+                >
+                  {{ summaryDiajukan.count }}
+                </td>
+                <td
+                  style="
+                    padding: 8px;
+                    border: 1px solid #ffb300;
+                    text-align: right;
+                    font-weight: bold;
+                    color: #b78103;
+                  "
+                >
+                  Rp {{ summaryDiajukan.total.toLocaleString('id-ID') }}
+                </td>
               </tr>
-              <tr style="background-color: #ffebee;">
-                <td style="padding: 8px; border: 1px solid #ef5350; font-weight: bold; color: #c62828;">Ditolak</td>
-                <td style="padding: 8px; border: 1px solid #ef5350; text-align: center; font-weight: bold; color: #c62828;">{{ summaryDitolak.count }}</td>
-                <td style="padding: 8px; border: 1px solid #ef5350; text-align: right; font-weight: bold; color: #c62828;">Rp {{ summaryDitolak.total.toLocaleString('id-ID') }}</td>
+              <tr style="background-color: #ffebee">
+                <td
+                  style="padding: 8px; border: 1px solid #ef5350; font-weight: bold; color: #c62828"
+                >
+                  Ditolak
+                </td>
+                <td
+                  style="
+                    padding: 8px;
+                    border: 1px solid #ef5350;
+                    text-align: center;
+                    font-weight: bold;
+                    color: #c62828;
+                  "
+                >
+                  {{ summaryDitolak.count }}
+                </td>
+                <td
+                  style="
+                    padding: 8px;
+                    border: 1px solid #ef5350;
+                    text-align: right;
+                    font-weight: bold;
+                    color: #c62828;
+                  "
+                >
+                  Rp {{ summaryDitolak.total.toLocaleString('id-ID') }}
+                </td>
               </tr>
-              <tr style="background-color: #e8f5e9;">
-                <td style="padding: 8px; border: 1px solid #66bb6a; font-weight: bold; color: #2e7d32;">Sudah Cair (Lunas / Sebagian)</td>
-                <td style="padding: 8px; border: 1px solid #66bb6a; text-align: center; font-weight: bold; color: #2e7d32;">{{ summarySudahCair.count }}</td>
-                <td style="padding: 8px; border: 1px solid #66bb6a; text-align: right; font-weight: bold; color: #2e7d32;">Rp {{ summarySudahCair.total.toLocaleString('id-ID') }}</td>
+              <tr style="background-color: #e8f5e9">
+                <td
+                  style="padding: 8px; border: 1px solid #66bb6a; font-weight: bold; color: #2e7d32"
+                >
+                  Sudah Cair (Lunas / Sebagian)
+                </td>
+                <td
+                  style="
+                    padding: 8px;
+                    border: 1px solid #66bb6a;
+                    text-align: center;
+                    font-weight: bold;
+                    color: #2e7d32;
+                  "
+                >
+                  {{ summarySudahCair.count }}
+                </td>
+                <td
+                  style="
+                    padding: 8px;
+                    border: 1px solid #66bb6a;
+                    text-align: right;
+                    font-weight: bold;
+                    color: #2e7d32;
+                  "
+                >
+                  Rp {{ summarySudahCair.total.toLocaleString('id-ID') }}
+                </td>
               </tr>
             </tbody>
           </table>
@@ -1844,7 +2114,6 @@
             </tr>
           </tbody>
         </table>
-
       </div>
     </div>
   </q-page>
@@ -1925,12 +2194,12 @@ const resolvePermission = (karyawanData) => {
   }
 
   // Cari menu dengan ID standar terlebih dahulu, fallback ke pencarian string label
-  const menuTagihanSupplier = modulKonstruksi.menus?.find(
-    (menu) => menu.id === '_konstruksi_finance_tagihan-supplier'
-  ) || modulKonstruksi.menus?.find((menu) => {
-    const lbl = (menu.label || '').toLowerCase()
-    return lbl.includes('tagihan') && lbl.includes('supplier')
-  })
+  const menuTagihanSupplier =
+    modulKonstruksi.menus?.find((menu) => menu.id === '_konstruksi_finance_tagihan-supplier') ||
+    modulKonstruksi.menus?.find((menu) => {
+      const lbl = (menu.label || '').toLowerCase()
+      return lbl.includes('tagihan') && lbl.includes('supplier')
+    })
 
   if (!menuTagihanSupplier) {
     userPermission.value = { lihat: false, buat: false, ubah: false, hapus: false, approve: false }
@@ -2060,6 +2329,10 @@ const formDefault = {
   po_tanggal: '',
   nominal_po: 0,
   supplier: null,
+  vendor_nama: '',
+  rek_bank: '',
+  rek_nomor: '',
+  rek_nama: '',
   nomor_invoice: '',
   tanggal_invoice: new Date().toISOString().substr(0, 10),
   nominal_invoice: 0,
@@ -2110,20 +2383,19 @@ const syncExistingTagihanStatus = async () => {
     const tagihans = tagihanSnap.docs.map((d) => ({ id: d.id, ...d.data() }))
 
     for (const tagihan of tagihans) {
-      const tagihanIdentifiers = [tagihan.id, tagihan.kode_tagihan, tagihan.nomor_invoice].filter(
-        Boolean,
-      )
-
       // Find ALL related pengajuan, then pick the LATEST one
       const relatedPengajuanList = pengajuans.filter((p) => {
-        const pengajuanRefs = [p.tagihan_id, p.tagihan_nomor_invoice, p.tagihan_kode].filter(
-          Boolean,
+        if (p.tagihan_id) {
+          return p.tagihan_id === tagihan.id
+        }
+        const matchVendor = p.vendor_nama?.toLowerCase() === tagihan.supplier_nama?.toLowerCase()
+        return (
+          matchVendor &&
+          (p.tagihan_nomor_invoice === tagihan.nomor_invoice ||
+            (p.tagihan_kode && p.tagihan_kode === tagihan.kode_tagihan))
         )
-        return pengajuanRefs.some((ref) => tagihanIdentifiers.includes(ref))
       })
-      relatedPengajuanList.sort(
-        (a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0),
-      )
+      relatedPengajuanList.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
       const relatedPengajuan = relatedPengajuanList.length > 0 ? relatedPengajuanList[0] : null
 
       let newStatus = 'Draft'
@@ -2137,8 +2409,10 @@ const syncExistingTagihanStatus = async () => {
           newStatus = 'Menunggu Pembayaran'
         } else if (relatedPengajuan.status === 'Pending') {
           newStatus = 'Sedang Diajukan'
+        } else if (relatedPengajuan.status === 'Draft') {
+          newStatus = 'Draft'
         } else {
-          newStatus = 'Sedang Diajukan'
+          newStatus = 'Draft'
         }
       }
 
@@ -2169,11 +2443,23 @@ const syncExistingTagihanStatus = async () => {
 }
 
 const generateKodeTagihan = () => {
-  const count = rows.value.length + 1
-  const padded = count.toString().padStart(3, '0')
   const year = new Date().getFullYear()
   const month = ('0' + (new Date().getMonth() + 1)).slice(-2)
-  return `AP/${year}${month}/${padded}`
+  const prefix = `AP/${year}${month}/`
+  
+  const matchingNumbers = rows.value
+    .map((r) => r.kode_tagihan)
+    .filter((code) => code && code.startsWith(prefix))
+    .map((code) => {
+      const parts = code.split('/')
+      const numStr = parts[parts.length - 1]
+      return parseInt(numStr, 10) || 0
+    })
+    
+  const maxNum = matchingNumbers.length > 0 ? Math.max(...matchingNumbers) : 0
+  const nextNum = maxNum + 1
+  const padded = nextNum.toString().padStart(3, '0')
+  return `${prefix}${padded}`
 }
 
 // Store pengajuan pembayaran data
@@ -2190,16 +2476,19 @@ const processTagihanData = () => {
       const sisaTagihan = grandTotal - totalDibayar
 
       // Find ALL pengajuan related to this tagihan, then pick the LATEST one
-      const relatedPengajuanList = pengajuanPembayaranData.value.filter(
-        (p) =>
-          p.tagihan_id === data.id ||
-          p.tagihan_nomor_invoice === data.nomor_invoice ||
-          (p.tagihan_kode && p.tagihan_kode === data.kode_tagihan),
-      )
+      const relatedPengajuanList = pengajuanPembayaranData.value.filter((p) => {
+        if (p.tagihan_id) {
+          return p.tagihan_id === data.id
+        }
+        const matchVendor = p.vendor_nama?.toLowerCase() === data.supplier_nama?.toLowerCase()
+        return (
+          matchVendor &&
+          (p.tagihan_nomor_invoice === data.nomor_invoice ||
+            (p.tagihan_kode && p.tagihan_kode === data.kode_tagihan))
+        )
+      })
       // Sort by createdAt descending (newest first) to get the most recent pengajuan
-      relatedPengajuanList.sort(
-        (a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0),
-      )
+      relatedPengajuanList.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
       const relatedPengajuan = relatedPengajuanList.length > 0 ? relatedPengajuanList[0] : null
 
       let status = data.status || 'Draft'
@@ -2213,8 +2502,10 @@ const processTagihanData = () => {
           status = 'Menunggu Pembayaran'
         } else if (relatedPengajuan.status === 'Pending') {
           status = 'Sedang Diajukan'
+        } else if (relatedPengajuan.status === 'Draft') {
+          status = 'Draft'
         } else {
-          status = 'Sedang Diajukan'
+          status = 'Draft'
         }
       }
 
@@ -2350,13 +2641,14 @@ const summaryDitolak = computed(() => {
 })
 
 const summarySudahCair = computed(() => {
-  const items = filteredRows.value.filter((r) => r.status === 'Lunas' || r.status === 'Dibayar Sebagian')
+  const items = filteredRows.value.filter(
+    (r) => r.status === 'Lunas' || r.status === 'Dibayar Sebagian',
+  )
   return {
     count: items.length,
     total: items.reduce((sum, r) => sum + (Number(r.total_dibayar) || 0), 0),
   }
 })
-
 
 // ✅ SPK Options: Dibangun secara kokoh dan toleran terhadap format ID string maupun objek
 const currentSpkOptions = computed(() => {
@@ -2468,6 +2760,31 @@ watch(
   { deep: true },
 )
 
+watch(
+  () => form.value.supplier,
+  (newVal) => {
+    if (newVal) {
+      const matchedSupp = allSupplier.value.find(
+        (s) => s.id === newVal.id || s.nama?.toLowerCase() === newVal.nama?.toLowerCase()
+      )
+      if (matchedSupp) {
+        form.value.vendor_nama = matchedSupp.nama || ''
+        form.value.rek_bank = matchedSupp.rek_bank || ''
+        form.value.rek_nomor = matchedSupp.rek_nomor || ''
+        form.value.rek_nama = matchedSupp.rek_nama || ''
+      } else {
+        form.value.vendor_nama = newVal.nama || ''
+      }
+    } else {
+      form.value.vendor_nama = ''
+      form.value.rek_bank = ''
+      form.value.rek_nomor = ''
+      form.value.rek_nama = ''
+    }
+  },
+  { deep: true }
+)
+
 // ============================================================================
 // DIALOG & FORM LOGIC
 // ============================================================================
@@ -2553,15 +2870,17 @@ const exportTablePDF = () => {
 const exportTableExcel = () => {
   try {
     // Calculate statistics based on current filtered items
-    const diajukanList = filteredRows.value.filter(r => r.status === 'Sedang Diajukan')
+    const diajukanList = filteredRows.value.filter((r) => r.status === 'Sedang Diajukan')
     const diajukanCount = diajukanList.length
     const diajukanSum = diajukanList.reduce((sum, r) => sum + (Number(r.grand_total) || 0), 0)
 
-    const ditolakList = filteredRows.value.filter(r => r.status === 'Ditolak')
+    const ditolakList = filteredRows.value.filter((r) => r.status === 'Ditolak')
     const ditolakCount = ditolakList.length
     const ditolakSum = ditolakList.reduce((sum, r) => sum + (Number(r.grand_total) || 0), 0)
 
-    const sudahCairList = filteredRows.value.filter(r => r.status === 'Lunas' || r.status === 'Dibayar Sebagian')
+    const sudahCairList = filteredRows.value.filter(
+      (r) => r.status === 'Lunas' || r.status === 'Dibayar Sebagian',
+    )
     const sudahCairCount = sudahCairList.length
     const sudahCairSum = sudahCairList.reduce((sum, r) => sum + (Number(r.total_dibayar) || 0), 0)
 
@@ -2585,7 +2904,8 @@ const exportTableExcel = () => {
       '</p><br>'
 
     // 3-COLUMN SUMMARY TABLE IN EXCEL
-    tableHtml += '<table style="border-collapse: collapse; width: 45%; font-family: sans-serif; margin-bottom: 20px;">'
+    tableHtml +=
+      '<table style="border-collapse: collapse; width: 45%; font-family: sans-serif; margin-bottom: 20px;">'
     tableHtml += `
       <thead>
         <tr style="background-color: #004d40; color: #ffffff; font-weight: bold; border: 1.5px solid #00332c;">
@@ -2761,6 +3081,14 @@ const simpanTagihan = async () => {
     })
   }
 
+  if (!form.value.vendor_nama || !form.value.rek_bank || !form.value.rek_nomor || !form.value.rek_nama) {
+    return $q.notify({
+      type: 'warning',
+      position: 'top',
+      message: 'Data Rekening Penerima (Nama Penerima, Bank, No. Rekening, Atas Nama Rekening) wajib diisi!',
+    })
+  }
+
   $q.loading.show({ message: 'Menyimpan dokumen tagihan...' })
   submitting.value = true
 
@@ -2810,6 +3138,10 @@ const simpanTagihan = async () => {
       lampiran: form.value.lampiran,
       selected_spk: form.value.selected_spk || [],
       spk_boq_selection: form.value.spk_boq_selection || {},
+      vendor_nama: form.value.vendor_nama || form.value.supplier?.nama || '',
+      rek_bank: form.value.rek_bank || '',
+      rek_nomor: form.value.rek_nomor || '',
+      rek_nama: form.value.rek_nama || '',
       updatedAt: serverTimestamp(),
     }
 
@@ -2824,11 +3156,10 @@ const simpanTagihan = async () => {
     }
 
     // Synchronize to finance_pengajuan_pembayaran
-    const selectedSupplierId = form.value.supplier?.id || null
-    const matchedSupp = allSupplier.value.find((s) => s.id === selectedSupplierId)
-    const reqBank = matchedSupp?.rek_bank || ''
-    const reqNomor = matchedSupp?.rek_nomor || ''
-    const reqNama = matchedSupp?.rek_nama || ''
+    const reqBank = form.value.rek_bank || ''
+    const reqNomor = form.value.rek_nomor || ''
+    const reqNama = form.value.rek_nama || ''
+    const reqVendor = form.value.vendor_nama || form.value.supplier?.nama || ''
 
     let reqStatus = 'Pending'
     if (targetStatus === 'Menunggu Pembayaran' || targetStatus === 'Dibayar Sebagian') {
@@ -2852,13 +3183,15 @@ const simpanTagihan = async () => {
       proyek_nama: form.value.proyek_nama || '',
       selected_spk: form.value.selected_spk || [],
       spk_boq_selection: form.value.spk_boq_selection || {},
-      vendor_nama: form.value.supplier?.nama || '',
+      vendor_nama: reqVendor,
       rek_bank: reqBank,
       rek_nomor: reqNomor,
       rek_nama: reqNama,
       nominal: calculatedGrandTotal.value,
       tanggal_pengajuan: form.value.tanggal_invoice || new Date().toISOString().substr(0, 10),
-      tanggal_dibutuhkan: form.value.jatuh_tempo || new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().substr(0, 10),
+      tanggal_dibutuhkan:
+        form.value.jatuh_tempo ||
+        new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().substr(0, 10),
       keterangan: form.value.keterangan || '',
       lampiran: form.value.lampiran || [],
       status: reqStatus,
@@ -2871,7 +3204,7 @@ const simpanTagihan = async () => {
 
     const qReq = query(
       collection(db, 'finance_pengajuan_pembayaran'),
-      where('tagihan_id', '==', tagihanId)
+      where('tagihan_id', '==', tagihanId),
     )
     const snapReq = await getDocs(qReq)
     if (!snapReq.empty) {
@@ -2921,7 +3254,7 @@ const confirmHapus = (row) => {
       await deleteDoc(doc(db, 'finance_tagihan', row.id))
       const q = query(
         collection(db, 'finance_pengajuan_pembayaran'),
-        where('tagihan_id', '==', row.id)
+        where('tagihan_id', '==', row.id),
       )
       const snap = await getDocs(q)
       for (const d of snap.docs) {
@@ -2935,73 +3268,9 @@ const confirmHapus = (row) => {
   })
 }
 
-const ajukanTagihan = async () => {
-  if (!canEdit.value)
-    return $q.notify({
-      type: 'negative',
-      position: 'top',
-      message: 'Anda tidak memiliki izin untuk mengajukan tagihan.',
-    })
-  try {
-    await updateDoc(doc(db, 'finance_tagihan', selectedTagihan.value.id), {
-      status: 'Sedang Diajukan',
-      updatedAt: serverTimestamp(),
-    })
-    // Sync payment request status to Pending
-    const q = query(
-      collection(db, 'finance_pengajuan_pembayaran'),
-      where('tagihan_id', '==', selectedTagihan.value.id)
-    )
-    const snap = await getDocs(q)
-    for (const d of snap.docs) {
-      await updateDoc(doc(db, 'finance_pengajuan_pembayaran', d.id), {
-        status: 'Pending',
-        approver_read: false,
-        updatedAt: serverTimestamp(),
-      })
-    }
-    selectedTagihan.value.status = 'Sedang Diajukan'
-    $q.notify({ type: 'positive', position: 'top', message: 'Tagihan berhasil diajukan!' })
-  } catch (err) {
-    console.error(err)
-    $q.notify({ type: 'negative', position: 'top', message: 'Gagal mengajukan tagihan.' })
-  }
-}
 
-const ajukanTagihanFromRow = async (row) => {
-  if (!canEdit.value)
-    return $q.notify({
-      type: 'negative',
-      position: 'top',
-      message: 'Anda tidak memiliki izin untuk mengajukan tagihan.',
-    })
-  try {
-    $q.loading.show({ message: 'Mengajukan tagihan...' })
-    await updateDoc(doc(db, 'finance_tagihan', row.id), {
-      status: 'Sedang Diajukan',
-      updatedAt: serverTimestamp(),
-    })
-    // Sync payment request status to Pending
-    const q = query(
-      collection(db, 'finance_pengajuan_pembayaran'),
-      where('tagihan_id', '==', row.id)
-    )
-    const snap = await getDocs(q)
-    for (const d of snap.docs) {
-      await updateDoc(doc(db, 'finance_pengajuan_pembayaran', d.id), {
-        status: 'Pending',
-        approver_read: false,
-        updatedAt: serverTimestamp(),
-      })
-    }
-    $q.notify({ type: 'positive', position: 'top', message: 'Tagihan berhasil diajukan!' })
-  } catch (err) {
-    console.error(err)
-    $q.notify({ type: 'negative', position: 'top', message: 'Gagal mengajukan tagihan.' })
-  } finally {
-    $q.loading.hide()
-  }
-}
+
+
 
 // ============================================================================
 // PEMBAYARAN
@@ -3078,7 +3347,7 @@ const savePayment = async () => {
     if (newStatus === 'Lunas') {
       const q = query(
         collection(db, 'finance_pengajuan_pembayaran'),
-        where('tagihan_id', '==', selectedTagihan.value.id)
+        where('tagihan_id', '==', selectedTagihan.value.id),
       )
       const snap = await getDocs(q)
       for (const d of snap.docs) {
@@ -3254,7 +3523,8 @@ onUnmounted(() => {
 }
 .dashed-btn-teal {
   border: 2px dashed #009688;
-}.border-teal-thin {
+}
+.border-teal-thin {
   border: 1px solid rgba(0, 150, 136, 0.18) !important;
 }
 .border-bottom-subtle {
@@ -3556,7 +3826,6 @@ onUnmounted(() => {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
-
 
   #invoice-pdf-target .bg-blue-grey-10 {
     background-color: #263238 !important;
