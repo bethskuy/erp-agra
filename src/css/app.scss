@@ -1,7 +1,12 @@
 // app global css in SCSS form
 
-/* Safe area handling for mobile devices */
-/* q-header already has q-safe-area-top class which handles top safe area padding */
+/* Safe area handling for mobile devices (including custom wrappers, webviews, and Capacitor) */
+.q-header {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.q-drawer {
+  padding-top: env(safe-area-inset-top, 0px);
+}
 
 /* For capacitor/cordova, ensure full screen */
 html,
