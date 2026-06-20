@@ -945,7 +945,7 @@
                       </div>
                     </div>
                     <div
-                      class="text-signer-final text-weight-bolder underline uppercase text-indigo-10"
+                      class="text-signer-final text-weight-bolder uppercase text-indigo-10"
                     >
                       {{ selectedData.ttd_nama }}
                     </div>
@@ -1811,11 +1811,23 @@ body.is-exporting .letter-paper .terms-header {
 }
 body.is-exporting .letter-paper .terms-content-box {
   padding: 6px 10px !important;
-  font-size: 10px !important;
+}
+body.is-exporting .letter-paper .terms-content-box,
+body.is-exporting .letter-paper .terms-content-box * {
+  font-size: 11px !important;
 }
 body.is-exporting .letter-paper .final-sign-space {
-  height: 60px !important;
-  margin-bottom: 2px !important;
+  height: 100px !important;
+  width: 150px !important;
+  margin-bottom: 8px !important;
+}
+body.is-exporting .letter-paper .img-stempel {
+  width: 80px !important;
+  bottom: 4px !important;
+}
+body.is-exporting .letter-paper .img-signature {
+  width: 120px !important;
+  bottom: 0 !important;
 }
 
 /* Tighten spacing utility Quasar hanya saat export */
@@ -2244,7 +2256,6 @@ body.is-exporting .letter-paper .row.justify-between {
 .text-signer-final {
   font-size: 14px;
   font-weight: 900;
-  border-bottom: 2px solid #1a237e;
   display: inline-block;
   padding: 0 5px;
 }

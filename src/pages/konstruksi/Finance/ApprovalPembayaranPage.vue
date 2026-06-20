@@ -266,7 +266,7 @@
                 </q-td>
 
                 <q-td key="deskripsi">
-                  <div class="text-grey-8 font-11" style="max-width: 250px; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4;">
+                  <div class="text-grey-8 font-11" style="max-width: 250px; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4;">
                     {{ props.row.keterangan || '-' }}
                   </div>
                 </q-td>
