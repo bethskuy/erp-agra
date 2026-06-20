@@ -737,6 +737,27 @@
             <q-btn icon="close" flat round dense v-close-popup />
           </q-card-section>
           <q-card-section class="q-pa-lg">
+            <!-- Pengatur Ketebalan Pen -->
+            <div class="row items-center q-col-gutter-md q-mb-md">
+              <div class="col-auto text-weight-bold text-grey-8 font-10">
+                KETEBALAN PENA:
+              </div>
+              <div class="col">
+                <q-slider
+                  v-model="penThickness"
+                  :min="1"
+                  :max="10"
+                  :step="0.5"
+                  label
+                  color="brand-primary"
+                  class="q-px-sm"
+                />
+              </div>
+              <div class="col-auto text-caption text-grey-6 text-weight-bold" style="width: 50px;">
+                {{ penThickness }} px
+              </div>
+            </div>
+
             <div class="signature-pad-wrapper shadow-inner bg-white border-dashed">
               <canvas ref="signatureCanvas" class="signature-canvas"></canvas>
             </div>
@@ -1288,6 +1309,15 @@ onUnmounted(() => {
 })
 
 // ── SIGNATURE PAD ─────────────────────────────────────────────────────────────
+const penThickness = ref(5) // default 5 (minWidth: 3.5, maxWidth: 8.0)
+
+watch(penThickness, (val) => {
+  if (signaturePad) {
+    signaturePad.minWidth = val * 0.7
+    signaturePad.maxWidth = val * 1.6
+  }
+})
+
 watch(showPad, async (v) => {
   if (v) {
     await nextTick()
@@ -1296,7 +1326,11 @@ watch(showPad, async (v) => {
     c.width = c.offsetWidth * r
     c.height = c.offsetHeight * r
     c.getContext('2d').scale(r, r)
-    signaturePad = new SignaturePad(c, { penColor: '#000000', minWidth: 3.5, maxWidth: 8.0 })
+    signaturePad = new SignaturePad(c, {
+      penColor: '#000000',
+      minWidth: penThickness.value * 0.7,
+      maxWidth: penThickness.value * 1.6,
+    })
   }
 })
 const clearPad = () => signaturePad?.clear()
