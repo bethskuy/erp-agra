@@ -737,6 +737,27 @@
             <q-btn icon="close" flat round dense v-close-popup />
           </q-card-section>
           <q-card-section class="q-pa-lg">
+            <!-- Pengatur Ketebalan Pen -->
+            <div class="row items-center q-col-gutter-md q-mb-md">
+              <div class="col-auto text-weight-bold text-grey-8 font-10">
+                KETEBALAN PENA:
+              </div>
+              <div class="col">
+                <q-slider
+                  v-model="penThickness"
+                  :min="1"
+                  :max="10"
+                  :step="0.5"
+                  label
+                  color="brand-primary"
+                  class="q-px-sm"
+                />
+              </div>
+              <div class="col-auto text-caption text-grey-6 text-weight-bold" style="width: 50px;">
+                {{ penThickness }} px
+              </div>
+            </div>
+
             <div class="signature-pad-wrapper shadow-inner bg-white border-dashed">
               <canvas ref="signatureCanvas" class="signature-canvas"></canvas>
             </div>
@@ -945,7 +966,7 @@
                       </div>
                     </div>
                     <div
-                      class="text-signer-final text-weight-bolder underline uppercase text-indigo-10"
+                      class="text-signer-final text-weight-bolder uppercase text-indigo-10"
                     >
                       {{ selectedData.ttd_nama }}
                     </div>
@@ -1288,6 +1309,15 @@ onUnmounted(() => {
 })
 
 // ── SIGNATURE PAD ─────────────────────────────────────────────────────────────
+const penThickness = ref(5) // default 5 (minWidth: 3.5, maxWidth: 8.0)
+
+watch(penThickness, (val) => {
+  if (signaturePad) {
+    signaturePad.minWidth = val * 0.7
+    signaturePad.maxWidth = val * 1.6
+  }
+})
+
 watch(showPad, async (v) => {
   if (v) {
     await nextTick()
@@ -1296,7 +1326,11 @@ watch(showPad, async (v) => {
     c.width = c.offsetWidth * r
     c.height = c.offsetHeight * r
     c.getContext('2d').scale(r, r)
-    signaturePad = new SignaturePad(c, { penColor: '#000000', minWidth: 3.5, maxWidth: 8.0 })
+    signaturePad = new SignaturePad(c, {
+      penColor: '#000000',
+      minWidth: penThickness.value * 0.7,
+      maxWidth: penThickness.value * 1.6,
+    })
   }
 })
 const clearPad = () => signaturePad?.clear()
@@ -1811,11 +1845,23 @@ body.is-exporting .letter-paper .terms-header {
 }
 body.is-exporting .letter-paper .terms-content-box {
   padding: 6px 10px !important;
-  font-size: 10px !important;
+}
+body.is-exporting .letter-paper .terms-content-box,
+body.is-exporting .letter-paper .terms-content-box * {
+  font-size: 11px !important;
 }
 body.is-exporting .letter-paper .final-sign-space {
-  height: 60px !important;
-  margin-bottom: 2px !important;
+  height: 100px !important;
+  width: 150px !important;
+  margin-bottom: 8px !important;
+}
+body.is-exporting .letter-paper .img-stempel {
+  width: 80px !important;
+  bottom: 4px !important;
+}
+body.is-exporting .letter-paper .img-signature {
+  width: 120px !important;
+  bottom: 0 !important;
 }
 
 /* Tighten spacing utility Quasar hanya saat export */
@@ -2244,7 +2290,6 @@ body.is-exporting .letter-paper .row.justify-between {
 .text-signer-final {
   font-size: 14px;
   font-weight: 900;
-  border-bottom: 2px solid #1a237e;
   display: inline-block;
   padding: 0 5px;
 }
