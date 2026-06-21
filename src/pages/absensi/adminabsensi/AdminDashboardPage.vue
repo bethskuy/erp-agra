@@ -1,8 +1,24 @@
 <template>
-  <q-page class="bg-blue-grey-1 q-pa-md q-pa-lg font-inter">
+  <q-page class="neo-page-bg q-pa-md q-pa-lg font-inter">
+    <!-- Decorative Floating Neo-Brutalist Shapes -->
+    <div class="neo-decorations-container">
+      <div class="neo-shape neo-shape--circle-1"></div>
+      <div class="neo-shape neo-shape--circle-2"></div>
+      <div class="neo-shape neo-shape--square-1"></div>
+      <div class="neo-shape neo-shape--square-2"></div>
+      <div class="neo-shape neo-shape--star-1">★</div>
+      <div class="neo-shape neo-shape--star-2">★</div>
+      <div class="neo-shape neo-shape--triangle-1">▲</div>
+      <div class="neo-shape neo-shape--triangle-2">▲</div>
+      <div class="neo-shape neo-shape--cross-1">+</div>
+      <div class="neo-shape neo-shape--cross-2">+</div>
+      <div class="neo-shape neo-shape--cross-3">+</div>
+      <div class="neo-shape neo-shape--blob-1"></div>
+    </div>
+
     <div class="premium-container mx-auto">
     <!-- HEADER SECTION -->
-    <div class="row items-center justify-between q-mb-xl">
+    <div class="row items-center justify-between q-mb-xl header-entrance">
       <div>
         <h4 class="text-h4 text-weight-bolder text-blue-grey-10 q-ma-none letter-spacing-tight">
           Dashboard Administrator
@@ -17,7 +33,7 @@
           color="primary"
           icon="download"
           label="Export Laporan"
-          class="rounded-12 text-weight-bold q-px-md q-py-sm shadow-soft-primary"
+          class="neo-btn text-weight-bold q-px-md q-py-sm"
           @click="downloadExcel"
           :loading="isExporting"
         />
@@ -28,7 +44,7 @@
     <div class="row q-col-gutter-lg q-mb-xl">
       <!-- Total Karyawan -->
       <div class="col-12 col-md-4">
-        <q-card flat class="rounded-24 shadow-soft bg-white p-relative overflow-hidden">
+        <q-card flat class="neo-card neo-card-indigo p-relative overflow-hidden card-entrance-1">
           <div class="absolute-top-right q-pa-md opacity-20">
             <q-icon name="groups" size="80px" color="blue-5" />
           </div>
@@ -39,7 +55,7 @@
                 text-color="blue-8"
                 size="48px"
                 icon="groups"
-                class="shadow-1"
+                class="neo-avatar-border"
               />
               <div
                 class="q-ml-md text-subtitle1 text-weight-bold text-blue-grey-8 uppercase letter-spacing-1"
@@ -57,7 +73,7 @@
 
       <!-- Karyawan Hadir -->
       <div class="col-12 col-md-4">
-        <q-card flat class="rounded-24 shadow-soft bg-white p-relative overflow-hidden">
+        <q-card flat class="neo-card neo-card-emerald p-relative overflow-hidden card-entrance-2">
           <div class="absolute-top-right q-pa-md opacity-20">
             <q-icon name="how_to_reg" size="80px" color="teal-5" />
           </div>
@@ -68,7 +84,7 @@
                 text-color="teal-8"
                 size="48px"
                 icon="how_to_reg"
-                class="shadow-1"
+                class="neo-avatar-border"
               />
               <div
                 class="q-ml-md text-subtitle1 text-weight-bold text-blue-grey-8 uppercase letter-spacing-1"
@@ -94,7 +110,7 @@
 
       <!-- Cuti Menunggu -->
       <div class="col-12 col-md-4">
-        <q-card flat class="rounded-24 shadow-soft bg-white p-relative overflow-hidden">
+        <q-card flat class="neo-card neo-card-orange p-relative overflow-hidden card-entrance-3">
           <div class="absolute-top-right q-pa-md opacity-20">
             <q-icon name="pending_actions" size="80px" color="orange-5" />
           </div>
@@ -105,7 +121,7 @@
                 text-color="orange-8"
                 size="48px"
                 icon="pending_actions"
-                class="shadow-1"
+                class="neo-avatar-border"
               />
               <div
                 class="q-ml-md text-subtitle1 text-weight-bold text-blue-grey-8 uppercase letter-spacing-1"
@@ -123,9 +139,9 @@
     </div>
 
     <!-- MAIN DATA TABLE -->
-    <q-card flat class="rounded-24 shadow-soft bg-white overflow-hidden">
+    <q-card flat class="neo-card overflow-hidden table-entrance">
       <!-- Toolbar & Date Filter -->
-      <q-card-section class="q-pa-lg bg-white border-bottom">
+      <q-card-section class="q-pa-lg bg-white neo-table-toolbar">
         <div class="row items-center justify-between">
           <div class="col-12 col-md-auto q-mb-md q-md-mb-none">
             <div class="text-h6 text-weight-bold text-blue-grey-10">Laporan Kehadiran Harian</div>
@@ -145,16 +161,14 @@
             <q-btn
               flat
               round
-              color="blue-grey-5"
               icon="chevron_left"
               @click="ubahTanggal(-1)"
-              class="bg-grey-1"
+              class="neo-nav-btn"
             />
 
             <q-btn
-              outline
-              color="primary"
-              class="rounded-12 q-px-md text-weight-bold bg-blue-1 border-none"
+              unelevated
+              class="neo-btn bg-white text-grey-9 q-px-md text-weight-bold"
               icon-right="event"
             >
               {{ displayDate }}
@@ -171,10 +185,9 @@
             <q-btn
               flat
               round
-              color="blue-grey-5"
               icon="chevron_right"
               @click="ubahTanggal(1)"
-              class="bg-grey-1"
+              class="neo-nav-btn"
             />
           </div>
         </div>
@@ -346,6 +359,8 @@
       </q-table>
     </q-card>
     </div>
+
+
   </q-page>
 </template>
 
@@ -923,24 +938,118 @@ onUnmounted(() => {
   font-family: 'Inter', sans-serif;
 }
 
-/* SHADOWS & RADIUS */
-.shadow-soft {
-  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.08) !important;
+/* NEO-BRUTALIST STYLING */
+.neo-page-bg {
+  background-color: #f0f7ff !important;
+  background-image: radial-gradient(#cbd5e1 1.5px, transparent 1.5px);
+  background-size: 20px 20px;
+  position: relative;
+  overflow: hidden;
 }
-.shadow-soft-primary {
-  box-shadow: 0 8px 24px -8px rgba(25, 118, 210, 0.6) !important;
+
+.neo-card {
+  background: #ffffff !important;
+  border: 2.5px solid #0f172a !important;
+  border-radius: 16px !important;
+  box-shadow: 4px 4px 0px #0f172a !important;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
-.rounded-24 {
-  border-radius: 24px;
+
+.neo-card:hover {
+  transform: translateY(-6px) scale(1.015);
+  box-shadow: 8px 8px 0px #0f172a !important;
 }
-.rounded-12 {
+
+/* Playful hover animations on elements inside cards */
+.neo-card .q-avatar {
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.neo-card:hover .q-avatar {
+  transform: scale(1.15) rotate(-6deg);
+  box-shadow: 3px 3px 0px #0f172a !important;
+}
+
+.neo-card .absolute-top-right .q-icon {
+  transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.neo-card:hover .absolute-top-right .q-icon {
+  transform: scale(1.22) rotate(15deg) translateY(-4px);
+  opacity: 0.35 !important;
+}
+
+/* Card Pastel Themes */
+.neo-card-indigo {
+  background: #e0e7ff !important; /* Soft indigo */
+  color: #1e1b4b !important;
+}
+.neo-card-indigo :deep(.text-blue-grey-10) {
+  color: #1e1b4b !important;
+}
+.neo-card-indigo :deep(.text-blue-grey-8) {
+  color: #312e81 !important;
+}
+
+.neo-card-emerald {
+  background: #d1fae5 !important; /* Soft emerald */
+  color: #064e3b !important;
+}
+.neo-card-emerald :deep(.text-blue-grey-10) {
+  color: #064e3b !important;
+}
+.neo-card-emerald :deep(.text-blue-grey-8) {
+  color: #065f46 !important;
+}
+
+.neo-card-orange {
+  background: #ffedd5 !important; /* Soft orange */
+  color: #7c2d12 !important;
+}
+.neo-card-orange :deep(.text-blue-grey-10) {
+  color: #7c2d12 !important;
+}
+.neo-card-orange :deep(.text-blue-grey-8) {
+  color: #9a3412 !important;
+}
+
+.neo-avatar-border {
+  border: 2px solid #0f172a !important;
+}
+
+.neo-table-toolbar {
+  border-bottom: 2.5px solid #0f172a;
+}
+
+/* BUTTONS */
+.neo-btn {
+  border: 2px solid #0f172a !important;
+  box-shadow: 3px 3px 0px #0f172a !important;
   border-radius: 12px;
+  font-weight: 700;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
-.border-bottom {
-  border-bottom: 1px solid #f1f5f9;
+
+.neo-btn:hover {
+  transform: translateY(-1px) translateX(1px);
+  box-shadow: 2px 2px 0px #0f172a !important;
 }
-.border-none {
-  border: none !important;
+
+.neo-btn:active {
+  transform: translateY(2px) translateX(2px);
+  box-shadow: 0px 0px 0px #0f172a !important;
+}
+
+.neo-nav-btn {
+  border: 2px solid #0f172a !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  transition: all 0.2s ease;
+  width: 38px;
+  height: 38px;
+}
+
+.neo-nav-btn:hover {
+  background: #e0f2fe !important;
+  transform: scale(1.05);
 }
 
 /* TYPOGRAPHY */
@@ -973,18 +1082,317 @@ onUnmounted(() => {
 /* TABLE STYLING */
 .premium-table :deep(thead tr th) {
   font-size: 12px;
-  border-bottom: 2px solid #f1f5f9;
+  font-weight: 800 !important;
+  color: #0f172a !important;
+  background-color: #f1f5f9 !important;
+  border-bottom: 2.5px solid #0f172a !important;
+  border-top: none;
+  letter-spacing: 0.5px;
 }
+
 .premium-table :deep(tbody tr td) {
-  font-size: 14px;
-  border-bottom: 1px solid #f1f5f9;
-  transition: all 0.3s ease;
+  font-size: 13.5px;
+  color: #0f172a !important;
+  border-bottom: 1.5px solid #0f172a !important;
+  transition: all 0.2s ease;
 }
+
 .hover-effect:hover td {
-  background-color: #f8fafc !important;
+  background-color: #e0f2fe !important; /* Soft pastel blue hover color */
 }
+
+/* Add high-contrast border to badges */
+.premium-table :deep(.q-badge) {
+  border: 1.5px solid #0f172a !important;
+  font-weight: 800 !important;
+  padding: 4px 8px !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+}
+
 .premium-container {
+  position: relative;
+  z-index: 1;
   max-width: 1200px;
   width: 100%;
 }
+
+/* Floating Shapes Background Styling */
+.neo-decorations-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.neo-shape {
+  position: absolute;
+  user-select: none;
+  transition: all 0.3s ease;
+}
+
+/* 1. Circle 1 - Indigo/Blue */
+.neo-shape--circle-1 {
+  width: 180px;
+  height: 180px;
+  border: 3px solid rgba(59, 130, 246, 0.25);
+  background: rgba(59, 130, 246, 0.07);
+  box-shadow: 5px 5px 0px rgba(59, 130, 246, 0.12);
+  top: 8%;
+  left: -20px;
+  animation: drift-wobble-1 25s ease-in-out infinite;
+}
+
+/* 2. Circle 2 - Pink/Rose */
+.neo-shape--circle-2 {
+  width: 140px;
+  height: 140px;
+  border: 3px solid rgba(244, 63, 94, 0.25);
+  background: rgba(244, 63, 94, 0.07);
+  box-shadow: 5px 5px 0px rgba(244, 63, 94, 0.12);
+  top: 52%;
+  right: 6%;
+  animation: drift-wobble-2 22s ease-in-out infinite reverse;
+}
+
+/* 3. Square 1 - Orange */
+.neo-shape--square-1 {
+  width: 130px;
+  height: 130px;
+  border: 3px solid rgba(245, 158, 11, 0.25);
+  background: rgba(245, 158, 11, 0.07);
+  box-shadow: 5px 5px 0px rgba(245, 158, 11, 0.12);
+  top: 65%;
+  right: -30px;
+  animation: drift-wobble-2 30s ease-in-out infinite;
+}
+
+/* 4. Square 2 - Lime */
+.neo-shape--square-2 {
+  width: 110px;
+  height: 110px;
+  border: 3px solid rgba(132, 204, 22, 0.25);
+  background: rgba(132, 204, 22, 0.07);
+  box-shadow: 4px 4px 0px rgba(132, 204, 22, 0.12);
+  top: 22%;
+  left: 15%;
+  animation: drift-wobble-1 27s ease-in-out infinite;
+}
+
+/* 5. Star 1 - Purple */
+.neo-shape--star-1 {
+  font-size: 130px;
+  color: rgba(168, 85, 247, 0.22);
+  text-shadow: 4px 4px 0px rgba(168, 85, 247, 0.12);
+  top: 3%;
+  right: 15%;
+  animation: drift-diagonal-1 28s ease-in-out infinite reverse;
+}
+
+/* 6. Star 2 - Yellow */
+.neo-shape--star-2 {
+  font-size: 90px;
+  color: rgba(234, 179, 8, 0.24);
+  text-shadow: 3px 3px 0px rgba(234, 179, 8, 0.14);
+  top: 85%;
+  right: 25%;
+  animation: drift-diagonal-2 20s ease-in-out infinite;
+}
+
+/* 7. Triangle 1 - Cyan */
+.neo-shape--triangle-1 {
+  font-size: 100px;
+  color: rgba(6, 182, 212, 0.22);
+  text-shadow: 4px 4px 0px rgba(6, 182, 212, 0.12);
+  top: 40%;
+  left: 8%;
+  animation: drift-wobble-2 24s ease-in-out infinite reverse;
+}
+
+/* 8. Triangle 2 - Amber/Gold */
+.neo-shape--triangle-2 {
+  font-size: 80px;
+  color: rgba(245, 158, 11, 0.22);
+  text-shadow: 3px 3px 0px rgba(245, 158, 11, 0.12);
+  top: 12%;
+  left: 35%;
+  animation: drift-diagonal-1 23s ease-in-out infinite;
+}
+
+/* 9. Cross 1 - Emerald Green */
+.neo-shape--cross-1 {
+  font-size: 110px;
+  color: rgba(16, 185, 129, 0.22);
+  text-shadow: 4px 4px 0px rgba(16, 185, 129, 0.12);
+  top: 30%;
+  right: 25%;
+  animation: drift-diagonal-1 22s ease-in-out infinite;
+}
+
+/* 10. Cross 2 - Red/Rose */
+.neo-shape--cross-2 {
+  font-size: 90px;
+  color: rgba(239, 68, 68, 0.22);
+  text-shadow: 4px 4px 0px rgba(239, 68, 68, 0.12);
+  top: 75%;
+  left: 2%;
+  animation: drift-diagonal-2 26s ease-in-out infinite;
+}
+
+/* 11. Cross 3 - Deep Indigo */
+.neo-shape--cross-3 {
+  font-size: 100px;
+  color: rgba(99, 102, 241, 0.22);
+  text-shadow: 4px 4px 0px rgba(99, 102, 241, 0.12);
+  top: 90%;
+  left: 40%;
+  animation: drift-wobble-1 29s ease-in-out infinite;
+}
+
+/* 12. Blob 1 - Teal Organic Morphing Blob */
+.neo-shape--blob-1 {
+  width: 160px;
+  height: 160px;
+  border: 3px solid rgba(20, 184, 166, 0.25);
+  background: rgba(20, 184, 166, 0.07);
+  box-shadow: 5px 5px 0px rgba(20, 184, 166, 0.12);
+  top: 48%;
+  left: 42%;
+  animation: drift-blob 32s ease-in-out infinite;
+}
+
+/* KEYFRAMES FOR ORGANIC DRIFTING (AGAR.IO STYLE) */
+@keyframes drift-wobble-1 {
+  0% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    border-radius: 50% 50% 50% 50%;
+  }
+  25% {
+    transform: translate(50px, -40px) scale(1.05) rotate(90deg);
+    border-radius: 46% 54% 48% 52%;
+  }
+  50% {
+    transform: translate(20px, -80px) scale(0.95) rotate(180deg);
+    border-radius: 54% 46% 52% 48%;
+  }
+  75% {
+    transform: translate(-40px, -30px) scale(1.02) rotate(270deg);
+    border-radius: 48% 52% 54% 46%;
+  }
+  100% {
+    transform: translate(0, 0) scale(1) rotate(360deg);
+    border-radius: 50% 50% 50% 50%;
+  }
+}
+
+@keyframes drift-wobble-2 {
+  0% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    border-radius: 8px;
+  }
+  33% {
+    transform: translate(-60px, -30px) scale(1.08) rotate(120deg);
+    border-radius: 14px 8px 14px 8px;
+  }
+  66% {
+    transform: translate(30px, -70px) scale(0.92) rotate(240deg);
+    border-radius: 8px 14px 8px 14px;
+  }
+  100% {
+    transform: translate(0, 0) scale(1) rotate(360deg);
+    border-radius: 8px;
+  }
+}
+
+@keyframes drift-diagonal-1 {
+  0% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translate(45px, 60px) rotate(180deg) scale(1.05);
+  }
+  100% {
+    transform: translate(0, 0) rotate(360deg) scale(1);
+  }
+}
+
+@keyframes drift-diagonal-2 {
+  0% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translate(-50px, -60px) rotate(-180deg) scale(0.95);
+  }
+  100% {
+    transform: translate(0, 0) rotate(-360deg) scale(1);
+  }
+}
+
+@keyframes drift-blob {
+  0% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+  }
+  33% {
+    transform: translate(40px, -50px) scale(1.06) rotate(120deg);
+    border-radius: 70% 30% 52% 48% / 60% 40% 70% 30%;
+  }
+  66% {
+    transform: translate(-30px, 30px) scale(0.94) rotate(240deg);
+    border-radius: 50% 50% 30% 70% / 50% 60% 40% 60%;
+  }
+  100% {
+    transform: translate(0, 0) scale(1) rotate(360deg);
+    border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+  }
+}
+
+/* Entrance animation classes */
+.header-entrance {
+  animation: brutalist-bounce-in 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.card-entrance-1 {
+  opacity: 0;
+  animation: brutalist-bounce-in 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.15s forwards;
+}
+
+.card-entrance-2 {
+  opacity: 0;
+  animation: brutalist-bounce-in 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.25s forwards;
+}
+
+.card-entrance-3 {
+  opacity: 0;
+  animation: brutalist-bounce-in 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.35s forwards;
+}
+
+.table-entrance {
+  opacity: 0;
+  animation: brutalist-bounce-in 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.5s forwards;
+}
+
+@keyframes brutalist-bounce-in {
+  0% {
+    opacity: 0;
+    transform: translateY(35px);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-6px);
+  }
+  80% {
+    transform: translateY(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
 </style>

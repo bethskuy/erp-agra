@@ -10,35 +10,26 @@
       >
         <q-card
           flat
-          class="bento-card announcement-cyber-card relative-position overflow-hidden shadow-2xl"
+          class="neo-card q-mb-lg overflow-hidden relative-position animate-fade-in"
+          style="background: #fff7ed !important; border: 3px solid #0f172a !important; box-shadow: 4px 4px 0px #0f172a !important;"
         >
-          <div class="cyber-mesh"></div>
-          <div class="glow-orb blue"></div>
-          <div class="glow-orb orange"></div>
-          <div class="cyber-grid-light"></div>
-          <div class="particle-emitter">
-            <div class="particle p1"></div>
-            <div class="particle p2"></div>
-            <div class="particle p3"></div>
-            <div class="particle p4"></div>
-          </div>
-
-          <q-card-section class="q-pa-md q-pa-sm-lg relative-position z-content">
+          <q-card-section class="q-pa-md q-pa-sm-lg relative-position">
             <div class="row items-center no-wrap">
+              <!-- Left Megaphone Icon Container -->
               <div class="q-mr-md relative-position">
-                <div class="tech-icon-glow"></div>
-                <div class="tech-icon-container text-white rounded-16 flex flex-center">
+                <div class="tech-icon-container text-white rounded-12 flex flex-center" style="background: #f97316; border: 2.5px solid #0f172a; box-shadow: 2px 2px 0px #0f172a; width: 50px; height: 50px;">
                   <q-icon name="campaign" size="30px" class="floating-icon" />
                 </div>
-                <div class="radar-ripple ring-1"></div>
-                <div class="radar-ripple ring-2"></div>
-                <div class="radar-ripple ring-3"></div>
               </div>
 
+              <!-- Main Carousel Content -->
               <div class="col overflow-hidden">
                 <div class="row items-center q-gutter-x-sm q-mb-xs">
-                  <div class="tech-live-tag"><span class="live-dot"></span>PENGUMUMAN RESMI</div>
-                  <span class="tech-brand-sub font-mono">• AGR.SECURE // BROADCAST SYSTEM</span>
+                  <div class="tech-live-tag" style="background: #ffedd5; border: 1.5px solid #0f172a; border-radius: 6px; font-weight: 800; color: #ea580c; display: inline-flex; align-items: center; gap: 5px;">
+                    <span class="live-dot" style="background-color: #ef4444; width: 6px; height: 6px; border-radius: 50%;"></span>
+                    PENGUMUMAN RESMI
+                  </div>
+                  <span class="tech-brand-sub font-mono text-weight-bold" style="font-size: 10px; color: #475569;">• AGR.SECURE // BROADCAST SYSTEM</span>
                 </div>
 
                 <q-carousel
@@ -54,9 +45,9 @@
                   height="65px"
                   :navigation="pemberitahuanList.length > 1"
                   navigation-icon="fiber_manual_record"
-                  navigation-color="orange-5"
+                  navigation-color="orange-8"
                   arrows
-                  :arrows-color="pemberitahuanList.length > 1 ? 'orange-8' : 'transparent'"
+                  :arrows-color="pemberitahuanList.length > 1 ? 'orange-9' : 'transparent'"
                 >
                   <q-carousel-slide
                     v-for="(item, idx) in pemberitahuanList"
@@ -65,15 +56,15 @@
                     class="q-pa-none flex column justify-center"
                   >
                     <div
-                      class="text-subtitle2 text-weight-black text-slate-900 ellipsis tracking-tight"
+                      class="text-subtitle2 text-weight-bolder text-slate-900 ellipsis tracking-tight"
                       style="font-size: 14.5px"
                     >
-                      <q-icon name="shield" size="16px" class="q-mr-xs text-orange-7" />{{
+                      <q-icon name="shield" size="16px" class="q-mr-xs text-orange-8" />{{
                         item.judul
                       }}
                     </div>
                     <div
-                      class="text-caption text-slate-600 ellipsis-2-lines line-height-tight q-mt-xs font-medium"
+                      class="text-caption text-slate-700 ellipsis-2-lines line-height-tight q-mt-xs font-medium"
                       style="font-size: 11.5px; max-width: 90%"
                     >
                       {{ item.isi }}
@@ -82,19 +73,24 @@
                 </q-carousel>
               </div>
 
+              <!-- Close Button -->
               <q-btn
                 flat
                 round
                 dense
                 icon="close"
-                color="grey-9"
+                color="red-7"
                 size="sm"
-                class="glass-dismiss-btn self-start q-ml-sm"
+                class="neo-delete-btn self-start q-ml-sm"
+                style="border: 2px solid #0f172a !important; background: #fee2e2 !important; box-shadow: 2px 2px 0px #0f172a !important; width: 28px; height: 28px;"
                 @click="dismissAnnouncement"
               />
             </div>
           </q-card-section>
-          <div class="tech-progress-track"><div class="tech-progress-bar"></div></div>
+          <!-- Custom Brutalist Progress Line at bottom -->
+          <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: #0f172a; z-index: 10;">
+            <div style="height: 100%; background: #ea580c; width: 0%; animation: progressRun 6s infinite linear;"></div>
+          </div>
         </q-card>
       </div>
 

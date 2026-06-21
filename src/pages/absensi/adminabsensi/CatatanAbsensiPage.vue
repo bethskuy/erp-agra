@@ -1,7 +1,23 @@
 <template>
-  <q-page class="bg-slate-50 q-pa-md q-pa-lg font-inter">
-    <div class="premium-container mx-auto">
-      <div class="row items-center justify-between q-mb-xl">
+  <q-page class="neo-page-bg q-pa-md q-pa-lg font-inter">
+    <!-- Decorative Floating Neo-Brutalist Shapes -->
+    <div class="neo-decorations-container">
+      <div class="neo-shape neo-shape--circle-1"></div>
+      <div class="neo-shape neo-shape--circle-2"></div>
+      <div class="neo-shape neo-shape--square-1"></div>
+      <div class="neo-shape neo-shape--square-2"></div>
+      <div class="neo-shape neo-shape--star-1">★</div>
+      <div class="neo-shape neo-shape--star-2">★</div>
+      <div class="neo-shape neo-shape--triangle-1">▲</div>
+      <div class="neo-shape neo-shape--triangle-2">▲</div>
+      <div class="neo-shape neo-shape--cross-1">+</div>
+      <div class="neo-shape neo-shape--cross-2">+</div>
+      <div class="neo-shape neo-shape--cross-3">+</div>
+      <div class="neo-shape neo-shape--blob-1"></div>
+    </div>
+
+    <div class="premium-container q-mx-auto">
+      <div class="row items-center justify-between q-mb-xl header-entrance">
         <div class="col-12 col-md-7">
           <div class="row items-center q-mb-xs">
             <div class="ios-icon-box small bg-blue-50 text-primary q-mr-sm">
@@ -33,7 +49,7 @@
             color="teal-6"
             icon="file_download"
             label="EKSPOR LAPORAN (EXCEL)"
-            class="rounded-12 text-weight-bolder shadow-soft-positive transition-smooth q-px-md"
+            class="neo-btn text-weight-bolder q-px-md"
             @click="exportToExcel"
             :loading="isExporting"
             :disable="loading || rows.length === 0"
@@ -48,10 +64,10 @@
       <q-slide-transition>
         <q-card
           flat
-          class="bento-card bg-white overflow-hidden shadow-soft"
+          class="neo-card overflow-hidden table-entrance"
           v-if="viewMode === 'summary'"
         >
-          <q-card-section class="bg-white q-pa-lg border-bottom-light">
+          <q-card-section class="q-pa-lg bg-white neo-table-toolbar">
             <div class="row q-col-gutter-md items-center justify-between">
               <div class="col-12 col-md-5">
                 <q-input
@@ -98,7 +114,7 @@
                       color="primary"
                       @update:model-value="loadDataRekap"
                       v-close-popup
-                      class="shadow-soft rounded-16"
+                      class="neo-card rounded-16"
                     />
                   </q-popup-proxy>
                 </q-input>
@@ -118,12 +134,12 @@
             :rows-per-page-options="[5, 10, 15, 20, 50, 0]"
           >
             <template v-slot:header="props">
-              <q-tr :props="props" class="bg-slate-50">
+              <q-tr :props="props">
                 <q-th
                   v-for="col in props.cols"
                   :key="col.name"
                   :props="props"
-                  class="text-weight-bolder text-blue-grey-6 uppercase letter-spacing-1"
+                  class="text-weight-bolder text-blue-grey-5 uppercase letter-spacing-1 bg-grey-1"
                 >
                   {{ col.label }}
                 </q-th>
@@ -149,7 +165,7 @@
                       size="36px"
                       :color="props.row.fotoUrl ? undefined : 'blue-1'"
                       :text-color="props.row.fotoUrl ? undefined : 'primary'"
-                      class="q-mr-md text-weight-bold shadow-1"
+                      class="q-mr-md text-weight-bold shadow-1 neo-avatar-border"
                     >
                       <img v-if="props.row.fotoUrl" :src="props.row.fotoUrl" style="object-fit: cover;" />
                       <span v-else>{{ props.row.nama.substring(0, 1).toUpperCase() }}</span>
@@ -191,12 +207,11 @@
                     flat
                     round
                     dense
-                    color="primary"
                     icon="visibility"
-                    class="bg-blue-50 transition-smooth hover-scale"
+                    class="neo-view-btn"
                     @click="lihatDetail(props.row)"
                   >
-                    <q-tooltip class="bg-primary">Lihat Detail Karyawan</q-tooltip>
+                    <q-tooltip class="bg-blue-8">Lihat Detail Karyawan</q-tooltip>
                   </q-btn>
                 </q-td>
               </q-tr>
@@ -224,24 +239,24 @@
       <q-slide-transition>
         <q-card
           flat
-          class="bento-card bg-white overflow-hidden shadow-soft"
+          class="neo-card overflow-hidden table-entrance"
           v-if="viewMode === 'detail'"
         >
           <q-card-section
-            class="bg-white q-pa-md border-bottom-light row items-center justify-between"
+            class="q-pa-md row items-center justify-between bg-white neo-table-toolbar"
           >
             <q-btn
               flat
-              color="primary"
               icon="arrow_back"
               label="KEMBALI KE RINGKASAN"
-              class="text-weight-bold rounded-8 transition-smooth hover-scale"
+              class="neo-btn text-weight-bold q-px-md"
               @click="viewMode = 'summary'"
             />
             <q-badge
               color="blue-1"
               text-color="primary"
-              class="q-pa-sm text-weight-bold rounded-8 shadow-1"
+              class="q-pa-sm text-weight-bold rounded-8"
+              style="border: 1.5px solid #0f172a; font-weight: 800;"
             >
               PERIODE: {{ filterBulan.toUpperCase() }}
             </q-badge>
@@ -258,12 +273,12 @@
             :rows-per-page-options="[5, 10, 15, 20, 31, 0]"
           >
             <template v-slot:header="props">
-              <q-tr :props="props" class="bg-slate-50">
+              <q-tr :props="props">
                 <q-th
                   v-for="col in props.cols"
                   :key="col.name"
                   :props="props"
-                  class="text-weight-bolder text-blue-grey-8 uppercase letter-spacing-1"
+                  class="text-weight-bolder text-blue-grey-5 uppercase letter-spacing-1 bg-grey-1"
                 >
                   {{ col.label }}
                 </q-th>
@@ -306,7 +321,7 @@
                   <q-avatar
                     v-if="props.row.fotoIn"
                     size="38px"
-                    class="shadow-1 cursor-pointer hover-scale transition-smooth"
+                    class="cursor-pointer hover-scale transition-smooth neo-avatar-border"
                     @click="bukaFoto(props.row.fotoIn)"
                   >
                     <q-img :src="props.row.fotoIn" />
@@ -341,7 +356,7 @@
                   <q-avatar
                     v-if="props.row.fotoOut"
                     size="38px"
-                    class="shadow-1 cursor-pointer hover-scale transition-smooth"
+                    class="cursor-pointer hover-scale transition-smooth neo-avatar-border"
                     @click="bukaFoto(props.row.fotoOut)"
                   >
                     <q-img :src="props.row.fotoOut" />
@@ -425,12 +440,11 @@
                     round
                     dense
                     icon="edit_calendar"
-                    color="primary"
                     size="sm"
-                    class="bg-blue-50 transition-smooth hover-scale"
+                    class="neo-edit-btn"
                     @click="openManualDialog(props.row)"
                   >
-                    <q-tooltip class="bg-primary">Input Absen Manual</q-tooltip>
+                    <q-tooltip class="bg-blue-8">Input Absen Manual</q-tooltip>
                   </q-btn>
                 </q-td>
               </q-tr>
@@ -449,13 +463,13 @@
       </q-slide-transition>
 
       <q-dialog v-model="photoDialog" backdrop-filter="blur(8px)">
-        <q-card style="width: 400px; max-width: 90vw" class="rounded-16 bg-transparent no-shadow">
-          <q-img :src="selectedPhoto" class="rounded-16 shadow-24" />
+        <q-card style="width: 400px; max-width: 90vw" class="neo-card rounded-16 bg-white overflow-hidden">
+          <q-img :src="selectedPhoto" class="rounded-16" />
           <q-btn
             round
             color="negative"
             icon="close"
-            class="absolute-top-right q-ma-sm shadow-soft"
+            class="absolute-top-right q-ma-sm neo-delete-btn"
             v-close-popup
           />
         </q-card>
@@ -464,18 +478,22 @@
       <q-dialog v-model="manualDialog" persistent backdrop-filter="blur(5px)">
         <q-card
           style="width: 600px; max-width: 95vw"
-          class="rounded-24 bg-white overflow-hidden shadow-soft flex column"
+          class="neo-card rounded-24 bg-white overflow-hidden flex column"
         >
           <q-form
             @submit.prevent="simpanManualAbsensi"
             class="column full-height"
             style="margin: 0"
           >
-            <q-card-section class="row items-center q-pb-md q-pt-lg q-px-lg">
+            <q-card-section class="row items-center q-pb-md q-pt-lg q-px-lg neo-table-toolbar bg-white">
               <div class="row items-center col">
-                <div class="bg-blue-50 text-primary q-pa-sm rounded-8 q-mr-md">
-                  <q-icon name="edit_calendar" size="24px" />
-                </div>
+                <q-avatar
+                  color="blue-1"
+                  text-color="primary"
+                  icon="edit_calendar"
+                  size="42px"
+                  class="q-mr-md neo-avatar-border"
+                />
                 <div>
                   <div class="text-h6 text-weight-bolder text-blue-grey-10 line-height-tight">
                     Rekam Log Absensi Manual
@@ -492,12 +510,12 @@
                 dense
                 v-close-popup
                 color="blue-grey-4"
-                class="bg-grey-1 transition-smooth hover-scale"
+                class="bg-grey-2"
               />
             </q-card-section>
 
             <q-card-section class="q-px-lg q-py-sm scroll" style="max-height: 60vh">
-              <div class="q-pa-md rounded-12 q-mb-lg bg-white box-outline-blue relative-position">
+              <div class="q-pa-md rounded-12 q-mb-lg bg-white neo-form-group-blue relative-position">
                 <div class="row items-center q-mb-md">
                   <div class="bg-blue-50 text-primary q-pa-xs rounded-6 q-mr-sm">
                     <q-icon name="login" size="18px" />
@@ -542,7 +560,7 @@
                 </div>
               </div>
 
-              <div class="q-pa-md rounded-12 bg-white box-outline-orange relative-position">
+              <div class="q-pa-md rounded-12 bg-white neo-form-group-orange relative-position">
                 <div class="row items-center q-mb-md">
                   <div class="bg-orange-50 text-orange-9 q-pa-xs rounded-6 q-mr-sm">
                     <q-icon name="logout" size="18px" />
@@ -594,14 +612,15 @@
                 label="BATAL"
                 color="blue-grey-6"
                 v-close-popup
-                class="text-weight-bold rounded-8 q-px-md transition-smooth hover-scale"
+                class="neo-btn text-weight-bold q-px-md q-mr-sm"
+                style="background: #f1f5f9 !important; border: 2px solid #0f172a !important; color: #0f172a !important;"
               />
               <q-btn
                 unelevated
                 label="SIMPAN DATA ABSENSI"
                 color="primary"
                 type="submit"
-                class="text-weight-bolder rounded-12 q-px-xl shadow-soft-primary transition-smooth hover-scale q-py-sm"
+                class="neo-btn text-weight-bolder q-px-xl q-py-sm"
                 :loading="savingManual"
               />
             </q-card-actions>
@@ -1706,121 +1725,414 @@ onMounted(() => {
 }
 
 .premium-container {
-  max-width: 1400px;
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
   width: 100%;
 }
-.bento-card {
-  border-radius: 24px;
-  border: 1px solid #f1f5f9;
-}
-.bg-slate-50 {
-  background-color: #f8fafc;
-}
-.border-bottom-light {
-  border-bottom: 1px solid #f8fafc;
-}
-.border-bottom {
-  border-bottom: 1px solid #e2e8f0;
-}
-.border-top {
-  border-top: 1px solid #e2e8f0;
-}
 
-/* Custom box borders matching the screenshot */
-.box-outline-blue {
-  border: 1.5px solid #e0f2fe;
-}
-.box-outline-orange {
-  border: 1.5px solid #ffedd5;
-}
-
-.mx-auto {
-  margin-left: auto;
-  margin-right: auto;
-}
-.opacity-20 {
-  opacity: 0.2;
-}
-.opacity-50 {
-  opacity: 0.5;
-}
-.z-content {
+/* NEO-BRUTALIST STYLING CORE */
+.neo-page-bg {
+  background-color: #f1f5f9;
+  background-image: radial-gradient(#cbd5e1 2px, transparent 2px);
+  background-size: 24px 24px;
   position: relative;
-  z-index: 2;
+  min-height: 100vh;
 }
 
-.shadow-soft {
-  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.06) !important;
+.neo-card {
+  background: #ffffff !important;
+  border: 3px solid #0f172a !important;
+  box-shadow: 6px 6px 0px #0f172a !important;
+  border-radius: 20px !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
-.shadow-soft-primary {
-  box-shadow: 0 8px 24px -8px rgba(25, 118, 210, 0.5) !important;
+
+.neo-card:hover {
+  transform: translateY(-2px) translateX(2px);
+  box-shadow: 8px 8px 0px #0f172a !important;
 }
-.rounded-24 {
-  border-radius: 24px;
+
+.neo-btn {
+  border: 2.5px solid #0f172a !important;
+  box-shadow: 3.5px 3.5px 0px #0f172a !important;
+  border-radius: 12px;
+  font-weight: 700;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
-.rounded-16 {
-  border-radius: 16px;
+
+.neo-btn:hover {
+  transform: translateY(-1px) translateX(1px);
+  box-shadow: 2.5px 2.5px 0px #0f172a !important;
 }
-.rounded-12 {
+
+.neo-btn:active {
+  transform: translateY(2px) translateX(2px);
+  box-shadow: 0px 0px 0px #0f172a !important;
+}
+
+.neo-edit-btn {
+  border: 1.5px solid #0f172a !important;
+  background: #e0f2fe !important;
+  color: #1d4ed8 !important;
+  transition: all 0.2s ease;
+}
+.neo-edit-btn:hover {
+  background: #3b82f6 !important;
+  color: #ffffff !important;
+  transform: scale(1.1);
+}
+
+.neo-delete-btn {
+  border: 1.5px solid #0f172a !important;
+  background: #fee2e2 !important;
+  color: #b91c1c !important;
+  transition: all 0.2s ease;
+}
+.neo-delete-btn:hover {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+  transform: scale(1.1);
+}
+
+.neo-view-btn {
+  border: 1.5px solid #0f172a !important;
+  background: #e0f2fe !important;
+  color: #1d4ed8 !important;
+  transition: all 0.2s ease;
+}
+.neo-view-btn:hover {
+  background: #3b82f6 !important;
+  color: #ffffff !important;
+  transform: scale(1.1);
+}
+
+.neo-table-toolbar {
+  border-bottom: 2.5px solid #0f172a;
+}
+
+.neo-avatar-border {
+  border: 2px solid #0f172a !important;
+}
+
+.neo-form-group-blue {
+  border: 2.5px solid #0f172a !important;
+  box-shadow: 3.5px 3.5px 0px rgba(59, 130, 246, 0.2) !important;
   border-radius: 12px;
 }
-.rounded-8 {
-  border-radius: 8px;
-}
-.rounded-6 {
-  border-radius: 6px;
-}
-
-.transition-smooth {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.hover-effect:hover td {
-  background-color: #f8fafc !important;
-}
-.hover-scale:hover {
-  transform: scale(1.05);
+.neo-form-group-orange {
+  border: 2.5px solid #0f172a !important;
+  box-shadow: 3.5px 3.5px 0px rgba(249, 115, 22, 0.2) !important;
+  border-radius: 12px;
 }
 
-.ios-icon-box {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.ios-icon-box.small {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-}
-
+/* CUSTOM INPUTS */
 .rounded-input :deep(.q-field__control) {
   border-radius: 12px;
-  transition: all 0.3s ease;
+  border: 2px solid #0f172a !important;
+  box-shadow: 2px 2px 0px #0f172a !important;
 }
-.rounded-input :deep(.q-field__control:hover) {
-  border-color: #1976d2;
+.rounded-input :deep(.q-field__marginal) {
+  height: 50px;
 }
 
+/* TABLES STYLING */
 .premium-table :deep(thead tr th),
 .detail-table :deep(thead tr th) {
   font-size: 12px;
-  padding-top: 16px;
-  padding-bottom: 16px;
-  border-bottom: none;
+  font-weight: 800 !important;
+  color: #0f172a !important;
+  background-color: #f1f5f9 !important;
+  border-bottom: 2.5px solid #0f172a !important;
+  border-top: none;
+  letter-spacing: 0.5px;
 }
+
 .premium-table :deep(tbody tr td),
 .detail-table :deep(tbody tr td) {
-  font-size: 14px;
-  padding-top: 16px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #f1f5f9;
-  transition: background-color 0.3s ease;
+  font-size: 13.5px;
+  color: #0f172a !important;
+  border-bottom: 1.5px solid #0f172a !important;
+  transition: all 0.2s ease;
 }
 
 .detail-table :deep(tbody tr td) {
-  font-size: 12px;
+  font-size: 12.5px;
+}
+
+.hover-effect:hover td {
+  background-color: #e0f2fe !important;
+}
+
+.premium-table :deep(.q-badge),
+.detail-table :deep(.q-badge) {
+  border: 1.5px solid #0f172a !important;
+  font-weight: 800 !important;
+  padding: 4px 8px !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+}
+
+/* Floating Shapes Background Styling */
+.neo-decorations-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.neo-shape {
+  position: absolute;
+  user-select: none;
+  transition: all 0.3s ease;
+}
+
+/* 1. Circle 1 - Indigo/Blue */
+.neo-shape--circle-1 {
+  width: 180px;
+  height: 180px;
+  border: 3px solid rgba(59, 130, 246, 0.25);
+  background: rgba(59, 130, 246, 0.07);
+  box-shadow: 5px 5px 0px rgba(59, 130, 246, 0.12);
+  top: 8%;
+  left: -20px;
+  animation: drift-wobble-1 25s ease-in-out infinite;
+}
+
+/* 2. Circle 2 - Pink/Rose */
+.neo-shape--circle-2 {
+  width: 140px;
+  height: 140px;
+  border: 3px solid rgba(244, 63, 94, 0.25);
+  background: rgba(244, 63, 94, 0.07);
+  box-shadow: 5px 5px 0px rgba(244, 63, 94, 0.12);
+  top: 52%;
+  right: 6%;
+  animation: drift-wobble-2 22s ease-in-out infinite reverse;
+}
+
+/* 3. Square 1 - Orange */
+.neo-shape--square-1 {
+  width: 130px;
+  height: 130px;
+  border: 3px solid rgba(245, 158, 11, 0.25);
+  background: rgba(245, 158, 11, 0.07);
+  box-shadow: 5px 5px 0px rgba(245, 158, 11, 0.12);
+  top: 65%;
+  right: -30px;
+  animation: drift-wobble-2 30s ease-in-out infinite;
+}
+
+/* 4. Square 2 - Lime */
+.neo-shape--square-2 {
+  width: 110px;
+  height: 110px;
+  border: 3px solid rgba(132, 204, 22, 0.25);
+  background: rgba(132, 204, 22, 0.07);
+  box-shadow: 4px 4px 0px rgba(132, 204, 22, 0.12);
+  top: 22%;
+  left: 15%;
+  animation: drift-wobble-1 27s ease-in-out infinite;
+}
+
+/* 5. Star 1 - Purple */
+.neo-shape--star-1 {
+  font-size: 130px;
+  color: rgba(168, 85, 247, 0.22);
+  text-shadow: 4px 4px 0px rgba(168, 85, 247, 0.12);
+  top: 3%;
+  right: 15%;
+  animation: drift-diagonal-1 28s ease-in-out infinite reverse;
+}
+
+/* 6. Star 2 - Yellow */
+.neo-shape--star-2 {
+  font-size: 90px;
+  color: rgba(234, 179, 8, 0.24);
+  text-shadow: 3px 3px 0px rgba(234, 179, 8, 0.14);
+  top: 85%;
+  right: 25%;
+  animation: drift-diagonal-2 20s ease-in-out infinite;
+}
+
+/* 7. Triangle 1 - Cyan */
+.neo-shape--triangle-1 {
+  font-size: 100px;
+  color: rgba(6, 182, 212, 0.22);
+  text-shadow: 4px 4px 0px rgba(6, 182, 212, 0.12);
+  top: 40%;
+  left: 8%;
+  animation: drift-wobble-2 24s ease-in-out infinite reverse;
+}
+
+/* 8. Triangle 2 - Amber/Gold */
+.neo-shape--triangle-2 {
+  font-size: 80px;
+  color: rgba(245, 158, 11, 0.22);
+  text-shadow: 3px 3px 0px rgba(245, 158, 11, 0.12);
+  top: 12%;
+  left: 35%;
+  animation: drift-diagonal-1 23s ease-in-out infinite;
+}
+
+/* 9. Cross 1 - Emerald Green */
+.neo-shape--cross-1 {
+  font-size: 110px;
+  color: rgba(16, 185, 129, 0.22);
+  text-shadow: 4px 4px 0px rgba(16, 185, 129, 0.12);
+  top: 30%;
+  right: 25%;
+  animation: drift-diagonal-1 22s ease-in-out infinite;
+}
+
+/* 10. Cross 2 - Red/Rose */
+.neo-shape--cross-2 {
+  font-size: 90px;
+  color: rgba(239, 68, 68, 0.22);
+  text-shadow: 4px 4px 0px rgba(239, 68, 68, 0.12);
+  top: 75%;
+  left: 2%;
+  animation: drift-diagonal-2 26s ease-in-out infinite;
+}
+
+/* 11. Cross 3 - Deep Indigo */
+.neo-shape--cross-3 {
+  font-size: 100px;
+  color: rgba(99, 102, 241, 0.22);
+  text-shadow: 4px 4px 0px rgba(99, 102, 241, 0.12);
+  top: 90%;
+  left: 40%;
+  animation: drift-wobble-1 29s ease-in-out infinite;
+}
+
+/* 12. Blob 1 - Teal Organic Morphing Blob */
+.neo-shape--blob-1 {
+  width: 160px;
+  height: 160px;
+  border: 3px solid rgba(20, 184, 166, 0.25);
+  background: rgba(20, 184, 166, 0.07);
+  box-shadow: 5px 5px 0px rgba(20, 184, 166, 0.12);
+  top: 48%;
+  left: 42%;
+  animation: drift-blob 32s ease-in-out infinite;
+}
+
+/* KEYFRAMES FOR ORGANIC DRIFTING (AGAR.IO STYLE) */
+@keyframes drift-wobble-1 {
+  0% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    border-radius: 50% 50% 50% 50%;
+  }
+  25% {
+    transform: translate(50px, -40px) scale(1.05) rotate(90deg);
+    border-radius: 46% 54% 48% 52%;
+  }
+  50% {
+    transform: translate(20px, -80px) scale(0.95) rotate(180deg);
+    border-radius: 54% 46% 52% 48%;
+  }
+  75% {
+    transform: translate(-40px, -30px) scale(1.02) rotate(270deg);
+    border-radius: 48% 52% 54% 46%;
+  }
+  100% {
+    transform: translate(0, 0) scale(1) rotate(360deg);
+    border-radius: 50% 50% 50% 50%;
+  }
+}
+
+@keyframes drift-wobble-2 {
+  0% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    border-radius: 8px;
+  }
+  33% {
+    transform: translate(-60px, -30px) scale(1.08) rotate(120deg);
+    border-radius: 14px 8px 14px 8px;
+  }
+  66% {
+    transform: translate(30px, -70px) scale(0.92) rotate(240deg);
+    border-radius: 8px 14px 8px 14px;
+  }
+  100% {
+    transform: translate(0, 0) scale(1) rotate(360deg);
+    border-radius: 8px;
+  }
+}
+
+@keyframes drift-diagonal-1 {
+  0% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translate(45px, 60px) rotate(180deg) scale(1.05);
+  }
+  100% {
+    transform: translate(0, 0) rotate(360deg) scale(1);
+  }
+}
+
+@keyframes drift-diagonal-2 {
+  0% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translate(-50px, -60px) rotate(-180deg) scale(0.95);
+  }
+  100% {
+    transform: translate(0, 0) rotate(-360deg) scale(1);
+  }
+}
+
+@keyframes drift-blob {
+  0% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+  }
+  33% {
+    transform: translate(40px, -50px) scale(1.06) rotate(120deg);
+    border-radius: 70% 30% 52% 48% / 60% 40% 70% 30%;
+  }
+  66% {
+    transform: translate(-30px, 30px) scale(0.94) rotate(240deg);
+    border-radius: 50% 50% 30% 70% / 50% 60% 40% 60%;
+  }
+  100% {
+    transform: translate(0, 0) scale(1) rotate(360deg);
+    border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+  }
+}
+
+/* Entrance animation classes */
+.header-entrance {
+  animation: brutalist-bounce-in 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.table-entrance {
+  opacity: 0;
+  animation: brutalist-bounce-in 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.15s forwards;
+}
+
+@keyframes brutalist-bounce-in {
+  0% {
+    opacity: 0;
+    transform: translateY(35px);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-6px);
+  }
+  80% {
+    transform: translateY(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 599px) {
@@ -1828,9 +2140,5 @@ onMounted(() => {
     display: block;
     margin-bottom: 8px;
   }
-}
-.premium-container {
-  max-width: 1200px;
-  width: 100%;
 }
 </style>

@@ -91,10 +91,10 @@
     >
       <div class="column fit">
         <!-- Profile Section Card wrapper -->
-        <div class="q-pa-md profile-box">
-          <div class="neo-profile-card q-pa-md">
-            <div class="row items-center q-gutter-sm no-wrap">
-              <q-avatar size="44px" color="blue-9" text-color="white" class="neo-avatar relative-position">
+        <div class="q-pa-sm profile-box">
+          <div class="neo-profile-card q-pa-sm">
+            <div class="row items-center q-gutter-xs no-wrap">
+              <q-avatar size="36px" color="blue-9" text-color="white" class="neo-avatar relative-position">
                 <img v-if="userData.fotoUrl" :src="userData.fotoUrl" style="object-fit: cover;" />
                 <span v-else>{{
                   userData.nama ? userData.nama.substring(0, 1).toUpperCase() : 'A'
@@ -102,12 +102,17 @@
                 <span class="profile-pulse-dot"></span>
               </q-avatar>
               <div class="col overflow-hidden">
-                <div class="text-weight-bold text-subtitle2 text-grey-9 ellipsis leading-tight">
+                <div class="text-weight-bold text-grey-9 ellipsis leading-tight" style="font-size: 10px;">
                   {{ userData.nama || 'User' }}
-                  <q-tooltip class="bg-blue-grey-9">{{ userData.nama || 'User' }}</q-tooltip>
+                  <q-tooltip class="bg-blue-grey-9" self="center left" anchor="center right" :delay="500">
+                    {{ userData.nama || 'User' }}
+                  </q-tooltip>
                 </div>
-                <div class="text-caption text-blue-9 text-weight-bolder ellipsis flex items-center q-mt-xs">
+                <div class="text-blue-9 text-weight-bolder ellipsis flex items-center q-mt-xs" style="font-size: 9px; letter-spacing: 0.3px;">
                   <span class="q-mr-xs">💼</span> {{ isSuperAdmin ? 'SUPER ADMIN' : userData.jabatan || userData.role || 'Karyawan' }}
+                  <q-tooltip class="bg-blue-grey-9" self="center left" anchor="center right" :delay="500">
+                    {{ isSuperAdmin ? 'SUPER ADMIN' : userData.jabatan || userData.role || 'Karyawan' }}
+                  </q-tooltip>
                 </div>
               </div>
             </div>
@@ -205,6 +210,122 @@
     <q-page-container>
       <router-view />
     </q-page-container>
+
+    <!-- Desktop Pets (RunCat / Neko style) -->
+    <div class="pixel-pet-container">
+      <!-- 1. Excavator -->
+      <svg class="walking-pet walking-pet--excavator" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+        <!-- Tracks/Treads -->
+        <rect x="6" y="34" width="28" height="6" rx="3" fill="#2d3436" />
+        <circle class="excavator-wheel" cx="10" cy="37" r="3" fill="#0f172a" />
+        <circle class="excavator-wheel" cx="20" cy="37" r="3" fill="#0f172a" />
+        <circle class="excavator-wheel" cx="30" cy="37" r="3" fill="#0f172a" />
+        <!-- Cab/Body -->
+        <rect x="8" y="22" width="18" height="12" rx="2" fill="#fdcb6e" stroke="#0f172a" stroke-width="2" />
+        <!-- Cab Window -->
+        <rect x="18" y="24" width="6" height="6" rx="1" fill="#dfe6e9" stroke="#0f172a" stroke-width="1.5" />
+        <!-- Counterweight/Engine box -->
+        <rect x="4" y="26" width="4" height="8" rx="1" fill="#ffeaa7" stroke="#0f172a" stroke-width="1.5" />
+        <!-- Boom / Arm -->
+        <g class="excavator-arm">
+          <!-- Main Boom -->
+          <line x1="22" y1="28" x2="34" y2="16" stroke="#2d3436" stroke-width="4" stroke-linecap="round" />
+          <line x1="22" y1="28" x2="34" y2="16" stroke="#fdcb6e" stroke-width="2" stroke-linecap="round" />
+          <!-- Dipper / Forearm -->
+          <line class="excavator-dipper" x1="34" y1="16" x2="38" y2="28" stroke="#2d3436" stroke-width="3" stroke-linecap="round" />
+          <!-- Bucket -->
+          <path class="excavator-bucket" d="M 36,28 Q 42,28 40,34 Q 34,34 35,28 Z" fill="#2d3436" />
+        </g>
+      </svg>
+
+      <!-- 2. Dump Truck -->
+      <svg class="walking-pet walking-pet--truck" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+        <!-- Wheels -->
+        <circle class="truck-wheel" cx="14" cy="36" r="5" fill="#0f172a" stroke="#dfe6e9" stroke-width="1.5" />
+        <circle class="truck-wheel" cx="34" cy="36" r="5" fill="#0f172a" stroke="#dfe6e9" stroke-width="1.5" />
+        <circle cx="14" cy="36" r="2" fill="#dfe6e9" />
+        <circle cx="34" cy="36" r="2" fill="#dfe6e9" />
+        <!-- Chassis -->
+        <rect x="8" y="30" width="32" height="4" fill="#2d3436" />
+        <!-- Cab (Blue) -->
+        <path d="M 8,30 L 8,20 L 16,20 L 22,25 L 22,30 Z" fill="#0984e3" stroke="#0f172a" stroke-width="2" />
+        <rect x="10" y="22" width="6" height="5" fill="#dfe6e9" />
+        <!-- Dump Bed (Yellow) -->
+        <g class="truck-bed">
+          <polygon points="21,18 39,18 39,30 21,30" fill="#fdcb6e" stroke="#0f172a" stroke-width="2" />
+          <rect x="23" y="20" width="14" height="2" fill="#ffeaa7" />
+        </g>
+      </svg>
+
+      <!-- 3. Worker (Yellow Helmet) -->
+      <svg class="walking-pet walking-pet--worker-yellow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 40">
+        <!-- Legs -->
+        <rect class="worker-leg worker-leg--left" x="11" y="26" width="3" height="12" rx="1" fill="#2e86de" />
+        <rect class="worker-leg worker-leg--right" x="17" y="26" width="3" height="12" rx="1" fill="#1b4f72" />
+        <!-- Torso (Safety Vest) -->
+        <rect x="9" y="14" width="13" height="13" rx="2" fill="#10b981" />
+        <rect x="11" y="14" width="9" height="13" fill="#ff9f43" />
+        <rect x="9" y="18" width="13" height="2" fill="#dfe6e9" />
+        <rect x="9" y="22" width="13" height="2" fill="#dfe6e9" />
+        <!-- Arms -->
+        <rect class="worker-arm worker-arm--left" x="6" y="14" width="3" height="11" rx="1" fill="#ffdb58" />
+        <rect class="worker-arm worker-arm--right" x="22" y="14" width="3" height="11" rx="1" fill="#ffdb58" />
+        <!-- Head & Neck -->
+        <rect x="14" y="11" width="3" height="4" fill="#ffdb58" />
+        <circle cx="15.5" cy="9.5" r="4.5" fill="#ffdb58" />
+        <!-- Helmet (Yellow) -->
+        <path d="M 10,7.5 C 10,4.5 21,4.5 21,7.5 Z" fill="#fecb2f" />
+        <rect x="9" y="7" width="13" height="1.5" rx="0.5" fill="#fecb2f" />
+      </svg>
+
+      <!-- 4. Worker (Orange Helmet & Shovel) -->
+      <svg class="walking-pet walking-pet--worker-orange" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 40">
+        <!-- Legs -->
+        <rect class="worker-leg worker-leg--left" x="11" y="26" width="3" height="12" rx="1" fill="#2f3640" />
+        <rect class="worker-leg worker-leg--right" x="17" y="26" width="3" height="12" rx="1" fill="#1e272e" />
+        <!-- Torso -->
+        <rect x="9" y="14" width="13" height="13" rx="2" fill="#ff9f43" />
+        <rect x="11" y="14" width="9" height="13" fill="#10b981" />
+        <rect x="9" y="18" width="13" height="2" fill="#dfe6e9" />
+        <rect x="9" y="22" width="13" height="2" fill="#dfe6e9" />
+        <!-- Arms -->
+        <rect class="worker-arm worker-arm--left" x="6" y="14" width="3" height="11" rx="1" fill="#ffd2af" />
+        <g class="worker-arm worker-arm--right-tool">
+          <rect x="22" y="14" width="3" height="11" rx="1" fill="#ffd2af" />
+          <rect x="23" y="10" width="1.5" height="14" fill="#718093" />
+          <path d="M 21,8 L 26,8 L 25,11 L 22,11 Z" fill="#95a5a6" />
+        </g>
+        <!-- Head & Neck -->
+        <rect x="14" y="11" width="3" height="4" fill="#ffd2af" />
+        <circle cx="15.5" cy="9.5" r="4.5" fill="#ffd2af" />
+        <!-- Helmet (Orange) -->
+        <path d="M 10,7.5 C 10,4.5 21,4.5 21,7.5 Z" fill="#ff6b6b" />
+        <rect x="9" y="7" width="13" height="1.5" rx="0.5" fill="#ff6b6b" />
+      </svg>
+
+      <!-- 5. Worker (White Helmet / PM) -->
+      <svg class="walking-pet walking-pet--worker-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 40">
+        <!-- Legs -->
+        <rect class="worker-leg worker-leg--left" x="11" y="26" width="3" height="12" rx="1" fill="#341f97" />
+        <rect class="worker-leg worker-leg--right" x="17" y="26" width="3" height="12" rx="1" fill="#222f3e" />
+        <!-- Torso -->
+        <rect x="9" y="14" width="13" height="13" rx="2" fill="#54a0ff" />
+        <rect x="11" y="14" width="9" height="13" fill="#ff9f43" />
+        <rect x="9" y="18" width="13" height="2" fill="#dfe6e9" />
+        <!-- Arms -->
+        <g class="worker-arm worker-arm--left-plan">
+          <rect x="5" y="14" width="3" height="11" rx="1" fill="#ffc048" />
+          <rect x="2" y="20" width="8" height="3" rx="1" fill="#ffffff" stroke="#2e86de" stroke-width="0.8" />
+        </g>
+        <rect class="worker-arm worker-arm--right" x="22" y="14" width="3" height="11" rx="1" fill="#ffc048" />
+        <!-- Head & Neck -->
+        <rect x="14" y="11" width="3" height="4" fill="#ffc048" />
+        <circle cx="15.5" cy="9.5" r="4.5" fill="#ffc048" />
+        <!-- Helmet (White) -->
+        <path d="M 10,7.5 C 10,4.5 21,4.5 21,7.5 Z" fill="#ffffff" stroke="#ccc" stroke-width="0.5" />
+        <rect x="9" y="7" width="13" height="1.5" rx="0.5" fill="#ffffff" stroke="#ccc" stroke-width="0.5" />
+      </svg>
+    </div>
   </q-layout>
 </template>
 
@@ -617,15 +738,15 @@ const handleLogout = () => {
 
 /* Pulsing Active Green Dot */
 .profile-pulse-dot {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   background-color: #27c93f;
-  border: 2px solid #ffffff;
+  border: 1.5px solid #ffffff;
   border-radius: 50%;
   animation: pulse-glow-green 2s infinite ease-in-out;
   position: absolute;
-  bottom: -2px;
-  right: -2px;
+  bottom: -1px;
+  right: -1px;
   z-index: 2;
 }
 
@@ -862,5 +983,164 @@ const handleLogout = () => {
 .menu-item,
 .menu-expansion-item {
   max-width: calc(100% - 8px) !important;
+}
+
+/* Pixel Pets Background Styling */
+.pixel-pet-container {
+  position: fixed;
+  bottom: 0px;
+  left: 0;
+  width: 100vw;
+  height: 60px;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: visible;
+}
+
+.walking-pet {
+  position: absolute;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.walking-pet--excavator {
+  width: 64px;
+  height: 64px;
+  animation: walk-back-and-forth 38s linear infinite;
+  animation-delay: -15s;
+}
+
+.walking-pet--truck {
+  width: 64px;
+  height: 64px;
+  animation: walk-back-and-forth 22s linear infinite;
+  animation-delay: -3s;
+}
+
+.walking-pet--worker-yellow {
+  width: 38px;
+  height: 48px;
+  animation: walk-back-and-forth 28s linear infinite;
+  animation-delay: -7s;
+}
+
+.walking-pet--worker-orange {
+  width: 38px;
+  height: 48px;
+  animation: walk-back-and-forth 30s linear infinite;
+  animation-delay: -20s;
+}
+
+.walking-pet--worker-white {
+  width: 38px;
+  height: 48px;
+  animation: walk-back-and-forth 32s linear infinite;
+  animation-delay: -11s;
+}
+
+/* Wheel, Arm and Bed animations */
+.walking-pet .excavator-wheel,
+.walking-pet .truck-wheel {
+  animation: spin-wheel 1.2s linear infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+.walking-pet .excavator-arm {
+  animation: bob-arm 2s ease-in-out infinite alternate;
+  transform-origin: 22px 28px;
+}
+
+.walking-pet .truck-bed {
+  animation: tilt-bed 2.5s ease-in-out infinite alternate;
+  transform-origin: 39px 30px;
+}
+
+/* Worker animations */
+.walking-pet .worker-leg--left {
+  animation: swing-leg-a 0.35s ease-in-out infinite alternate;
+  transform-origin: 12px 26px;
+}
+
+.walking-pet .worker-leg--right {
+  animation: swing-leg-b 0.35s ease-in-out infinite alternate;
+  transform-origin: 18px 26px;
+}
+
+.walking-pet .worker-arm--left {
+  animation: swing-arm-a 0.35s ease-in-out infinite alternate;
+  transform-origin: 7px 14px;
+}
+
+.walking-pet .worker-arm--right {
+  animation: swing-arm-b 0.35s ease-in-out infinite alternate;
+  transform-origin: 23px 14px;
+}
+
+.walking-pet .worker-arm--right-tool {
+  animation: swing-arm-b 0.35s ease-in-out infinite alternate;
+  transform-origin: 23px 14px;
+}
+
+.walking-pet .worker-arm--left-plan {
+  animation: swing-arm-a 0.35s ease-in-out infinite alternate;
+  transform-origin: 6px 14px;
+}
+
+@keyframes spin-wheel {
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes bob-arm {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-12deg); }
+}
+
+@keyframes tilt-bed {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(-6deg); }
+}
+
+@keyframes swing-leg-a {
+  0% { transform: rotate(-28deg); }
+  100% { transform: rotate(28deg); }
+}
+
+@keyframes swing-leg-b {
+  0% { transform: rotate(28deg); }
+  100% { transform: rotate(-28deg); }
+}
+
+@keyframes swing-arm-a {
+  0% { transform: rotate(-24deg); }
+  100% { transform: rotate(24deg); }
+}
+
+@keyframes swing-arm-b {
+  0% { transform: rotate(24deg); }
+  100% { transform: rotate(-24deg); }
+}
+
+@keyframes walk-back-and-forth {
+  0% {
+    left: -70px;
+    transform: scaleX(1);
+  }
+  48% {
+    left: calc(100vw - 70px);
+    transform: scaleX(1);
+  }
+  50% {
+    left: calc(100vw - 70px);
+    transform: scaleX(-1);
+  }
+  98% {
+    left: -70px;
+    transform: scaleX(-1);
+  }
+  100% {
+    left: -70px;
+    transform: scaleX(1);
+  }
 }
 </style>
