@@ -1,7 +1,12 @@
 <template>
   <q-page class="bg-page q-pa-md font-pro relative-position">
-    <div class="page-content-wrapper animate-fade">
-      <!-- HEADER SECTION -->
+    <div class="page-content-wrapper">
+      
+      <!-- =====================================================================================
+         VIEW 1: LIST DOKUMEN PENAWARAN
+         ===================================================================================== -->
+      <div v-if="viewMode === 'list'" class="animate-fade">
+        <!-- HEADER SECTION -->
       <div class="row items-center justify-between q-mb-md no-print content-relative">
         <div class="col-12 q-mb-md q-mb-md-none">
           <div class="text-h4 text-weight-bolder text-brand-primary leading-tight">
@@ -143,7 +148,7 @@
             <q-tr
               :props="props"
               class="hover-bg transition-all cursor-pointer"
-              @click="openPreview(props.row)"
+              @click="openDetail(props.row)"
             >
               <q-td key="nomor" class="text-weight-bolder text-brand-primary">
                 <div class="row items-center q-gutter-x-sm">
@@ -231,6 +236,215 @@
           </template>
         </q-table>
       </q-card>
+      </div> <!-- END OF VIEW 1 -->
+
+      <!-- =====================================================================================
+         VIEW 2: DETAIL PENAWARAN (INFORMATIVE VIEW)
+         ===================================================================================== -->
+      <div v-else-if="viewMode === 'detail' && selectedData" class="animate-fade q-pb-xl">
+        <!-- Top Action Bar -->
+        <div class="row items-center justify-between q-col-gutter-y-md q-mb-xl no-print">
+          <div class="col-12 col-sm-auto row items-center no-wrap">
+            <q-btn
+              flat
+              round
+              color="brand-primary"
+              icon="arrow_back"
+              @click="viewMode = 'list'"
+              class="q-mr-md bg-white shadow-1"
+            />
+            <div>
+              <div class="text-overline text-grey-6 text-bold tracking-widest q-mb-xs leading-none">
+                DETAIL PENAWARAN HARGA
+              </div>
+              <div class="text-h5 text-weight-bolder text-brand-primary leading-tight uppercase">
+                {{ selectedData.nomor }}
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-sm-auto row items-center q-col-gutter-sm q-mt-xs q-mt-sm-none">
+            <div class="col-12 col-sm-auto">
+              <!-- Button to open official document preview -->
+              <q-btn
+                unelevated
+                color="indigo-10"
+                icon="visibility"
+                label="PREVIEW DOKUMEN RESMI"
+                class="rounded-12 text-weight-bold q-py-sm q-px-md shadow-2 full-width"
+                @click="openDocumentPreview"
+              />
+            </div>
+
+            <div class="col-12 col-sm-auto" v-if="selectedData.status !== 'Approved' && canAction('ubah')">
+              <!-- Edit button -->
+              <q-btn
+                unelevated
+                color="brand-primary"
+                icon="edit"
+                label="EDIT PENAWARAN"
+                class="rounded-12 text-weight-bold q-py-sm q-px-md shadow-2 full-width"
+                @click="openEditDialog(selectedData)"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="row q-col-gutter-lg">
+          <!-- Left Column: General Info & Terms -->
+          <div class="col-12 col-md-5">
+            <!-- GENERAL INFO CARD -->
+            <q-card flat bordered class="rounded-20 bg-white q-mb-lg shadow-sm border-subtle">
+              <q-card-section class="bg-brand-light q-py-md text-brand-primary text-weight-bold flex items-center border-bottom">
+                <q-icon name="info" class="q-mr-sm" size="sm" />
+                INFORMASI UMUM
+              </q-card-section>
+              <q-card-section class="q-pa-lg">
+                <table class="detail-table full-width">
+                  <tr>
+                    <td class="text-weight-bold text-grey-6 py-2">Klien / Customer</td>
+                    <td class="text-weight-bold text-blue-grey-9 text-right py-2 uppercase">{{ selectedData.nama_customer }}</td>
+                  </tr>
+                  <tr>
+                    <td class="text-weight-bold text-grey-6 py-2">Ditujukan (Attn)</td>
+                    <td class="text-weight-medium text-grey-8 text-right py-2">{{ selectedData.attn || '-' }}</td>
+                  </tr>
+                  <tr>
+                    <td class="text-weight-bold text-grey-6 py-2">Tanggal Terbit</td>
+                    <td class="text-weight-medium text-grey-8 text-right py-2">{{ formatIndoDate(selectedData.tanggal) }}</td>
+                  </tr>
+                  <tr>
+                    <td class="text-weight-bold text-grey-6 py-2">Lokasi Terbit</td>
+                    <td class="text-weight-medium text-grey-8 text-right py-2">{{ selectedData.kota }}</td>
+                  </tr>
+                  <tr>
+                    <td class="text-weight-bold text-grey-6 py-2">Perusahaan Pengirim</td>
+                    <td class="text-weight-medium text-grey-8 text-right py-2 uppercase">{{ selectedData.nama_pt }}</td>
+                  </tr>
+                  <tr>
+                    <td class="text-weight-bold text-grey-6 py-2">Status Penawaran</td>
+                    <td class="text-right py-2">
+                      <q-chip
+                        text-color="white"
+                        size="sm"
+                        class="text-weight-bold shadow-sm"
+                        :color="getStatusColor(selectedData.status)"
+                      >
+                        {{ selectedData.status || 'Draft' }}
+                      </q-chip>
+                    </td>
+                  </tr>
+                  <tr v-if="selectedData.analisa_harga_url">
+                    <td class="text-weight-bold text-grey-6 py-2">Analisa Pendukung</td>
+                    <td class="text-right py-2">
+                      <q-btn
+                        flat
+                        dense
+                        color="brand-primary"
+                        icon="cloud_download"
+                        label="Unduh Berkas"
+                        @click="openAnalisaLink(selectedData.analisa_harga_url)"
+                        class="text-weight-bold"
+                      />
+                    </td>
+                  </tr>
+                </table>
+              </q-card-section>
+            </q-card>
+
+            <!-- TERMS & CONDITIONS CARD -->
+            <q-card flat bordered class="rounded-20 bg-white shadow-sm border-subtle">
+              <q-card-section class="bg-brand-light q-py-md text-brand-primary text-weight-bold flex items-center border-bottom">
+                <q-icon name="gavel" class="q-mr-sm" size="sm" />
+                SYARAT & KETENTUAN
+              </q-card-section>
+              <q-card-section class="q-pa-lg">
+                <div class="bg-grey-1 q-pa-md rounded-12 text-grey-9 text-body2 leading-relaxed" v-html="selectedData.terms || '-'">
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+
+          <!-- Right Column: Work Items Summary -->
+          <div class="col-12 col-md-7">
+            <!-- ITEMS SUMMARY CARD -->
+            <q-card flat bordered class="rounded-20 bg-white q-mb-lg shadow-sm border-subtle">
+              <q-card-section class="bg-brand-light q-py-md text-brand-primary text-weight-bold flex items-center border-bottom">
+                <q-icon name="list_alt" class="q-mr-sm" size="sm" />
+                RINCIAN PEKERJAAN
+              </q-card-section>
+              <q-card-section class="q-pa-none">
+                <q-markup-table flat separator="horizontal" class="no-border">
+                  <thead>
+                    <tr class="bg-grey-1 text-grey-7 text-weight-bold">
+                      <th class="text-center" style="width: 50px">NO</th>
+                      <th class="text-left">URAIAN PEKERJAAN</th>
+                      <th class="text-center" style="width: 80px">QTY</th>
+                      <th class="text-center" style="width: 80px">SAT</th>
+                      <th class="text-right" style="width: 150px">HARGA SATUAN</th>
+                      <th class="text-right" style="width: 150px">TOTAL HARGA</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(item, idx) in selectedData.items" :key="idx">
+                      <td class="text-center text-grey-6 font-bold">{{ idx + 1 }}</td>
+                      <td class="text-left uppercase text-weight-medium text-blue-grey-9">{{ item.deskripsi }}</td>
+                      <td class="text-center text-grey-8">{{ item.qty }}</td>
+                      <td class="text-center uppercase text-grey-8">{{ item.satuan }}</td>
+                      <td class="text-right text-grey-8">Rp {{ Math.round(item.harga || 0).toLocaleString() }}</td>
+                      <td class="text-right text-weight-bold text-brand-primary">Rp {{ Math.round(item.total || 0).toLocaleString() }}</td>
+                    </tr>
+                  </tbody>
+                  <tfoot class="bg-grey-1 font-pro">
+                    <tr>
+                      <td colspan="5" class="text-right text-weight-bold text-grey-7 text-caption py-2">SUBTOTAL PEKERJAAN</td>
+                      <td class="text-right text-weight-bold text-brand-primary py-2">Rp {{ Math.round(selectedData.items.reduce((a, b) => a + (b.total || 0), 0)).toLocaleString() }}</td>
+                    </tr>
+                    <tr v-if="selectedData.tax_rate > 0">
+                      <td colspan="5" class="text-right text-weight-bold text-grey-7 text-caption py-2">TAX ({{ selectedData.tax_rate }}%)</td>
+                      <td class="text-right text-weight-bold text-brand-primary py-2">Rp {{ Math.round(selectedData.items.reduce((a, b) => a + (b.total || 0), 0) * selectedData.tax_rate / 100).toLocaleString() }}</td>
+                    </tr>
+                    <tr v-if="selectedData.biaya_lain > 0">
+                      <td colspan="5" class="text-right text-weight-bold text-grey-7 text-caption py-2">{{ selectedData.biaya_lain_label || 'BIAYA LAIN' }}</td>
+                      <td class="text-right text-weight-bold text-brand-primary py-2">Rp {{ Math.round(selectedData.biaya_lain || 0).toLocaleString() }}</td>
+                    </tr>
+                    <tr class="bg-brand-primary text-white">
+                      <td colspan="5" class="text-right text-weight-bold text-subtitle1 text-white py-3">GRAND TOTAL AMOUNT</td>
+                      <td class="text-right text-weight-bolder text-subtitle1 text-white py-3">Rp {{ Math.round(selectedData.total_harga || 0).toLocaleString() }}</td>
+                    </tr>
+                  </tfoot>
+                </q-markup-table>
+              </q-card-section>
+            </q-card>
+
+            <!-- SIGNATURE & STATUS CARD -->
+            <q-card flat bordered class="rounded-20 bg-white shadow-sm border-subtle">
+              <q-card-section class="bg-brand-light q-py-md text-brand-primary text-weight-bold flex items-center border-bottom">
+                <q-icon name="draw" class="q-mr-sm" size="sm" />
+                PENGESAHAN & DOKUMEN
+              </q-card-section>
+              <q-card-section class="q-pa-lg">
+                <div class="row q-col-gutter-md items-center">
+                  <div class="col-12 col-sm-6 text-left">
+                    <div class="text-caption text-grey-6 text-bold uppercase font-8">Penandatangan</div>
+                    <div class="text-subtitle1 text-weight-bold text-blue-grey-9 uppercase">{{ selectedData.ttd_nama || '-' }}</div>
+                    <div class="text-caption text-grey-7 uppercase font-bold">{{ selectedData.ttd_jabatan || '-' }}</div>
+                  </div>
+                  <div class="col-12 col-sm-6 text-right">
+                    <div class="row justify-end q-gutter-md">
+                      <q-card v-if="selectedData.signatureUrl" flat bordered class="rounded-12 bg-grey-1 relative-position flex flex-center" style="width: 140px; height: 75px;">
+                        <img :src="selectedData.signatureUrl" style="max-height: 60px; max-width: 120px; object-fit: contain;" />
+                      </q-card>
+                      <q-card v-if="selectedData.stempelUrl" flat bordered class="rounded-12 bg-grey-1 relative-position flex flex-center" style="width: 140px; height: 75px;">
+                        <img :src="selectedData.stempelUrl" style="max-height: 60px; max-width: 120px; object-fit: contain;" />
+                      </q-card>
+                    </div>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+        </div>
+      </div>
 
       <!-- FORM ENTRY DIALOG -->
       <q-dialog
@@ -661,7 +875,7 @@
                                 class="rounded-borders"
                               >
                                 <q-list class="q-pa-sm" style="min-width: 180px">
-                                  <q-item clickable v-ripple v-close-popup @click="showPad = true">
+                                  <q-item clickable v-ripple v-close-popup @click="isSigningFromPreview = false; showPad = true">
                                     <q-item-section avatar
                                       ><q-icon name="gesture" color="brand-primary"
                                     /></q-item-section>
@@ -689,7 +903,7 @@
                               bordered
                               class="rounded-12 flex flex-center bg-grey-1 cursor-pointer hover-shadow transition-all relative-position"
                               style="height: 100px"
-                              @click="showPad = true"
+                              @click="isSigningFromPreview = false; showPad = true"
                             >
                               <q-img
                                 v-if="form.signatureUrl"
@@ -762,16 +976,40 @@
               <canvas ref="signatureCanvas" class="signature-canvas"></canvas>
             </div>
           </q-card-section>
-          <q-card-actions align="right" class="q-pa-md bg-grey-1">
-            <q-btn flat label="Reset" color="grey-7" @click="clearPad" rounded />
-            <q-btn
-              unelevated
-              label="Simpan & Pasang"
-              color="brand-primary"
-              @click="saveManualSignature"
-              rounded
-              class="q-px-xl text-weight-bold text-white"
-            />
+          <q-card-actions class="q-pa-md bg-grey-1 row justify-between items-center full-width">
+            <!-- Left Side: Upload File button with hidden file picker -->
+            <div class="col-auto relative-position">
+              <q-btn
+                outline
+                rounded
+                no-caps
+                color="indigo-10"
+                icon="file_upload"
+                label="Upload File"
+                class="text-weight-bold"
+              >
+                <q-file
+                  v-model="tempPreviewSignFile"
+                  borderless
+                  dense
+                  class="absolute-full opacity-0 cursor-pointer"
+                  accept="image/*"
+                  @update:model-value="uploadSignatureFromPad"
+                />
+              </q-btn>
+            </div>
+            <!-- Right Side: Reset & Simpan & Pasang buttons -->
+            <div class="col-auto q-gutter-sm">
+              <q-btn flat label="RESET" color="grey-7" @click="clearPad" rounded class="text-weight-bold" />
+              <q-btn
+                unelevated
+                label="SIMPAN & PASANG"
+                color="brand-primary"
+                @click="saveManualSignature"
+                rounded
+                class="q-px-lg text-weight-bold text-white shadow-1"
+              />
+            </div>
           </q-card-actions>
         </q-card>
       </q-dialog>
@@ -946,7 +1184,7 @@
                     <div class="text-weight-bold text-indigo-10 uppercase q-mb-xs">
                       {{ selectedData.nama_pt }}
                     </div>
-                    <div class="final-sign-space">
+                    <div class="final-sign-space flex flex-center relative-position">
                       <img
                         v-if="selectedData.stempelUrl"
                         :src="selectedData.stempelUrl"
@@ -957,13 +1195,30 @@
                         :src="selectedData.signatureUrl"
                         class="img-signature"
                       />
-                      <div
+                      <q-btn
+                        v-if="selectedData.signatureUrl"
+                        flat
+                        round
+                        dense
+                        icon="close"
+                        color="negative"
+                        size="xs"
+                        class="absolute-top-right q-ma-xs no-print"
+                        style="z-index: 10;"
+                        @click.stop="clearPreviewSignature"
+                      />
+                      <q-btn
                         v-if="!selectedData.signatureUrl"
-                        class="text-caption text-grey-4 italic w-full text-center"
-                        style="padding-top: 30px"
-                      >
-                        Belum ditandatangani
-                      </div>
+                        outline
+                        rounded
+                        no-caps
+                        color="brand-primary"
+                        icon="draw"
+                        label="Ttd"
+                        class="no-print q-px-lg q-py-sm text-weight-bold"
+                        style="font-size: 16px; min-width: 120px;"
+                        @click="openSignaturePadFromPreview"
+                      />
                     </div>
                     <div
                       class="text-signer-final text-weight-bolder uppercase text-indigo-10"
@@ -1095,6 +1350,7 @@ const isEditMode = ref(false)
 const filter = ref('')
 const showPreview = ref(false)
 const selectedData = ref(null)
+const viewMode = ref('list')
 const optCustomer = ref([])
 const selectedCustomer = ref(null)
 const tempKopFile = ref(null)
@@ -1296,7 +1552,7 @@ onMounted(() => {
     const qUser = query(collection(db, 'karyawan'), where('email', '==', userEmail))
     unsubscribeUser = onSnapshot(qUser, (snapshot) => {
       if (!snapshot.empty) {
-        userData.value = snapshot.docs[0].data()
+        userData.value = { id: snapshot.docs[0].id, ...snapshot.docs[0].data() }
         formDefault.ttd_nama = userData.value.nama || ''
         formDefault.ttd_jabatan = userData.value.jabatan || ''
       }
@@ -1310,11 +1566,21 @@ onUnmounted(() => {
 
 // ── SIGNATURE PAD ─────────────────────────────────────────────────────────────
 const penThickness = ref(5) // default 5 (minWidth: 3.5, maxWidth: 8.0)
+const isSigningFromPreview = ref(false)
 
 watch(penThickness, (val) => {
   if (signaturePad) {
-    signaturePad.minWidth = val * 0.7
-    signaturePad.maxWidth = val * 1.6
+    const data = signaturePad.toData()
+    const targetMin = val * 0.7
+    const targetMax = val * 1.6
+    data.forEach((stroke) => {
+      stroke.minWidth = targetMin
+      stroke.maxWidth = targetMax
+    })
+    signaturePad.minWidth = targetMin
+    signaturePad.maxWidth = targetMax
+    signaturePad.clear()
+    signaturePad.fromData(data)
   }
 })
 
@@ -1334,10 +1600,133 @@ watch(showPad, async (v) => {
   }
 })
 const clearPad = () => signaturePad?.clear()
-const saveManualSignature = () => {
+
+const openSignaturePadFromPreview = () => {
+  isSigningFromPreview.value = true
+  showPad.value = true
+}
+
+const saveManualSignature = async () => {
   if (!signaturePad || signaturePad.isEmpty()) return
-  form.value.signatureUrl = signaturePad.toDataURL()
-  showPad.value = false
+  const base64 = signaturePad.toDataURL()
+
+  if (isSigningFromPreview.value) {
+    if (!selectedData.value || !selectedData.value.id) return
+    $q.loading.show({ message: 'Menyimpan tanda tangan...' })
+    try {
+      // 1. Simpan ke penawaran
+      await updateDoc(doc(db, 'penawaran', selectedData.value.id), {
+        signatureUrl: base64,
+        updatedAt: serverTimestamp(),
+      })
+      selectedData.value.signatureUrl = base64
+
+      // 2. Simpan ke karyawan profile
+      if (userData.value?.id) {
+        await updateDoc(doc(db, 'karyawan', userData.value.id), {
+          signatureUrl: base64,
+        })
+      }
+
+      $q.notify({ type: 'positive', message: 'Tanda tangan berhasil dipasang!' })
+    } catch (e) {
+      console.error(e)
+      $q.notify({ type: 'negative', message: 'Gagal menyimpan tanda tangan: ' + e.message })
+    } finally {
+      $q.loading.hide()
+      isSigningFromPreview.value = false
+      showPad.value = false
+    }
+  } else {
+    form.value.signatureUrl = base64
+    showPad.value = false
+  }
+}
+
+const clearPreviewSignature = () => {
+  if (!selectedData.value || !selectedData.value.id) return
+  $q.dialog({
+    title: 'Hapus Tanda Tangan',
+    message: 'Apakah Anda yakin ingin menghapus tanda tangan dari dokumen ini?',
+    cancel: { flat: true, label: 'Batal', color: 'grey-7' },
+    ok: {
+      unelevated: true,
+      rounded: true,
+      label: 'Ya, Hapus',
+      color: 'negative',
+      class: 'text-weight-bold',
+    },
+  }).onOk(async () => {
+    $q.loading.show({ message: 'Menghapus tanda tangan...' })
+    try {
+      await updateDoc(doc(db, 'penawaran', selectedData.value.id), {
+        signatureUrl: '',
+        updatedAt: serverTimestamp(),
+      })
+      selectedData.value.signatureUrl = ''
+      $q.notify({ type: 'positive', message: 'Tanda tangan berhasil dihapus!' })
+    } catch (e) {
+      console.error(e)
+      $q.notify({ type: 'negative', message: 'Gagal menghapus tanda tangan: ' + e.message })
+    } finally {
+      $q.loading.hide()
+    }
+  })
+}
+
+const tempPreviewSignFile = ref(null)
+
+const uploadSignatureFromPad = (file) => {
+  if (!file) return
+
+  if (isSigningFromPreview.value) {
+    if (!selectedData.value || !selectedData.value.id) return
+    $q.loading.show({ message: 'Mengompres & mengunggah tanda tangan...' })
+    resizeImageToBase64(file, 400).then(async (base64) => {
+      try {
+        // 1. Simpan ke penawaran
+        await updateDoc(doc(db, 'penawaran', selectedData.value.id), {
+          signatureUrl: base64,
+          updatedAt: serverTimestamp(),
+        })
+        selectedData.value.signatureUrl = base64
+
+        // 2. Simpan ke profil karyawan
+        if (userData.value?.id) {
+          await updateDoc(doc(db, 'karyawan', userData.value.id), {
+            signatureUrl: base64,
+          })
+        }
+
+        $q.notify({ type: 'positive', message: 'Tanda tangan berhasil diunggah & dipasang!' })
+      } catch (e) {
+        console.error(e)
+        $q.notify({ type: 'negative', message: 'Gagal menyimpan tanda tangan: ' + e.message })
+      } finally {
+        $q.loading.hide()
+        tempPreviewSignFile.value = null
+        showPad.value = false
+      }
+    }).catch((err) => {
+      console.error(err)
+      $q.loading.hide()
+      $q.notify({ type: 'negative', message: 'Gagal mengompres gambar.' })
+    })
+  } else {
+    // Edit/Creation dialog case
+    $q.loading.show({ message: 'Mengompres tanda tangan...' })
+    resizeImageToBase64(file, 400).then((base64) => {
+      form.value.signatureUrl = base64
+      $q.notify({ type: 'positive', message: 'Tanda tangan berhasil diunggah!' })
+      $q.loading.hide()
+      tempPreviewSignFile.value = null
+      showPad.value = false
+    }).catch((err) => {
+      console.error(err)
+      $q.loading.hide()
+      $q.notify({ type: 'negative', message: 'Gagal mengompres gambar.' })
+    })
+  }
 }
 
 // ── IMAGE HELPERS ─────────────────────────────────────────────────────────────
@@ -1410,6 +1799,17 @@ const simpanPenawaran = async () => {
     else {
       payload.createdAt = serverTimestamp()
       await addDoc(collection(db, 'penawaran'), payload)
+    }
+
+    // Simpan tanda tangan & stempel ke profil karyawan agar auto-fill di kemudian hari
+    if (userData.value?.id) {
+      const karyawanRef = doc(db, 'karyawan', userData.value.id)
+      const profileUpdates = {}
+      if (payload.signatureUrl) profileUpdates.signatureUrl = payload.signatureUrl
+      if (payload.stempelUrl) profileUpdates.stempelUrl = payload.stempelUrl
+      if (Object.keys(profileUpdates).length > 0) {
+        await updateDoc(karyawanRef, profileUpdates)
+      }
     }
 
     showDialog.value = false
@@ -1504,6 +1904,8 @@ const openAddDialog = () => {
   if (userData.value) {
     form.value.ttd_nama = userData.value.nama
     form.value.ttd_jabatan = userData.value.jabatan
+    form.value.signatureUrl = userData.value.signatureUrl || ''
+    form.value.stempelUrl = userData.value.stempelUrl || ''
   }
   analisaFile.value = null
   stempelFile.value = null
@@ -1554,6 +1956,7 @@ const confirmHapus = (row) => {
   }).onOk(async () => {
     try {
       await deleteDoc(doc(db, 'penawaran', row.id))
+      viewMode.value = 'list'
       $q.notify({
         html: true,
         message:
@@ -1572,12 +1975,22 @@ const confirmHapus = (row) => {
   })
 }
 
-// ── PREVIEW ───────────────────────────────────────────────────────────────────
-const openPreview = async (row) => {
+// ── PREVIEW & DETAIL ──────────────────────────────────────────────────────────
+const openDetail = async (row) => {
   selectedData.value = row
+  viewMode.value = 'detail'
+  window.scrollTo(0, 0)
+  if (row.marketing_read === false) {
+    try {
+      await updateDoc(doc(db, 'penawaran', row.id), { marketing_read: true })
+    } catch (e) {
+      console.error(e)
+    }
+  }
+}
+
+const openDocumentPreview = () => {
   showPreview.value = true
-  if (row.marketing_read === false)
-    await updateDoc(doc(db, 'penawaran', row.id), { marketing_read: true })
 }
 const openAnalisaLink = (url) => {
   if (url) window.open(url, '_blank')
@@ -1798,6 +2211,9 @@ const uploadKopPermanen = async (file) => {
 /* =======================================================================
    MODE KHUSUS SAAT EXPORT PDF GLOBAL STYLES
    ======================================================================= */
+body.is-exporting .no-print {
+  display: none !important;
+}
 body.is-exporting .letter-paper {
   display: block !important;
   width: 180mm !important;
@@ -2405,6 +2821,17 @@ body.is-exporting .letter-paper .row.justify-between {
 /* ═══ MISC ═══════════════════════════════════════════════════════════════════ */
 .hover-shadow:hover {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+.detail-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.detail-table tr td {
+  padding: 10px 0;
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.08);
+}
+.detail-table tr:last-child td {
+  border-bottom: none;
 }
 
 /* ═══ PRINT ══════════════════════════════════════════════════════════════════ */
