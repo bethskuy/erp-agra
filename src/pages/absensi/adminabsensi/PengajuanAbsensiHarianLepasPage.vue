@@ -1,26 +1,42 @@
 <template>
-  <q-page class="bg-page q-pa-md q-pa-lg font-pro relative-position">
+  <q-page class="neo-page-bg font-inter q-pa-md q-pa-lg-lg relative-position overflow-hidden">
+    <!-- FLOATING DECORATIONS CONTAINER -->
+    <div class="neo-decorations-container no-print">
+      <div class="neo-shape shape-wobbly-1"></div>
+      <div class="neo-shape shape-wobbly-2"></div>
+      <div class="neo-shape shape-wobbly-3"></div>
+      <div class="neo-shape shape-wobbly-4"></div>
+      <div class="neo-shape shape-wobbly-5"></div>
+      <div class="neo-shape shape-wobbly-6"></div>
+      <div class="neo-shape shape-wobbly-7"></div>
+      <div class="neo-shape shape-wobbly-8"></div>
+      <div class="neo-shape shape-wobbly-9"></div>
+      <div class="neo-shape shape-wobbly-10"></div>
+      <div class="neo-shape shape-wobbly-11"></div>
+      <div class="neo-shape shape-wobbly-12"></div>
+    </div>
+
     <!-- ======================================================================= -->
     <!-- VIEW 1: DAFTAR PROYEK AKTIF (RINGKASAN)                                  -->
     <!-- ======================================================================= -->
-    <div v-if="!selectedProjectId" class="animate-fade premium-container q-mx-auto page-content-wrapper">
+    <div v-if="!selectedProjectId" class="premium-container q-mx-auto page-content-wrapper table-entrance">
       <!-- HEADER SECTION -->
-      <div class="row items-center justify-between q-mb-md content-relative">
+      <div class="row items-center justify-between q-mb-md content-relative header-entrance">
         <div class="col-12 q-mb-md q-mb-md-none">
-          <div class="text-h4 text-weight-bolder text-brand-primary leading-tight">
+          <div class="text-h4 text-weight-bolder text-slate-900 leading-tight">
             Pengajuan Absensi Harian Lepas
-            <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs">
+            <span class="text-h5 text-weight-light text-grey-7 block q-mt-xs">
               Pilih Proyek Konstruksi Aktif
             </span>
           </div>
-          <div class="text-subtitle1 text-grey-7 q-mt-sm">
+          <div class="text-subtitle1 text-slate-700 q-mt-sm">
             Manajemen kehadiran mandor dan pekerja harian lepas proyek secara terpusat.
           </div>
         </div>
       </div>
 
       <!-- SEARCH & STATS -->
-      <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white border-subtle content-relative">
+      <q-card flat class="q-mb-lg neo-card content-relative">
         <q-card-section class="q-py-md">
           <div class="row items-center justify-between q-col-gutter-md">
             <div class="col-12 col-md-4">
@@ -28,13 +44,12 @@
                 v-model="filterProyek"
                 outlined
                 dense
-                rounded
                 placeholder="Cari Proyek, Klien, atau Lokasi..."
                 bg-color="white"
-                class="search-input"
+                class="rounded-input"
               >
                 <template v-slot:prepend>
-                  <q-icon name="search" color="brand-primary" />
+                  <q-icon name="search" color="slate-900" />
                 </template>
                 <template v-slot:append v-if="filterProyek">
                   <q-icon name="close" @click="filterProyek = ''" class="cursor-pointer" />
@@ -43,17 +58,18 @@
             </div>
 
             <div class="col-12 col-md-auto row items-center justify-end q-col-gutter-md q-mt-sm q-mt-md-none">
-              <div class="col-12 col-md-auto text-caption text-grey-6 text-weight-medium text-center text-md-right">
+              <div class="col-12 col-md-auto text-caption text-slate-600 text-weight-medium text-center text-md-right">
                 Total Proyek Aktif:
-                <span class="text-weight-bold text-brand-primary">{{ proyekList.length + 1 }} Entitas</span>
+                <span class="text-weight-bold text-slate-900">{{ proyekList.length + 1 }} Entitas</span>
               </div>
             </div>
           </div>
         </q-card-section>
       </q-card>
 
+
       <!-- TABLE SECTION -->
-      <q-card flat bordered class="rounded-20 shadow-sm overflow-hidden bg-white border-subtle content-relative">
+      <q-card flat class="neo-card neo-table overflow-hidden content-relative">
         <q-table
           :rows="filteredProyekList"
           :columns="proyekColumns"
@@ -68,7 +84,7 @@
           <template v-slot:body="props">
             <q-tr :props="props" class="hover-bg transition-all cursor-pointer" @click="selectProject(props.row)">
               <!-- NO -->
-              <q-td key="no" :props="props" class="text-center font-mono text-grey-6 text-weight-bold" style="width: 60px">
+              <q-td key="no" :props="props" class="text-center font-mono text-slate-600 text-weight-bold" style="width: 60px">
                 {{ props.rowIndex + 1 }}
               </q-td>
 
@@ -77,17 +93,17 @@
                 <div class="row items-center no-wrap">
                   <q-avatar
                     size="36px"
-                    color="brand-light"
-                    text-color="brand-primary"
-                    class="q-mr-md text-weight-bold font-pro shadow-sm"
+                    color="slate-900"
+                    text-color="white"
+                    class="q-mr-md text-weight-bold font-inter shadow-sm"
                   >
                     {{ props.row.nama.substring(0, 1).toUpperCase() }}
                   </q-avatar>
                   <div>
-                    <div class="text-subtitle2 text-weight-bolder text-blue-grey-9 uppercase">
+                    <div class="text-subtitle2 text-weight-bolder text-slate-900 uppercase">
                       {{ props.row.nama }}
                     </div>
-                    <div class="text-caption text-grey-5 uppercase">
+                    <div class="text-caption text-slate-600 uppercase">
                       Klien: {{ props.row.konsumen_nama || 'Umum / Internal' }}
                     </div>
                   </div>
@@ -97,20 +113,14 @@
               <!-- LOKASI -->
               <q-td key="alamat" :props="props">
                 <div class="row items-center no-wrap">
-                  <q-icon name="place" color="grey-4" class="q-mr-xs" size="16px" />
-                  <span class="text-grey-7 text-weight-medium">{{ props.row.alamat || 'LOKASI BELUM DIATUR' }}</span>
+                  <q-icon name="place" color="slate-600" class="q-mr-xs" size="16px" />
+                  <span class="text-slate-700 text-weight-medium">{{ props.row.alamat || 'LOKASI BELUM DIATUR' }}</span>
                 </div>
               </q-td>
 
               <!-- STATUS -->
               <q-td key="status" :props="props" class="text-center">
-                <q-badge
-                  color="brand-light"
-                  text-color="brand-primary"
-                  class="text-weight-bold q-px-md q-py-xs rounded-6 font-pro text-11"
-                >
-                  AKTIF
-                </q-badge>
+                <span class="neo-badge bg-emerald-2 text-slate-900">AKTIF</span>
               </q-td>
 
               <!-- AKSI -->
@@ -119,7 +129,7 @@
                   <q-btn
                     flat
                     round
-                    color="brand-primary"
+                    color="slate-900"
                     icon="assignment"
                     size="sm"
                     @click="selectProject(props.row)"
@@ -129,7 +139,7 @@
                   <q-btn
                     flat
                     round
-                    color="brand-primary"
+                    color="slate-900"
                     icon="chevron_right"
                     size="sm"
                     @click="selectProject(props.row)"
@@ -153,7 +163,7 @@
     <!-- ======================================================================= -->
     <!-- VIEW 2: FORM PENGAJUAN ABSENSI TERISOLASI PER PROYEK                    -->
     <!-- ======================================================================= -->
-    <div v-else class="animate-fade premium-container q-mx-auto page-content-wrapper">
+    <div v-else class="premium-container q-mx-auto page-content-wrapper table-entrance">
       <!-- HEADER BAR (VIEW SWITCHER STYLE) -->
       <div class="row items-center justify-between detail-header-row">
         <div class="col-12 col-md-8 detail-header-col">
@@ -161,26 +171,28 @@
             <q-btn
               flat
               round
-              color="brand-primary"
+              color="slate-900"
               icon="arrow_back"
               @click="deselectProject"
-              class="q-mr-md bg-white shadow-1"
+              class="q-mr-md neo-btn neo-btn-secondary"
             />
             <div>
               <div class="row items-center no-wrap q-gutter-x-sm">
-                <span class="text-h5 text-md-h4 text-weight-bolder text-brand-primary leading-tight uppercase">
+                <span class="text-h5 text-md-h4 text-weight-bolder text-slate-900 leading-tight uppercase">
                   Detail Absensi Proyek
                 </span>
-                <q-badge
+                <span
                   v-if="currentStatus"
-                  :color="currentStatus === 'disetujui' ? 'positive' : currentStatus === 'diajukan' ? 'warning' : currentStatus === 'ditolak' ? 'negative' : 'grey-7'"
-                  class="text-weight-bold q-px-sm"
-                  style="font-size: 11px; height: 20px;"
+                  :class="[
+                    'neo-badge text-weight-bold q-px-sm',
+                    currentStatus === 'disetujui' ? 'bg-emerald-2 text-slate-900' : currentStatus === 'diajukan' ? 'bg-yellow-3 text-slate-900' : currentStatus === 'ditolak' ? 'bg-red-2 text-slate-900' : 'bg-slate-200 text-slate-900'
+                  ]"
+                  style="font-size: 11px; height: 20px; line-height: 20px;"
                 >
                   {{ currentStatus === 'diajukan' ? 'DIAJUKAN' : currentStatus === 'disetujui' ? 'DISETUJUI' : currentStatus === 'ditolak' ? 'DITOLAK' : 'DRAFT' }}
-                </q-badge>
+                </span>
               </div>
-              <div class="text-body2 text-md-subtitle1 text-grey-7 q-mt-sm text-weight-medium">
+              <div class="text-body2 text-md-subtitle1 text-slate-700 q-mt-sm text-weight-medium">
                 {{ selectedProjectData?.nama }}
               </div>
             </div>
@@ -191,24 +203,20 @@
             <div class="col-6 col-sm-auto">
               <q-btn
                 unelevated
-                color="orange-9"
                 label="AJUKAN"
                 :loading="submitting"
                 :disable="loadingDetails || currentStatus === 'disetujui'"
-                rounded
-                class="full-width q-px-lg text-weight-bold shadow-premium btn-header-action"
+                class="full-width q-px-lg neo-btn neo-btn-orange btn-header-action"
                 @click="submitAttendance"
               />
             </div>
             <div class="col-6 col-sm-auto">
               <q-btn
                 unelevated
-                color="brand-primary"
                 label="SIMPAN ABSENSI"
                 :loading="saving"
                 :disable="loadingDetails || currentStatus === 'disetujui'"
-                rounded
-                class="full-width q-px-lg text-weight-bold shadow-premium btn-header-action"
+                class="full-width q-px-lg neo-btn neo-btn-primary btn-header-action"
                 @click="saveAttendance"
               />
             </div>
@@ -217,7 +225,7 @@
       </div>
 
       <!-- CONTROL PANEL (DATE PICKER & GENERATE BUTTONS) -->
-      <q-card flat bordered class="control-panel-card shadow-1 rounded-20 bg-white border-subtle">
+      <q-card flat class="control-panel-card neo-card">
         <q-card-section class="q-py-md">
           <div class="row q-col-gutter-md items-center justify-between">
             <!-- DATE PICKER -->
@@ -226,15 +234,14 @@
                 v-model="displaySelectedDate"
                 outlined
                 dense
-                rounded
                 readonly
                 label="Tanggal Kehadiran"
                 bg-color="white"
-                class="search-input cursor-pointer"
+                class="rounded-input cursor-pointer"
                 input-class="cursor-pointer"
               >
                 <template v-slot:prepend>
-                  <q-icon name="event" color="brand-primary" class="cursor-pointer" />
+                  <q-icon name="event" color="slate-900" class="cursor-pointer" />
                 </template>
                 <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale" style="min-width: auto" content-style="width: 290px;">
                   <q-date v-model="selectedDate" mask="YYYY-MM-DD" @update:model-value="onDateChange">
@@ -252,16 +259,15 @@
                 v-model="defaultJamMasuk"
                 outlined
                 dense
-                rounded
                 label="Jam Masuk Default"
                 bg-color="white"
-                class="cursor-pointer"
+                class="rounded-input cursor-pointer"
                 input-class="text-center cursor-pointer text-weight-bold font-mono"
                 readonly
                 @click="currentStatus !== 'disetujui' && $refs.defaultMasukProxy.show()"
               >
                 <template v-slot:append>
-                  <q-icon name="access_time" color="brand-primary" class="cursor-pointer">
+                  <q-icon name="access_time" color="slate-900" class="cursor-pointer">
                     <q-popup-proxy ref="defaultMasukProxy" transition-show="scale" transition-hide="scale">
                       <q-time
                         v-model="defaultJamMasuk"
@@ -284,16 +290,15 @@
                 v-model="defaultJamPulang"
                 outlined
                 dense
-                rounded
                 label="Jam Pulang Default"
                 bg-color="white"
-                class="cursor-pointer"
+                class="rounded-input cursor-pointer"
                 input-class="text-center cursor-pointer text-weight-bold font-mono"
                 readonly
                 @click="currentStatus !== 'disetujui' && $refs.defaultPulangProxy.show()"
               >
                 <template v-slot:append>
-                  <q-icon name="access_time" color="brand-primary" class="cursor-pointer">
+                  <q-icon name="access_time" color="slate-900" class="cursor-pointer">
                     <q-popup-proxy ref="defaultPulangProxy" transition-show="scale" transition-hide="scale">
                       <q-time
                         v-model="defaultJamPulang"
@@ -315,26 +320,22 @@
               <div class="col-6 col-sm-auto">
                 <q-btn
                   unelevated
-                  color="brand-primary"
                   icon="done_all"
                   label="Hadir Semua"
-                  rounded
                   no-caps
                   :disable="currentStatus === 'disetujui'"
-                  class="full-width shadow-premium btn-hover text-weight-bold action-btn"
+                  class="full-width neo-btn neo-btn-primary action-btn"
                   @click="generateAll('hadir')"
                 />
               </div>
               <div class="col-6 col-sm-auto">
                 <q-btn
                   unelevated
-                  color="brand-danger"
                   icon="close"
                   label="Tidak Hadir Semua"
-                  rounded
                   no-caps
                   :disable="currentStatus === 'disetujui'"
-                  class="full-width shadow-premium btn-hover text-weight-bold action-btn"
+                  class="full-width neo-btn neo-btn-danger action-btn"
                   @click="generateAll('alpha')"
                 />
               </div>
@@ -344,41 +345,41 @@
       </q-card>
 
       <!-- DETAIL MANDOR & PEKERJA -->
-      <div v-if="loadingDetails" class="flex flex-center q-pa-xl bg-white rounded-20 border border-subtle">
-        <q-spinner-orbit color="brand-primary" size="48px" />
-        <div class="text-subtitle2 text-grey-6 q-ml-md">Memuat log kehadiran...</div>
+      <div v-if="loadingDetails" class="flex flex-center q-pa-xl bg-white neo-card">
+        <q-spinner-orbit color="slate-900" size="48px" />
+        <div class="text-subtitle2 text-slate-800 q-ml-md">Memuat log kehadiran...</div>
       </div>
 
-      <div v-else-if="mandors.length === 0" class="text-center q-pa-xl bg-white rounded-20 border border-subtle shadow-soft">
-        <q-icon name="group_off" size="4em" color="grey-4" />
-        <div class="text-grey-6 text-subtitle1 q-mt-md">
+      <div v-else-if="mandors.length === 0" class="text-center q-pa-xl bg-white neo-card">
+        <q-icon name="group_off" size="4em" color="slate-600" />
+        <div class="text-slate-700 text-subtitle1 q-mt-md">
           Belum ada kelompok mandor terdaftar di proyek ini. Silakan buat kelompok terlebih dahulu di menu Kelola Pekerja & Mandor.
         </div>
       </div>
 
       <div v-else class="q-gutter-y-lg">
         <div v-for="(m, mi) in mandors" :key="m.id" class="mandor-card-wrapper">
-          <q-card flat bordered class="rounded-20 shadow-1 bg-white border-subtle overflow-hidden">
+          <q-card flat class="neo-card overflow-hidden">
             <!-- Header Mandor -->
-            <div class="bg-brand-light q-pa-md row items-center justify-between border-bottom mandor-header-row">
+            <div class="bg-slate-100 q-pa-md row items-center justify-between border-bottom mandor-header-row">
               <div class="row items-center no-wrap">
                 <q-avatar
                   size="40px"
-                  color="brand-primary"
+                  color="slate-900"
                   text-color="white"
                   class="q-mr-md text-weight-bold shadow-sm flex-shrink-0"
                 >
                   {{ mi + 1 }}
                 </q-avatar>
                 <div>
-                  <div class="text-subtitle1 text-weight-bold text-blue-grey-10 uppercase">
+                  <div class="text-subtitle1 text-weight-bold text-slate-900 uppercase">
                     {{ m.nama }}
                   </div>
-                  <div class="text-caption text-grey-7">
-                    BIDANG: <span class="text-weight-bold text-blue-grey-8">{{ (m.bidang || 'Umum').toUpperCase() }}</span>
+                  <div class="text-caption text-slate-700">
+                    BIDANG: <span class="text-weight-bold text-slate-800">{{ (m.bidang || 'Umum').toUpperCase() }}</span>
                     <template v-if="m.spk_nama_kontrak">
                       <span class="q-mx-xs">•</span>
-                      <span class="text-brand-primary text-weight-bold">{{ m.spk_nama_kontrak }}</span>
+                      <span class="text-slate-900 text-weight-bold">{{ m.spk_nama_kontrak }}</span>
                     </template>
                   </div>
                 </div>
@@ -388,11 +389,9 @@
               <div class="row items-center no-wrap q-gutter-x-sm">
                 <q-btn
                   v-if="!getMandorFotoBersama(m.id)"
-                  outline
                   no-caps
                   size="sm"
-                  color="grey-7"
-                  class="rounded-8 text-weight-bold q-px-sm bg-white"
+                  class="neo-btn neo-btn-secondary text-weight-bold q-px-sm"
                   icon="groups"
                   label="Foto Bersama"
                   @click="openPhotoCapture(m.id, '_group', `Grup Mandor ${m.nama}`)"
@@ -402,24 +401,22 @@
                   unelevated
                   no-caps
                   size="sm"
-                  color="brand-primary"
-                  text-color="white"
-                  class="rounded-8 text-weight-bold q-px-sm shadow-premium"
+                  class="neo-btn neo-btn-primary text-weight-bold q-px-sm"
                   icon="groups"
                   label="Foto Bersama (Ada)"
                   @click="openPhotoCapture(m.id, '_group', `Grup Mandor ${m.nama}`)"
                 />
                 
-                <div class="row items-center no-wrap q-gutter-x-xs bg-white q-pa-xs rounded-12 border border-subtle">
-                  <span class="text-caption text-weight-bold text-grey-7 q-mr-sm q-pl-xs">ABSENSI MANDOR:</span>
+                <div class="row items-center no-wrap q-gutter-x-xs bg-white q-pa-xs border-thick">
+                  <span class="text-caption text-weight-bold text-slate-700 q-mr-sm q-pl-xs">ABSENSI MANDOR:</span>
                   <q-btn
                     label="Hadir"
                     size="sm"
                     unelevated
                     no-caps
                     :disable="currentStatus === 'disetujui'"
-                    :color="getMandorStatus(m.id) === 'hadir' ? 'brand-primary' : 'grey-2'"
-                    :text-color="getMandorStatus(m.id) === 'hadir' ? 'white' : 'grey-8'"
+                    :color="getMandorStatus(m.id) === 'hadir' ? 'slate-900' : 'grey-2'"
+                    :text-color="getMandorStatus(m.id) === 'hadir' ? 'white' : 'slate-800'"
                     class="rounded-8 text-weight-bold"
                     @click="setMandorStatus(m.id, 'hadir')"
                   />
@@ -429,8 +426,8 @@
                     unelevated
                     no-caps
                     :disable="currentStatus === 'disetujui'"
-                    :color="getMandorStatus(m.id) === 'alpha' ? 'brand-danger' : 'grey-2'"
-                    :text-color="getMandorStatus(m.id) === 'alpha' ? 'white' : 'grey-8'"
+                    :color="getMandorStatus(m.id) === 'alpha' ? 'red-5' : 'grey-2'"
+                    :text-color="getMandorStatus(m.id) === 'alpha' ? 'white' : 'slate-800'"
                     class="rounded-8 text-weight-bold"
                     @click="setMandorStatus(m.id, 'alpha')"
                   />
@@ -443,7 +440,7 @@
               <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
                 <table class="abs-tbl">
                   <thead>
-                    <tr class="bg-slate-50">
+                    <tr class="bg-slate-100">
                       <th style="width: 40px" class="text-center text-weight-bold font-11 tracking-widest">#</th>
                       <th class="text-left text-weight-bold font-11 tracking-widest">NAMA PEKERJA</th>
                       <th class="text-center text-weight-bold font-11 tracking-widest">JABATAN</th>
@@ -456,25 +453,19 @@
                   </thead>
                   <tbody>
                     <tr v-for="(p, pi) in m.pekerja" :key="p.id">
-                      <td class="text-center text-grey-5 text-weight-bold font-mono">
+                      <td class="text-center text-slate-600 text-weight-bold font-mono">
                         {{ pi + 1 }}
                       </td>
-                      <td class="text-weight-bold text-blue-grey-9 uppercase">
+                      <td class="text-weight-bold text-slate-900 uppercase">
                         <div class="row items-center no-wrap">
-                          <q-avatar size="28px" color="brand-light" text-color="brand-primary" class="q-mr-sm text-weight-bold font-10">
+                          <q-avatar size="28px" color="slate-200" text-color="slate-900" class="q-mr-sm text-weight-bold font-10">
                             {{ p.nama.substring(0, 2).toUpperCase() }}
                           </q-avatar>
                           <span>{{ p.nama }}</span>
                         </div>
                       </td>
                       <td class="text-center">
-                        <q-badge
-                          color="brand-light"
-                          text-color="brand-primary"
-                          class="text-weight-bold q-px-sm q-py-xs rounded-6"
-                        >
-                          {{ p.jabatan || 'Tukang' }}
-                        </q-badge>
+                        <span class="neo-badge bg-sky-1 text-slate-900">{{ p.jabatan || 'Tukang' }}</span>
                       </td>
                       <td class="text-center text-weight-bold text-amber-9 font-mono">
                         {{ (p.koef || 1.0).toFixed(2) }}x
@@ -485,17 +476,16 @@
                           @update:model-value="val => setWorkerJamMasuk(m.id, p.id, val)"
                           outlined
                           dense
-                          rounded
                           placeholder="--:--"
                           bg-color="white"
                           :disable="currentStatus === 'disetujui'"
-                          class="time-picker-input cursor-pointer"
+                          class="rounded-input time-picker-input cursor-pointer"
                           input-class="text-center cursor-pointer text-weight-bold font-mono"
                           readonly
                           @click="!loadingDetails && currentStatus !== 'disetujui' && $refs['masukProxy_' + m.id + '_' + p.id][0].show()"
                         >
                           <template v-slot:append>
-                            <q-icon name="access_time" color="brand-primary" class="cursor-pointer">
+                            <q-icon name="access_time" color="slate-900" class="cursor-pointer">
                               <q-popup-proxy :ref="'masukProxy_' + m.id + '_' + p.id" transition-show="scale" transition-hide="scale">
                                 <q-time
                                   :model-value="getWorkerJamMasuk(m.id, p.id) || defaultJamMasuk"
@@ -519,17 +509,16 @@
                           @update:model-value="val => setWorkerJamPulang(m.id, p.id, val)"
                           outlined
                           dense
-                          rounded
                           placeholder="--:--"
                           bg-color="white"
                           :disable="currentStatus === 'disetujui'"
-                          class="time-picker-input cursor-pointer"
+                          class="rounded-input time-picker-input cursor-pointer"
                           input-class="text-center cursor-pointer text-weight-bold font-mono"
                           readonly
                           @click="!loadingDetails && currentStatus !== 'disetujui' && $refs['pulangProxy_' + m.id + '_' + p.id][0].show()"
                         >
                           <template v-slot:append>
-                            <q-icon name="access_time" color="brand-primary" class="cursor-pointer">
+                            <q-icon name="access_time" color="slate-900" class="cursor-pointer">
                               <q-popup-proxy :ref="'pulangProxy_' + m.id + '_' + p.id" transition-show="scale" transition-hide="scale">
                                 <q-time
                                   :model-value="getWorkerJamPulang(m.id, p.id) || defaultJamPulang"
@@ -554,36 +543,31 @@
                           type="number"
                           outlined
                           dense
-                          rounded
                           min="0"
                           :disable="currentStatus === 'disetujui'"
-                          class="lembur-input-box"
+                          class="rounded-input lembur-input-box"
                           input-class="text-center font-mono text-weight-bold"
                         />
                       </td>
                       <td class="text-center">
                         <q-btn
                           v-if="!getWorkerFoto(m.id, p.id)"
-                          outline
-                          color="grey-7"
-                          class="rounded-8 bg-white"
+                          class="neo-btn neo-btn-secondary"
                           icon="photo_camera"
                           size="sm"
                           @click="openPhotoCapture(m.id, p.id, p.nama)"
                         >
-                          <q-tooltip class="bg-brand-primary">Ambil Foto Bukti</q-tooltip>
+                          <q-tooltip>Ambil Foto Bukti</q-tooltip>
                         </q-btn>
                         <q-btn
                           v-else
                           unelevated
-                          color="brand-primary"
-                          text-color="white"
-                          class="rounded-8 shadow-sm"
+                          class="neo-btn neo-btn-primary"
                           icon="photo"
                           size="sm"
                           @click="openPhotoCapture(m.id, p.id, p.nama)"
                         >
-                          <q-tooltip class="bg-brand-primary">Lihat / Ubah Foto Bukti</q-tooltip>
+                          <q-tooltip>Lihat / Ubah Foto Bukti</q-tooltip>
                         </q-btn>
                       </td>
                     </tr>
@@ -600,9 +584,9 @@
     <!-- DIALOG: AMBIL FOTO BUKTI DENGAN WATERMARK                               -->
     <!-- ======================================================================= -->
     <q-dialog v-model="showPhotoDialog" persistent>
-      <q-card class="rounded-24 shadow-soft bg-white border-subtle overflow-hidden font-pro" style="width: 480px; max-width: 95vw;">
+      <q-card class="neo-card overflow-hidden font-inter" style="width: 480px; max-width: 95vw;">
         <!-- Card Header -->
-        <q-card-section class="bg-brand-primary text-white row items-center justify-between q-py-md">
+        <q-card-section class="bg-slate-900 text-white row items-center justify-between q-py-md">
           <div class="row items-center">
             <q-icon name="photo_camera" size="20px" class="q-mr-sm" />
             <div class="text-subtitle1 text-weight-bolder uppercase tracking-wide">
@@ -622,7 +606,7 @@
 
         <!-- Card Body -->
         <q-card-section class="q-pa-lg relative-position">
-          <div class="text-weight-bold text-blue-grey-9 text-subtitle2 q-mb-md text-center uppercase">
+          <div class="text-weight-bold text-slate-900 text-subtitle2 q-mb-md text-center uppercase">
             {{ photoDialogContext.title }}
           </div>
 
@@ -654,16 +638,16 @@
             </div>
 
             <!-- Loading Spinner -->
-            <q-inner-loading :showing="photoDialogLoading" color="brand-primary">
-              <q-spinner-dots size="40px" color="brand-primary" />
-              <div class="text-brand-primary q-mt-sm text-weight-bold font-pro text-caption">Memproses Watermark...</div>
+            <q-inner-loading :showing="photoDialogLoading" color="slate-900">
+              <q-spinner-dots size="40px" color="slate-900" />
+              <div class="text-slate-900 q-mt-sm text-weight-bold font-inter text-caption">Memproses Watermark...</div>
             </q-inner-loading>
           </div>
 
           <!-- GPS Information Panel (Small Badge) -->
-          <div class="q-mt-sm row items-center justify-between text-caption text-blue-grey-6 q-px-xs">
+          <div class="q-mt-sm row items-center justify-between text-caption text-slate-700 q-px-xs">
             <div class="row items-center">
-              <q-icon name="place" color="brand-primary" size="14px" class="q-mr-xs" />
+              <q-icon name="place" color="slate-900" size="14px" class="q-mr-xs" />
               <span class="text-weight-bold">{{ locationData.lat !== '0.0000' ? `${locationData.lat}, ${locationData.lng}` : 'Melacak GPS...' }}</span>
             </div>
             <div class="ellipsis max-w-200 text-weight-medium">
@@ -679,10 +663,9 @@
             <div class="col-6">
               <q-btn
                 unelevated
-                color="brand-primary"
                 icon="photo_camera"
                 label="Ambil Foto"
-                class="full-width rounded-12 text-weight-bold q-py-sm"
+                class="full-width neo-btn neo-btn-primary q-py-sm"
                 no-caps
                 @click="captureFromVideo"
               />
@@ -690,9 +673,8 @@
             <div class="col-3">
               <q-btn
                 outline
-                color="blue-grey-7"
                 icon="switch_camera"
-                class="full-width rounded-12 q-py-sm"
+                class="full-width neo-btn neo-btn-secondary q-py-sm"
                 @click="toggleCameraFacing"
               >
                 <q-tooltip>Ganti Kamera</q-tooltip>
@@ -701,9 +683,8 @@
             <div class="col-3">
               <q-btn
                 outline
-                color="brand-danger"
                 icon="videocam_off"
-                class="full-width rounded-12 q-py-sm"
+                class="full-width neo-btn neo-btn-danger q-py-sm"
                 @click="stopCamera"
               >
                 <q-tooltip>Matikan Kamera</q-tooltip>
@@ -716,10 +697,9 @@
             <div class="col-6">
               <q-btn
                 unelevated
-                color="brand-primary"
                 icon="done"
                 label="Simpan Foto"
-                class="full-width rounded-12 text-weight-bold q-py-sm"
+                class="full-width neo-btn neo-btn-primary q-py-sm"
                 no-caps
                 :loading="photoDialogLoading"
                 @click="saveCapturedPhoto"
@@ -728,10 +708,9 @@
             <div class="col-6">
               <q-btn
                 outline
-                color="blue-grey-7"
                 icon="refresh"
                 label="Ambil Ulang"
-                class="full-width rounded-12 text-weight-bold q-py-sm"
+                class="full-width neo-btn neo-btn-secondary q-py-sm"
                 no-caps
                 :disabled="photoDialogLoading"
                 @click="photoDialogPreview = null; startCamera();"
@@ -744,10 +723,9 @@
             <div class="col-6">
               <q-btn
                 unelevated
-                color="brand-primary"
                 icon="videocam"
                 label="Aktifkan Kamera"
-                class="full-width rounded-12 text-weight-bold q-py-sm"
+                class="full-width neo-btn neo-btn-primary q-py-sm"
                 no-caps
                 @click="startCamera"
               />
@@ -755,10 +733,9 @@
             <div class="col-6">
               <q-btn
                 outline
-                color="blue-grey-7"
                 icon="file_upload"
                 label="Pilih File Foto"
-                class="full-width rounded-12 text-weight-bold q-py-sm"
+                class="full-width neo-btn neo-btn-secondary q-py-sm"
                 no-caps
                 @click="$refs.fileInputRef.click()"
               />
@@ -1544,225 +1521,339 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@600;700&display=swap');
 
-/* ===== BRAND COLOR PALETTE ===== */
-:root {
-  --brand-primary: #1565c0;
-  --brand-primary-dark: #0d47a1;
-  --brand-primary-light: #e3f2fd;
-  --brand-primary-mid: #90caf9;
-  --brand-danger: #ad3640;
-  --brand-danger-dark: #7a2028;
-  --brand-danger-light: #f7e0e1;
-  --page-bg: #f0fafa;
+.font-inter {
+  font-family: 'Inter', -apple-system, sans-serif;
 }
-
-/* Quasar color overrides via CSS */
-.bg-brand-primary {
-  background-color: #1565c0 !important;
-}
-.bg-brand-light {
-  background-color: #e3f2fd !important;
-}
-.bg-brand-danger {
-  background-color: #ad3640 !important;
-}
-.text-brand-primary {
-  color: #1565c0 !important;
-}
-.text-brand-teal {
-  color: #1565c0 !important;
-}
-.text-brand-danger {
-  color: #ad3640 !important;
-}
-.bg-page {
-  background-color: #f0fafa !important;
-}
-
-/* Override Quasar btn colors */
-.q-btn[color='brand-primary'],
-.bg-brand-primary.q-btn {
-  background-color: #1565c0 !important;
-  color: white !important;
-}
-
-.font-pro {
-  font-family:
-    'Plus Jakarta Sans',
-    -apple-system,
-    sans-serif;
-}
-.relative-position {
-  position: relative;
-}
-.content-relative {
-  position: relative;
-  z-index: 1;
-}
-
-.rounded-20 {
-  border-radius: 20px;
-}
-.rounded-12 {
-  border-radius: 12px;
-}
-.rounded-8 {
-  border-radius: 8px;
-}
-.rounded-6 {
-  border-radius: 6px;
-}
-.shadow-premium {
-  box-shadow: 0 10px 30px rgba(21, 101, 192, 0.2);
-}
-.border-subtle {
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
-.border-bottom-subtle {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.project-table :deep(thead tr th) {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  background-color: #1565c0 !important;
-  color: #ffffff !important;
-  font-weight: 800;
-  font-size: 11px;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-}
-.project-table :deep(thead tr th .q-table__sort-icon) {
-  color: rgba(255, 255, 255, 0.6) !important;
-}
-.btn-hover:hover {
-  filter: brightness(1.1);
-  transform: scale(1.02);
-  transition: 0.3s;
-}
-.hover-bg:hover {
-  background-color: rgba(21, 101, 192, 0.06) !important;
-}
-.transition-all {
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
-.animate-fade {
-  animation: fadeIn 0.8s ease-out;
-}
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.search-input :deep(.q-field__control) {
-  border-radius: 30px;
-}
-
-/* ===== TABLE STYLING ===== */
-table.abs-tbl {
-  width: 100%;
-  min-width: 800px;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-table.abs-tbl th {
-  background-color: #1565c0 !important;
-  color: #ffffff !important;
-  font-size: 11px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  padding: 14px 12px;
-  border: none;
-  border-bottom: 2px solid #0d47a1;
-}
-table.abs-tbl td {
-  padding: 14px 12px;
-  border: none;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  vertical-align: middle;
-  color: #334155;
-  font-size: 13px;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-}
-table.abs-tbl tr {
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-table.abs-tbl tr:hover {
-  background-color: rgba(21, 101, 192, 0.04);
-}
-
 .font-mono {
   font-family: 'JetBrains Mono', monospace;
 }
 .uppercase {
   text-transform: uppercase;
 }
+.tracking-wide {
+  letter-spacing: 0.5px;
+}
+.letter-spacing-tight {
+  letter-spacing: -0.5px;
+}
+.border-bottom {
+  border-bottom: 2px solid #0f172a;
+}
 
-/* ===== QUASAR COMPONENT DEEP OVERRIDES ===== */
-:deep(.q-btn[color='brand-primary']) {
-  background: #1565c0 !important;
-  color: white !important;
+/* NEO-BRUTALIST STYLING TOKENS */
+.neo-page-bg {
+  background-color: #f3f4f6 !important;
+  background-image: radial-gradient(#d1d5db 1.5px, transparent 1.5px);
+  background-size: 24px 24px;
+  min-height: 100vh;
+  position: relative;
 }
-:deep(.q-btn--unelevated.q-btn[color='brand-primary']) {
-  background: #1565c0 !important;
+
+.neo-decorations-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
 }
-:deep(.q-avatar[color='brand-primary']) {
+
+.neo-shape {
+  position: absolute;
+  opacity: 0.08;
+  pointer-events: none;
+}
+
+.shape-wobbly-1 {
+  width: 300px;
+  height: 300px;
+  background-color: #3b82f6;
+  border-radius: 43% 57% 41% 59% / 57% 46% 54% 43%;
+  top: -50px;
+  left: -100px;
+  animation: drift-slow 25s infinite alternate ease-in-out;
+}
+.shape-wobbly-2 {
+  width: 250px;
+  height: 250px;
+  background-color: #ec4899;
+  border-radius: 50% 50% 30% 70% / 50% 60% 40% 50%;
+  bottom: 10%;
+  right: -80px;
+  animation: drift-slow 20s infinite alternate-reverse ease-in-out;
+}
+.shape-wobbly-3 {
+  width: 180px;
+  height: 180px;
+  background-color: #f59e0b;
+  border-radius: 60% 40% 70% 30% / 50% 50% 50% 50%;
+  top: 40%;
+  left: -50px;
+  animation: drift-slow 30s infinite alternate ease-in-out;
+}
+.shape-wobbly-4 {
+  width: 220px;
+  height: 220px;
+  background-color: #10b981;
+  border-radius: 40% 60% 50% 50% / 40% 50% 50% 60%;
+  top: 15%;
+  right: 15%;
+  animation: drift-slow 22s infinite alternate ease-in-out;
+}
+.shape-wobbly-5 { width: 140px; height: 140px; background-color: #8b5cf6; border-radius: 35% 65% 55% 45% / 45% 35% 65% 55%; bottom: 25%; left: 10%; animation: drift-slow 28s infinite alternate ease-in-out; }
+.shape-wobbly-6 { width: 160px; height: 160px; background-color: #06b6d4; border-radius: 55% 45% 35% 65% / 55% 65% 35% 45%; top: 70%; left: 30%; animation: drift-slow 24s infinite alternate ease-in-out; }
+.shape-wobbly-7 { width: 280px; height: 280px; background-color: #f43f5e; border-radius: 65% 35% 45% 55% / 35% 45% 55% 65%; top: 50%; right: 25%; animation: drift-slow 26s infinite alternate ease-in-out; }
+.shape-wobbly-8 { width: 200px; height: 200px; background-color: #eab308; border-radius: 45% 55% 65% 35% / 65% 55% 45% 35%; bottom: -50px; right: 20%; animation: drift-slow 23s infinite alternate ease-in-out; }
+.shape-wobbly-9 { width: 150px; height: 150px; background-color: #6366f1; border-radius: 50% 50% 50% 50% / 30% 70% 30% 70%; top: -30px; left: 45%; animation: drift-slow 27s infinite alternate ease-in-out; }
+.shape-wobbly-10 { width: 170px; height: 170px; background-color: #14b8a6; border-radius: 70% 30% 50% 50% / 50% 50% 70% 30%; bottom: 40%; left: 40%; animation: drift-slow 21s infinite alternate ease-in-out; }
+.shape-wobbly-11 { width: 190px; height: 190px; background-color: #a855f7; border-radius: 40% 40% 60% 60% / 60% 60% 40% 40%; top: 30%; left: 70%; animation: drift-slow 29s infinite alternate ease-in-out; }
+.shape-wobbly-12 { width: 130px; height: 130px; background-color: #ff007f; border-radius: 30% 70% 30% 70% / 70% 30% 70% 30%; bottom: -30px; left: -30px; animation: drift-slow 19s infinite alternate ease-in-out; }
+
+@keyframes drift-slow {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+  100% { transform: translate(40px, 30px) rotate(360deg) scale(1.1); }
+}
+
+/* STAGGERED ENTRANCES */
+.header-entrance {
+  animation: bounceInDown 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+.table-entrance {
+  animation: fadeInUpStagger 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes bounceInDown {
+  0% { opacity: 0; transform: translateY(-30px); }
+  60% { opacity: 0.9; transform: translateY(5px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInUpStagger {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* NEO BRUTALIST CARD */
+.neo-card {
+  border: 3px solid #0f172a !important;
+  border-radius: 12px !important;
+  box-shadow: 6px 6px 0px #0f172a !important;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  background-color: #ffffff;
+}
+.neo-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 8px 8px 0px #0f172a !important;
+}
+.neo-card:active {
+  transform: translate(2px, 2px);
+  box-shadow: 4px 4px 0px #0f172a !important;
+}
+
+/* NEO BRUTALIST BUTTON */
+.neo-btn {
+  border: 3px solid #0f172a !important;
+  border-radius: 8px !important;
+  box-shadow: 4px 4px 0px #0f172a !important;
+  font-weight: 850 !important;
+  letter-spacing: 0.5px;
+  transition: all 0.15s ease-out;
+  text-transform: uppercase;
+}
+.neo-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0px #0f172a !important;
+}
+.neo-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px #0f172a !important;
+}
+.neo-btn[disabled] {
+  opacity: 0.5 !important;
+  pointer-events: none !important;
+  box-shadow: 2px 2px 0px #0f172a !important;
+  transform: none !important;
+}
+
+.neo-btn-primary {
   background-color: #1565c0 !important;
-  color: white !important;
+  color: #ffffff !important;
 }
-:deep(.q-avatar[color='brand-light']) {
-  background-color: #e3f2fd !important;
-  color: #0d47a1 !important;
+.neo-btn-primary:hover {
+  background-color: #0d47a1 !important;
 }
-:deep(.q-btn[color='brand-danger']) {
-  color: #ad3640 !important;
+.neo-btn-secondary {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
 }
-:deep(.q-btn--unelevated.q-btn[color='brand-danger']) {
-  background: #ad3640 !important;
-  color: white !important;
+.neo-btn-secondary:hover {
+  background-color: #f1f5f9 !important;
 }
-:deep(.q-btn--flat[color='brand-danger']) {
-  color: #ad3640 !important;
+.neo-btn-orange {
+  background-color: #f97316 !important;
+  color: #ffffff !important;
 }
-:deep(.q-btn--flat[color='brand-primary']) {
-  color: #1565c0 !important;
+.neo-btn-orange:hover {
+  background-color: #ea580c !important;
 }
-:deep(.q-icon[color='brand-primary']),
-:deep(.q-field__prepend .q-icon) {
-  color: #1565c0 !important;
+.neo-btn-danger {
+  background-color: #ef4444 !important;
+  color: #ffffff !important;
 }
-:deep(.q-field--focused .q-field__control) {
-  border-color: #1565c0 !important;
-}
-:deep(.q-field--focused .q-field__label) {
-  color: #1565c0 !important;
+.neo-btn-danger:hover {
+  background-color: #dc2626 !important;
 }
 
+/* CUSTOM COLOR UTILITIES */
+.bg-sky-1 { background-color: #e0f2fe !important; }
+.bg-emerald-2 { background-color: #a7f3d0 !important; }
+.bg-yellow-3 { background-color: #fde047 !important; }
+.bg-red-2 { background-color: #fecaca !important; }
+
+/* NEO BADGE */
+.neo-badge {
+  background-color: #f1f5f9;
+  color: #0f172a;
+  border: 2px solid #0f172a;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* FORM CONTROL OVERRIDES */
+.rounded-input :deep(.q-field__control) {
+  border: 2.5px solid #0f172a !important;
+  border-radius: 8px !important;
+  box-shadow: 2.5px 2.5px 0px #0f172a !important;
+  transition: all 0.2s ease;
+  background-color: #ffffff !important;
+}
+.rounded-input :deep(.q-field__control):hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3.5px 3.5px 0px #0f172a !important;
+}
+.rounded-input :deep(.q-field--focused .q-field__control) {
+  border-color: #0f172a !important;
+  transform: translate(-1.5px, -1.5px);
+  box-shadow: 4px 4px 0px #0f172a !important;
+}
+.rounded-input :deep(.q-field__label) {
+  color: #475569 !important;
+  font-weight: 700 !important;
+}
+
+.border-thick {
+  border: 2.5px solid #0f172a !important;
+  border-radius: 8px !important;
+}
+
+/* NEO BRUTALIST FOR Q-TABLE */
+.neo-table :deep(table) {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.neo-table :deep(thead tr th) {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  font-weight: 900 !important;
+  font-size: 11px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  padding: 14px 16px;
+  border-bottom: 3px solid #0f172a !important;
+  border-right: 2px solid #0f172a !important;
+}
+.neo-table :deep(thead tr th:last-child) {
+  border-right: none !important;
+}
+.neo-table :deep(tbody tr td) {
+  padding: 14px 16px;
+  border-bottom: 2px solid #0f172a !important;
+  border-right: 2px solid #0f172a !important;
+  color: #0f172a !important;
+  font-weight: 700 !important;
+  font-size: 13px;
+  background-color: #ffffff;
+}
+.neo-table :deep(tbody tr:last-child td) {
+  border-bottom: none !important;
+}
+.neo-table :deep(tbody tr td:last-child) {
+  border-right: none !important;
+}
+.neo-table :deep(tbody tr:hover td) {
+  background-color: #f1f5f9 !important;
+}
+
+/* ABS-TBL STYLING */
+table.abs-tbl {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 3px solid #0f172a;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 12px;
+  background-color: #ffffff;
+}
+table.abs-tbl th {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  font-weight: 900;
+  font-size: 11px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  padding: 12px 16px;
+  border-bottom: 3px solid #0f172a;
+  border-right: 2px solid #0f172a;
+}
+table.abs-tbl th:last-child {
+  border-right: none;
+}
+table.abs-tbl td {
+  padding: 14px 16px;
+  border-bottom: 2px solid #0f172a;
+  border-right: 2px solid #0f172a;
+  vertical-align: middle;
+  color: #0f172a;
+  font-weight: 700;
+}
+table.abs-tbl tr:last-child td {
+  border-bottom: none;
+}
+table.abs-tbl td:last-child {
+  border-right: none;
+}
+table.abs-tbl tr {
+  background-color: #ffffff;
+  transition: background-color 0.2s ease;
+}
+table.abs-tbl tr:hover {
+  background-color: #f1f5f9;
+}
+
+/* BUTTONS & SPACING GAPS */
 .action-btn {
   height: 68px;
   min-height: 68px;
   font-size: 11px !important;
   padding: 8px 8px !important;
 }
-
 .action-btn :deep(.q-btn__content) {
   flex-direction: column !important;
   justify-content: center;
   align-items: center;
   gap: 4px;
 }
-
 .btn-header-action {
   height: 48px;
   min-height: 48px;
@@ -1776,9 +1867,6 @@ table.abs-tbl tr:hover {
     min-height: 44px;
     font-size: 13px !important;
   }
-}
-
-@media (min-width: 600px) {
   .action-btn {
     height: auto;
     min-height: auto;
@@ -1791,7 +1879,6 @@ table.abs-tbl tr:hover {
   }
 }
 
-/* ===== RESPONSIVE SPACING & PADDING ===== */
 .detail-header-row {
   margin-bottom: 16px;
 }
@@ -1825,12 +1912,6 @@ table.abs-tbl tr:hover {
   }
 }
 
-@media (max-width: 599px) {
-  .bg-page.q-page {
-    padding: 12px !important;
-  }
-}
-
 .time-picker-input {
   max-width: 115px;
   margin: 0 auto;
@@ -1860,17 +1941,51 @@ table.abs-tbl tr:hover {
   padding: 0;
 }
 
-.hover-scale {
-  transition: transform 0.2s ease-in-out;
-}
-.hover-scale:hover {
-  transform: scale(1.15);
-}
-.transition-smooth {
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
 .premium-container {
   max-width: 1200px;
   width: 100%;
+}
+
+/* PRINT MEDIA OVERRIDES */
+@media print {
+  .no-print,
+  .q-header,
+  .q-drawer,
+  .q-btn,
+  .neo-btn,
+  .neo-decorations-container,
+  q-tabs {
+    display: none !important;
+  }
+  body,
+  .q-page,
+  .premium-container {
+    background: #fff !important;
+    color: #000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+  }
+  .neo-card {
+    border: 1px solid #000 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+    margin-bottom: 20px !important;
+    page-break-inside: avoid;
+    transform: none !important;
+  }
+  .neo-badge {
+    border: 1px solid #000 !important;
+    background: transparent !important;
+    color: #000 !important;
+  }
+  table.abs-tbl {
+    border: 1.5px solid #000 !important;
+  }
+  table.abs-tbl th, table.abs-tbl td {
+    border: 1px solid #000 !important;
+    background: transparent !important;
+    color: #000 !important;
+  }
 }
 </style>

@@ -1,20 +1,36 @@
 <template>
-  <q-page class="bg-slate-50 q-pa-md q-pa-lg font-inter">
-    <div class="bento-container q-mx-auto" style="max-width: 1200px; width: 100%;">
+  <q-page class="neo-page-bg q-pa-md q-pa-lg font-inter">
+    <!-- Decorative Floating Neo-Brutalist Shapes -->
+    <div class="neo-decorations-container">
+      <div class="neo-shape neo-shape--circle-1"></div>
+      <div class="neo-shape neo-shape--circle-2"></div>
+      <div class="neo-shape neo-shape--square-1"></div>
+      <div class="neo-shape neo-shape--square-2"></div>
+      <div class="neo-shape neo-shape--star-1">★</div>
+      <div class="neo-shape neo-shape--star-2">★</div>
+      <div class="neo-shape neo-shape--triangle-1">▲</div>
+      <div class="neo-shape neo-shape--triangle-2">▲</div>
+      <div class="neo-shape neo-shape--cross-1">+</div>
+      <div class="neo-shape neo-shape--cross-2">+</div>
+      <div class="neo-shape neo-shape--cross-3">+</div>
+      <div class="neo-shape neo-shape--blob-1"></div>
+    </div>
+
+    <div class="bento-container q-mx-auto" style="max-width: 1200px; width: 100%; position: relative; z-index: 1;">
       <!-- ========================================== -->
       <!-- BAGIAN 1: HEADER & SISA KUOTA CUTI        -->
       <!-- ========================================== -->
-      <div class="row items-center justify-between q-mb-lg animate-fade">
+      <div class="row items-center justify-between q-mb-xl header-entrance">
         <div class="col-12 col-md-7">
           <div class="row items-center q-mb-xs">
-            <div class="ios-icon-box small bg-blue-50 text-primary q-mr-sm">
+            <div class="ios-icon-box small bg-blue-50 text-primary q-mr-sm" style="border: 2.5px solid #0f172a; box-shadow: 2.5px 2.5px 0px #0f172a;">
               <q-icon name="edit_calendar" size="20px" />
             </div>
             <h4 class="text-h4 text-weight-bolder text-blue-grey-10 q-ma-none letter-spacing-tight">
               Pengajuan Cuti & Izin
             </h4>
           </div>
-          <div class="text-subtitle1 text-blue-grey-6 q-mt-sm line-height-normal">
+          <div class="text-subtitle1 text-blue-grey-7 q-mt-sm line-height-normal text-weight-bold">
             Pusat manajemen permohonan ketidakhadiran, delegasi tugas, dan izin resmi karyawan
             terintegrasi Kalender Nasional.
           </div>
@@ -24,34 +40,35 @@
           <q-badge
             color="indigo-1"
             text-color="indigo-9"
-            class="q-px-md q-py-sm rounded-8 text-weight-bold shadow-sm"
-            style="font-size: 13px"
+            class="q-px-md q-py-sm text-weight-bolder"
+            style="font-size: 13px; border: 2.5px solid #0f172a; box-shadow: 3px 3px 0px #0f172a; border-radius: 8px;"
           >
-            <q-icon name="stars" size="18px" class="q-mr-xs" /> Sisa Kuota Cuti:
+            <q-icon name="stars" size="18px" class="q-mr-xs text-indigo-9" /> Sisa Kuota Cuti:
             {{ kuotaCuti }} Hari
           </q-badge>
         </div>
       </div>
 
-      <div class="row q-col-gutter-lg animate-fade-up">
+      <div class="row q-col-gutter-lg table-entrance">
         <!-- ========================================== -->
         <!-- KOLOM KIRI: FORM PENGAJUAN RESMI           -->
         <!-- ========================================== -->
         <div class="col-12 col-md-7">
-          <q-card flat bordered class="bento-card bg-white q-pa-lg">
-            <div class="row items-center q-mb-lg border-bottom-subtle q-pb-md">
+          <q-card flat class="neo-card bg-white q-pa-lg">
+            <div class="row items-center q-mb-lg q-pb-md" style="border-bottom: 2.5px solid #0f172a !important;">
               <q-avatar
                 size="36px"
                 color="blue-1"
                 text-color="primary"
                 icon="rate_review"
-                class="q-mr-sm rounded-8 shadow-sm"
+                class="q-mr-sm"
+                style="border: 2px solid #0f172a; box-shadow: 2px 2px 0px #0f172a; border-radius: 8px;"
               />
               <div>
-                <div class="text-subtitle1 text-weight-bold text-blue-grey-10">
-                  Formulir Pengajuan resmi
+                <div class="text-subtitle1 text-weight-bolder text-blue-grey-10">
+                  Formulir Pengajuan Resmi
                 </div>
-                <div class="text-caption text-blue-grey-5">
+                <div class="text-caption text-blue-grey-6 text-weight-bold">
                   Isi rincian dispensasi, cuti, atau surat keterangan sakit Anda
                 </div>
               </div>
@@ -61,7 +78,7 @@
               <!-- Jenis Pengajuan -->
               <div>
                 <div
-                  class="text-caption text-weight-bold text-blue-grey-8 uppercase letter-spacing-1 q-mb-xs"
+                  class="text-caption text-weight-bolder text-blue-grey-9 uppercase letter-spacing-1 q-mb-xs"
                 >
                   Jenis Izin / Cuti *
                 </div>
@@ -72,14 +89,14 @@
                   dense
                   emit-value
                   map-options
-                  class="rounded-input bg-grey-1"
+                  class="rounded-input bg-white"
                   color="primary"
                   placeholder="Pilih jenis ketidakhadiran"
                   :rules="[(val) => !!val || 'Jenis pengajuan wajib dipilih']"
                   @update:model-value="onJenisChange"
                 >
                   <template v-slot:prepend
-                    ><q-icon name="assignment" color="blue-grey-4"
+                    ><q-icon name="assignment" color="blue-grey-9"
                   /></template>
                 </q-select>
               </div>
@@ -87,7 +104,7 @@
               <!-- Tanggal Mulai & Selesai via Range Calendar -->
               <div>
                 <div
-                  class="text-caption text-weight-bold text-blue-grey-8 uppercase letter-spacing-1 q-mb-sm"
+                  class="text-caption text-weight-bolder text-blue-grey-9 uppercase letter-spacing-1 q-mb-sm"
                 >
                   Rentang Waktu *
                 </div>
@@ -95,14 +112,14 @@
                   outlined
                   v-model="dateRangeLabel"
                   readonly
-                  class="rounded-input bg-grey-1 cursor-pointer"
+                  class="rounded-input bg-white cursor-pointer"
                   color="primary"
                   placeholder="Pilih rentang tanggal"
                   dense
                   @click="$refs.qDateProxy.show()"
                 >
                   <template v-slot:prepend>
-                    <q-icon name="calendar_today" color="blue-grey-4" />
+                    <q-icon name="calendar_today" color="blue-grey-9" />
                   </template>
                   <template v-slot:append>
                     <q-icon name="edit_calendar" color="primary" size="xs" />
@@ -123,49 +140,51 @@
                       :options="(d) => !isDateDisabled(d)"
                       :events="(d) => calendarEvents.some((e) => e.date === d)"
                       :event-color="(d) => getDateColor(d)"
-                      class="shadow-soft rounded-16"
+                      class="neo-card q-pa-sm"
                     >
-                      <div class="row items-center justify-end q-gutter-sm q-pa-sm border-top">
+                      <div class="row items-center justify-end q-gutter-sm q-pa-sm" style="border-top: 2.5px solid #0f172a !important;">
                         <!-- Legenda kalender -->
                         <div class="full-width row q-gutter-xs q-mb-sm q-px-xs">
                           <div class="row items-center q-mr-md">
                             <div
                               style="
-                                width: 10px;
-                                height: 10px;
-                                border-radius: 50%;
+                                width: 12px;
+                                height: 12px;
+                                border: 1.5px solid #0f172a;
+                                border-radius: 3px;
                                 background: #ef5350;
                               "
                               class="q-mr-xs"
                             ></div>
-                            <span class="text-caption text-blue-grey-7">Hari Libur Nasional</span>
+                            <span class="text-caption text-blue-grey-7 text-weight-bold">Hari Libur Nasional</span>
                           </div>
                           <div class="row items-center">
                             <div
                               style="
-                                width: 10px;
-                                height: 10px;
-                                border-radius: 50%;
+                                width: 12px;
+                                height: 12px;
+                                border: 1.5px solid #0f172a;
+                                border-radius: 3px;
                                 background: #fb8c00;
                               "
                               class="q-mr-xs"
                             ></div>
-                            <span class="text-caption text-blue-grey-7">Cuti Bersama</span>
+                            <span class="text-caption text-blue-grey-7 text-weight-bold">Cuti Bersama</span>
                           </div>
                         </div>
                         <q-btn
                           label="SELESAI PILIH TANGGAL"
                           color="primary"
                           unelevated
-                          class="full-width rounded-8 text-weight-bold"
+                          class="full-width neo-btn text-weight-bold"
                           v-close-popup
                         />
                       </div>
                     </q-date>
                   </q-popup-proxy>
                 </q-input>
-                <div v-if="form.jenis === 'Cuti Tahunan'" class="text-caption text-orange q-mt-xs">
-                  * Pengajuan cuti tahunan wajib dilakukan minimal H+14 sebelum tanggal denda.
+                <div v-if="form.jenis === 'Cuti Tahunan'" class="text-caption text-orange-9 text-weight-bold q-mt-xs">
+                  * Pengajuan cuti tahunan wajib dilakukan minimal H-14 sebelum tanggal mulai kerja.
                 </div>
               </div>
 
@@ -173,10 +192,11 @@
               <q-slide-transition>
                 <div v-if="form.range && dateRangeLabel" class="q-mb-md">
                   <div
-                    class="q-pa-md rounded-12 border-subtle animate-fade"
+                    class="q-pa-md animate-fade"
                     :class="
                       totalHariPengajuan > 0 ? 'bg-indigo-50 text-indigo-9' : 'bg-red-50 text-red-9'
                     "
+                    style="border: 2.5px solid #0f172a; border-radius: 12px; box-shadow: 3px 3px 0px #0f172a;"
                   >
                     <div class="row items-start no-wrap">
                       <q-icon
@@ -189,19 +209,19 @@
                         <div class="text-subtitle2 text-weight-bolder">
                           Informasi Hari Kerja Aktual:
                         </div>
-                        <div class="text-caption q-mt-xs">
+                        <div class="text-caption q-mt-xs text-weight-bold">
                           Sistem mendeteksi durasi pengajuan Anda adalah
-                          <span class="text-weight-bold text-h6 text-primary q-mx-xs"
+                          <span class="text-weight-bolder text-h6 text-primary q-mx-xs"
                             >{{ totalHariPengajuan }} Hari Kerja</span
                           >.
                         </div>
 
                         <!-- Rincian Hari Libur yang Terdeteksi secara Live -->
                         <div
-                          class="text-caption text-grey-7 q-mt-sm"
+                          class="text-caption text-grey-8 q-mt-sm"
                           v-if="detectedHolidays.length > 0"
                         >
-                          <div class="text-weight-bold text-blue-grey-9 q-mb-xs">
+                          <div class="text-weight-bolder text-blue-grey-9 q-mb-xs">
                             Hari Libur Terdeteksi (Otomatis dilewati kuota):
                           </div>
                           <div
@@ -211,15 +231,16 @@
                           >
                             <q-badge
                               color="red-5"
-                              class="rounded-4 text-weight-bold font-mono text-10"
+                              class="text-weight-bold font-mono text-10 text-white"
+                              style="border: 1px solid #0f172a; border-radius: 4px;"
                               >LIBUR</q-badge
                             >
-                            <span
+                            <span class="text-weight-bold"
                               >{{ h.date }} : <strong class="text-red-9">{{ h.name }}</strong></span
                             >
                           </div>
                         </div>
-                        <div class="text-caption text-grey-6 q-mt-xs" v-else>
+                        <div class="text-caption text-grey-7 q-mt-xs text-weight-bold" v-else>
                           (Sistem secara otomatis melompati hari Minggu. Hari Sabtu tetap dihitung
                           hari kerja aktif)
                         </div>
@@ -232,7 +253,7 @@
               <!-- Alasan Pengajuan -->
               <div>
                 <div
-                  class="text-caption text-weight-bold text-blue-grey-8 uppercase letter-spacing-1 q-mb-xs"
+                  class="text-caption text-weight-bolder text-blue-grey-9 uppercase letter-spacing-1 q-mb-xs"
                 >
                   Alasan Detail *
                 </div>
@@ -243,11 +264,11 @@
                   rows="3"
                   placeholder="Rincikan alasan Anda dengan jelas..."
                   dense
-                  class="rounded-input bg-grey-1"
+                  class="rounded-input bg-white"
                   color="primary"
                   :rules="[(val) => !!val || 'Alasan wajib diisi']"
                 >
-                  <template v-slot:prepend><q-icon name="notes" color="blue-grey-4" /></template>
+                  <template v-slot:prepend><q-icon name="notes" color="blue-grey-9" /></template>
                 </q-input>
               </div>
 
@@ -255,7 +276,7 @@
               <div>
                 <div class="row items-center q-mb-xs">
                   <div
-                    class="text-caption text-weight-bold text-blue-grey-8 uppercase letter-spacing-1"
+                    class="text-caption text-weight-bolder text-blue-grey-9 uppercase letter-spacing-1"
                   >
                     Dokumen &amp; Delegasi
                   </div>
@@ -263,16 +284,16 @@
                   <q-badge
                     v-if="form.jenis && form.jenis !== 'Cuti Tahunan'"
                     color="red-6"
-                    class="q-ml-sm text-weight-bold rounded-4"
-                    style="font-size: 10px"
+                    class="q-ml-sm text-weight-bolder text-white"
+                    style="font-size: 10px; border: 1.5px solid #0f172a; border-radius: 4px;"
                   >
                     WAJIB LAMPIRKAN BUKTI
                   </q-badge>
                   <q-badge
                     v-else-if="form.jenis === 'Cuti Tahunan'"
                     color="grey-5"
-                    class="q-ml-sm text-weight-bold rounded-4"
-                    style="font-size: 10px"
+                    class="q-ml-sm text-weight-bolder text-white"
+                    style="font-size: 10px; border: 1.5px solid #0f172a; border-radius: 4px;"
                   >
                     OPSIONAL
                   </q-badge>
@@ -288,7 +309,7 @@
                           : 'Foto/File Bukti (Opsional)'
                       "
                       dense
-                      class="rounded-input bg-grey-1"
+                      class="rounded-input bg-white"
                       :color="form.jenis && form.jenis !== 'Cuti Tahunan' ? 'red-6' : 'primary'"
                       accept="image/*, .pdf"
                       clearable
@@ -303,14 +324,14 @@
                               : 'cloud_upload'
                           "
                           :color="
-                            form.jenis && form.jenis !== 'Cuti Tahunan' ? 'red-5' : 'blue-grey-4'
+                            form.jenis && form.jenis !== 'Cuti Tahunan' ? 'red-5' : 'blue-grey-9'
                           "
                         />
                       </template>
                       <template v-slot:append>
-                        <q-icon name="attach_file" color="blue-grey-4" />
+                        <q-icon name="attach_file" color="blue-grey-9" />
                       </template>
-                      <q-tooltip class="bg-blue-grey-9">
+                      <q-tooltip class="bg-blue-grey-9 text-weight-bold">
                         {{
                           form.jenis && form.jenis !== 'Cuti Tahunan'
                             ? 'WAJIB: Upload surat dokter atau foto bukti izin (Maks. 5MB)'
@@ -321,7 +342,7 @@
                     <!-- Peringatan jika izin/sakit tapi belum pilih file -->
                     <div
                       v-if="form.jenis && form.jenis !== 'Cuti Tahunan' && !form.lampiran"
-                      class="text-caption text-red-6 text-weight-bold q-mt-xs row items-center"
+                      class="text-caption text-red-6 text-weight-bolder q-mt-xs row items-center"
                     >
                       <q-icon name="warning" size="12px" class="q-mr-xs" />
                       Lampiran wajib disertakan untuk pengajuan {{ form.jenis }}
@@ -335,15 +356,15 @@
                       :options="optionsKaryawan"
                       placeholder="Delegasi Tugas"
                       dense
-                      class="rounded-input bg-grey-1"
+                      class="rounded-input bg-white"
                       color="primary"
                       emit-value
                       map-options
                     >
                       <template v-slot:prepend
-                        ><q-icon name="person_add" color="blue-grey-4"
+                        ><q-icon name="person_add" color="blue-grey-9"
                       /></template>
-                      <q-tooltip class="bg-blue-grey-9"
+                      <q-tooltip class="bg-blue-grey-9 text-weight-bold"
                         >Pilih rekan kerja untuk mendelegasikan tugas</q-tooltip
                       >
                     </q-select>
@@ -358,7 +379,7 @@
                 color="primary"
                 label="KIRIM PENGAJUAN SEKARANG"
                 icon="send"
-                class="full-width rounded-12 q-py-md text-weight-bolder shadow-soft-primary"
+                class="full-width q-py-md text-weight-bolder neo-btn text-white"
                 :loading="submitting"
               />
             </q-form>
@@ -370,7 +391,7 @@
         <!-- ========================================== -->
         <div class="col-12 col-md-5">
           <!-- CARD ATURAN DIREKSI (REVISI POIN 8 & 10) -->
-          <q-card flat bordered class="bento-card bg-orange-50 border-orange q-pa-lg q-mb-lg">
+          <q-card flat class="neo-card q-pa-lg q-mb-lg" style="background-color: #fff7ed !important;">
             <div class="row items-center q-mb-md">
               <q-avatar
                 size="28px"
@@ -378,21 +399,22 @@
                 text-color="white"
                 icon="gavel"
                 class="q-mr-sm"
+                style="border: 2px solid #0f172a; box-shadow: 2px 2px 0px #0f172a; border-radius: 6px;"
               />
               <div class="text-subtitle2 text-weight-bolder text-orange-9 uppercase">
                 Aturan Cuti Direksi PT AGRA
               </div>
             </div>
             <ul
-              class="q-pl-md q-gutter-y-xs text-caption text-orange-9 text-weight-medium"
-              style="list-style-type: decimal"
+              class="q-pl-md q-gutter-y-xs text-caption text-orange-9 text-weight-bold"
+              style="list-style-type: decimal; line-height: 1.5;"
             >
               <li>
-                Pengajuan jenis <b>Cuti Tahunan</b> wajib diajukan minimal <b>H+14</b> sebelum
+                Pengajuan jenis <b>Cuti Tahunan</b> wajib diajukan minimal <b>H-14</b> sebelum
                 tanggal mulai kerja.
               </li>
               <li>
-                Untuk jenis <b>Izin</b> dan <b>Izin Sakit</b>, diperbolehkan mengajukan pada tanggal
+                Untuk jenis <b>Izin</b> and <b>Izin Sakit</b>, diperbolehkan mengajukan pada tanggal
                 berjalan.
               </li>
               <li>
@@ -403,15 +425,15 @@
           </q-card>
 
           <!-- RIWAYAT PENGAJUAN (SINKRON FIRESTORE REAL-TIME) -->
-          <q-card flat bordered class="bento-card bg-white q-pa-lg">
-            <div class="row items-center justify-between q-mb-md border-bottom-subtle q-pb-md">
+          <q-card flat class="neo-card bg-white q-pa-lg">
+            <div class="row items-center justify-between q-mb-md q-pb-md" style="border-bottom: 2.5px solid #0f172a !important;">
               <div class="row items-center">
-                <q-icon name="history" color="blue-grey-4" size="sm" class="q-mr-xs" />
-                <div class="text-subtitle2 text-weight-bold text-blue-grey-10">
+                <q-icon name="history" color="blue-grey-9" size="sm" class="q-mr-xs" />
+                <div class="text-subtitle2 text-weight-bolder text-blue-grey-10">
                   Daftar Pengajuan Saya
                 </div>
               </div>
-              <q-badge color="grey-2" text-color="grey-7" class="text-weight-bold font-mono"
+              <q-badge color="grey-2" text-color="blue-grey-9" class="text-weight-bold" style="border: 2px solid #0f172a; border-radius: 6px;"
                 >Limit 10 Log</q-badge
               >
             </div>
@@ -433,7 +455,7 @@
                     v-for="col in props.cols"
                     :key="col.name"
                     :props="props"
-                    class="text-weight-bolder text-blue-grey-6 uppercase letter-spacing-1"
+                    class="text-weight-bolder text-blue-grey-10 uppercase letter-spacing-1"
                   >
                     {{ col.label }}
                   </q-th>
@@ -442,7 +464,7 @@
 
               <template v-slot:body="props">
                 <q-tr :props="props" class="hover-effect">
-                  <q-td key="no" class="text-center text-blue-grey-4 text-weight-bold">{{
+                  <q-td key="no" class="text-center text-blue-grey-9 text-weight-bolder">{{
                     props.rowIndex + 1
                   }}</q-td>
 
@@ -451,29 +473,30 @@
                       <div
                         class="type-indicator q-mr-sm"
                         :class="getJenisBg(props.row.jenis_pengajuan)"
+                        style="border: 1.5px solid #0f172a;"
                       ></div>
-                      <div class="text-weight-bold text-blue-grey-9 text-subtitle2">
+                      <div class="text-weight-bolder text-blue-grey-10 text-subtitle2">
                         {{ props.row.jenis_pengajuan }}
                       </div>
                     </div>
                   </q-td>
 
                   <q-td key="mulai" class="text-center">
-                    <span class="text-weight-medium text-blue-grey-8">{{
+                    <span class="text-weight-bold text-blue-grey-9">{{
                       formatDate(props.row.tanggal_mulai)
                     }}</span>
                   </q-td>
 
                   <q-td key="selesai" class="text-center">
-                    <span class="text-weight-medium text-blue-grey-8">{{
+                    <span class="text-weight-bold text-blue-grey-9">{{
                       formatDate(props.row.tanggal_selesai)
                     }}</span>
                   </q-td>
 
                   <q-td key="alasan" class="text-left">
-                    <div class="ellipsis text-blue-grey-7" style="max-width: 180px">
+                    <div class="ellipsis text-blue-grey-8 text-weight-bold" style="max-width: 180px">
                       {{ props.row.alasan }}
-                      <q-tooltip class="bg-blue-grey-9">{{ props.row.alasan }}</q-tooltip>
+                      <q-tooltip class="bg-blue-grey-9 text-weight-bold">{{ props.row.alasan }}</q-tooltip>
                     </div>
                   </q-td>
 
@@ -485,7 +508,7 @@
                       color="primary"
                       icon="link"
                       size="sm"
-                      class="bg-blue-50 transition-smooth"
+                      class="neo-btn bg-blue-50 transition-smooth"
                       type="a"
                       :href="props.row.dokumen_url"
                       target="_blank"
@@ -499,8 +522,9 @@
                     <q-badge
                       v-if="props.row.delegasi"
                       outline
-                      color="blue-grey-5"
-                      class="rounded-6 bg-grey-1 text-weight-bold"
+                      color="blue-grey-9"
+                      class="text-weight-bold"
+                      style="border: 1.5px solid #0f172a; border-radius: 6px; background-color: #f1f5f9; color: #0f172a !important;"
                     >
                       {{ props.row.delegasi }}
                     </q-badge>
@@ -511,7 +535,8 @@
                     <q-badge
                       :color="getStatusColor(props.row.status_approval) + '-1'"
                       :text-color="getStatusColor(props.row.status_approval) + '-9'"
-                      class="q-px-md q-py-xs text-weight-bolder uppercase rounded-8 shadow-1"
+                      class="q-px-md q-py-xs text-weight-bolder uppercase"
+                      style="border: 2px solid #0f172a; border-radius: 8px;"
                     >
                       <q-icon
                         :name="getStatusIcon(props.row.status_approval)"
@@ -524,8 +549,8 @@
                       <q-badge
                         color="orange-2"
                         text-color="orange-9"
-                        class="q-px-sm q-py-xs rounded-6 text-weight-bold"
-                        style="font-size: 10px"
+                        class="q-px-sm q-py-xs text-weight-bold"
+                        style="font-size: 10px; border: 1.5px solid #0f172a; border-radius: 6px;"
                       >
                         <q-icon name="edit" size="10px" class="q-mr-xs" /> Durasi Direvisi Admin
                       </q-badge>
@@ -540,16 +565,16 @@
                     >
                       <q-icon
                         name="admin_panel_settings"
-                        color="orange-6"
+                        color="orange-8"
                         size="14px"
                         class="q-mr-xs q-mt-xs flex-shrink-0"
                       />
                       <div>
-                        <div class="text-caption text-weight-bold text-orange-8 q-mb-xs">
+                        <div class="text-caption text-weight-bolder text-orange-9 q-mb-xs">
                           Catatan Admin:
                         </div>
                         <div
-                          class="text-caption text-blue-grey-7 line-height-normal"
+                          class="text-caption text-blue-grey-8 line-height-normal text-weight-bold"
                           style="white-space: normal"
                         >
                           {{ props.row.catatan_revisi }}
@@ -582,7 +607,7 @@
       <div class="q-mt-xl">
         <div class="row items-center justify-between q-mb-md">
           <div class="row items-center">
-            <div class="ios-icon-box small bg-indigo-50 text-indigo-6 q-mr-sm">
+            <div class="ios-icon-box small bg-indigo-50 text-indigo-6 q-mr-sm" style="border: 2px solid #0f172a; box-shadow: 2px 2px 0px #0f172a;">
               <q-icon name="calendar_month" size="20px" />
             </div>
             <div>
@@ -595,7 +620,7 @@
                   class="q-ml-sm"
                 />
               </div>
-              <div class="text-caption text-blue-grey-5">
+              <div class="text-caption text-blue-grey-6 text-weight-bold">
                 Data hari libur nasional &amp; cuti bersama Indonesia otomatis
               </div>
             </div>
@@ -603,87 +628,93 @@
           <div class="row items-center q-gutter-sm">
             <div class="row items-center q-mr-md q-gutter-xs">
               <div
-                style="width: 12px; height: 12px; border-radius: 3px; background: #c62828"
+                style="width: 14px; height: 14px; border: 2px solid #0f172a; border-radius: 3px; background: #ef5350"
                 class="q-mr-xs"
               ></div>
-              <span class="text-caption text-weight-bold text-blue-grey-7">Libur Nasional</span>
+              <span class="text-caption text-weight-bold text-blue-grey-9">Libur Nasional</span>
               <div
-                style="width: 12px; height: 12px; border-radius: 3px; background: #e65100"
+                style="width: 14px; height: 14px; border: 2px solid #0f172a; border-radius: 3px; background: #fb8c00"
                 class="q-mr-xs q-ml-md"
               ></div>
-              <span class="text-caption text-weight-bold text-blue-grey-7">Cuti Bersama</span>
+              <span class="text-caption text-weight-bold text-blue-grey-9">Cuti Bersama</span>
               <div
-                style="width: 12px; height: 12px; border-radius: 3px; background: #1976d2"
+                style="width: 14px; height: 14px; border: 2px solid #0f172a; border-radius: 3px; background: #3b82f6"
                 class="q-mr-xs q-ml-md"
               ></div>
-              <span class="text-caption text-weight-bold text-blue-grey-7">Hari Ini</span>
+              <span class="text-caption text-weight-bold text-blue-grey-9">Hari Ini</span>
               <div
                 style="
-                  width: 12px;
-                  height: 12px;
+                  width: 14px;
+                  height: 14px;
                   border-radius: 3px;
                   background: #ffebee;
-                  border: 1px solid #ef9a9a;
+                  border: 2px solid #0f172a;
                 "
                 class="q-mr-xs q-ml-md"
               ></div>
-              <span class="text-caption text-weight-bold text-blue-grey-7">Minggu</span>
+              <span class="text-caption text-weight-bold text-blue-grey-9">Minggu</span>
             </div>
             <q-btn
-              flat
+              unelevated
               round
               dense
               icon="chevron_left"
-              color="primary"
+              color="white"
+              text-color="blue-grey-9"
+              class="neo-btn q-mr-xs bg-white"
               @click="calendarYear--"
               :disable="loadingCalendar"
+              size="sm"
             />
-            <span class="text-subtitle1 text-weight-bolder text-blue-grey-9 q-px-sm">{{
+            <span class="text-subtitle1 text-weight-bolder text-blue-grey-10 q-px-md font-mono" style="border: 2.5px solid #0f172a; box-shadow: 2.5px 2.5px 0px #0f172a; border-radius: 8px; background: white; padding-top: 4px; padding-bottom: 4px;">{{
               calendarYear
             }}</span>
             <q-btn
-              flat
+              unelevated
               round
               dense
               icon="chevron_right"
-              color="primary"
+              color="white"
+              text-color="blue-grey-9"
+              class="neo-btn q-ml-xs bg-white"
               @click="calendarYear++"
               :disable="loadingCalendar"
+              size="sm"
             />
           </div>
         </div>
 
-        <div class="row q-col-gutter-md">
+        <div class="row q-col-gutter-md table-entrance">
           <div
             v-for="(bulan, bIndex) in calendarMonths"
             :key="bIndex"
-            class="col-12 col-sm-6 col-md-4 col-lg-3"
+            class="col-12 col-sm-6 col-md-4 col-lg-3 animate-fade"
           >
-            <q-card flat class="bento-card bg-white overflow-hidden">
+            <q-card flat class="neo-card overflow-hidden bg-white">
               <div
                 class="q-pa-sm text-center text-weight-bolder text-white"
                 :class="
                   bIndex === currentMonthIndex && calendarYear === currentYear
                     ? 'bg-primary'
-                    : 'bg-blue-grey-7'
+                    : 'bg-blue-grey-8'
                 "
-                style="letter-spacing: 1px; font-size: 13px"
+                style="letter-spacing: 1px; font-size: 13px; border-bottom: 2.5px solid #0f172a;"
               >
                 {{ bulan.nama.toUpperCase() }}
               </div>
 
               <!-- Baris Nama Hari -->
-              <div class="row q-px-xs q-pt-xs">
+              <div class="row q-px-xs q-pt-xs" style="border-bottom: 1.5px solid #0f172a;">
                 <div
                   v-for="hari in ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab']"
                   :key="hari"
-                  class="text-center text-weight-bold"
+                  class="text-center text-weight-bolder"
                   style="
                     width: 14.28%;
                     flex: 0 0 14.28%;
                     font-size: 10px;
                     padding: 4px 0;
-                    color: #90a4ae;
+                    color: #0f172a;
                   "
                 >
                   {{ hari }}
@@ -709,7 +740,7 @@
                     style="
                       border-radius: 6px;
                       font-size: 11px;
-                      font-weight: 600;
+                      font-weight: 800;
                       min-height: 28px;
                       display: flex;
                       flex-direction: column;
@@ -717,6 +748,7 @@
                       justify-content: center;
                       cursor: default;
                       padding: 2px 1px;
+                      border: 1px solid transparent;
                     "
                   >
                     <span>{{ tgl }}</span>
@@ -724,14 +756,14 @@
                       v-if="getEventLabel(calendarYear, bIndex + 1, tgl)"
                       style="
                         font-size: 7px;
-                        font-weight: 700;
+                        font-weight: 900;
                         line-height: 1.1;
                         text-align: center;
                         white-space: nowrap;
                         overflow: hidden;
                         text-overflow: ellipsis;
                         max-width: 100%;
-                        opacity: 0.85;
+                        opacity: 0.95;
                       "
                     >
                       {{
@@ -743,7 +775,7 @@
                     </span>
                     <q-tooltip
                       v-if="getEventLabel(calendarYear, bIndex + 1, tgl)"
-                      class="bg-blue-grey-9 text-white rounded-8"
+                      class="bg-blue-grey-9 text-white rounded-8 text-weight-bold"
                       style="font-size: 12px"
                     >
                       {{ getEventLabel(calendarYear, bIndex + 1, tgl) }}
@@ -1313,6 +1345,9 @@ onUnmounted(() => {
 .font-inter {
   font-family: 'Inter', sans-serif;
 }
+.text-h4, h4 {
+  font-weight: 850 !important;
+}
 .font-mono {
   font-family: 'JetBrains Mono', monospace;
 }
@@ -1332,87 +1367,312 @@ onUnmounted(() => {
   text-transform: uppercase;
 }
 
-/* LAYOUTING & BENTO GRID */
+/* LAYOUTING & NEO-BRUTALIST CORE */
 .bento-container {
   width: 100%;
-}
-.premium-container {
-  max-width: 1400px;
-  width: 100%;
-}
-.bento-card {
-  border-radius: 24px;
-  border: 1px solid #f1f5f9;
-}
-.bg-slate-50 {
-  background-color: #f8fafc;
-}
-.border-grey {
-  border: 1px solid #e2e8f0;
-}
-.border-bottom-subtle {
-  border-bottom: 1px solid #f1f5f9 !important;
-}
-.border-bottom-light {
-  border-bottom: 1px solid #f8fafc;
-}
-.border-top {
-  border-top: 1px solid #f1f5f9;
-}
-.border-orange {
-  border: 1px solid #f97316 !important;
-}
-.border-subtle {
-  border: 1px solid #e2e8f0 !important;
-}
-.mx-auto {
-  margin-left: auto;
-  margin-right: auto;
-}
-.z-content {
   position: relative;
-  z-index: 2;
-}
-.opacity-50 {
-  opacity: 0.5;
+  z-index: 1;
 }
 
-/* SHADOWS & RADIUS */
-.shadow-soft {
-  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.06) !important;
+.neo-page-bg {
+  background-color: #f1f5f9;
+  background-image: radial-gradient(#cbd5e1 2px, transparent 2px);
+  background-size: 24px 24px;
+  position: relative;
+  min-height: 100vh;
 }
-.shadow-soft-primary {
-  box-shadow: 0 8px 24px -8px rgba(25, 118, 210, 0.5) !important;
+
+.neo-card {
+  background: #ffffff !important;
+  border: 3px solid #0f172a !important;
+  box-shadow: 6px 6px 0px #0f172a !important;
+  border-radius: 20px !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
-.rounded-24 {
-  border-radius: 24px;
+
+.neo-card:hover {
+  transform: translateY(-2px) translateX(2px);
+  box-shadow: 8px 8px 0px #0f172a !important;
 }
-.rounded-16 {
-  border-radius: 16px;
-}
-.rounded-12 {
+
+.neo-btn {
+  border: 2.5px solid #0f172a !important;
+  box-shadow: 3.5px 3.5px 0px #0f172a !important;
   border-radius: 12px;
-}
-.rounded-8 {
-  border-radius: 8px;
-}
-.rounded-6 {
-  border-radius: 6px;
-}
-.rounded-4 {
-  border-radius: 4px;
+  font-weight: 700;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-/* ANIMATION */
-.transition-smooth {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+.neo-btn:hover {
+  transform: translateY(-1px) translateX(1px);
+  box-shadow: 2.5px 2.5px 0px #0f172a !important;
 }
-.hover-scale:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 15px 40px -10px rgba(0, 0, 0, 0.1) !important;
+
+.neo-btn:active {
+  transform: translateY(2px) translateX(2px);
+  box-shadow: 0px 0px 0px #0f172a !important;
 }
-.hover-effect:hover td {
-  background-color: #f8fafc !important;
+
+/* Floating Shapes Background Styling */
+.neo-decorations-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.neo-shape {
+  position: absolute;
+  user-select: none;
+  transition: all 0.3s ease;
+}
+
+/* 1. Circle 1 - Indigo/Blue */
+.neo-shape--circle-1 {
+  width: 180px;
+  height: 180px;
+  border: 3px solid rgba(59, 130, 246, 0.25);
+  background: rgba(59, 130, 246, 0.07);
+  box-shadow: 5px 5px 0px rgba(59, 130, 246, 0.12);
+  top: 8%;
+  left: -20px;
+  animation: drift-wobble-1 25s ease-in-out infinite;
+}
+
+/* 2. Circle 2 - Pink/Rose */
+.neo-shape--circle-2 {
+  width: 140px;
+  height: 140px;
+  border: 3px solid rgba(244, 63, 94, 0.25);
+  background: rgba(244, 63, 94, 0.07);
+  box-shadow: 5px 5px 0px rgba(244, 63, 94, 0.12);
+  top: 52%;
+  right: 6%;
+  animation: drift-wobble-2 22s ease-in-out infinite reverse;
+}
+
+/* 3. Square 1 - Orange */
+.neo-shape--square-1 {
+  width: 130px;
+  height: 130px;
+  border: 3px solid rgba(245, 158, 11, 0.25);
+  background: rgba(245, 158, 11, 0.07);
+  box-shadow: 5px 5px 0px rgba(245, 158, 11, 0.12);
+  top: 65%;
+  right: -30px;
+  animation: drift-wobble-2 30s ease-in-out infinite;
+}
+
+/* 4. Square 2 - Lime */
+.neo-shape--square-2 {
+  width: 110px;
+  height: 110px;
+  border: 3px solid rgba(132, 204, 22, 0.25);
+  background: rgba(132, 204, 22, 0.07);
+  box-shadow: 4px 4px 0px rgba(132, 204, 22, 0.12);
+  top: 22%;
+  left: 15%;
+  animation: drift-wobble-1 27s ease-in-out infinite;
+}
+
+/* 5. Star 1 - Purple */
+.neo-shape--star-1 {
+  font-size: 130px;
+  color: rgba(168, 85, 247, 0.22);
+  text-shadow: 4px 4px 0px rgba(168, 85, 247, 0.12);
+  top: 3%;
+  right: 15%;
+  animation: drift-diagonal-1 28s ease-in-out infinite reverse;
+}
+
+/* 6. Star 2 - Yellow */
+.neo-shape--star-2 {
+  font-size: 90px;
+  color: rgba(234, 179, 8, 0.24);
+  text-shadow: 3px 3px 0px rgba(234, 179, 8, 0.14);
+  top: 85%;
+  right: 25%;
+  animation: drift-diagonal-2 20s ease-in-out infinite;
+}
+
+/* 7. Triangle 1 - Cyan */
+.neo-shape--triangle-1 {
+  font-size: 100px;
+  color: rgba(6, 182, 212, 0.22);
+  text-shadow: 4px 4px 0px rgba(6, 182, 212, 0.12);
+  top: 40%;
+  left: 8%;
+  animation: drift-wobble-2 24s ease-in-out infinite reverse;
+}
+
+/* 8. Triangle 2 - Amber/Gold */
+.neo-shape--triangle-2 {
+  font-size: 80px;
+  color: rgba(245, 158, 11, 0.22);
+  text-shadow: 3px 3px 0px rgba(245, 158, 11, 0.12);
+  top: 12%;
+  left: 35%;
+  animation: drift-diagonal-1 23s ease-in-out infinite;
+}
+
+/* 9. Cross 1 - Emerald Green */
+.neo-shape--cross-1 {
+  font-size: 110px;
+  color: rgba(16, 185, 129, 0.22);
+  text-shadow: 4px 4px 0px rgba(16, 185, 129, 0.12);
+  top: 30%;
+  right: 25%;
+  animation: drift-diagonal-1 22s ease-in-out infinite;
+}
+
+/* 10. Cross 2 - Red/Rose */
+.neo-shape--cross-2 {
+  font-size: 90px;
+  color: rgba(239, 68, 68, 0.22);
+  text-shadow: 4px 4px 0px rgba(239, 68, 68, 0.12);
+  top: 75%;
+  left: 2%;
+  animation: drift-diagonal-2 26s ease-in-out infinite;
+}
+
+/* 11. Cross 3 - Deep Indigo */
+.neo-shape--cross-3 {
+  font-size: 100px;
+  color: rgba(99, 102, 241, 0.22);
+  text-shadow: 4px 4px 0px rgba(99, 102, 241, 0.12);
+  top: 90%;
+  left: 40%;
+  animation: drift-wobble-1 29s ease-in-out infinite;
+}
+
+/* 12. Blob 1 - Teal Organic Morphing Blob */
+.neo-shape--blob-1 {
+  width: 160px;
+  height: 160px;
+  border: 3px solid rgba(20, 184, 166, 0.25);
+  background: rgba(20, 184, 166, 0.07);
+  box-shadow: 5px 5px 0px rgba(20, 184, 166, 0.12);
+  top: 48%;
+  left: 42%;
+  animation: drift-blob 32s ease-in-out infinite;
+}
+
+/* KEYFRAMES FOR ORGANIC DRIFTING */
+@keyframes drift-wobble-1 {
+  0% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    border-radius: 50% 50% 50% 50%;
+  }
+  25% {
+    transform: translate(50px, -40px) scale(1.05) rotate(90deg);
+    border-radius: 46% 54% 48% 52%;
+  }
+  50% {
+    transform: translate(20px, -80px) scale(0.95) rotate(180deg);
+    border-radius: 54% 46% 52% 48%;
+  }
+  75% {
+    transform: translate(-40px, -30px) scale(1.02) rotate(270deg);
+    border-radius: 48% 52% 54% 46%;
+  }
+  100% {
+    transform: translate(0, 0) scale(1) rotate(360deg);
+    border-radius: 50% 50% 50% 50%;
+  }
+}
+
+@keyframes drift-wobble-2 {
+  0% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    border-radius: 8px;
+  }
+  33% {
+    transform: translate(-60px, -30px) scale(1.08) rotate(120deg);
+    border-radius: 14px 8px 14px 8px;
+  }
+  66% {
+    transform: translate(30px, -70px) scale(0.92) rotate(240deg);
+    border-radius: 8px 14px 8px 14px;
+  }
+  100% {
+    transform: translate(0, 0) scale(1) rotate(360deg);
+    border-radius: 8px;
+  }
+}
+
+@keyframes drift-diagonal-1 {
+  0% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translate(45px, 60px) rotate(180deg) scale(1.05);
+  }
+  100% {
+    transform: translate(0, 0) rotate(360deg) scale(1);
+  }
+}
+
+@keyframes drift-diagonal-2 {
+  0% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translate(-50px, -60px) rotate(-180deg) scale(0.95);
+  }
+  100% {
+    transform: translate(0, 0) rotate(-360deg) scale(1);
+  }
+}
+
+@keyframes drift-blob {
+  0% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+  }
+  33% {
+    transform: translate(40px, -50px) scale(1.06) rotate(120deg);
+    border-radius: 70% 30% 52% 48% / 60% 40% 70% 30%;
+  }
+  66% {
+    transform: translate(-30px, 30px) scale(0.94) rotate(240deg);
+    border-radius: 50% 50% 30% 70% / 50% 60% 40% 60%;
+  }
+  100% {
+    transform: translate(0, 0) scale(1) rotate(360deg);
+    border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+  }
+}
+
+/* Entrance animation classes */
+.header-entrance {
+  animation: brutalist-bounce-in 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.table-entrance {
+  opacity: 0;
+  animation: brutalist-bounce-in 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.15s forwards;
+}
+
+@keyframes brutalist-bounce-in {
+  0% {
+    opacity: 0;
+    transform: translateY(35px);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-6px);
+  }
+  80% {
+    transform: translateY(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* APPLE-STYLE ICONS */
@@ -1432,27 +1692,53 @@ onUnmounted(() => {
 
 /* CUSTOM INPUTS */
 .rounded-input :deep(.q-field__control) {
-  border-radius: 12px;
-  transition: all 0.3s ease;
+  border-radius: 10px !important;
+  border: 2.5px solid #0f172a !important;
+  box-shadow: 2.5px 2.5px 0px #0f172a !important;
+  background-color: #ffffff !important;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
-.rounded-input :deep(.q-field__control:hover) {
-  border-color: #1976d2;
+.rounded-input :deep(.q-field__control:hover),
+.rounded-input :deep(.q-field__focused .q-field__control) {
+  transform: translateY(-1px) translateX(1px);
+  box-shadow: 3.5px 3.5px 0px #0f172a !important;
+  border-color: #0f172a !important;
+}
+.rounded-input :deep(.q-field__native),
+.rounded-input :deep(.q-field__input) {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+.rounded-input :deep(.q-field__marginal) {
+  color: #0f172a !important;
 }
 
 /* TABLE STYLING */
 .premium-table :deep(thead tr th) {
   font-size: 12px;
+  font-weight: 800 !important;
+  color: #0f172a !important;
+  background-color: #f1f5f9 !important;
+  border-bottom: 2.5px solid #0f172a !important;
+  border-top: none;
+  letter-spacing: 0.5px;
   padding-top: 16px;
   padding-bottom: 16px;
-  border-bottom: none;
 }
+
 .premium-table :deep(tbody tr td) {
-  font-size: 14px;
+  font-size: 13.5px;
+  color: #0f172a !important;
+  border-bottom: 1.5px solid #0f172a !important;
+  transition: all 0.2s ease;
   padding-top: 16px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #f1f5f9;
-  transition: background-color 0.3s ease;
 }
+
+.hover-effect:hover td {
+  background-color: #e0f2fe !important;
+}
+
 .type-indicator {
   width: 10px;
   height: 10px;
@@ -1466,35 +1752,38 @@ onUnmounted(() => {
   min-width: 0;
 }
 .cal-day-inner {
-  color: #37474f;
-  transition: background 0.15s ease;
+  color: #0f172a;
+  transition: all 0.15s ease;
 }
 .cal-day-inner:hover {
   background: #f1f5f9;
+  border: 1.5px solid #0f172a !important;
 }
 /* Hari ini */
 .cal-today {
-  background: #1976d2 !important;
+  background: #3b82f6 !important;
   color: #fff !important;
+  border: 1.5px solid #0f172a !important;
   border-radius: 6px;
 }
 /* Libur Nasional */
 .cal-holiday {
   background: #ffebee !important;
   color: #c62828 !important;
-  font-weight: 800 !important;
+  border: 1.5px solid #0f172a !important;
   border-radius: 6px;
 }
 /* Cuti Bersama */
 .cal-cuti-bersama {
   background: #fff3e0 !important;
   color: #e65100 !important;
-  font-weight: 700 !important;
+  border: 1.5px solid #0f172a !important;
   border-radius: 6px;
 }
 /* Hari Minggu */
 .cal-sunday {
-  color: #ef9a9a !important;
-  font-weight: 600 !important;
+  color: #ef5350 !important;
+  background: #ffebee !important;
+  border: 1.5px solid #0f172a !important;
 }
 </style>

@@ -1,12 +1,28 @@
 <template>
-  <q-page class="bg-page q-pa-md font-pro relative-position">
+  <q-page class="neo-page-bg font-inter q-pa-md relative-position overflow-hidden">
+    <!-- FLOATING DECORATIONS CONTAINER -->
+    <div class="neo-decorations-container no-print">
+      <div class="neo-shape shape-wobbly-1"></div>
+      <div class="neo-shape shape-wobbly-2"></div>
+      <div class="neo-shape shape-wobbly-3"></div>
+      <div class="neo-shape shape-wobbly-4"></div>
+      <div class="neo-shape shape-wobbly-5"></div>
+      <div class="neo-shape shape-wobbly-6"></div>
+      <div class="neo-shape shape-wobbly-7"></div>
+      <div class="neo-shape shape-wobbly-8"></div>
+      <div class="neo-shape shape-wobbly-9"></div>
+      <div class="neo-shape shape-wobbly-10"></div>
+      <div class="neo-shape shape-wobbly-11"></div>
+      <div class="neo-shape shape-wobbly-12"></div>
+    </div>
+
     <!-- ============================================================ -->
     <!-- LOADING STATE: Saat cek hak akses berlangsung                -->
     <!-- ============================================================ -->
     <div v-if="aksesLoading" class="flex flex-center" style="min-height: 60vh">
       <div class="text-center">
-        <q-spinner-orbit color="brand-primary" size="60px" class="q-mb-md" />
-        <div class="text-subtitle1 text-blue-grey-7 text-weight-medium">
+        <q-spinner-orbit color="slate-900" size="60px" class="q-mb-md" />
+        <div class="text-subtitle1 text-slate-800 text-weight-bolder font-inter">
           Memeriksa hak akses sistem...
         </div>
       </div>
@@ -15,16 +31,15 @@
     <!-- ============================================================ -->
     <!-- AKSES DITOLAK: Tampil jika tidak punya izin                  -->
     <!-- ============================================================ -->
-    <div v-else-if="!aksesGranted" class="flex flex-center" style="min-height: 60vh">
+    <div v-else-if="!aksesGranted" class="flex flex-center z-top" style="min-height: 60vh">
       <q-card
         flat
-        bordered
-        class="rounded-borders q-pa-xl text-center shadow-2"
+        class="neo-card bg-white q-pa-xl text-center"
         style="max-width: 420px"
       >
-        <q-icon name="lock" color="red-4" size="80px" class="q-mb-md" />
-        <div class="text-h6 text-weight-bold text-blue-grey-10 q-mb-sm">Akses Ditolak</div>
-        <div class="text-body2 text-grey-7 q-mb-lg">
+        <q-icon name="lock" color="red-5" size="80px" class="q-mb-md" />
+        <div class="text-h6 text-weight-bolder text-slate-900 q-mb-sm font-inter" style="font-weight: 850;">Akses Ditolak</div>
+        <div class="text-body2 text-slate-700 q-mb-lg font-inter">
           Anda tidak memiliki izin untuk mengakses modul
           <strong>Absensi Harian Lepas</strong>. Silakan hubungi administrator untuk pengaturan hak
           akses.
@@ -34,7 +49,7 @@
           color="brand-primary"
           icon="arrow_back"
           label="Kembali ke Dashboard"
-          rounded
+          class="neo-btn text-weight-bolder font-inter"
           @click="router.replace('/')"
         />
       </q-card>
@@ -47,23 +62,19 @@
       <!-- ======================================================================= -->
       <!-- VIEW 1: DASHBOARD UTAMA DENGAN TAB KONSTRUKSI & MANUFAKTUR             -->
       <!-- ======================================================================= -->
-      <div v-if="!selectedProjectId" class="premium-container mx-auto animate-fade-in">
+      <div v-if="!selectedProjectId" class="premium-container mx-auto header-entrance">
         <!-- HEADER DASHBOARD UTAMA -->
         <div class="row items-center justify-between q-mb-lg">
           <div class="col-12 col-md-8">
             <div class="row items-center no-wrap q-mb-xs">
-              <div
-                class="ios-icon-box bg-gradient-primary text-white q-mr-sm shadow-md flex-shrink-0"
-              >
-                <q-icon name="business" size="26px" />
+              <div class="neo-card bg-yellow-4 text-slate-900 q-mr-sm flex flex-center" style="width: 46px; height: 46px; border-width: 2.5px; border-radius: 8px;">
+                <q-icon name="business" size="24px" />
               </div>
-              <h4
-                class="text-h4 text-weight-black text-brand-primary q-ma-none letter-spacing-tight"
-              >
+              <h4 class="text-h4 text-weight-bolder text-slate-900 q-ma-none letter-spacing-tight font-inter" style="font-weight: 850;">
                 Absensi Harian Lepas
               </h4>
             </div>
-            <div class="text-subtitle1 text-blue-grey-6 q-mt-xs">
+            <div class="text-subtitle1 text-slate-700 q-mt-xs font-inter">
               Pilih tipe pekerjaan aktif di bawah ini untuk mengelola absensi harian kelompok mandor
               proyek atau pekerja pabrik.
             </div>
@@ -71,15 +82,15 @@
         </div>
 
         <!-- SELEKTOR TAB UTAMA: KONSTRUKSI VS MANUFAKTUR -->
-        <q-card flat class="bento-card bg-white q-mb-lg no-print shadow-soft overflow-hidden">
+        <q-card flat class="neo-card bg-white q-mb-lg no-print overflow-hidden">
           <q-tabs
             v-model="mainActiveTab"
             dense
             no-caps
             inline-label
-            class="text-grey-7 bg-brand-light"
-            active-color="brand-primary"
-            indicator-color="brand-primary"
+            class="text-slate-700 bg-white"
+            active-color="slate-900"
+            indicator-color="slate-900"
             align="left"
             narrow-indicator
           >
@@ -87,13 +98,13 @@
               name="konstruksi"
               icon="architecture"
               label="Proyek Konstruksi"
-              class="text-weight-bold q-py-md"
+              class="text-weight-bolder q-py-md font-inter"
             />
             <q-tab
               name="manufaktur"
               icon="precision_manufacturing"
               label="Pekerjaan Manufaktur"
-              class="text-weight-bold q-py-md"
+              class="text-weight-bolder q-py-md font-inter"
             />
           </q-tabs>
         </q-card>
@@ -105,81 +116,71 @@
             <!-- STATS CARDS GRID -->
             <div class="row q-col-gutter-md q-mb-xl">
               <div class="col-12 col-md-4">
-                <div
-                  class="kpi-box text-white q-pa-md rounded-24 row items-center no-wrap relative-position overflow-hidden cursor-pointer"
-                >
-                  <div class="decor-circle-1"></div>
-                  <div class="col z-content">
-                    <div class="text-overline text-brand-light font-bold uppercase tracking-wide">
+                <div class="neo-card bg-sky-2 text-slate-900 q-pa-md row items-center no-wrap relative-position cursor-pointer font-inter">
+                  <div class="col">
+                    <div class="text-overline text-slate-700 text-weight-bolder uppercase tracking-wide">
                       Total Proyek
                     </div>
-                    <div class="text-h4 text-weight-black text-white font-mono q-mt-xs">
+                    <div class="text-h4 text-weight-bolder text-slate-900 font-mono q-mt-xs" style="font-weight: 850;">
                       {{ proyekKonstruksiList.length }}
                     </div>
-                    <div class="text-caption text-slate-300 q-mt-xs">
+                    <div class="text-caption text-slate-700 q-mt-xs">
                       Proyek konstruksi terintegrasi
                     </div>
                   </div>
-                  <div class="bg-white text-brand-primary q-pa-md rounded-16 z-content">
-                    <q-icon name="apartment" size="28px" />
+                  <div class="neo-card bg-white text-slate-900 q-pa-sm flex flex-center" style="width: 48px; height: 48px; border-width: 2.5px;">
+                    <q-icon name="apartment" size="24px" />
                   </div>
                 </div>
               </div>
               <div class="col-12 col-md-4">
-                <div
-                  class="kpi-box text-white q-pa-md rounded-24 row items-center no-wrap relative-position overflow-hidden cursor-pointer"
-                >
-                  <div class="decor-circle-1"></div>
-                  <div class="col z-content">
-                    <div class="text-overline text-brand-light font-bold uppercase tracking-wide">
+                <div class="neo-card bg-emerald-2 text-slate-900 q-pa-md row items-center no-wrap relative-position cursor-pointer font-inter">
+                  <div class="col">
+                    <div class="text-overline text-slate-700 text-weight-bolder uppercase tracking-wide">
                       Status Kehadiran
                     </div>
-                    <div class="text-h4 text-weight-black text-white font-mono q-mt-xs">AKTIF</div>
-                    <div class="text-caption text-slate-300 q-mt-xs">
+                    <div class="text-h4 text-weight-bolder text-slate-900 font-mono q-mt-xs" style="font-weight: 850;">AKTIF</div>
+                    <div class="text-caption text-slate-700 q-mt-xs">
                       Sistem absensi harian siap pakai
                     </div>
                   </div>
-                  <div class="bg-white text-brand-primary q-pa-md rounded-16 z-content">
-                    <q-icon name="verified_user" size="28px" />
+                  <div class="neo-card bg-white text-slate-900 q-pa-sm flex flex-center" style="width: 48px; height: 48px; border-width: 2.5px;">
+                    <q-icon name="verified_user" size="24px" />
                   </div>
                 </div>
               </div>
               <div class="col-12 col-md-4">
-                <div
-                  class="kpi-box text-white q-pa-md rounded-24 row items-center no-wrap relative-position overflow-hidden cursor-pointer"
-                >
-                  <div class="decor-circle-1"></div>
-                  <div class="col z-content">
-                    <div class="text-overline text-brand-light font-bold uppercase tracking-wide">
+                <div class="neo-card bg-pink-2 text-slate-900 q-pa-md row items-center no-wrap relative-position cursor-pointer font-inter">
+                  <div class="col">
+                    <div class="text-overline text-slate-700 text-weight-bolder uppercase tracking-wide">
                       AGRA INTEGRATION
                     </div>
-                    <div class="text-subtitle1 text-weight-bold q-mt-xs line-height-tight">
+                    <div class="text-subtitle1 text-weight-bolder text-slate-900 q-mt-xs line-height-tight" style="font-weight: 850;">
                       Absensi &amp; Payroll Terpusat
                     </div>
-                    <div class="text-caption text-slate-300 q-mt-xs">
+                    <div class="text-caption text-slate-700 q-mt-xs">
                       Sinkron dengan modul proyek utama
                     </div>
                   </div>
-                  <div class="bg-white text-brand-primary q-pa-md rounded-16 z-content">
-                    <q-icon name="sync" size="28px" />
+                  <div class="neo-card bg-white text-slate-900 q-pa-sm flex flex-center" style="width: 48px; height: 48px; border-width: 2.5px;">
+                    <q-icon name="sync" size="24px" />
                   </div>
                 </div>
               </div>
             </div>
 
             <!-- SEARCH AREA -->
-            <q-card flat class="bento-card bg-white q-pa-md q-mb-lg shadow-soft">
+            <q-card flat class="neo-card bg-white q-pa-md q-mb-lg">
               <q-input
                 v-model="filterProyek"
                 outlined
                 dense
-                rounded
                 placeholder="Cari Proyek, Klien, atau Lokasi..."
                 bg-color="white"
-                class="search-input"
+                class="rounded-input"
               >
                 <template v-slot:prepend>
-                  <q-icon name="search" color="brand-primary" />
+                  <q-icon name="search" color="slate-900" />
                 </template>
                 <template v-slot:append v-if="filterProyek">
                   <q-icon name="close" @click="filterProyek = ''" class="cursor-pointer" />
@@ -188,7 +189,7 @@
             </q-card>
 
             <!-- GRID DAFTAR PROYEK CONSTRUCT -->
-            <div class="row q-col-gutter-lg">
+            <div class="row q-col-gutter-lg table-entrance">
               <div
                 v-for="(p, pi) in filteredProyekList"
                 :key="p.id"
@@ -196,63 +197,54 @@
               >
                 <q-card
                   flat
-                  class="bento-card bg-white shadow-soft hover-card-premium overflow-hidden relative-position full-height flex column justify-between"
+                  class="neo-card bg-white overflow-hidden relative-position full-height flex column justify-between"
                 >
                   <!-- Left accent color bar -->
                   <div
                     class="absolute-left"
-                    :style="{ backgroundColor: getMandorColor(pi), width: '5px' }"
+                    :style="{ backgroundColor: getMandorColor(pi), width: '6px', borderRight: '2px solid #0f172a' }"
                   ></div>
 
                   <q-card-section class="q-pa-lg">
                     <div class="row items-center justify-between q-mb-md">
-                      <q-badge
-                        color="brand-light"
-                        text-color="brand-primary"
-                        class="text-weight-bold q-px-sm q-py-xs rounded-6 font-pro text-11"
-                      >
+                      <span class="neo-badge bg-amber-3 text-slate-900 font-inter text-11 text-weight-bolder">
                         <template v-if="p.isVirtual">
-                          <q-icon name="apartment" size="10px" class="q-mr-xs" /> KANTOR
+                          <q-icon name="apartment" size="12px" class="q-mr-xs" /> KANTOR
                         </template>
                         <template v-else>
-                          <q-icon name="tag" size="10px" class="q-mr-xs" /> PROYEK {{ pi + 1 }}
+                          <q-icon name="tag" size="12px" class="q-mr-xs" /> PROYEK {{ pi + 1 }}
                         </template>
-                      </q-badge>
-                      <q-badge
-                        color="brand-light"
-                        text-color="brand-primary"
-                        class="text-weight-bold font-pro text-11"
-                        >AKTIF</q-badge
-                      >
+                      </span>
+                      <span class="neo-badge bg-emerald-3 text-slate-900 font-inter text-11 text-weight-bolder">AKTIF</span>
                     </div>
 
                     <div
-                      class="text-h6 text-weight-black text-blue-grey-10 uppercase line-height-tight q-mb-sm text-ellipsis-2"
+                      class="text-h6 text-weight-bolder text-slate-900 uppercase line-height-tight q-mb-sm text-ellipsis-2 font-inter" style="font-weight: 850;"
                     >
                       {{ p.nama }}
                     </div>
 
-                    <q-separator class="q-my-md opacity-50" />
+                    <hr class="neo-divider q-my-md" />
 
-                    <div class="q-gutter-y-xs text-caption text-blue-grey-6">
+                    <div class="q-gutter-y-xs text-caption text-slate-700 font-inter">
                       <div class="row items-center no-wrap">
-                        <q-icon name="person" color="brand-primary" class="q-mr-xs" size="16px" />
-                        <span class="text-weight-bold text-blue-grey-8 uppercase q-mr-xs"
+                        <q-icon name="person" color="slate-900" class="q-mr-xs" size="16px" />
+                        <span class="text-weight-bolder text-slate-900 uppercase q-mr-xs"
                           >Klien:</span
                         >
-                        <span class="ellipsis col">{{ p.konsumen || 'INTERNAL PROJECT' }}</span>
+                        <span class="ellipsis col text-weight-bold">{{ p.konsumen || 'INTERNAL PROJECT' }}</span>
                       </div>
                       <div class="row items-start no-wrap q-mt-xs">
                         <q-icon
                           name="place"
-                          color="brand-primary"
+                          color="slate-900"
                           class="q-mr-xs q-mt-xs"
                           size="16px"
                         />
-                        <span class="text-weight-bold text-blue-grey-8 uppercase q-mr-xs"
+                        <span class="text-weight-bolder text-slate-900 uppercase q-mr-xs"
                           >Lokasi:</span
                         >
-                        <span class="col leading-tight">{{
+                        <span class="col leading-tight text-weight-bold">{{
                           p.alamat || 'Alamat Belum Diatur'
                         }}</span>
                       </div>
@@ -265,7 +257,7 @@
                       label="KELOLA ABSENSI PEKERJA"
                       color="brand-primary"
                       icon-right="arrow_forward"
-                      class="full-width rounded-12 text-weight-black shadow-soft-primary q-py-sm"
+                      class="full-width neo-btn text-weight-bolder font-inter q-py-sm"
                       @click="selectProject(p)"
                     />
                   </q-card-actions>
@@ -274,10 +266,10 @@
 
               <div
                 v-if="filteredProyekList.length === 0"
-                class="col-12 text-center q-pa-xl bg-white rounded-24 border border-subtle"
+                class="col-12 text-center q-pa-xl neo-card bg-white"
               >
-                <q-icon name="sentiment_dissatisfied" size="4em" color="grey-3" />
-                <div class="text-blue-grey-5 text-subtitle1 q-mt-md">
+                <q-icon name="sentiment_dissatisfied" size="4em" color="slate-400" />
+                <div class="text-slate-700 text-subtitle1 text-weight-bold q-mt-md font-inter">
                   Proyek tidak ditemukan. Pastikan data master proyek konstruksi terisi.
                 </div>
               </div>
@@ -287,26 +279,22 @@
           <!-- TAB 2: PEKERJAAN MANUFAKTUR (DIRECT MANUAL INPUT MODEL) -->
           <q-tab-panel name="manufaktur" class="q-pa-none">
             <!-- INPUT PEKERJA MANUFAKTUR BARU -->
-            <q-card flat class="bento-card bg-white q-pa-lg shadow-soft q-mb-lg">
+            <q-card flat class="neo-card bg-white q-pa-lg q-mb-lg">
               <div class="row items-center no-wrap q-mb-md">
-                <q-avatar
-                  color="brand-light"
-                  text-color="brand-primary"
-                  size="38px"
-                  icon="precision_manufacturing"
-                  class="q-mr-sm shadow-sm flex-shrink-0"
-                />
+                <div class="neo-card bg-amber-3 text-slate-900 q-mr-sm flex flex-center" style="width: 40px; height: 40px; border-width: 2px; border-radius: 8px;">
+                  <q-icon name="precision_manufacturing" size="20px" />
+                </div>
                 <div>
-                  <div class="text-subtitle1 text-weight-black text-blue-grey-10 leading-tight">
+                  <div class="text-subtitle1 text-weight-bolder text-slate-900 leading-tight font-inter" style="font-weight: 800;">
                     Direct Input Log Harian Manufaktur
                   </div>
-                  <div class="text-caption text-grey-6 text-wrap q-mt-xs">
+                  <div class="text-caption text-slate-600 text-wrap q-mt-xs font-inter">
                     Pencatatan langsung log kehadiran &amp; jam upah buruh pabrik harian lepas.
                   </div>
                 </div>
               </div>
 
-              <q-separator class="q-mb-md" />
+              <hr class="neo-divider q-mb-md" />
 
               <div class="row q-col-gutter-md items-end">
                 <q-input
@@ -339,7 +327,7 @@
                   type="number"
                   outlined
                   dense
-                  label="Jam Kerja Aktif"
+                  label="Jam Kerja"
                   class="col-12 col-sm-2 rounded-input"
                 />
                 <q-input
@@ -347,7 +335,7 @@
                   type="number"
                   outlined
                   dense
-                  label="Lembur (Jam)"
+                  label="Lembur"
                   class="col-12 col-sm-1 rounded-input"
                 />
                 <div class="col-12 col-sm-1">
@@ -355,7 +343,8 @@
                     unelevated
                     color="brand-primary"
                     icon="add"
-                    class="full-width rounded-12 q-py-sm text-weight-bold"
+                    class="full-width neo-btn text-weight-bolder font-inter"
+                    style="padding: 8px 0;"
                     @click="addManufakturPekerja"
                   />
                 </div>
@@ -363,15 +352,15 @@
             </q-card>
 
             <!-- DAFTAR LOG HARIAN AKTIF -->
-            <q-card flat class="bento-card bg-white shadow-soft overflow-hidden">
-              <div class="q-pa-md bg-slate-50 text-center border-bottom">
-                <div class="text-subtitle2 text-weight-bold text-blue-grey-10 q-mb-xs">
+            <q-card flat class="neo-card bg-white overflow-hidden">
+              <div class="q-pa-md bg-yellow-1 text-center" style="border-bottom: 3px solid #0f172a;">
+                <div class="text-subtitle2 text-weight-bolder text-slate-900 q-mb-xs uppercase font-inter" style="font-weight: 850;">
                   Rekap Input Berjalan (Hari Ini)
                 </div>
-                <div class="text-caption text-grey-6 text-weight-medium">
+                <div class="text-caption text-slate-700 text-weight-bold font-inter">
                   Grand Total Upah Manufaktur:
                 </div>
-                <div class="text-subtitle1 text-weight-black text-brand-primary font-mono q-mt-xs">
+                <div class="text-subtitle1 text-weight-bolder text-slate-900 font-mono q-mt-xs" style="font-weight: 850;">
                   Rp {{ formatUang(totalUpahManufaktur) }}
                 </div>
               </div>
@@ -379,10 +368,10 @@
               <div class="q-pa-md">
                 <div
                   v-if="manufakturPekerjaList.length === 0"
-                  class="text-center q-pa-xl text-grey-5"
+                  class="text-center q-pa-xl text-slate-400 font-inter"
                 >
                   <q-icon name="playlist_remove" size="4em" />
-                  <div class="text-subtitle1 q-mt-sm">
+                  <div class="text-subtitle1 text-weight-bold q-mt-sm">
                     Belum ada input log pekerja manufaktur hari ini.
                   </div>
                 </div>
@@ -391,37 +380,33 @@
                   <table class="abs-tbl">
                     <thead>
                       <tr class="bg-slate-50">
-                        <th style="width: 40px" class="text-center">#</th>
-                        <th>NAMA PEKERJA</th>
-                        <th class="text-center">STASIUN KERJA</th>
-                        <th class="text-right">UPAH / JAM</th>
-                        <th class="text-center">JAM KERJA</th>
-                        <th class="text-center">LEMBUR</th>
-                        <th class="text-right">TOTAL ESTIMASI UPAH</th>
-                        <th style="width: 60px" class="text-center">AKSI</th>
+                        <th style="width: 40px" class="text-center font-inter">#</th>
+                        <th class="font-inter">NAMA PEKERJA</th>
+                        <th class="text-center font-inter">STASIUN KERJA</th>
+                        <th class="text-right font-inter">UPAH / JAM</th>
+                        <th class="text-center font-inter">JAM KERJA</th>
+                        <th class="text-center font-inter">LEMBUR</th>
+                        <th class="text-right font-inter">TOTAL ESTIMASI UPAH</th>
+                        <th style="width: 60px" class="text-center font-inter">AKSI</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr v-for="(p, pi) in manufakturPekerjaList" :key="p.id">
-                        <td class="text-center text-grey-5 font-mono text-weight-bold">
+                        <td class="text-center text-slate-700 font-mono text-weight-bold">
                           {{ pi + 1 }}
                         </td>
-                        <td class="text-weight-bold text-blue-grey-9 uppercase">{{ p.nama }}</td>
+                        <td class="text-weight-bold text-slate-900 uppercase font-inter">{{ p.nama }}</td>
                         <td class="text-center">
-                          <q-badge
-                            color="brand-light"
-                            text-color="brand-primary"
-                            class="text-weight-bold q-px-sm q-py-xs rounded-6"
-                          >
+                          <span class="neo-badge bg-sky-1 text-slate-900 font-inter text-11 text-weight-bolder">
                             {{ p.stasiun }}
-                          </q-badge>
+                          </span>
                         </td>
-                        <td class="text-right font-mono">Rp {{ formatUang(p.upahJam) }}</td>
-                        <td class="text-center font-mono">{{ p.jamKerja }} Jam</td>
-                        <td class="text-center font-mono text-brand-primary font-bold">
+                        <td class="text-right font-mono text-slate-900">Rp {{ formatUang(p.upahJam) }}</td>
+                        <td class="text-center font-mono text-slate-900">{{ p.jamKerja }} Jam</td>
+                        <td class="text-center font-mono text-slate-900 text-weight-bold">
                           {{ p.lembur }} Jam
                         </td>
-                        <td class="text-right text-weight-bold text-brand-primary font-mono">
+                        <td class="text-right text-weight-bolder text-slate-900 font-mono">
                           Rp {{ formatUang(p.totalUpah) }}
                         </td>
                         <td class="text-center">
@@ -430,8 +415,8 @@
                             dense
                             round
                             icon="close"
-                            color="red-4"
                             size="sm"
+                            class="neo-btn bg-red-2 text-red-9"
                             @click="deleteManufakturPekerja(p.id)"
                           />
                         </td>
@@ -446,7 +431,7 @@
                     color="brand-primary"
                     icon="cloud_upload"
                     label="KIRIM & SIMPAN LOG HARIAN"
-                    class="rounded-12 text-weight-black shadow-md q-px-xl q-py-sm"
+                    class="neo-btn text-weight-bolder font-inter q-px-xl q-py-sm"
                   />
                 </div>
               </div>
@@ -458,28 +443,28 @@
       <!-- ======================================================================= -->
       <!-- VIEW 2: FORM MANAGEMEN ABSENSI TERISOLASI PER PROYEK                    -->
       <!-- ======================================================================= -->
-      <div v-else class="premium-container mx-auto">
+      <div v-else class="premium-container mx-auto table-entrance">
         <!-- BACK NAVIGATION BAR -->
-        <div class="row items-center justify-between detail-header-row no-print animate-fade-in">
+        <div class="row items-center justify-between detail-header-row no-print animate-fade-in q-mb-md">
           <div class="col-12 col-md-8 detail-header-col">
             <div class="row items-center no-wrap">
               <q-btn
                 flat
                 round
-                color="brand-primary"
                 icon="arrow_back"
                 @click="deselectProject"
-                class="q-mr-md bg-white shadow-1"
+                class="q-mr-md neo-btn bg-white text-slate-900"
+                style="border-radius: 50% !important; width: 42px; height: 42px;"
               />
               <div>
                 <div class="row items-center no-wrap q-gutter-x-sm">
                   <span
-                    class="text-h5 text-md-h4 text-weight-bolder text-brand-primary leading-tight uppercase font-pro"
+                    class="text-h5 text-md-h4 text-weight-bolder text-slate-900 leading-tight uppercase font-inter" style="font-weight: 850;"
                   >
                     Kelola Pekerja &amp; Mandor
                   </span>
                 </div>
-                <div class="text-body2 text-md-subtitle1 text-grey-7 q-mt-sm text-weight-medium">
+                <div class="text-body2 text-md-subtitle1 text-slate-700 q-mt-sm text-weight-bold font-inter">
                   {{ selectedProjectData?.nama }}
                 </div>
               </div>
@@ -488,15 +473,15 @@
         </div>
 
         <!-- TABS NAVIGASI PREMIUM -->
-        <q-card flat class="bento-card bg-white q-mb-lg no-print shadow-soft overflow-hidden">
+        <q-card flat class="neo-card bg-white q-mb-lg no-print overflow-hidden">
           <q-tabs
             v-model="activeTab"
             dense
             no-caps
             inline-label
-            class="text-grey-7 bg-brand-light"
-            active-color="brand-primary"
-            indicator-color="brand-primary"
+            class="text-slate-700 bg-white"
+            active-color="slate-900"
+            indicator-color="slate-900"
             align="left"
             narrow-indicator
             outside-arrows
@@ -506,7 +491,7 @@
               name="mandor"
               icon="groups"
               label="Mandor &amp; Pekerja"
-              class="text-weight-bold q-py-sm"
+              class="text-weight-bolder q-py-sm font-inter"
             />
           </q-tabs>
         </q-card>
@@ -516,8 +501,8 @@
           <!-- PANEL 2: MANDOR & PEKERJA (TERISOLASI) -->
           <q-tab-panel name="mandor" class="q-pa-none">
             <!-- Form Tambah Mandor -->
-            <q-card flat class="bento-card bg-white q-pa-lg shadow-soft q-mb-lg no-print">
-              <div class="text-subtitle1 text-weight-bold text-blue-grey-9 q-mb-md">
+            <q-card flat class="neo-card bg-white q-pa-lg q-mb-lg no-print">
+              <div class="text-subtitle1 text-weight-bolder text-slate-900 q-mb-md uppercase font-inter" style="font-weight: 800;">
                 Tambah Kelompok Mandor / Sub-Pekerjaan
               </div>
               <div class="row q-col-gutter-md items-end">
@@ -546,7 +531,7 @@
                 >
                   <template v-slot:no-option>
                     <q-item>
-                      <q-item-section class="text-grey text-caption">
+                      <q-item-section class="text-slate-500 text-caption font-inter">
                         Belum ada SPK terdaftar di proyek ini
                       </q-item-section>
                     </q-item>
@@ -577,8 +562,8 @@
                     color="brand-primary"
                     icon="person_add"
                     label="Tambah Kelompok Mandor"
-                    class="rounded-12 text-weight-bold shadow-premium"
-                    style="min-height: 40px"
+                    class="neo-btn text-weight-bolder font-inter"
+                    style="min-height: 40px;"
                     @click="addMandor"
                     :disable="!bisa.buat"
                   />
@@ -589,10 +574,10 @@
             <!-- List Blok Mandor & Pekerja Di Dalamnya -->
             <div
               v-if="mandors.length === 0"
-              class="text-center q-pa-xl bg-white rounded-24 border border-subtle animate-fade-in"
+              class="text-center q-pa-xl neo-card bg-white animate-fade-in"
             >
-              <q-icon name="group_off" size="4em" color="grey-4" />
-              <div class="text-grey-6 text-subtitle1 q-mt-sm">
+              <q-icon name="group_off" size="4em" color="slate-400" />
+              <div class="text-slate-700 text-subtitle1 text-weight-bold q-mt-sm font-inter">
                 Belum ada kelompok mandor terdaftar di proyek ini. Silakan tambahkan di atas.
               </div>
             </div>
@@ -600,38 +585,30 @@
             <div
               v-for="(m, mi) in mandors"
               :key="m.id"
-              class="mandor-container bg-white q-mb-lg rounded-24 border border-subtle shadow-soft overflow-hidden animate-fade-in"
+              class="mandor-container neo-card bg-white q-mb-lg overflow-hidden animate-fade-in"
             >
               <!-- Header Mandor Group -->
               <div
-                class="bg-brand-light q-pa-md row items-center justify-between border-bottom mandor-header-row"
+                class="bg-slate-100 q-pa-md row items-center justify-between mandor-header-row" style="border-bottom: 3px solid #0f172a;"
               >
                 <div class="row items-center no-wrap">
-                  <q-avatar
-                    size="40px"
-                    color="brand-primary"
-                    text-color="white"
-                    class="q-mr-md text-weight-bold shadow-sm font-pro flex-shrink-0"
-                  >
+                  <div class="neo-card bg-yellow-3 text-slate-900 q-mr-md flex flex-center text-weight-bolder font-mono flex-shrink-0" style="width: 38px; height: 38px; border-width: 2px; border-radius: 8px;">
                     {{ mi + 1 }}
-                  </q-avatar>
+                  </div>
                   <div>
-                    <div class="text-subtitle1 text-weight-bold text-blue-grey-10 uppercase">
+                    <div class="text-subtitle1 text-weight-bolder text-slate-900 uppercase font-inter" style="font-weight: 800;">
                       {{ m.nama }}
                     </div>
-                    <div class="text-caption text-grey-7 font-medium">
-                      BIDANG:
-                      <span class="text-weight-bold text-blue-grey-8">{{
-                        (m.bidang || 'Umum').toUpperCase()
-                      }}</span>
-                      <span class="q-mx-xs">•</span> TELP: {{ m.hp || '-' }}
-                      <span class="q-mx-xs">•</span> TOTAL:
-                      {{ m.pekerja ? m.pekerja.length : 0 }} Pekerja
+                    <div class="text-caption text-slate-700 font-inter text-weight-bold row items-center q-gutter-x-sm wrap q-mt-xs">
+                      <span>BIDANG:</span>
+                      <span class="neo-badge bg-sky-1 text-slate-900 font-inter text-11 text-weight-bolder">{{ m.bidang || 'Umum' }}</span>
+                      <span>•</span>
+                      <span>TELP: {{ m.hp || '-' }}</span>
+                      <span>•</span>
+                      <span>TOTAL: {{ m.pekerja ? m.pekerja.length : 0 }} Pekerja</span>
                       <template v-if="m.spk_nama_kontrak">
-                        <span class="q-mx-xs">•</span>
-                        <span class="text-brand-primary text-weight-bold">{{
-                          m.spk_nama_kontrak
-                        }}</span>
+                        <span>•</span>
+                        <span class="neo-badge bg-emerald-1 text-slate-900 font-inter text-11 text-weight-bolder">{{ m.spk_nama_kontrak }}</span>
                       </template>
                     </div>
                   </div>
@@ -641,8 +618,7 @@
                   round
                   dense
                   icon="delete"
-                  color="red-5"
-                  class="no-print"
+                  class="neo-btn bg-red-2 text-red-9 no-print"
                   @click="deleteMandor(m.id)"
                   :disable="!bisa.hapus"
                 />
@@ -652,7 +628,7 @@
               <div class="q-pa-md">
                 <!-- Baris Form Pekerja -->
                 <div
-                  class="row q-col-gutter-sm items-end q-mb-md no-print form-pekerja-box q-pa-sm rounded-12 border border-dashed"
+                  class="row q-col-gutter-sm items-end q-mb-md no-print form-pekerja-box q-pa-md"
                 >
                   <q-input
                     v-model="pekerjaForms[m.id].nama"
@@ -661,7 +637,7 @@
                     bg-color="white"
                     label="Nama Pekerja"
                     class="col-12 col-sm-2 rounded-input"
-                    placeholder="Nama lengkap pekerja"
+                    placeholder="Nama lengkap"
                   />
                   <q-select
                     v-model="pekerjaForms[m.id].jabatan"
@@ -686,7 +662,7 @@
                     bg-color="white"
                     type="number"
                     prefix="Rp"
-                    label="Upah Base / Hari"
+                    label="Upah / Hari"
                     class="col-12 col-sm-2 rounded-input"
                   />
                   <q-input
@@ -706,7 +682,7 @@
                     bg-color="white"
                     type="number"
                     prefix="Rp"
-                    label="Lembur / Jam"
+                    label="Lembur/Jam"
                     class="col-12 col-sm-2 rounded-input"
                   />
                   <q-input
@@ -725,7 +701,7 @@
                       color="brand-primary"
                       icon="add"
                       label="Tambah"
-                      class="w-full rounded-12 q-py-sm text-weight-bold"
+                      class="w-full neo-btn text-weight-bolder font-inter q-py-sm"
                       @click="addPekerja(m.id)"
                       :disable="!bisa.buat"
                     />
@@ -735,7 +711,7 @@
                 <!-- Tabel Pekerja Harian Group Mandor -->
                 <div
                   v-if="!m.pekerja || m.pekerja.length === 0"
-                  class="text-center text-grey-5 text-caption q-py-md"
+                  class="text-center text-slate-500 text-subtitle2 text-weight-bold q-py-md font-inter"
                 >
                   Belum ada pekerja di dalam kelompok mandor ini.
                 </div>
@@ -745,14 +721,14 @@
                     <div
                       v-for="(p, pi) in m.pekerja"
                       :key="p.id"
-                      class="worker-card bg-slate-50 q-pa-md rounded-16 border border-subtle relative-position"
+                      class="worker-card bg-slate-50 q-pa-md relative-position"
                     >
                       <div class="row items-center justify-between q-mb-xs">
                         <div class="row items-center">
-                          <div class="text-weight-bold text-blue-grey-5 font-mono q-mr-sm">
+                          <div class="text-weight-bolder text-slate-600 font-mono q-mr-sm">
                             #{{ pi + 1 }}
                           </div>
-                          <div class="text-weight-bold text-blue-grey-10 text-subtitle2 uppercase">
+                          <div class="text-weight-bolder text-slate-900 text-subtitle2 uppercase font-inter" style="font-weight: 800;">
                             {{ p.nama }}
                           </div>
                         </div>
@@ -761,52 +737,39 @@
                           dense
                           round
                           icon="close"
-                          color="red-4"
                           size="sm"
-                          class="no-print"
+                          class="neo-btn bg-red-2 text-red-9 no-print"
                           @click="deletePekerja(m.id, p.id)"
                           :disable="!bisa.hapus"
                         />
                       </div>
                       <div class="row items-center q-gutter-x-sm q-mb-xs">
-                        <q-badge
-                          color="brand-light"
-                          text-color="brand-primary"
-                          class="text-weight-bold q-px-sm q-py-xs rounded-6 text-11"
-                        >
+                        <span class="neo-badge bg-sky-1 text-slate-900 font-inter text-11 text-weight-bolder">
                           {{ p.jabatan || 'Tukang' }}
-                        </q-badge>
-                        <q-badge
-                          color="brand-light"
-                          text-color="brand-primary"
-                          class="text-weight-bold q-px-sm q-py-xs rounded-6 text-11"
-                        >
+                        </span>
+                        <span class="neo-badge bg-amber-1 text-slate-900 font-inter text-11 text-weight-bolder">
                           Koef: {{ (p.koef || 1.0).toFixed(2) }}x
-                        </q-badge>
-                        <q-badge
-                          color="orange-1"
-                          text-color="orange-9"
-                          class="text-weight-bold q-px-sm q-py-xs rounded-6 text-11"
-                        >
+                        </span>
+                        <span class="neo-badge bg-pink-1 text-slate-900 font-inter text-11 text-weight-bolder">
                           Lembur: Rp {{ formatUang((p.upahLembur || 0) * (p.koefLembur || 1.0)) }}/Jam ({{ (p.koefLembur || 1.0).toFixed(2) }}x)
-                        </q-badge>
+                        </span>
                       </div>
                       <div
-                        class="row items-center justify-between text-caption q-mt-sm bg-white q-pa-sm rounded-8 border border-subtle"
+                        class="row items-center justify-between text-caption q-mt-sm bg-white q-pa-sm border-thick font-inter text-weight-bold"
                       >
                         <div>
-                          <span class="text-grey-6 text-10 block font-bold uppercase"
+                          <span class="text-slate-500 text-10 block font-bold uppercase"
                             >UPAH BASE</span
                           >
-                          <div class="text-weight-medium font-mono text-blue-grey-8">
+                          <div class="text-weight-bold font-mono text-slate-800">
                             Rp {{ formatUang(p.upahHari) }}
                           </div>
                         </div>
                         <div class="text-right">
-                          <span class="text-grey-6 text-10 block font-bold uppercase"
+                          <span class="text-slate-500 text-10 block font-bold uppercase"
                             >UPAH EFEKTIF</span
                           >
-                          <div class="text-weight-bold font-mono text-brand-primary">
+                          <div class="text-weight-bolder font-mono text-slate-900">
                             Rp {{ formatUang((p.upahHari || 0) * (p.koef || 1.0)) }}
                           </div>
                         </div>
@@ -819,43 +782,39 @@
                     <table class="abs-tbl">
                       <thead>
                         <tr class="bg-slate-50">
-                          <th style="width: 40px" class="text-center">#</th>
-                          <th>NAMA PEKERJA</th>
-                          <th class="text-center">JABATAN</th>
-                          <th class="text-right">UPAH BASE / HARI</th>
-                          <th class="text-center">KOEF.</th>
-                          <th class="text-right">UPAH EFEKTIF / HARI</th>
-                          <th class="text-right">UPAH LEMBUR / JAM</th>
-                          <th style="width: 60px" class="text-center no-print">AKSI</th>
+                          <th style="width: 40px" class="text-center font-inter">#</th>
+                          <th class="font-inter">NAMA PEKERJA</th>
+                          <th class="text-center font-inter">JABATAN</th>
+                          <th class="text-right font-inter">UPAH BASE / HARI</th>
+                          <th class="text-center font-inter">KOEF.</th>
+                          <th class="text-right font-inter">UPAH EFEKTIF / HARI</th>
+                          <th class="text-right font-inter">UPAH LEMBUR / JAM</th>
+                          <th style="width: 60px" class="text-center no-print font-inter">AKSI</th>
                         </tr>
                       </thead>
                       <tbody>
                         <tr v-for="(p, pi) in m.pekerja" :key="p.id">
-                          <td class="text-center text-grey-5 text-weight-bold font-mono">
+                          <td class="text-center text-slate-700 text-weight-bold font-mono">
                             {{ pi + 1 }}
                           </td>
-                          <td class="text-weight-bold text-blue-grey-9 uppercase">{{ p.nama }}</td>
+                          <td class="text-weight-bold text-slate-900 uppercase font-inter">{{ p.nama }}</td>
                           <td class="text-center">
-                            <q-badge
-                              color="brand-light"
-                              text-color="brand-primary"
-                              class="text-weight-bold q-px-sm q-py-xs rounded-6"
-                            >
+                            <span class="neo-badge bg-sky-1 text-slate-900 font-inter text-11 text-weight-bolder">
                               {{ p.jabatan || 'Tukang' }}
-                            </q-badge>
+                            </span>
                           </td>
-                          <td class="text-right font-mono font-medium">
+                          <td class="text-right font-mono text-slate-900">
                             Rp {{ formatUang(p.upahHari) }}
                           </td>
-                          <td class="text-center text-weight-bold text-amber-9 font-mono">
+                          <td class="text-center text-weight-bolder text-amber-9 font-mono">
                             {{ (p.koef || 1.0).toFixed(2) }}x
                           </td>
-                          <td class="text-right text-weight-bold text-brand-primary font-mono">
+                          <td class="text-right text-weight-bolder text-slate-900 font-mono">
                             Rp {{ formatUang((p.upahHari || 0) * (p.koef || 1.0)) }}
                           </td>
-                          <td class="text-right text-weight-bold text-amber-9 font-mono">
+                          <td class="text-right text-weight-bolder text-amber-9 font-mono">
                             Rp {{ formatUang((p.upahLembur || 0) * (p.koefLembur || 1.0)) }}
-                            <div class="text-caption text-grey-5">Base: Rp {{ formatUang(p.upahLembur || 0) }} ({{ (p.koefLembur || 1.0).toFixed(2) }}x)</div>
+                            <div class="text-caption text-slate-500 text-weight-bold font-inter">Base: Rp {{ formatUang(p.upahLembur || 0) }} ({{ (p.koefLembur || 1.0).toFixed(2) }}x)</div>
                           </td>
                           <td class="text-center no-print">
                             <q-btn
@@ -863,8 +822,8 @@
                               dense
                               round
                               icon="close"
-                              color="red-4"
                               size="sm"
+                              class="neo-btn bg-red-2 text-red-9"
                               @click="deletePekerja(m.id, p.id)"
                               :disable="!bisa.hapus"
                             />
@@ -1949,63 +1908,10 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@600;700&display=swap');
 
-/* ===== BRAND COLOR PALETTE ===== */
-:root {
-  --brand-primary: #1565c0;
-  --brand-primary-dark: #0d47a1;
-  --brand-primary-light: #e3f2fd;
-  --brand-primary-mid: #90caf9;
-  --brand-danger: #ad3640;
-  --brand-danger-dark: #7a2028;
-  --brand-danger-light: #f7e0e1;
-  --page-bg: #f0fafa;
-}
-
-/* Quasar color overrides via CSS */
-.bg-brand-primary {
-  background-color: #1565c0 !important;
-}
-.bg-brand-light {
-  background-color: #e3f2fd !important;
-}
-.bg-brand-danger {
-  background-color: #ad3640 !important;
-}
-.text-brand-primary {
-  color: #1565c0 !important;
-}
-.text-brand-teal {
-  color: #1565c0 !important;
-}
-.text-brand-danger {
-  color: #ad3640 !important;
-}
-.bg-page {
-  background-color: #f0fafa !important;
-}
-.bg-page.q-page {
-  padding: 24px !important;
-}
-@media (max-width: 599px) {
-  .bg-page.q-page {
-    padding: 16px !important;
-  }
-}
-
-/* Override Quasar btn colors */
-.q-btn[color='brand-primary'],
-.bg-brand-primary.q-btn {
-  background-color: #1565c0 !important;
-  color: white !important;
-}
-
-.font-pro {
-  font-family:
-    'Plus Jakarta Sans',
-    -apple-system,
-    sans-serif;
+.font-inter {
+  font-family: 'Inter', -apple-system, sans-serif;
 }
 .font-mono {
   font-family: 'JetBrains Mono', monospace;
@@ -2020,306 +1926,368 @@ onUnmounted(() => {
   letter-spacing: -0.5px;
 }
 .border-bottom {
-  border-bottom: 1px solid #f1f5f9;
-}
-.rounded-input :deep(.q-field__control) {
-  border-radius: 12px;
+  border-bottom: 2px solid #0f172a;
 }
 
-/* SHADOWS & CARDS */
-.bento-card {
-  border-radius: 24px;
-  border: 1px solid #f1f5f9;
-}
-.shadow-soft {
-  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.04) !important;
-}
-.shadow-soft-primary {
-  box-shadow: 0 8px 24px -8px rgba(21, 101, 192, 0.4) !important;
-}
-.shadow-premium {
-  box-shadow: 0 10px 30px rgba(21, 101, 192, 0.2);
-}
-.rounded-20 {
-  border-radius: 20px;
-}
-.rounded-16 {
-  border-radius: 16px;
-}
-.rounded-12 {
-  border-radius: 12px;
-}
-.rounded-8 {
-  border-radius: 8px;
-}
-.rounded-6 {
-  border-radius: 6px;
-}
-.border-subtle {
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
-.border-bottom-subtle {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+/* NEO-BRUTALIST STYLING TOKENS */
+.neo-page-bg {
+  background-color: #f3f4f6 !important;
+  background-image: radial-gradient(#d1d5db 1.5px, transparent 1.5px);
+  background-size: 24px 24px;
+  min-height: 100vh;
+  position: relative;
 }
 
-/* PREMIUM TABLE MATRIX STYLE */
-.abs-tbl-wrap {
+.neo-decorations-container {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
 }
-table.abs-tbl {
-  width: 100%;
-  border-collapse: collapse;
+
+.neo-shape {
+  position: absolute;
+  opacity: 0.08;
+  pointer-events: none;
 }
-table.abs-tbl th {
+
+.shape-wobbly-1 {
+  width: 300px;
+  height: 300px;
+  background-color: #3b82f6;
+  border-radius: 43% 57% 41% 59% / 57% 46% 54% 43%;
+  top: -50px;
+  left: -100px;
+  animation: drift-slow 25s infinite alternate ease-in-out;
+}
+.shape-wobbly-2 {
+  width: 250px;
+  height: 250px;
+  background-color: #ec4899;
+  border-radius: 50% 50% 30% 70% / 50% 60% 40% 50%;
+  bottom: 10%;
+  right: -80px;
+  animation: drift-slow 20s infinite alternate-reverse ease-in-out;
+}
+.shape-wobbly-3 {
+  width: 180px;
+  height: 180px;
+  background-color: #f59e0b;
+  border-radius: 60% 40% 70% 30% / 50% 50% 50% 50%;
+  top: 40%;
+  left: -50px;
+  animation: drift-slow 30s infinite alternate ease-in-out;
+}
+.shape-wobbly-4 {
+  width: 220px;
+  height: 220px;
+  background-color: #10b981;
+  border-radius: 40% 60% 50% 50% / 40% 50% 50% 60%;
+  top: 15%;
+  right: 15%;
+  animation: drift-slow 22s infinite alternate ease-in-out;
+}
+.shape-wobbly-5 { width: 140px; height: 140px; background-color: #8b5cf6; border-radius: 35% 65% 55% 45% / 45% 35% 65% 55%; bottom: 25%; left: 10%; animation: drift-slow 28s infinite alternate ease-in-out; }
+.shape-wobbly-6 { width: 160px; height: 160px; background-color: #06b6d4; border-radius: 55% 45% 35% 65% / 55% 65% 35% 45%; top: 70%; left: 30%; animation: drift-slow 24s infinite alternate ease-in-out; }
+.shape-wobbly-7 { width: 280px; height: 280px; background-color: #f43f5e; border-radius: 65% 35% 45% 55% / 35% 45% 55% 65%; top: 50%; right: 25%; animation: drift-slow 26s infinite alternate ease-in-out; }
+.shape-wobbly-8 { width: 200px; height: 200px; background-color: #eab308; border-radius: 45% 55% 65% 35% / 65% 55% 45% 35%; bottom: -50px; right: 20%; animation: drift-slow 23s infinite alternate ease-in-out; }
+.shape-wobbly-9 { width: 150px; height: 150px; background-color: #6366f1; border-radius: 50% 50% 50% 50% / 30% 70% 30% 70%; top: -30px; left: 45%; animation: drift-slow 27s infinite alternate ease-in-out; }
+.shape-wobbly-10 { width: 170px; height: 170px; background-color: #14b8a6; border-radius: 70% 30% 50% 50% / 50% 50% 70% 30%; bottom: 40%; left: 40%; animation: drift-slow 21s infinite alternate ease-in-out; }
+.shape-wobbly-11 { width: 190px; height: 190px; background-color: #a855f7; border-radius: 40% 40% 60% 60% / 60% 60% 40% 40%; top: 30%; left: 70%; animation: drift-slow 29s infinite alternate ease-in-out; }
+.shape-wobbly-12 { width: 130px; height: 130px; background-color: #ff007f; border-radius: 30% 70% 30% 70% / 70% 30% 70% 30%; bottom: -30px; left: -30px; animation: drift-slow 19s infinite alternate ease-in-out; }
+
+@keyframes drift-slow {
+  0% { transform: translate(0, 0) rotate(0deg) scale(1); }
+  100% { transform: translate(40px, 30px) rotate(360deg) scale(1.1); }
+}
+
+/* STAGGERED ENTRANCES */
+.header-entrance {
+  animation: bounceInDown 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+.table-entrance {
+  animation: fadeInUpStagger 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes bounceInDown {
+  0% { opacity: 0; transform: translateY(-30px); }
+  60% { opacity: 0.9; transform: translateY(5px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInUpStagger {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* NEO BRUTALIST CARD */
+.neo-card {
+  border: 3px solid #0f172a !important;
+  border-radius: 12px !important;
+  box-shadow: 6px 6px 0px #0f172a !important;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  background-color: #ffffff;
+}
+.neo-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 8px 8px 0px #0f172a !important;
+}
+.neo-card:active {
+  transform: translate(2px, 2px);
+  box-shadow: 4px 4px 0px #0f172a !important;
+}
+
+/* NEO BRUTALIST BUTTON */
+.neo-btn {
+  border: 3px solid #0f172a !important;
+  border-radius: 8px !important;
+  box-shadow: 4px 4px 0px #0f172a !important;
   background-color: #1565c0 !important;
   color: #ffffff !important;
-  font-size: 11px;
-  font-weight: 800;
+  font-weight: 850 !important;
+  letter-spacing: 0.5px;
+  transition: all 0.15s ease-out;
   text-transform: uppercase;
+}
+.neo-btn:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0px #0f172a !important;
+  background-color: #0d47a1 !important;
+}
+.neo-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px #0f172a !important;
+}
+.neo-btn[disabled] {
+  opacity: 0.5 !important;
+  pointer-events: none !important;
+  box-shadow: 2px 2px 0px #0f172a !important;
+  transform: none !important;
+}
+
+/* CUSTOM COLOR UTILITIES */
+.bg-sky-2 { background-color: #bae6fd !important; }
+.bg-emerald-2 { background-color: #a7f3d0 !important; }
+.bg-pink-2 { background-color: #fbcfe8 !important; }
+.bg-yellow-1 { background-color: #fef9c3 !important; }
+.bg-yellow-3 { background-color: #fde047 !important; }
+.bg-yellow-4 { background-color: #facc15 !important; }
+.bg-amber-3 { background-color: #fcd34d !important; }
+.bg-emerald-3 { background-color: #6ee7b7 !important; }
+.bg-sky-1 { background-color: #e0f2fe !important; }
+.bg-emerald-1 { background-color: #d1fae5 !important; }
+.bg-red-2 { background-color: #fecaca !important; }
+.bg-red-5 { background-color: #ef4444 !important; }
+.text-slate-900 { color: #0f172a !important; }
+.text-slate-800 { color: #1e293b !important; }
+.text-slate-700 { color: #334155 !important; }
+.text-slate-600 { color: #475569 !important; }
+.text-sky-9 { color: #0c4a6e !important; }
+.text-red-9 { color: #7f1d1d !important; }
+
+/* NEO BADGE */
+.neo-badge {
+  background-color: #f1f5f9;
+  color: #0f172a;
+  border: 2px solid #0f172a;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.neo-divider {
+  border: none;
+  border-top: 3.5px dashed #0f172a;
+  opacity: 1;
+}
+
+/* FORM CONTROL OVERRIDES */
+.rounded-input :deep(.q-field__control) {
+  border: 2.5px solid #0f172a !important;
+  border-radius: 8px !important;
+  box-shadow: 2.5px 2.5px 0px #0f172a !important;
+  transition: all 0.2s ease;
+  background-color: #ffffff !important;
+}
+.rounded-input :deep(.q-field__control):hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3.5px 3.5px 0px #0f172a !important;
+}
+.rounded-input :deep(.q-field--focused .q-field__control) {
+  border-color: #1565c0 !important;
+  transform: translate(-1.5px, -1.5px);
+  box-shadow: 4px 4px 0px #0f172a !important;
+}
+.rounded-input :deep(.q-field__label) {
+  color: #475569 !important;
+  font-weight: 700 !important;
+}
+.rounded-input :deep(.q-field--focused .q-field__label) {
+  color: #1565c0 !important;
+}
+
+/* ABSEN TABLE SYSTEM */
+.abs-tbl {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 3px solid #0f172a;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 12px;
+  background-color: #ffffff;
+}
+.abs-tbl th {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  font-weight: 900;
+  font-size: 11px;
   letter-spacing: 0.8px;
-  padding: 14px 12px;
-  border: none;
-  border-bottom: 2px solid #0d47a1;
-  text-align: left;
+  text-transform: uppercase;
+  padding: 12px 16px;
+  border-bottom: 3px solid #0f172a;
+  border-right: 2px solid #0f172a;
 }
-table.abs-tbl td {
-  padding: 14px 12px;
-  border: none;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+.abs-tbl th:last-child {
+  border-right: none;
+}
+.abs-tbl td {
+  padding: 14px 16px;
+  border-bottom: 2px solid #0f172a;
+  border-right: 2px solid #0f172a;
   vertical-align: middle;
-  color: #334155;
-  font-size: 13px;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #0f172a;
+  font-weight: 700;
 }
-table.abs-tbl tr {
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+.abs-tbl tr:last-child td {
+  border-bottom: none;
 }
-table.abs-tbl tr:hover {
-  background-color: rgba(21, 101, 192, 0.04);
+.abs-tbl td:last-child {
+  border-right: none;
+}
+.abs-tbl tr {
+  background-color: #ffffff;
+  transition: background-color 0.2s ease;
+}
+.abs-tbl tr:hover {
+  background-color: #f1f5f9;
 }
 
 .form-pekerja-box {
-  background-color: rgba(227, 242, 253, 0.2) !important;
-  border: 1px dashed rgba(21, 101, 192, 0.3) !important;
+  background-color: #f8fafc;
+  border: 3px solid #0f172a;
+  border-radius: 12px;
 }
 
-/* INTERACTIVE DROPDOWN STATUS BADGES */
+/* STATUS SELECTOR DROPDOWNS */
 .status-sel {
   appearance: none;
   -webkit-appearance: none;
   text-align: center;
   font-size: 12px;
   cursor: pointer;
-  border-radius: 30px !important;
+  border-radius: 8px !important;
   padding: 8px 32px 8px 16px !important;
   outline: none;
   transition: all 0.2s ease;
   width: 150px;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  font-weight: 800;
+  border: 2.5px solid #0f172a !important;
+  box-shadow: 2.5px 2.5px 0px #0f172a !important;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230f172a' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   background-size: 14px;
 }
+.status-sel:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3.5px 3.5px 0px #0f172a !important;
+}
 .s-hadir {
-  background-color: #f0fdf4 !important;
-  color: #16a34a !important;
-  border: 1.5px solid #bbf7d0 !important;
+  background-color: #d1fae5 !important;
+  color: #065f46 !important;
 }
 .s-setengah {
-  background-color: #f0fdfa !important;
-  color: #0d9488 !important;
-  border: 1.5px solid #99f6e4 !important;
+  background-color: #ccfbf1 !important;
+  color: #0f766e !important;
 }
 .s-izin {
-  background-color: #f0f9ff !important;
-  color: #0284c7 !important;
-  border: 1.5px solid #bae6fd !important;
+  background-color: #e0f2fe !important;
+  color: #0369a1 !important;
 }
 .s-sakit {
-  background-color: #fffbeb !important;
-  color: #d97706 !important;
-  border: 1.5px solid #fde68a !important;
+  background-color: #fef3c7 !important;
+  color: #b45309 !important;
 }
 .s-alpha {
-  background-color: #fef2f2 !important;
-  color: #dc2626 !important;
-  border: 1.5px solid #fecaca !important;
+  background-color: #fee2e2 !important;
+  color: #991b1b !important;
 }
 .s-libur {
-  background-color: #faf5ff !important;
-  color: #7c3aed !important;
-  border: 1.5px solid #e9d5ff !important;
+  background-color: #f3e8ff !important;
+  color: #6b21a8 !important;
 }
 
-/* REKAP BREAKDOWN GRID */
-table.rekap-tbl {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
+.border-thick {
+  border: 2px solid #0f172a !important;
+  border-radius: 8px !important;
 }
-table.rekap-tbl th {
-  font-size: 11px;
-  color: #475569;
-  font-weight: 800;
+.worker-card {
+  border: 3px solid #0f172a !important;
+  border-radius: 12px !important;
+  box-shadow: 4px 4px 0px #0f172a !important;
+  margin-bottom: 12px;
+}
+
+/* TAB CUSTOM STYLES */
+:deep(.q-tabs) {
+  border-bottom: 3px solid #0f172a;
+}
+:deep(.q-tab) {
+  font-weight: 850 !important;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 12px 10px;
-  border-bottom: 2px solid #e2e8f0;
-  text-align: left;
 }
-table.rekap-tbl td {
-  padding: 12px 10px;
-  border-bottom: 1px solid #f1f5f9;
-  color: #334155;
-}
-.rekap-foot td {
-  background-color: #f8fafc;
-  font-weight: 800;
-  color: #1e293b;
-  border-top: 2px solid #cbd5e1;
+:deep(.q-tab--active) {
+  background-color: #facc15 !important;
+  color: #0f172a !important;
 }
 
-.indicator-bar {
-  width: 6px;
-  height: 32px;
-  border-radius: 4px;
+.kpi-val {
+  font-size: 1.25rem;
+  line-height: 1.5rem;
 }
-.kpi-box {
-  background: rgba(21, 101, 192, 0.85) !important;
-  backdrop-filter: blur(12px) saturate(190%);
-  -webkit-backdrop-filter: blur(12px) saturate(190%);
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  box-shadow: 0 8px 32px 0 rgba(21, 101, 192, 0.25) !important;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  height: 100%;
-  border-radius: 36px !important;
-}
-.kpi-box:hover {
-  transform: translateY(-4px);
-  background: rgba(21, 101, 192, 0.95) !important;
-  box-shadow: 0 12px 40px 0 rgba(21, 101, 192, 0.35) !important;
-}
-.kpi-box:active {
-  transform: translateY(2px) scale(0.98);
-  box-shadow: 0 4px 16px 0 rgba(21, 101, 192, 0.2) !important;
-  transition: all 0.1s ease;
-}
-
-/* APPLE-STYLE ICONS */
-.ios-icon-box {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.ios-icon-box.small {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-}
-
-.total-mandor {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
-  padding: 12px 0 4px;
-  font-size: 13px;
-  color: #64748b;
-}
-.total-mandor strong {
-  color: #d97706;
-  font-size: 16px;
-  font-family: monospace;
-}
-
-.decor-circle-1 {
-  position: absolute;
-  width: 300px;
-  height: 300px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
-  top: -150px;
-  right: -50px;
-  border-radius: 50%;
-  z-index: 0;
-}
-
-.animate-fade-in {
-  animation: fadeInUp 0.4s ease-out;
-}
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
+@media (min-width: 400px) {
+  .kpi-val {
+    font-size: 1.5rem;
+    line-height: 1.8rem;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+}
+@media (min-width: 600px) {
+  .kpi-val {
+    font-size: 1.95rem;
+    line-height: 2.2rem;
   }
 }
 
-/* PREMIUM HOVER CARD EFFECT */
-.hover-card-premium {
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  border: 1px solid #f1f5f9;
-}
-.hover-card-premium:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 16px 36px -8px rgba(21, 101, 192, 0.15) !important;
-  border-color: rgba(21, 101, 192, 0.3);
+.text-wrap {
+  white-space: normal !important;
+  word-break: break-word !important;
 }
 
-.bg-gradient-primary {
-  background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%);
+.premium-container {
+  max-width: 1200px;
+  width: 100%;
 }
 
-.search-input :deep(.q-field__control) {
-  border-radius: 30px;
-}
-
-/* ===== DEEP COMPONENT OVERRIDES ===== */
-:deep(.q-btn[color='brand-primary']) {
-  background: #1565c0 !important;
-  color: white !important;
-}
-:deep(.q-btn--unelevated.q-btn[color='brand-primary']) {
-  background: #1565c0 !important;
-}
-:deep(.q-avatar[color='brand-primary']) {
-  background-color: #1565c0 !important;
-  color: white !important;
-}
-:deep(.q-avatar[color='brand-light']) {
-  background-color: #e3f2fd !important;
-  color: #0d47a1 !important;
-}
-:deep(.q-btn[color='brand-danger']) {
-  color: #ad3640 !important;
-}
-:deep(.q-btn--unelevated.q-btn[color='brand-danger']) {
-  background: #ad3640 !important;
-  color: white !important;
-}
-:deep(.q-btn--flat[color='brand-danger']) {
-  color: #ad3640 !important;
-}
-:deep(.q-btn--flat[color='brand-primary']) {
-  color: #1565c0 !important;
-}
-:deep(.q-icon[color='brand-primary']),
-:deep(.q-field__prepend .q-icon) {
-  color: #1565c0 !important;
-}
-:deep(.q-field--focused .q-field__control) {
-  border-color: #1565c0 !important;
-}
-:deep(.q-field--focused .q-field__label) {
-  color: #1565c0 !important;
-}
-
-/* ===== RESPONSIVE SPACING & PADDING ===== */
 .detail-header-row {
   margin-bottom: 16px;
 }
@@ -2361,24 +2329,33 @@ table.rekap-tbl td {
   }
   .bento-card,
   .mandor-container,
-  .card {
-    border: 1px solid #94a3b8 !important;
+  .card,
+  .neo-card {
+    border: 1px solid #000 !important;
     box-shadow: none !important;
     background: #fff !important;
     margin-bottom: 20px !important;
     page-break-inside: avoid;
+    transform: none !important;
   }
-  .bg-slate-50 {
-    background-color: #f1f5f9 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-  table.abs-tbl th,
-  table.rekap-tbl th {
-    background-color: #f1f5f9 !important;
+  .neo-badge {
+    border: 1px solid #000 !important;
+    background: transparent !important;
     color: #000 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+  }
+  .neo-btn {
+    display: none !important;
+  }
+  .neo-decorations-container {
+    display: none !important;
+  }
+  table.abs-tbl {
+    border: 1.5px solid #000 !important;
+  }
+  table.abs-tbl th, table.abs-tbl td {
+    border: 1px solid #000 !important;
+    background: transparent !important;
+    color: #000 !important;
   }
   .status-sel {
     border: none !important;
@@ -2389,71 +2366,5 @@ table.rekap-tbl td {
     appearance: normal;
     -webkit-appearance: normal;
   }
-  .tech-progress-track {
-    display: none !important;
-  }
-}
-
-.border-subtle {
-  border-color: #f1f5f9 !important;
-}
-
-.legend-badge {
-  font-size: 10px !important;
-}
-@media (min-width: 400px) {
-  .legend-badge {
-    font-size: 11px !important;
-  }
-}
-@media (min-width: 600px) {
-  .legend-badge {
-    font-size: 12px !important;
-  }
-}
-
-.kpi-val {
-  font-size: 1.25rem;
-  line-height: 1.5rem;
-}
-@media (min-width: 400px) {
-  .kpi-val {
-    font-size: 1.5rem;
-    line-height: 1.8rem;
-  }
-}
-@media (min-width: 600px) {
-  .kpi-val {
-    font-size: 1.95rem;
-    line-height: 2.2rem;
-  }
-}
-
-@media (max-width: 599px) {
-  .mobile-action-buttons {
-    display: flex !important;
-    width: 100% !important;
-    gap: 8px !important;
-  }
-  .mobile-btn {
-    flex: 1 1 0% !important;
-    font-size: 11px !important;
-    padding: 8px 10px !important;
-    min-height: 40px;
-  }
-  .mobile-print-btn {
-    flex: 0 0 auto !important;
-    min-height: 40px;
-  }
-}
-
-.text-wrap {
-  white-space: normal !important;
-  word-break: break-word !important;
-}
-
-.premium-container {
-  max-width: 1200px;
-  width: 100%;
 }
 </style>

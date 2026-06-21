@@ -1,5 +1,21 @@
 <template>
-  <q-page class="bg-slate-50 q-pa-md q-pa-lg font-inter">
+  <q-page class="neo-page-bg q-pa-md q-pa-lg font-inter">
+    <!-- Decorative Floating Neo-Brutalist Shapes -->
+    <div class="neo-decorations-container">
+      <div class="neo-shape neo-shape--circle-1"></div>
+      <div class="neo-shape neo-shape--circle-2"></div>
+      <div class="neo-shape neo-shape--square-1"></div>
+      <div class="neo-shape neo-shape--square-2"></div>
+      <div class="neo-shape neo-shape--star-1">★</div>
+      <div class="neo-shape neo-shape--star-2">★</div>
+      <div class="neo-shape neo-shape--triangle-1">▲</div>
+      <div class="neo-shape neo-shape--triangle-2">▲</div>
+      <div class="neo-shape neo-shape--cross-1">+</div>
+      <div class="neo-shape neo-shape--cross-2">+</div>
+      <div class="neo-shape neo-shape--cross-3">+</div>
+      <div class="neo-shape neo-shape--blob-1"></div>
+    </div>
+
     <div class="bento-container q-mx-auto">
       <!-- ======================================================================= -->
       <!-- BANNER SIARAN PEMBERITAHUAN ULTRA PREMIUM (APPLE STYLE)                 -->
@@ -98,9 +114,8 @@
       <!-- BAGIAN ATAS: PROFIL & WAKTU                -->
       <!-- ========================================== -->
       <div class="row q-col-gutter-lg q-mb-lg" v-if="!showCamera">
-        <div class="col-12 col-md-7 col-lg-8 hide-on-mobile">
-          <q-card flat class="bento-card bg-white full-height relative-position overflow-hidden">
-            <div class="decor-circle-1"></div>
+        <div class="col-12 col-md-7 col-lg-8 hide-on-mobile animate-fade-in">
+          <q-card flat class="neo-card full-height relative-position overflow-hidden header-entrance">
             <q-card-section
               class="q-pa-lg q-pa-md-xl z-content full-height flex column justify-center"
             >
@@ -110,16 +125,18 @@
                     size="84px"
                     :color="getRandomColor(userData.nama)"
                     text-color="white"
-                    class="shadow-soft text-weight-bolder text-h4 overflow-hidden"
+                    class="neo-avatar-border shadow-soft text-weight-bolder text-h4 overflow-hidden"
+                    style="border: 2.5px solid #0f172a !important; overflow: hidden; border-radius: 50%;"
                   >
                     <q-img
                       v-if="userData.fotoUrl || userData.foto_profil"
                       :src="userData.fotoUrl || userData.foto_profil"
                       class="absolute-full"
+                      style="border-radius: 50%; overflow: hidden;"
                     />
                     <span v-else>{{ getInitial(userData.nama) }}</span>
                   </q-avatar>
-                  <q-badge floating color="teal-5" rounded class="status-badge shadow-1" />
+                  <q-badge floating color="teal-5" rounded class="status-badge shadow-1" style="border: 2px solid #0f172a;" />
                 </div>
 
                 <div class="col">
@@ -139,6 +156,7 @@
                       color="indigo-1"
                       text-color="indigo-9"
                       class="text-weight-bold q-px-sm q-py-xs rounded-6"
+                      style="border: 1.5px solid #0f172a; box-shadow: 2px 2px 0px #0f172a;"
                     >
                       {{ userData.jabatan || userData.role || 'KARYAWAN' }}
                     </q-badge>
@@ -146,7 +164,7 @@
                       color="grey-2"
                       text-color="grey-7"
                       class="text-weight-bold q-px-sm q-py-xs rounded-6 ellipsis"
-                      style="max-width: 100%"
+                      style="max-width: 100%; border: 1.5px solid #0f172a; box-shadow: 2px 2px 0px #0f172a;"
                     >
                       <q-icon name="mail" size="10px" class="q-mr-xs" />{{
                         userData.email || 'Memuat email...'
@@ -158,6 +176,7 @@
                       color="deep-orange-5"
                       text-color="white"
                       class="text-weight-bold q-px-sm q-py-xs rounded-6 animate-pulse"
+                      style="border: 1.5px solid #0f172a; box-shadow: 2px 2px 0px #0f172a;"
                     >
                       <q-icon name="no_photography" size="10px" class="q-mr-xs" /> BYPASS AI ACTIVE
                     </q-badge>
@@ -168,28 +187,42 @@
           </q-card>
         </div>
 
-        <div class="col-12 col-md-5 col-lg-4">
+        <div class="col-12 col-md-5 col-lg-4 animate-fade-in">
           <q-card
             flat
-            class="bento-card aurora-card text-white full-height flex flex-center relative-position overflow-hidden"
+            class="neo-card full-height flex flex-center relative-position overflow-hidden"
           >
-            <div class="aurora-bg"></div>
-            <div class="glass-layer"></div>
             <q-card-section class="text-center z-content q-pa-lg full-width">
-              <div class="row items-center justify-center q-mb-md opacity-80">
-                <q-icon name="schedule" size="xs" color="white" class="q-mr-sm" />
-                <div class="text-caption text-white text-weight-bold uppercase letter-spacing-2">
-                  Waktu Server AGRA
+              <div class="row items-center justify-center q-mb-md">
+                <q-badge color="orange-1" text-color="orange-9" class="q-px-sm q-py-xs text-weight-bold" style="border: 1.5px solid #0f172a; box-shadow: 2px 2px 0px #0f172a;">
+                  <q-icon name="schedule" size="14px" class="q-mr-xs" />
+                  WAKTU SERVER AGRA
+                </q-badge>
+              </div>
+
+              <!-- Neo-Brutalist Clock Display -->
+              <div class="row items-center justify-center q-gutter-x-sm q-my-md font-mono">
+                <div class="time-box">
+                  <span class="time-num">{{ currentHours }}</span>
+                  <div class="time-label">JAM</div>
+                </div>
+                <div class="time-colon">:</div>
+                <div class="time-box">
+                  <span class="time-num">{{ currentMinutes }}</span>
+                  <div class="time-label">MENIT</div>
+                </div>
+                <div class="time-colon">:</div>
+                <div class="time-box seconds-box">
+                  <span class="time-num">{{ currentSeconds }}</span>
+                  <div class="time-label">DETIK</div>
                 </div>
               </div>
-              <div class="time-wrapper drop-shadow-glow text-white">
-                <span class="time-hhmm"
-                  >{{ currentHours }}<span class="blink text-blue-2">:</span
-                  >{{ currentMinutes }}</span
-                >
-                <span class="time-ss text-blue-3">{{ currentSeconds }}</span>
+
+              <div class="row justify-center q-mt-md">
+                <q-badge color="blue-grey-9" text-color="white" class="q-px-md q-py-sm text-weight-bold text-subtitle2" style="border: 2px solid #0f172a; box-shadow: 2px 2px 0px #0f172a; border-radius: 8px;">
+                  {{ currentDate }}
+                </q-badge>
               </div>
-              <div class="date-chip q-mt-md shadow-2">{{ currentDate }}</div>
             </q-card-section>
           </q-card>
         </div>
@@ -200,7 +233,7 @@
       <!-- ========================================== -->
       <div class="row q-col-gutter-lg q-mb-lg flex" v-if="!showCamera">
         <div class="col-12 col-md-6 mobile-order-2 desktop-order-1">
-          <q-card flat class="bento-card bg-white full-height">
+          <q-card flat class="neo-card full-height table-entrance">
             <q-card-section class="q-pa-lg">
               <div class="row items-center justify-between q-mb-lg">
                 <div class="row items-center">
@@ -211,9 +244,10 @@
                 </div>
                 <q-badge
                   outline
-                  :color="isHariKerjaAktif ? 'indigo-5' : 'red-5'"
+                  :color="isHariKerjaAktif ? 'indigo-9' : 'red-9'"
                   class="q-px-sm q-py-xs rounded-6 font-mono text-weight-bold"
                   :class="isHariKerjaAktif ? 'bg-indigo-50' : 'bg-red-50'"
+                  style="border: 1.5px solid #0f172a; box-shadow: 2px 2px 0px #0f172a;"
                   ><q-icon :name="isHariKerjaAktif ? 'work_outline' : 'power_settings_new'" size="12px" class="q-mr-xs" /> SHIFT:
                   {{ todayShiftDisplay }}</q-badge
                 >
@@ -226,6 +260,7 @@
                     ? 'radar-valid'
                     : 'radar-invalid'
                 "
+                style="border: 2px solid #0f172a !important; box-shadow: 4px 4px 0px #0f172a !important;"
               >
                 <div class="row items-start no-wrap">
                   <div class="radar-icon-container q-mr-md q-mt-xs">
@@ -245,6 +280,7 @@
                         locationData.inRange && !locationData.securityRisk ? 'teal-6' : 'red-5'
                       "
                       size="48px"
+                      style="border: 2px solid #0f172a; overflow: hidden;"
                       ><q-icon
                         :name="
                           locationData.securityRisk
@@ -273,7 +309,8 @@
                       {{ locationData.address || 'Menyelaraskan koordinat satelit...' }}
                     </div>
                     <div
-                      class="font-mono text-xs text-blue-grey-5 bg-grey-2 inline-block q-px-sm q-py-xs rounded-6"
+                      class="font-mono text-xs text-blue-grey-9 bg-slate-100 inline-block q-px-sm q-py-xs rounded-6"
+                      style="border: 1.5px solid #0f172a;"
                     >
                       {{ locationData.lat }}, {{ locationData.lng }}
                     </div>
@@ -289,6 +326,7 @@
                   <q-badge
                     :color="locationData.inRange ? 'teal-5' : 'red-5'"
                     class="text-weight-bold shadow-1"
+                    style="border: 1.5px solid #0f172a; box-shadow: 2px 2px 0px #0f172a;"
                     >{{
                       locationData.inRange
                         ? locationData.matchedLocationName
@@ -305,6 +343,7 @@
                   <q-badge
                     :color="locationData.securityRisk ? 'red-6' : 'green-6'"
                     class="text-weight-bold shadow-1"
+                    style="border: 1.5px solid #0f172a; box-shadow: 2px 2px 0px #0f172a;"
                     ><q-icon
                       :name="locationData.securityRisk ? 'warning' : 'shield'"
                       size="xs"
@@ -320,7 +359,7 @@
         </div>
 
         <div class="col-12 col-md-6 mobile-order-1 desktop-order-2">
-          <q-card flat class="bento-card bg-white full-height flex column justify-center">
+          <q-card flat class="neo-card full-height flex column justify-center table-entrance">
             <q-card-section class="q-pa-lg">
               <div class="row items-center q-mb-lg">
                 <q-icon name="touch_app" color="blue-grey-4" size="sm" class="q-mr-sm" />
@@ -372,6 +411,7 @@
                         : 'bg-teal-50 border-teal-200'
                       : 'bg-orange-50 border-orange-200'
                 "
+                style="border: 2.5px solid #0f172a !important; box-shadow: 3px 3px 0px #0f172a !important;"
               >
                 <q-icon
                   :name="
@@ -412,12 +452,12 @@
                 </div>
               </div>
               <q-btn
-                flat
+                unelevated
                 no-caps
                 color="primary"
                 icon="history_edu"
                 label="Sistem Error? Ajukan Absensi Manual"
-                class="full-width q-mt-sm text-weight-bold rounded-8 transition-smooth hover-bg"
+                class="full-width q-mt-sm text-weight-bold rounded-8 transition-smooth neo-btn"
                 @click="router.push('/absensi/manual')"
               />
             </q-card-section>
@@ -428,12 +468,12 @@
       <!-- RIWAYAT DATA -->
       <div class="row q-col-gutter-lg" v-if="!showCamera">
         <div class="col-12">
-          <q-card flat class="bento-card bg-white full-height">
-            <q-card-section class="q-pa-lg border-bottom row items-center justify-between"
+          <q-card flat class="neo-card table-entrance q-mt-lg">
+            <q-card-section class="q-pa-lg neo-table-toolbar row items-center justify-between"
               ><div class="text-subtitle1 text-weight-bold text-blue-grey-9">
                 Aktivitas Saya Hari Ini
               </div>
-              <q-badge color="indigo-1" text-color="indigo-7" class="text-weight-bold"
+              <q-badge color="indigo-1" text-color="indigo-9" class="text-weight-bold" style="border: 1.5px solid #0f172a; box-shadow: 2px 2px 0px #0f172a;"
                 >Log Pribadi</q-badge
               ></q-card-section
             >
@@ -454,6 +494,8 @@
                     ><q-avatar
                       :color="item.status === 'Selesai' ? 'teal-1' : 'orange-1'"
                       size="42px"
+                      class="neo-avatar-border"
+                      style="border: 2px solid #0f172a !important;"
                       ><q-icon
                         name="fact_check"
                         :color="item.status === 'Selesai' ? 'teal-6' : 'orange-6'"
@@ -483,10 +525,12 @@
                         v-if="item.is_late"
                         color="red-5"
                         class="rounded-6 shadow-1 text-weight-bold"
+                        style="border: 1.5px solid #0f172a;"
                         >TERLAMBAT</q-badge
                       ><q-badge
                         :color="item.status === 'Selesai' ? 'teal-5' : 'orange-5'"
                         class="rounded-6 shadow-1 text-weight-bold"
+                        style="border: 1.5px solid #0f172a;"
                         >{{ item.status.toUpperCase() }}</q-badge
                       >
                     </div></q-item-section
@@ -504,9 +548,10 @@
       <q-slide-transition>
         <div v-if="showCamera" class="row justify-center camera-outer-wrapper">
           <div class="col-12 col-xl-10 height-fill-dvh">
-            <q-card flat class="bento-card bg-white overflow-hidden shadow-soft camera-modal-card">
+            <q-card flat class="neo-card bg-white overflow-hidden camera-modal-card">
               <div
                 class="bg-blue-grey-9 text-white row items-center q-pa-sm q-px-md z-top relative-position camera-header"
+                style="border-bottom: 3px solid #0f172a;"
               >
                 <q-btn
                   icon="arrow_back"
@@ -544,6 +589,7 @@
                         color="primary"
                         text-color="white"
                         class="text-weight-bold shadow-3 bg-opacity-80 text-10"
+                        style="border: 1.5px solid #0f172a;"
                       >
                         <q-icon name="face" size="14px" class="q-mr-xs" /> Deteksi Sensor Wajah
                         Aktif
@@ -561,7 +607,8 @@
                   class="col-12 col-md-5 bg-grey-1 flex column justify-start camera-control-panel"
                 >
                   <div
-                    class="bg-white q-pa-sm q-pa-md-md rounded-12 border-grey shadow-sm info-summary-card"
+                    class="bg-white q-pa-sm q-pa-md-md rounded-12 shadow-sm info-summary-card"
+                    style="border: 2.5px solid #0f172a !important; box-shadow: 3px 3px 0px #0f172a !important;"
                   >
                     <div
                       class="text-caption text-blue-grey-5 text-weight-bold uppercase letter-spacing-1 q-mb-xs font-10"
@@ -574,7 +621,8 @@
                         color="blue-1"
                         text-color="primary"
                         icon="person"
-                        class="q-mr-sm"
+                        class="q-mr-sm neo-avatar-border"
+                        style="border: 1.5px solid #0f172a !important;"
                       />
                       <div
                         class="text-weight-bold text-blue-grey-10 text-subtitle2 ellipsis max-w-160"
@@ -585,7 +633,8 @@
 
                     <div
                       v-if="isVerifyingFace"
-                      class="q-pa-sm rounded-8 text-center text-weight-bold q-mb-md bg-orange-50 text-orange-8 border-orange text-11"
+                      class="q-pa-sm rounded-8 text-center text-weight-bold q-mb-md bg-orange-50 text-orange-8 text-11"
+                      style="border: 1.5px solid #0f172a;"
                     >
                       <q-spinner-dots size="1.2em" class="q-mr-xs" /> MENGANALISIS STRUKTUR
                       BIOMETRIK...
@@ -595,9 +644,10 @@
                       class="q-pa-sm rounded-8 text-center text-weight-bold q-mb-md text-11"
                       :class="
                         isFaceMatched
-                          ? 'bg-teal-50 text-teal-8 border-teal'
-                          : 'bg-red-50 text-red-8 border-red'
+                          ? 'bg-teal-50 text-teal-8'
+                          : 'bg-red-50 text-red-8'
                       "
+                      style="border: 1.5px solid #0f172a;"
                     >
                       <q-icon :name="isFaceMatched ? 'verified' : 'lock'" class="q-mr-xs" />
                       {{
@@ -631,7 +681,7 @@
                             ? 'AMBIL FOTO PRESENSI'
                             : 'PINDAI WAJAH ANDA'
                         "
-                        class="full-width rounded-12 q-py-sm text-weight-bolder shadow-soft-primary text-subtitle2"
+                        class="full-width rounded-12 q-py-sm text-weight-bolder neo-btn text-subtitle2"
                         @click="takePhoto"
                         :disabled="!isAiReady || isVerifyingFace"
                       />
@@ -642,7 +692,8 @@
                         unelevated
                         color="teal-6"
                         :label="attendanceMode === 'in' ? 'KONFIRMASI MASUK' : 'KONFIRMASI PULANG'"
-                        class="full-width rounded-12 q-py-sm text-weight-bolder shadow-glow-positive text-subtitle2"
+                        class="full-width rounded-12 q-py-sm text-weight-bolder neo-btn text-subtitle2"
+                        style="background: #22c55e !important;"
                         icon="send"
                         @click="executeAbsensiAction"
                       />
@@ -652,13 +703,14 @@
                         color="grey-5"
                         label="AKSES DIKUNCI: WAJAH SALAH"
                         class="full-width rounded-12 q-py-sm text-weight-bolder text-subtitle2"
+                        style="border: 2.5px solid #0f172a !important;"
                         icon="block"
                       />
                       <q-btn
-                        outline
+                        unelevated
                         color="blue-grey-6"
                         label="ULANGI PINDAI"
-                        class="full-width rounded-12 q-py-xs text-weight-bold bg-white text-11"
+                        class="full-width rounded-12 q-py-xs text-weight-bold neo-delete-btn text-11"
                         @click="ulangiPindai"
                         :disabled="isVerifyingFace"
                       />
@@ -1421,288 +1473,9 @@ onUnmounted(() => {
   text-transform: uppercase;
 }
 .bento-container {
-  max-width: 1400px;
-}
-.bento-card {
-  border-radius: 24px;
-  border: 1px solid #f1f5f9;
-}
-.bg-slate-50 {
-  background-color: #f8fafc;
-}
-.border-bottom {
-  border-bottom: 1px solid #f1f5f9;
-}
-.border-bottom-light {
-  border-bottom: 1px solid #f8fafc;
-}
-.border-top {
-  border-top: 1px solid #f1f5f9;
-}
-.border-grey {
-  border: 1px solid #e2e8f0;
-}
-.border-teal {
-  border: 1px solid #14b8a6;
-}
-.border-red {
-  border: 1px solid #ef4444;
-}
-.border-orange {
-  border: 1px solid #f97316;
-}
-
-.announcement-cyber-card {
-  background: rgba(255, 255, 255, 0.7) !important;
-  backdrop-filter: blur(20px) saturate(190%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(190%) !important;
-  border: 1.5px solid rgba(249, 115, 22, 0.25) !important;
-  box-shadow:
-    0 20px 45px -12px rgba(249, 115, 22, 0.12),
-    inset 0 1px 1px rgba(255, 255, 255, 0.5) !important;
-}
-.cyber-mesh {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(at 10% 20%, rgba(59, 130, 246, 0.05) 0px, transparent 45%),
-    radial-gradient(at 90% 10%, rgba(249, 115, 22, 0.06) 0px, transparent 45%);
-  pointer-events: none;
-  z-index: 0;
-}
-.glow-orb {
-  position: absolute;
-  width: 140px;
-  height: 140px;
-  border-radius: 50%;
-  filter: blur(55px);
-  mix-blend-mode: color-burn;
-  z-index: 0;
-  pointer-events: none;
-}
-.glow-orb.blue {
-  background: rgba(37, 99, 235, 0.08);
-  top: -40px;
-  left: 20%;
-  animation: floatOrb1 12s infinite alternate ease-in-out;
-}
-.glow-orb.orange {
-  background: rgba(249, 115, 22, 0.09);
-  bottom: -40px;
-  right: 25%;
-  animation: floatOrb2 10s infinite alternate ease-in-out;
-}
-@keyframes floatOrb1 {
-  0% {
-    transform: translate(0, 0) scale(1);
-  }
-  100% {
-    transform: translate(40px, 20px) scale(1.35);
-  }
-}
-@keyframes floatOrb2 {
-  0% {
-    transform: translate(0, 0) scale(1.15);
-  }
-  100% {
-    transform: translate(-30px, -25px) scale(0.85);
-  }
-}
-.cyber-grid-light {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(249, 115, 22, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(249, 115, 22, 0.02) 1px, transparent 1px);
-  background-size: 20px 20px;
-  pointer-events: none;
-  z-index: 0;
-}
-.particle-emitter {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-}
-.particle {
-  position: absolute;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: rgba(249, 115, 22, 0.45);
-  animation: floatParticle 7s infinite linear;
-}
-.particle.p1 {
-  top: 15%;
-  left: 35%;
-}
-.particle.p2 {
-  top: 75%;
-  left: 75%;
-  width: 6px;
-  height: 6px;
-}
-.particle.p3 {
-  top: 35%;
-  left: 10%;
-}
-.particle.p4 {
-  top: 85%;
-  left: 50%;
-}
-@keyframes floatParticle {
-  0% {
-    transform: translateY(15px);
-    opacity: 0;
-  }
-  50% {
-    opacity: 0.9;
-  }
-  100% {
-    transform: translateY(-35px);
-    opacity: 0;
-  }
-}
-.tech-icon-container {
-  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-  width: 50px;
-  height: 50px;
-  box-shadow: 0 8px 22px -6px rgba(249, 115, 22, 0.55);
-  z-index: 2;
-  position: relative;
-}
-.tech-icon-glow {
-  position: absolute;
-  inset: -3px;
-  background: linear-gradient(135deg, #fb923c, #f97316);
-  border-radius: 18px;
-  filter: blur(8px);
-  opacity: 0.45;
-  z-index: 1;
-}
-.floating-icon {
-  animation: floatIcon 3.5s infinite ease-in-out;
-}
-@keyframes floatIcon {
-  0%,
-  100% {
-    transform: translateY(0) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-4px) rotate(-3deg);
-  }
-}
-.radar-ripple {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  border: 1.5px solid rgba(249, 115, 22, 0.25);
-  pointer-events: none;
-  z-index: 0;
-}
-.radar-ripple.ring-1 {
-  animation: ripple 4.5s infinite linear;
-}
-.radar-ripple.ring-2 {
-  animation: ripple 4.5s infinite linear;
-  animation-delay: 1.5s;
-}
-.radar-ripple.ring-3 {
-  animation: ripple 4.5s infinite linear;
-  animation-delay: 3s;
-}
-@keyframes ripple {
-  0% {
-    width: 44px;
-    height: 44px;
-    opacity: 0.9;
-  }
-  100% {
-    width: 150px;
-    height: 150px;
-    opacity: 0;
-  }
-}
-.tech-live-tag {
-  background: linear-gradient(90deg, #fffbeb, #ffedd5);
-  border: 1px solid rgba(249, 115, 22, 0.35);
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-size: 9px;
-  font-weight: 900;
-  color: #ea580c;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  box-shadow: 0 2px 6px rgba(249, 115, 22, 0.06);
-}
-.live-dot {
-  width: 6px;
-  height: 6px;
-  background-color: #ef4444;
-  border-radius: 50%;
-  box-shadow: 0 0 10px #ef4444;
-  animation: pulseNeon 1.3s infinite ease-in-out;
-}
-@keyframes pulseNeon {
-  0%,
-  100% {
-    opacity: 0.5;
-    box-shadow: 0 0 4px #ef4444;
-  }
-  50% {
-    opacity: 1;
-    box-shadow: 0 0 12px #ef4444;
-  }
-}
-.tech-brand-sub {
-  font-size: 10px;
-  color: #475569;
-  letter-spacing: 0.6px;
-  font-weight: 800;
-}
-.glass-dismiss-btn {
-  background: rgba(148, 163, 184, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-.glass-dismiss-btn:hover {
-  background: rgba(239, 68, 68, 0.18);
-  color: #ef4444 !important;
-  border-color: rgba(239, 68, 68, 0.35);
-  transform: rotate(90deg) scale(1.1);
-}
-.tech-progress-track {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: rgba(249, 115, 22, 0.12);
-  z-index: 10;
-}
-.tech-progress-bar {
-  height: 100%;
-  background: linear-gradient(90deg, #f97316, #ea580c);
-  width: 0%;
-  animation: progressRun 6s infinite linear;
-}
-@keyframes progressRun {
-  0% {
-    width: 0%;
-  }
-  100% {
-    width: 100%;
-  }
-}
-
-.bento-container {
   max-width: 1200px;
   width: 100%;
 }
-
 .mx-auto {
   margin-left: auto;
   margin-right: auto;
@@ -1710,130 +1483,429 @@ onUnmounted(() => {
 .text-xs {
   font-size: 11px;
 }
-.shadow-soft {
-  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05) !important;
+.z-content {
+  position: relative;
+  z-index: 1;
 }
-.shadow-soft-primary {
-  box-shadow: 0 8px 24px -8px rgba(25, 118, 210, 0.5) !important;
+
+/* NEO-BRUTALIST STYLING CORE */
+.neo-page-bg {
+  background-color: #f1f5f9;
+  background-image: radial-gradient(#cbd5e1 2px, transparent 2px);
+  background-size: 24px 24px;
+  position: relative;
+  min-height: 100vh;
 }
-.shadow-glow-positive {
-  box-shadow: 0 8px 24px -8px rgba(0, 150, 136, 0.6) !important;
+
+.neo-card {
+  background: #ffffff !important;
+  border: 3px solid #0f172a !important;
+  box-shadow: 6px 6px 0px #0f172a !important;
+  border-radius: 20px !important;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
-.rounded-24 {
-  border-radius: 24px;
+
+.neo-card:hover {
+  transform: translateY(-2px) translateX(2px);
+  box-shadow: 8px 8px 0px #0f172a !important;
 }
-.rounded-16 {
-  border-radius: 16px;
-}
-.rounded-12 {
+
+.neo-btn {
+  border: 2.5px solid #0f172a !important;
+  box-shadow: 3.5px 3.5px 0px #0f172a !important;
   border-radius: 12px;
+  font-weight: 700;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
-.rounded-8 {
-  border-radius: 8px;
+
+.neo-btn:hover {
+  transform: translateY(-1px) translateX(1px);
+  box-shadow: 2.5px 2.5px 0px #0f172a !important;
 }
-.rounded-6 {
-  border-radius: 6px;
+
+.neo-btn:active {
+  transform: translateY(2px) translateX(2px);
+  box-shadow: 0px 0px 0px #0f172a !important;
 }
-.decor-circle-1 {
+
+.neo-delete-btn {
+  border: 1.5px solid #0f172a !important;
+  background: #fee2e2 !important;
+  color: #b91c1c !important;
+  transition: all 0.2s ease;
+}
+
+.neo-delete-btn:hover {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+  transform: scale(1.1);
+}
+
+.neo-table-toolbar {
+  border-bottom: 2.5px solid #0f172a;
+}
+
+.neo-avatar-border {
+  border: 2px solid #0f172a !important;
+}
+
+/* CUSTOM INPUTS */
+.rounded-input :deep(.q-field__control) {
+  border-radius: 12px;
+  border: 2px solid #0f172a !important;
+  box-shadow: 2px 2px 0px #0f172a !important;
+}
+.rounded-input :deep(.q-field__marginal) {
+  height: 50px;
+}
+
+.border-bottom-light {
+  border-bottom: 1.5px solid #0f172a !important;
+}
+
+/* Floating Shapes Background Styling */
+.neo-decorations-container {
   position: absolute;
-  width: 300px;
-  height: 300px;
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.05) 0%, transparent 70%);
-  top: -150px;
-  right: -50px;
-  border-radius: 50%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
   z-index: 0;
+  overflow: hidden;
 }
-.status-badge {
+
+.neo-shape {
   position: absolute;
-  bottom: 5px;
-  right: 5px;
-  width: 18px;
-  height: 18px;
-  border: 3px solid white;
+  user-select: none;
+  transition: all 0.3s ease;
 }
-.aurora-card {
-  background: #0f172a;
+
+/* 1. Circle 1 - Indigo/Blue */
+.neo-shape--circle-1 {
+  width: 180px;
+  height: 180px;
+  border: 3px solid rgba(59, 130, 246, 0.25);
+  background: rgba(59, 130, 246, 0.07);
+  box-shadow: 5px 5px 0px rgba(59, 130, 246, 0.12);
+  top: 8%;
+  left: -20px;
+  animation: drift-wobble-1 25s ease-in-out infinite;
 }
-.aurora-bg {
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(
-    circle at 50% 50%,
-    rgba(56, 189, 248, 0.35),
-    rgba(99, 102, 241, 0.15),
-    transparent 60%
-  );
-  animation: rotateAurora 15s linear infinite;
+
+/* 2. Circle 2 - Pink/Rose */
+.neo-shape--circle-2 {
+  width: 140px;
+  height: 140px;
+  border: 3px solid rgba(244, 63, 94, 0.25);
+  background: rgba(244, 63, 94, 0.07);
+  box-shadow: 5px 5px 0px rgba(244, 63, 94, 0.12);
+  top: 52%;
+  right: 6%;
+  animation: drift-wobble-2 22s ease-in-out infinite reverse;
 }
-@keyframes rotateAurora {
+
+/* 3. Square 1 - Orange */
+.neo-shape--square-1 {
+  width: 130px;
+  height: 130px;
+  border: 3px solid rgba(245, 158, 11, 0.25);
+  background: rgba(245, 158, 11, 0.07);
+  box-shadow: 5px 5px 0px rgba(245, 158, 11, 0.12);
+  top: 65%;
+  right: -30px;
+  animation: drift-wobble-2 30s ease-in-out infinite;
+}
+
+/* 4. Square 2 - Lime */
+.neo-shape--square-2 {
+  width: 110px;
+  height: 110px;
+  border: 3px solid rgba(132, 204, 22, 0.25);
+  background: rgba(132, 204, 22, 0.07);
+  box-shadow: 4px 4px 0px rgba(132, 204, 22, 0.12);
+  top: 22%;
+  left: 15%;
+  animation: drift-wobble-1 27s ease-in-out infinite;
+}
+
+/* 5. Star 1 - Purple */
+.neo-shape--star-1 {
+  font-size: 130px;
+  color: rgba(168, 85, 247, 0.22);
+  text-shadow: 4px 4px 0px rgba(168, 85, 247, 0.12);
+  top: 3%;
+  right: 15%;
+  animation: drift-diagonal-1 28s ease-in-out infinite reverse;
+}
+
+/* 6. Star 2 - Yellow */
+.neo-shape--star-2 {
+  font-size: 90px;
+  color: rgba(234, 179, 8, 0.24);
+  text-shadow: 3px 3px 0px rgba(234, 179, 8, 0.14);
+  top: 85%;
+  right: 25%;
+  animation: drift-diagonal-2 20s ease-in-out infinite;
+}
+
+/* 7. Triangle 1 - Cyan */
+.neo-shape--triangle-1 {
+  font-size: 100px;
+  color: rgba(6, 182, 212, 0.22);
+  text-shadow: 4px 4px 0px rgba(6, 182, 212, 0.12);
+  top: 40%;
+  left: 8%;
+  animation: drift-wobble-2 24s ease-in-out infinite reverse;
+}
+
+/* 8. Triangle 2 - Amber/Gold */
+.neo-shape--triangle-2 {
+  font-size: 80px;
+  color: rgba(245, 158, 11, 0.22);
+  text-shadow: 3px 3px 0px rgba(245, 158, 11, 0.12);
+  top: 12%;
+  left: 35%;
+  animation: drift-diagonal-1 23s ease-in-out infinite;
+}
+
+/* 9. Cross 1 - Emerald Green */
+.neo-shape--cross-1 {
+  font-size: 110px;
+  color: rgba(16, 185, 129, 0.22);
+  text-shadow: 4px 4px 0px rgba(16, 185, 129, 0.12);
+  top: 30%;
+  right: 25%;
+  animation: drift-diagonal-1 22s ease-in-out infinite;
+}
+
+/* 10. Cross 2 - Red/Rose */
+.neo-shape--cross-2 {
+  font-size: 90px;
+  color: rgba(239, 68, 68, 0.22);
+  text-shadow: 4px 4px 0px rgba(239, 68, 68, 0.12);
+  top: 75%;
+  left: 2%;
+  animation: drift-diagonal-2 26s ease-in-out infinite;
+}
+
+/* 11. Cross 3 - Deep Indigo */
+.neo-shape--cross-3 {
+  font-size: 100px;
+  color: rgba(99, 102, 241, 0.22);
+  text-shadow: 4px 4px 0px rgba(99, 102, 241, 0.12);
+  top: 90%;
+  left: 40%;
+  animation: drift-wobble-1 29s ease-in-out infinite;
+}
+
+/* 12. Blob 1 - Teal Organic Morphing Blob */
+.neo-shape--blob-1 {
+  width: 160px;
+  height: 160px;
+  border: 3px solid rgba(20, 184, 166, 0.25);
+  background: rgba(20, 184, 166, 0.07);
+  box-shadow: 5px 5px 0px rgba(20, 184, 166, 0.12);
+  top: 48%;
+  left: 42%;
+  animation: drift-blob 32s ease-in-out infinite;
+}
+
+/* KEYFRAMES FOR ORGANIC DRIFTING */
+@keyframes drift-wobble-1 {
+  0% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    border-radius: 50% 50% 50% 50%;
+  }
+  25% {
+    transform: translate(50px, -40px) scale(1.05) rotate(90deg);
+    border-radius: 46% 54% 48% 52%;
+  }
+  50% {
+    transform: translate(20px, -80px) scale(0.95) rotate(180deg);
+    border-radius: 54% 46% 52% 48%;
+  }
+  75% {
+    transform: translate(-40px, -30px) scale(1.02) rotate(270deg);
+    border-radius: 48% 52% 54% 46%;
+  }
   100% {
-    transform: rotate(360deg);
+    transform: translate(0, 0) scale(1) rotate(360deg);
+    border-radius: 50% 50% 50% 50%;
   }
 }
-.glass-layer {
-  position: absolute;
-  inset: 0;
-  backdrop-filter: blur(25px);
-  -webkit-backdrop-filter: blur(25px);
+
+@keyframes drift-wobble-2 {
+  0% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    border-radius: 8px;
+  }
+  33% {
+    transform: translate(-60px, -30px) scale(1.08) rotate(120deg);
+    border-radius: 14px 8px 14px 8px;
+  }
+  66% {
+    transform: translate(30px, -70px) scale(0.92) rotate(240deg);
+    border-radius: 8px 14px 8px 14px;
+  }
+  100% {
+    transform: translate(0, 0) scale(1) rotate(360deg);
+    border-radius: 8px;
+  }
 }
-.drop-shadow-glow {
-  text-shadow: 0 4px 30px rgba(56, 189, 248, 0.4);
+
+@keyframes drift-diagonal-1 {
+  0% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translate(45px, 60px) rotate(180deg) scale(1.05);
+  }
+  100% {
+    transform: translate(0, 0) rotate(360deg) scale(1);
+  }
 }
-.time-wrapper {
+
+@keyframes drift-diagonal-2 {
+  0% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+  50% {
+    transform: translate(-50px, -60px) rotate(-180deg) scale(0.95);
+  }
+  100% {
+    transform: translate(0, 0) rotate(-360deg) scale(1);
+  }
+}
+
+@keyframes drift-blob {
+  0% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+  }
+  33% {
+    transform: translate(40px, -50px) scale(1.06) rotate(120deg);
+    border-radius: 70% 30% 52% 48% / 60% 40% 70% 30%;
+  }
+  66% {
+    transform: translate(-30px, 30px) scale(0.94) rotate(240deg);
+    border-radius: 50% 50% 30% 70% / 50% 60% 40% 60%;
+  }
+  100% {
+    transform: translate(0, 0) scale(1) rotate(360deg);
+    border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+  }
+}
+
+/* Entrance animation classes */
+.header-entrance {
+  animation: brutalist-bounce-in 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.table-entrance {
+  opacity: 0;
+  animation: brutalist-bounce-in 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.15s forwards;
+}
+
+@keyframes brutalist-bounce-in {
+  0% {
+    opacity: 0;
+    transform: translateY(35px);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-6px);
+  }
+  80% {
+    transform: translateY(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* NEO-BRUTALIST CLOCK BOXES */
+.time-box {
   display: flex;
-  align-items: baseline;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  line-height: 1;
+  background: #ffffff !important;
+  border: 3px solid #0f172a !important;
+  box-shadow: 3px 3px 0px #0f172a !important;
+  border-radius: 12px;
+  min-width: 80px;
+  height: 90px;
+  padding: 8px 10px;
+  position: relative;
+  transition: all 0.2s ease;
 }
-.time-hhmm {
-  font-size: 5rem;
+
+.time-num {
+  font-size: 38px;
   font-weight: 900;
-  font-family: 'JetBrains Mono', monospace;
-  letter-spacing: -3px;
+  color: #0f172a;
+  line-height: 1;
+  font-family: monospace;
 }
-.time-ss {
-  font-size: 2.2rem;
+
+.time-label {
+  font-size: 10px;
   font-weight: 800;
-  font-family: 'JetBrains Mono', monospace;
-  margin-left: 8px;
+  color: #475569;
+  margin-top: 4px;
+  letter-spacing: 0.5px;
 }
-.blink {
+
+.time-colon {
+  font-size: 38px;
+  font-weight: 900;
+  color: #0f172a;
+  align-self: center;
+  margin-bottom: 20px;
   animation: blinker 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
+
 @keyframes blinker {
   50% {
     opacity: 0;
   }
 }
-.date-chip {
-  display: inline-block;
-  padding: 8px 20px;
-  border-radius: 30px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  font-size: 0.95rem;
-  font-weight: 500;
-  letter-spacing: 0.5px;
+
+.seconds-box {
+  background: #ea580c !important;
 }
+
+.seconds-box .time-num {
+  color: #ffffff;
+}
+
+.seconds-box .time-label {
+  color: #ffedd5;
+}
+
+/* RADAR BOX */
 .radar-box {
-  border: 1px solid #f1f5f9;
-  background: #fafafa;
+  border: 3px solid #0f172a !important;
+  border-radius: 16px;
+  background: #ffffff !important;
+  box-shadow: 4px 4px 0px #0f172a !important;
+  transition: all 0.3s ease;
 }
+
 .radar-valid {
-  background: #f0fdf4;
-  border-color: #bbf7d0;
+  background: #f0fdf4 !important;
 }
+
 .radar-invalid {
-  background: #fef2f2;
-  border-color: #fecaca;
+  background: #fef2f2 !important;
 }
+
 .radar-icon-container {
   position: relative;
 }
+
 .icon-pulse-ring {
   position: absolute;
   top: 0;
@@ -1843,34 +1915,38 @@ onUnmounted(() => {
   border-radius: 50%;
   z-index: 0;
 }
+
 .pulse-green {
   animation: pulseGreen 2s infinite;
 }
+
 .pulse-red {
   animation: pulseRed 2s infinite;
 }
+
 @keyframes pulseGreen {
   0% {
     transform: scale(0.9);
-    box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.6);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6);
   }
   70% {
-    transform: scale(1);
-    box-shadow: 0 0 0 15px rgba(20, 184, 166, 0);
+    transform: scale(1.1);
+    box-shadow: 0 0 0 12px rgba(34, 197, 94, 0);
   }
   100% {
     transform: scale(0.9);
-    box-shadow: 0 0 0 0 rgba(20, 184, 166, 0);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
   }
 }
+
 @keyframes pulseRed {
   0% {
     transform: scale(0.9);
     box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6);
   }
   70% {
-    transform: scale(1);
-    box-shadow: 0 0 0 15px rgba(239, 68, 68, 0);
+    transform: scale(1.1);
+    box-shadow: 0 0 0 12px rgba(239, 68, 68, 0);
   }
   100% {
     transform: scale(0.9);
@@ -1878,9 +1954,10 @@ onUnmounted(() => {
   }
 }
 
+/* ATTENDANCE BUTTONS override */
 .btn-premium {
-  border: none;
-  border-radius: 16px;
+  border: 3px solid #0f172a !important;
+  border-radius: 16px !important;
   padding: 16px 20px;
   font-family: 'Inter', sans-serif;
   font-weight: 800;
@@ -1890,45 +1967,67 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
+
 .btn-clock-in {
-  background: #0d9488;
-  color: white;
-  box-shadow: 0 8px 25px -8px rgba(13, 148, 136, 0.6);
+  background: #22c55e !important;
+  color: white !important;
+  box-shadow: 4px 4px 0px #0f172a !important;
 }
+
 .btn-clock-in:hover {
-  background: #0f766e;
-  transform: translateY(-3px);
-  box-shadow: 0 12px 30px -8px rgba(13, 148, 136, 0.8);
+  background: #16a34a !important;
+  transform: translateY(-2px) translateX(2px);
+  box-shadow: 6px 6px 0px #0f172a !important;
 }
+
+.btn-clock-in:active {
+  transform: translateY(2px) translateX(-2px);
+  box-shadow: 1px 1px 0px #0f172a !important;
+}
+
 .btn-clock-out {
-  background: #ef4444;
-  color: white;
-  box-shadow: 0 8px 25px -8px rgba(239, 68, 68, 0.6);
+  background: #ea580c !important;
+  color: white !important;
+  box-shadow: 4px 4px 0px #0f172a !important;
 }
+
 .btn-clock-out:hover {
-  background: #dc2626;
-  transform: translateY(-3px);
-  box-shadow: 0 12px 30px -8px rgba(239, 68, 68, 0.8);
+  background: #c2410c !important;
+  transform: translateY(-2px) translateX(2px);
+  box-shadow: 6px 6px 0px #0f172a !important;
 }
+
+.btn-clock-out:active {
+  transform: translateY(2px) translateX(-2px);
+  box-shadow: 1px 1px 0px #0f172a !important;
+}
+
 .btn-locked {
-  background: #f8fafc;
-  color: #94a3b8;
-  border: 2px dashed #cbd5e1;
-  box-shadow: none;
+  background: #cbd5e1 !important;
+  color: #64748b !important;
+  border: 3px dashed #64748b !important;
+  box-shadow: none !important;
   cursor: not-allowed;
 }
+
 .hover-bg {
   transition: background 0.3s;
 }
 .hover-bg:hover {
   background: #f8fafc;
 }
-.z-content {
-  position: relative;
-  z-index: 1;
+
+.status-badge {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  width: 18px;
+  height: 18px;
+  border: 3px solid white;
 }
+
 .video-stream {
   width: 100%;
   height: 100%;
@@ -1955,28 +2054,28 @@ onUnmounted(() => {
   position: absolute;
   width: 40px;
   height: 40px;
-  border-color: #00e676;
+  border-color: #22c55e;
   border-style: solid;
 }
 .corner.t-l {
   top: 0;
   left: 0;
-  border-width: 4px 0 0 4px;
+  border-width: 5px 0 0 5px;
 }
 .corner.t-r {
   top: 0;
   right: 0;
-  border-width: 4px 4px 0 0;
+  border-width: 5px 5px 0 0;
 }
 .corner.b-l {
   bottom: 0;
   left: 0;
-  border-width: 0 0 4px 4px;
+  border-width: 0 0 5px 5px;
 }
 .corner.b-r {
   bottom: 0;
   right: 0;
-  border-width: 0 4px 4px 0;
+  border-width: 0 5px 5px 0;
 }
 @keyframes scan-laser {
   0% {
@@ -1998,9 +2097,9 @@ onUnmounted(() => {
   position: absolute;
   left: 5%;
   width: 90%;
-  height: 2px;
-  background: #00e676;
-  box-shadow: 0 0 15px 2px #00e676;
+  height: 4px;
+  background: #22c55e;
+  box-shadow: 0 0 15px 3px #22c55e;
   animation: scan-laser 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 .captured-preview {
@@ -2009,15 +2108,20 @@ onUnmounted(() => {
   object-fit: cover;
 }
 .bg-opacity-80 {
-  background: rgba(0, 77, 64, 0.8) !important;
+  background: rgba(15, 23, 42, 0.8) !important;
 }
 
 @media (max-width: 767px) {
-  .time-hhmm {
-    font-size: 3.8rem !important;
+  .time-box {
+    min-width: 65px;
+    height: 75px;
   }
-  .time-ss {
-    font-size: 1.8rem !important;
+  .time-num {
+    font-size: 28px;
+  }
+  .time-colon {
+    font-size: 28px;
+    margin-bottom: 12px;
   }
   .camera-outer-wrapper {
     position: fixed;
@@ -2085,7 +2189,7 @@ onUnmounted(() => {
     padding: 10px 14px !important;
     border-radius: 12px !important;
     margin-bottom: 8px !important;
-    border: 1px solid #e2e8f0;
+    border: 3px solid #0f172a !important;
     background: white;
     flex-shrink: 0;
   }
