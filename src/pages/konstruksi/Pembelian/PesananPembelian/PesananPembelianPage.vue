@@ -385,7 +385,7 @@
 
                         <!-- Edit PO -->
                         <q-btn
-                          v-if="canAction('ubah') && props.row.status === 'Draft'"
+                          v-if="canAction('ubah')"
                           flat
                           round
                           color="blue-8"
