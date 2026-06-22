@@ -2400,21 +2400,75 @@ const exportTablePDF = () => {
 const exportTableExcel = () => {
   try {
     const thStyle =
-      'background-color: #00695c; color: #ffffff; font-weight: bold; border: 1px solid #dddddd; padding: 10px; text-align: center; text-transform: uppercase;'
-    const tdStyle = 'border: 1px solid #dddddd; padding: 8px; vertical-align: top;'
-    const tdNumStyle = tdStyle + ' text-align: right;'
+      'background-color: #36ada3; color: #ffffff; font-weight: bold; border: 1px solid #e0e0e0; padding: 12px 8px; text-align: center; text-transform: uppercase; font-size: 11pt;'
+    const tdStyle = 'border: 1px solid #e0e0e0; padding: 8px; vertical-align: middle; font-size: 10pt;'
+    const tdNumStyle = tdStyle + ' text-align: right; mso-number-format:\'\\#\\,\\#\\#0\';'
     const tdCenterStyle = tdStyle + ' text-align: center;'
+    const tdTextStyle = tdStyle + ' mso-number-format:\'\\@\';'
+
+    const getExcelStatusStyle = (status) => {
+      const base = 'border: 1px solid #e0e0e0; padding: 4px 8px; text-align: center; font-weight: bold; font-size: 9pt; border-radius: 4px;'
+      switch (status) {
+        case 'Draft':
+          return base + ' background-color: #e0e0e0; color: #424242;'
+        case 'Pending':
+          return base + ' background-color: #fff3e0; color: #e65100;'
+        case 'Approved':
+          return base + ' background-color: #e8f5e9; color: #2e7d32;'
+        case 'Rejected':
+          return base + ' background-color: #ffebee; color: #c62828;'
+        case 'Cair':
+          return base + ' background-color: #e3f2fd; color: #1565c0;'
+        case 'Dibayar Sebagian':
+          return base + ' background-color: #e8eaf6; color: #283593;'
+        default:
+          return base + ' background-color: #f5f5f5; color: #616161;'
+      }
+    }
 
     let tableHtml =
       '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">'
-    tableHtml += '<head><meta charset="utf-8"></head><body>'
-    tableHtml +=
-      '<h2 style="color: #00695c; margin-bottom: 5px; font-family: sans-serif;">Laporan Pengajuan Pembayaran</h2>'
-    tableHtml +=
-      '<p style="margin-top: 0; font-family: sans-serif;">Diekspor pada: ' +
-      new Date().toLocaleString('id-ID') +
-      '</p><br>'
-    tableHtml += '<table style="border-collapse: collapse; width: 100%; font-family: sans-serif;">'
+    tableHtml += '<head><meta charset="utf-8">'
+    tableHtml += `
+      <!--[if gte mso 9]>
+      <xml>
+        <x:ExcelWorkbook>
+          <x:ExcelWorksheets>
+            <x:ExcelWorksheet>
+              <x:Name>Laporan Pengajuan</x:Name>
+              <x:WorksheetOptions>
+                <x:DisplayGridlines/>
+              </x:WorksheetOptions>
+            </x:ExcelWorksheet>
+          </x:ExcelWorksheets>
+        </x:ExcelWorkbook>
+      </xml>
+      <![endif]-->
+    </head><body>`
+
+    tableHtml += '<table style="width: 100%; border: none; margin-bottom: 20px; font-family: \'Segoe UI\', Tahoma, Geneva, Verdana, sans-serif;">'
+    tableHtml += '<tr><td colspan="13" style="font-size: 18pt; font-weight: bold; color: #1e6e69; padding: 5px 0;">LAPORAN PENGAJUAN PEMBAYARAN</td></tr>'
+    tableHtml += `<tr><td colspan="13" style="font-size: 10pt; color: #666; padding-bottom: 15px;">Diekspor pada: ${new Date().toLocaleString('id-ID')} | Total Item: ${filteredRows.value.length}</td></tr>`
+    tableHtml += '</table>'
+
+    tableHtml += '<table style="border-collapse: collapse; width: 100%; font-family: \'Segoe UI\', Tahoma, Geneva, Verdana, sans-serif;">'
+    tableHtml += `
+      <colgroup>
+        <col width="50" />
+        <col width="150" />
+        <col width="150" />
+        <col width="350" />
+        <col width="200" />
+        <col width="80" />
+        <col width="150" />
+        <col width="150" />
+        <col width="120" />
+        <col width="120" />
+        <col width="140" />
+        <col width="120" />
+        <col width="300" />
+      </colgroup>
+    `
     tableHtml += '<thead><tr>'
     tableHtml += `<th style="${thStyle}">No</th>`
     tableHtml += `<th style="${thStyle}">No Request</th>`
@@ -2435,30 +2489,31 @@ const exportTableExcel = () => {
 
     filteredRows.value.forEach((r, index) => {
       totalNominal += Number(r.nominal) || 0
+      const rowBg = index % 2 === 0 ? '' : 'background-color: #f7fbfb;'
       tableHtml += `
-        <tr>
+        <tr style="${rowBg}">
           <td style="${tdCenterStyle}">${index + 1}</td>
-          <td style="${tdStyle}">${r.no_request || '-'}</td>
-          <td style="${tdStyle}">${r.tagihan_kode || r.tagihan_nomor_invoice || '-'}</td>
+          <td style="${tdTextStyle}">${r.no_request || '-'}</td>
+          <td style="${tdTextStyle}">${r.tagihan_kode || r.tagihan_nomor_invoice || '-'}</td>
           <td style="${tdStyle}">${formatSpkBoqText(r)}</td>
           <td style="${tdStyle}">${r.vendor_nama || '-'}</td>
           <td style="${tdCenterStyle}">${r.rek_bank || '-'}</td>
-          <td style="${tdStyle} mso-number-format:'\\@';">${r.rek_nomor || '-'}</td>
+          <td style="${tdTextStyle}">${r.rek_nomor || '-'}</td>
           <td style="${tdStyle}">${r.pembuat_nama || '-'}</td>
           <td style="${tdCenterStyle}">${formatDateIndo(r.tanggal_pengajuan)}</td>
           <td style="${tdCenterStyle}">${formatDateIndo(r.tanggal_dibutuhkan)}</td>
           <td style="${tdNumStyle}">${r.nominal || 0}</td>
-          <td style="${tdCenterStyle}">${r.status || '-'}</td>
+          <td style="${tdCenterStyle}"><span style="${getExcelStatusStyle(r.status)}">${r.status || '-'}</span></td>
           <td style="${tdStyle}">${(r.keterangan || '-').replace(/\n/g, '<br>')}</td>
         </tr>
       `
     })
 
     tableHtml += `
-        <tr style="background-color: #f5f5f5;">
-          <td colspan="9" style="${tdStyle} text-align: right; font-weight: bold;">TOTAL NOMINAL PENGAJUAN</td>
-          <td style="${tdNumStyle} font-weight: bold;">${totalNominal}</td>
-          <td colspan="2" style="${tdStyle}"></td>
+        <tr style="background-color: #e0f2f1; font-weight: bold; height: 35px;">
+          <td colspan="10" style="border: 1px solid #e0e0e0; padding: 8px; text-align: right; vertical-align: middle; font-size: 11pt; color: #004d40;">TOTAL NOMINAL PENGAJUAN</td>
+          <td style="border: 1px solid #e0e0e0; padding: 8px; text-align: right; vertical-align: middle; font-size: 11pt; color: #004d40; mso-number-format:'\\#\\,\\#\\#0';">${totalNominal}</td>
+          <td colspan="2" style="border: 1px solid #e0e0e0; padding: 8px; vertical-align: middle;"></td>
         </tr>
     `
     tableHtml += '</tbody></table></body></html>'
@@ -2522,22 +2577,37 @@ const exportDetailPDF = () => {
 const exportDetailExcel = () => {
   try {
     const thStyle =
-      'background-color: #00695c; color: #ffffff; font-weight: bold; border: 1px solid #dddddd; padding: 10px; text-align: left;'
-    const tdStyle = 'border: 1px solid #dddddd; padding: 8px; vertical-align: top;'
+      'background-color: #36ada3; color: #ffffff; font-weight: bold; border: 1px solid #e0e0e0; padding: 12px 10px; text-align: left; font-size: 11pt;'
+    const tdStyle = 'border: 1px solid #e0e0e0; padding: 8px; vertical-align: middle; font-size: 10pt;'
 
     let tableHtml =
       '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">'
-    tableHtml += '<head><meta charset="utf-8"></head><body>'
-    tableHtml +=
-      '<h2 style="color: #00695c; margin-bottom: 5px; font-family: sans-serif;">Detail Pengajuan Pembayaran</h2>'
-    tableHtml +=
-      '<p style="margin-top: 0; font-family: sans-serif;">Diekspor pada: ' +
-      new Date().toLocaleString('id-ID') +
-      '</p><br>'
+    tableHtml += '<head><meta charset="utf-8">'
+    tableHtml += `
+      <!--[if gte mso 9]>
+      <xml>
+        <x:ExcelWorkbook>
+          <x:ExcelWorksheets>
+            <x:ExcelWorksheet>
+              <x:Name>Detail Pengajuan</x:Name>
+              <x:WorksheetOptions>
+                <x:DisplayGridlines/>
+              </x:WorksheetOptions>
+            </x:ExcelWorksheet>
+          </x:ExcelWorksheets>
+        </x:ExcelWorkbook>
+      </xml>
+      <![endif]-->
+    </head><body>`
+
+    tableHtml += '<table style="width: 100%; border: none; margin-bottom: 20px; font-family: \'Segoe UI\', Tahoma, Geneva, Verdana, sans-serif;">'
+    tableHtml += '<tr><td colspan="2" style="font-size: 18pt; font-weight: bold; color: #1e6e69; padding: 5px 0;">DETAIL PENGAJUAN PEMBAYARAN</td></tr>'
+    tableHtml += `<tr><td colspan="2" style="font-size: 10pt; color: #666; padding-bottom: 15px;">Diekspor pada: ${new Date().toLocaleString('id-ID')}</td></tr>`
+    tableHtml += '</table>'
 
     const r = selectedData.value
     tableHtml +=
-      '<table style="border-collapse: collapse; width: 100%; font-family: sans-serif; max-width: 800px;">'
+      '<table style="border-collapse: collapse; width: 100%; font-family: \'Segoe UI\', Tahoma, Geneva, Verdana, sans-serif; max-width: 800px;">'
 
     const addRow = (label, value) => {
       tableHtml += `<tr><th style="${thStyle} width: 250px;">${label}</th><td style="${tdStyle}">${value || '-'}</td></tr>`
@@ -2558,11 +2628,18 @@ const exportDetailExcel = () => {
       'TGL REALISASI (CAIR)',
       formatDateIndo(r.realizedAt?.seconds ? new Date(r.realizedAt.toDate()) : null),
     )
-    addRow('NOMINAL PENGAJUAN', 'Rp ' + (r.nominal || 0).toLocaleString('id-ID'))
-    addRow(
-      'NOMINAL EKSEKUSI',
-      r.nominal_eksekusi ? 'Rp ' + r.nominal_eksekusi.toLocaleString('id-ID') : '-',
-    )
+    tableHtml += `
+      <tr>
+        <th style="${thStyle}">NOMINAL PENGAJUAN</th>
+        <td style="${tdStyle} font-weight: bold; color: #004d40; mso-number-format:'\\#\\,\\#\\#0';">${r.nominal || 0}</td>
+      </tr>
+    `
+    tableHtml += `
+      <tr>
+        <th style="${thStyle}">NOMINAL EKSEKUSI</th>
+        <td style="${tdStyle} font-weight: bold; color: #004d40; mso-number-format:'\\#\\,\\#\\#0';">${r.nominal_eksekusi || 0}</td>
+      </tr>
+    `
     addRow('STATUS', r.status)
     addRow('KETERANGAN / TUJUAN', (r.keterangan || '').replace(/\n/g, '<br>'))
     addRow(
