@@ -856,12 +856,34 @@
           <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
         <q-card-section class="q-pa-lg">
+          <!-- Pengatur Ketebalan Pen -->
+          <div class="row items-center q-col-gutter-md q-mb-md">
+            <div class="col-auto text-weight-bold text-grey-8 font-10">
+              KETEBALAN PENA:
+            </div>
+            <div class="col">
+              <q-slider
+                v-model="penThickness"
+                :min="1"
+                :max="10"
+                :step="0.5"
+                label
+                color="brand-primary"
+                class="q-px-sm"
+              />
+            </div>
+            <div class="col-auto text-caption text-grey-6 text-weight-bold" style="width: 50px;">
+              {{ penThickness }} px
+            </div>
+          </div>
+
           <div class="signature-pad-wrapper shadow-inner bg-white border-dashed" style="border: 2px dashed #ccc; border-radius: 8px;">
             <canvas ref="signatureCanvas" class="signature-canvas"></canvas>
           </div>
         </q-card-section>
-        <q-card-actions class="q-px-md q-py-sm bg-grey-1 row items-center justify-between">
-          <div class="row items-center q-gutter-sm">
+        <q-card-actions class="q-px-md q-py-md bg-grey-1 row items-center justify-between q-col-gutter-sm">
+          <!-- Left side: Upload File button -->
+          <div class="col-12 col-sm-auto text-center text-sm-left">
             <q-btn
               outline
               rounded
@@ -869,7 +891,7 @@
               icon="upload_file"
               label="Upload File"
               no-caps
-              class="text-weight-bold"
+              class="text-weight-bold full-width"
               @click="triggerFileInput"
             />
             <input
@@ -880,7 +902,8 @@
               @change="handleFileUpload"
             />
           </div>
-          <div class="row items-center q-gutter-sm">
+          <!-- Right side: Reset & Save buttons -->
+          <div class="col-12 col-sm-auto row items-center justify-center justify-sm-end q-gutter-sm">
             <q-btn flat label="Reset" color="grey-7" @click="clearPad" rounded />
             <q-btn
               unelevated
@@ -931,6 +954,7 @@ const showPad = ref(false)
 const signatureCanvas = ref(null)
 const fileInput = ref(null)
 const activeSignatureField = ref('')
+const penThickness = ref(5)
 let signaturePad = null
 
 let unsubRows = null
@@ -1167,6 +1191,22 @@ const promptReject = (row) => {
 }
 
 // ── Signature Pad Actions ──────────────────────────────────────────────────
+watch(penThickness, (val) => {
+  if (signaturePad) {
+    const data = signaturePad.toData()
+    const targetMin = val * 0.7
+    const targetMax = val * 1.6
+    data.forEach((stroke) => {
+      stroke.minWidth = targetMin
+      stroke.maxWidth = targetMax
+    })
+    signaturePad.minWidth = targetMin
+    signaturePad.maxWidth = targetMax
+    signaturePad.clear()
+    signaturePad.fromData(data)
+  }
+})
+
 watch(showPad, async (val) => {
   if (val) {
     await nextTick()
@@ -1176,7 +1216,11 @@ watch(showPad, async (val) => {
     canvas.width = canvas.offsetWidth * ratio
     canvas.height = canvas.offsetHeight * ratio
     canvas.getContext('2d')?.scale(ratio, ratio)
-    signaturePad = new SignaturePad(canvas, { penColor: '#000000', minWidth: 2.0, maxWidth: 5.0 })
+    signaturePad = new SignaturePad(canvas, {
+      penColor: '#000000',
+      minWidth: penThickness.value * 0.7,
+      maxWidth: penThickness.value * 1.6,
+    })
   } else {
     signaturePad = null
   }
@@ -1880,6 +1924,11 @@ onUnmounted(() => {
   height: 250px;
   background: #fcfdff;
   border-radius: 8px;
+}
+@media (max-width: 599px) {
+  .signature-pad-wrapper {
+    height: 180px;
+  }
 }
 .signature-canvas {
   width: 100%;

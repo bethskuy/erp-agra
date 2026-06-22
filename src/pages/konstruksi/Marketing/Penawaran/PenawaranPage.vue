@@ -976,9 +976,9 @@
               <canvas ref="signatureCanvas" class="signature-canvas"></canvas>
             </div>
           </q-card-section>
-          <q-card-actions class="q-pa-md bg-grey-1 row justify-between items-center full-width">
+          <q-card-actions class="q-pa-md bg-grey-1 row justify-between items-center full-width q-col-gutter-sm">
             <!-- Left Side: Upload File button with hidden file picker -->
-            <div class="col-auto relative-position">
+            <div class="col-12 col-sm-auto text-center text-sm-left relative-position">
               <q-btn
                 outline
                 rounded
@@ -986,7 +986,7 @@
                 color="indigo-10"
                 icon="file_upload"
                 label="Upload File"
-                class="text-weight-bold"
+                class="text-weight-bold full-width"
               >
                 <q-file
                   v-model="tempPreviewSignFile"
@@ -999,7 +999,7 @@
               </q-btn>
             </div>
             <!-- Right Side: Reset & Simpan & Pasang buttons -->
-            <div class="col-auto q-gutter-sm">
+            <div class="col-12 col-sm-auto row items-center justify-center justify-sm-end q-gutter-sm">
               <q-btn flat label="RESET" color="grey-7" @click="clearPad" rounded class="text-weight-bold" />
               <q-btn
                 unelevated
@@ -2481,6 +2481,11 @@ body.is-exporting .letter-paper .row.justify-between {
   border-radius: 12px;
   height: 400px;
   width: 100%;
+}
+@media (max-width: 599px) {
+  .signature-pad-wrapper {
+    height: 180px;
+  }
 }
 .signature-canvas {
   width: 100%;
