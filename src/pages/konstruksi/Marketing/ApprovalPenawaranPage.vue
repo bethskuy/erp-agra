@@ -99,6 +99,11 @@
                 <q-td key="nomor" class="text-weight-bolder text-brand-primary">
                   {{ props.row.nomor }}
                 </q-td>
+                <q-td key="judul_penawaran">
+                  <div class="text-weight-bold text-blue-grey-9 text-uppercase">
+                    {{ props.row.judul_penawaran || '-' }}
+                  </div>
+                </q-td>
                 <q-td key="nama_customer" class="text-weight-bold text-blue-grey-9 uppercase">
                   {{ props.row.nama_customer }}
                 </q-td>
@@ -156,7 +161,8 @@
             </template>
           </q-table>
         </q-card>
-      </div> <!-- END OF VIEW 1 -->
+      </div>
+      <!-- END OF VIEW 1 -->
 
       <!-- =====================================================================================
          VIEW 2: DETAIL PENAWARAN (INFORMATIVE VIEW FOR APPROVER)
@@ -226,31 +232,49 @@
           <div class="col-12 col-md-5">
             <!-- GENERAL INFO CARD -->
             <q-card flat bordered class="rounded-20 bg-white q-mb-lg shadow-sm border-subtle">
-              <q-card-section class="bg-brand-light q-py-md text-brand-primary text-weight-bold flex items-center border-bottom">
+              <q-card-section
+                class="bg-brand-light q-py-md text-brand-primary text-weight-bold flex items-center border-bottom"
+              >
                 <q-icon name="info" class="q-mr-sm" size="sm" />
                 INFORMASI UMUM
               </q-card-section>
               <q-card-section class="q-pa-lg">
                 <table class="detail-table full-width">
                   <tr>
+                    <td class="text-weight-bold text-grey-6 py-2">Judul Penawaran</td>
+                    <td class="text-weight-bold text-blue-grey-9 text-right py-2 uppercase">
+                      {{ selectedData.judul_penawaran || '-' }}
+                    </td>
+                  </tr>
+                  <tr>
                     <td class="text-weight-bold text-grey-6 py-2">Klien / Customer</td>
-                    <td class="text-weight-bold text-blue-grey-9 text-right py-2 uppercase">{{ selectedData.nama_customer }}</td>
+                    <td class="text-weight-bold text-blue-grey-9 text-right py-2 uppercase">
+                      {{ selectedData.nama_customer }}
+                    </td>
                   </tr>
                   <tr>
                     <td class="text-weight-bold text-grey-6 py-2">Ditujukan (Attn)</td>
-                    <td class="text-weight-medium text-grey-8 text-right py-2">{{ selectedData.attn || '-' }}</td>
+                    <td class="text-weight-medium text-grey-8 text-right py-2">
+                      {{ selectedData.attn || '-' }}
+                    </td>
                   </tr>
                   <tr>
                     <td class="text-weight-bold text-grey-6 py-2">Tanggal Terbit</td>
-                    <td class="text-weight-medium text-grey-8 text-right py-2">{{ formatDateIndo(selectedData.tanggal) }}</td>
+                    <td class="text-weight-medium text-grey-8 text-right py-2">
+                      {{ formatDateIndo(selectedData.tanggal) }}
+                    </td>
                   </tr>
                   <tr>
                     <td class="text-weight-bold text-grey-6 py-2">Lokasi Terbit</td>
-                    <td class="text-weight-medium text-grey-8 text-right py-2">{{ selectedData.kota }}</td>
+                    <td class="text-weight-medium text-grey-8 text-right py-2">
+                      {{ selectedData.kota }}
+                    </td>
                   </tr>
                   <tr>
                     <td class="text-weight-bold text-grey-6 py-2">Perusahaan Pengirim</td>
-                    <td class="text-weight-medium text-grey-8 text-right py-2 uppercase">{{ selectedData.nama_pt }}</td>
+                    <td class="text-weight-medium text-grey-8 text-right py-2 uppercase">
+                      {{ selectedData.nama_pt }}
+                    </td>
                   </tr>
                   <tr>
                     <td class="text-weight-bold text-grey-6 py-2">Status Penawaran</td>
@@ -285,13 +309,17 @@
 
             <!-- TERMS & CONDITIONS CARD -->
             <q-card flat bordered class="rounded-20 bg-white shadow-sm border-subtle">
-              <q-card-section class="bg-brand-light q-py-md text-brand-primary text-weight-bold flex items-center border-bottom">
+              <q-card-section
+                class="bg-brand-light q-py-md text-brand-primary text-weight-bold flex items-center border-bottom"
+              >
                 <q-icon name="gavel" class="q-mr-sm" size="sm" />
                 SYARAT & KETENTUAN
               </q-card-section>
               <q-card-section class="q-pa-lg">
-                <div class="bg-grey-1 q-pa-md rounded-12 text-grey-9 text-body2 leading-relaxed" v-html="selectedData.terms || '-'">
-                </div>
+                <div
+                  class="bg-grey-1 q-pa-md rounded-12 text-grey-9 text-body2 leading-relaxed"
+                  v-html="selectedData.terms || '-'"
+                ></div>
               </q-card-section>
             </q-card>
           </div>
@@ -300,7 +328,9 @@
           <div class="col-12 col-md-7">
             <!-- ITEMS SUMMARY CARD -->
             <q-card flat bordered class="rounded-20 bg-white q-mb-lg shadow-sm border-subtle">
-              <q-card-section class="bg-brand-light q-py-md text-brand-primary text-weight-bold flex items-center border-bottom">
+              <q-card-section
+                class="bg-brand-light q-py-md text-brand-primary text-weight-bold flex items-center border-bottom"
+              >
                 <q-icon name="list_alt" class="q-mr-sm" size="sm" />
                 RINCIAN PEKERJAAN
               </q-card-section>
@@ -319,29 +349,75 @@
                   <tbody>
                     <tr v-for="(item, idx) in selectedData.items" :key="idx">
                       <td class="text-center text-grey-6 font-bold">{{ idx + 1 }}</td>
-                      <td class="text-left uppercase text-weight-medium text-blue-grey-9">{{ item.deskripsi }}</td>
+                      <td class="text-left uppercase text-weight-medium text-blue-grey-9">
+                        {{ item.deskripsi }}
+                      </td>
                       <td class="text-center text-grey-8">{{ item.qty }}</td>
                       <td class="text-center uppercase text-grey-8">{{ item.satuan }}</td>
-                      <td class="text-right text-grey-8">Rp {{ Math.round(item.harga || 0).toLocaleString() }}</td>
-                      <td class="text-right text-weight-bold text-brand-primary">Rp {{ Math.round(item.total || 0).toLocaleString() }}</td>
+                      <td class="text-right text-grey-8">
+                        Rp {{ Math.round(item.harga || 0).toLocaleString() }}
+                      </td>
+                      <td class="text-right text-weight-bold text-brand-primary">
+                        Rp {{ Math.round(item.total || 0).toLocaleString() }}
+                      </td>
                     </tr>
                   </tbody>
                   <tfoot class="bg-grey-1 font-pro">
                     <tr>
-                      <td colspan="5" class="text-right text-weight-bold text-grey-7 text-caption py-2">SUBTOTAL PEKERJAAN</td>
-                      <td class="text-right text-weight-bold text-brand-primary py-2">Rp {{ Math.round(selectedData.items.reduce((a, b) => a + (b.total || 0), 0)).toLocaleString() }}</td>
+                      <td
+                        colspan="5"
+                        class="text-right text-weight-bold text-grey-7 text-caption py-2"
+                      >
+                        SUBTOTAL PEKERJAAN
+                      </td>
+                      <td class="text-right text-weight-bold text-brand-primary py-2">
+                        Rp
+                        {{
+                          Math.round(
+                            selectedData.items.reduce((a, b) => a + (b.total || 0), 0),
+                          ).toLocaleString()
+                        }}
+                      </td>
                     </tr>
                     <tr v-if="selectedData.tax_rate > 0">
-                      <td colspan="5" class="text-right text-weight-bold text-grey-7 text-caption py-2">TAX ({{ selectedData.tax_rate }}%)</td>
-                      <td class="text-right text-weight-bold text-brand-primary py-2">Rp {{ Math.round(selectedData.items.reduce((a, b) => a + (b.total || 0), 0) * selectedData.tax_rate / 100).toLocaleString() }}</td>
+                      <td
+                        colspan="5"
+                        class="text-right text-weight-bold text-grey-7 text-caption py-2"
+                      >
+                        TAX ({{ selectedData.tax_rate }}%)
+                      </td>
+                      <td class="text-right text-weight-bold text-brand-primary py-2">
+                        Rp
+                        {{
+                          Math.round(
+                            (selectedData.items.reduce((a, b) => a + (b.total || 0), 0) *
+                              selectedData.tax_rate) /
+                              100,
+                          ).toLocaleString()
+                        }}
+                      </td>
                     </tr>
                     <tr v-if="selectedData.biaya_lain > 0">
-                      <td colspan="5" class="text-right text-weight-bold text-grey-7 text-caption py-2">{{ selectedData.biaya_lain_label || 'BIAYA LAIN' }}</td>
-                      <td class="text-right text-weight-bold text-brand-primary py-2">Rp {{ Math.round(selectedData.biaya_lain || 0).toLocaleString() }}</td>
+                      <td
+                        colspan="5"
+                        class="text-right text-weight-bold text-grey-7 text-caption py-2"
+                      >
+                        {{ selectedData.biaya_lain_label || 'BIAYA LAIN' }}
+                      </td>
+                      <td class="text-right text-weight-bold text-brand-primary py-2">
+                        Rp {{ Math.round(selectedData.biaya_lain || 0).toLocaleString() }}
+                      </td>
                     </tr>
                     <tr class="bg-brand-primary text-white">
-                      <td colspan="5" class="text-right text-weight-bold text-subtitle1 text-white py-3">GRAND TOTAL AMOUNT</td>
-                      <td class="text-right text-weight-bolder text-subtitle1 text-white py-3">Rp {{ Math.round(selectedData.total_harga || 0).toLocaleString() }}</td>
+                      <td
+                        colspan="5"
+                        class="text-right text-weight-bold text-subtitle1 text-white py-3"
+                      >
+                        GRAND TOTAL AMOUNT
+                      </td>
+                      <td class="text-right text-weight-bolder text-subtitle1 text-white py-3">
+                        Rp {{ Math.round(selectedData.total_harga || 0).toLocaleString() }}
+                      </td>
                     </tr>
                   </tfoot>
                 </q-markup-table>
@@ -350,24 +426,50 @@
 
             <!-- SIGNATURE & STATUS CARD -->
             <q-card flat bordered class="rounded-20 bg-white shadow-sm border-subtle">
-              <q-card-section class="bg-brand-light q-py-md text-brand-primary text-weight-bold flex items-center border-bottom">
+              <q-card-section
+                class="bg-brand-light q-py-md text-brand-primary text-weight-bold flex items-center border-bottom"
+              >
                 <q-icon name="draw" class="q-mr-sm" size="sm" />
                 PENGESAHAN & DOKUMEN
               </q-card-section>
               <q-card-section class="q-pa-lg">
                 <div class="row q-col-gutter-md items-center">
                   <div class="col-12 col-sm-6 text-left">
-                    <div class="text-caption text-grey-6 text-bold uppercase font-8">Penandatangan</div>
-                    <div class="text-subtitle1 text-weight-bold text-blue-grey-9 uppercase">{{ selectedData.ttd_nama || '-' }}</div>
-                    <div class="text-caption text-grey-7 uppercase font-bold">{{ selectedData.ttd_jabatan || '-' }}</div>
+                    <div class="text-caption text-grey-6 text-bold uppercase font-8">
+                      Penandatangan
+                    </div>
+                    <div class="text-subtitle1 text-weight-bold text-blue-grey-9 uppercase">
+                      {{ selectedData.ttd_nama || '-' }}
+                    </div>
+                    <div class="text-caption text-grey-7 uppercase font-bold">
+                      {{ selectedData.ttd_jabatan || '-' }}
+                    </div>
                   </div>
                   <div class="col-12 col-sm-6 text-right">
                     <div class="row justify-end q-gutter-md">
-                      <q-card v-if="selectedData.signatureUrl" flat bordered class="rounded-12 bg-grey-1 relative-position flex flex-center" style="width: 140px; height: 75px;">
-                        <img :src="selectedData.signatureUrl" style="max-height: 60px; max-width: 120px; object-fit: contain;" />
+                      <q-card
+                        v-if="selectedData.signatureUrl"
+                        flat
+                        bordered
+                        class="rounded-12 bg-grey-1 relative-position flex flex-center"
+                        style="width: 140px; height: 75px"
+                      >
+                        <img
+                          :src="selectedData.signatureUrl"
+                          style="max-height: 60px; max-width: 120px; object-fit: contain"
+                        />
                       </q-card>
-                      <q-card v-if="selectedData.stempelUrl" flat bordered class="rounded-12 bg-grey-1 relative-position flex flex-center" style="width: 140px; height: 75px;">
-                        <img :src="selectedData.stempelUrl" style="max-height: 60px; max-width: 120px; object-fit: contain;" />
+                      <q-card
+                        v-if="selectedData.stempelUrl"
+                        flat
+                        bordered
+                        class="rounded-12 bg-grey-1 relative-position flex flex-center"
+                        style="width: 140px; height: 75px"
+                      >
+                        <img
+                          :src="selectedData.stempelUrl"
+                          style="max-height: 60px; max-width: 120px; object-fit: contain"
+                        />
                       </q-card>
                     </div>
                   </div>
@@ -386,7 +488,9 @@
             class="bg-white text-indigo-10 q-py-md no-print shadow-2 shrink content-relative"
           >
             <q-btn flat round dense icon="arrow_back" v-close-popup color="grey-7" />
-            <q-toolbar-title class="text-weight-bold text-indigo-10">PREVIEW DOKUMEN RESMI</q-toolbar-title>
+            <q-toolbar-title class="text-weight-bold text-indigo-10"
+              >PREVIEW DOKUMEN RESMI</q-toolbar-title
+            >
 
             <q-space class="lt-sm" />
 
@@ -599,7 +703,7 @@
                         color="negative"
                         size="xs"
                         class="absolute-top-right q-ma-xs no-print"
-                        style="z-index: 10;"
+                        style="z-index: 10"
                         @click.stop="clearPreviewSignature"
                       />
                       <q-btn
@@ -611,14 +715,12 @@
                         icon="draw"
                         label="Ttd"
                         class="no-print q-px-lg q-py-sm text-weight-bold"
-                        style="font-size: 16px; min-width: 120px;"
+                        style="font-size: 16px; min-width: 120px"
                         @click="openSignaturePadFromPreview"
                       />
                     </div>
 
-                    <div
-                      class="text-signer-final text-weight-bolder uppercase text-indigo-10"
-                    >
+                    <div class="text-signer-final text-weight-bolder uppercase text-indigo-10">
                       {{ selectedData.ttd_nama }}
                     </div>
                     <div class="text-role-final uppercase text-grey-8 text-caption font-bold block">
@@ -644,9 +746,7 @@
           <q-card-section class="q-pa-lg">
             <!-- Pengatur Ketebalan Pen -->
             <div class="row items-center q-col-gutter-md q-mb-md">
-              <div class="col-auto text-weight-bold text-grey-8 font-10">
-                KETEBALAN PENA:
-              </div>
+              <div class="col-auto text-weight-bold text-grey-8 font-10">KETEBALAN PENA:</div>
               <div class="col">
                 <q-slider
                   v-model="penThickness"
@@ -658,7 +758,7 @@
                   class="q-px-sm"
                 />
               </div>
-              <div class="col-auto text-caption text-grey-6 text-weight-bold" style="width: 50px;">
+              <div class="col-auto text-caption text-grey-6 text-weight-bold" style="width: 50px">
                 {{ penThickness }} px
               </div>
             </div>
@@ -667,7 +767,9 @@
               <canvas ref="signatureCanvas" class="signature-canvas"></canvas>
             </div>
           </q-card-section>
-          <q-card-actions class="q-pa-md bg-grey-1 row justify-between items-center full-width q-col-gutter-sm">
+          <q-card-actions
+            class="q-pa-md bg-grey-1 row justify-between items-center full-width q-col-gutter-sm"
+          >
             <!-- Left Side: Upload File button with hidden file picker -->
             <div class="col-12 col-sm-auto text-center text-sm-left relative-position">
               <q-btn
@@ -690,8 +792,17 @@
               </q-btn>
             </div>
             <!-- Right Side: Reset & Simpan & Pasang buttons -->
-            <div class="col-12 col-sm-auto row items-center justify-center justify-sm-end q-gutter-sm">
-              <q-btn flat label="RESET" color="grey-7" @click="clearPad" rounded class="text-weight-bold" />
+            <div
+              class="col-12 col-sm-auto row items-center justify-center justify-sm-end q-gutter-sm"
+            >
+              <q-btn
+                flat
+                label="RESET"
+                color="grey-7"
+                @click="clearPad"
+                rounded
+                class="text-weight-bold"
+              />
               <q-btn
                 unelevated
                 label="SIMPAN & PASANG"
@@ -753,6 +864,13 @@ let unsubApproval = null
 
 const columns = [
   { name: 'nomor', align: 'left', label: 'REFERENCE NO', field: 'nomor', sortable: true },
+  {
+    name: 'judul_penawaran',
+    align: 'left',
+    label: 'JUDUL PENAWARAN',
+    field: 'judul_penawaran',
+    sortable: true,
+  },
   {
     name: 'nama_customer',
     align: 'left',
@@ -1158,36 +1276,38 @@ const uploadSignatureFromPad = (file) => {
   if (isSigningFromPreview.value) {
     if (!selectedData.value || !selectedData.value.id) return
     $q.loading.show({ message: 'Mengompres & mengunggah tanda tangan...' })
-    resizeImageToBase64(file, 400).then(async (base64) => {
-      try {
-        // 1. Simpan ke penawaran
-        await updateDoc(doc(db, 'penawaran', selectedData.value.id), {
-          signatureUrl: base64,
-          updatedAt: serverTimestamp(),
-        })
-        selectedData.value.signatureUrl = base64
-
-        // 2. Simpan ke profil karyawan
-        if (userData.value?.id) {
-          await updateDoc(doc(db, 'karyawan', userData.value.id), {
+    resizeImageToBase64(file, 400)
+      .then(async (base64) => {
+        try {
+          // 1. Simpan ke penawaran
+          await updateDoc(doc(db, 'penawaran', selectedData.value.id), {
             signatureUrl: base64,
+            updatedAt: serverTimestamp(),
           })
-        }
+          selectedData.value.signatureUrl = base64
 
-        $q.notify({ type: 'positive', message: 'Tanda tangan berhasil diunggah & dipasang!' })
-      } catch (e) {
-        console.error(e)
-        $q.notify({ type: 'negative', message: 'Gagal menyimpan tanda tangan: ' + e.message })
-      } finally {
+          // 2. Simpan ke profil karyawan
+          if (userData.value?.id) {
+            await updateDoc(doc(db, 'karyawan', userData.value.id), {
+              signatureUrl: base64,
+            })
+          }
+
+          $q.notify({ type: 'positive', message: 'Tanda tangan berhasil diunggah & dipasang!' })
+        } catch (e) {
+          console.error(e)
+          $q.notify({ type: 'negative', message: 'Gagal menyimpan tanda tangan: ' + e.message })
+        } finally {
+          $q.loading.hide()
+          tempPreviewSignFile.value = null
+          showPad.value = false
+        }
+      })
+      .catch((err) => {
+        console.error(err)
         $q.loading.hide()
-        tempPreviewSignFile.value = null
-        showPad.value = false
-      }
-    }).catch((err) => {
-      console.error(err)
-      $q.loading.hide()
-      $q.notify({ type: 'negative', message: 'Gagal mengompres gambar.' })
-    })
+        $q.notify({ type: 'negative', message: 'Gagal mengompres gambar.' })
+      })
   }
 }
 

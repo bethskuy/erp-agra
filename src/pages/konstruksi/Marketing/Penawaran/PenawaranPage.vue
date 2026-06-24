@@ -1,242 +1,257 @@
 <template>
   <q-page class="bg-page q-pa-md font-pro relative-position">
     <div class="page-content-wrapper">
-      
       <!-- =====================================================================================
          VIEW 1: LIST DOKUMEN PENAWARAN
          ===================================================================================== -->
       <div v-if="viewMode === 'list'" class="animate-fade">
         <!-- HEADER SECTION -->
-      <div class="row items-center justify-between q-mb-md no-print content-relative">
-        <div class="col-12 q-mb-md q-mb-md-none">
-          <div class="text-h4 text-weight-bolder text-brand-primary leading-tight">
-            Manajemen Penawaran
-            <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
-              >Quotation & Commercial Bidding</span
-            >
-          </div>
-          <div class="text-subtitle1 text-grey-7 q-mt-sm">
-            Kelola seluruh dokumen penawaran harga kepada klien secara terstruktur dan profesional.
+        <div class="row items-center justify-between q-mb-md no-print content-relative">
+          <div class="col-12 q-mb-md q-mb-md-none">
+            <div class="text-h4 text-weight-bolder text-brand-primary leading-tight">
+              Manajemen Penawaran
+              <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
+                >Quotation & Commercial Bidding</span
+              >
+            </div>
+            <div class="text-subtitle1 text-grey-7 q-mt-sm">
+              Kelola seluruh dokumen penawaran harga kepada klien secara terstruktur dan
+              profesional.
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- SEARCH & SUMMARY CARD -->
-      <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white no-print content-relative">
-        <q-card-section class="q-py-md">
-          <div class="row items-center justify-between q-col-gutter-md">
-            <div class="col-12 col-md-4">
-              <q-input
-                v-model="filter"
-                outlined
-                dense
-                rounded
-                placeholder="Cari No. Referensi atau Nama Klien..."
-                bg-color="white"
-                class="search-input"
-              >
-                <template v-slot:prepend><q-icon name="search" color="brand-primary" /></template>
-                <template v-slot:append v-if="filter">
-                  <q-icon name="close" @click="filter = ''" class="cursor-pointer" />
-                </template>
-              </q-input>
-            </div>
-
-            <div
-              class="col-12 col-md-auto row items-center justify-end q-col-gutter-md q-mt-sm q-mt-md-none"
-            >
-              <div
-                class="col-12 col-md-auto text-caption text-grey-6 text-weight-medium text-center text-md-right"
-              >
-                Total Dokumen:
-                <span class="text-weight-bold text-brand-primary">{{ rows.length }} Record</span>
-              </div>
-
-              <!-- EXPORT DROPDOWN LIST -->
-              <div class="col-12 col-sm-auto">
-                <q-btn-dropdown
-                  unelevated
-                  color="white"
-                  text-color="brand-primary"
-                  icon="ios_share"
-                  label="Export Data"
-                  class="rounded-12 text-weight-bold shadow-2 full-width"
-                >
-                  <q-list class="bg-white rounded-borders q-py-sm" style="min-width: 200px">
-                    <q-item clickable v-close-popup @click="exportListToPDF" class="hover-blue-btn">
-                      <q-item-section avatar>
-                        <q-avatar
-                          color="red-1"
-                          text-color="red-10"
-                          icon="picture_as_pdf"
-                          size="sm"
-                        />
-                      </q-item-section>
-                      <q-item-section>
-                        <q-item-label class="text-weight-bold">Download PDF</q-item-label>
-                      </q-item-section>
-                    </q-item>
-                    <q-separator class="q-my-sm" />
-                    <q-item
-                      clickable
-                      v-close-popup
-                      @click="exportListToExcel"
-                      class="hover-blue-btn"
-                    >
-                      <q-item-section avatar>
-                        <q-avatar
-                          color="green-1"
-                          text-color="green-10"
-                          icon="table_view"
-                          size="sm"
-                        />
-                      </q-item-section>
-                      <q-item-section>
-                        <q-item-label class="text-weight-bold">Export Excel</q-item-label>
-                      </q-item-section>
-                    </q-item>
-                  </q-list>
-                </q-btn-dropdown>
-              </div>
-
-              <!-- BUAT PENAWARAN BARU -->
-              <div class="col-12 col-sm-auto" v-if="canAction('buat')">
-                <q-btn
-                  color="brand-primary"
-                  icon="add_circle"
-                  label="Buat Penawaran Baru"
-                  unelevated
-                  rounded
-                  no-caps
-                  class="shadow-premium btn-hover text-weight-bold q-py-sm q-px-md full-width"
-                  @click="openAddDialog"
-                />
-              </div>
-            </div>
-          </div>
-        </q-card-section>
-      </q-card>
-
-      <!-- TABLE SECTION -->
-      <q-card
-        flat
-        bordered
-        class="rounded-20 shadow-sm overflow-hidden bg-white no-print content-relative"
-      >
-        <q-table
-          :rows="rows"
-          :columns="columns"
-          row-key="id"
+        <!-- SEARCH & SUMMARY CARD -->
+        <q-card
           flat
-          :loading="loading"
-          :filter="filter"
-          binary-state-sort
-          class="penawaran-table"
+          bordered
+          class="q-mb-lg shadow-1 rounded-20 bg-white no-print content-relative"
         >
-          <template v-slot:header="props">
-            <q-tr :props="props" class="bg-brand-primary text-white">
-              <q-th
-                v-for="col in props.cols"
-                :key="col.name"
-                :props="props"
-                class="text-weight-bold uppercase font-10"
-                >{{ col.label }}</q-th
+          <q-card-section class="q-py-md">
+            <div class="row items-center justify-between q-col-gutter-md">
+              <div class="col-12 col-md-4">
+                <q-input
+                  v-model="filter"
+                  outlined
+                  dense
+                  rounded
+                  placeholder="Cari No. Referensi atau Nama Klien..."
+                  bg-color="white"
+                  class="search-input"
+                >
+                  <template v-slot:prepend><q-icon name="search" color="brand-primary" /></template>
+                  <template v-slot:append v-if="filter">
+                    <q-icon name="close" @click="filter = ''" class="cursor-pointer" />
+                  </template>
+                </q-input>
+              </div>
+
+              <div
+                class="col-12 col-md-auto row items-center justify-end q-col-gutter-md q-mt-sm q-mt-md-none"
               >
-            </q-tr>
-          </template>
-          <template v-slot:body="props">
-            <q-tr
-              :props="props"
-              class="hover-bg transition-all cursor-pointer"
-              @click="openDetail(props.row)"
-            >
-              <q-td key="nomor" class="text-weight-bolder text-brand-primary">
-                <div class="row items-center q-gutter-x-sm">
-                  <span>{{ props.row.nomor }}</span>
-                  <q-badge
-                    v-if="
-                      props.row.marketing_read === false &&
-                      (props.row.status === 'Approved' || props.row.status === 'Rejected')
-                    "
-                    color="pink-13"
-                    class="animate-pulse q-px-xs"
-                    >BARU</q-badge
-                  >
-                </div>
-              </q-td>
-              <q-td key="nama_customer">
-                <div class="text-weight-bold text-blue-grey-9 uppercase">
-                  {{ props.row.nama_customer }}
-                </div>
                 <div
-                  v-if="props.row.status === 'Rejected' && props.row.alasan_reject"
-                  class="text-negative text-caption row items-center q-gutter-xs"
+                  class="col-12 col-md-auto text-caption text-grey-6 text-weight-medium text-center text-md-right"
                 >
-                  <q-icon name="info" size="12px" />
-                  <span class="text-italic">{{ props.row.alasan_reject }}</span>
+                  Total Dokumen:
+                  <span class="text-weight-bold text-brand-primary">{{ rows.length }} Record</span>
                 </div>
-              </q-td>
-              <q-td key="total_harga" class="text-right text-weight-bold">
-                <span class="text-caption text-grey-6 q-mr-xs">IDR</span>
-                {{ Math.round(props.row.total_harga || 0).toLocaleString() }}
-              </q-td>
-              <q-td key="status" class="text-center">
-                <q-chip
-                  text-color="white"
-                  size="sm"
-                  class="text-weight-bold shadow-sm"
-                  :color="getStatusColor(props.row.status)"
+
+                <!-- EXPORT DROPDOWN LIST -->
+                <div class="col-12 col-sm-auto">
+                  <q-btn-dropdown
+                    unelevated
+                    color="white"
+                    text-color="brand-primary"
+                    icon="ios_share"
+                    label="Export Data"
+                    class="rounded-12 text-weight-bold shadow-2 full-width"
+                  >
+                    <q-list class="bg-white rounded-borders q-py-sm" style="min-width: 200px">
+                      <q-item
+                        clickable
+                        v-close-popup
+                        @click="exportListToPDF"
+                        class="hover-blue-btn"
+                      >
+                        <q-item-section avatar>
+                          <q-avatar
+                            color="red-1"
+                            text-color="red-10"
+                            icon="picture_as_pdf"
+                            size="sm"
+                          />
+                        </q-item-section>
+                        <q-item-section>
+                          <q-item-label class="text-weight-bold">Download PDF</q-item-label>
+                        </q-item-section>
+                      </q-item>
+                      <q-separator class="q-my-sm" />
+                      <q-item
+                        clickable
+                        v-close-popup
+                        @click="exportListToExcel"
+                        class="hover-blue-btn"
+                      >
+                        <q-item-section avatar>
+                          <q-avatar
+                            color="green-1"
+                            text-color="green-10"
+                            icon="table_view"
+                            size="sm"
+                          />
+                        </q-item-section>
+                        <q-item-section>
+                          <q-item-label class="text-weight-bold">Export Excel</q-item-label>
+                        </q-item-section>
+                      </q-item>
+                    </q-list>
+                  </q-btn-dropdown>
+                </div>
+
+                <!-- BUAT PENAWARAN BARU -->
+                <div class="col-12 col-sm-auto" v-if="canAction('buat')">
+                  <q-btn
+                    color="brand-primary"
+                    icon="add_circle"
+                    label="Buat Penawaran Baru"
+                    unelevated
+                    rounded
+                    no-caps
+                    class="shadow-premium btn-hover text-weight-bold q-py-sm q-px-md full-width"
+                    @click="openAddDialog"
+                  />
+                </div>
+              </div>
+            </div>
+          </q-card-section>
+        </q-card>
+
+        <!-- TABLE SECTION -->
+        <q-card
+          flat
+          bordered
+          class="rounded-20 shadow-sm overflow-hidden bg-white no-print content-relative"
+        >
+          <q-table
+            :rows="rows"
+            :columns="columns"
+            row-key="id"
+            flat
+            :loading="loading"
+            :filter="filter"
+            binary-state-sort
+            class="penawaran-table"
+          >
+            <template v-slot:header="props">
+              <q-tr :props="props" class="bg-brand-primary text-white">
+                <q-th
+                  v-for="col in props.cols"
+                  :key="col.name"
+                  :props="props"
+                  class="text-weight-bold uppercase font-10"
+                  >{{ col.label }}</q-th
                 >
-                  {{ props.row.status || 'Draft' }}
-                </q-chip>
-              </q-td>
-              <q-td key="aksi" class="text-center" @click.stop>
-                <div class="row justify-center q-gutter-xs">
-                  <q-btn
-                    v-if="
-                      canAction('ubah') &&
-                      props.row.is_revised &&
-                      props.row.status !== 'Pending' &&
-                      props.row.status !== 'Approved'
-                    "
-                    flat
-                    round
-                    color="orange-9"
-                    icon="send"
-                    size="sm"
-                    @click="ajukanPenawaran(props.row)"
+              </q-tr>
+            </template>
+            <template v-slot:body="props">
+              <q-tr
+                :props="props"
+                class="hover-bg transition-all cursor-pointer"
+                @click="openDetail(props.row)"
+              >
+                <q-td key="nomor" class="text-weight-bolder text-brand-primary">
+                  <div class="row items-center q-gutter-x-sm">
+                    <span>{{ props.row.nomor }}</span>
+                    <q-badge
+                      v-if="
+                        props.row.marketing_read === false &&
+                        (props.row.status === 'Approved' || props.row.status === 'Rejected')
+                      "
+                      color="pink-13"
+                      class="animate-pulse q-px-xs"
+                      >BARU</q-badge
+                    >
+                  </div>
+                </q-td>
+                <q-td key="judul_penawaran">
+                  <div class="text-weight-bold text-blue-grey-9 text-uppercase">
+                    {{ props.row.judul_penawaran || '-' }}
+                  </div>
+                </q-td>
+                <q-td key="nama_customer">
+                  <div class="text-weight-bold text-blue-grey-9 uppercase">
+                    {{ props.row.nama_customer }}
+                  </div>
+                  <div
+                    v-if="props.row.status === 'Rejected' && props.row.alasan_reject"
+                    class="text-negative text-caption row items-center q-gutter-xs"
                   >
-                    <q-tooltip>Ajukan Approval</q-tooltip>
-                  </q-btn>
-                  <q-btn
-                    v-if="props.row.status !== 'Approved' && canAction('ubah')"
-                    flat
-                    round
-                    color="blue-8"
-                    icon="edit_note"
+                    <q-icon name="info" size="12px" />
+                    <span class="text-italic">{{ props.row.alasan_reject }}</span>
+                  </div>
+                </q-td>
+                <q-td key="total_harga" class="text-right text-weight-bold">
+                  <span class="text-caption text-grey-6 q-mr-xs">IDR</span>
+                  {{ Math.round(props.row.total_harga || 0).toLocaleString() }}
+                </q-td>
+                <q-td key="status" class="text-center">
+                  <q-chip
+                    text-color="white"
                     size="sm"
-                    @click="openEditDialog(props.row)"
+                    class="text-weight-bold shadow-sm"
+                    :color="getStatusColor(props.row.status)"
                   >
-                    <q-tooltip>Edit Draft</q-tooltip>
-                  </q-btn>
-                  <q-btn
-                    v-if="canAction('hapus')"
-                    flat
-                    round
-                    color="negative"
-                    icon="delete_outline"
-                    size="sm"
-                    @click="confirmHapus(props.row)"
-                  >
-                    <q-tooltip>Hapus</q-tooltip>
-                  </q-btn>
-                </div>
-              </q-td>
-            </q-tr>
-          </template>
-        </q-table>
-      </q-card>
-      </div> <!-- END OF VIEW 1 -->
+                    {{ props.row.status || 'Draft' }}
+                  </q-chip>
+                </q-td>
+                <q-td key="aksi" class="text-center" @click.stop>
+                  <div class="row justify-center q-gutter-xs">
+                    <q-btn
+                      v-if="
+                        canAction('ubah') &&
+                        props.row.is_revised &&
+                        props.row.status !== 'Pending' &&
+                        props.row.status !== 'Approved'
+                      "
+                      flat
+                      round
+                      color="orange-9"
+                      icon="send"
+                      size="sm"
+                      @click="ajukanPenawaran(props.row)"
+                    >
+                      <q-tooltip>Ajukan Approval</q-tooltip>
+                    </q-btn>
+                    <q-btn
+                      v-if="props.row.status !== 'Approved' && canAction('ubah')"
+                      flat
+                      round
+                      color="blue-8"
+                      icon="edit_note"
+                      size="sm"
+                      @click="openEditDialog(props.row)"
+                    >
+                      <q-tooltip>Edit Draft</q-tooltip>
+                    </q-btn>
+                    <q-btn
+                      v-if="canAction('hapus')"
+                      flat
+                      round
+                      color="negative"
+                      icon="delete_outline"
+                      size="sm"
+                      @click="confirmHapus(props.row)"
+                    >
+                      <q-tooltip>Hapus</q-tooltip>
+                    </q-btn>
+                  </div>
+                </q-td>
+              </q-tr>
+            </template>
+          </q-table>
+        </q-card>
+      </div>
+      <!-- END OF VIEW 1 -->
 
       <!-- =====================================================================================
          VIEW 2: DETAIL PENAWARAN (INFORMATIVE VIEW)
@@ -275,7 +290,10 @@
               />
             </div>
 
-            <div class="col-12 col-sm-auto" v-if="selectedData.status !== 'Approved' && canAction('ubah')">
+            <div
+              class="col-12 col-sm-auto"
+              v-if="selectedData.status !== 'Approved' && canAction('ubah')"
+            >
               <!-- Edit button -->
               <q-btn
                 unelevated
@@ -294,31 +312,49 @@
           <div class="col-12 col-md-5">
             <!-- GENERAL INFO CARD -->
             <q-card flat bordered class="rounded-20 bg-white q-mb-lg shadow-sm border-subtle">
-              <q-card-section class="bg-brand-light q-py-md text-brand-primary text-weight-bold flex items-center border-bottom">
+              <q-card-section
+                class="bg-brand-light q-py-md text-brand-primary text-weight-bold flex items-center border-bottom"
+              >
                 <q-icon name="info" class="q-mr-sm" size="sm" />
                 INFORMASI UMUM
               </q-card-section>
               <q-card-section class="q-pa-lg">
                 <table class="detail-table full-width">
                   <tr>
+                    <td class="text-weight-bold text-grey-6 py-2">Judul Penawaran</td>
+                    <td class="text-weight-bold text-blue-grey-9 text-right py-2 uppercase">
+                      {{ selectedData.judul_penawaran || '-' }}
+                    </td>
+                  </tr>
+                  <tr>
                     <td class="text-weight-bold text-grey-6 py-2">Klien / Customer</td>
-                    <td class="text-weight-bold text-blue-grey-9 text-right py-2 uppercase">{{ selectedData.nama_customer }}</td>
+                    <td class="text-weight-bold text-blue-grey-9 text-right py-2 uppercase">
+                      {{ selectedData.nama_customer }}
+                    </td>
                   </tr>
                   <tr>
                     <td class="text-weight-bold text-grey-6 py-2">Ditujukan (Attn)</td>
-                    <td class="text-weight-medium text-grey-8 text-right py-2">{{ selectedData.attn || '-' }}</td>
+                    <td class="text-weight-medium text-grey-8 text-right py-2">
+                      {{ selectedData.attn || '-' }}
+                    </td>
                   </tr>
                   <tr>
                     <td class="text-weight-bold text-grey-6 py-2">Tanggal Terbit</td>
-                    <td class="text-weight-medium text-grey-8 text-right py-2">{{ formatIndoDate(selectedData.tanggal) }}</td>
+                    <td class="text-weight-medium text-grey-8 text-right py-2">
+                      {{ formatIndoDate(selectedData.tanggal) }}
+                    </td>
                   </tr>
                   <tr>
                     <td class="text-weight-bold text-grey-6 py-2">Lokasi Terbit</td>
-                    <td class="text-weight-medium text-grey-8 text-right py-2">{{ selectedData.kota }}</td>
+                    <td class="text-weight-medium text-grey-8 text-right py-2">
+                      {{ selectedData.kota }}
+                    </td>
                   </tr>
                   <tr>
                     <td class="text-weight-bold text-grey-6 py-2">Perusahaan Pengirim</td>
-                    <td class="text-weight-medium text-grey-8 text-right py-2 uppercase">{{ selectedData.nama_pt }}</td>
+                    <td class="text-weight-medium text-grey-8 text-right py-2 uppercase">
+                      {{ selectedData.nama_pt }}
+                    </td>
                   </tr>
                   <tr>
                     <td class="text-weight-bold text-grey-6 py-2">Status Penawaran</td>
@@ -353,13 +389,17 @@
 
             <!-- TERMS & CONDITIONS CARD -->
             <q-card flat bordered class="rounded-20 bg-white shadow-sm border-subtle">
-              <q-card-section class="bg-brand-light q-py-md text-brand-primary text-weight-bold flex items-center border-bottom">
+              <q-card-section
+                class="bg-brand-light q-py-md text-brand-primary text-weight-bold flex items-center border-bottom"
+              >
                 <q-icon name="gavel" class="q-mr-sm" size="sm" />
                 SYARAT & KETENTUAN
               </q-card-section>
               <q-card-section class="q-pa-lg">
-                <div class="bg-grey-1 q-pa-md rounded-12 text-grey-9 text-body2 leading-relaxed" v-html="selectedData.terms || '-'">
-                </div>
+                <div
+                  class="bg-grey-1 q-pa-md rounded-12 text-grey-9 text-body2 leading-relaxed"
+                  v-html="selectedData.terms || '-'"
+                ></div>
               </q-card-section>
             </q-card>
           </div>
@@ -368,7 +408,9 @@
           <div class="col-12 col-md-7">
             <!-- ITEMS SUMMARY CARD -->
             <q-card flat bordered class="rounded-20 bg-white q-mb-lg shadow-sm border-subtle">
-              <q-card-section class="bg-brand-light q-py-md text-brand-primary text-weight-bold flex items-center border-bottom">
+              <q-card-section
+                class="bg-brand-light q-py-md text-brand-primary text-weight-bold flex items-center border-bottom"
+              >
                 <q-icon name="list_alt" class="q-mr-sm" size="sm" />
                 RINCIAN PEKERJAAN
               </q-card-section>
@@ -387,29 +429,75 @@
                   <tbody>
                     <tr v-for="(item, idx) in selectedData.items" :key="idx">
                       <td class="text-center text-grey-6 font-bold">{{ idx + 1 }}</td>
-                      <td class="text-left uppercase text-weight-medium text-blue-grey-9">{{ item.deskripsi }}</td>
+                      <td class="text-left uppercase text-weight-medium text-blue-grey-9">
+                        {{ item.deskripsi }}
+                      </td>
                       <td class="text-center text-grey-8">{{ item.qty }}</td>
                       <td class="text-center uppercase text-grey-8">{{ item.satuan }}</td>
-                      <td class="text-right text-grey-8">Rp {{ Math.round(item.harga || 0).toLocaleString() }}</td>
-                      <td class="text-right text-weight-bold text-brand-primary">Rp {{ Math.round(item.total || 0).toLocaleString() }}</td>
+                      <td class="text-right text-grey-8">
+                        Rp {{ Math.round(item.harga || 0).toLocaleString() }}
+                      </td>
+                      <td class="text-right text-weight-bold text-brand-primary">
+                        Rp {{ Math.round(item.total || 0).toLocaleString() }}
+                      </td>
                     </tr>
                   </tbody>
                   <tfoot class="bg-grey-1 font-pro">
                     <tr>
-                      <td colspan="5" class="text-right text-weight-bold text-grey-7 text-caption py-2">SUBTOTAL PEKERJAAN</td>
-                      <td class="text-right text-weight-bold text-brand-primary py-2">Rp {{ Math.round(selectedData.items.reduce((a, b) => a + (b.total || 0), 0)).toLocaleString() }}</td>
+                      <td
+                        colspan="5"
+                        class="text-right text-weight-bold text-grey-7 text-caption py-2"
+                      >
+                        SUBTOTAL PEKERJAAN
+                      </td>
+                      <td class="text-right text-weight-bold text-brand-primary py-2">
+                        Rp
+                        {{
+                          Math.round(
+                            selectedData.items.reduce((a, b) => a + (b.total || 0), 0),
+                          ).toLocaleString()
+                        }}
+                      </td>
                     </tr>
                     <tr v-if="selectedData.tax_rate > 0">
-                      <td colspan="5" class="text-right text-weight-bold text-grey-7 text-caption py-2">TAX ({{ selectedData.tax_rate }}%)</td>
-                      <td class="text-right text-weight-bold text-brand-primary py-2">Rp {{ Math.round(selectedData.items.reduce((a, b) => a + (b.total || 0), 0) * selectedData.tax_rate / 100).toLocaleString() }}</td>
+                      <td
+                        colspan="5"
+                        class="text-right text-weight-bold text-grey-7 text-caption py-2"
+                      >
+                        TAX ({{ selectedData.tax_rate }}%)
+                      </td>
+                      <td class="text-right text-weight-bold text-brand-primary py-2">
+                        Rp
+                        {{
+                          Math.round(
+                            (selectedData.items.reduce((a, b) => a + (b.total || 0), 0) *
+                              selectedData.tax_rate) /
+                              100,
+                          ).toLocaleString()
+                        }}
+                      </td>
                     </tr>
                     <tr v-if="selectedData.biaya_lain > 0">
-                      <td colspan="5" class="text-right text-weight-bold text-grey-7 text-caption py-2">{{ selectedData.biaya_lain_label || 'BIAYA LAIN' }}</td>
-                      <td class="text-right text-weight-bold text-brand-primary py-2">Rp {{ Math.round(selectedData.biaya_lain || 0).toLocaleString() }}</td>
+                      <td
+                        colspan="5"
+                        class="text-right text-weight-bold text-grey-7 text-caption py-2"
+                      >
+                        {{ selectedData.biaya_lain_label || 'BIAYA LAIN' }}
+                      </td>
+                      <td class="text-right text-weight-bold text-brand-primary py-2">
+                        Rp {{ Math.round(selectedData.biaya_lain || 0).toLocaleString() }}
+                      </td>
                     </tr>
                     <tr class="bg-brand-primary text-white">
-                      <td colspan="5" class="text-right text-weight-bold text-subtitle1 text-white py-3">GRAND TOTAL AMOUNT</td>
-                      <td class="text-right text-weight-bolder text-subtitle1 text-white py-3">Rp {{ Math.round(selectedData.total_harga || 0).toLocaleString() }}</td>
+                      <td
+                        colspan="5"
+                        class="text-right text-weight-bold text-subtitle1 text-white py-3"
+                      >
+                        GRAND TOTAL AMOUNT
+                      </td>
+                      <td class="text-right text-weight-bolder text-subtitle1 text-white py-3">
+                        Rp {{ Math.round(selectedData.total_harga || 0).toLocaleString() }}
+                      </td>
                     </tr>
                   </tfoot>
                 </q-markup-table>
@@ -418,24 +506,50 @@
 
             <!-- SIGNATURE & STATUS CARD -->
             <q-card flat bordered class="rounded-20 bg-white shadow-sm border-subtle">
-              <q-card-section class="bg-brand-light q-py-md text-brand-primary text-weight-bold flex items-center border-bottom">
+              <q-card-section
+                class="bg-brand-light q-py-md text-brand-primary text-weight-bold flex items-center border-bottom"
+              >
                 <q-icon name="draw" class="q-mr-sm" size="sm" />
                 PENGESAHAN & DOKUMEN
               </q-card-section>
               <q-card-section class="q-pa-lg">
                 <div class="row q-col-gutter-md items-center">
                   <div class="col-12 col-sm-6 text-left">
-                    <div class="text-caption text-grey-6 text-bold uppercase font-8">Penandatangan</div>
-                    <div class="text-subtitle1 text-weight-bold text-blue-grey-9 uppercase">{{ selectedData.ttd_nama || '-' }}</div>
-                    <div class="text-caption text-grey-7 uppercase font-bold">{{ selectedData.ttd_jabatan || '-' }}</div>
+                    <div class="text-caption text-grey-6 text-bold uppercase font-8">
+                      Penandatangan
+                    </div>
+                    <div class="text-subtitle1 text-weight-bold text-blue-grey-9 uppercase">
+                      {{ selectedData.ttd_nama || '-' }}
+                    </div>
+                    <div class="text-caption text-grey-7 uppercase font-bold">
+                      {{ selectedData.ttd_jabatan || '-' }}
+                    </div>
                   </div>
                   <div class="col-12 col-sm-6 text-right">
                     <div class="row justify-end q-gutter-md">
-                      <q-card v-if="selectedData.signatureUrl" flat bordered class="rounded-12 bg-grey-1 relative-position flex flex-center" style="width: 140px; height: 75px;">
-                        <img :src="selectedData.signatureUrl" style="max-height: 60px; max-width: 120px; object-fit: contain;" />
+                      <q-card
+                        v-if="selectedData.signatureUrl"
+                        flat
+                        bordered
+                        class="rounded-12 bg-grey-1 relative-position flex flex-center"
+                        style="width: 140px; height: 75px"
+                      >
+                        <img
+                          :src="selectedData.signatureUrl"
+                          style="max-height: 60px; max-width: 120px; object-fit: contain"
+                        />
                       </q-card>
-                      <q-card v-if="selectedData.stempelUrl" flat bordered class="rounded-12 bg-grey-1 relative-position flex flex-center" style="width: 140px; height: 75px;">
-                        <img :src="selectedData.stempelUrl" style="max-height: 60px; max-width: 120px; object-fit: contain;" />
+                      <q-card
+                        v-if="selectedData.stempelUrl"
+                        flat
+                        bordered
+                        class="rounded-12 bg-grey-1 relative-position flex flex-center"
+                        style="width: 140px; height: 75px"
+                      >
+                        <img
+                          :src="selectedData.stempelUrl"
+                          style="max-height: 60px; max-width: 120px; object-fit: contain"
+                        />
                       </q-card>
                     </div>
                   </div>
@@ -455,7 +569,6 @@
         transition-hide="slide-down"
       >
         <q-card class="column bg-grey-2 relative-position">
-
           <q-toolbar class="bg-white text-brand-primary q-py-md shadow-2 shrink content-relative">
             <q-btn flat round dense icon="close" v-close-popup color="grey-7" />
             <q-toolbar-title class="text-weight-bold text-center uppercase tracking-widest"
@@ -510,6 +623,16 @@
                     <div class="col-12 col-md-4">
                       <div class="label-req q-mb-xs">Nomor Referensi</div>
                       <q-input outlined dense v-model="form.nomor" bg-color="white" />
+                    </div>
+                    <div class="col-12">
+                      <div class="label-req q-mb-xs">JUDUL PENAWARAN *</div>
+                      <q-input
+                        outlined
+                        dense
+                        v-model="form.judul_penawaran"
+                        placeholder="Contoh: Penawaran Pekerjaan Tanah & Galian"
+                        bg-color="white"
+                      />
                     </div>
                     <div class="col-12 col-md-4">
                       <div class="label-req q-mb-xs">Pilih Customer / Klien *</div>
@@ -875,7 +998,15 @@
                                 class="rounded-borders"
                               >
                                 <q-list class="q-pa-sm" style="min-width: 180px">
-                                  <q-item clickable v-ripple v-close-popup @click="isSigningFromPreview = false; showPad = true">
+                                  <q-item
+                                    clickable
+                                    v-ripple
+                                    v-close-popup
+                                    @click="
+                                      isSigningFromPreview = false;
+                                      showPad = true;
+                                    "
+                                  >
                                     <q-item-section avatar
                                       ><q-icon name="gesture" color="brand-primary"
                                     /></q-item-section>
@@ -903,7 +1034,10 @@
                               bordered
                               class="rounded-12 flex flex-center bg-grey-1 cursor-pointer hover-shadow transition-all relative-position"
                               style="height: 100px"
-                              @click="isSigningFromPreview = false; showPad = true"
+                              @click="
+                                isSigningFromPreview = false;
+                                showPad = true;
+                              "
                             >
                               <q-img
                                 v-if="form.signatureUrl"
@@ -953,9 +1087,7 @@
           <q-card-section class="q-pa-lg">
             <!-- Pengatur Ketebalan Pen -->
             <div class="row items-center q-col-gutter-md q-mb-md">
-              <div class="col-auto text-weight-bold text-grey-8 font-10">
-                KETEBALAN PENA:
-              </div>
+              <div class="col-auto text-weight-bold text-grey-8 font-10">KETEBALAN PENA:</div>
               <div class="col">
                 <q-slider
                   v-model="penThickness"
@@ -967,7 +1099,7 @@
                   class="q-px-sm"
                 />
               </div>
-              <div class="col-auto text-caption text-grey-6 text-weight-bold" style="width: 50px;">
+              <div class="col-auto text-caption text-grey-6 text-weight-bold" style="width: 50px">
                 {{ penThickness }} px
               </div>
             </div>
@@ -976,7 +1108,9 @@
               <canvas ref="signatureCanvas" class="signature-canvas"></canvas>
             </div>
           </q-card-section>
-          <q-card-actions class="q-pa-md bg-grey-1 row justify-between items-center full-width q-col-gutter-sm">
+          <q-card-actions
+            class="q-pa-md bg-grey-1 row justify-between items-center full-width q-col-gutter-sm"
+          >
             <!-- Left Side: Upload File button with hidden file picker -->
             <div class="col-12 col-sm-auto text-center text-sm-left relative-position">
               <q-btn
@@ -999,8 +1133,17 @@
               </q-btn>
             </div>
             <!-- Right Side: Reset & Simpan & Pasang buttons -->
-            <div class="col-12 col-sm-auto row items-center justify-center justify-sm-end q-gutter-sm">
-              <q-btn flat label="RESET" color="grey-7" @click="clearPad" rounded class="text-weight-bold" />
+            <div
+              class="col-12 col-sm-auto row items-center justify-center justify-sm-end q-gutter-sm"
+            >
+              <q-btn
+                flat
+                label="RESET"
+                color="grey-7"
+                @click="clearPad"
+                rounded
+                class="text-weight-bold"
+              />
               <q-btn
                 unelevated
                 label="SIMPAN & PASANG"
@@ -1204,7 +1347,7 @@
                         color="negative"
                         size="xs"
                         class="absolute-top-right q-ma-xs no-print"
-                        style="z-index: 10;"
+                        style="z-index: 10"
                         @click.stop="clearPreviewSignature"
                       />
                       <q-btn
@@ -1216,13 +1359,11 @@
                         icon="draw"
                         label="Ttd"
                         class="no-print q-px-lg q-py-sm text-weight-bold"
-                        style="font-size: 16px; min-width: 120px;"
+                        style="font-size: 16px; min-width: 120px"
                         @click="openSignaturePadFromPreview"
                       />
                     </div>
-                    <div
-                      class="text-signer-final text-weight-bolder uppercase text-indigo-10"
-                    >
+                    <div class="text-signer-final text-weight-bolder uppercase text-indigo-10">
                       {{ selectedData.ttd_nama }}
                     </div>
                     <div class="text-role-final uppercase text-grey-8 text-caption font-bold block">
@@ -1369,6 +1510,7 @@ let signaturePad = null
 // Form default
 const formDefault = {
   nomor: '',
+  judul_penawaran: '',
   kota: 'Bekasi',
   tanggal: new Date().toISOString().substr(0, 10),
   nama_pt: 'PT AGRA ABHINAYA PERKASA',
@@ -1446,6 +1588,13 @@ const roundToThousand = () => {
 // ── COLUMNS ──────────────────────────────────────────────────────────────────
 const columns = [
   { name: 'nomor', align: 'left', label: 'REFERENCE NO', field: 'nomor', sortable: true },
+  {
+    name: 'judul_penawaran',
+    align: 'left',
+    label: 'JUDUL PENAWARAN',
+    field: 'judul_penawaran',
+    sortable: true,
+  },
   {
     name: 'nama_customer',
     align: 'left',
@@ -1682,50 +1831,54 @@ const uploadSignatureFromPad = (file) => {
   if (isSigningFromPreview.value) {
     if (!selectedData.value || !selectedData.value.id) return
     $q.loading.show({ message: 'Mengompres & mengunggah tanda tangan...' })
-    resizeImageToBase64(file, 400).then(async (base64) => {
-      try {
-        // 1. Simpan ke penawaran
-        await updateDoc(doc(db, 'penawaran', selectedData.value.id), {
-          signatureUrl: base64,
-          updatedAt: serverTimestamp(),
-        })
-        selectedData.value.signatureUrl = base64
-
-        // 2. Simpan ke profil karyawan
-        if (userData.value?.id) {
-          await updateDoc(doc(db, 'karyawan', userData.value.id), {
+    resizeImageToBase64(file, 400)
+      .then(async (base64) => {
+        try {
+          // 1. Simpan ke penawaran
+          await updateDoc(doc(db, 'penawaran', selectedData.value.id), {
             signatureUrl: base64,
+            updatedAt: serverTimestamp(),
           })
-        }
+          selectedData.value.signatureUrl = base64
 
-        $q.notify({ type: 'positive', message: 'Tanda tangan berhasil diunggah & dipasang!' })
-      } catch (e) {
-        console.error(e)
-        $q.notify({ type: 'negative', message: 'Gagal menyimpan tanda tangan: ' + e.message })
-      } finally {
+          // 2. Simpan ke profil karyawan
+          if (userData.value?.id) {
+            await updateDoc(doc(db, 'karyawan', userData.value.id), {
+              signatureUrl: base64,
+            })
+          }
+
+          $q.notify({ type: 'positive', message: 'Tanda tangan berhasil diunggah & dipasang!' })
+        } catch (e) {
+          console.error(e)
+          $q.notify({ type: 'negative', message: 'Gagal menyimpan tanda tangan: ' + e.message })
+        } finally {
+          $q.loading.hide()
+          tempPreviewSignFile.value = null
+          showPad.value = false
+        }
+      })
+      .catch((err) => {
+        console.error(err)
         $q.loading.hide()
-        tempPreviewSignFile.value = null
-        showPad.value = false
-      }
-    }).catch((err) => {
-      console.error(err)
-      $q.loading.hide()
-      $q.notify({ type: 'negative', message: 'Gagal mengompres gambar.' })
-    })
+        $q.notify({ type: 'negative', message: 'Gagal mengompres gambar.' })
+      })
   } else {
     // Edit/Creation dialog case
     $q.loading.show({ message: 'Mengompres tanda tangan...' })
-    resizeImageToBase64(file, 400).then((base64) => {
-      form.value.signatureUrl = base64
-      $q.notify({ type: 'positive', message: 'Tanda tangan berhasil diunggah!' })
-      $q.loading.hide()
-      tempPreviewSignFile.value = null
-      showPad.value = false
-    }).catch((err) => {
-      console.error(err)
-      $q.loading.hide()
-      $q.notify({ type: 'negative', message: 'Gagal mengompres gambar.' })
-    })
+    resizeImageToBase64(file, 400)
+      .then((base64) => {
+        form.value.signatureUrl = base64
+        $q.notify({ type: 'positive', message: 'Tanda tangan berhasil diunggah!' })
+        $q.loading.hide()
+        tempPreviewSignFile.value = null
+        showPad.value = false
+      })
+      .catch((err) => {
+        console.error(err)
+        $q.loading.hide()
+        $q.notify({ type: 'negative', message: 'Gagal mengompres gambar.' })
+      })
   }
 }
 
@@ -1766,6 +1919,8 @@ const calcRow = (idx) => {
 
 // ── SIMPAN ────────────────────────────────────────────────────────────────────
 const simpanPenawaran = async () => {
+  if (!form.value.judul_penawaran)
+    return $q.notify({ message: 'Isi Judul Penawaran!', color: 'negative', position: 'top' })
   if (!form.value.customer_id)
     return $q.notify({ message: 'Pilih Customer!', color: 'negative', position: 'top' })
 
@@ -2495,7 +2650,10 @@ body.is-exporting .letter-paper .row.justify-between {
 
 /* ═══ LETTER PAPER (PREVIEW / PDF) ══════════════════════════════════════════ */
 .letter-paper {
-  font-family: 'Plus Jakarta Sans', -apple-system, sans-serif !important;
+  font-family:
+    'Plus Jakarta Sans',
+    -apple-system,
+    sans-serif !important;
   font-size: 14px; /* Base font size untuk selaras */
   background: white;
   width: min(210mm, 100%);
