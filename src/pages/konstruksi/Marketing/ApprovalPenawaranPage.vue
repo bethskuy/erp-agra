@@ -347,19 +347,21 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="(item, idx) in selectedData.items" :key="idx">
-                      <td class="text-center text-grey-6 font-bold">{{ idx + 1 }}</td>
-                      <td class="text-left uppercase text-weight-medium text-blue-grey-9">
+                    <tr v-for="(item, idx) in selectedData.items" :key="idx" :class="item.is_header ? 'bg-grey-2 font-bold' : ''">
+                      <td class="text-center text-grey-6 font-bold">{{ item.no || '' }}</td>
+                      <td class="text-left uppercase text-blue-grey-9" :class="item.is_header ? 'text-weight-bold' : 'text-weight-medium'" :colspan="item.is_header ? 5 : 1">
                         {{ item.deskripsi }}
                       </td>
-                      <td class="text-center text-grey-8">{{ item.qty }}</td>
-                      <td class="text-center uppercase text-grey-8">{{ item.satuan }}</td>
-                      <td class="text-right text-grey-8">
-                        Rp {{ Math.round(item.harga || 0).toLocaleString() }}
-                      </td>
-                      <td class="text-right text-weight-bold text-brand-primary">
-                        Rp {{ Math.round(item.total || 0).toLocaleString() }}
-                      </td>
+                      <template v-if="!item.is_header">
+                        <td class="text-center text-grey-8">{{ item.qty }}</td>
+                        <td class="text-center uppercase text-grey-8">{{ item.satuan }}</td>
+                        <td class="text-right text-grey-8">
+                          Rp {{ Math.round(item.harga || 0).toLocaleString() }}
+                        </td>
+                        <td class="text-right text-weight-bold text-brand-primary">
+                          Rp {{ Math.round(item.total || 0).toLocaleString() }}
+                        </td>
+                      </template>
                     </tr>
                   </tbody>
                   <tfoot class="bg-grey-1 font-pro">
@@ -595,17 +597,21 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(it, i) in selectedData.items" :key="i">
-                    <td class="text-center font-bold text-grey-7">{{ i + 1 }}</td>
-                    <td class="text-left uppercase text-weight-medium">{{ it.deskripsi }}</td>
-                    <td class="text-center">{{ it.qty }}</td>
-                    <td class="text-center uppercase text-caption">{{ it.satuan }}</td>
-                    <td class="text-right">
-                      {{ Math.round(it.harga || 0).toLocaleString('id-ID') }}
+                  <tr v-for="(it, i) in selectedData.items" :key="i" :class="it.is_header ? 'bg-grey-2 text-weight-bold' : ''">
+                    <td class="text-center font-bold text-grey-7">{{ it.no || '' }}</td>
+                    <td class="text-left uppercase" :class="it.is_header ? 'text-weight-bold text-indigo-10' : 'text-weight-medium'" :colspan="it.is_header ? 5 : 1">
+                      {{ it.deskripsi }}
                     </td>
-                    <td class="text-right text-weight-bolder text-indigo-10 bg-indigo-0">
-                      {{ Math.round(it.total || 0).toLocaleString('id-ID') }}
-                    </td>
+                    <template v-if="!it.is_header">
+                      <td class="text-center">{{ it.qty }}</td>
+                      <td class="text-center uppercase text-caption">{{ it.satuan }}</td>
+                      <td class="text-right">
+                        {{ Math.round(it.harga || 0).toLocaleString('id-ID') }}
+                      </td>
+                      <td class="text-right text-weight-bolder text-indigo-10 bg-indigo-0">
+                        {{ Math.round(it.total || 0).toLocaleString('id-ID') }}
+                      </td>
+                    </template>
                   </tr>
                 </tbody>
                 <tfoot class="final-table-footer">
@@ -1028,6 +1034,13 @@ const promptReject = (row) => {
 }
 
 const openDetail = (row) => {
+  if (row && row.items) {
+    row.items.forEach((item, index) => {
+      if (item.no === undefined) {
+        item.no = item.is_header ? '' : String(index + 1)
+      }
+    })
+  }
   selectedData.value = row
   viewMode.value = 'detail'
   window.scrollTo(0, 0)

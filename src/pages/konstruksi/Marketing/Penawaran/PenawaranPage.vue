@@ -427,19 +427,21 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="(item, idx) in selectedData.items" :key="idx">
-                      <td class="text-center text-grey-6 font-bold">{{ idx + 1 }}</td>
-                      <td class="text-left uppercase text-weight-medium text-blue-grey-9">
+                    <tr v-for="(item, idx) in selectedData.items" :key="idx" :class="item.is_header ? 'bg-grey-2 font-bold' : ''">
+                      <td class="text-center text-grey-6 font-bold">{{ item.no || '' }}</td>
+                      <td class="text-left uppercase text-weight-bold text-blue-grey-9" :colspan="item.is_header ? 5 : 1">
                         {{ item.deskripsi }}
                       </td>
-                      <td class="text-center text-grey-8">{{ item.qty }}</td>
-                      <td class="text-center uppercase text-grey-8">{{ item.satuan }}</td>
-                      <td class="text-right text-grey-8">
-                        Rp {{ Math.round(item.harga || 0).toLocaleString() }}
-                      </td>
-                      <td class="text-right text-weight-bold text-brand-primary">
-                        Rp {{ Math.round(item.total || 0).toLocaleString() }}
-                      </td>
+                      <template v-if="!item.is_header">
+                        <td class="text-center text-grey-8">{{ item.qty }}</td>
+                        <td class="text-center uppercase text-grey-8">{{ item.satuan }}</td>
+                        <td class="text-right text-grey-8">
+                          Rp {{ Math.round(item.harga || 0).toLocaleString() }}
+                        </td>
+                        <td class="text-right text-weight-bold text-brand-primary">
+                          Rp {{ Math.round(item.total || 0).toLocaleString() }}
+                        </td>
+                      </template>
                     </tr>
                   </tbody>
                   <tfoot class="bg-grey-1 font-pro">
@@ -730,18 +732,43 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr v-for="(item, index) in form.items" :key="index">
-                        <td class="text-center text-grey-6 font-bold">{{ index + 1 }}</td>
-                        <td>
+                      <tr v-for="(item, index) in form.items" :key="index" :class="item.is_header ? 'bg-grey-2 font-bold' : ''">
+                        <td class="text-center text-grey-6 font-bold" style="padding: 0 4px;">
                           <q-input
-                            v-model="item.deskripsi"
+                            v-model="item.no"
                             dense
                             borderless
-                            placeholder="Tulis rincian..."
+                            input-class="text-center text-weight-bold text-grey-7"
+                            placeholder="-"
                           />
                         </td>
                         <td>
+                          <div class="row items-center no-wrap">
+                            <q-btn
+                              flat
+                              round
+                              dense
+                              :icon="item.is_header ? 'format_bold' : 'article'"
+                              :color="item.is_header ? 'brand-primary' : 'grey-6'"
+                              size="xs"
+                              @click="toggleHeader(index)"
+                              class="q-mr-sm"
+                            >
+                              <q-tooltip>{{ item.is_header ? 'Jadikan Item Pekerjaan' : 'Jadikan Sub-Header' }}</q-tooltip>
+                            </q-btn>
+                            <q-input
+                              v-model="item.deskripsi"
+                              dense
+                              borderless
+                              :placeholder="item.is_header ? 'Tulis Sub-Header (Contoh: I. PEKERJAAN PONDASI)' : 'Tulis rincian...'"
+                              class="col"
+                              :input-class="item.is_header ? 'text-weight-bold text-brand-primary' : ''"
+                            />
+                          </div>
+                        </td>
+                        <td>
                           <q-input
+                            v-if="!item.is_header"
                             v-model.number="item.qty"
                             type="number"
                             dense
@@ -749,17 +776,21 @@
                             @update:model-value="calcRow(index)"
                             input-class="text-center font-bold"
                           />
+                          <div v-else class="text-center text-grey-5">-</div>
                         </td>
                         <td>
                           <q-input
+                            v-if="!item.is_header"
                             v-model="item.satuan"
                             dense
                             borderless
                             input-class="text-center uppercase"
                           />
+                          <div v-else class="text-center text-grey-5">-</div>
                         </td>
                         <td>
                           <q-input
+                            v-if="!item.is_header"
                             v-model.number="item.harga"
                             type="number"
                             dense
@@ -768,9 +799,11 @@
                             prefix="Rp"
                             input-class="text-right"
                           />
+                          <div v-else class="text-center text-grey-5">-</div>
                         </td>
                         <td class="text-right text-weight-bolder text-brand-primary bg-indigo-0">
-                          Rp {{ (item.total || 0).toLocaleString() }}
+                          <span v-if="!item.is_header">Rp {{ (item.total || 0).toLocaleString() }}</span>
+                          <span v-else class="text-grey-5">-</span>
                         </td>
                         <td class="text-center">
                           <q-btn
@@ -1245,17 +1278,21 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(it, i) in selectedData.items" :key="i">
-                    <td class="text-center font-bold text-grey-7">{{ i + 1 }}</td>
-                    <td class="text-left uppercase text-weight-medium">{{ it.deskripsi }}</td>
-                    <td class="text-center">{{ it.qty }}</td>
-                    <td class="text-center uppercase text-caption">{{ it.satuan }}</td>
-                    <td class="text-right">
-                      {{ Math.round(it.harga || 0).toLocaleString('id-ID') }}
+                  <tr v-for="(it, i) in selectedData.items" :key="i" :class="it.is_header ? 'bg-grey-2 text-weight-bold' : ''">
+                    <td class="text-center font-bold text-grey-7">{{ it.no || '' }}</td>
+                    <td class="text-left uppercase text-weight-bold text-indigo-10" :colspan="it.is_header ? 5 : 1">
+                      {{ it.deskripsi }}
                     </td>
-                    <td class="text-right text-weight-bolder text-indigo-10 bg-indigo-0">
-                      {{ Math.round(it.total || 0).toLocaleString('id-ID') }}
-                    </td>
+                    <template v-if="!it.is_header">
+                      <td class="text-center">{{ it.qty }}</td>
+                      <td class="text-center uppercase text-caption">{{ it.satuan }}</td>
+                      <td class="text-right">
+                        {{ Math.round(it.harga || 0).toLocaleString('id-ID') }}
+                      </td>
+                      <td class="text-right text-weight-bolder text-indigo-10 bg-indigo-0">
+                        {{ Math.round(it.total || 0).toLocaleString('id-ID') }}
+                      </td>
+                    </template>
                   </tr>
                 </tbody>
                 <tfoot class="final-table-footer">
@@ -1519,7 +1556,7 @@ const formDefault = {
   nama_customer: '',
   attn: '',
   introduction: 'Bersama surat ini kami mengajukan penawaran harga sebagai berikut:',
-  items: [{ deskripsi: '', qty: 1, satuan: 'ls', harga: 0, total: 0 }],
+  items: [{ no: '1', deskripsi: '', is_header: false, qty: 1, satuan: 'ls', harga: 0, total: 0 }],
   terms: '<ul><li>Uang Muka : 30%</li><li>Berlaku 14 Hari</li></ul>',
   closing: 'Demikian penawaran ini kami sampaikan, terima kasih.',
   ttd_nama: '',
@@ -2041,6 +2078,13 @@ const ajukanPenawaran = (row) => {
 const openEditDialog = async (row) => {
   isEditMode.value = true
   form.value = JSON.parse(JSON.stringify(row))
+  if (form.value.items) {
+    form.value.items.forEach((item, index) => {
+      if (item.no === undefined) {
+        item.no = item.is_header ? '' : String(index + 1)
+      }
+    })
+  }
   if (!form.value.attn) form.value.attn = ''
   selectedCustomer.value = { id: row.customer_id, nama: row.nama_customer }
   analisaFile.value = null
@@ -2068,8 +2112,27 @@ const openAddDialog = () => {
   showDialog.value = true
 }
 
+const toggleHeader = (idx) => {
+  const it = form.value.items[idx]
+  it.is_header = !it.is_header
+  if (it.is_header) {
+    it.qty = 0
+    it.harga = 0
+    it.total = 0
+    it.no = ''
+  } else {
+    it.qty = 1
+    it.satuan = 'ls'
+    it.harga = 0
+    it.total = 0
+    it.no = String(idx + 1)
+  }
+  updateGrandTotal()
+}
+
 const addDetailItem = () => {
-  form.value.items.push({ deskripsi: '', qty: 1, satuan: 'ls', harga: 0, total: 0 })
+  const nextNo = form.value.items.length + 1
+  form.value.items.push({ no: String(nextNo), deskripsi: '', is_header: false, qty: 1, satuan: 'ls', harga: 0, total: 0 })
   updateGrandTotal()
 }
 const removeDetailItem = (idx) => {
@@ -2132,6 +2195,13 @@ const confirmHapus = (row) => {
 
 // ── PREVIEW & DETAIL ──────────────────────────────────────────────────────────
 const openDetail = async (row) => {
+  if (row && row.items) {
+    row.items.forEach((item, index) => {
+      if (item.no === undefined) {
+        item.no = item.is_header ? '' : String(index + 1)
+      }
+    })
+  }
   selectedData.value = row
   viewMode.value = 'detail'
   window.scrollTo(0, 0)
