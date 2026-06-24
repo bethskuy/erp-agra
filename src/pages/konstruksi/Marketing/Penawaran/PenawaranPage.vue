@@ -429,7 +429,7 @@
                   <tbody>
                     <tr v-for="(item, idx) in selectedData.items" :key="idx" :class="item.is_header ? 'bg-grey-2 font-bold' : ''">
                       <td class="text-center text-grey-6 font-bold">{{ item.no || '' }}</td>
-                      <td class="text-left uppercase text-weight-bold text-blue-grey-9" :colspan="item.is_header ? 5 : 1">
+                      <td class="text-left uppercase text-blue-grey-9" :class="item.is_header ? 'text-weight-bold' : 'text-weight-medium'" :colspan="item.is_header ? 5 : 1">
                         {{ item.deskripsi }}
                       </td>
                       <template v-if="!item.is_header">
@@ -1280,7 +1280,7 @@
                 <tbody>
                   <tr v-for="(it, i) in selectedData.items" :key="i" :class="it.is_header ? 'bg-grey-2 text-weight-bold' : ''">
                     <td class="text-center font-bold text-grey-7">{{ it.no || '' }}</td>
-                    <td class="text-left uppercase text-weight-bold text-indigo-10" :colspan="it.is_header ? 5 : 1">
+                    <td class="text-left uppercase text-indigo-10" :class="it.is_header ? 'text-weight-bold' : 'text-weight-medium'" :colspan="it.is_header ? 5 : 1">
                       {{ it.deskripsi }}
                     </td>
                     <template v-if="!it.is_header">
