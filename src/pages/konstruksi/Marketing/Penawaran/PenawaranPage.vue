@@ -180,7 +180,7 @@
                 </q-td>
                 <q-td key="nama_customer">
                   <div class="text-weight-bold text-blue-grey-9 uppercase">
-                    {{ props.row.nama_customer }}
+                    {{ props.row.nama_customer || '-' }}
                   </div>
                   <div
                     v-if="props.row.status === 'Rejected' && props.row.alasan_reject"
@@ -329,7 +329,7 @@
                   <tr>
                     <td class="text-weight-bold text-grey-6 py-2">Klien / Customer</td>
                     <td class="text-weight-bold text-blue-grey-9 text-right py-2 uppercase">
-                      {{ selectedData.nama_customer }}
+                      {{ selectedData.nama_customer || '-' }}
                     </td>
                   </tr>
                   <tr>
@@ -637,7 +637,7 @@
                       />
                     </div>
                     <div class="col-12 col-md-4">
-                      <div class="label-req q-mb-xs">Pilih Customer / Klien *</div>
+                      <div class="label-req q-mb-xs">Pilih Customer / Klien</div>
                       <q-select
                         outlined
                         dense
@@ -647,6 +647,7 @@
                         placeholder="Cari Customer..."
                         @update:model-value="onCustomerChange"
                         bg-color="white"
+                        clearable
                       />
                     </div>
                     <div class="col-12 col-md-4">
@@ -1241,7 +1242,7 @@
               <div class="row justify-between items-start q-mt-lg q-mb-md text-left">
                 <div class="col-7">
                   <div class="label-grey-pro uppercase">KEPADA YTH :</div>
-                  <div class="client-name-pro uppercase">{{ selectedData.nama_customer }}</div>
+                  <div class="client-name-pro uppercase">{{ selectedData.nama_customer || '-' }}</div>
                   <div class="text-body2 text-weight-medium">Di Tempat</div>
                   <div
                     v-if="selectedData.attn"
@@ -1343,68 +1344,71 @@
                   </tr>
                 </tfoot>
               </table>
-              <!-- Terms -->
-              <div class="terms-container text-left q-mt-lg">
-                <div class="terms-header uppercase">Syarat & Kondisi Pembayaran :</div>
+              <!-- Footer Wrapper (Terms, Closing, and Signature) -->
+              <div class="quotation-footer-wrapper">
+                <!-- Terms -->
+                <div class="terms-container text-left q-mt-lg">
+                  <div class="terms-header uppercase">Syarat & Kondisi Pembayaran :</div>
+                  <div
+                    class="terms-content-box leading-relaxed text-body2"
+                    v-html="selectedData.terms"
+                  ></div>
+                </div>
+                <!-- Closing -->
                 <div
-                  class="terms-content-box leading-relaxed text-body2"
-                  v-html="selectedData.terms"
+                  class="text-closing-final text-left q-mt-lg text-body2 leading-relaxed text-grey-9"
+                  v-html="selectedData.closing"
                 ></div>
-              </div>
-              <!-- Closing -->
-              <div
-                class="text-closing-final text-left q-mt-lg text-body2 leading-relaxed text-grey-9"
-                v-html="selectedData.closing"
-              ></div>
-              <!-- Signature -->
-              <div class="signature-container text-left q-mt-xl">
-                <div class="row q-mt-lg justify-end">
-                  <div class="col-6 text-right">
-                    <div class="q-mb-xs text-body2 uppercase">Hormat Kami,</div>
-                    <div class="text-weight-bold text-indigo-10 uppercase q-mb-xs">
-                      {{ selectedData.nama_pt }}
-                    </div>
-                    <div class="final-sign-space flex flex-center relative-position">
-                      <img
-                        v-if="selectedData.stempelUrl"
-                        :src="selectedData.stempelUrl"
-                        class="img-stempel"
-                      />
-                      <img
-                        v-if="selectedData.signatureUrl"
-                        :src="selectedData.signatureUrl"
-                        class="img-signature"
-                      />
-                      <q-btn
-                        v-if="selectedData.signatureUrl"
-                        flat
-                        round
-                        dense
-                        icon="close"
-                        color="negative"
-                        size="xs"
-                        class="absolute-top-right q-ma-xs no-print"
-                        style="z-index: 10"
-                        @click.stop="clearPreviewSignature"
-                      />
-                      <q-btn
-                        v-if="!selectedData.signatureUrl"
-                        outline
-                        rounded
-                        no-caps
-                        color="brand-primary"
-                        icon="draw"
-                        label="Ttd"
-                        class="no-print q-px-lg q-py-sm text-weight-bold"
-                        style="font-size: 16px; min-width: 120px"
-                        @click="openSignaturePadFromPreview"
-                      />
-                    </div>
-                    <div class="text-signer-final text-weight-bolder uppercase text-indigo-10">
-                      {{ selectedData.ttd_nama }}
-                    </div>
-                    <div class="text-role-final uppercase text-grey-8 text-caption font-bold block">
-                      {{ selectedData.ttd_jabatan }}
+                <!-- Signature -->
+                <div class="signature-container text-left q-mt-xl">
+                  <div class="row q-mt-lg justify-end">
+                    <div class="col-6 text-right">
+                      <div class="q-mb-xs text-body2 uppercase">Hormat Kami,</div>
+                      <div class="text-weight-bold text-indigo-10 uppercase q-mb-xs">
+                        {{ selectedData.nama_pt }}
+                      </div>
+                      <div class="final-sign-space flex flex-center relative-position">
+                        <img
+                          v-if="selectedData.stempelUrl"
+                          :src="selectedData.stempelUrl"
+                          class="img-stempel"
+                        />
+                        <img
+                          v-if="selectedData.signatureUrl"
+                          :src="selectedData.signatureUrl"
+                          class="img-signature"
+                        />
+                        <q-btn
+                          v-if="selectedData.signatureUrl"
+                          flat
+                          round
+                          dense
+                          icon="close"
+                          color="negative"
+                          size="xs"
+                          class="absolute-top-right q-ma-xs no-print"
+                          style="z-index: 10"
+                          @click.stop="clearPreviewSignature"
+                        />
+                        <q-btn
+                          v-if="!selectedData.signatureUrl"
+                          outline
+                          rounded
+                          no-caps
+                          color="brand-primary"
+                          icon="draw"
+                          label="Ttd"
+                          class="no-print q-px-lg q-py-sm text-weight-bold"
+                          style="font-size: 16px; min-width: 120px"
+                          @click="openSignaturePadFromPreview"
+                        />
+                      </div>
+                      <div class="text-signer-final text-weight-bolder uppercase text-indigo-10">
+                        {{ selectedData.ttd_nama }}
+                      </div>
+                      <div class="text-role-final uppercase text-grey-8 text-caption font-bold block">
+                        {{ selectedData.ttd_jabatan }}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1459,7 +1463,7 @@
               <tr v-for="(row, idx) in rows" :key="row.id">
                 <td style="text-align: center">{{ idx + 1 }}</td>
                 <td style="font-weight: 800">{{ row.nomor }}</td>
-                <td style="text-transform: uppercase">{{ row.nama_customer }}</td>
+                <td style="text-transform: uppercase">{{ row.nama_customer || '-' }}</td>
                 <td>
                   <div style="color: #444">Loc: {{ row.kota }}</div>
                   <div style="color: #d32f2f; font-size: 10px">
@@ -1958,8 +1962,6 @@ const calcRow = (idx) => {
 const simpanPenawaran = async () => {
   if (!form.value.judul_penawaran)
     return $q.notify({ message: 'Isi Judul Penawaran!', color: 'negative', position: 'top' })
-  if (!form.value.customer_id)
-    return $q.notify({ message: 'Pilih Customer!', color: 'negative', position: 'top' })
 
   // Selalu simpan grand total sebagai integer bulat ke ribuan
   form.value.total_harga = Math.floor((form.value.total_harga || 0) / 1000) * 1000
@@ -2086,7 +2088,7 @@ const openEditDialog = async (row) => {
     })
   }
   if (!form.value.attn) form.value.attn = ''
-  selectedCustomer.value = { id: row.customer_id, nama: row.nama_customer }
+  selectedCustomer.value = row.customer_id ? { id: row.customer_id, nama: row.nama_customer } : null
   analisaFile.value = null
   stempelFile.value = null
   tempSignFile.value = null
@@ -2145,6 +2147,9 @@ const onCustomerChange = (val) => {
   if (val) {
     form.value.customer_id = val.id
     form.value.nama_customer = val.nama
+  } else {
+    form.value.customer_id = ''
+    form.value.nama_customer = ''
   }
 }
 
@@ -2304,7 +2309,7 @@ const exportToPDF = async () => {
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
       pagebreak: {
         mode: ['css', 'legacy'],
-        avoid: ['tr', '.terms-container', '.signature-container', '.final-sign-space'],
+        avoid: ['tr', '.terms-container', '.signature-container', '.final-sign-space', '.quotation-footer-wrapper'],
       },
     }
 
@@ -2395,7 +2400,7 @@ const exportListToExcel = () => {
     totalValue += row.total_harga || 0
     html += `<tr>
       <td align="center">${idx + 1}</td><td>${row.nomor}</td>
-      <td>${row.nama_customer}</td><td>${row.kota}</td>
+      <td>${row.nama_customer || '-'}</td><td>${row.kota}</td>
       <td align="center">${formatIndoDate(row.tanggal)}</td>
       <td align="right">${Math.round(row.total_harga || 0)}</td>
       <td align="center">${row.status || 'Draft'}</td>
@@ -2902,6 +2907,7 @@ body.is-exporting .letter-paper .row.justify-between {
   break-inside: avoid;
   page-break-inside: avoid;
 }
+.quotation-footer-wrapper,
 .terms-container,
 .signature-container,
 .final-sign-space {
