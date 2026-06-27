@@ -493,6 +493,12 @@
               label="Mandor &amp; Pekerja"
               class="text-weight-bolder q-py-sm font-inter"
             />
+            <q-tab
+              name="rekap"
+              icon="summarize"
+              label="Rekap Kehadiran"
+              class="text-weight-bolder q-py-sm font-inter"
+            />
           </q-tabs>
         </q-card>
 
@@ -828,6 +834,267 @@
                               :disable="!bisa.hapus"
                             />
                           </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </q-tab-panel>
+
+          <!-- PANEL 3: REKAP KEHADIRAN & WAGES -->
+          <q-tab-panel name="rekap" class="q-pa-none">
+            <!-- CONTROL PANEL REKAP -->
+            <q-card flat class="neo-card bg-white q-pa-lg q-mb-lg no-print">
+              <div class="text-subtitle1 text-weight-bolder text-slate-900 q-mb-md uppercase font-inter" style="font-weight: 800;">
+                Pengaturan Rekap Kehadiran & Upah Pekerja
+              </div>
+              <div class="row q-col-gutter-md items-end">
+                <!-- PREDEFINED PERIOD PICKER -->
+                <div class="col-12 col-sm-4">
+                  <q-select
+                    v-model="selectedPeriodMonth"
+                    outlined
+                    dense
+                    :options="monthYearOptions"
+                    label="Pilih Bulan & Tahun"
+                    class="rounded-input q-mb-sm"
+                    emit-value
+                    map-options
+                  />
+                  <div class="row q-col-gutter-xs">
+                    <div class="col-6">
+                      <q-btn
+                        unelevated
+                        no-caps
+                        label="Periode 1 (28-13)"
+                        class="full-width neo-btn bg-amber-3 text-slate-900 text-11"
+                        @click="applyPredefinedPeriod(1)"
+                      />
+                    </div>
+                    <div class="col-6">
+                      <q-btn
+                        unelevated
+                        no-caps
+                        label="Periode 2 (14-27)"
+                        class="full-width neo-btn bg-amber-3 text-slate-900 text-11"
+                        @click="applyPredefinedPeriod(2)"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- CUSTOM RANGE PICKERS -->
+                <div class="col-12 col-sm-3">
+                  <q-input
+                    v-model="rekapRange.dari"
+                    outlined
+                    dense
+                    label="Tanggal Dari"
+                    class="rounded-input"
+                    type="date"
+                  />
+                </div>
+                <div class="col-12 col-sm-3">
+                  <q-input
+                    v-model="rekapRange.sampai"
+                    outlined
+                    dense
+                    label="Tanggal Sampai"
+                    class="rounded-input"
+                    type="date"
+                  />
+                </div>
+
+                <!-- MANDOR FILTER -->
+                <div class="col-12 col-sm-2">
+                  <q-select
+                    v-model="rekapRange.mandorId"
+                    outlined
+                    dense
+                    :options="rekapMandorOptions"
+                    label="Kelompok Mandor"
+                    class="rounded-input"
+                    emit-value
+                    map-options
+                  />
+                </div>
+
+                <div class="col-12">
+                  <div class="row q-col-gutter-sm justify-between">
+                    <q-btn
+                      unelevated
+                      color="brand-primary"
+                      icon="analytics"
+                      label="Tampilkan Rekap"
+                      class="neo-btn text-weight-bolder font-inter"
+                      @click="generateReportData"
+                    />
+                    <q-btn
+                      v-if="reportGenerated && reportData.length > 0"
+                      unelevated
+                      color="slate-900"
+                      icon="print"
+                      label="Cetak Laporan"
+                      class="neo-btn bg-slate-900 text-white text-weight-bolder font-inter"
+                      @click="triggerPrint"
+                    />
+                  </div>
+                </div>
+              </div>
+            </q-card>
+
+            <!-- EMPTY STATE / NOT GENERATED -->
+            <div v-if="!reportGenerated" class="text-center q-pa-xl neo-card bg-white animate-fade-in q-mb-lg">
+              <q-icon name="insights" size="4em" color="slate-400" />
+              <div class="text-slate-700 text-subtitle1 text-weight-bold q-mt-sm font-inter">
+                Silakan tentukan periode tanggal dan klik "Tampilkan Rekap" untuk memproses laporan upah.
+              </div>
+            </div>
+
+            <!-- EMPTY DATA FOR THE SELECTED PERIOD -->
+            <div v-else-if="reportData.length === 0" class="text-center q-pa-xl neo-card bg-white animate-fade-in q-mb-lg">
+              <q-icon name="playlist_remove" size="4em" color="slate-400" />
+              <div class="text-slate-700 text-subtitle1 text-weight-bold q-mt-sm font-inter">
+                Tidak ada data absensi/pekerja yang terdaftar pada periode ini.
+              </div>
+            </div>
+
+            <!-- REPORT CONTENT DISPLAY -->
+            <div v-else class="q-gutter-y-lg q-mb-xl">
+              <!-- SUMMARY KPI CARDS -->
+              <div class="row q-col-gutter-md">
+                <div class="col-12 col-sm-3">
+                  <div class="neo-card bg-sky-1 text-slate-900 q-pa-md row items-center no-wrap">
+                    <div class="col">
+                      <div class="text-overline text-slate-700 text-weight-bolder uppercase tracking-wide">
+                        Total Pekerja
+                      </div>
+                      <div class="text-h5 text-weight-bolder text-slate-900 font-mono q-mt-xs">
+                        {{ kpiSummary.totalPekerja }} Org
+                      </div>
+                    </div>
+                    <q-icon name="groups" size="24px" class="q-ml-sm" />
+                  </div>
+                </div>
+                <div class="col-12 col-sm-3">
+                  <div class="neo-card bg-emerald-1 text-slate-900 q-pa-md row items-center no-wrap">
+                    <div class="col">
+                      <div class="text-overline text-slate-700 text-weight-bolder uppercase tracking-wide">
+                        Total Kehadiran
+                      </div>
+                      <div class="text-h5 text-weight-bolder text-slate-900 font-mono q-mt-xs">
+                        {{ kpiSummary.totalHadir }} Laporan
+                      </div>
+                    </div>
+                    <q-icon name="done" size="24px" class="q-ml-sm" />
+                  </div>
+                </div>
+                <div class="col-12 col-sm-3">
+                  <div class="neo-card bg-red-2 text-slate-900 q-pa-md row items-center no-wrap">
+                    <div class="col">
+                      <div class="text-overline text-slate-700 text-weight-bolder uppercase tracking-wide">
+                        Total Alpha
+                      </div>
+                      <div class="text-h5 text-weight-bolder text-slate-900 font-mono q-mt-xs">
+                        {{ kpiSummary.totalAlpha }} Kali
+                      </div>
+                    </div>
+                    <q-icon name="close" size="24px" class="q-ml-sm" />
+                  </div>
+                </div>
+                <div class="col-12 col-sm-3">
+                  <div class="neo-card bg-yellow-3 text-slate-900 q-pa-md row items-center no-wrap">
+                    <div class="col">
+                      <div class="text-overline text-slate-700 text-weight-bolder uppercase tracking-wide">
+                        Grand Total Upah
+                      </div>
+                      <div class="text-h5 text-weight-bolder text-slate-900 font-mono q-mt-xs">
+                        Rp {{ formatUang(kpiSummary.totalUpah) }}
+                      </div>
+                    </div>
+                    <q-icon name="payments" size="24px" class="q-ml-sm" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- DETAILED MANDOR WAGE TABLES -->
+              <div
+                v-for="m in reportData"
+                :key="m.id"
+                class="neo-card bg-white overflow-hidden"
+              >
+                <!-- Group Title -->
+                <div class="bg-slate-100 q-pa-md row items-center justify-between" style="border-bottom: 3px solid #0f172a;">
+                  <div>
+                    <span class="text-weight-bolder text-slate-900 uppercase font-inter text-subtitle1" style="font-weight: 800;">
+                      {{ m.nama }}
+                    </span>
+                    <div class="text-caption text-slate-700 font-inter text-weight-bold">
+                      Bidang: <span class="neo-badge bg-sky-1 text-slate-900 font-inter text-11 text-weight-bolder q-mr-sm">{{ m.bidang }}</span>
+                      Subtotal Upah Kelompok: <span class="text-weight-bolder text-slate-900 font-mono text-subtitle2">Rp {{ formatUang(m.subtotalUpah) }}</span>
+                    </div>
+                  </div>
+                  <div class="text-right">
+                    <span class="text-caption text-slate-600 block">Total Lembur Kelompok</span>
+                    <span class="text-weight-bolder text-slate-900 font-mono text-subtitle1">{{ m.totalLembur.toFixed(2) }} Jam</span>
+                  </div>
+                </div>
+
+                <!-- Table Content -->
+                <div class="q-pa-md">
+                  <div style="overflow-x: auto; -webkit-overflow-scrolling: touch">
+                    <table class="abs-tbl q-mt-none">
+                      <thead>
+                        <tr class="bg-slate-50">
+                          <th style="width: 40px" class="text-center font-inter">#</th>
+                          <th class="font-inter">NAMA PEKERJA</th>
+                          <th class="text-center font-inter">JABATAN</th>
+                          <th class="text-center font-inter">H</th>
+                          <th class="text-center font-inter">S</th>
+                          <th class="text-center font-inter">I</th>
+                          <th class="text-center font-inter">S</th>
+                          <th class="text-center font-inter">A</th>
+                          <th class="text-center font-inter">L</th>
+                          <th class="text-center font-inter">LEMBUR (RAW)</th>
+                          <th class="text-center font-inter">KOEF.</th>
+                          <th class="text-center font-inter">TOTAL LEMBUR</th>
+                          <th class="text-right font-inter">UPAH UTAMA</th>
+                          <th class="text-right font-inter">UPAH LEMBUR</th>
+                          <th class="text-right font-inter">TOTAL UPAH</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="(p, pi) in m.pekerja" :key="p.id">
+                          <td class="text-center text-slate-700 font-mono text-weight-bold">
+                            {{ pi + 1 }}
+                          </td>
+                          <td class="text-weight-bold text-slate-900 uppercase font-inter">
+                            {{ p.nama }}
+                          </td>
+                          <td class="text-center font-inter">
+                            <span class="neo-badge bg-sky-1 text-slate-900 font-inter text-11 text-weight-bolder">
+                              {{ p.jabatan }}
+                            </span>
+                          </td>
+                          <!-- Attendance Counts -->
+                          <td class="text-center font-mono text-emerald-8 text-weight-bold">{{ p.hadir }}</td>
+                          <td class="text-center font-mono text-teal-8 text-weight-bold">{{ p.setengah }}</td>
+                          <td class="text-center font-mono text-sky-8 text-weight-bold">{{ p.izin }}</td>
+                          <td class="text-center font-mono text-amber-8 text-weight-bold">{{ p.sakit }}</td>
+                          <td class="text-center font-mono text-red-8 text-weight-bold">{{ p.alpha }}</td>
+                          <td class="text-center font-mono text-purple-8 text-weight-bold">{{ p.libur }}</td>
+                          
+                          <!-- Overtime columns -->
+                          <td class="text-center font-mono text-slate-800">{{ p.lemburJamRaw.toFixed(2) }} Jam</td>
+                          <td class="text-center font-mono text-amber-9 text-weight-bold">{{ p.koefLembur.toFixed(2) }}x</td>
+                          <td class="text-center font-mono text-slate-900 text-weight-bolder">{{ p.lemburJamTotal.toFixed(2) }} Jam</td>
+                          
+                          <!-- Wages -->
+                          <td class="text-right font-mono text-slate-700">Rp {{ formatUang(p.upahDinasTotal) }}</td>
+                          <td class="text-right font-mono text-slate-700">Rp {{ formatUang(p.upahLemburTotal) }}</td>
+                          <td class="text-right font-mono text-slate-900 text-weight-bolder">Rp {{ formatUang(p.upahGrandTotal) }}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -1333,6 +1600,46 @@ const rekapMandorOptions = computed(() => {
   return defaults
 })
 
+const selectedPeriodMonth = ref(date.formatDate(new Date(), 'YYYY-MM'))
+
+const monthYearOptions = computed(() => {
+  const options = []
+  const today = new Date()
+  const monthsIndo = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+  ]
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(today.getFullYear(), today.getMonth() - i, 1)
+    const val = date.formatDate(d, 'YYYY-MM')
+    const label = `${monthsIndo[d.getMonth()]} ${d.getFullYear()}`
+    options.push({ label, value: val })
+  }
+  return options
+})
+
+const applyPredefinedPeriod = (periodNum) => {
+  if (!selectedPeriodMonth.value) return
+  const [year, month] = selectedPeriodMonth.value.split('-').map(Number)
+  
+  let start = new Date(year, month - 1, 15)
+  let end = new Date(year, month - 1, 15)
+  
+  if (periodNum === 1) {
+    // 28th of previous month to 13th of current month
+    start.setMonth(start.getMonth() - 1)
+    start.setDate(28)
+    end.setDate(13)
+  } else if (periodNum === 2) {
+    // 14th of current month to 27th of current month
+    start.setDate(14)
+    end.setDate(27)
+  }
+  
+  rekapRange.value.dari = date.formatDate(start, 'YYYY-MM-DD')
+  rekapRange.value.sampai = date.formatDate(end, 'YYYY-MM-DD')
+}
+
 // =====================================================================================
 // MANAJEMEN CORE DATA & SYNC CLOUD TERISOLASI
 // =====================================================================================
@@ -1571,6 +1878,28 @@ const calculateRowDailyWage = (pekerja, state) => {
   return Math.round(upahDinas + totalLembur)
 }
 
+const calculateRowWageBreakdown = (pekerja, state) => {
+  const base = pekerja.upahHari || 0
+  const k = pekerja.koef || 1.0
+  let upahDinas = 0
+
+  if (state.status === 'hadir') upahDinas = base * k
+  else if (state.status === 'setengah') upahDinas = base * k * 0.5
+
+  const rateLembur =
+    pekerja.upahLembur !== undefined ? pekerja.upahLembur : projectSetup.value.lembur || 0
+  const kl = pekerja.koefLembur || 1.0
+  const rawLembur = parseFloat(state.lembur) || 0
+  const upahLembur = rawLembur * rateLembur * kl
+
+  return {
+    upahDinas: Math.round(upahDinas),
+    upahLembur: Math.round(upahLembur),
+    totalLemburEquivalent: rawLembur * kl,
+    rawLembur: rawLembur,
+  }
+}
+
 const calculateMandorDailyTotal = (mandorId) => {
   const m = mandors.value.find((m) => m.id === mandorId)
   if (!m || !m.pekerja) return 0
@@ -1746,8 +2075,11 @@ const generateReportData = async () => {
           sakit: 0,
           alpha: 0,
           libur: 0,
-          lemburJam: 0,
-          upahTotal: 0,
+          lemburJamRaw: 0,
+          lemburJamTotal: 0,
+          upahDinasTotal: 0,
+          upahLemburTotal: 0,
+          upahGrandTotal: 0,
         }
 
         dateList.forEach((tgl) => {
@@ -1755,9 +2087,13 @@ const generateReportData = async () => {
           if (!log) return
 
           pStats[log.status]++
-          pStats.lemburJam += parseFloat(log.lembur) || 0
-          const wage = calculateRowDailyWage(p, log)
-          pStats.upahTotal += wage
+          const rawLembur = parseFloat(log.lembur) || 0
+          pStats.lemburJamRaw += rawLembur
+          
+          const breakdown = calculateRowWageBreakdown(p, log)
+          pStats.upahDinasTotal += breakdown.upahDinas
+          pStats.upahLemburTotal += breakdown.upahLembur
+          pStats.lemburJamTotal += breakdown.totalLemburEquivalent
 
           if (log.status === 'hadir' || log.status === 'setengah') {
             totalHadirCount++
@@ -1773,14 +2109,17 @@ const generateReportData = async () => {
           if (log.status === 'libur') subLibur++
         })
 
-        subtotalMandorUpah += pStats.upahTotal
-        subLembur += pStats.lemburJam
-        totalUpahAll += pStats.upahTotal
+        pStats.upahGrandTotal = pStats.upahDinasTotal + pStats.upahLemburTotal
+        
+        subtotalMandorUpah += pStats.upahGrandTotal
+        subLembur += pStats.lemburJamTotal
+        totalUpahAll += pStats.upahGrandTotal
 
         pekerjaSummaryRows.push({
           id: p.id,
           nama: p.nama,
           jabatan: p.jabatan || 'Tukang',
+          koefLembur: p.koefLembur || 1.0,
           ...pStats,
         })
       })

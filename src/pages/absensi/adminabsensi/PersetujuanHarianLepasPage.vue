@@ -508,7 +508,9 @@
                         <th class="text-right text-weight-bold font-11 tracking-widest">
                           UPAH EFEKTIF
                         </th>
-                        <th class="text-center text-weight-bold font-11 tracking-widest">LEMBUR</th>
+                        <th class="text-center text-weight-bold font-11 tracking-widest">LEMBUR (RAW)</th>
+                        <th class="text-center text-weight-bold font-11 tracking-widest">KOEF. LEMBUR</th>
+                        <th class="text-center text-weight-bold font-11 tracking-widest">TOTAL LEMBUR</th>
                         <th class="text-right text-weight-bold font-11 tracking-widest">
                           UPAH LEMBUR
                         </th>
@@ -567,13 +569,19 @@
                       <td class="text-right font-mono font-medium text-slate-900">
                         Rp {{ formatUang(calculateWorkerEffectiveWage(p, m.id)) }}
                       </td>
-                      <td class="text-center text-weight-bold text-slate-800 font-mono">
+                      <td class="text-center font-mono text-slate-800">
                         {{ getWorkerLembur(m.id, p.id) }} Jam
+                      </td>
+                      <td class="text-center text-weight-bold text-amber-9 font-mono">
+                        {{ (p.koefLembur || 1.0).toFixed(2) }}x
+                      </td>
+                      <td class="text-center text-slate-900 font-mono text-weight-bolder">
+                        {{ (getWorkerLembur(m.id, p.id) * (p.koefLembur || 1.0)).toFixed(2) }} Jam
                       </td>
                       <td class="text-right font-mono font-medium text-slate-900">
                         <div>Rp {{ formatUang(calculateWorkerLemburWage(p, m.id)) }}</div>
                         <div class="text-caption text-slate-600 font-10">
-                          Base: Rp {{ formatUang(p.upahLembur !== undefined ? p.upahLembur : rateLembur) }}/Jam ({{ (p.koefLembur || 1.0).toFixed(2) }}x)
+                          Base: Rp {{ formatUang(p.upahLembur !== undefined ? p.upahLembur : rateLembur) }}/Jam
                         </div>
                       </td>
                       <td class="text-right font-mono text-weight-bold text-slate-900">
