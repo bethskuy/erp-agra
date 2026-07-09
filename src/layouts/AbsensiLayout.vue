@@ -72,6 +72,18 @@
           </q-menu>
         </q-btn>
 
+        <!-- Theme Toggle Button -->
+        <q-btn
+          flat
+          round
+          dense
+          :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'"
+          class="q-mr-sm"
+          @click="toggleTheme"
+        >
+          <q-tooltip>{{ $q.dark.isActive ? 'Mode Terang' : 'Mode Gelap' }}</q-tooltip>
+        </q-btn>
+
         <q-avatar size="32px" color="white" text-color="blue-9" class="text-weight-bold shadow-1">
           <img v-if="userData.fotoUrl" :src="userData.fotoUrl" />
           <span v-else>{{
@@ -633,12 +645,27 @@ onMounted(() => {
   syncData()
   loadPendingCount()
   loadPendingHarianLepasCount()
+
+  // Load and apply Absensi dark mode
+  const isDark = $q.localStorage.getItem('absensi-dark-mode')
+  if (isDark !== null) {
+    $q.dark.set(isDark)
+  } else {
+    $q.dark.set(false)
+  }
 })
 
 onUnmounted(() => {
   if (unsubscribePending) unsubscribePending()
   if (unsubscribePendingHarianLepas) unsubscribePendingHarianLepas()
+  // Revert back to light theme when leaving Absensi module
+  $q.dark.set(false)
 })
+
+const toggleTheme = () => {
+  $q.dark.toggle()
+  $q.localStorage.set('absensi-dark-mode', $q.dark.isActive)
+}
 
 const handleLogout = () => {
   $q.dialog({ title: 'Logout', message: 'Yakin ingin keluar dari sistem?', cancel: true }).onOk(

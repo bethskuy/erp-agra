@@ -85,3 +85,341 @@ body {
   margin-right: auto;
 }
 
+/* ==========================================================================
+   NEO-BRUTALIST DARK MODE (ABSENSI SCOPED OVERRIDES - HIGH SPECIFICITY)
+   ========================================================================== */
+/* Page background & main layout grid */
+body.body--dark .neo-page-bg {
+  background-color: #0b0f19 !important;
+  background-image: radial-gradient(#1e293b 1.5px, transparent 1.5px) !important;
+  background-size: 20px 20px !important;
+  color: #e2e8f0 !important;
+}
+
+/* Cards */
+body.body--dark .neo-card {
+  background: #1e293b !important;
+  border-color: #0f172a !important;
+  box-shadow: 4px 4px 0px #0f172a !important;
+  color: #f1f5f9 !important;
+}
+body.body--dark .neo-card:hover {
+  box-shadow: 8px 8px 0px #0f172a !important;
+}
+body.body--dark .neo-card .q-avatar {
+  border-color: #0f172a !important;
+}
+
+/* Specific Card Colors (Dark Pastel Swaps with Matching Neon Shadows) */
+body.body--dark .neo-card-indigo {
+  background: #1e1b4b !important;
+  border-color: #4f46e5 !important;
+  box-shadow: 4px 4px 0px #4f46e5 !important;
+  color: #c7d2fe !important;
+}
+body.body--dark .neo-card-indigo:hover {
+  box-shadow: 8px 8px 0px #4f46e5 !important;
+}
+body.body--dark .neo-card-indigo .text-blue-grey-10,
+body.body--dark .neo-card-indigo .text-blue-grey-8,
+body.body--dark .neo-card-indigo :deep(.text-blue-grey-10),
+body.body--dark .neo-card-indigo :deep(.text-blue-grey-8) {
+  color: #c7d2fe !important;
+}
+
+body.body--dark .neo-card-emerald {
+  background: #064e3b !important;
+  border-color: #10b981 !important;
+  box-shadow: 4px 4px 0px #10b981 !important;
+  color: #a7f3d0 !important;
+}
+body.body--dark .neo-card-emerald:hover {
+  box-shadow: 8px 8px 0px #10b981 !important;
+}
+body.body--dark .neo-card-emerald .text-blue-grey-10,
+body.body--dark .neo-card-emerald .text-blue-grey-8,
+body.body--dark .neo-card-emerald :deep(.text-blue-grey-10),
+body.body--dark .neo-card-emerald :deep(.text-blue-grey-8) {
+  color: #a7f3d0 !important;
+}
+
+body.body--dark .neo-card-orange {
+  background: #7c2d12 !important;
+  border-color: #f97316 !important;
+  box-shadow: 4px 4px 0px #f97316 !important;
+  color: #fed7aa !important;
+}
+body.body--dark .neo-card-orange:hover {
+  box-shadow: 8px 8px 0px #f97316 !important;
+}
+body.body--dark .neo-card-orange .text-blue-grey-10,
+body.body--dark .neo-card-orange .text-blue-grey-8,
+body.body--dark .neo-card-orange :deep(.text-blue-grey-10),
+body.body--dark .neo-card-orange :deep(.text-blue-grey-8) {
+  color: #fed7aa !important;
+}
+
+/* Avatars & Borders */
+body.body--dark .neo-avatar-border {
+  border-color: #0f172a !important;
+}
+
+/* Table toolbar and navigation elements */
+body.body--dark .neo-table-toolbar {
+  border-bottom-color: #0f172a !important;
+  background-color: #1e293b !important;
+}
+body.body--dark .neo-btn.bg-white {
+  background-color: #1e293b !important;
+  color: #f1f5f9 !important;
+}
+
+
+
+body.body--dark .neo-nav-btn {
+  border-color: #0f172a !important;
+  background: #1e293b !important;
+  color: #f1f5f9 !important;
+}
+body.body--dark .neo-nav-btn:hover {
+  background: #334155 !important;
+}
+
+/* Table styling override */
+body.body--dark .q-table__container {
+  background: #1e293b !important;
+  color: #f1f5f9 !important;
+  border: 2.5px solid #0f172a !important;
+  box-shadow: 4px 4px 0px #0f172a !important;
+}
+body.body--dark .premium-table {
+  color: #f1f5f9 !important;
+}
+body.body--dark .premium-table thead tr th,
+body.body--dark .premium-table :deep(thead tr th) {
+  background-color: #111827 !important;
+  color: #f8fafc !important;
+  border-bottom: 2.5px solid #0f172a !important;
+  font-weight: 700 !important;
+}
+body.body--dark .premium-table tbody tr td,
+body.body--dark .premium-table :deep(tbody tr td) {
+  background-color: #1e293b !important;
+  color: #f1f5f9 !important;
+  border-bottom: 1.5px solid #0f172a !important;
+}
+body.body--dark .premium-table .hover-effect:hover td,
+body.body--dark .premium-table :deep(.hover-effect:hover td) {
+  background-color: #2d3748 !important;
+}
+
+/* Text and common colors */
+body.body--dark .text-blue-grey-10 {
+  color: #f8fafc !important;
+}
+body.body--dark .text-blue-grey-9 {
+  color: #f1f5f9 !important;
+}
+body.body--dark .text-blue-grey-8 {
+  color: #cbd5e1 !important;
+}
+body.body--dark .text-blue-grey-7 {
+  color: #cbd5e1 !important;
+}
+body.body--dark .text-blue-grey-6 {
+  color: #94a3b8 !important;
+}
+body.body--dark .text-blue-grey-5 {
+  color: #cbd5e1 !important;
+}
+body.body--dark .text-blue-grey-4 {
+  color: #94a3b8 !important;
+}
+body.body--dark .text-grey-9 {
+  color: #f1f5f9 !important;
+}
+body.body--dark .text-grey-8 {
+  color: #cbd5e1 !important;
+}
+body.body--dark .text-grey-7 {
+  color: #94a3b8 !important;
+}
+body.body--dark .text-grey-6 {
+  color: #94a3b8 !important;
+}
+body.body--dark .text-black {
+  color: #f8fafc !important;
+}
+body.body--dark .text-dark {
+  color: #f1f5f9 !important;
+}
+
+/* Status colors and backgrounds overrides (Light pastel to dark neon) */
+body.body--dark .bg-blue-50 {
+  background-color: #1e1b4b !important;
+}
+body.body--dark .bg-teal-50 {
+  background-color: #064e3b !important;
+}
+body.body--dark .bg-orange-50 {
+  background-color: #7c2d12 !important;
+}
+body.body--dark .bg-red-50 {
+  background-color: #4c0519 !important;
+}
+body.body--dark .bg-indigo-50 {
+  background-color: #1e1b4b !important;
+}
+body.body--dark .bg-cyan-50 {
+  background-color: #083344 !important;
+}
+body.body--dark .bg-amber-50 {
+  background-color: #451a03 !important;
+}
+body.body--dark .bg-deep-purple-50 {
+  background-color: #2e1065 !important;
+}
+
+/* Readable status texts on dark backgrounds */
+body.body--dark .text-primary {
+  color: #38bdf8 !important;
+}
+body.body--dark .text-blue-6 {
+  color: #38bdf8 !important;
+}
+body.body--dark .text-teal-6,
+body.body--dark .text-teal-7 {
+  color: #34d399 !important;
+}
+body.body--dark .text-orange-6,
+body.body--dark .text-orange-7 {
+  color: #fb923c !important;
+}
+body.body--dark .text-red-6,
+body.body--dark .text-red-7 {
+  color: #f87171 !important;
+}
+body.body--dark .text-indigo-6 {
+  color: #818cf8 !important;
+}
+body.body--dark .text-cyan-6 {
+  color: #22d3ee !important;
+}
+body.body--dark .text-amber-9 {
+  color: #fbbf24 !important;
+}
+body.body--dark .text-deep-purple-6 {
+  color: #c084fc !important;
+}
+
+/* Global inputs & search bar overrides */
+body.body--dark .q-field .q-field__control {
+  background-color: #0d1117 !important;
+  color: #f1f5f9 !important;
+}
+body.body--dark .q-field--outlined .q-field__control {
+  border-color: #0f172a !important;
+  background-color: #0d1117 !important;
+}
+body.body--dark .q-field--outlined .q-field__control:before {
+  border-color: #0f172a !important;
+}
+body.body--dark .q-field--outlined .q-field__control:hover:before {
+  border-color: #38bdf8 !important;
+}
+body.body--dark .q-field__native,
+body.body--dark .q-field__prefix,
+body.body--dark .q-field__suffix,
+body.body--dark .q-field__input {
+  color: #e2e8f0 !important;
+}
+body.body--dark .q-field__input::placeholder {
+  color: #94a3b8 !important;
+}
+body.body--dark .q-field__label {
+  color: #94a3b8 !important;
+}
+body.body--dark .q-field__prepend .q-icon,
+body.body--dark .q-field__append .q-icon {
+  color: #94a3b8 !important;
+}
+
+/* AbsensiLayout header, drawer, and items */
+body.body--dark .neo-header {
+  background: linear-gradient(90deg, #0b0f19 0%, #1e293b 100%) !important;
+  border-bottom: 3.5px solid #0f172a !important;
+}
+body.body--dark .neo-drawer {
+  background-color: #0b0f19 !important;
+  border-right: 3.5px solid #0f172a !important;
+}
+body.body--dark .sidebar-scroll {
+  background: #0b0f19 !important;
+}
+body.body--dark .profile-box {
+  background: #111827 !important;
+  border-bottom: 2.5px dashed #0f172a !important;
+}
+body.body--dark .neo-profile-card {
+  background: #1e293b !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 4px 4px 0px #38bdf8 !important;
+}
+body.body--dark .neo-profile-card .text-grey-9 {
+  color: #f1f5f9 !important;
+}
+body.body--dark .neo-profile-card:hover {
+  box-shadow: 6px 6px 0px #38bdf8 !important;
+}
+body.body--dark .neo-avatar {
+  border-color: #38bdf8 !important;
+}
+body.body--dark .section-title {
+  color: #38bdf8 !important;
+}
+body.body--dark .sidebar-separator {
+  background: #0f172a !important;
+}
+
+/* Menu items inside sidebar */
+body.body--dark .menu-item {
+  color: #e2e8f0 !important;
+  border-color: transparent !important;
+}
+body.body--dark .menu-item.active-menu {
+  background: #2563eb !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 4px 4px 0px #38bdf8 !important;
+  color: #ffffff !important;
+}
+body.body--dark .menu-item.active-menu :deep(.q-icon),
+body.body--dark .menu-item.active-menu .q-icon {
+  color: #ffffff !important;
+}
+body.body--dark .menu-item:hover:not(.active-menu) {
+  background: #1e293b !important;
+  border-color: #0f172a !important;
+}
+body.body--dark .submenu-item {
+  color: #94a3b8 !important;
+}
+body.body--dark .submenu-item.active-menu {
+  color: #38bdf8 !important;
+}
+
+/* Lists and list items */
+body.body--dark .q-list {
+  color: #e2e8f0 !important;
+}
+body.body--dark .bg-white {
+  background-color: #1e293b !important;
+}
+body.body--dark .bg-grey-1 {
+  background-color: #0b0f19 !important;
+}
+body.body--dark .bg-grey-2 {
+  background-color: #0b0f19 !important;
+}
+body.body--dark .bg-grey-3 {
+  background-color: #111827 !important;
+}
