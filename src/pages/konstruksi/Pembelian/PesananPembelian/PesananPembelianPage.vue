@@ -1562,10 +1562,10 @@ const poFormDefault = {
   prepared_by: '',
   prepared_by_jabatan: '',
   requested_by: '',
-  checked_by: '',
-  checked_by_jabatan: '',
-  approved_by: '',
-  approved_by_jabatan: '',
+  checked_by: 'AYU YUNINGSIH',
+  checked_by_jabatan: 'finance',
+  approved_by: 'HAFIDZ AGUS PRATAMA',
+  approved_by_jabatan: 'project manager',
   approved_supplier: '',
 }
 
@@ -1726,8 +1726,6 @@ const openPoForm = async () => {
       slogan_pt: config.value.slogan_pt || poFormDefault.slogan_pt,
       nomor: generatedNo,
       prepared_by: userData.value?.nama || authStore.user?.nama || '',
-      checked_by: '',
-      approved_by: '',
     }
     poViewMode.value = 'form'
   } catch (e) {

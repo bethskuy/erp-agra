@@ -492,13 +492,51 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
-import { db, storage } from 'src/boot/firebase'
+import { db } from 'src/boot/firebase'
 import { collection, query, where, onSnapshot, doc, updateDoc } from 'firebase/firestore'
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
 
 const $q = useQuasar()
 const fileInput = ref(null)
 const editDialog = ref(false)
+
+const compressImageToBase64 = (file, maxWidth = 300, maxHeight = 300, quality = 0.7) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = (event) => {
+      const img = new Image()
+      img.src = event.target.result
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        let width = img.width
+        let height = img.height
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width)
+            width = maxWidth
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height)
+            height = maxHeight
+          }
+        }
+
+        canvas.width = width
+        canvas.height = height
+
+        const ctx = canvas.getContext('2d')
+        ctx.drawImage(img, 0, 0, width, height)
+
+        const dataUrl = canvas.toDataURL('image/jpeg', quality)
+        resolve(dataUrl)
+      }
+      img.onerror = (err) => reject(err)
+    }
+    reader.onerror = (err) => reject(err)
+  })
+}
 
 const user = ref({
   id: '',
@@ -608,10 +646,8 @@ const onFileChange = async (e) => {
 
   $q.loading.show({ message: 'Mengunggah foto profil...' })
   try {
-    // 1. Upload ke Firebase Storage
-    const fRef = storageRef(storage, `karyawan/avatars/${Date.now()}_${file.name}`)
-    await uploadBytes(fRef, file)
-    const url = await getDownloadURL(fRef)
+    // 1. Kompresi gambar ke Base64
+    const url = await compressImageToBase64(file, 200, 200, 0.7)
 
     // 2. Simpan URL ke Firestore
     if (user.value.id) {

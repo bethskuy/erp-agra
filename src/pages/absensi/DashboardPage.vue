@@ -729,7 +729,7 @@
 <script setup>
 /*eslint-disable*/
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
-import { db, storage } from 'src/boot/firebase'
+import { db } from 'src/boot/firebase'
 import {
   collection,
   addDoc,
@@ -743,12 +743,45 @@ import {
   where,
   Timestamp,
 } from 'firebase/firestore'
-import { ref as storageRef, uploadString, getDownloadURL } from 'firebase/storage'
 import { useQuasar, date } from 'quasar'
 import { useRouter } from 'vue-router'
 
 const $q = useQuasar()
 const router = useRouter()
+
+const compressBase64Image = (base64Str, maxWidth = 300, maxHeight = 300, quality = 0.7) => {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.src = base64Str
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      let width = img.width
+      let height = img.height
+
+      if (width > height) {
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width)
+          width = maxWidth
+        }
+      } else {
+        if (height > maxHeight) {
+          width = Math.round((width * maxHeight) / height)
+          height = maxHeight
+        }
+      }
+
+      canvas.width = width
+      canvas.height = height
+
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(img, 0, 0, width, height)
+
+      const dataUrl = canvas.toDataURL('image/jpeg', quality)
+      resolve(dataUrl)
+    }
+    img.onerror = (err) => reject(err)
+  })
+}
 
 let timer, unsubMe, unsubAll, unsubUser, unsubLokasi, locationTimer, unsubPemberitahuan
 const currentHours = ref(''),
@@ -1268,11 +1301,13 @@ const executeAbsensiAction = async () => {
 
 const uploadOrGetBase64 = async (base64Data, filename) => {
   if (!base64Data) return null
-  const stringLength = base64Data.split(',')[1]?.length || base64Data.length
-  if ((stringLength * 0.75) / 1024 < 500) return base64Data
-  const fRef = storageRef(storage, `absensi/${filename}_${Date.now()}.jpg`)
-  await uploadString(fRef, base64Data, 'data_url')
-  return await getDownloadURL(fRef)
+  try {
+    const compressed = await compressBase64Image(base64Data, 400, 400, 0.7)
+    return compressed
+  } catch (e) {
+    console.error('Failed to compress base64 image:', e)
+    return base64Data
+  }
 }
 
 const saveAbsensi = async () => {

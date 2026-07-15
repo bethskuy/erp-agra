@@ -1538,6 +1538,45 @@ import { useAuthStore } from 'src/stores/auth'
 const $q = useQuasar()
 const authStore = useAuthStore()
 
+const compressImageToBase64 = (file, maxWidth = 300, maxHeight = 300, quality = 0.7) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = (event) => {
+      const img = new Image()
+      img.src = event.target.result
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        let width = img.width
+        let height = img.height
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width)
+            width = maxWidth
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height)
+            height = maxHeight
+          }
+        }
+
+        canvas.width = width
+        canvas.height = height
+
+        const ctx = canvas.getContext('2d')
+        ctx.drawImage(img, 0, 0, width, height)
+
+        const dataUrl = canvas.toDataURL('image/jpeg', quality)
+        resolve(dataUrl)
+      }
+      img.onerror = (err) => reject(err)
+    }
+    reader.onerror = (err) => reject(err)
+  })
+}
+
 const currentView = ref('list')
 const filter = ref('')
 const selectedKaryawanId = ref('')
@@ -1799,19 +1838,12 @@ const saveKaryawan = async () => {
   try {
     let fotoUrl = form.value.fotoUrl || null
     if (fotoFile.value) {
-      const fRef = storageRef(storage, `karyawan/avatars/${Date.now()}_${fotoFile.value.name}`)
-      await uploadBytes(fRef, fotoFile.value)
-      fotoUrl = await getDownloadURL(fRef)
+      fotoUrl = await compressImageToBase64(fotoFile.value, 200, 200, 0.7)
     }
 
     let fotoRegistrasiUrl = form.value.foto_registrasi || null
     if (fotoRegistrasiFile.value) {
-      const regRef = storageRef(
-        storage,
-        `karyawan/registrasi/${Date.now()}_${fotoRegistrasiFile.value.name}`,
-      )
-      await uploadBytes(regRef, fotoRegistrasiFile.value)
-      fotoRegistrasiUrl = await getDownloadURL(regRef)
+      fotoRegistrasiUrl = await compressImageToBase64(fotoRegistrasiFile.value, 400, 400, 0.8)
     }
 
     const uploadedDocs = []
