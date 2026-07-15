@@ -931,15 +931,25 @@
                       class="neo-btn text-weight-bolder font-inter"
                       @click="generateReportData"
                     />
-                    <q-btn
-                      v-if="reportGenerated && reportData.length > 0"
-                      unelevated
-                      color="slate-900"
-                      icon="print"
-                      label="Cetak Laporan"
-                      class="neo-btn bg-slate-900 text-white text-weight-bolder font-inter"
-                      @click="triggerPrint"
-                    />
+                    <div v-if="reportGenerated && reportData.length > 0" class="row q-gutter-x-sm">
+                      <q-btn
+                        unelevated
+                        color="slate-900"
+                        icon="print"
+                        label="Cetak Laporan"
+                        class="neo-btn bg-slate-900 text-white text-weight-bolder font-inter"
+                        @click="triggerPrint"
+                      />
+                      <q-btn
+                        unelevated
+                        color="teal-6"
+                        icon="file_download"
+                        label="Ekspor Laporan (Excel)"
+                        class="neo-btn bg-teal-6 text-white text-weight-bolder font-inter"
+                        @click="exportToExcel"
+                        :loading="isExporting"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1583,6 +1593,7 @@ const totalUpahManufaktur = computed(() => {
 
 // --- Report/Rekap State ---
 const reportGenerated = ref(false)
+const isExporting = ref(false)
 const rekapRange = ref({
   dari: date.formatDate(new Date(), 'YYYY-MM-DD'),
   sampai: date.formatDate(new Date(), 'YYYY-MM-DD'),
@@ -2210,6 +2221,553 @@ const getStatusClass = (st) => {
 
 const triggerPrint = () => {
   window.print()
+}
+
+// helpers untuk export Excel
+const loadExcelJS = () => {
+  return new Promise((resolve, reject) => {
+    if (window.ExcelJS) {
+      resolve(window.ExcelJS)
+      return
+    }
+    const script = document.createElement('script')
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js'
+    script.onload = () => resolve(window.ExcelJS)
+    script.onerror = () => reject(new Error('Gagal memuat ExcelJS'))
+    document.head.appendChild(script)
+  })
+}
+
+const getBase64Image = async (url) => {
+  try {
+    const res = await fetch(url)
+    const blob = await res.blob()
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onloadend = () => resolve(reader.result)
+      reader.onerror = reject
+      reader.readAsDataURL(blob)
+    })
+  } catch (e) {
+    console.error('Failed to load image as base64', e)
+    return null
+  }
+}
+
+const colIndexToLabel = (index) => {
+  let label = ''
+  let temp = index
+  while (temp >= 0) {
+    label = String.fromCharCode((temp % 26) + 65) + label
+    temp = Math.floor(temp / 26) - 1
+  }
+  return label
+}
+
+const exportToExcel = async () => {
+  if (reportData.value.length === 0) return
+  isExporting.value = true
+
+  try {
+    const ExcelJS = await loadExcelJS()
+    const workbook = new ExcelJS.Workbook()
+    const worksheet = workbook.addWorksheet('Rekap Absensi Harian Lepas')
+    worksheet.views = [{ showGridLines: true }]
+
+    const projectName = selectedProjectData.value?.nama || 'Proyek'
+    const dariIndo = formatTanggalIndo(rekapRange.value.dari)
+    const sampaiIndo = formatTanggalIndo(rekapRange.value.sampai)
+
+    // Siapkan list array tanggal range rekap
+    const dateList = []
+    let curDate = new Date(rekapRange.value.dari)
+    const endDate = new Date(rekapRange.value.sampai)
+    while (curDate <= endDate) {
+      dateList.push(date.formatDate(curDate, 'YYYY-MM-DD'))
+      curDate.setDate(curDate.getDate() + 1)
+    }
+    const nDays = dateList.length
+
+    // Definisikan letak kolom (0-based)
+    const colIdxNo = 0
+    const colIdxNama = 1
+    const colIdxJabatan = 2
+    const colIdxStatus = 3
+    const colIdxAktivitas = 4
+    const colIdxDateStart = 5
+    const colIdxDateEnd = 5 + nDays - 1
+    const colIdxSeparator = 5 + nDays
+    const colIdxUM = 5 + nDays + 1
+    const colIdxLembur = 5 + nDays + 2
+    const colIdxHargaUM = 5 + nDays + 3
+    const colIdxHargaLembur = 5 + nDays + 4
+    const colIdxTotalUM = 5 + nDays + 5
+    const colIdxTotalLembur = 5 + nDays + 6
+    const colIdxTotalGaji = 5 + nDays + 7
+    const colIdxCashbon = 5 + nDays + 8
+    const colIdxDiterima = 5 + nDays + 9
+
+    const colLetterDateStart = colIndexToLabel(colIdxDateStart)
+    const colLetterDateEnd = colIndexToLabel(colIdxDateEnd)
+    const colLetterSeparator = colIndexToLabel(colIdxSeparator)
+    const colLetterUM = colIndexToLabel(colIdxUM)
+    const colLetterLembur = colIndexToLabel(colIdxLembur)
+    const colLetterHargaUM = colIndexToLabel(colIdxHargaUM)
+    const colLetterHargaLembur = colIndexToLabel(colIdxHargaLembur)
+    const colLetterTotalUM = colIndexToLabel(colIdxTotalUM)
+    const colLetterTotalLembur = colIndexToLabel(colIdxTotalLembur)
+    const colLetterTotalGaji = colIndexToLabel(colIdxTotalGaji)
+    const colLetterCashbon = colIndexToLabel(colIdxCashbon)
+    const colLetterDiterima = colIndexToLabel(colIdxDiterima)
+    const colLetterLast = colIndexToLabel(colIdxDiterima)
+
+    // Merging Title Block
+    worksheet.mergeCells('A1:B2')
+    worksheet.mergeCells(`C1:${colLetterLast}1`)
+    worksheet.mergeCells(`C2:${colLetterLast}2`)
+
+    worksheet.getRow(1).height = 30
+    worksheet.getRow(2).height = 24
+    worksheet.getRow(3).height = 15
+
+    worksheet.getCell('C1').value = `LAPORAN ABSENSI HARIAN LEPAS - ${projectName.toUpperCase()}`
+    worksheet.getCell('C2').value = `PERIODE: ${dariIndo.toUpperCase()} S.D. ${sampaiIndo.toUpperCase()}`
+
+    const headerFill = {
+      type: 'pattern',
+      pattern: 'solid',
+      fgColor: { argb: 'FF1F4E78' } // Navy Blue
+    }
+
+    // Set background title
+    for (let r = 1; r <= 2; r++) {
+      const row = worksheet.getRow(r)
+      for (let c = 1; c <= colIdxDiterima + 1; c++) {
+        row.getCell(c).fill = headerFill
+      }
+    }
+
+    const titleCell = worksheet.getCell('C1')
+    titleCell.font = { name: 'Segoe UI', size: 14, bold: true, color: { argb: 'FFFFFFFF' } }
+    titleCell.alignment = { horizontal: 'center', vertical: 'middle' }
+
+    const subtitleCell = worksheet.getCell('C2')
+    subtitleCell.font = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FFFFFFFF' } }
+    subtitleCell.alignment = { horizontal: 'center', vertical: 'middle' }
+
+    // Embed logo
+    const logoBase64 = await getBase64Image('/icons/logo-agra.png')
+    if (logoBase64) {
+      const imageId = workbook.addImage({
+        base64: logoBase64,
+        extension: 'png',
+      })
+      worksheet.addImage(imageId, {
+        tl: { col: 0.1, row: 0.1 },
+        br: { col: 1.9, row: 1.9 },
+        editAs: 'oneCell'
+      })
+    }
+
+    // styling borders & fills
+    const thinBorder = {
+      top: { style: 'thin', color: { argb: 'FF000000' } },
+      bottom: { style: 'thin', color: { argb: 'FF000000' } },
+      left: { style: 'thin', color: { argb: 'FF000000' } },
+      right: { style: 'thin', color: { argb: 'FF000000' } }
+    }
+
+    const doubleBottomBorder = {
+      top: { style: 'thin', color: { argb: 'FF000000' } },
+      bottom: { style: 'double', color: { argb: 'FF000000' } },
+      left: { style: 'thin', color: { argb: 'FF000000' } },
+      right: { style: 'thin', color: { argb: 'FF000000' } }
+    }
+
+    const styleCell = (cell, options = {}) => {
+      if (options.font) cell.font = options.font
+      if (options.fill) cell.fill = options.fill
+      if (options.alignment) cell.alignment = options.alignment
+      if (options.border) cell.border = options.border
+      if (options.numFormat) cell.numFormat = options.numFormat
+    }
+
+    // Double Row Table Header (Baris 4 & 5)
+    worksheet.getRow(4).height = 22
+    worksheet.getRow(5).height = 22
+
+    // Merge static header columns vertically
+    const staticHeaders = [
+      { col: 1, label: 'No' },
+      { col: 2, label: 'NAMA' },
+      { col: 3, label: 'JABATAN' },
+      { col: 4, label: 'STATUS' },
+      { col: 5, label: 'AKTIVITAS' }
+    ]
+    staticHeaders.forEach(sh => {
+      const letter = colIndexToLabel(sh.col - 1)
+      worksheet.mergeCells(`${letter}4:${letter}5`)
+      const cell = worksheet.getCell(`${letter}4`)
+      cell.value = sh.label
+    })
+
+    // Grouping months for Date columns
+    const monthsIndo = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ]
+    const monthNames = dateList.map(dStr => {
+      const parts = dStr.split('-')
+      const mIdx = parseInt(parts[1]) - 1
+      const yStr = parts[0]
+      return `${monthsIndo[mIdx]} ${yStr}`
+    })
+
+    const segments = []
+    let startIdx = 0
+    for (let i = 1; i <= monthNames.length; i++) {
+      if (i === monthNames.length || monthNames[i] !== monthNames[startIdx]) {
+        segments.push({
+          name: monthNames[startIdx],
+          startIdx: startIdx,
+          endIdx: i - 1
+        })
+        startIdx = i
+      }
+    }
+
+    // Write month headers in row 4
+    segments.forEach(seg => {
+      const colStart = colIdxDateStart + seg.startIdx
+      const colEnd = colIdxDateStart + seg.endIdx
+      const lStart = colIndexToLabel(colStart)
+      const lEnd = colIndexToLabel(colEnd)
+      worksheet.mergeCells(`${lStart}4:${lEnd}4`)
+      const cell = worksheet.getCell(`${lStart}4`)
+      cell.value = seg.name.toUpperCase()
+    })
+
+    // Write day numbers in row 5
+    for (let i = 0; i < nDays; i++) {
+      const colIdx = colIdxDateStart + i
+      const letter = colIndexToLabel(colIdx)
+      const dayNum = parseInt(dateList[i].split('-')[2])
+      const cell = worksheet.getCell(`${letter}5`)
+      cell.value = dayNum
+    }
+
+    // Write summary headers
+    const summaryHeaders = [
+      { colIdx: colIdxSeparator, label: '' },
+      { colIdx: colIdxUM, label: 'UM' },
+      { colIdx: colIdxLembur, label: 'LEMBUR' },
+      { colIdx: colIdxHargaUM, label: 'HARGA UM' },
+      { colIdx: colIdxHargaLembur, label: 'HARGA LEMBUR' },
+      { colIdx: colIdxTotalUM, label: 'TOTAL UM' },
+      { colIdx: colIdxTotalLembur, label: 'TOTAL LEMBUR' },
+      { colIdx: colIdxTotalGaji, label: 'TOTAL GAJI' },
+      { colIdx: colIdxCashbon, label: 'CASHBON' },
+      { colIdx: colIdxDiterima, label: 'DITERIMA' }
+    ]
+
+    summaryHeaders.forEach(sh => {
+      const letter = colIndexToLabel(sh.colIdx)
+      worksheet.mergeCells(`${letter}4:${letter}5`)
+      const cell = worksheet.getCell(`${letter}4`)
+      cell.value = sh.label
+    })
+
+    // Style Header Cells
+    const headerFont = { name: 'Segoe UI', size: 10, bold: true, color: { argb: 'FF000000' } }
+    const headerBgFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE9EEF4' } }
+    const yellowBgFill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEAB308' } }
+
+    for (let r = 4; r <= 5; r++) {
+      const row = worksheet.getRow(r)
+      for (let c = 1; c <= colIdxDiterima + 1; c++) {
+        const cell = row.getCell(c)
+        styleCell(cell, {
+          font: headerFont,
+          fill: c === colIdxSeparator + 1 ? yellowBgFill : headerBgFill,
+          alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+          border: thinBorder
+        })
+      }
+    }
+
+    // Loop data rekap (Mandor & Pekerja)
+    let currentRow = 6
+
+    reportData.value.forEach(m => {
+      if (!m.pekerja || m.pekerja.length === 0) return
+
+      // Baris Header Kelompok Mandor
+      worksheet.mergeCells(`A${currentRow}:${colLetterLast}${currentRow}`)
+      const grpRow = worksheet.getRow(currentRow)
+      grpRow.height = 24
+      
+      const grpCell = grpRow.getCell(1)
+      grpCell.value = `KELOMPOK MANDOR: ${m.nama.toUpperCase()} | BIDANG: ${(m.bidang || 'Umum').toUpperCase()}`
+      
+      const mandorHeaderFont = { name: 'Segoe UI', size: 11, bold: true, color: { argb: 'FF000000' } }
+      const mandorHeaderBg = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } }
+
+      for (let c = 1; c <= colIdxDiterima + 1; c++) {
+        styleCell(grpRow.getCell(c), {
+          font: mandorHeaderFont,
+          fill: mandorHeaderBg,
+          alignment: { horizontal: 'left', vertical: 'middle' },
+          border: thinBorder
+        })
+      }
+
+      currentRow++
+      const startWorkerRow = currentRow
+
+      // Loop Pekerja dalam Mandor
+      m.pekerja.forEach((p, pi) => {
+        const r = currentRow
+        const rowUM = worksheet.getRow(r)
+        const rowLembur = worksheet.getRow(r + 1)
+        rowUM.height = 20
+        rowLembur.height = 20
+
+        // Ambil data asli rate harga dari local state
+        const origM = mandors.value.find(orig => orig.id === m.id)
+        const origP = origM?.pekerja?.find(origWorker => origWorker.id === p.id)
+        const upahHari = origP?.upahHari || 0
+        const koef = origP?.koef || 1.0
+        const upahLembur = origP?.upahLembur !== undefined ? origP.upahLembur : (projectSetup.value.lembur || 0)
+        const koefLembur = origP?.koefLembur || 1.0
+
+        const effHargaUM = upahHari * koef
+        const effHargaLembur = upahLembur * koefLembur
+
+        // Merge Vertikal Kolom Identitas Pekerja (No, NAMA, JABATAN, STATUS)
+        const identitasCols = [
+          { idx: colIdxNo, val: pi + 1, align: 'center' },
+          { idx: colIdxNama, val: p.nama.toUpperCase(), align: 'left' },
+          { idx: colIdxJabatan, val: p.jabatan.toUpperCase(), align: 'left' },
+          { idx: colIdxStatus, val: 'HARIAN', align: 'center' }
+        ]
+
+        identitasCols.forEach(col => {
+          const letter = colIndexToLabel(col.idx)
+          worksheet.mergeCells(`${letter}${r}:${letter}${r+1}`)
+          const cell = worksheet.getCell(`${letter}${r}`)
+          cell.value = col.val
+          styleCell(cell, {
+            font: { name: 'Segoe UI', size: 10, bold: col.idx === colIdxNama },
+            alignment: { horizontal: col.align, vertical: 'middle' },
+            border: thinBorder
+          })
+          worksheet.getCell(`${letter}${r+1}`).border = thinBorder
+        })
+
+        // Kolom AKTIVITAS (E)
+        rowUM.getCell(colIdxAktivitas + 1).value = 'UM'
+        rowLembur.getCell(colIdxAktivitas + 1).value = 'Lembur'
+        
+        styleCell(rowUM.getCell(colIdxAktivitas + 1), {
+          font: { name: 'Segoe UI', size: 10, bold: true },
+          alignment: { horizontal: 'center', vertical: 'middle' },
+          border: thinBorder
+        })
+        styleCell(rowLembur.getCell(colIdxAktivitas + 1), {
+          font: { name: 'Segoe UI', size: 10, bold: true },
+          alignment: { horizontal: 'center', vertical: 'middle' },
+          border: thinBorder
+        })
+
+        // Day Matrix columns (F s.d Last Date)
+        for (let d = 0; d < nDays; d++) {
+          const tgl = dateList[d]
+          const colIdx = colIdxDateStart + d
+          const letter = colIndexToLabel(colIdx)
+          const log = attendanceData.value[tgl]?.[m.id]?.[p.id]
+
+          if (log && (log.status === 'hadir' || log.status === 'setengah')) {
+            const cellUM = rowUM.getCell(colIdx + 1)
+            cellUM.value = log.status === 'hadir' ? 1 : 0.5
+            styleCell(cellUM, {
+              font: { name: 'Segoe UI', size: 10 },
+              alignment: { horizontal: 'center', vertical: 'middle' },
+              border: thinBorder
+            })
+
+            const cellLembur = rowLembur.getCell(colIdx + 1)
+            cellLembur.value = log.lembur > 0 ? parseFloat(log.lembur) : ''
+            styleCell(cellLembur, {
+              font: { name: 'Segoe UI', size: 10 },
+              alignment: { horizontal: 'center', vertical: 'middle' },
+              border: thinBorder
+            })
+          } else {
+            // Merged OFF cells
+            worksheet.mergeCells(`${letter}${r}:${letter}${r+1}`)
+            const offCell = worksheet.getCell(`${letter}${r}`)
+            offCell.value = 'off'
+            styleCell(offCell, {
+              font: { name: 'Segoe UI', size: 9, bold: true, color: { argb: 'FFFFFFFF' } },
+              fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF990000' } }, // Dark Red
+              alignment: { horizontal: 'center', vertical: 'middle' },
+              border: thinBorder
+            })
+            worksheet.getCell(`${letter}${r+1}`).border = thinBorder
+          }
+        }
+
+        // Separator Column (Yellow)
+        const letterSep = colIndexToLabel(colIdxSeparator)
+        worksheet.mergeCells(`${letterSep}${r}:${letterSep}${r+1}`)
+        const sepCell = worksheet.getCell(`${letterSep}${r}`)
+        styleCell(sepCell, {
+          fill: yellowBgFill,
+          border: thinBorder
+        })
+        worksheet.getCell(`${letterSep}${r+1}`).border = thinBorder
+
+        // Merge Vertikal Kolom Perhitungan Upah
+        const wageCols = [
+          { idx: colIdxUM, f: `=SUM(${colLetterDateStart}${r}:${colLetterDateEnd}${r})`, format: '0.0' },
+          { idx: colIdxLembur, f: `=SUM(${colLetterDateStart}${r+1}:${colLetterDateEnd}${r+1})`, format: '0.0' },
+          { idx: colIdxHargaUM, val: effHargaUM, format: '#,##0' },
+          { idx: colIdxHargaLembur, val: effHargaLembur, format: '#,##0' },
+          { idx: colIdxTotalUM, f: `=${colLetterUM}${r} * ${colLetterHargaUM}${r}`, format: '#,##0' },
+          { idx: colIdxTotalLembur, f: `=${colLetterLembur}${r} * ${colLetterHargaLembur}${r}`, format: '#,##0' },
+          { idx: colIdxTotalGaji, f: `=${colLetterTotalUM}${r} + ${colLetterTotalLembur}${r}`, format: '#,##0' },
+          { idx: colIdxCashbon, val: 0, format: '#,##0' },
+          { idx: colIdxDiterima, f: `=${colLetterTotalGaji}${r} - ${colLetterCashbon}${r}`, format: '#,##0' }
+        ]
+
+        wageCols.forEach(col => {
+          const letter = colIndexToLabel(col.idx)
+          worksheet.mergeCells(`${letter}${r}:${letter}${r+1}`)
+          const cell = worksheet.getCell(`${letter}${r}`)
+          
+          if (col.f) {
+            cell.value = { formula: col.f }
+          } else {
+            cell.value = col.val
+          }
+
+          styleCell(cell, {
+            font: { name: 'Segoe UI', size: 10, bold: col.idx >= colIdxTotalUM },
+            alignment: { horizontal: 'right', vertical: 'middle' },
+            border: thinBorder,
+            numFormat: col.format
+          })
+          worksheet.getCell(`${letter}${r+1}`).border = thinBorder
+        })
+
+        currentRow += 2
+      })
+
+      // Baris JUMLAH Mandor
+      const rJumlah = currentRow
+      worksheet.mergeCells(`A${rJumlah}:${colLetterSeparator}${rJumlah}`)
+      
+      const sumRow = worksheet.getRow(rJumlah)
+      sumRow.height = 22
+      
+      const sumLabelCell = sumRow.getCell(1)
+      sumLabelCell.value = 'JUMLAH'
+      
+      styleCell(sumLabelCell, {
+        font: { name: 'Segoe UI', size: 10, bold: true },
+        alignment: { horizontal: 'center', vertical: 'middle' },
+        border: doubleBottomBorder
+      })
+
+      // Set border double bottom untuk semua kolom yang dimerge
+      for (let c = 1; c <= colIdxSeparator + 1; c++) {
+        sumRow.getCell(c).border = doubleBottomBorder
+        sumRow.getCell(c).fill = headerBgFill
+      }
+
+      // Rumus Sum untuk kolom total
+      const totalColSumList = [
+        { idx: colIdxUM, format: '0.0' },
+        { idx: colIdxLembur, format: '0.0' },
+        { idx: colIdxTotalUM, format: '#,##0' },
+        { idx: colIdxTotalLembur, format: '#,##0' },
+        { idx: colIdxTotalGaji, format: '#,##0' },
+        { idx: colIdxCashbon, format: '#,##0' },
+        { idx: colIdxDiterima, format: '#,##0' }
+      ]
+
+      totalColSumList.forEach(col => {
+        const letter = colIndexToLabel(col.idx)
+        const cell = sumRow.getCell(col.idx + 1)
+        cell.value = { formula: `=SUM(${letter}${startWorkerRow}:${letter}${currentRow-1})` }
+        styleCell(cell, {
+          font: { name: 'Segoe UI', size: 10, bold: true },
+          fill: headerBgFill,
+          alignment: { horizontal: 'right', vertical: 'middle' },
+          border: doubleBottomBorder,
+          numFormat: col.format
+        })
+      })
+
+      // Untuk kolom Harga yang tidak perlu sum
+      const nonSumColIdx = [colIdxHargaUM, colIdxHargaLembur]
+      nonSumColIdx.forEach(colIdx => {
+        const cell = sumRow.getCell(colIdx + 1)
+        cell.value = ''
+        styleCell(cell, {
+          fill: headerBgFill,
+          border: doubleBottomBorder
+        })
+      })
+
+      currentRow++
+      // Beri spasi kosong
+      currentRow += 2
+    })
+
+    // Set kolom width
+    worksheet.getColumn(colIdxNo + 1).width = 5
+    worksheet.getColumn(colIdxNama + 1).width = 25
+    worksheet.getColumn(colIdxJabatan + 1).width = 18
+    worksheet.getColumn(colIdxStatus + 1).width = 12
+    worksheet.getColumn(colIdxAktivitas + 1).width = 10
+    
+    for (let i = 0; i < nDays; i++) {
+      worksheet.getColumn(colIdxDateStart + i + 1).width = 5
+    }
+    
+    worksheet.getColumn(colIdxSeparator + 1).width = 2
+    worksheet.getColumn(colIdxUM + 1).width = 8
+    worksheet.getColumn(colIdxLembur + 1).width = 8
+    worksheet.getColumn(colIdxHargaUM + 1).width = 14
+    worksheet.getColumn(colIdxHargaLembur + 1).width = 14
+    worksheet.getColumn(colIdxTotalUM + 1).width = 16
+    worksheet.getColumn(colIdxTotalLembur + 1).width = 16
+    worksheet.getColumn(colIdxTotalGaji + 1).width = 16
+    worksheet.getColumn(colIdxCashbon + 1).width = 12
+    worksheet.getColumn(colIdxDiterima + 1).width = 16
+
+    const buffer = await workbook.xlsx.writeBuffer()
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+    const filename = `Rekap_Absensi_Harian_Lepas_${projectName.replace(/\s+/g, '_')}_${rekapRange.value.dari}_s.d_${rekapRange.value.sampai}.xlsx`
+    
+    const link = document.createElement('a')
+    link.href = window.URL.createObjectURL(blob)
+    link.download = filename
+    link.click()
+    window.URL.revokeObjectURL(link.href)
+
+    $q.notify({
+      message: 'Berhasil mengunduh laporan Excel!',
+      color: 'positive',
+      icon: 'check_circle',
+    })
+  } catch (error) {
+    console.error('Gagal mengekspor Excel:', error)
+    $q.notify({ message: 'Gagal memproses file Excel.', color: 'negative', icon: 'error' })
+  } finally {
+    isExporting.value = false
+  }
 }
 
 // --- Lifecycle Hook ---
