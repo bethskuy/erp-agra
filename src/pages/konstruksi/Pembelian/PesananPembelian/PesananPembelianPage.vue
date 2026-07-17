@@ -1562,7 +1562,7 @@ const poFormDefault = {
   prepared_by: '',
   prepared_by_jabatan: '',
   requested_by: '',
-  checked_by: 'AYU YUNINGSIH',
+  checked_by: 'ETI YUNINGSIH',
   checked_by_jabatan: 'finance',
   approved_by: 'HAFIDZ AGUS PRATAMA',
   approved_by_jabatan: 'project manager',
