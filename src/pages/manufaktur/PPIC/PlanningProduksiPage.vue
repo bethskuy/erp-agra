@@ -252,6 +252,27 @@
                   </div>
                 </q-td>
 
+                <!-- Overall Planning Progress -->
+                <q-td key="progress" :props="props">
+                  <div class="dept-progress-item">
+                    <div class="dept-row">
+                      <span class="dept-name">Overall</span>
+                      <span class="dept-pct">{{ formatPercent(props.row.progress) }}%</span>
+                    </div>
+                    <q-linear-progress
+                      rounded
+                      size="8px"
+                      :value="Number(props.row.progress || 0) / 100"
+                      :color="progressColor(props.row.progress)"
+                      track-color="grey-10"
+                    />
+                    <div class="dept-qty">
+                      {{ formatNumber(props.row.total_produced) }} /
+                      {{ formatNumber(props.row.quantity) }}
+                    </div>
+                  </div>
+                </q-td>
+
                 <!-- Quantity -->
                 <q-td key="quantity" :props="props">
                   <div class="cell-qty">
@@ -311,6 +332,28 @@
                       @click="openGenerateDialog(props.row)"
                     >
                       <q-tooltip>Buat draft planning dari master project</q-tooltip>
+                    </q-btn>
+                    <q-btn
+                      v-if="props.row.is_generated"
+                      flat
+                      round
+                      dense
+                      class="btn-action-approve"
+                      icon="route"
+                      @click="openEditRoutingDialog(props.row)"
+                    >
+                      <q-tooltip>Edit routing department</q-tooltip>
+                    </q-btn>
+                    <q-btn
+                      v-if="props.row.is_generated"
+                      flat
+                      round
+                      dense
+                      class="btn-action-approve"
+                      icon="event_repeat"
+                      @click="openScheduleForPlanning(props.row)"
+                    >
+                      <q-tooltip>Regenerate schedule</q-tooltip>
                     </q-btn>
                     <q-btn
                       v-if="props.row.is_generated"
@@ -408,6 +451,132 @@
         </div>
 
         <div class="glass-card table-card">
+          <div class="workload-header">
+            <div class="workload-title">
+              <q-icon name="inventory_2" size="22px" color="cyan" />
+              <span>Item Schedule Breakdown</span>
+            </div>
+            <div class="workload-chip workload-chip-sm">
+              {{ selectedScheduleItems.length }} item
+            </div>
+          </div>
+          <div class="planning-table-wrapper">
+            <q-table
+              :rows="selectedScheduleItems"
+              :columns="scheduleItemColumns"
+              row-key="itemId"
+              flat
+              binary-state-sort
+              :pagination="{ rowsPerPage: 0 }"
+              hide-pagination
+              class="planning-table"
+              color="cyan"
+            >
+              <template #header="props">
+                <q-tr :props="props" class="planning-thead-row">
+                  <q-th v-for="col in props.cols" :key="col.name" :props="props" class="table-head">
+                    {{ col.label }}
+                  </q-th>
+                </q-tr>
+              </template>
+
+              <template #body-cell-progressPercentage="props">
+                <q-td :props="props">
+                  <div style="min-width: 150px;">
+                    <q-linear-progress
+                      :value="progressValue(props.row)"
+                      :color="props.row.status === 'completed' ? 'positive' : 'cyan'"
+                      track-color="grey-8"
+                      rounded
+                      size="10px"
+                    />
+                    <div class="text-caption text-grey-4 q-mt-xs">
+                      {{ Number(props.row.progressPercentage || 0).toFixed(1) }}%
+                    </div>
+                  </div>
+                </q-td>
+              </template>
+
+              <template #no-data>
+                <div class="no-data-wrap">
+                  <q-icon name="inventory_2" size="48px" color="grey-8" />
+                  <div class="no-data-text">Belum ada breakdown item schedule</div>
+                </div>
+              </template>
+            </q-table>
+          </div>
+        </div>
+
+        <div class="glass-card table-card" style="margin-top: 20px;">
+          <div class="workload-header">
+            <div class="workload-title">
+              <q-icon name="view_day" size="22px" color="cyan" />
+              <span>Daily Schedule Breakdown</span>
+            </div>
+            <div class="workload-chip workload-chip-sm">
+              {{ selectedScheduleDays.length }} hari
+            </div>
+          </div>
+          <div class="planning-table-wrapper">
+            <q-table
+              :rows="selectedScheduleDays"
+              :columns="scheduleDayColumns"
+              row-key="key"
+              flat
+              binary-state-sort
+              :pagination="{ rowsPerPage: 0 }"
+              hide-pagination
+              class="planning-table"
+              color="cyan"
+            >
+              <template #header="props">
+                <q-tr :props="props" class="planning-thead-row">
+                  <q-th v-for="col in props.cols" :key="col.name" :props="props" class="table-head">
+                    {{ col.label }}
+                  </q-th>
+                </q-tr>
+              </template>
+
+              <template #body-cell-itemBreakdown="props">
+                <q-td :props="props">
+                  <div class="detail-grid">
+                    <div
+                      v-for="item in props.row.itemBreakdown"
+                      :key="item.itemId"
+                      class="detail-product-card"
+                    >
+                      <div class="detail-product-info">
+                        <div class="detail-product-name">{{ item.itemName }}</div>
+                        <div class="detail-product-qty">
+                          Target {{ formatNumber(item.dailyTarget) }}
+                          | Produced {{ formatNumber(item.actualProduced) }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </q-td>
+              </template>
+
+              <template #no-data>
+                <div class="no-data-wrap">
+                  <q-icon name="event_busy" size="48px" color="grey-8" />
+                  <div class="no-data-text">Belum ada breakdown schedule harian</div>
+                </div>
+              </template>
+            </q-table>
+          </div>
+        </div>
+
+        <div class="glass-card table-card" style="margin-top: 20px;">
+          <div class="workload-header">
+            <div class="workload-title">
+              <q-icon name="calendar_month" size="22px" color="cyan" />
+              <span>Daily Item Schedule</span>
+            </div>
+            <div class="workload-chip workload-chip-sm">
+              {{ selectedScheduleRows.length }} baris
+            </div>
+          </div>
           <div class="planning-table-wrapper">
             <q-table
             :rows="selectedScheduleRows"
@@ -566,6 +735,7 @@
                   :loading="loadingProjects"
                   :rules="[(val) => !!val || 'Project wajib dipilih']"
                   popup-content-class="dark-dropdown"
+                  :readonly="!!editingId"
                   @filter="filterApproved"
                   @update:model-value="handleApprovedSelected"
                 />
@@ -912,7 +1082,7 @@ const aggregateDepartmentProductionRows = (productionRows = []) => {
         row.current_departemen_nama ||
         row.departemen?.nama_departemen,
     })
-    if (!department.department_id) return
+    if (!department?.department_id) return
 
     const productName = row.product_name || row.nama_produk || row.produk?.nama_produk || row.produk || ''
     const key = [planningId, department.department_id, normalizeLookupKey(productName)].join('__')
@@ -935,10 +1105,9 @@ const aggregateDepartmentProductionRows = (productionRows = []) => {
         Number(previous.target_qty || 0),
         Number(row.target_qty ?? row.qty_target ?? row.qty_po ?? row.total_qty ?? 0),
       ),
-      actual_qty: Math.max(
-        Number(previous.actual_qty || 0),
-        Number(row.actual_qty ?? row.actual_quantity ?? row.total_hasil_produksi ?? row.total_progress ?? row.qty_hasil_jadi ?? 0),
-      ),
+      actual_qty:
+        Number(previous.actual_qty || 0) +
+        Number(row.qty_hasil_hari_ini ?? row.qty_hasil_jadi ?? row.actual_qty ?? row.actual_quantity ?? 0),
     })
   })
 
@@ -963,10 +1132,29 @@ const scheduleColumns = [
   { name: 'day', align: 'right', label: 'Hari', field: 'day', sortable: true },
   { name: 'date', align: 'left', label: 'Tanggal', field: 'date', sortable: true },
   { name: 'customer', align: 'left', label: 'Customer', field: 'customer', sortable: true },
-  { name: 'product', align: 'left', label: 'Produk', field: 'product', sortable: true },
-  { name: 'target_qty', align: 'right', label: 'Target Qty', field: 'target_qty', sortable: true },
-  { name: 'actual_qty', align: 'right', label: 'Actual Qty', field: 'actual_qty', sortable: true },
+  { name: 'department_name', align: 'left', label: 'Department', field: 'department_name', sortable: true },
+  { name: 'product', align: 'left', label: 'Item', field: 'product', sortable: true },
+  { name: 'target_qty', align: 'right', label: 'Daily Target', field: 'target_qty', sortable: true },
+  { name: 'actual_qty', align: 'right', label: 'Produced', field: 'actual_qty', sortable: true },
   { name: 'status', align: 'left', label: 'Status', field: 'status', sortable: true },
+]
+
+const scheduleItemColumns = [
+  { name: 'itemName', align: 'left', label: 'Item', field: 'itemName', sortable: true },
+  { name: 'departmentName', align: 'left', label: 'Department', field: 'departmentName', sortable: true },
+  { name: 'orderedQty', align: 'right', label: 'Ordered', field: 'orderedQty', format: (value) => Number(value || 0).toLocaleString('id-ID'), sortable: true },
+  { name: 'targetPerDay', align: 'right', label: 'Daily Target', field: 'targetPerDay', format: (value) => Number(value || 0).toLocaleString('id-ID'), sortable: true },
+  { name: 'actualProduced', align: 'right', label: 'Produced', field: 'actualProduced', format: (value) => Number(value || 0).toLocaleString('id-ID'), sortable: true },
+  { name: 'remainingQty', align: 'right', label: 'Remaining', field: 'remainingQty', format: (value) => Number(value || 0).toLocaleString('id-ID'), sortable: true },
+  { name: 'progressPercentage', align: 'left', label: 'Progress', field: 'progressPercentage', sortable: true },
+]
+
+const scheduleDayColumns = [
+  { name: 'day', align: 'right', label: 'Day', field: 'day', sortable: true },
+  { name: 'date', align: 'left', label: 'Date', field: 'date', sortable: true },
+  { name: 'totalDailyTarget', align: 'right', label: 'Total Daily Target', field: 'totalDailyTarget', format: (value) => Number(value || 0).toLocaleString('id-ID'), sortable: true },
+  { name: 'totalActualProduced', align: 'right', label: 'Total Produced', field: 'totalActualProduced', format: (value) => Number(value || 0).toLocaleString('id-ID'), sortable: true },
+  { name: 'itemBreakdown', align: 'left', label: 'Item Breakdown', field: 'itemBreakdown' },
 ]
 
 const dailyWorkloadColumns = [
@@ -1043,6 +1231,7 @@ const columns = [
   { name: 'customer', align: 'left', label: 'Customer', field: 'customer_name', sortable: true },
   { name: 'products', align: 'left', label: 'Products', field: 'products' },
   { name: 'department_progress', align: 'left', label: 'Department Progress', field: 'department_progress' },
+  { name: 'progress', align: 'left', label: 'Planning Progress', field: 'progress', sortable: true },
   { name: 'quantity', align: 'right', label: 'Quantity', field: 'quantity', sortable: true },
   { name: 'deadline', align: 'left', label: 'Deadline', field: 'deadline', sortable: true },
   { name: 'prioritas', align: 'center', label: 'Priority', field: 'priority', sortable: true },
@@ -1127,8 +1316,12 @@ const selectedScheduleRow = computed(() => {
 
 const selectedScheduleRows = computed(() => normalizeScheduleRows(selectedScheduleRow.value))
 
+const selectedScheduleItems = computed(() => normalizeScheduleItems(selectedScheduleRow.value))
+
+const selectedScheduleDays = computed(() => normalizeScheduleDays(selectedScheduleRow.value))
+
 const selectedScheduleWorkload = computed(() =>
-  selectedScheduleRows.value.reduce((sum, row) => sum + Number(row.target_qty || 0), 0),
+  selectedScheduleItems.value.reduce((sum, item) => sum + Number(item.orderedQty || 0), 0),
 )
 
 const allScheduleRows = computed(() =>
@@ -1185,19 +1378,31 @@ const productQuantityMap = (planning = {}) => {
 
 const validateScheduleTargets = (planning = {}, scheduleRows = []) => {
   const originalQuantities = productQuantityMap(planning)
-  const totalsByProduct = new Map()
+  const totalsByProductDepartment = new Map()
 
   scheduleRows.forEach((row) => {
-    const key = row.product_key || normalizeLookupKey(row.product_name || row.product)
-    if (!key) return
-    totalsByProduct.set(key, Number(totalsByProduct.get(key) || 0) + Number(row.target_qty || 0))
+    const productKey = row.product_key || normalizeLookupKey(row.product_name || row.product)
+    const departmentKeyValue = normalizeLookupKey(
+      row.department_id || row.department_name || row.department_code || 'unassigned',
+    )
+    if (!productKey) return
+    const key = `${productKey}__${departmentKeyValue}`
+    totalsByProductDepartment.set(
+      key,
+      Number(totalsByProductDepartment.get(key) || 0) + Number(row.target_qty || 0),
+    )
   })
 
   for (const [key, originalQty] of originalQuantities.entries()) {
-    const scheduledQty = Number(totalsByProduct.get(key) || 0)
-    if (scheduledQty !== Number(originalQty || 0)) {
+    const productTotals = Array.from(totalsByProductDepartment.entries())
+      .filter(([scheduleKey]) => scheduleKey.startsWith(`${key}__`))
+    if (!productTotals.length) {
+      return `Schedule ${key} belum memiliki department tujuan.`
+    }
+    const invalidTotal = productTotals.find(([, scheduledQty]) => scheduledQty !== Number(originalQty || 0))
+    if (invalidTotal) {
       const productName = productDetailRows(planning).find((product) => normalizeLookupKey(product.product_name) === key)?.product_name || key
-      return `Total target schedule ${productName} harus sama dengan qty master project (${formatNumber(originalQty)}). Saat ini ${formatNumber(scheduledQty)}.`
+      return `Total target schedule ${productName} per department harus sama dengan qty master project (${formatNumber(originalQty)}). Saat ini ${formatNumber(invalidTotal[1])}.`
     }
   }
 
@@ -1206,11 +1411,17 @@ const validateScheduleTargets = (planning = {}, scheduleRows = []) => {
 
 const rebalanceScheduleRows = (planning = {}, scheduleRows = [], editedRow = {}) => {
   const productKey = editedRow.product_key || normalizeLookupKey(editedRow.product_name || editedRow.product)
+  const editedDepartmentKey = normalizeLookupKey(
+    editedRow.department_id || editedRow.department_name || editedRow.department_code || 'unassigned',
+  )
   if (!productKey) return scheduleRows
 
   const originalQty = Number(productQuantityMap(planning).get(productKey) || 0)
   const currentTotal = scheduleRows
-    .filter((row) => (row.product_key || normalizeLookupKey(row.product_name || row.product)) === productKey)
+    .filter((row) =>
+      (row.product_key || normalizeLookupKey(row.product_name || row.product)) === productKey &&
+      normalizeLookupKey(row.department_id || row.department_name || row.department_code || 'unassigned') === editedDepartmentKey,
+    )
     .reduce((sum, row) => sum + Number(row.target_qty || 0), 0)
   const diff = currentTotal - originalQty
   if (diff === 0) return scheduleRows
@@ -1219,6 +1430,7 @@ const rebalanceScheduleRows = (planning = {}, scheduleRows = [], editedRow = {})
     (row) =>
       row.key !== editedRow.key &&
       (row.product_key || normalizeLookupKey(row.product_name || row.product)) === productKey &&
+      normalizeLookupKey(row.department_id || row.department_name || row.department_code || 'unassigned') === editedDepartmentKey &&
       Number(row.target_qty || 0) - diff >= 0,
   )
   if (adjustmentIndex < 0) return scheduleRows
@@ -1260,7 +1472,7 @@ const summaryCards = computed(() => [
   },
 ])
 
-const formTitle = computed(() => 'Generate Planning Produksi')
+const formTitle = computed(() => editingId.value ? 'Edit Routing Planning Produksi' : 'Generate Planning Produksi')
 
 const departemenOptions = computed(() =>
   [
@@ -1358,6 +1570,9 @@ const getProjectItems = (row) =>
       project_name: item.project_name || row.project_name || row.projectName || row.proyek_nama || '',
       project_item_id: item.project_item_id || item.item_id || item.id || '',
       project_monitoring_id: item.project_monitoring_id || row.project_monitoring_id || '',
+      department_id: item.departmentId || item.department_id || item.departemen_id || item.department_key || item.departemen?.id || item.department?.id || '',
+      department_name: item.departmentName || item.department_name || item.departemen_nama || item.nama_departemen || item.departemen_terkait || item.group_name || item.nama_group || item.tahapan || item.nama_tahapan || (typeof item.departemen === 'string' ? item.departemen : '') || (typeof item.department === 'string' ? item.department : '') || item.departemen?.nama_departemen || item.department?.name || '',
+      department_code: item.departmentCode || item.department_code || item.departemen_kode || item.kode_departemen || item.departemen?.kode_departemen || item.department?.code || '',
     }
   })
 
@@ -1412,9 +1627,12 @@ const normalizePlanningRow = (planning, sourceProject = {}) => {
     project_id: projectId,
     status: planning.status,
     assigned_departments: planning.assigned_departments || [],
+    products,
+    items: sourceItems,
     is_generated: true,
   }
-  const progress = projectProgress(mergedPlanning)
+  const progressMetrics = planningProgressMetrics(mergedPlanning)
+  const progress = progressMetrics.progress
   const planningStatus = normalizePlanningStatus(planning.planning_status || planning.status_planning || planning.status, progress)
 
   return {
@@ -1439,7 +1657,13 @@ const normalizePlanningRow = (planning, sourceProject = {}) => {
     planning_status: planningStatus,
     status: planningStatus,
     production_schedule: Array.isArray(planning.production_schedule) ? planning.production_schedule : [],
+    schedule_document:
+      planning.schedule_document && typeof planning.schedule_document === 'object'
+        ? planning.schedule_document
+        : null,
     progress,
+    total_produced: progressMetrics.totalProduced,
+    remaining_quantity: progressMetrics.remainingQty,
   }
 }
 
@@ -1456,12 +1680,16 @@ const buildProducts = (items) =>
       item.name ||
       `Item Project ${index + 1}`
     return {
+      item_id: item.item_id || item.id || item.project_item_id || `item-${index + 1}`,
       product_id: item.produk_id || item.product_id || item.id_produk || '',
       product_code: item.kode_produk || item.kode_barang || '',
       product_name: productName,
       name: productName,
       quantity: Number(item.qty ?? item.quantity ?? item.total_quantity ?? item.qty_target ?? item.volume ?? item.target ?? 0),
       unit: item.satuan || item.unit || 'Unit',
+      department_id: item.departmentId || item.department_id || item.departemen_id || item.department_key || item.departemen?.id || item.department?.id || '',
+      department_name: item.departmentName || item.department_name || item.departemen_nama || item.nama_departemen || item.departemen_terkait || item.group_name || item.nama_group || item.tahapan || item.nama_tahapan || (typeof item.departemen === 'string' ? item.departemen : '') || (typeof item.department === 'string' ? item.department : '') || item.departemen?.nama_departemen || item.department?.name || '',
+      department_code: item.departmentCode || item.department_code || item.departemen_kode || item.kode_departemen || item.departemen?.kode_departemen || item.department?.code || '',
     }
   })
 
@@ -1587,18 +1815,23 @@ const findMasterProduk = (item) => {
 
 const mapApprovedOption = (row) => {
   const items = getProjectItems(row)
+  const existingPlanning = planningRows.value.find(
+    (planning) =>
+      planning.project_id === row.project_id ||
+      planning.project_id === row.id ||
+      planning.source_document_id === row.id,
+  )
   return {
-    label: `${row.project_id || row.id} - ${row.project_name || '-'}${items.length > 1 ? ` +${items.length - 1} item` : ''}`,
+    label: `${row.project_id || row.id} - ${row.project_name || '-'}${items.length > 1 ? ` +${items.length - 1} item` : ''}${existingPlanning ? ' (routing tersedia)' : ''}`,
     value: row.id,
     item: row,
+    existingPlanning,
   }
 }
 
 const refreshApprovedOptions = (needle = '') => {
   const searchText = normalizeText(needle)
-  const generatedProjectIds = new Set(planningRows.value.map((planning) => planning.project_id).filter(Boolean))
   filteredProjectOptions.value = masterProjectRows.value
-    .filter((row) => !isPlanningGenerated(row, generatedProjectIds))
     .filter((row) => {
       return (
         !searchText ||
@@ -1671,8 +1904,26 @@ const handleDepartemenSelected = (option) => {
   form.value.departemen_kode = isAllSelected ? 'ALL' : firstDepartemen?.kode_departemen || ''
 }
 
-const normalizeDepartment = (department = {}, index = 0) => {
+const routingPayload = (route = []) =>
+  route.map((department, index) => ({
+    departmentId: department.id || department.department_id || department.value || '',
+    departmentName:
+      department.nama_departemen ||
+      department.department_name ||
+      department.departemen_nama ||
+      department.label ||
+      '',
+    departmentCode:
+      department.kode_departemen ||
+      department.department_code ||
+      department.departemen_kode ||
+      '',
+    sequence: index + 1,
+  }))
+
+const normalizeDepartment = (department = {}) => {
   const departmentId =
+    department.departmentId ||
     department.department_id ||
     department.departemen_id ||
     department.id ||
@@ -1681,28 +1932,75 @@ const normalizeDepartment = (department = {}, index = 0) => {
     department.kode_departemen ||
     ''
   const departmentName =
+    department.departmentName ||
     department.department_name ||
     department.department_label ||
     department.departemen_nama ||
     department.nama_departemen ||
     department.name ||
     department.label ||
-    departmentId ||
-    `Departemen ${index + 1}`
+    ''
+  const departmentCode =
+    department.departmentCode ||
+    department.department_code ||
+    department.departemen_kode ||
+    department.kode_departemen ||
+    department.code ||
+    ''
+
+  if (!departmentId && !departmentName && !departmentCode) return null
 
   return {
-    department_id: String(departmentId || departmentName).trim(),
+    department_id: String(departmentId).trim(),
     department_name: String(departmentName).trim(),
+    department_code: String(departmentCode).trim(),
+  }
+}
+
+const masterDepartmentFor = (department = {}) => {
+  const normalized = normalizeDepartment(department)
+  if (!normalized) return null
+
+  const sourceValues = [
+    normalized.department_id,
+    normalized.department_name,
+    normalized.department_code,
+  ]
+    .map(normalizeLookupKey)
+    .filter(Boolean)
+
+  const master = departemenRows.value.find((item) => {
+    const masterValues = [
+      item.id,
+      item.value,
+      item.nama_departemen,
+      item.label,
+      item.kode_departemen,
+    ]
+      .map(normalizeLookupKey)
+      .filter(Boolean)
+    return sourceValues.some((value) => masterValues.includes(value))
+  })
+
+  if (!master) return null
+  return {
+    department_id: String(master.id || master.value || '').trim(),
+    department_name: String(master.nama_departemen || master.label || '').trim(),
+    department_code: String(master.kode_departemen || '').trim(),
   }
 }
 
 const uniqueDepartments = (departments = []) => {
   const seen = new Set()
   return departments
-    .map(normalizeDepartment)
+    .map(masterDepartmentFor)
     .filter((department) => {
-      if (!department.department_id || seen.has(department.department_id)) return false
-      seen.add(department.department_id)
+      if (!department) return false
+      const key = normalizeLookupKey(
+        department.department_id || department.department_code || department.department_name,
+      )
+      if (!key || seen.has(key)) return false
+      seen.add(key)
       return true
     })
 }
@@ -1712,6 +2010,7 @@ const assignedDepartmentsFor = (row = {}) => {
     ...(Array.isArray(row.assigned_departments) ? row.assigned_departments : []),
     ...(Array.isArray(row.route_departemen) ? row.route_departemen : []),
     ...(Array.isArray(row.target_departemen) ? row.target_departemen : []),
+    ...(Array.isArray(row.routing) ? row.routing : []),
   ]
 
   if (row.tujuan_departemen?.id || row.tujuan_departemen?.nama_departemen) {
@@ -1728,9 +2027,96 @@ const assignedDepartmentsFor = (row = {}) => {
   return uniqueDepartments(explicitDepartments)
 }
 
+const itemDepartment = (item = {}, planning = {}) => {
+  const nestedDepartment =
+    item.department ||
+    item.departemen ||
+    item.tujuan_departemen ||
+    item.department_obj ||
+    item.departemen_obj ||
+    {}
+  const rawDepartmentId =
+      item.departmentId ||
+      item.department_id ||
+      item.departemen_id ||
+      item.department_key ||
+      item.departemen_terkait_id ||
+      nestedDepartment.id ||
+      nestedDepartment.value ||
+      ''
+  const rawDepartmentName =
+      item.departmentName ||
+      item.department_name ||
+      item.departemen_nama ||
+      item.nama_departemen ||
+      item.departemen_terkait ||
+      item.department_label ||
+      item.group_name ||
+      item.nama_group ||
+      item.tahapan ||
+      item.nama_tahapan ||
+      (typeof item.departemen === 'string' ? item.departemen : '') ||
+      (typeof item.department === 'string' ? item.department : '') ||
+      nestedDepartment.nama_departemen ||
+      nestedDepartment.name ||
+      nestedDepartment.label ||
+      ''
+  const rawDepartmentCode =
+      item.departmentCode ||
+      item.department_code ||
+      item.departemen_kode ||
+      item.kode_departemen ||
+      nestedDepartment.kode_departemen ||
+      nestedDepartment.code ||
+      ''
+  const hasExplicitDepartment = Boolean(rawDepartmentId || rawDepartmentName || rawDepartmentCode)
+  const rawDepartment = hasExplicitDepartment
+    ? normalizeDepartment({
+        department_id: rawDepartmentId,
+        department_name: rawDepartmentName,
+        department_code: rawDepartmentCode,
+      })
+    : null
+  const explicitValues = [
+    rawDepartment?.department_id,
+    rawDepartment?.department_name,
+    rawDepartment?.department_code,
+  ]
+    .map(normalizeLookupKey)
+    .filter(Boolean)
+  const matchedMaster = departemenRows.value.find((department) => {
+    const masterValues = [
+      department.id,
+      department.value,
+      department.nama_departemen,
+      department.label,
+      department.kode_departemen,
+    ]
+      .map(normalizeLookupKey)
+      .filter(Boolean)
+    return explicitValues.some((value) => masterValues.includes(value))
+  })
+
+  if (matchedMaster && explicitValues.length) {
+    return masterDepartmentFor(matchedMaster)
+  }
+  if (explicitValues.length) return null
+
+  const assignedDepartments = assignedDepartmentsFor(planning)
+  return assignedDepartments.length === 1 ? assignedDepartments[0] : null
+}
+
 const handleApprovedSelected = (option) => {
   const project = option?.item || option
   if (!project) return
+  const existingPlanning =
+    option?.existingPlanning ||
+    planningRows.value.find(
+      (planning) =>
+        planning.project_id === project.project_id ||
+        planning.project_id === project.id ||
+        planning.source_document_id === project.id,
+    )
 
   const selectedItem = getProjectItems(project)[0] || {}
   const produk = findMasterProduk(selectedItem)
@@ -1769,10 +2155,26 @@ const handleApprovedSelected = (option) => {
     form.value.departemen_obj = [departemenOption]
     handleDepartemenSelected([departemenOption])
   }
+
+  if (existingPlanning) {
+    editingId.value = existingPlanning.id
+    form.value.no_planning = planningNumber(existingPlanning)
+    form.value.nomor_planning = planningNumber(existingPlanning)
+    form.value.status_planning =
+      existingPlanning.planning_status ||
+      existingPlanning.status_planning ||
+      existingPlanning.status ||
+      'planned'
+    form.value.departemen_obj = departmentOptionsForPlanning(existingPlanning)
+    handleDepartemenSelected(form.value.departemen_obj)
+  }
 }
 
 const buildPayload = () => {
-  const statusPlanning = 'planned'
+  const existingPlanning = editingId.value
+    ? planningRows.value.find((planning) => planning.id === editingId.value) || {}
+    : {}
+  const statusPlanning = existingPlanning.planning_status || existingPlanning.status_planning || existingPlanning.status || 'planned'
   const sourceProject = form.value._source_project || form.value.approved_obj?.item || {}
   const products = productDetailRows(sourceProject)
   const quantity = products.reduce((sum, product) => sum + Number(product.quantity || 0), 0)
@@ -1800,6 +2202,7 @@ const buildPayload = () => {
     status_planning: statusPlanning,
     planning_status: statusPlanning,
     assigned_departments: uniqueDepartments(form.value.route_departemen || []),
+    routing: routingPayload(form.value.route_departemen || []),
     assigned_ic: form.value.assigned_ic || form.value.ic || '',
     all_departemen: form.value.all_departemen,
     routing_mode: form.value.routing_mode,
@@ -1877,14 +2280,82 @@ const openGenerateDialog = (row) => {
   formDialog.value = true
 }
 
+const departmentOptionsForPlanning = (row = {}) =>
+  assignedDepartmentsFor(row)
+    .map((department) =>
+      departemenOptions.value.find((option) => {
+        const values = [
+          option.value,
+          option.item?.id,
+          option.item?.nama_departemen,
+          option.item?.kode_departemen,
+        ].map(normalizeLookupKey)
+        return [
+          department.department_id,
+          department.department_name,
+          department.department_code,
+        ]
+          .map(normalizeLookupKey)
+          .some((value) => value && values.includes(value))
+      }),
+    )
+    .filter(Boolean)
+
+const openEditRoutingDialog = (row) => {
+  editingId.value = row.id
+  form.value = {
+    ...defaultForm(),
+    ...row,
+    no_planning: planningNumber(row),
+    nomor_planning: planningNumber(row),
+    approved_obj: mapApprovedOption({
+      ...row,
+      master_project_doc_id: row.source_document_id || row.project_id || row.id,
+    }),
+    status_planning: row.planning_status || row.status_planning || row.status || 'planned',
+    prioritas: normalizePlanningPriority(row.priority || row.prioritas),
+    assigned_ic: row.assigned_ic || row.ic || '',
+    customer_nama: row.customer_name || row.customer_nama || row.customer || '',
+    nama_produk: formatProducts(row.products),
+    qty_target: Number(row.quantity || row.qty_target || 0),
+    _source_project:
+      masterProjectRows.value.find(
+        (project) =>
+          project.project_id === row.project_id ||
+          project.id === row.source_document_id ||
+          project.master_project_doc_id === row.source_document_id,
+      ) || row,
+  }
+  form.value.departemen_obj = departmentOptionsForPlanning(row)
+  handleDepartemenSelected(form.value.departemen_obj)
+  formDialog.value = true
+}
+
+const openScheduleForPlanning = (row) => {
+  selectedSchedulePlanning.value = mapSchedulePlanningOption(row)
+  refreshSchedulePlanningOptions()
+  activeSection.value = 'schedule'
+}
+
 const savePlanning = async () => {
   submitting.value = true
   try {
     const payload = buildPayload()
     const project = form.value._source_project || form.value.approved_obj?.item
 
-    if (!project?.master_project_doc_id) {
+    if (!editingId.value && !project?.master_project_doc_id) {
       $q.notify({ type: 'warning', message: 'Pilih master project yang valid.' })
+      return
+    }
+
+    if (editingId.value) {
+      await updateDoc(doc(db, PLANNING_COLLECTION, editingId.value), {
+        ...payload,
+        updated_at: serverTimestamp(),
+      })
+      await notifyUrgentDepartments({ id: editingId.value }, payload)
+      $q.notify({ type: 'positive', message: 'Routing planning berhasil diperbarui. Generate ulang schedule untuk menerapkan routing baru.' })
+      formDialog.value = false
       return
     }
 
@@ -1945,31 +2416,204 @@ const normalizeScheduleRows = (planning = {}) => {
   if (!planning) return []
   const planningId = planningIdOf(planning)
   return (Array.isArray(planning.production_schedule) ? planning.production_schedule : [])
-    .map((row, index) => ({
-      key: row.key || `${planningId}_${row.product_key || normalizeLookupKey(row.product_name || row.product)}_${row.date || index + 1}`,
-      planning_id: planningId,
-      day: Number(row.day || row.day_number || index + 1),
-      day_number: Number(row.day_number || row.day || index + 1),
-      date: row.date || '',
-      customer: row.customer || planning.customer_name || planning.customer_nama || planning.customer || '',
-      product_key: row.product_key || normalizeLookupKey(row.product_name || row.product),
-      product_name: row.product_name || row.product || '',
-      product: row.product || row.product_name || '',
-      target_qty: Number(row.target_qty ?? row.target_quantity ?? 0),
-      actual_qty: Number(row.actual_qty ?? row.actual_quantity ?? 0),
-      status: row.status || 'not_started',
-    }))
+    .map((row, index) => {
+      const department = masterDepartmentFor({
+        department_id: row.departmentId || row.department_id || row.departemen_id || '',
+        department_name: row.departmentName || row.department_name || row.departemen_nama || '',
+        department_code: row.departmentCode || row.department_code || row.departemen_kode || '',
+      })
+      return {
+        key: row.key || `${planningId}_${row.product_key || normalizeLookupKey(row.product_name || row.product)}_${row.date || index + 1}`,
+        planning_id: planningId,
+        item_id: row.item_id || row.itemId || '',
+        day: Number(row.day || row.day_number || index + 1),
+        day_number: Number(row.day_number || row.day || index + 1),
+        date: row.date || '',
+        customer: row.customer || planning.customer_name || planning.customer_nama || planning.customer || '',
+        department_id: department?.department_id || '',
+        department_name: department?.department_name || '',
+        department_code: department?.department_code || '',
+        product_key: row.product_key || normalizeLookupKey(row.product_name || row.product),
+        product_name: row.product_name || row.product || '',
+        product: row.product || row.product_name || '',
+        target_qty: Number(row.target_qty ?? row.target_quantity ?? 0),
+        actual_qty: Number(row.actual_qty ?? row.actual_quantity ?? 0),
+        status: row.status || 'not_started',
+      }
+    })
     .sort((a, b) => {
-      const productDiff = String(a.product_name || a.product).localeCompare(String(b.product_name || b.product))
-      if (productDiff !== 0) return productDiff
-      return Number(a.day || 0) - Number(b.day || 0)
+      const dayDiff = Number(a.day || 0) - Number(b.day || 0)
+      if (dayDiff !== 0) return dayDiff
+      return String(a.product_name || a.product).localeCompare(String(b.product_name || b.product))
     })
 }
 
-const generateScheduleRows = (planning = {}) => {
+const buildScheduleDays = (scheduleRows = [], planningId = '') => {
+  const days = new Map()
+
+  scheduleRows.forEach((row) => {
+    const day = Number(row.day || row.day_number || 0)
+    const date = row.date || ''
+    const key = `${planningId}_${date || day}`
+    if (!days.has(key)) {
+      days.set(key, {
+        key,
+        day,
+        date,
+        totalDailyTarget: 0,
+        totalActualProduced: 0,
+        itemBreakdown: [],
+      })
+    }
+
+    const scheduleDay = days.get(key)
+    const dailyTarget = Math.max(0, Number(row.target_qty ?? row.target_quantity ?? 0))
+    const actualProduced = Math.max(0, Number(row.actual_qty ?? row.actual_quantity ?? 0))
+    scheduleDay.totalDailyTarget += dailyTarget
+    scheduleDay.totalActualProduced += actualProduced
+    scheduleDay.itemBreakdown.push({
+      itemId: row.item_id || row.itemId || row.product_key || '',
+      itemName: row.product_name || row.product || '',
+      departmentId: row.department_id || row.departmentId || '',
+      departmentName: row.department_name || row.departmentName || '',
+      departmentCode: row.department_code || row.departmentCode || '',
+      dailyTarget,
+      actualProduced,
+      status: row.status || 'not_started',
+      scheduleKey: row.key || '',
+    })
+  })
+
+  return Array.from(days.values()).sort((a, b) => {
+    const dayDiff = Number(a.day || 0) - Number(b.day || 0)
+    return dayDiff || String(a.date).localeCompare(String(b.date))
+  })
+}
+
+const normalizeScheduleDays = (planning = {}) => {
+  if (!planning) return []
+  const scheduleRows = normalizeScheduleRows(planning)
+  if (scheduleRows.length) return buildScheduleDays(scheduleRows, planningIdOf(planning))
+
+  return (Array.isArray(planning.schedule_document?.days) ? planning.schedule_document.days : [])
+    .map((day, index) => ({
+      key: day.key || `${planningIdOf(planning)}_${day.date || day.day || index + 1}`,
+      day: Number(day.day || index + 1),
+      date: day.date || '',
+      totalDailyTarget: Number(day.totalDailyTarget ?? day.total_daily_target ?? 0),
+      totalActualProduced: Number(day.totalActualProduced ?? day.total_actual_produced ?? 0),
+      itemBreakdown: (Array.isArray(day.itemBreakdown) ? day.itemBreakdown : []).map((item) => {
+        const department = masterDepartmentFor({
+          department_id: item.departmentId || item.department_id || '',
+          department_name: item.departmentName || item.department_name || '',
+          department_code: item.departmentCode || item.department_code || '',
+        })
+        return {
+          itemId: item.itemId || item.item_id || '',
+          itemName: item.itemName || item.item_name || '',
+          departmentId: department?.department_id || '',
+          departmentName: department?.department_name || '',
+          departmentCode: department?.department_code || '',
+          dailyTarget: Number(item.dailyTarget ?? item.daily_target ?? 0),
+          actualProduced: Number(item.actualProduced ?? item.actual_produced ?? 0),
+          status: item.status || 'not_started',
+          scheduleKey: item.scheduleKey || item.schedule_key || '',
+        }
+      }),
+    }))
+    .sort((a, b) => Number(a.day || 0) - Number(b.day || 0))
+}
+
+const calculateScheduleItemProgress = (item = {}) => {
+  const orderedQty = Math.max(0, Number(item.orderedQty ?? item.ordered_qty ?? 0))
+  const actualProduced = Math.max(0, Number(item.actualProduced ?? item.actual_produced ?? 0))
+  const remainingQty = Math.max(orderedQty - actualProduced, 0)
+  const progressPercentage =
+    orderedQty > 0 ? Math.min(100, (actualProduced / orderedQty) * 100) : 0
+
+  return {
+    ...item,
+    orderedQty,
+    actualProduced,
+    remainingQty,
+    progressPercentage,
+    status: actualProduced >= orderedQty && orderedQty > 0 ? 'completed' : actualProduced > 0 ? 'in_progress' : 'not_started',
+  }
+}
+
+const normalizeScheduleItems = (planning = {}) => {
+  if (!planning) return []
+
+  const storedItems = Array.isArray(planning.schedule_document?.items)
+    ? planning.schedule_document.items
+    : []
+  const scheduleRows = normalizeScheduleRows(planning)
+  const products = productDetailRows(planning)
+
+  return products.map((product, index) => {
+    const itemId = product.item_id || product.key || `item-${index + 1}`
+    const productKey = normalizeLookupKey(product.product_name)
+    const storedItem = storedItems.find(
+      (item) =>
+        String(item.itemId || item.item_id || '') === String(itemId) ||
+        normalizeLookupKey(item.itemName || item.item_name) === productKey,
+    )
+    const itemScheduleRows = scheduleRows.filter(
+      (row) =>
+        (row.item_id && String(row.item_id) === String(itemId)) ||
+        normalizeLookupKey(row.product_name || row.product) === productKey,
+    )
+    const actualFromRows = itemScheduleRows.reduce(
+      (departments, row) => {
+        const departmentKeyValue = normalizeLookupKey(
+          row.department_id || row.department_name || row.department_code || 'unassigned',
+        )
+        departments.set(
+          departmentKeyValue,
+          Number(departments.get(departmentKeyValue) || 0) + Math.max(0, Number(row.actual_qty || 0)),
+        )
+        return departments
+      },
+      new Map(),
+    )
+    const actualProduced = itemScheduleRows.length
+      ? Math.max(0, ...actualFromRows.values())
+      : Number(storedItem?.actualProduced ?? storedItem?.actual_produced ?? 0)
+    const totalDays = Math.max(
+      1,
+      Number(planning.schedule_document?.totalDays || storedItem?.totalDays || itemScheduleRows.length || 1),
+    )
+    const itemDepartments = uniqueDepartments(
+      Array.isArray(storedItem?.departments) && storedItem.departments.length
+        ? storedItem.departments
+        : itemScheduleRows.map((row) => ({
+          department_id: row.department_id,
+          department_name: row.department_name,
+          department_code: row.department_code,
+        })),
+    )
+
+    return calculateScheduleItemProgress({
+      itemId,
+      itemName: product.product_name,
+      unit: product.unit,
+      departments: itemDepartments,
+      departmentName: itemDepartments.map((department) => department.department_name).join(', '),
+      orderedQty: Number(storedItem?.orderedQty ?? storedItem?.ordered_qty ?? product.quantity ?? 0),
+      targetPerDay: Number(
+        storedItem?.targetPerDay ??
+          storedItem?.target_per_day ??
+          Math.ceil(Number(product.quantity || 0) / totalDays),
+      ),
+      actualProduced,
+    })
+  })
+}
+
+const generateScheduleData = (planning = {}) => {
   const deadlineValue = toDateInputValue(planning.deadline)
   const products = productDetailRows(planning).filter((product) => Number(product.quantity || 0) > 0)
-  if (!products.length || !deadlineValue) return []
+  if (!products.length || !deadlineValue) return null
 
   const startDate = new Date()
   startDate.setHours(0, 0, 0, 0)
@@ -1977,38 +2621,104 @@ const generateScheduleRows = (planning = {}) => {
   const totalDays = Math.max(1, Math.ceil((endDate.getTime() - startDate.getTime()) / 86400000))
   const customer = planning.customer_name || planning.customer_nama || planning.customer || ''
   const planningId = planningIdOf(planning)
+  const assignedDepartments = assignedDepartmentsFor(planning)
 
-  return products.flatMap((product) => {
+  const items = products.map((product, index) => {
+    const explicitDepartment = itemDepartment(product, planning)
+    const departments = assignedDepartments.length
+      ? assignedDepartments
+      : explicitDepartment
+        ? [explicitDepartment]
+        : []
+    return calculateScheduleItemProgress({
+      itemId: product.item_id || product.key || `item-${index + 1}`,
+      itemName: product.product_name,
+      unit: product.unit,
+      departments,
+      departmentName: departments.map((department) => department.department_name).join(', '),
+      orderedQty: Math.max(0, Number(product.quantity || 0)),
+      targetPerDay: Math.ceil(Math.max(0, Number(product.quantity || 0)) / totalDays),
+      actualProduced: 0,
+    })
+  })
+  const unmappedItems = items.filter((item) => !item.departments.length)
+  if (unmappedItems.length) {
+    return {
+      error: `Department item belum lengkap: ${unmappedItems.map((item) => item.itemName).join(', ')}.`,
+      scheduleRows: [],
+      scheduleDocument: null,
+    }
+  }
+
+  const scheduleRows = products.flatMap((product, productIndex) => {
     const productQty = Math.max(0, Number(product.quantity || 0))
     const dailyTarget = Math.ceil(productQty / totalDays)
     const productKey = normalizeLookupKey(product.product_name || product.key)
+    const itemId = product.item_id || product.key || `item-${productIndex + 1}`
+    const explicitDepartment = itemDepartment(product, planning)
+    const targetDepartments = assignedDepartments.length
+      ? assignedDepartments
+      : explicitDepartment
+        ? [explicitDepartment]
+        : []
 
-    return Array.from({ length: totalDays }, (_, index) => {
+    return targetDepartments.flatMap((department) => Array.from({ length: totalDays }, (_, index) => {
       const date = toDateInputValue(addDays(startDate, index))
       const remainingQuantity = Math.max(0, productQty - dailyTarget * index)
       const targetQty = Math.min(dailyTarget, remainingQuantity)
       return {
-        key: `${planningId}_${productKey}_${date}`,
+        key: `${planningId}_${productKey}_${normalizeLookupKey(department.department_id)}_${date}`,
+        planningId,
         planning_id: planningId,
+        item_id: itemId,
+        itemName: product.product_name,
         day: index + 1,
         day_number: index + 1,
         date,
+        scheduleDate: date,
         customer,
+        departmentId: department?.department_id || '',
+        departmentName: department?.department_name || '',
+        departmentCode: department?.department_code || '',
+        department_id: department?.department_id || '',
+        department_name: department?.department_name || '',
+        department_code: department?.department_code || '',
         product_key: productKey,
         product_name: product.product_name,
         product: product.product_name,
+        qty: targetQty,
         target_qty: targetQty,
         actual_qty: 0,
         status: 'not_started',
       }
-    }).filter((row) => row.target_qty > 0)
+    }).filter((row) => row.target_qty > 0))
   })
+
+  return {
+    scheduleRows,
+    scheduleDocument: {
+      planningId,
+      customer,
+      totalDays,
+      totalOrderedQty: items.reduce((sum, item) => sum + Number(item.orderedQty || 0), 0),
+      totalProducedAllDays: 0,
+      remainingQty: items.reduce((sum, item) => sum + Number(item.orderedQty || 0), 0),
+      progressPercentage: 0,
+      status: 'not_started',
+      items,
+      days: buildScheduleDays(scheduleRows, planningId),
+    },
+  }
 }
 
 const generateScheduleForPlanning = async (planning) => {
   if (!planning?.id) return
-  const scheduleRows = generateScheduleRows(planning)
-  if (!scheduleRows.length) {
+  const scheduleData = generateScheduleData(planning)
+  if (scheduleData?.error) {
+    $q.notify({ type: 'warning', message: scheduleData.error })
+    return
+  }
+  if (!scheduleData?.scheduleRows.length) {
     $q.notify({ type: 'warning', message: 'Quantity dan deadline wajib tersedia untuk generate schedule.' })
     return
   }
@@ -2016,7 +2726,8 @@ const generateScheduleForPlanning = async (planning) => {
   scheduleSaving.value = true
   try {
     await updateDoc(doc(db, PLANNING_COLLECTION, planning.id), {
-      production_schedule: scheduleRows,
+      production_schedule: scheduleData.scheduleRows,
+      schedule_document: scheduleData.scheduleDocument,
       schedule_generated_at: serverTimestamp(),
       updated_at: serverTimestamp(),
     })
@@ -2052,8 +2763,46 @@ const saveScheduleRow = async (row) => {
   }
 
   try {
+    const scheduleItems = normalizeScheduleItems({
+      ...planning,
+      production_schedule: nextScheduleRows,
+    })
+    const totalDays = Math.max(
+      1,
+      Number(planning.schedule_document?.totalDays || 0),
+      ...nextScheduleRows.map((scheduleRow) => Number(scheduleRow.day || 0)),
+    )
+    const progressMetrics = planningProgressMetrics({
+      ...planning,
+      production_schedule: nextScheduleRows,
+    })
+    const nextPlanningStatus =
+      progressMetrics.progress >= 100
+        ? 'done'
+        : progressMetrics.progress > 0
+          ? 'in_progress'
+          : planning.planning_status || planning.status || 'planned'
     await updateDoc(doc(db, PLANNING_COLLECTION, planning.id), {
       production_schedule: nextScheduleRows,
+      schedule_document: {
+        planningId: planningIdOf(planning),
+        customer: planning.customer_name || planning.customer_nama || planning.customer || '',
+        totalDays,
+        totalOrderedQty: progressMetrics.totalOrderedQty,
+        totalProducedAllDays: progressMetrics.totalProduced,
+        remainingQty: progressMetrics.remainingQty,
+        progressPercentage: progressMetrics.progress,
+        status: progressMetrics.status,
+        items: scheduleItems,
+        days: buildScheduleDays(nextScheduleRows, planningIdOf(planning)),
+      },
+      progress: progressMetrics.progress,
+      progress_percent: progressMetrics.progress,
+      total_progress: progressMetrics.totalProduced,
+      sisa_qty: progressMetrics.remainingQty,
+      status: nextPlanningStatus,
+      status_planning: nextPlanningStatus,
+      planning_status: nextPlanningStatus,
       updated_at: serverTimestamp(),
     })
   } catch (error) {
@@ -2066,7 +2815,7 @@ const progressDepartmentId = (progress = {}) =>
   String(progress.department_id || progress.departemen_id || progress.department_key || progress.id || '').trim()
 
 const normalizeProgressRow = (progress = {}, fallbackDepartment = {}) => {
-  const department = normalizeDepartment({
+  const department = masterDepartmentFor({
     department_id: progressDepartmentId(progress) || fallbackDepartment.department_id,
     department_name:
       progress.department_name ||
@@ -2079,12 +2828,12 @@ const normalizeProgressRow = (progress = {}, fallbackDepartment = {}) => {
   const progressPercent = targetQty > 0 ? Math.min(100, (actualQty / targetQty) * 100) : 0
 
   return {
-    id: progress.id || `${progress.project_id || progress.planning_id || ''}_${progress.product_name || ''}_${department.department_id}`,
+    id: progress.id || `${progress.project_id || progress.planning_id || ''}_${progress.product_name || ''}_${department?.department_id || ''}`,
     project_id: progress.project_id || '',
     planning_id: progress.planning_id || '',
     product_name: progress.product_name || progress.nama_produk || progress.product || '',
-    department_id: department.department_id,
-    department_name: department.department_name,
+    department_id: department?.department_id || '',
+    department_name: department?.department_name || '',
     target_qty: targetQty,
     actual_qty: actualQty,
     progress_percent: progressPercent,
@@ -2102,14 +2851,42 @@ const progressRowsForProject = (row = {}) => {
   )
 }
 
-const projectProgress = (row = {}) => {
-  const progressRows = departmentProgressSummaryRows(row)
-  if (progressRows.length) {
-    const total = progressRows.reduce((sum, item) => sum + Number(item.progress_percent || 0), 0)
-    return Math.round(total / progressRows.length)
-  }
+const planningProgressMetrics = (row = {}) => {
+  const products = productDetailRows(row)
+  const totalOrderedQty = products.reduce(
+    (sum, product) => sum + Math.max(0, Number(product.quantity || 0)),
+    0,
+  )
+  const scheduleProduced = normalizeScheduleRows(row).reduce(
+    (sum, schedule) => sum + Math.max(0, Number(schedule.actual_qty || 0)),
+    0,
+  )
+  const productionRows = progressRowsForProject(row).map((progress) => normalizeProgressRow(progress))
+  const producedByProduct = products.reduce((total, product) => {
+    const productKey = normalizeLookupKey(product.product_name)
+    const matchingRows = productionRows.filter(
+      (progress) => normalizeLookupKey(progress.product_name) === productKey,
+    )
+    const producedAcrossDepartments = matchingRows.length
+      ? Math.max(...matchingRows.map((progress) => Math.max(0, Number(progress.actual_qty || 0))))
+      : 0
+    return total + Math.min(Number(product.quantity || 0), producedAcrossDepartments)
+  }, 0)
+  const totalProduced = Math.min(
+    totalOrderedQty,
+    scheduleProduced > 0 ? scheduleProduced : producedByProduct,
+  )
+  const progress = totalOrderedQty > 0
+    ? Math.min(100, (totalProduced / totalOrderedQty) * 100)
+    : 0
 
-  return Number(row.progress_percent ?? row.progress ?? 0)
+  return {
+    totalOrderedQty,
+    totalProduced,
+    remainingQty: Math.max(totalOrderedQty - totalProduced, 0),
+    progress,
+    status: progress >= 100 ? 'done' : progress > 0 ? 'in_progress' : 'not_started',
+  }
 }
 
 const normalizePlanningStatus = (status, progress = 0) => {
@@ -2251,6 +3028,8 @@ const normalizePlanningPriority = (priority) => {
 
 const formatNumber = (value) => Number(value || 0).toLocaleString('id-ID')
 
+const progressValue = (item = {}) => Math.min(1, Math.max(0, Number(item.progressPercentage || 0) / 100))
+
 const productRowId = (row = {}) => planningIdOf(row) || row.project_id || row.id || ''
 
 const isProductExpanded = (row = {}) => expandedProductRowIds.value.has(productRowId(row))
@@ -2283,9 +3062,13 @@ const productDetailRows = (row = {}) => {
         `Product ${index + 1}`
       return {
         key: product.product_id || product.id || product.item_id || `${productName}-${index}`,
+        item_id: product.item_id || product.id || product.product_id || `item-${index + 1}`,
         product_name: productName,
         quantity: Number(product.quantity ?? product.qty ?? product.total_quantity ?? product.qty_target ?? 0),
         unit: product.unit || product.satuan || row.satuan || 'Unit',
+        department_id: product.departmentId || product.department_id || product.departemen_id || product.department_key || product.departemen?.id || product.department?.id || '',
+        department_name: product.departmentName || product.department_name || product.departemen_nama || product.nama_departemen || product.departemen_terkait || product.departemen?.nama_departemen || product.department?.name || '',
+        department_code: product.departmentCode || product.department_code || product.departemen_kode || product.kode_departemen || product.departemen?.kode_departemen || product.department?.code || '',
       }
     })
     .filter((product) => product.product_name)
@@ -2313,16 +3096,15 @@ const departmentKey = (value) => {
 }
 
 const fallbackDepartmentRows = () =>
-  departemenRows.value.length
-    ? departemenRows.value.map((department) => normalizeDepartment(department))
-    : TRACKED_DEPARTMENTS.map((department) => ({
-        department_id: department.key,
-        department_name: department.label,
-      }))
+  departemenRows.value.map(masterDepartmentFor).filter(Boolean)
 
 const departmentProgressSummaryRows = (row = {}) => {
   const progressRows = progressRowsForProject(row).map((progress) => normalizeProgressRow(progress))
   const departments = assignedDepartmentsFor(row).length ? assignedDepartmentsFor(row) : fallbackDepartmentRows()
+  const departmentOrderedQty = productDetailRows(row).reduce(
+    (sum, product) => sum + Math.max(0, Number(product.quantity || 0)),
+    0,
+  )
 
   return departments
     .map((department) => {
@@ -2331,16 +3113,17 @@ const departmentProgressSummaryRows = (row = {}) => {
           progress.department_id === department.department_id ||
           departmentKey(progress.department_name || progress.department_id) === departmentKey(department.department_name || department.department_id),
       )
-      const targetQty = departmentRows.reduce((sum, progress) => sum + Number(progress.target_qty || 0), 0)
       const actualQty = departmentRows.reduce((sum, progress) => sum + Number(progress.actual_qty || 0), 0)
-      const progressPercent = targetQty > 0 ? Math.min(100, (actualQty / targetQty) * 100) : 0
+      const progressPercent =
+        departmentOrderedQty > 0 ? Math.min(100, (actualQty / departmentOrderedQty) * 100) : 0
 
       return {
         department_id: department.department_id,
         department_name: department.department_name,
-        target_qty: targetQty,
+        target_qty: departmentOrderedQty,
         actual_qty: actualQty,
         progress_percent: progressPercent,
+        status: actualQty >= departmentOrderedQty && departmentOrderedQty > 0 ? 'done' : actualQty > 0 ? 'in_progress' : 'not_started',
       }
     })
     .filter((department) => department.target_qty > 0 || department.actual_qty > 0)

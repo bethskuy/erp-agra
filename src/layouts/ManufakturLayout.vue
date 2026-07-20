@@ -110,11 +110,11 @@
     >
       <div class="sidebar-profile row items-center no-wrap border-bottom">
         <q-avatar size="40px" color="teal-10" text-color="white" class="text-weight-bold"
-          >R</q-avatar
+          >{{ activeUser?.nama?.charAt(0)?.toUpperCase() || '?' }}</q-avatar
         >
         <div class="sidebar-profile__meta">
-          <div class="sidebar-profile__name">Refqi Obeth Sudiarma...</div>
-          <div class="sidebar-profile__role">Super Admin</div>
+          <div class="sidebar-profile__name">{{ activeUser?.nama || 'User' }}</div>
+          <div class="sidebar-profile__role">{{ activeUser?.role || activeUser?.jabatan || '-' }}</div>
         </div>
       </div>
 
@@ -875,9 +875,10 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { db } from 'src/boot/firebase'
+import { auth, db } from 'src/boot/firebase'
+import { onAuthStateChanged } from 'firebase/auth'
 import { collection, query, where, onSnapshot } from 'firebase/firestore'
 import { useAuthStore } from 'src/stores/auth'
 
@@ -892,6 +893,10 @@ let unsub = null
 let unsubPurchaseRequest = null
 let unsubQcReject = null
 let unsubUser = null
+let unsubAuth = null
+
+// Data user aktif: prioritaskan data fresh dari Firestore, fallback ke authStore
+const activeUser = computed(() => userData.value || authStore.user)
 
 const toggleLeftDrawer = () => {
   leftDrawerOpen.value = !leftDrawerOpen.value
@@ -909,6 +914,25 @@ const hasSectionAccess = (menuPaths) => {
 
 const isRouteInSection = (paths) =>
   paths.some((path) => route.path === path || route.path.startsWith(`${path}/`))
+
+// Fungsi untuk subscribe data karyawan berdasarkan email
+const subscribeUserData = (email) => {
+  // Bersihkan listener sebelumnya jika ada
+  if (unsubUser) {
+    unsubUser()
+    unsubUser = null
+  }
+  if (!email) return
+
+  const qUser = query(collection(db, 'karyawan'), where('email', '==', email))
+  unsubUser = onSnapshot(qUser, (snapshot) => {
+    if (!snapshot.empty) {
+      userData.value = snapshot.docs[0].data()
+      // Sinkronkan authStore agar konsisten di seluruh app
+      authStore.setLogin(userData.value, userData.value.akses || authStore.userAkses)
+    }
+  })
+}
 
 onMounted(() => {
   const q = query(collection(db, 'penawaran_manufaktur'), where('status', '==', 'Pending'))
@@ -933,13 +957,13 @@ onMounted(() => {
     activeQcRejectCount.value = snap.size
   })
 
-  const userEmail = authStore.user?.email
-  if (userEmail) {
-    const qUser = query(collection(db, 'karyawan'), where('email', '==', userEmail))
-    unsubUser = onSnapshot(qUser, (snapshot) => {
-      userData.value = snapshot.empty ? null : snapshot.docs[0].data()
-    })
-  }
+  // Gunakan onAuthStateChanged agar PASTI mendapat user yg sedang login
+  // (auth.currentUser bisa null jika Firebase Auth belum selesai init)
+  unsubAuth = onAuthStateChanged(auth, (firebaseUser) => {
+    if (firebaseUser?.email) {
+      subscribeUserData(firebaseUser.email)
+    }
+  })
 })
 
 onUnmounted(() => {
@@ -947,6 +971,7 @@ onUnmounted(() => {
   if (unsubPurchaseRequest) unsubPurchaseRequest()
   if (unsubQcReject) unsubQcReject()
   if (unsubUser) unsubUser()
+  if (unsubAuth) unsubAuth()
 })
 </script>
 
@@ -1010,7 +1035,7 @@ onUnmounted(() => {
 }
 .app-brand {
   letter-spacing: 1.5px;
-  color: #F4F7FA;
+  color: #f4f7fa;
   font-family: 'Inter', sans-serif;
   font-weight: 800;
 }
@@ -1025,7 +1050,7 @@ onUnmounted(() => {
     transform 180ms ease,
     background-color 180ms ease,
     box-shadow 180ms ease;
-  color: #F4F7FA !important;
+  color: #f4f7fa !important;
 }
 .header-icon-btn:hover {
   transform: translateY(-2px);
@@ -1065,7 +1090,7 @@ onUnmounted(() => {
 }
 .app-page-container :deep(.q-page) {
   background: transparent !important;
-  color: #F4F7FA;
+  color: #f4f7fa;
   width: 100%;
   max-width: none !important;
   font-family: 'Inter', 'Poppins', sans-serif;
@@ -1113,10 +1138,10 @@ onUnmounted(() => {
   width: min(94vw, 920px) !important;
 }
 .manufactur-shell {
-  color: #F4F7FA;
+  color: #f4f7fa;
 }
 .manufactur-sidebar {
-  color: #F4F7FA;
+  color: #f4f7fa;
 }
 /* ==== CARD GLOBAL OVERRIDES ==== */
 :global(body:has(.app-layout--manufacture) .manufactur-card),
@@ -1125,7 +1150,7 @@ onUnmounted(() => {
 :global(body:has(.app-layout--manufacture) .manufactur-stat-card) {
   border: 1px solid rgba(124, 255, 79, 0.12);
   background: rgba(13, 34, 51, 0.88);
-  color: #F4F7FA;
+  color: #f4f7fa;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   transition:
     transform 200ms ease,
@@ -1161,7 +1186,7 @@ onUnmounted(() => {
   background: rgba(13, 34, 51, 0.88) !important;
   border: 1px solid rgba(124, 255, 79, 0.1);
   border-radius: 16px;
-  color: #F4F7FA;
+  color: #f4f7fa;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
   transition:
     transform 200ms ease,
@@ -1169,7 +1194,7 @@ onUnmounted(() => {
     box-shadow 200ms ease;
 }
 :global(body:has(.app-layout--manufacture) .q-page .q-card__section) {
-  color: #F4F7FA;
+  color: #f4f7fa;
 }
 /* ==== TABLE GLOBAL OVERRIDES ==== */
 :global(body:has(.app-layout--manufacture) .q-page .q-table__container) {
@@ -1177,24 +1202,24 @@ onUnmounted(() => {
   background: rgba(13, 34, 51, 0.88) !important;
   border: 1px solid rgba(124, 255, 79, 0.1);
   border-radius: 16px;
-  color: #F4F7FA;
+  color: #f4f7fa;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
 }
 :global(body:has(.app-layout--manufacture) .q-page .q-markup-table),
 :global(body:has(.app-layout--manufacture) .q-page .q-table__middle) {
   background: transparent !important;
-  color: #F4F7FA;
+  color: #f4f7fa;
 }
 :global(body:has(.app-layout--manufacture) .q-table__top),
 :global(body:has(.app-layout--manufacture) .q-table__bottom) {
   background: rgba(13, 34, 51, 0.95) !important;
-  color: #8CA3B8;
+  color: #8ca3b8;
 }
 /* Table header: dark with cyan accent */
 :global(body:has(.app-layout--manufacture) .q-table thead tr),
 :global(body:has(.app-layout--manufacture) .q-table thead th) {
   background: rgba(0, 209, 178, 0.08) !important;
-  color: #00D1B2 !important;
+  color: #00d1b2 !important;
   font-weight: 700;
   font-size: 11px;
   letter-spacing: 0.9px;
@@ -1211,27 +1236,29 @@ onUnmounted(() => {
   background: rgba(124, 255, 79, 0.05);
 }
 :global(body:has(.app-layout--manufacture) .q-table tbody td) {
-  color: #F4F7FA !important;
+  color: #f4f7fa !important;
 }
 /* ==== INPUT GLOBAL OVERRIDES ==== */
 :global(body:has(.app-layout--manufacture) .q-field--outlined .q-field__control) {
   background: rgba(13, 34, 51, 0.7) !important;
 }
-:global(body:has(.app-layout--manufacture) .q-field--outlined:not(.q-field--focused) .q-field__control) {
+:global(
+  body:has(.app-layout--manufacture) .q-field--outlined:not(.q-field--focused) .q-field__control
+) {
   border-color: rgba(124, 255, 79, 0.2);
 }
 :global(body:has(.app-layout--manufacture) .q-field--outlined.q-field--focused .q-field__control) {
-  border-color: #00D1B2;
+  border-color: #00d1b2;
 }
 :global(body:has(.app-layout--manufacture) .q-field__label),
 :global(body:has(.app-layout--manufacture) .q-field__native),
 :global(body:has(.app-layout--manufacture) .q-field__input),
 :global(body:has(.app-layout--manufacture) .q-field__prefix),
 :global(body:has(.app-layout--manufacture) .q-field__suffix) {
-  color: #F4F7FA;
+  color: #f4f7fa;
 }
 :global(body:has(.app-layout--manufacture) .q-field--float .q-field__label) {
-  color: #7CFF4F;
+  color: #7cff4f;
 }
 /* ==== DIALOG OVERRIDES ==== */
 :global(body:has(.app-layout--manufacture) .q-dialog__backdrop) {
@@ -1240,12 +1267,12 @@ onUnmounted(() => {
 :global(body:has(.app-layout--manufacture) .q-dialog .q-card) {
   background: rgba(10, 28, 44, 0.98) !important;
   border: 1px solid rgba(0, 209, 178, 0.2) !important;
-  color: #F4F7FA;
+  color: #f4f7fa;
 }
 :global(body:has(.app-layout--manufacture) .q-dialog .q-toolbar) {
   background: rgba(0, 209, 178, 0.08);
   border-bottom: 1px solid rgba(0, 209, 178, 0.15);
-  color: #F4F7FA;
+  color: #f4f7fa;
 }
 :global(body:has(.app-layout--manufacture) .q-dialog .q-card__actions) {
   background: rgba(7, 24, 38, 0.5);
@@ -1278,19 +1305,23 @@ onUnmounted(() => {
 }
 /* Convert green-10 Quasar class to neon green for manufacturing */
 :global(body:has(.app-layout--manufacture) .text-green-10) {
-  color: #7CFF4F !important;
+  color: #7cff4f !important;
 }
-:global(body:has(.app-layout--manufacture) .q-page .bg-green-10:not(.q-table thead tr):not(.q-table thead th)) {
-  background: linear-gradient(135deg, rgba(124,255,79,0.2), rgba(0,209,178,0.15)) !important;
+:global(
+  body:has(.app-layout--manufacture)
+    .q-page
+    .bg-green-10:not(.q-table thead tr):not(.q-table thead th)
+) {
+  background: linear-gradient(135deg, rgba(124, 255, 79, 0.2), rgba(0, 209, 178, 0.15)) !important;
   color: #071826 !important;
 }
 :global(body:has(.app-layout--manufacture) .q-table thead .bg-green-10) {
   background: rgba(0, 209, 178, 0.08) !important;
-  color: #00D1B2 !important;
+  color: #00d1b2 !important;
 }
 /* Unelevated green-10 buttons → neon gradient */
 :global(body:has(.app-layout--manufacture) .q-btn.bg-green-10) {
-  background: linear-gradient(135deg, #7CFF4F 0%, #52C41A 100%) !important;
+  background: linear-gradient(135deg, #7cff4f 0%, #52c41a 100%) !important;
   color: #071826 !important;
   box-shadow: 0 4px 16px rgba(124, 255, 79, 0.35) !important;
 }
@@ -1299,7 +1330,7 @@ onUnmounted(() => {
 }
 /* Flat green-10 buttons → neon text */
 :global(body:has(.app-layout--manufacture) .q-btn.text-green-10) {
-  color: #7CFF4F !important;
+  color: #7cff4f !important;
 }
 /* bg-white on cards → transparent (card bg handled by q-card override) */
 :global(body:has(.app-layout--manufacture) .q-page .q-card.bg-white) {
@@ -1307,17 +1338,17 @@ onUnmounted(() => {
 }
 /* grey text → muted */
 :global(body:has(.app-layout--manufacture) .q-page .text-grey-7) {
-  color: #8CA3B8 !important;
+  color: #8ca3b8 !important;
 }
 :global(body:has(.app-layout--manufacture) .q-page .text-grey-6) {
-  color: #8CA3B8 !important;
+  color: #8ca3b8 !important;
 }
 /* app-menu-panel text */
 :global(body:has(.app-layout--manufacture) .app-menu-panel .text-grey-7) {
-  color: #8CA3B8 !important;
+  color: #8ca3b8 !important;
 }
 :global(body:has(.app-layout--manufacture) .app-menu-panel) {
-  color: #F4F7FA;
+  color: #f4f7fa;
 }
 /* ==== SKELETON ==== */
 :global(body:has(.app-layout--manufacture) .q-skeleton) {
@@ -1335,7 +1366,7 @@ onUnmounted(() => {
 }
 :global(body:has(.app-layout--manufacture) .q-table__bottom--nodata) {
   min-height: 132px;
-  color: #8CA3B8;
+  color: #8ca3b8;
   font-weight: 600;
 }
 :global(body:has(.app-layout--manufacture) .q-table__bottom--nodata::before) {
@@ -1347,7 +1378,7 @@ onUnmounted(() => {
   margin-right: 10px;
   border-radius: 999px;
   background: rgba(124, 255, 79, 0.1);
-  color: #7CFF4F;
+  color: #7cff4f;
   font-family: 'Material Icons';
   font-size: 24px;
   vertical-align: middle;
@@ -1379,18 +1410,18 @@ onUnmounted(() => {
 }
 /* ==== TABS ==== */
 :global(body:has(.app-layout--manufacture) .q-tabs) {
-  color: #8CA3B8;
+  color: #8ca3b8;
 }
 :global(body:has(.app-layout--manufacture) .q-tab--active) {
-  color: #7CFF4F;
+  color: #7cff4f;
 }
 :global(body:has(.app-layout--manufacture) .q-tabs__indicator) {
-  color: #7CFF4F;
-  background: #7CFF4F;
+  color: #7cff4f;
+  background: #7cff4f;
 }
 /* ==== TIMELINE ==== */
 :global(body:has(.app-layout--manufacture) .q-timeline__dot) {
-  background: #00D1B2;
+  background: #00d1b2;
 }
 :global(body:has(.app-layout--manufacture) .q-timeline__line) {
   background: rgba(0, 209, 178, 0.2);
@@ -1399,13 +1430,13 @@ onUnmounted(() => {
   border-bottom: 1px solid rgba(0, 209, 178, 0.12);
 }
 .sidebar-drawer {
-  color: #F4F7FA;
+  color: #f4f7fa;
   transition:
     width 0.24s ease,
     transform 0.24s ease;
 }
 .sidebar-drawer :deep(.q-drawer) {
-  color: #F4F7FA;
+  color: #f4f7fa;
   background: #0a1e2e;
   border-right: 1px solid rgba(0, 209, 178, 0.1);
   box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4);
@@ -1414,7 +1445,7 @@ onUnmounted(() => {
     transform 0.24s ease;
 }
 .sidebar-drawer :deep(.q-drawer__content) {
-  color: #F4F7FA;
+  color: #f4f7fa;
   background: #0a1e2e;
 }
 .sidebar-drawer :deep(.q-list) {
@@ -1443,7 +1474,7 @@ onUnmounted(() => {
 .sidebar-profile__name {
   max-width: 184px;
   overflow: hidden;
-  color: #F4F7FA;
+  color: #f4f7fa;
   font-size: 13px;
   font-weight: 700;
   font-family: 'Inter', sans-serif;
@@ -1452,7 +1483,7 @@ onUnmounted(() => {
 }
 .sidebar-profile__role {
   margin-top: 3px;
-  color: #7CFF4F;
+  color: #7cff4f;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.8px;
@@ -1485,7 +1516,7 @@ onUnmounted(() => {
   padding: 0 12px;
   border: 1px solid transparent;
   border-radius: 12px;
-  color: #8CA3B8;
+  color: #8ca3b8;
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0;
@@ -1503,7 +1534,7 @@ onUnmounted(() => {
 :deep(.nav-group:hover) {
   background: rgba(124, 255, 79, 0.08);
   border-color: rgba(124, 255, 79, 0.2);
-  color: #F4F7FA;
+  color: #f4f7fa;
   box-shadow: none;
 }
 .menu-item:hover,
@@ -1542,7 +1573,7 @@ onUnmounted(() => {
   padding: 0 11px;
   border: 1px solid transparent;
   border-radius: 12px;
-  color: #8CA3B8;
+  color: #8ca3b8;
   font-size: 12.5px;
   font-weight: 500;
   letter-spacing: 0;
@@ -1557,13 +1588,13 @@ onUnmounted(() => {
 .submenu-icon {
   min-width: 24px;
   padding-right: 7px;
-  color: #00D1B2;
+  color: #00d1b2;
 }
 .submenu-icon :deep(.q-icon) {
   font-size: 16px;
 }
 .submenu-item:hover .submenu-icon {
-  color: #7CFF4F;
+  color: #7cff4f;
 }
 :deep(.submenu-group) {
   min-height: 34px;
@@ -1571,7 +1602,7 @@ onUnmounted(() => {
   padding: 0 11px;
   border: 1px solid transparent;
   border-radius: 12px;
-  color: #8CA3B8;
+  color: #8ca3b8;
   font-size: 12.5px;
   font-weight: 600;
   letter-spacing: 0;
@@ -1586,7 +1617,7 @@ onUnmounted(() => {
 :deep(.submenu-group .q-item__section--avatar) {
   min-width: 24px;
   padding-right: 7px;
-  color: #00D1B2;
+  color: #00d1b2;
 }
 :deep(.submenu-group .q-item__label) {
   min-width: 0;
@@ -1596,12 +1627,12 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 :deep(.q-expansion-item--expanded > .submenu-group) {
-  color: #F4F7FA;
+  color: #f4f7fa;
   background: rgba(124, 255, 79, 0.06);
   border-color: rgba(124, 255, 79, 0.15);
 }
 :deep(.q-expansion-item--expanded > .submenu-group .q-item__section--avatar) {
-  color: #7CFF4F;
+  color: #7cff4f;
 }
 .master-child-item {
   margin-left: 20px;
@@ -1618,7 +1649,7 @@ onUnmounted(() => {
   padding: 0 12px;
   border: 1px solid transparent;
   border-radius: 14px;
-  color: #F4F7FA;
+  color: #f4f7fa;
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0;
@@ -1633,13 +1664,13 @@ onUnmounted(() => {
 :deep(.nav-group .q-item__section--avatar) {
   min-width: 30px;
   padding-right: 8px;
-  color: #00D1B2;
+  color: #00d1b2;
 }
 :deep(.nav-group .q-item__label) {
   line-height: 1.1;
 }
 :deep(.nav-expand-icon) {
-  color: #00D1B2;
+  color: #00d1b2;
   font-size: 18px;
 }
 :deep(.q-expansion-item__content) {
@@ -1649,17 +1680,17 @@ onUnmounted(() => {
     opacity 0.18s ease;
 }
 :deep(.q-expansion-item--expanded > .nav-group) {
-  color: #F4F7FA;
+  color: #f4f7fa;
   background: rgba(0, 209, 178, 0.08);
   border-color: rgba(0, 209, 178, 0.2);
   box-shadow: none;
 }
 :deep(.q-expansion-item--expanded > .nav-group .q-item__section--avatar) {
-  color: #7CFF4F;
+  color: #7cff4f;
 }
 .active-menu {
   color: #071826 !important;
-  background: linear-gradient(135deg, #7CFF4F 0%, #00D1B2 100%) !important;
+  background: linear-gradient(135deg, #7cff4f 0%, #00d1b2 100%) !important;
   border-color: transparent !important;
   border-radius: 12px !important;
   box-shadow:

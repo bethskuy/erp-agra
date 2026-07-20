@@ -343,7 +343,6 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { date, useQuasar } from 'quasar'
 import {
-  addDoc,
   collection,
   doc,
   getDocs,
@@ -351,8 +350,8 @@ import {
   orderBy,
   query,
   serverTimestamp,
-  updateDoc,
   where,
+  writeBatch,
 } from 'firebase/firestore'
 import { db } from 'src/boot/firebase'
 
@@ -528,6 +527,7 @@ const expandRowItems = (row) => {
     return {
       ...row,
       id: `${row.id}-${item.item_id}`,
+      source_document_id: row.source_document_id || row.id,
       item_id: item.item_id,
       item_index: index,
       produk_id: item.produk_id || row.produk_id || null,
@@ -748,6 +748,7 @@ const progressColor = (value) => {
 }
 
 const canFinishProduction = (row) =>
+  row.source_collection === PRODUKSI_COLLECTION &&
   Number(row.qty_hasil_jadi || 0) > 0 &&
   ![
     'pending_qc',
@@ -761,9 +762,11 @@ const canFinishProduction = (row) =>
   ].includes(normalizeStatus(row.status_produksi))
 
 const buildQcQueuePayload = (row) => ({
-  id: row.id,
-  production_source_id: row.id,
+  production_source_id: row.source_document_id || row.id,
   source_type: row.source_type || 'monitoring',
+  source_collection: row.source_collection || '',
+  item_id: row.item_id || null,
+  schedule_key: row.schedule_key || '',
   no_spk: row.no_spk || row.nomor_spk || '',
   nomor_spk: row.nomor_spk || row.no_spk || '',
   nomor_po: row.nomor_po || row.no_po || row.po_number || '',
@@ -798,8 +801,11 @@ const buildQcQueuePayload = (row) => ({
   operator: row.operator || row.operator_nama || row.created_by || row.createdBy || '',
   tanggal_finish: serverTimestamp(),
   status_qc: 'pending_qc',
+  qcStatus: 'waiting_qc',
   status_produksi: 'pending_qc',
+  statusProduksi: 'completed',
   status: 'pending_qc',
+  completedAt: serverTimestamp(),
   qty_passed: 0,
   qty_approved: 0,
   qty_approved_qc: 0,
@@ -812,10 +818,17 @@ const buildQcQueuePayload = (row) => ({
 const finishProduction = async (row) => {
   finishingId.value = row.id
   try {
+    const sourceDocumentId = row.source_document_id || row.id
     const duplicateSnap = await getDocs(
-      query(collection(db, QC_COLLECTION), where('production_source_id', '==', row.id)),
+      query(collection(db, QC_COLLECTION), where('production_source_id', '==', sourceDocumentId)),
     )
-    if (!duplicateSnap.empty) {
+    const duplicateExists = duplicateSnap.docs.some((qcDoc) => {
+      const qcRow = qcDoc.data()
+      const sameItem = String(qcRow.item_id || '') === String(row.item_id || '')
+      const sameSchedule = String(qcRow.schedule_key || '') === String(row.schedule_key || '')
+      return sameItem && sameSchedule
+    })
+    if (duplicateExists) {
       $q.notify({
         type: 'warning',
         message: 'Antrean QC untuk produksi ini sudah ada atau sudah selesai.',
@@ -823,18 +836,33 @@ const finishProduction = async (row) => {
       return
     }
 
-    await addDoc(collection(db, QC_COLLECTION), buildQcQueuePayload(row))
+    const batch = writeBatch(db)
+    const qcRef = doc(collection(db, QC_COLLECTION))
+    batch.set(qcRef, buildQcQueuePayload(row))
 
-    if (row.source_type === 'production') {
-      await updateDoc(doc(db, PRODUKSI_COLLECTION, row.id), {
+    if (row.source_collection === PRODUKSI_COLLECTION) {
+      batch.update(doc(db, PRODUKSI_COLLECTION, sourceDocumentId), {
         status_produksi: 'pending_qc',
         status: 'pending_qc',
         status_qc: 'pending_qc',
+        statusProduksi: 'completed',
+        qcStatus: 'waiting_qc',
+        completedAt: serverTimestamp(),
         finished_at: serverTimestamp(),
+        updated_at: serverTimestamp(),
+      })
+    } else if (row.source_collection === PLANNING_COLLECTION) {
+      batch.update(doc(db, PLANNING_COLLECTION, sourceDocumentId), {
+        status_produksi: 'pending_qc',
+        status_qc: 'pending_qc',
+        statusProduksi: 'completed',
+        qcStatus: 'waiting_qc',
+        completedAt: serverTimestamp(),
         updated_at: serverTimestamp(),
       })
     }
 
+    await batch.commit()
     $q.notify({ type: 'positive', message: 'Produksi selesai dan antrean QC berhasil dibuat.' })
   } catch (error) {
     console.error('[Monitoring->QC] Gagal membuat antrean QC', { row, error })
@@ -860,6 +888,8 @@ const listenPlanningProduksi = (callback, errorCallback) =>
       callback(
         snapshot.docs.map((planningDoc) => ({
           id: planningDoc.id,
+          source_document_id: planningDoc.id,
+          source_collection: PLANNING_COLLECTION,
           source_type: 'planning',
           ...planningDoc.data(),
         })),
@@ -875,6 +905,8 @@ const listenProductionHistory = (callback, errorCallback) =>
       callback(
         snapshot.docs.map((productionDoc) => ({
           id: productionDoc.id,
+          source_document_id: productionDoc.id,
+          source_collection: PRODUKSI_COLLECTION,
           source_type: productionDoc.data().source_type || 'production',
           ...productionDoc.data(),
         })),

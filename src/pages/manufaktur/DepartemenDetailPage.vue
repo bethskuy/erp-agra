@@ -1324,6 +1324,18 @@ const updateManufacturingPlanningProduksi = (planningId, payload) =>
   }))
 
 const planningMatchesDepartemen = (row, departemenIdValue) => {
+  const mappedSchedules = planningScheduleRows(row, false).filter(scheduleHasDepartment)
+  if (mappedSchedules.length) {
+    return mappedSchedules.some((schedule) =>
+      scheduleMatchesDepartment(
+        schedule,
+        departemenIdValue,
+        departemenTitle.value,
+        departemenKode.value,
+      ),
+    )
+  }
+
   if (row.all_departemen || row.routing_mode === 'all') {
     return Array.isArray(row.route_departemen)
       ? row.route_departemen.some((item) => item.id === departemenIdValue)
@@ -1725,6 +1737,10 @@ const isPlanningActiveForCurrentDepartemen = (row) => {
   if (['selesai', 'finished', 'done', 'cancelled', 'batal'].includes(status)) return false
 
   const routeStep = currentPlanningRouteStep(row)
+  const mappedSchedules = planningScheduleRows(row, false)
+  if (mappedSchedules.some((schedule) => scheduleHasDepartment(schedule))) {
+    return mappedSchedules.some((schedule) => scheduleMatchesDepartment(schedule))
+  }
   if (row.all_departemen || row.routing_mode === 'all') {
     return !['Selesai', 'Finished', 'Diteruskan'].includes(routeStep?.status)
   }
@@ -1855,20 +1871,250 @@ const normalizeProductionItem = (item = {}, index = 0) => {
   }
 }
 
-const normalizeScheduleRow = (schedule = {}, index = 0, planningId = '') => ({
-  key: schedule.key || `${planningId}_${schedule.date || index + 1}`,
-  day: Number(schedule.day || index + 1),
-  date: schedule.date || '',
-  target_qty: toFiniteNumber(schedule.target_qty ?? schedule.target_quantity),
-  actual_qty: toFiniteNumber(schedule.actual_qty ?? schedule.actual_quantity),
-  status: schedule.status || 'not_started',
-  customer: schedule.customer || '',
-  product: schedule.product || '',
-})
+const itemNameOf = (item = {}) =>
+  item.itemName ||
+  item.item_name ||
+  item.product_name ||
+  item.nama_produk ||
+  item.nama_barang ||
+  item.name ||
+  item.deskripsi ||
+  item.product ||
+  ''
 
-const planningScheduleRows = (planning = {}) =>
+const departmentFieldsOf = (source = {}) => {
+  const nestedDepartment =
+    source.department ||
+    source.departemen ||
+    source.tujuan_departemen ||
+    source.department_obj ||
+    source.departemen_obj ||
+    {}
+
+  return {
+    department_id:
+      source.departmentId ||
+      source.department_id ||
+      source.departemen_id ||
+      source.department_key ||
+      nestedDepartment.id ||
+      nestedDepartment.value ||
+      '',
+    department_name:
+      source.departmentName ||
+      source.department_name ||
+      source.departemen_nama ||
+      source.nama_departemen ||
+      source.departemen_terkait ||
+      source.group_name ||
+      source.nama_group ||
+      source.tahapan ||
+      source.nama_tahapan ||
+      (typeof source.department === 'string' ? source.department : '') ||
+      (typeof source.departemen === 'string' ? source.departemen : '') ||
+      nestedDepartment.nama_departemen ||
+      nestedDepartment.name ||
+      nestedDepartment.label ||
+      '',
+    department_code:
+      source.departmentCode ||
+      source.department_code ||
+      source.departemen_kode ||
+      source.kode_departemen ||
+      nestedDepartment.kode_departemen ||
+      nestedDepartment.code ||
+      '',
+  }
+}
+
+const scheduleItemMapping = (schedule = {}, planning = {}) => {
+  const scheduleItemId = String(schedule.item_id || schedule.itemId || '')
+  const scheduleItemName = normalizeComparable(
+    schedule.itemName || schedule.product_name || schedule.product,
+  )
+  const candidates = [
+    ...(Array.isArray(planning.schedule_document?.items) ? planning.schedule_document.items : []),
+    ...(Array.isArray(planning.items) ? planning.items : []),
+    ...(Array.isArray(planning.products) ? planning.products : []),
+  ]
+
+  return candidates.find((item) => {
+    const itemId = String(item.itemId || item.item_id || item.id || item.product_id || '')
+    const itemName = normalizeComparable(itemNameOf(item))
+    return (
+      (scheduleItemId && itemId && scheduleItemId === itemId) ||
+      (scheduleItemName && itemName && scheduleItemName === itemName)
+    )
+  })
+}
+
+const normalizeScheduleRow = (schedule = {}, index = 0, planning = {}) => {
+  const planningId = planning.id || planning.planning_id || ''
+  const directDepartment = departmentFieldsOf(schedule)
+  const mappedDepartment = departmentFieldsOf(scheduleItemMapping(schedule, planning) || {})
+
+  return {
+    key: schedule.key || `${planningId}_${schedule.date || index + 1}`,
+    item_id: schedule.item_id || schedule.itemId || '',
+    day: Number(schedule.day || index + 1),
+    date: schedule.date || schedule.scheduleDate || '',
+    target_qty: toFiniteNumber(schedule.target_qty ?? schedule.target_quantity ?? schedule.qty),
+    actual_qty: toFiniteNumber(schedule.actual_qty ?? schedule.actual_quantity),
+    status: schedule.status || 'not_started',
+    customer: schedule.customer || '',
+    product: schedule.product || schedule.product_name || schedule.itemName || '',
+    department_id: directDepartment.department_id || mappedDepartment.department_id,
+    department_name: directDepartment.department_name || mappedDepartment.department_name,
+    department_code: directDepartment.department_code || mappedDepartment.department_code,
+  }
+}
+
+const scheduleHasDepartment = (schedule = {}) =>
+  Boolean(schedule.department_id || schedule.department_name || schedule.department_code)
+
+const scheduleMatchesDepartment = (
+  schedule = {},
+  departmentIdValue = departemenId.value,
+  departmentNameValue = departemenTitle.value,
+  departmentCodeValue = departemenKode.value,
+) => {
+  const targetValues = [departmentIdValue, departmentNameValue, departmentCodeValue]
+    .map(normalizeComparable)
+    .filter(Boolean)
+  const scheduleValues = [
+    schedule.departmentId,
+    schedule.department_id,
+    schedule.departemen_id,
+    schedule.departmentName,
+    schedule.department_name,
+    schedule.departemen_nama,
+    schedule.departmentCode,
+    schedule.department_code,
+    schedule.departemen_kode,
+  ]
+    .map(normalizeComparable)
+    .filter(Boolean)
+
+  return targetValues.some((value) => scheduleValues.includes(value))
+}
+
+const buildScheduleDocument = (planning = {}, schedules = []) => {
+  const normalizedSchedules = schedules.map((schedule, index) =>
+    normalizeScheduleRow(schedule, index, planning),
+  )
+  const sourceItems = Array.isArray(planning.items) && planning.items.length
+    ? planning.items
+    : Array.isArray(planning.products)
+      ? planning.products
+      : []
+  const normalizedItems = sourceItems.map((item, index) => {
+    const normalizedItem = normalizeProductionItem(item, index)
+    const itemId = normalizedItem.item_id || `item-${index + 1}`
+    const itemName = normalizedItem.nama_produk
+    const itemSchedules = normalizedSchedules.filter(
+      (schedule) =>
+        (schedule.item_id && String(schedule.item_id) === String(itemId)) ||
+        String(schedule.product || '').trim().toLowerCase() === String(itemName || '').trim().toLowerCase(),
+    )
+    const orderedQty = toFiniteNumber(normalizedItem.qty)
+    const producedByDepartment = itemSchedules.reduce((departments, schedule) => {
+      const key = normalizeComparable(
+        schedule.department_id || schedule.department_name || schedule.department_code || 'unassigned',
+      )
+      departments.set(key, Number(departments.get(key) || 0) + toFiniteNumber(schedule.actual_qty))
+      return departments
+    }, new Map())
+    const actualProduced = Math.max(0, ...producedByDepartment.values())
+    const remainingQty = Math.max(orderedQty - actualProduced, 0)
+    const progressPercentage = orderedQty > 0
+      ? Math.min(100, (actualProduced / orderedQty) * 100)
+      : 0
+
+    return {
+      itemId,
+      itemName,
+      departments: Array.from(
+        new Map(
+          itemSchedules.map((schedule) => [
+            schedule.department_id || schedule.department_name || schedule.department_code,
+            {
+              departmentId: schedule.department_id,
+              departmentName: schedule.department_name,
+              departmentCode: schedule.department_code,
+            },
+          ]),
+        ).values(),
+      ),
+      orderedQty,
+      targetPerDay: itemSchedules.length
+        ? Math.max(...itemSchedules.map((schedule) => toFiniteNumber(schedule.target_qty)))
+        : 0,
+      actualProduced,
+      remainingQty,
+      progressPercentage,
+      status: actualProduced >= orderedQty && orderedQty > 0 ? 'completed' : actualProduced > 0 ? 'in_progress' : 'not_started',
+    }
+  })
+  const daysByKey = new Map()
+
+  normalizedSchedules.forEach((schedule) => {
+    const key = `${planning.id}_${schedule.date || schedule.day}`
+    if (!daysByKey.has(key)) {
+      daysByKey.set(key, {
+        key,
+        day: schedule.day,
+        date: schedule.date,
+        totalDailyTarget: 0,
+        totalActualProduced: 0,
+        itemBreakdown: [],
+      })
+    }
+    const day = daysByKey.get(key)
+    day.totalDailyTarget += toFiniteNumber(schedule.target_qty)
+    day.totalActualProduced += toFiniteNumber(schedule.actual_qty)
+    day.itemBreakdown.push({
+      itemId: schedule.item_id,
+      itemName: schedule.product,
+      departmentId: schedule.department_id,
+      departmentName: schedule.department_name,
+      departmentCode: schedule.department_code,
+      dailyTarget: toFiniteNumber(schedule.target_qty),
+      actualProduced: toFiniteNumber(schedule.actual_qty),
+      status: schedule.status,
+      scheduleKey: schedule.key,
+    })
+  })
+
+  const totalOrderedQty = normalizedItems.reduce((sum, item) => sum + item.orderedQty, 0)
+  const totalProducedAllDays = normalizedItems.reduce((sum, item) => sum + item.actualProduced, 0)
+  const remainingQty = Math.max(totalOrderedQty - totalProducedAllDays, 0)
+  const progressPercentage = totalOrderedQty > 0
+    ? Math.min(100, (totalProducedAllDays / totalOrderedQty) * 100)
+    : 0
+
+  return {
+    planningId: planning.id || planning.planning_id || '',
+    customer: planning.customer_name || planning.customer_nama || planning.customer || '',
+    totalDays: Math.max(1, ...normalizedSchedules.map((schedule) => Number(schedule.day || 0))),
+    totalOrderedQty,
+    totalProducedAllDays,
+    remainingQty,
+    progressPercentage,
+    status: progressPercentage >= 100 ? 'done' : progressPercentage > 0 ? 'in_progress' : 'not_started',
+    items: normalizedItems,
+    days: Array.from(daysByKey.values()).sort((a, b) => Number(a.day || 0) - Number(b.day || 0)),
+  }
+}
+
+const planningScheduleRows = (planning = {}, filterCurrentDepartment = true) =>
   (Array.isArray(planning.production_schedule) ? planning.production_schedule : [])
-    .map((schedule, index) => normalizeScheduleRow(schedule, index, planning.id))
+    .map((schedule, index) => normalizeScheduleRow(schedule, index, planning))
+    .filter(
+      (schedule) =>
+        !filterCurrentDepartment ||
+        !scheduleHasDepartment(schedule) ||
+        scheduleMatchesDepartment(schedule),
+    )
     .filter((schedule) => schedule.target_qty > 0)
 
 const normalizeProductionSource = (type, row, item = null, itemIndex = 0, schedule = null) => {
@@ -1907,7 +2153,10 @@ const normalizeProductionSource = (type, row, item = null, itemIndex = 0, schedu
     schedule_key: schedule?.key || '',
     schedule_date: schedule?.date || '',
     schedule_day: schedule?.day || null,
-    item_id: selectedItem?.item_id || row.item_id || null,
+    department_id: schedule?.department_id || departemenId.value || '',
+    department_name: schedule?.department_name || departemenTitle.value || '',
+    department_code: schedule?.department_code || departemenKode.value || '',
+    item_id: schedule?.item_id || selectedItem?.item_id || row.item_id || null,
     item_index: itemIndex,
     label: `${typeLabel} - ${nomorRef}${scheduleSuffix}${namaProduk ? ` - ${namaProduk}` : ''}`,
     item: row,
@@ -2682,28 +2931,42 @@ const saveProduction = async () => {
       sisa_qty: sisaQty,
       progress_percent: progressPercent,
     }
-    const scheduleProgressPayload = selectedSource.schedule_key
+    const updatedSchedules = selectedSource.schedule_key
+      ? (Array.isArray(selectedPlanning?.production_schedule)
+          ? selectedPlanning.production_schedule
+          : []
+        ).map((schedule, index) => {
+          const normalizedSchedule = normalizeScheduleRow(schedule, index, selectedPlanning || {})
+          if (normalizedSchedule.key !== selectedSource.schedule_key) return schedule
+          return {
+            ...schedule,
+            key: normalizedSchedule.key,
+            actual_qty: totalHasil,
+            status: isFinished ? 'done' : 'in_progress',
+            updated_at: new Date().toISOString(),
+          }
+        })
+      : []
+    const scheduleDocument = updatedSchedules.length
+      ? buildScheduleDocument(selectedPlanning, updatedSchedules)
+      : null
+    const scheduleProgressPayload = scheduleDocument
       ? {
-          production_schedule: (Array.isArray(selectedPlanning?.production_schedule)
-            ? selectedPlanning.production_schedule
-            : []
-          ).map((schedule, index) => {
-            const normalizedSchedule = normalizeScheduleRow(schedule, index, selectedPlanning?.id)
-            if (normalizedSchedule.key !== selectedSource.schedule_key) return schedule
-            return {
-              ...schedule,
-              key: normalizedSchedule.key,
-              actual_qty: totalHasil,
-              status: isFinished ? 'done' : 'in_progress',
-              updated_at: new Date().toISOString(),
-            }
-          }),
+          production_schedule: updatedSchedules,
+          schedule_document: scheduleDocument,
+          progress: scheduleDocument.progressPercentage,
+          progress_percent: scheduleDocument.progressPercentage,
+          total_progress: scheduleDocument.totalProducedAllDays,
+          sisa_qty: scheduleDocument.remainingQty,
         }
       : {}
+    const isPlanningFinished = scheduleDocument
+      ? scheduleDocument.progressPercentage >= 100
+      : isFinished
 
     try {
       if (selectedPlanning?.id) {
-        if (isFinished) {
+        if (isPlanningFinished) {
           await finishPlanningStep(
             selectedPlanning,
             {
