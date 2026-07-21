@@ -2309,7 +2309,7 @@ const exportToPDF = async () => {
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
       pagebreak: {
         mode: ['css', 'legacy'],
-        avoid: ['tr', '.terms-container', '.signature-container', '.final-sign-space', '.quotation-footer-wrapper'],
+        avoid: ['tr', '.terms-container', '.signature-container', '.final-sign-space'],
       },
     }
 
@@ -2907,7 +2907,6 @@ body.is-exporting .letter-paper .row.justify-between {
   break-inside: avoid;
   page-break-inside: avoid;
 }
-.quotation-footer-wrapper,
 .terms-container,
 .signature-container,
 .final-sign-space {
