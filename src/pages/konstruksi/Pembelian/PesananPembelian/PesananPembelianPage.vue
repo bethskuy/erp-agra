@@ -929,7 +929,7 @@
                     dense
                     v-model="poForm.approved_by_jabatan"
                     bg-color="white"
-                    placeholder="Jabatan (Direktur)"
+                    placeholder="Jabatan (Project Coordinator)"
                     color="brand-primary"
                   />
                 </div>
@@ -1457,7 +1457,7 @@
                     <div
                       class="text-role-final uppercase text-grey-8 text-caption font-bold block q-mt-xs"
                     >
-                      {{ selectedPo.approved_by_jabatan || 'Direktur' }}
+                      {{ selectedPo.approved_by_jabatan || 'Project Coordinator' }}
                     </div>
                   </div>
 
@@ -1565,7 +1565,7 @@ const poFormDefault = {
   checked_by: 'ETI YUNINGSIH',
   checked_by_jabatan: 'finance',
   approved_by: 'HAFIDZ AGUS PRATAMA',
-  approved_by_jabatan: 'project manager',
+  approved_by_jabatan: 'project coordinator',
   approved_supplier: '',
 }
 
