@@ -1,15 +1,15 @@
 <template>
-  <q-page class="bg-grey-2 q-pa-md q-pa-md-lg font-pro">
+  <q-page :class="['q-pa-md q-pa-md-lg font-pro', $q.dark.isActive ? 'bg-dark' : 'bg-grey-2']">
     <!-- HEADER SECTION -->
     <div class="row items-center justify-between q-mb-xl animate-fade">
       <div class="col-12 col-md-8">
-        <div class="text-h4 text-weight-bolder text-teal-10 leading-tight">
+        <div :class="['text-h4 text-weight-bolder leading-tight', $q.dark.isActive ? 'text-teal-4' : 'text-teal-10']">
           Kategori Barang
           <span class="text-h5 text-weight-light text-grey-6 block q-mt-xs"
             >Klasifikasi & Pengelompokan</span
           >
         </div>
-        <div class="text-subtitle1 text-grey-7 q-mt-sm">
+        <div :class="['text-subtitle1 q-mt-sm', $q.dark.isActive ? 'text-grey-5' : 'text-grey-7']">
           Kelola parameter pengelompokan material untuk mempermudah manajemen inventaris Proyek.
         </div>
       </div>
@@ -29,7 +29,7 @@
     </div>
 
     <!-- SEARCH & SUMMARY CARD -->
-    <q-card flat bordered class="q-mb-lg shadow-1 rounded-20 bg-white">
+    <q-card flat bordered :class="['q-mb-lg shadow-1 rounded-20', $q.dark.isActive ? 'bg-dark-page' : 'bg-white']">
       <q-card-section class="q-py-md">
         <div class="row items-center q-col-gutter-md">
           <div class="col-12 col-md-5">
@@ -60,7 +60,7 @@
     </q-card>
 
     <!-- TABLE SECTION -->
-    <q-card flat bordered class="rounded-20 shadow-sm overflow-hidden bg-white">
+    <q-card flat bordered :class="['rounded-20 shadow-sm overflow-hidden', $q.dark.isActive ? 'bg-dark-page' : 'bg-white']">
       <q-table
         :rows="rows"
         :columns="columns"
@@ -92,12 +92,12 @@
                   icon="folder"
                   class="q-mr-md"
                 />
-                <div class="text-weight-bold text-subtitle2 text-blue-grey-10 text-uppercase">
+                <div class="text-weight-bold text-subtitle2 text-uppercase text-white">
                   {{ props.row.nama }}
                 </div>
               </div>
             </q-td>
-            <q-td key="keterangan" class="text-grey-7">
+            <q-td key="keterangan" class="text-white">
               {{ props.row.keterangan || '-' }}
             </q-td>
             <q-td key="aksi" class="text-center">
@@ -437,5 +437,8 @@ const hapusKategori = (data) => {
 }
 .leading-relaxed {
   line-height: 1.6;
+}
+.bg-dark-page {
+  background-color: #1a2332 !important;
 }
 </style>

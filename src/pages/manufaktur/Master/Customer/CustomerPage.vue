@@ -105,7 +105,7 @@
                     {{ props.row.nama?.charAt(0) }}
                   </q-avatar>
                   <div>
-                    <div class="text-weight-bold text-subtitle1 text-blue-grey-10">
+                    <div class="text-weight-bold text-subtitle1 text-white">
                       {{ props.row.nama }}
                     </div>
                     <div class="text-caption text-grey-6">

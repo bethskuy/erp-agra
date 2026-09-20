@@ -2332,6 +2332,21 @@ const spkColumns = [
   border: 1px solid rgba(124, 255, 79, 0.08);
   color: #F4F7FA !important;
 }
+.excel-grid-blue :deep(td .q-field__native),
+.excel-grid-blue :deep(td .q-field__input),
+.excel-grid-blue :deep(td input),
+.excel-grid-blue :deep(td textarea),
+.excel-grid-blue :deep(td .q-field__prefix),
+.excel-grid-blue :deep(td .q-field__suffix) {
+  color: #F4F7FA !important;
+  -webkit-text-fill-color: #F4F7FA !important;
+}
+.excel-grid-blue :deep(td input::placeholder),
+.excel-grid-blue :deep(td textarea::placeholder),
+.excel-grid-blue :deep(td .q-field__native::placeholder) {
+  color: rgba(244, 247, 250, 0.4) !important;
+  -webkit-text-fill-color: rgba(244, 247, 250, 0.4) !important;
+}
 .excel-grid-orange :deep(thead th) {
   font-size: 0.65rem;
   font-weight: 800;
@@ -2343,6 +2358,21 @@ const spkColumns = [
 .excel-grid-orange :deep(td) {
   border: 1px solid rgba(255, 169, 64, 0.1);
   color: #F4F7FA !important;
+}
+.excel-grid-orange :deep(td .q-field__native),
+.excel-grid-orange :deep(td .q-field__input),
+.excel-grid-orange :deep(td input),
+.excel-grid-orange :deep(td textarea),
+.excel-grid-orange :deep(td .q-field__prefix),
+.excel-grid-orange :deep(td .q-field__suffix) {
+  color: #F4F7FA !important;
+  -webkit-text-fill-color: #F4F7FA !important;
+}
+.excel-grid-orange :deep(td input::placeholder),
+.excel-grid-orange :deep(td textarea::placeholder),
+.excel-grid-orange :deep(td .q-field__native::placeholder) {
+  color: rgba(244, 247, 250, 0.4) !important;
+  -webkit-text-fill-color: rgba(244, 247, 250, 0.4) !important;
 }
 
 /* ✅ TABEL PPN */

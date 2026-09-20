@@ -95,12 +95,12 @@
                   icon="straighten"
                   class="q-mr-md"
                 />
-                <div class="text-weight-bolder text-subtitle2 text-blue-grey-10">
+                <div class="text-weight-bolder text-subtitle2 text-white">
                   {{ props.row.nama }}
                 </div>
               </div>
             </q-td>
-            <q-td key="keterangan" class="text-grey-7 italic">
+            <q-td key="keterangan" class="text-white italic">
               {{ props.row.keterangan || '-' }}
             </q-td>
             <q-td key="aksi" class="text-center">
