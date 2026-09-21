@@ -147,6 +147,9 @@
                 <q-btn flat round dense color="negative" icon="block" @click="deactivate(props.row)">
                   <q-tooltip>Nonaktifkan</q-tooltip>
                 </q-btn>
+                <q-btn flat round dense color="red-10" icon="delete" @click="deleteRow(props.row)">
+                  <q-tooltip>Hapus</q-tooltip>
+                </q-btn>
               </div>
             </q-td>
           </q-tr>
@@ -252,6 +255,7 @@ import { useQuasar } from 'quasar'
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   onSnapshot,
   orderBy,
@@ -444,6 +448,23 @@ const deactivate = (row) => {
     cancel: true,
     ok: { color: 'negative', unelevated: true, label: 'Nonaktifkan' },
   }).onOk(() => toggleActive(row, false))
+}
+
+const deleteRow = (row) => {
+  $q.dialog({
+    title: 'Hapus Material',
+    message: `Yakin ingin menghapus "${row.nama_material || 'material'}"? Data yang dihapus tidak dapat dikembalikan.`,
+    cancel: { flat: true, label: 'Batal', color: 'grey-7' },
+    ok: { color: 'negative', unelevated: true, label: 'Hapus', icon: 'delete' },
+  }).onOk(async () => {
+    try {
+      await deleteDoc(doc(db, COLLECTION_NAME, row.id))
+      $q.notify({ type: 'positive', message: `"${row.nama_material || 'Material'}" berhasil dihapus` })
+    } catch (error) {
+      console.error(error)
+      $q.notify({ type: 'negative', message: 'Gagal menghapus material' })
+    }
+  })
 }
 
 const loadRows = () => {
