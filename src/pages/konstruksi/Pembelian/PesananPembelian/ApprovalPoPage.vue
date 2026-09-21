@@ -582,9 +582,19 @@
                   </td>
                 </tr>
                 <tr class="row-calculation" v-if="selectedPo.mobdemob">
-                  <td colspan="5" class="text-right text-bold uppercase">Mobdemob / Lainnya</td>
+                  <td colspan="5" class="text-right text-bold uppercase">
+                    {{ selectedPo.mobdemob_label || 'Mobdemob / Lainnya' }}
+                  </td>
                   <td class="text-right text-bold text-indigo-10" style="white-space: nowrap;">
                     IDR {{ (selectedPo.mobdemob || 0).toLocaleString() }}
+                  </td>
+                </tr>
+                <tr class="row-calculation" v-if="selectedPo.ppn_nominal || selectedPo.ppn_persen">
+                  <td colspan="5" class="text-right text-bold uppercase">
+                    PPN {{ selectedPo.ppn_persen ? selectedPo.ppn_persen + '%' : '' }}
+                  </td>
+                  <td class="text-right text-bold text-indigo-10" style="white-space: nowrap;">
+                    IDR {{ (selectedPo.ppn_nominal || 0).toLocaleString() }}
                   </td>
                 </tr>
                 <tr class="row-grand-total">

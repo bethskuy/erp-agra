@@ -771,7 +771,14 @@
                 </tr>
                 <tr>
                   <td colspan="5" class="text-right text-weight-bold">
-                    Biaya Mobdemob / Lainnya (Rp)
+                    <q-input
+                      borderless
+                      dense
+                      v-model="poForm.mobdemob_label"
+                      placeholder="Biaya Mobdemob / Lainnya"
+                      input-class="text-right text-weight-bold text-grey-9"
+                      color="teal-10"
+                    />
                   </td>
                   <td class="no-padding">
                     <q-input
@@ -785,6 +792,35 @@
                   </td>
                   <td></td>
                 </tr>
+                <tr>
+                  <td colspan="5" class="text-right text-weight-bold">
+                    <div class="row items-center justify-end q-gutter-x-xs no-wrap">
+                      <span>PPN</span>
+                      <q-input
+                        borderless
+                        dense
+                        type="number"
+                        v-model.number="poForm.ppn_persen"
+                        style="width: 50px"
+                        input-class="text-center text-weight-bold bg-blue-1 rounded-8"
+                        color="teal-10"
+                        placeholder="0"
+                      />
+                      <span class="q-mr-xs">%</span>
+                    </div>
+                  </td>
+                  <td class="no-padding">
+                    <q-input
+                      borderless
+                      dense
+                      type="number"
+                      v-model.number="poForm.ppn_nominal"
+                      input-class="text-right text-weight-bold text-blue-9 bg-blue-1 q-px-md"
+                      color="teal-10"
+                    />
+                  </td>
+                  <td></td>
+                </tr>
                 <tr class="bg-teal-10 text-white">
                   <td
                     colspan="5"
@@ -793,7 +829,7 @@
                     Grand Total
                   </td>
                   <td class="text-right text-weight-black text-h6">
-                    Rp {{ (calculatePoTotal() + (poForm.mobdemob || 0)).toLocaleString() }}
+                    Rp {{ calculatePoGrandTotal().toLocaleString() }}
                   </td>
                   <td></td>
                 </tr>
@@ -1240,9 +1276,19 @@
                   </td>
                 </tr>
                 <tr class="row-calculation" v-if="selectedPo.mobdemob">
-                  <td colspan="5" class="text-right text-bold">Mobdemob / Lainnya</td>
+                  <td colspan="5" class="text-right text-bold">
+                    {{ selectedPo.mobdemob_label || 'Mobdemob / Lainnya' }}
+                  </td>
                   <td class="text-right text-bold">
                     {{ selectedPo.mobdemob?.toLocaleString('id-ID', { minimumFractionDigits: 2 }) }}
+                  </td>
+                </tr>
+                <tr class="row-calculation" v-if="selectedPo.ppn_nominal || selectedPo.ppn_persen">
+                  <td colspan="5" class="text-right text-bold">
+                    PPN {{ selectedPo.ppn_persen ? selectedPo.ppn_persen + '%' : '' }}
+                  </td>
+                  <td class="text-right text-bold">
+                    {{ (selectedPo.ppn_nominal || 0).toLocaleString('id-ID', { minimumFractionDigits: 2 }) }}
                   </td>
                 </tr>
                 <tr class="po-grand-total">
@@ -1316,7 +1362,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { serverTimestamp } from 'firebase/firestore'
 import { useQuasar } from 'quasar'
 import { useAuthStore } from 'src/stores/auth'
@@ -1366,7 +1412,10 @@ const poFormDefault = {
   proyek_nama: '',
   no_spk: '',
   items: [],
+  mobdemob_label: 'Biaya Mobdemob / Lainnya',
   mobdemob: 0,
+  ppn_persen: 0,
+  ppn_nominal: 0,
   syarat_kondisi:
     '1. Operator Ditanggung Penyedia Alat...\n2. Kontrakan Operator Disediakan Penyewa...\n3. Operator Wajib Mengikuti Arahan Dari Penyewa',
   sistem_pembayaran:
@@ -1606,6 +1655,28 @@ const addPoItem = () => {
 const calculatePoTotal = () =>
   poForm.value.items.reduce((sum, item) => sum + (item.qty || 0) * (item.harga_satuan || 0), 0)
 
+const updatePpnNominal = () => {
+  if (
+    poForm.value.ppn_persen !== null &&
+    poForm.value.ppn_persen !== undefined &&
+    poForm.value.ppn_persen !== ''
+  ) {
+    const dpp = calculatePoTotal() + (poForm.value.mobdemob || 0)
+    poForm.value.ppn_nominal = Math.round(dpp * (Number(poForm.value.ppn_persen) / 100))
+  }
+}
+
+watch(
+  [() => poForm.value.items, () => poForm.value.mobdemob, () => poForm.value.ppn_persen],
+  () => {
+    updatePpnNominal()
+  },
+  { deep: true }
+)
+
+const calculatePoGrandTotal = () =>
+  calculatePoTotal() + (poForm.value.mobdemob || 0) + (poForm.value.ppn_nominal || 0)
+
 const savePo = async () => {
   if (!poForm.value.kepada_yth)
     return $q.notify({ type: 'warning', message: 'Tujuan (Kepada Yth) wajib diisi!' })
@@ -1614,9 +1685,13 @@ const savePo = async () => {
   try {
     const payload = {
       ...poForm.value,
+      mobdemob_label: poForm.value.mobdemob_label || 'Biaya Mobdemob / Lainnya',
+      mobdemob: poForm.value.mobdemob || 0,
+      ppn_persen: poForm.value.ppn_persen || 0,
+      ppn_nominal: poForm.value.ppn_nominal || 0,
       no_spk: poForm.value.no_spk || '',
       total_amount: calculatePoTotal(),
-      grand_total: calculatePoTotal() + (poForm.value.mobdemob || 0),
+      grand_total: calculatePoGrandTotal(),
       status: 'Draft',
       createdAt: serverTimestamp(),
     }
