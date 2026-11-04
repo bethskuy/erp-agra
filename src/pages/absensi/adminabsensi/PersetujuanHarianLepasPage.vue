@@ -882,19 +882,19 @@ const formatTimestamp = (ts) => {
 
 const formatUang = (val) => (val ? Math.round(val).toLocaleString('id-ID') : '0')
 
-const rateLembur = ref(25000)
+const rateLembur = ref(15000)
 
 const fetchProjectSetup = async (projectId) => {
   try {
     const snap = await getDoc(doc(db, 'harian_lepas_setup', projectId))
     if (snap.exists()) {
-      rateLembur.value = snap.data().lembur || 25000
+      const val = snap.data().lembur; rateLembur.value = (val === 25000 || !val) ? 15000 : val
     } else {
-      rateLembur.value = 25000
+      rateLembur.value = 15000
     }
   } catch (err) {
     console.error('Error fetching project setup:', err)
-    rateLembur.value = 25000
+    rateLembur.value = 15000
   }
 }
 

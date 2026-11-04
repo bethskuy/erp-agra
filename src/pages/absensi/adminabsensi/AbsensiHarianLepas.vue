@@ -722,6 +722,48 @@
                   Belum ada pekerja di dalam kelompok mandor ini.
                 </div>
                 <div v-else>
+                  <!-- Bar Tombol Aksi Tambahan Tabel (Edit Semua Mode) -->
+                  <div class="row items-center justify-between q-mb-sm no-print" v-if="!$q.screen.lt.md">
+                    <div class="text-caption text-slate-500 font-inter text-weight-medium">
+                      💡 Klik tombol <span class="text-blue-9 text-weight-bold">Edit (✏️)</span> pada baris pekerja atau <span class="text-amber-9 text-weight-bold">Edit Tabel</span> untuk mengubah upah dan jabatan.
+                    </div>
+                    <div class="row items-center q-gutter-x-sm">
+                      <q-btn
+                        v-if="editingTableMandorId !== m.id"
+                        flat
+                        dense
+                        size="sm"
+                        icon="edit_note"
+                        label="Edit Tabel"
+                        class="neo-btn bg-amber-2 text-amber-9 text-weight-bolder font-inter q-px-sm"
+                        @click="startTableEdit(m)"
+                        :disable="!bisa.ubah"
+                        title="Buka mode edit untuk seluruh pekerja di tabel ini"
+                      />
+                      <template v-else>
+                        <q-btn
+                          unelevated
+                          dense
+                          size="sm"
+                          color="positive"
+                          icon="check"
+                          label="Selesai Edit"
+                          class="neo-btn text-weight-bolder font-inter q-px-md"
+                          @click="saveTableEdit(m.id)"
+                        />
+                        <q-btn
+                          flat
+                          dense
+                          size="sm"
+                          icon="close"
+                          label="Batal"
+                          class="neo-btn bg-slate-2 text-slate-700"
+                          @click="cancelTableEdit(m.id)"
+                        />
+                      </template>
+                    </div>
+                  </div>
+
                   <!-- Card List for Mobile -->
                   <div v-if="$q.screen.lt.md" class="q-gutter-y-sm">
                     <div
@@ -729,100 +771,149 @@
                       :key="p.id"
                       class="worker-card bg-slate-50 q-pa-md relative-position"
                     >
-                      <div class="row items-center justify-between q-mb-xs">
-                        <div class="row items-center">
-                          <div class="text-weight-bolder text-slate-600 font-mono q-mr-sm">
-                            #{{ pi + 1 }}
+                      <!-- MODE EDIT MOBILE -->
+                      <template v-if="editingPekerjaId === p.id">
+                        <div class="row items-center justify-between q-mb-sm">
+                          <span class="text-weight-bolder text-slate-900 font-inter text-subtitle2">
+                            EDIT PEKERJA #{{ pi + 1 }}
+                          </span>
+                          <q-btn
+                            flat
+                            dense
+                            round
+                            icon="close"
+                            size="sm"
+                            class="neo-btn bg-slate-2 text-slate-700"
+                            @click="cancelEditRow"
+                          />
+                        </div>
+                        <div class="q-gutter-y-xs font-inter">
+                          <q-input
+                            v-model="editPekerjaForm.nama"
+                            outlined
+                            dense
+                            bg-color="white"
+                            label="Nama Pekerja"
+                            class="rounded-input uppercase font-bold"
+                            hide-bottom-space
+                          />
+                          <q-select
+                            v-model="editPekerjaForm.jabatan"
+                            outlined
+                            dense
+                            bg-color="white"
+                            :options="jabatanOptions"
+                            use-input
+                            new-value-mode="add-unique"
+                            label="Jabatan"
+                            class="rounded-input"
+                            hide-bottom-space
+                          />
+                          <div class="row q-col-gutter-xs">
+                            <div class="col-8">
+                              <q-input
+                                v-model.number="editPekerjaForm.upahHari"
+                                outlined
+                                dense
+                                bg-color="white"
+                                type="number"
+                                prefix="Rp"
+                                label="Upah Base / Hari"
+                                class="rounded-input font-mono"
+                                hide-bottom-space
+                              />
+                            </div>
+                            <div class="col-4">
+                              <q-input
+                                v-model.number="editPekerjaForm.koef"
+                                outlined
+                                dense
+                                bg-color="white"
+                                type="number"
+                                step="0.05"
+                                label="Koef"
+                                class="rounded-input font-mono text-center"
+                                hide-bottom-space
+                              />
+                            </div>
                           </div>
-                          <div class="text-weight-bolder text-slate-900 text-subtitle2 uppercase font-inter" style="font-weight: 800;">
-                            {{ p.nama }}
+                          <div class="bg-amber-1 q-pa-xs rounded-borders text-caption text-weight-bold font-mono text-slate-900 row justify-between">
+                            <span>Upah Efektif:</span>
+                            <span>Rp {{ formatUang((editPekerjaForm.upahHari || 0) * (editPekerjaForm.koef || 1.0)) }}</span>
+                          </div>
+                          <div class="row q-col-gutter-xs">
+                            <div class="col-8">
+                              <q-input
+                                v-model.number="editPekerjaForm.upahLembur"
+                                outlined
+                                dense
+                                bg-color="white"
+                                type="number"
+                                prefix="Rp"
+                                label="Lembur / Jam"
+                                class="rounded-input font-mono"
+                                hide-bottom-space
+                              />
+                            </div>
+                            <div class="col-4">
+                              <q-input
+                                v-model.number="editPekerjaForm.koefLembur"
+                                outlined
+                                dense
+                                bg-color="white"
+                                type="number"
+                                step="0.05"
+                                label="Koef Lbr"
+                                class="rounded-input font-mono text-center"
+                                hide-bottom-space
+                              />
+                            </div>
+                          </div>
+                          <div class="row items-center justify-end q-gutter-x-sm q-mt-sm">
+                            <q-btn
+                              flat
+                              dense
+                              icon="close"
+                              label="Batal"
+                              class="neo-btn bg-slate-2 text-slate-700 font-inter"
+                              @click="cancelEditRow"
+                            />
+                            <q-btn
+                              unelevated
+                              dense
+                              color="positive"
+                              icon="check"
+                              label="Selesai Edit"
+                              class="neo-btn text-weight-bolder font-inter q-px-md"
+                              @click="saveEditRow(m.id)"
+                            />
                           </div>
                         </div>
-                        <q-btn
-                          flat
-                          dense
-                          round
-                          icon="close"
-                          size="sm"
-                          class="neo-btn bg-red-2 text-red-9 no-print"
-                          @click="deletePekerja(m.id, p.id)"
-                          :disable="!bisa.hapus"
-                        />
-                      </div>
-                      <div class="row items-center q-gutter-x-sm q-mb-xs">
-                        <span class="neo-badge bg-sky-1 text-slate-900 font-inter text-11 text-weight-bolder">
-                          {{ p.jabatan || 'Tukang' }}
-                        </span>
-                        <span class="neo-badge bg-amber-1 text-slate-900 font-inter text-11 text-weight-bolder">
-                          Koef: {{ (p.koef || 1.0).toFixed(2) }}x
-                        </span>
-                        <span class="neo-badge bg-pink-1 text-slate-900 font-inter text-11 text-weight-bolder">
-                          Lembur: Rp {{ formatUang((p.upahLembur || 0) * (p.koefLembur || 1.0)) }}/Jam ({{ (p.koefLembur || 1.0).toFixed(2) }}x)
-                        </span>
-                      </div>
-                      <div
-                        class="row items-center justify-between text-caption q-mt-sm bg-white q-pa-sm border-thick font-inter text-weight-bold"
-                      >
-                        <div>
-                          <span class="text-slate-500 text-10 block font-bold uppercase"
-                            >UPAH BASE</span
-                          >
-                          <div class="text-weight-bold font-mono text-slate-800">
-                            Rp {{ formatUang(p.upahHari) }}
-                          </div>
-                        </div>
-                        <div class="text-right">
-                          <span class="text-slate-500 text-10 block font-bold uppercase"
-                            >UPAH EFEKTIF</span
-                          >
-                          <div class="text-weight-bolder font-mono text-slate-900">
-                            Rp {{ formatUang((p.upahHari || 0) * (p.koef || 1.0)) }}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                      </template>
 
-                  <!-- Table View for Desktop -->
-                  <div v-else style="overflow-x: auto; -webkit-overflow-scrolling: touch">
-                    <table class="abs-tbl">
-                      <thead>
-                        <tr class="bg-slate-50">
-                          <th style="width: 40px" class="text-center font-inter">#</th>
-                          <th class="font-inter">NAMA PEKERJA</th>
-                          <th class="text-center font-inter">JABATAN</th>
-                          <th class="text-right font-inter">UPAH BASE / HARI</th>
-                          <th class="text-center font-inter">KOEF.</th>
-                          <th class="text-right font-inter">UPAH EFEKTIF / HARI</th>
-                          <th class="text-right font-inter">UPAH LEMBUR / JAM</th>
-                          <th style="width: 60px" class="text-center no-print font-inter">AKSI</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr v-for="(p, pi) in m.pekerja" :key="p.id">
-                          <td class="text-center text-slate-700 text-weight-bold font-mono">
-                            {{ pi + 1 }}
-                          </td>
-                          <td class="text-weight-bold text-slate-900 uppercase font-inter">{{ p.nama }}</td>
-                          <td class="text-center">
-                            <span class="neo-badge bg-sky-1 text-slate-900 font-inter text-11 text-weight-bolder">
-                              {{ p.jabatan || 'Tukang' }}
-                            </span>
-                          </td>
-                          <td class="text-right font-mono text-slate-900">
-                            Rp {{ formatUang(p.upahHari) }}
-                          </td>
-                          <td class="text-center text-weight-bolder text-amber-9 font-mono">
-                            {{ (p.koef || 1.0).toFixed(2) }}x
-                          </td>
-                          <td class="text-right text-weight-bolder text-slate-900 font-mono">
-                            Rp {{ formatUang((p.upahHari || 0) * (p.koef || 1.0)) }}
-                          </td>
-                          <td class="text-right text-weight-bolder text-amber-9 font-mono">
-                            Rp {{ formatUang((p.upahLembur || 0) * (p.koefLembur || 1.0)) }}
-                            <div class="text-caption text-slate-500 text-weight-bold font-inter">Base: Rp {{ formatUang(p.upahLembur || 0) }} ({{ (p.koefLembur || 1.0).toFixed(2) }}x)</div>
-                          </td>
-                          <td class="text-center no-print">
+                      <!-- MODE VIEW MOBILE -->
+                      <template v-else>
+                        <div class="row items-center justify-between q-mb-xs">
+                          <div class="row items-center">
+                            <div class="text-weight-bolder text-slate-600 font-mono q-mr-sm">
+                              #{{ pi + 1 }}
+                            </div>
+                            <div class="text-weight-bolder text-slate-900 text-subtitle2 uppercase font-inter" style="font-weight: 800;">
+                              {{ p.nama }}
+                            </div>
+                          </div>
+                          <div class="row items-center q-gutter-x-xs no-print">
+                            <q-btn
+                              flat
+                              dense
+                              round
+                              icon="edit"
+                              size="sm"
+                              class="neo-btn bg-blue-1 text-blue-9"
+                              @click="startEditRow(m.id, p)"
+                              :disable="!bisa.ubah"
+                              title="Edit Pekerja"
+                            />
                             <q-btn
                               flat
                               dense
@@ -832,11 +923,375 @@
                               class="neo-btn bg-red-2 text-red-9"
                               @click="deletePekerja(m.id, p.id)"
                               :disable="!bisa.hapus"
+                              title="Hapus Pekerja"
                             />
-                          </td>
+                          </div>
+                        </div>
+                        <div class="row items-center q-gutter-x-sm q-mb-xs">
+                          <span class="neo-badge bg-sky-1 text-slate-900 font-inter text-11 text-weight-bolder">
+                            {{ p.jabatan || 'Tukang' }}
+                          </span>
+                          <span class="neo-badge bg-amber-1 text-slate-900 font-inter text-11 text-weight-bolder">
+                            Koef: {{ (p.koef || 1.0).toFixed(2) }}x
+                          </span>
+                          <span class="neo-badge bg-pink-1 text-slate-900 font-inter text-11 text-weight-bolder">
+                            Lembur: Rp {{ formatUang((p.upahLembur || 0) * (p.koefLembur || 1.0)) }}/Jam ({{ (p.koefLembur || 1.0).toFixed(2) }}x)
+                          </span>
+                        </div>
+                        <div
+                          class="row items-center justify-between text-caption q-mt-sm bg-white q-pa-sm border-thick font-inter text-weight-bold"
+                        >
+                          <div>
+                            <span class="text-slate-500 text-10 block font-bold uppercase"
+                              >UPAH BASE</span
+                            >
+                            <div class="text-weight-bold font-mono text-slate-800">
+                              Rp {{ formatUang(p.upahHari) }}
+                            </div>
+                          </div>
+                          <div class="text-right">
+                            <span class="text-slate-500 text-10 block font-bold uppercase"
+                              >UPAH EFEKTIF</span
+                            >
+                            <div class="text-weight-bolder font-mono text-slate-900">
+                              Rp {{ formatUang((p.upahHari || 0) * (p.koef || 1.0)) }}
+                            </div>
+                          </div>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+
+                  <!-- Table View for Desktop -->
+                  <div v-else style="overflow-x: auto; -webkit-overflow-scrolling: touch">
+                    <table class="abs-tbl">
+                      <thead>
+                        <tr class="bg-slate-50">
+                          <th style="width: 40px" class="text-center font-inter">#</th>
+                          <th class="font-inter" style="min-width: 140px">NAMA PEKERJA</th>
+                          <th class="text-center font-inter" style="min-width: 120px">JABATAN</th>
+                          <th class="text-right font-inter" style="min-width: 130px">UPAH BASE / HARI</th>
+                          <th class="text-center font-inter" style="min-width: 80px">KOEF.</th>
+                          <th class="text-right font-inter" style="min-width: 130px">UPAH EFEKTIF / HARI</th>
+                          <th class="text-right font-inter" style="min-width: 170px">UPAH LEMBUR / JAM</th>
+                          <th style="width: 130px; min-width: 120px" class="text-center no-print font-inter">AKSI</th>
                         </tr>
+                      </thead>
+                      <tbody>
+                        <!-- MODE 1: EDIT SELURUH TABEL AKTIF -->
+                        <template v-if="editingTableMandorId === m.id">
+                          <tr v-for="(row, pi) in editTableRows[m.id]" :key="row.id" class="bg-amber-0">
+                            <td class="text-center text-slate-700 text-weight-bold font-mono">
+                              {{ pi + 1 }}
+                            </td>
+                            <td>
+                              <q-input
+                                v-model="row.nama"
+                                outlined
+                                dense
+                                bg-color="white"
+                                class="rounded-input font-inter uppercase text-weight-bold table-edit-input"
+                                placeholder="NAMA PEKERJA"
+                                hide-bottom-space
+                              />
+                            </td>
+                            <td>
+                              <q-select
+                                v-model="row.jabatan"
+                                outlined
+                                dense
+                                bg-color="white"
+                                :options="jabatanOptions"
+                                use-input
+                                new-value-mode="add-unique"
+                                class="rounded-input font-inter table-edit-input"
+                                hide-bottom-space
+                              />
+                            </td>
+                            <td>
+                              <q-input
+                                v-model.number="row.upahHari"
+                                outlined
+                                dense
+                                bg-color="white"
+                                type="number"
+                                prefix="Rp"
+                                class="rounded-input font-mono table-edit-input"
+                                hide-bottom-space
+                              />
+                            </td>
+                            <td>
+                              <q-input
+                                v-model.number="row.koef"
+                                outlined
+                                dense
+                                bg-color="white"
+                                type="number"
+                                step="0.05"
+                                class="rounded-input font-mono text-center table-edit-input"
+                                style="max-width: 80px; margin: 0 auto;"
+                                hide-bottom-space
+                              />
+                            </td>
+                            <td class="text-right text-weight-bolder text-slate-900 font-mono">
+                              Rp {{ formatUang((row.upahHari || 0) * (row.koef || 1.0)) }}
+                            </td>
+                            <td>
+                              <div class="q-gutter-y-xs">
+                                <q-input
+                                  v-model.number="row.upahLembur"
+                                  outlined
+                                  dense
+                                  bg-color="white"
+                                  type="number"
+                                  prefix="Rp"
+                                  placeholder="Base Lembur"
+                                  class="rounded-input font-mono table-edit-input"
+                                  hide-bottom-space
+                                />
+                                <div class="row items-center no-wrap justify-end q-gutter-x-xs">
+                                  <span class="text-caption text-slate-500 font-inter text-11">Koef:</span>
+                                  <q-input
+                                    v-model.number="row.koefLembur"
+                                    outlined
+                                    dense
+                                    bg-color="white"
+                                    type="number"
+                                    step="0.05"
+                                    class="rounded-input font-mono text-center table-edit-input"
+                                    style="max-width: 75px"
+                                    hide-bottom-space
+                                  />
+                                </div>
+                                <div class="text-caption text-weight-bolder text-amber-9 font-mono text-right">
+                                  = Rp {{ formatUang((row.upahLembur || 0) * (row.koefLembur || 1.0)) }}/Jam
+                                </div>
+                              </div>
+                            </td>
+                            <td class="text-center no-print">
+                              <q-btn
+                                flat
+                                dense
+                                round
+                                icon="delete"
+                                size="sm"
+                                class="neo-btn bg-red-2 text-red-9"
+                                @click="deletePekerjaInTableEdit(m.id, pi)"
+                                :disable="!bisa.hapus"
+                                title="Hapus dari baris tabel"
+                              />
+                            </td>
+                          </tr>
+                        </template>
+
+                        <!-- MODE 2: TABEL REGULER & EDIT PER BARIS -->
+                        <template v-else>
+                          <tr
+                            v-for="(p, pi) in m.pekerja"
+                            :key="p.id"
+                            :class="{ 'bg-amber-0': editingPekerjaId === p.id }"
+                            @dblclick="startEditRow(m.id, p)"
+                          >
+                            <td class="text-center text-slate-700 text-weight-bold font-mono">
+                              {{ pi + 1 }}
+                            </td>
+
+                            <!-- KOLOM NAMA -->
+                            <td v-if="editingPekerjaId === p.id">
+                              <q-input
+                                v-model="editPekerjaForm.nama"
+                                outlined
+                                dense
+                                bg-color="white"
+                                class="rounded-input font-inter uppercase text-weight-bold table-edit-input"
+                                placeholder="NAMA PEKERJA"
+                                hide-bottom-space
+                              />
+                            </td>
+                            <td v-else class="text-weight-bold text-slate-900 uppercase font-inter">
+                              {{ p.nama }}
+                            </td>
+
+                            <!-- KOLOM JABATAN -->
+                            <td v-if="editingPekerjaId === p.id">
+                              <q-select
+                                v-model="editPekerjaForm.jabatan"
+                                outlined
+                                dense
+                                bg-color="white"
+                                :options="jabatanOptions"
+                                use-input
+                                new-value-mode="add-unique"
+                                class="rounded-input font-inter table-edit-input"
+                                hide-bottom-space
+                              />
+                            </td>
+                            <td v-else class="text-center">
+                              <span class="neo-badge bg-sky-1 text-slate-900 font-inter text-11 text-weight-bolder">
+                                {{ p.jabatan || 'Tukang' }}
+                              </span>
+                            </td>
+
+                            <!-- KOLOM UPAH BASE -->
+                            <td v-if="editingPekerjaId === p.id">
+                              <q-input
+                                v-model.number="editPekerjaForm.upahHari"
+                                outlined
+                                dense
+                                bg-color="white"
+                                type="number"
+                                prefix="Rp"
+                                class="rounded-input font-mono table-edit-input"
+                                hide-bottom-space
+                              />
+                            </td>
+                            <td v-else class="text-right font-mono text-slate-900">
+                              Rp {{ formatUang(p.upahHari) }}
+                            </td>
+
+                            <!-- KOLOM KOEF -->
+                            <td v-if="editingPekerjaId === p.id">
+                              <q-input
+                                v-model.number="editPekerjaForm.koef"
+                                outlined
+                                dense
+                                bg-color="white"
+                                type="number"
+                                step="0.05"
+                                class="rounded-input font-mono text-center table-edit-input"
+                                style="max-width: 80px; margin: 0 auto;"
+                                hide-bottom-space
+                              />
+                            </td>
+                            <td v-else class="text-center text-weight-bolder text-amber-9 font-mono">
+                              {{ (p.koef || 1.0).toFixed(2) }}x
+                            </td>
+
+                            <!-- KOLOM UPAH EFEKTIF (OTOMATIS DIHITUNG) -->
+                            <td class="text-right text-weight-bolder text-slate-900 font-mono">
+                              <template v-if="editingPekerjaId === p.id">
+                                Rp {{ formatUang((editPekerjaForm.upahHari || 0) * (editPekerjaForm.koef || 1.0)) }}
+                              </template>
+                              <template v-else>
+                                Rp {{ formatUang((p.upahHari || 0) * (p.koef || 1.0)) }}
+                              </template>
+                            </td>
+
+                            <!-- KOLOM UPAH LEMBUR -->
+                            <td v-if="editingPekerjaId === p.id">
+                              <div class="q-gutter-y-xs">
+                                <q-input
+                                  v-model.number="editPekerjaForm.upahLembur"
+                                  outlined
+                                  dense
+                                  bg-color="white"
+                                  type="number"
+                                  prefix="Rp"
+                                  placeholder="Base Lembur"
+                                  class="rounded-input font-mono table-edit-input"
+                                  hide-bottom-space
+                                />
+                                <div class="row items-center no-wrap justify-end q-gutter-x-xs">
+                                  <span class="text-caption text-slate-500 font-inter text-11">Koef:</span>
+                                  <q-input
+                                    v-model.number="editPekerjaForm.koefLembur"
+                                    outlined
+                                    dense
+                                    bg-color="white"
+                                    type="number"
+                                    step="0.05"
+                                    class="rounded-input font-mono text-center table-edit-input"
+                                    style="max-width: 75px"
+                                    hide-bottom-space
+                                  />
+                                </div>
+                                <div class="text-caption text-weight-bolder text-amber-9 font-mono text-right">
+                                  = Rp {{ formatUang((editPekerjaForm.upahLembur || 0) * (editPekerjaForm.koefLembur || 1.0)) }}/Jam
+                                </div>
+                              </div>
+                            </td>
+                            <td v-else class="text-right text-weight-bolder text-amber-9 font-mono">
+                              Rp {{ formatUang((p.upahLembur || 0) * (p.koefLembur || 1.0)) }}
+                              <div class="text-caption text-slate-500 text-weight-bold font-inter">Base: Rp {{ formatUang(p.upahLembur || 0) }} ({{ (p.koefLembur || 1.0).toFixed(2) }}x)</div>
+                            </td>
+
+                            <!-- KOLOM AKSI -->
+                            <td class="text-center no-print">
+                              <div v-if="editingPekerjaId === p.id" class="row no-wrap items-center justify-center q-gutter-x-xs">
+                                <q-btn
+                                  unelevated
+                                  dense
+                                  size="sm"
+                                  color="positive"
+                                  icon="check"
+                                  label="Selesai Edit"
+                                  class="neo-btn text-weight-bolder font-inter q-px-sm"
+                                  @click="saveEditRow(m.id)"
+                                  title="Simpan dan selesai edit"
+                                />
+                                <q-btn
+                                  flat
+                                  dense
+                                  round
+                                  size="sm"
+                                  icon="close"
+                                  class="neo-btn bg-slate-2 text-slate-700"
+                                  @click="cancelEditRow"
+                                  title="Batal"
+                                />
+                              </div>
+                              <div v-else class="row no-wrap items-center justify-center q-gutter-x-xs">
+                                <q-btn
+                                  flat
+                                  dense
+                                  round
+                                  icon="edit"
+                                  size="sm"
+                                  class="neo-btn bg-blue-1 text-blue-9"
+                                  @click="startEditRow(m.id, p)"
+                                  :disable="!bisa.ubah"
+                                  title="Edit Pekerja Ini"
+                                />
+                                <q-btn
+                                  flat
+                                  dense
+                                  round
+                                  icon="close"
+                                  size="sm"
+                                  class="neo-btn bg-red-2 text-red-9"
+                                  @click="deletePekerja(m.id, p.id)"
+                                  :disable="!bisa.hapus"
+                                  title="Hapus Pekerja"
+                                />
+                              </div>
+                            </td>
+                          </tr>
+                        </template>
                       </tbody>
                     </table>
+
+                    <!-- Footer Tombol Aksi Saat Edit Seluruh Tabel -->
+                    <div v-if="editingTableMandorId === m.id" class="row justify-end q-mt-sm q-gutter-x-sm no-print">
+                      <q-btn
+                        flat
+                        dense
+                        size="sm"
+                        icon="close"
+                        label="Batal"
+                        class="neo-btn bg-slate-2 text-slate-700"
+                        @click="cancelTableEdit(m.id)"
+                      />
+                      <q-btn
+                        unelevated
+                        dense
+                        size="sm"
+                        color="positive"
+                        icon="check"
+                        label="Selesai Edit"
+                        class="neo-btn text-weight-bolder font-inter q-px-md"
+                        @click="saveTableEdit(m.id)"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1301,6 +1756,10 @@ const selectProject = async (proyek) => {
   unsubSetup = onSnapshot(setupRef, async (snap) => {
     if (snap.exists()) {
       projectSetup.value = snap.data()
+      if (projectSetup.value.lembur === 25000 || !projectSetup.value.lembur) {
+        projectSetup.value.lembur = 15000
+        setDoc(setupRef, { lembur: 15000 }, { merge: true }).catch(() => {})
+      }
       if (projectSetup.value.tglAbsen) {
         selectedDate.value = projectSetup.value.tglAbsen
       }
@@ -1314,7 +1773,7 @@ const selectProject = async (proyek) => {
         mulai: date.formatDate(new Date(), 'YYYY-MM-DD'),
         selesai: '',
         jamKerja: 8,
-        lembur: 25000,
+        lembur: 15000,
         tglAbsen: date.formatDate(new Date(), 'YYYY-MM-DD'),
         projectId: proyek.id,
       }
@@ -1326,7 +1785,22 @@ const selectProject = async (proyek) => {
   // 2. Listen Mandor Terisolasi proyek terpilih
   const qMandor = query(collection(db, 'harian_lepas_mandor'), where('projectId', '==', proyek.id))
   unsubMandors = onSnapshot(qMandor, (snap) => {
-    mandors.value = snap.docs.map((docItem) => ({ id: docItem.id, ...docItem.data() }))
+    mandors.value = snap.docs.map((docItem) => {
+      const data = docItem.data()
+      const rawPekerja = data.pekerja || []
+      const hasOldLembur = rawPekerja.some((p) => p.upahLembur === 25000 || p.upahLembur === undefined)
+      if (hasOldLembur) {
+        const updated = rawPekerja.map((p) => {
+          if (p.upahLembur === 25000 || p.upahLembur === undefined) {
+            return { ...p, upahLembur: 15000 }
+          }
+          return p
+        })
+        updateDoc(doc(db, 'harian_lepas_mandor', docItem.id), { pekerja: updated }).catch(() => {})
+        return { id: docItem.id, ...data, pekerja: updated }
+      }
+      return { id: docItem.id, ...data }
+    })
     syncPekerjaFormsStructure()
   })
 
@@ -1366,7 +1840,7 @@ const projectSetup = ref({
   mulai: '',
   selesai: '',
   jamKerja: 8,
-  lembur: 25000,
+  lembur: 15000,
   tglAbsen: '',
   projectId: '',
 })
@@ -1555,7 +2029,7 @@ const manufakturPekerjaList = ref([
     id: 'MFG-2',
     nama: 'SUTRISNO',
     stasiun: 'Quality Control',
-    upahJam: 25000,
+    upahJam: 15000,
     jamKerja: 8,
     lembur: 0,
     totalUpah: 200000,
@@ -1710,9 +2184,11 @@ const syncPekerjaFormsStructure = () => {
         typedJabatan: '',
         upahHari: 150000,
         koef: 1.0,
-        upahLembur: projectSetup.value.lembur || 0,
+        upahLembur: projectSetup.value.lembur || 15000,
         koefLembur: 1.0
       }
+    } else if (pekerjaForms.value[m.id].upahLembur === 25000 || !pekerjaForms.value[m.id].upahLembur) {
+      pekerjaForms.value[m.id].upahLembur = 15000
     }
   })
 }
@@ -1822,6 +2298,7 @@ const addPekerja = async (mandorId) => {
     await updateDoc(doc(db, 'harian_lepas_mandor', mandorId), { pekerja: pekerjaBaru })
     f.nama = ''
     f.typedJabatan = ''
+    f.upahLembur = 15000
     $q.notify({
       type: 'positive',
       message: 'Pekerja harian lepas berhasil dimasukkan ke dalam grup!',
@@ -1854,6 +2331,161 @@ const deletePekerja = (mandorId, pekerjaId) => {
     }
   })
 }
+
+// =====================================================================================
+// LOGIKA EDIT PEKERJA (PER BARIS & SELURUH TABEL)
+// =====================================================================================
+const editingMandorId = ref(null)
+const editingPekerjaId = ref(null)
+const editPekerjaForm = ref({
+  id: '',
+  nama: '',
+  jabatan: '',
+  upahHari: 0,
+  koef: 1.0,
+  upahLembur: 15000,
+  koefLembur: 1.0,
+})
+
+const editingTableMandorId = ref(null)
+const editTableRows = ref({})
+
+const startEditRow = (mandorId, p) => {
+  editingTableMandorId.value = null
+  editingMandorId.value = mandorId
+  editingPekerjaId.value = p.id
+  editPekerjaForm.value = {
+    id: p.id,
+    nama: p.nama || '',
+    jabatan: p.jabatan || 'Tukang',
+    upahHari: Number(p.upahHari) || 0,
+    koef: Number(p.koef) !== undefined && !isNaN(Number(p.koef)) ? Number(p.koef) : 1.0,
+    upahLembur: Number(p.upahLembur) || 0,
+    koefLembur: Number(p.koefLembur) !== undefined && !isNaN(Number(p.koefLembur)) ? Number(p.koefLembur) : 1.0,
+  }
+}
+
+const cancelEditRow = () => {
+  editingMandorId.value = null
+  editingPekerjaId.value = null
+  editPekerjaForm.value = {
+    id: '',
+    nama: '',
+    jabatan: '',
+    upahHari: 0,
+    koef: 1.0,
+    upahLembur: 0,
+    koefLembur: 1.0,
+  }
+}
+
+const saveEditRow = async (mandorId) => {
+  const m = mandors.value.find((x) => x.id === mandorId)
+  if (!m) return
+  if (!editPekerjaForm.value.nama || !editPekerjaForm.value.nama.trim()) {
+    $q.notify({ type: 'warning', message: 'Nama pekerja wajib diisi!' })
+    return
+  }
+
+  const updatedPekerja = (m.pekerja || []).map((p) => {
+    if (p.id === editingPekerjaId.value) {
+      return {
+        ...p,
+        nama: editPekerjaForm.value.nama.trim().toUpperCase(),
+        jabatan: editPekerjaForm.value.jabatan || 'Tukang',
+        upahHari: parseInt(editPekerjaForm.value.upahHari) || 0,
+        koef: parseFloat(editPekerjaForm.value.koef) || 1.0,
+        upahLembur: parseInt(editPekerjaForm.value.upahLembur) || 0,
+        koefLembur: parseFloat(editPekerjaForm.value.koefLembur) || 1.0,
+      }
+    }
+    return p
+  })
+
+  $q.loading.show({ message: 'Menyimpan perubahan data pekerja...' })
+  try {
+    await updateDoc(doc(db, 'harian_lepas_mandor', mandorId), { pekerja: updatedPekerja })
+    $q.notify({
+      type: 'positive',
+      message: `Data pekerja ${editPekerjaForm.value.nama.toUpperCase()} berhasil diperbarui!`,
+    })
+    cancelEditRow()
+  } catch (e) {
+    $q.notify({ type: 'negative', message: 'Gagal memperbarui pekerja: ' + e.message })
+  } finally {
+    $q.loading.hide()
+  }
+}
+
+const startTableEdit = (m) => {
+  cancelEditRow()
+  editingTableMandorId.value = m.id
+  editTableRows.value[m.id] = (m.pekerja || []).map((p) => ({
+    id: p.id,
+    nama: p.nama || '',
+    jabatan: p.jabatan || 'Tukang',
+    upahHari: Number(p.upahHari) || 0,
+    koef: Number(p.koef) !== undefined && !isNaN(Number(p.koef)) ? Number(p.koef) : 1.0,
+    upahLembur: Number(p.upahLembur) || 0,
+    koefLembur: Number(p.koefLembur) !== undefined && !isNaN(Number(p.koefLembur)) ? Number(p.koefLembur) : 1.0,
+  }))
+}
+
+const cancelTableEdit = (mandorId) => {
+  if (editingTableMandorId.value === mandorId) {
+    editingTableMandorId.value = null
+  }
+}
+
+const deletePekerjaInTableEdit = (mandorId, index) => {
+  $q.dialog({
+    title: 'Hapus Pekerja dari Tabel',
+    message: 'Apakah Anda yakin ingin menghapus baris pekerja ini dari tabel?',
+    cancel: true,
+  }).onOk(() => {
+    if (editTableRows.value[mandorId]) {
+      editTableRows.value[mandorId].splice(index, 1)
+    }
+  })
+}
+
+const saveTableEdit = async (mandorId) => {
+  const m = mandors.value.find((x) => x.id === mandorId)
+  if (!m) return
+  const rows = editTableRows.value[mandorId] || []
+
+  for (let i = 0; i < rows.length; i++) {
+    if (!rows[i].nama || !rows[i].nama.trim()) {
+      $q.notify({ type: 'warning', message: `Baris #${i + 1}: Nama pekerja wajib diisi!` })
+      return
+    }
+  }
+
+  const cleanedPekerja = rows.map((r) => ({
+    id: r.id,
+    nama: r.nama.trim().toUpperCase(),
+    jabatan: r.jabatan || 'Tukang',
+    upahHari: parseInt(r.upahHari) || 0,
+    koef: parseFloat(r.koef) || 1.0,
+    upahLembur: parseInt(r.upahLembur) || 0,
+    koefLembur: parseFloat(r.koefLembur) || 1.0,
+  }))
+
+  $q.loading.show({ message: 'Menyimpan seluruh perubahan tabel...' })
+  try {
+    await updateDoc(doc(db, 'harian_lepas_mandor', mandorId), { pekerja: cleanedPekerja })
+    $q.notify({
+      type: 'positive',
+      message: 'Seluruh perubahan data pekerja pada tabel berhasil disimpan!',
+    })
+    editingTableMandorId.value = null
+  } catch (e) {
+    $q.notify({ type: 'negative', message: 'Gagal memperbarui tabel pekerja: ' + e.message })
+  } finally {
+    $q.loading.hide()
+  }
+}
+
 
 // =====================================================================================
 // LOGIKA AKSI TAB 3: INPUT ABSENSI HARIAN REAKTIF MATRIKS (TERISOLASI)
@@ -3264,4 +3896,19 @@ onUnmounted(() => {
     -webkit-appearance: normal;
   }
 }
+
+.table-edit-input :deep(.q-field__control) {
+  height: 36px !important;
+  min-height: 36px !important;
+  border-radius: 6px !important;
+}
+.table-edit-input :deep(.q-field__native),
+.table-edit-input :deep(.q-field__prefix) {
+  padding: 0 4px !important;
+  font-size: 13px !important;
+}
+.bg-amber-0 {
+  background-color: #fffbeb !important;
+}
+
 </style>
