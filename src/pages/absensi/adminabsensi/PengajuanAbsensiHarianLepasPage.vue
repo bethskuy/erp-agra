@@ -1,20 +1,5 @@
 <template>
   <q-page class="neo-page-bg font-inter q-pa-md q-pa-lg-lg relative-position overflow-hidden">
-    <!-- FLOATING DECORATIONS CONTAINER -->
-    <div class="neo-decorations-container no-print">
-      <div class="neo-shape shape-wobbly-1"></div>
-      <div class="neo-shape shape-wobbly-2"></div>
-      <div class="neo-shape shape-wobbly-3"></div>
-      <div class="neo-shape shape-wobbly-4"></div>
-      <div class="neo-shape shape-wobbly-5"></div>
-      <div class="neo-shape shape-wobbly-6"></div>
-      <div class="neo-shape shape-wobbly-7"></div>
-      <div class="neo-shape shape-wobbly-8"></div>
-      <div class="neo-shape shape-wobbly-9"></div>
-      <div class="neo-shape shape-wobbly-10"></div>
-      <div class="neo-shape shape-wobbly-11"></div>
-      <div class="neo-shape shape-wobbly-12"></div>
-    </div>
 
     <!-- ======================================================================= -->
     <!-- VIEW 1: DAFTAR PROYEK AKTIF (RINGKASAN)                                  -->

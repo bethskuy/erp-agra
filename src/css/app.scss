@@ -85,6 +85,12 @@ body {
   margin-right: auto;
 }
 
+/* Floating animated background shapes (disabled) */
+.neo-decorations-container,
+.neo-shape {
+  display: none !important;
+}
+
 /* ==========================================================================
    NEO-BRUTALIST DARK MODE (ABSENSI SCOPED OVERRIDES - HIGH SPECIFICITY)
    ========================================================================== */

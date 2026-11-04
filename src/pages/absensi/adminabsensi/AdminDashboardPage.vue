@@ -1,20 +1,5 @@
 <template>
   <q-page class="neo-page-bg q-pa-md q-pa-lg font-inter">
-    <!-- Decorative Floating Neo-Brutalist Shapes -->
-    <div class="neo-decorations-container">
-      <div class="neo-shape neo-shape--circle-1"></div>
-      <div class="neo-shape neo-shape--circle-2"></div>
-      <div class="neo-shape neo-shape--square-1"></div>
-      <div class="neo-shape neo-shape--square-2"></div>
-      <div class="neo-shape neo-shape--star-1">★</div>
-      <div class="neo-shape neo-shape--star-2">★</div>
-      <div class="neo-shape neo-shape--triangle-1">▲</div>
-      <div class="neo-shape neo-shape--triangle-2">▲</div>
-      <div class="neo-shape neo-shape--cross-1">+</div>
-      <div class="neo-shape neo-shape--cross-2">+</div>
-      <div class="neo-shape neo-shape--cross-3">+</div>
-      <div class="neo-shape neo-shape--blob-1"></div>
-    </div>
 
     <div class="premium-container mx-auto">
     <!-- HEADER SECTION -->
