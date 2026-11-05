@@ -162,6 +162,14 @@
                     >
                       {{ props.row.status }}
                     </q-chip>
+                    <div
+                      v-if="getPrPoInfo(props.row)"
+                      class="text-caption text-blue-9 text-weight-bold q-mt-xs"
+                      style="font-size: 11px;"
+                    >
+                      <q-icon name="receipt_long" size="xs" class="q-mr-xs" />
+                      PO: {{ getPrPoLabel(props.row) }}
+                    </div>
                   </q-td>
                   <q-td key="aksi" class="text-center" @click.stop>
                     <div class="row justify-center q-gutter-xs">
@@ -345,6 +353,14 @@
                       </div>
                       <div class="text-caption text-grey-6 italic">
                         Proyek: {{ props.row.proyek_nama || '-' }}
+                      </div>
+                      <div
+                        v-if="props.row.referensi_pr_nomor"
+                        class="text-caption text-indigo-9 text-weight-medium q-mt-xs"
+                        style="font-size: 11px;"
+                      >
+                        <q-icon name="description" size="xs" class="q-mr-xs" />
+                        Ref PR: {{ props.row.referensi_pr_nomor }}
                       </div>
                     </q-td>
                     <q-td key="tanggal">
@@ -638,27 +654,123 @@
                     outlined
                     dense
                     v-model="poForm.referensi_pr"
-                    :options="optPr"
+                    :options="filteredPrOptions"
                     option-label="nomor"
                     placeholder="Pilih PR untuk ditarik itemnya..."
                     bg-color="brand-light"
                     color="brand-primary"
+                    use-input
+                    input-debounce="0"
+                    clearable
                     behavior="menu"
+                    @filter="filterPr"
+                    @clear="onPrSelect(null)"
                     @update:model-value="onPrSelect"
                   >
+                    <!-- TEMPLATE PILIHAN TERPILIH DI DALAM FIELD INPUT -->
+                    <template v-slot:selected-item="scope">
+                      <div class="row items-center no-wrap ellipsis full-width q-gutter-x-xs">
+                        <span class="text-weight-bold text-brand-primary">{{ scope.opt.nomor }}</span>
+                        <span class="text-caption text-grey-8 ellipsis">
+                          ({{ scope.opt.proyek_nama || scope.opt.gudang_nama }})
+                        </span>
+                        <q-badge
+                          v-if="getPrPoInfo(scope.opt)"
+                          dense
+                          color="blue-1"
+                          text-color="blue-10"
+                          class="text-weight-bold q-px-xs"
+                          style="border: 1px solid #90caf9;"
+                        >
+                          Sudah di PO: {{ getPrPoLabel(scope.opt) }}
+                        </q-badge>
+                        <q-badge
+                          v-else
+                          dense
+                          color="green-1"
+                          text-color="green-10"
+                          class="text-weight-bold q-px-xs"
+                          style="border: 1px solid #a5d6a7;"
+                        >
+                          Belum Dibuat PO
+                        </q-badge>
+                      </div>
+                    </template>
+
+                    <!-- TEMPLATE OPSI DALAM MENU POPUP DROPDOWN -->
                     <template v-slot:option="scope">
-                      <q-item v-bind="scope.itemProps">
+                      <q-item
+                        v-bind="scope.itemProps"
+                        class="q-py-sm border-bottom"
+                        :class="getPrPoInfo(scope.opt) ? 'bg-blue-grey-1' : ''"
+                      >
                         <q-item-section>
-                          <q-item-label class="text-weight-bold">{{
-                            scope.opt.nomor
-                          }}</q-item-label>
-                          <q-item-label caption>{{
-                            scope.opt.proyek_nama || scope.opt.gudang_nama
-                          }}</q-item-label>
+                          <div class="row items-center justify-between no-wrap q-mb-xs">
+                            <span class="text-weight-bolder text-subtitle2 text-grey-9">
+                              {{ scope.opt.nomor }}
+                            </span>
+
+                            <!-- BADGE STATUS PR TERHADAP PO -->
+                            <q-badge
+                              v-if="getPrPoInfo(scope.opt)"
+                              color="blue-1"
+                              text-color="blue-10"
+                              class="text-weight-bold q-px-sm q-py-xs rounded-borders"
+                              style="border: 1px solid #90caf9; font-size: 11px;"
+                            >
+                              <q-icon name="check_circle" size="xs" class="q-mr-xs text-blue-8" />
+                              Sudah dibuat di PO ({{ getPrPoLabel(scope.opt) }})
+                            </q-badge>
+                            <q-badge
+                              v-else
+                              color="green-1"
+                              text-color="green-10"
+                              class="text-weight-bold q-px-sm q-py-xs rounded-borders"
+                              style="border: 1px solid #a5d6a7; font-size: 11px;"
+                            >
+                              <q-icon name="schedule" size="xs" class="q-mr-xs text-green-8" />
+                              Belum Dibuat PO
+                            </q-badge>
+                          </div>
+
+                          <div class="row items-center text-caption text-grey-7 q-mb-xs">
+                            <q-icon name="apartment" size="xs" class="q-mr-xs text-grey-6" />
+                            <span class="text-weight-medium">
+                              {{ scope.opt.proyek_nama || scope.opt.gudang_nama || 'Tanpa Nama Proyek/Gudang' }}
+                            </span>
+                          </div>
+
+                          <div
+                            v-if="getPrPoInfo(scope.opt)"
+                            class="row items-center text-caption text-blue-9 text-weight-medium"
+                            style="font-size: 11px;"
+                          >
+                            <q-icon name="receipt_long" size="xs" class="q-mr-xs" />
+                            <span>Status Dokumen PO: <strong>{{ getPrPoInfo(scope.opt).status || 'Draft' }}</strong></span>
+                          </div>
                         </q-item-section>
                       </q-item>
                     </template>
                   </q-select>
+
+                  <!-- NOTIFIKASI INFO BILA PR YANG DIPILIH SUDAH PERNAH DIBUATKAN PO -->
+                  <div
+                    v-if="poForm.referensi_pr && getPrPoInfo(poForm.referensi_pr)"
+                    class="q-mt-sm q-pa-sm rounded-borders bg-blue-1 text-blue-10 text-caption flex items-start"
+                    style="border: 1px solid #90caf9;"
+                  >
+                    <q-icon name="info" size="sm" class="q-mr-sm text-blue-8 q-mt-xs" />
+                    <div>
+                      <div>
+                        PR <strong>{{ poForm.referensi_pr.nomor }}</strong> sudah pernah dibuatkan di:
+                        <strong>{{ getPrPoLabel(poForm.referensi_pr) }}</strong>
+                        (Status PO: <strong>{{ getPrPoInfo(poForm.referensi_pr).status || 'Draft' }}</strong>)
+                      </div>
+                      <div class="text-grey-8 q-mt-xs" style="font-size: 11px;">
+                        Data item PR otomatis ditarik. Anda tetap dapat melanjutkan jika ingin membuat PO terpisah/tambahan dari PR ini.
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <div v-if="poForm.proyek_nama">
@@ -1350,6 +1462,13 @@
                         <td style="padding-right: 8px; width: 10px">:</td>
                         <td class="text-weight-bold">{{ formatDateIndo(selectedPo.tanggal) }}</td>
                       </tr>
+                      <tr v-if="selectedPo.referensi_pr_nomor">
+                        <td class="text-bold text-indigo-10" style="padding-right: 12px; min-width: 80px">
+                          Ref. PR
+                        </td>
+                        <td style="padding-right: 8px; width: 10px">:</td>
+                        <td class="text-weight-bold text-indigo-10 font-mono">{{ selectedPo.referensi_pr_nomor }}</td>
+                      </tr>
                     </table>
                   </div>
                 </div>
@@ -1446,12 +1565,42 @@
 
               <div class="signature-container text-left q-mt-lg">
                 <div class="row justify-between text-center po-signature">
+                  <!-- DIBUAT -->
                   <div class="col-3">
                     <div class="q-mb-xs text-caption uppercase tracking-widest text-weight-bold text-grey-8" style="font-size: 11px;">
                       Dibuat,
                     </div>
-                    <div class="final-sign-space flex flex-center" style="height: 60px">
-                      <!-- Spacer for signature -->
+                    <div class="final-sign-space flex flex-center relative-position" style="height: 80px">
+                      <img
+                        v-if="selectedPo.prepared_by_signature || selectedPo.signatureUrl"
+                        :src="selectedPo.prepared_by_signature || selectedPo.signatureUrl"
+                        class="img-signature-clean"
+                      />
+                      <q-btn
+                        v-if="selectedPo.prepared_by_signature || selectedPo.signatureUrl"
+                        flat
+                        round
+                        dense
+                        icon="close"
+                        color="negative"
+                        size="xs"
+                        class="absolute-top-right q-ma-xs no-print"
+                        style="z-index: 10;"
+                        @click.stop="clearSignature('prepared_by_signature')"
+                      />
+                      <q-btn
+                        v-if="!selectedPo.prepared_by_signature && !selectedPo.signatureUrl"
+                        outline
+                        rounded
+                        dense
+                        no-caps
+                        color="brand-primary"
+                        icon="draw"
+                        label="Ttd"
+                        class="no-print q-px-sm"
+                        style="font-size: 11px;"
+                        @click="openSignaturePad('prepared_by_signature')"
+                      />
                     </div>
                     <div class="signer-name-wrapper">
                       <div class="text-signer-final text-weight-bold uppercase text-indigo-10">
@@ -1469,12 +1618,42 @@
                     </div>
                   </div>
 
+                  <!-- MENGETAHUI -->
                   <div class="col-3">
                     <div class="q-mb-xs text-caption uppercase tracking-widest text-weight-bold text-grey-8" style="font-size: 11px;">
                       Mengetahui,
                     </div>
-                    <div class="final-sign-space flex flex-center" style="height: 60px">
-                      <!-- Spacer for signature -->
+                    <div class="final-sign-space flex flex-center relative-position" style="height: 80px">
+                      <img
+                        v-if="selectedPo.checked_by_signature"
+                        :src="selectedPo.checked_by_signature"
+                        class="img-signature-clean"
+                      />
+                      <q-btn
+                        v-if="selectedPo.checked_by_signature"
+                        flat
+                        round
+                        dense
+                        icon="close"
+                        color="negative"
+                        size="xs"
+                        class="absolute-top-right q-ma-xs no-print"
+                        style="z-index: 10;"
+                        @click.stop="clearSignature('checked_by_signature')"
+                      />
+                      <q-btn
+                        v-if="!selectedPo.checked_by_signature"
+                        outline
+                        rounded
+                        dense
+                        no-caps
+                        color="brand-primary"
+                        icon="draw"
+                        label="Ttd"
+                        class="no-print q-px-sm"
+                        style="font-size: 11px;"
+                        @click="openSignaturePad('checked_by_signature')"
+                      />
                     </div>
                     <div class="signer-name-wrapper">
                       <div class="text-signer-final text-weight-bold uppercase text-indigo-10">
@@ -1488,12 +1667,42 @@
                     </div>
                   </div>
 
+                  <!-- DISETUJUI -->
                   <div class="col-3">
                     <div class="q-mb-xs text-caption uppercase tracking-widest text-weight-bold text-grey-8" style="font-size: 11px;">
                       Disetujui,
                     </div>
-                    <div class="final-sign-space flex flex-center" style="height: 60px">
-                      <!-- Spacer for signature or checkmark -->
+                    <div class="final-sign-space flex flex-center relative-position" style="height: 80px">
+                      <img
+                        v-if="selectedPo.approved_by_signature || selectedPo.approved_signature || selectedPo.signature_approved"
+                        :src="selectedPo.approved_by_signature || selectedPo.approved_signature || selectedPo.signature_approved"
+                        class="img-signature-clean"
+                      />
+                      <q-btn
+                        v-if="selectedPo.approved_by_signature || selectedPo.approved_signature || selectedPo.signature_approved"
+                        flat
+                        round
+                        dense
+                        icon="close"
+                        color="negative"
+                        size="xs"
+                        class="absolute-top-right q-ma-xs no-print"
+                        style="z-index: 10;"
+                        @click.stop="clearSignature('approved_by_signature')"
+                      />
+                      <q-btn
+                        v-if="!selectedPo.approved_by_signature && !selectedPo.approved_signature && !selectedPo.signature_approved"
+                        outline
+                        rounded
+                        dense
+                        no-caps
+                        color="brand-primary"
+                        icon="draw"
+                        label="Ttd"
+                        class="no-print q-px-sm"
+                        style="font-size: 11px;"
+                        @click="openSignaturePad('approved_by_signature')"
+                      />
                     </div>
                     <div class="signer-name-wrapper">
                       <div class="text-signer-final text-weight-bold uppercase text-indigo-10">
@@ -1507,12 +1716,42 @@
                     </div>
                   </div>
 
+                  <!-- APPROVED SUPPLIER -->
                   <div class="col-3">
                     <div class="q-mb-xs text-caption uppercase tracking-widest text-weight-bold text-grey-8" style="font-size: 11px;">
                       Approved Supplier,
                     </div>
-                    <div class="final-sign-space flex flex-center" style="height: 60px">
-                      <!-- Spacer for signature supplier -->
+                    <div class="final-sign-space flex flex-center relative-position" style="height: 80px">
+                      <img
+                        v-if="selectedPo.approved_supplier_signature || selectedPo.supplier_signature"
+                        :src="selectedPo.approved_supplier_signature || selectedPo.supplier_signature"
+                        class="img-signature-clean"
+                      />
+                      <q-btn
+                        v-if="selectedPo.approved_supplier_signature || selectedPo.supplier_signature"
+                        flat
+                        round
+                        dense
+                        icon="close"
+                        color="negative"
+                        size="xs"
+                        class="absolute-top-right q-ma-xs no-print"
+                        style="z-index: 10;"
+                        @click.stop="clearSignature('approved_supplier_signature')"
+                      />
+                      <q-btn
+                        v-if="!selectedPo.approved_supplier_signature && !selectedPo.supplier_signature"
+                        outline
+                        rounded
+                        dense
+                        no-caps
+                        color="brand-primary"
+                        icon="draw"
+                        label="Ttd"
+                        class="no-print q-px-sm"
+                        style="font-size: 11px;"
+                        @click="openSignaturePad('approved_supplier_signature')"
+                      />
                     </div>
                     <div class="signer-name-wrapper">
                       <div class="text-signer-final text-weight-bold uppercase text-indigo-10">
@@ -1536,11 +1775,81 @@
         </q-card-section>
       </q-card>
     </q-dialog>
+    <!-- SIGNATURE PAD DIALOG -->
+    <q-dialog v-model="showPad" persistent backdrop-filter="blur(4px)">
+      <q-card style="width: 500px; max-width: 95vw" class="rounded-20 shadow-24">
+        <q-card-section class="row items-center q-pb-none bg-brand-primary text-white q-pa-md">
+          <div class="text-h6 text-weight-bold uppercase font-10">Tanda Tangan Otorisasi PO</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+        <q-card-section class="q-pa-lg">
+          <!-- Pengatur Ketebalan Pen -->
+          <div class="row items-center q-col-gutter-md q-mb-md">
+            <div class="col-auto text-weight-bold text-grey-8 font-10">
+              KETEBALAN PENA:
+            </div>
+            <div class="col">
+              <q-slider
+                v-model="penThickness"
+                :min="1"
+                :max="10"
+                :step="0.5"
+                label
+                color="brand-primary"
+                class="q-px-sm"
+              />
+            </div>
+            <div class="col-auto text-caption text-grey-6 text-weight-bold" style="width: 50px;">
+              {{ penThickness }} px
+            </div>
+          </div>
+
+          <div class="signature-pad-wrapper shadow-inner bg-white border-dashed" style="border: 2px dashed #ccc; border-radius: 8px;">
+            <canvas ref="signatureCanvas" class="signature-canvas"></canvas>
+          </div>
+        </q-card-section>
+        <q-card-actions class="q-px-md q-py-md bg-grey-1 row items-center justify-between q-col-gutter-sm">
+          <!-- Left side: Upload File button -->
+          <div class="col-12 col-sm-auto text-center text-sm-left">
+            <q-btn
+              outline
+              rounded
+              color="indigo-10"
+              icon="upload_file"
+              label="Upload File"
+              no-caps
+              class="text-weight-bold full-width"
+              @click="triggerFileInput"
+            />
+            <input
+              type="file"
+              ref="fileInput"
+              style="display: none"
+              accept="image/*"
+              @change="handleFileUpload"
+            />
+          </div>
+          <!-- Right side: Reset & Save buttons -->
+          <div class="col-12 col-sm-auto row items-center justify-center justify-sm-end q-gutter-sm">
+            <q-btn flat label="Reset" color="grey-7" @click="clearPad" rounded />
+            <q-btn
+              unelevated
+              label="Simpan & Pasang"
+              color="brand-primary"
+              @click="saveManualSignature"
+              rounded
+              class="text-weight-bold"
+            />
+          </div>
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue'
 import { db } from 'src/boot/firebase'
 import {
   collection,
@@ -1558,6 +1867,7 @@ import {
 import { useQuasar } from 'quasar'
 import { useAuthStore } from 'src/stores/auth'
 import html2pdf from 'html2pdf.js'
+import SignaturePad from 'signature_pad'
 
 // ── Init ──────────────────────────────────────────────────────────────────
 const $q = useQuasar()
@@ -1724,7 +2034,87 @@ const canAction = (actionType) => {
 }
 
 // ── Computed ──────────────────────────────────────────────────────────────
+// ── PR & PO Matching Helpers ───────────────────────────────────────────────
+const getPrPoList = (pr) => {
+  if (!pr) return []
+  const matched = poRows.value.filter((po) => {
+    // 1. Direct field match
+    if (po.referensi_pr_id && po.referensi_pr_id === pr.id) return true
+    if (po.referensi_pr_nomor && po.referensi_pr_nomor === pr.nomor) return true
+    if (pr.po_id && pr.po_id === po.id) return true
+    if (pr.po_nomor && pr.po_nomor === po.nomor) return true
+
+    // 2. Legacy fallback match for POs created prior to referensi_pr fields
+    const prLoc = (pr.proyek_nama || pr.gudang_nama || '').toLowerCase().trim().replace(/^gudang\s+/i, '')
+    const poLoc = (po.proyek_nama || '').toLowerCase().trim().replace(/^gudang\s+/i, '')
+    const locMatches = prLoc && poLoc && (prLoc === poLoc || prLoc.includes(poLoc) || poLoc.includes(prLoc))
+    if (!locMatches) return false
+
+    const spkMatches = po.no_spk && pr.no_reff && po.no_spk === pr.no_reff
+    const idMatches =
+      (po.gudang_id && (po.gudang_id === pr.gudang_id || po.gudang_id === pr.proyek_id)) ||
+      (po.proyek_id && (po.proyek_id === pr.proyek_id || po.proyek_id === pr.gudang_id))
+    const itemMatches =
+      Array.isArray(pr.items) &&
+      Array.isArray(po.items) &&
+      pr.items.length > 0 &&
+      po.items.length > 0 &&
+      po.items.some((pi) =>
+        pr.items.some(
+          (ri) =>
+            (pi.nama_barang && (pi.nama_barang === ri.nama_barang || pi.nama_barang === ri.deskripsi)) ||
+            (pi.id_barang && pi.id_barang === ri.id_barang)
+        )
+      )
+
+    return spkMatches || idMatches || itemMatches
+  })
+
+  if (matched.length > 0) return matched
+
+  if (pr.status === 'Ordered' || pr.po_nomor) {
+    return [
+      {
+        nomor: pr.po_nomor || 'Sudah di PO',
+        status: 'Ordered',
+      },
+    ]
+  }
+
+  return []
+}
+
+const getPrPoInfo = (pr) => {
+  const list = getPrPoList(pr)
+  return list.length > 0 ? list[0] : null
+}
+
+const getPrPoLabel = (pr) => {
+  const list = getPrPoList(pr)
+  if (list.length === 0) return ''
+  return list.map((p) => p.nomor).filter(Boolean).join(', ')
+}
+
+const prFilterText = ref('')
+const filterPr = (val, update) => {
+  update(() => {
+    prFilterText.value = (val || '').toLowerCase()
+  })
+}
+
 const optPr = computed(() => rows.value.filter((r) => ['Approved', 'Ordered'].includes(r.status)))
+
+const filteredPrOptions = computed(() => {
+  const needle = prFilterText.value.trim()
+  if (!needle) return optPr.value
+  return optPr.value.filter((r) => {
+    const no = (r.nomor || '').toLowerCase()
+    const loc = (r.proyek_nama || r.gudang_nama || '').toLowerCase()
+    const poList = getPrPoList(r)
+    const poNos = poList.map((p) => (p.nomor || '').toLowerCase()).join(' ')
+    return no.includes(needle) || loc.includes(needle) || poNos.includes(needle)
+  })
+})
 
 // ── Fetch Data ────────────────────────────────────────────────────────────
 const fetchData = async () => {
@@ -1794,6 +2184,14 @@ const openEditPoForm = (row) => {
     ppn_nominal: row.ppn_nominal || 0,
     id: row.id,
   }
+  if (row.referensi_pr_id || row.referensi_pr_nomor) {
+    poForm.value.referensi_pr =
+      rows.value.find(
+        (r) =>
+          (row.referensi_pr_id && r.id === row.referensi_pr_id) ||
+          (row.referensi_pr_nomor && r.nomor === row.referensi_pr_nomor)
+      ) || null
+  }
   poViewMode.value = 'form'
 }
 
@@ -1840,10 +2238,11 @@ const onSupplierSelect = (supp) => {
 
 const onPrSelect = (prData) => {
   if (prData) {
+    poForm.value.referensi_pr = prData
     poForm.value.proyek_nama = prData.proyek_nama || prData.gudang_nama || ''
     poForm.value.no_spk = prData.no_reff || ''
     poForm.value.requested_by = prData.pemohon?.nama || prData.requestor_nama || ''
-    poForm.value.items = prData.items.map((it) => ({
+    poForm.value.items = (prData.items || []).map((it) => ({
       id_barang: it.id_barang,
       nama_barang: it.nama_barang || it.deskripsi,
       desc: '',
@@ -1852,6 +2251,7 @@ const onPrSelect = (prData) => {
       harga_satuan: it.estimasi_harga || it.est_harga || 0,
     }))
   } else {
+    poForm.value.referensi_pr = null
     poForm.value.proyek_nama = ''
     poForm.value.no_spk = ''
     poForm.value.requested_by = ''
@@ -1909,6 +2309,8 @@ const savePo = async () => {
       updatedAt: serverTimestamp(),
     }
     if (poForm.value.referensi_pr) {
+      payload.referensi_pr_id = poForm.value.referensi_pr.id || ''
+      payload.referensi_pr_nomor = poForm.value.referensi_pr.nomor || ''
       payload.gudang_id =
         poForm.value.referensi_pr.gudang_id || poForm.value.referensi_pr.proyek_id || ''
       payload.proyek_id =
@@ -1921,11 +2323,35 @@ const savePo = async () => {
     if (poForm.value.id) {
       // Mode Edit: Update existing document
       await updateDoc(doc(db, 'purchase_order', poForm.value.id), payload)
+      if (poForm.value.referensi_pr?.id) {
+        try {
+          await updateDoc(doc(db, 'permintaan_barang', poForm.value.referensi_pr.id), {
+            status: 'Ordered',
+            po_id: poForm.value.id,
+            po_nomor: payload.nomor,
+            updatedAt: serverTimestamp(),
+          })
+        } catch (errPr) {
+          console.warn('Gagal update status PR:', errPr)
+        }
+      }
       $q.notify({ type: 'positive', message: 'Purchase Order berhasil diperbarui!' })
     } else {
       // Mode Baru: Create new document
       payload.createdAt = serverTimestamp()
-      await addDoc(collection(db, 'purchase_order'), payload)
+      const newPoRef = await addDoc(collection(db, 'purchase_order'), payload)
+      if (poForm.value.referensi_pr?.id) {
+        try {
+          await updateDoc(doc(db, 'permintaan_barang', poForm.value.referensi_pr.id), {
+            status: 'Ordered',
+            po_id: newPoRef.id,
+            po_nomor: payload.nomor,
+            updatedAt: serverTimestamp(),
+          })
+        } catch (errPr) {
+          console.warn('Gagal update status PR:', errPr)
+        }
+      }
       $q.notify({ type: 'positive', message: 'Purchase Order berhasil diterbitkan!' })
     }
 
@@ -1993,6 +2419,18 @@ const confirmHapusPo = (row) => {
     ok: { color: 'negative', label: 'Ya, Hapus', unelevated: true },
   }).onOk(async () => {
     try {
+      if (row.referensi_pr_id) {
+        try {
+          await updateDoc(doc(db, 'permintaan_barang', row.referensi_pr_id), {
+            status: 'Approved',
+            po_id: null,
+            po_nomor: null,
+            updatedAt: serverTimestamp(),
+          })
+        } catch (errRev) {
+          console.warn('Gagal revert status PR:', errRev)
+        }
+      }
       await deleteDoc(doc(db, 'purchase_order', row.id))
       $q.notify({ type: 'positive', message: 'PO telah dihapus' })
     } catch (e) {
@@ -2017,6 +2455,193 @@ const confirmHapusPr = (row) => {
       $q.notify({ type: 'negative', message: 'Gagal menghapus PR.' })
     }
   })
+}
+
+
+// ── Signature Pad States ───────────────────────────────────────────────────
+const showPad = ref(false)
+const penThickness = ref(2.5)
+const signatureCanvas = ref(null)
+const fileInput = ref(null)
+const activeSignatureField = ref('')
+let signaturePad = null
+
+const updatePenThickness = () => {
+  if (signaturePad) {
+    const data = signaturePad.toData()
+    const targetMin = Number(penThickness.value) * 0.75
+    const targetMax = Number(penThickness.value) * 1.25
+    signaturePad.minWidth = targetMin
+    signaturePad.maxWidth = targetMax
+    signaturePad.clear()
+    signaturePad.fromData(data)
+  }
+}
+
+watch(penThickness, () => {
+  updatePenThickness()
+})
+
+const initSignaturePad = () => {
+  if (signatureCanvas.value) {
+    const canvas = signatureCanvas.value
+    canvas.width = canvas.parentElement.offsetWidth
+    canvas.height = 200
+    const targetMin = Number(penThickness.value) * 0.75
+    const targetMax = Number(penThickness.value) * 1.25
+    signaturePad = new SignaturePad(canvas, {
+      penColor: '#000000',
+      minWidth: targetMin,
+      maxWidth: targetMax,
+    })
+  } else {
+    signaturePad = null
+  }
+}
+
+const openSignaturePad = (field) => {
+  activeSignatureField.value = field
+  showPad.value = true
+  nextTick(() => {
+    initSignaturePad()
+  })
+}
+
+const clearPad = () => signaturePad?.clear()
+
+const saveManualSignature = async () => {
+  if (!signaturePad || signaturePad.isEmpty()) {
+    $q.notify({ type: 'warning', message: 'Tanda tangan masih kosong!', position: 'top' })
+    return
+  }
+  if (!selectedPo.value || !selectedPo.value.id) return
+
+  const base64 = signaturePad.toDataURL('image/png')
+  const field = activeSignatureField.value
+
+  $q.loading.show({ message: 'Menyimpan tanda tangan...' })
+  try {
+    const payload = {
+      [field]: base64,
+      updatedAt: serverTimestamp(),
+    }
+
+    await updateDoc(doc(db, 'purchase_order', selectedPo.value.id), payload)
+    selectedPo.value = { ...selectedPo.value, ...payload }
+    showPad.value = false
+
+    $q.notify({
+      type: 'positive',
+      message: 'Tanda tangan berhasil dipasang!',
+      position: 'top',
+    })
+  } catch (e) {
+    console.error(e)
+    $q.notify({ type: 'negative', message: 'Gagal menyimpan tanda tangan: ' + e.message, position: 'top' })
+  } finally {
+    $q.loading.hide()
+  }
+}
+
+const clearSignature = (field) => {
+  if (!selectedPo.value || !selectedPo.value.id) return
+
+  $q.dialog({
+    title: 'Hapus Tanda Tangan',
+    message: 'Apakah Anda yakin ingin menghapus tanda tangan ini?',
+    cancel: { flat: true, label: 'Batal', color: 'grey-7' },
+    ok: {
+      unelevated: true,
+      rounded: true,
+      label: 'Ya, Hapus',
+      color: 'negative',
+      class: 'text-weight-bold',
+    },
+  }).onOk(async () => {
+    $q.loading.show({ message: 'Menghapus tanda tangan...' })
+    try {
+      const payload = {
+        [field]: '',
+        updatedAt: serverTimestamp(),
+      }
+      if (field === 'prepared_by_signature') payload.signatureUrl = ''
+      if (field === 'approved_by_signature') {
+        payload.approved_signature = ''
+        payload.signature_approved = ''
+      }
+      if (field === 'approved_supplier_signature') payload.supplier_signature = ''
+
+      await updateDoc(doc(db, 'purchase_order', selectedPo.value.id), payload)
+      selectedPo.value = { ...selectedPo.value, ...payload }
+
+      $q.notify({
+        type: 'positive',
+        message: 'Tanda tangan berhasil dihapus!',
+        position: 'top',
+      })
+    } catch (e) {
+      console.error(e)
+      $q.notify({ type: 'negative', message: 'Gagal menghapus tanda tangan: ' + e.message, position: 'top' })
+    } finally {
+      $q.loading.hide()
+    }
+  })
+}
+
+const triggerFileInput = () => {
+  fileInput.value?.click()
+}
+
+const handleFileUpload = (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+
+  const reader = new FileReader()
+  reader.readAsDataURL(file)
+  reader.onload = (e) => {
+    const img = new Image()
+    img.src = e.target.result
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      const maxWidth = 400
+      const scale = maxWidth / img.width
+      canvas.width = maxWidth
+      canvas.height = img.height * scale
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+      const base64 = canvas.toDataURL('image/png', 0.8)
+      
+      saveUploadedSignature(base64)
+    }
+  }
+}
+
+const saveUploadedSignature = async (base64) => {
+  if (!selectedPo.value || !selectedPo.value.id) return
+  const field = activeSignatureField.value
+
+  $q.loading.show({ message: 'Mengunggah tanda tangan...' })
+  try {
+    const payload = {
+      [field]: base64,
+      updatedAt: serverTimestamp(),
+    }
+
+    await updateDoc(doc(db, 'purchase_order', selectedPo.value.id), payload)
+    selectedPo.value = { ...selectedPo.value, ...payload }
+    showPad.value = false
+
+    $q.notify({
+      type: 'positive',
+      message: 'Tanda tangan berhasil diunggah!',
+      position: 'top',
+    })
+  } catch (e) {
+    console.error(e)
+    $q.notify({ type: 'negative', message: 'Gagal mengunggah tanda tangan: ' + e.message, position: 'top' })
+  } finally {
+    $q.loading.hide()
+  }
 }
 
 // ── Preview PO ────────────────────────────────────────────────────────────
@@ -2834,4 +3459,30 @@ onUnmounted(() => {
     break-inside: avoid;
   }
 }
+
+.signature-pad-wrapper {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  background-color: #fafafa;
+  overflow: hidden;
+}
+.signature-canvas {
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+}
+.po-signature .col-3 {
+  flex: 1;
+  text-align: center;
+  max-width: 25%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+.po-signature .col-3 > * {
+  align-self: center;
+}
+
 </style>

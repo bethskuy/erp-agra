@@ -1141,6 +1141,9 @@ const handleApproval = (row, status, alasan = null) => {
       if (isApprove) {
         payload.approved_at = serverTimestamp()
         payload.approved_by_name = userData.value?.nama || authStore.user?.nama || 'Direktur'
+        if (userData.value?.signatureUrl && !row.approved_by_signature) {
+          payload.approved_by_signature = userData.value.signatureUrl
+        }
       } else {
         payload.rejected_at = serverTimestamp()
         payload.rejected_by_name = userData.value?.nama || authStore.user?.nama || 'Direktur'
